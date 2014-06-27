@@ -4,7 +4,7 @@
 # readfpwscfin
 # readfpwscfout
 ##########################################################################
-version=0.9
+version=1.0
 versiontext='# mod_pwscf.py version {:.1f}'.format(version)
 #----------------------------------------------------------------------
 # import
@@ -14,13 +14,44 @@ import math
 import string
 import copy
 import mod_calc as calc
+from numpy import matrix
+from numpy import linalg
 
 #----------------------------------------------------------------------
 # module mod_xyz
 #----------------------------------------------------------------------
 class molecule_rw:
-    # write xyz file
+    #############################################################
+    # return functions
+    #############################################################                      
+    def __pwscfinit__(self):
+        self.celldm=float(1.0)
+    
+    def Rcelldm(self):
+        return self.celldm
+
+    #############################################################
+    # modify functions
+    #############################################################    
+    # set celldm
+    def set_celldm(self,celldm):
+        self.celldm=celldm
+        return
+
+    # write pwscf output format
     def writepwscf(self,filename="",status='w'):
+        # calculate relative coordinates
+        if not hasattr(self.at[0],"coord_rel"):
+            vecM = matrix( [ [self.Rvec()[0][0],self.Rvec()[1][0],self.Rvec()[2][0]],
+                             [self.Rvec()[0][1],self.Rvec()[1][1],self.Rvec()[2][1]],
+                             [self.Rvec()[0][2],self.Rvec()[1][2],self.Rvec()[2][2]] ])
+            for cntat in range(self.Rnatoms()):
+                tmp = matrix([ [self.at[cntat].Rcoord()[0]],
+                               [self.at[cntat].Rcoord()[1]],
+                               [self.at[cntat].Rcoord()[2]] ])
+                res=linalg.solve(vecM, tmp)
+                self.at[cntat].coord_rel=[float(res[0]),float(res[1]),float(res[2])]
+                print self.at[cntat].coord_rel
         # open file if present
         if filename == "":
             f=sys.stdout
@@ -36,8 +67,8 @@ class molecule_rw:
         if hasattr(mol, 'system'):
             print >>f, "&system"
             for i in range(len(mol.system)):
-                if mol.system[i][0]=="celldm(1)":
-                    print >>f, ('{:s}={:s}').format(mol.system[i][0],mol.system[i][1]/b2A)
+                if mol.system[i][0]=="celldm(1)": 
+                    print >>f, ('{:s}={:f}').format(mol.system[i][0],mol.Rcelldm()/calc.b2A)
                 else:
                     print >>f, ('{:s}={:s}').format(mol.system[i][0],mol.system[i][1])
             print >>f, "/"
@@ -59,34 +90,28 @@ class molecule_rw:
             for i in range(len(mol.species)):
                 print >>f, ('{:s}').format(mol.species[i]),
             print >>f
-        # print relative coordinates if possible
-        # TODO otherwise calculate them at the beginning
-        if hasattr(mol.at[0],"coord_rel"):
-            print >>f
-            print >>f, "ATOMIC_POSITIONS"
-            for cntat in range(mol.natoms):
-                print >>f ,(
-                    '{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                        mol.at[cntat].name, 
-                        mol.at[cntat].coord_rel[0], 
-                        mol.at[cntat].coord_rel[1], 
-                        mol.at[cntat].coord_rel[2]
-                        )
+        # print relative coordinates
+        print >>f
+        print >>f, "ATOMIC_POSITIONS"
+        for cntat in range(mol.Rnatoms()):
+            print >>f ,(
+                '{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+                    mol.at[cntat].Rname(),
+                    mol.at[cntat].coord_rel[0], 
+                    mol.at[cntat].coord_rel[1], 
+                    mol.at[cntat].coord_rel[2]
                     )
-        if hasattr(mol.at[0],"vec"):
-            if (not hasattr(mol,"celldm")): 
-                mol.celldm=float(1.0)
-                print mol.celldm
-            print >>f
-            print >>f, "CELL_PARAMETERS"
-            for cntvec in range(0,3):
-                print >>f , (
-                    '{:15.10f} {:15.10f} {:15.10f}'.format(
-                        mol.vec[cntvec][0]/mol.celldm, 
-                        mol.vec[cntvec][1]/mol.celldm, 
-                        mol.vec[cntvec][2]/mol.celldm
-                        )
+                )
+        print >>f
+        print >>f, "CELL_PARAMETERS"
+        for cntvec in range(0,3):
+            print >>f , (
+                '{:15.10f} {:15.10f} {:15.10f}'.format(
+                    mol.Rvec()[cntvec][0]/mol.Rcelldm(), 
+                    mol.Rvec()[cntvec][1]/mol.Rcelldm(), 
+                    mol.Rvec()[cntvec][2]/mol.Rcelldm()
                     )
+                )
         if hasattr(mol,"kpoints"):
             print >>f
             print >>f, "K_POINTS"
@@ -94,12 +119,11 @@ class molecule_rw:
         f.close()
         return
     
-    # read molecules in xyz file
+    # read molecules in pwscf input file format
     def readpwscfin(self,filename):
         # set molecule
         molecules=[]
         natoms=0
-        celldm=0.0
         vec=[]
         # read file
         file=open(filename, 'r')
@@ -127,11 +151,11 @@ class molecule_rw:
             #
             # Do READ IN
             #
-            # read coordinates
+            # read vectors
             if  opt=="readvec":
-                vec.append([float(linesplit[0])*mol.celldm,
-                            float(linesplit[1])*mol.celldm,
-                            float(linesplit[2])*mol.celldm])
+                vec.append([float(linesplit[0])*mol.Rcelldm(),
+                            float(linesplit[1])*mol.Rcelldm(),
+                            float(linesplit[2])*mol.Rcelldm()])
                 cntvec+=1
                 if cntvec==3: opt=""
             # read coordinates
@@ -161,7 +185,7 @@ class molecule_rw:
                         s=mol.system[i]
                         if   s[0]=="nat":       natoms=int(s[1])
                         elif s[0]=="ntyp":      ntypes=int(s[1])
-                        elif s[0]=="celldm(1)": mol.celldm=float(s[1])*calc.b2A
+                        elif s[0]=="celldm(1)": mol.set_celldm(float(s[1])*calc.b2A)
                 else:
                     for i in range(len(linesplit)):
                         linesplit[i]=linesplit[i].replace(",","")
@@ -220,12 +244,11 @@ class molecule_rw:
         # return molecules
         return molecules
 
-    # read molecules in xyz file
+    # read molecules in pwscf output file format
     def readpwscfout(self,filename):
         # set molecule
         molecules=[]
         natoms=0
-        celldm=0.0
         vec=[]
         # read file
         file=open(filename, 'r')
@@ -264,9 +287,7 @@ class molecule_rw:
                     #mol.kpoints=[]
                     #mol.species=[]
                 # attribute global attributes to molecule
-                mol.natoms=natoms
-                mol.ntypes=ntypes
-                mol.celldm=celldm*calc.b2A
+                mol.set_celldm(celldm*calc.b2A)
             #
             # Do READ IN
             #
@@ -279,7 +300,6 @@ class molecule_rw:
                 if cntvec==3: opt=""
             # read coordinates
             if  opt=="readspecies":
-                #mol.species.append(line)
                 cnttypes+=1
                 if cnttypes==ntypes: opt=""
             # read unitvector
@@ -300,9 +320,9 @@ class molecule_rw:
                     cntat=0
                     # append mol to molecules
                     # set periodicity
-                    mol.set_periodicity(calc.scal_vecmult(mol.celldm,vec[0]) ,
-                                        calc.scal_vecmult(mol.celldm,vec[1]) ,
-                                        calc.scal_vecmult(mol.celldm,vec[2]) )
+                    mol.set_periodicity(calc.scal_vecmult(mol.Rcelldm(),vec[0]) ,
+                                        calc.scal_vecmult(mol.Rcelldm(),vec[1]) ,
+                                        calc.scal_vecmult(mol.Rcelldm(),vec[2]) )
                     # set real coordinates
                     mol.rel2real()
                     # set molecule and append
@@ -315,7 +335,7 @@ class molecule_rw:
                 elif len(linesplit)>3 and linesplit[0:4]==["number","of","atomic","types"]:
                     ntypes=int(linesplit[5])                        
                 elif len(linesplit)>1 and linesplit[0]=="celldm(1)=":
-                    celldm=float(linesplit[1])
+                    mol.set_celldm(float(linesplit[1])*calc.b2A)
             #
             # read main options
             #

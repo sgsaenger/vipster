@@ -13,4 +13,6 @@ mod_extend.py	  -- module to extend the molecule
 mod_lmp.py	  -- modules to read and write files
 mod_pwscf.py	  --  &&
 mod_xyz.py        --  &&
+
+class_molecule.py -- extention to class_molecule.py to cut nanocrystals
  
