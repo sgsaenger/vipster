@@ -10,7 +10,9 @@ It contains:
 class_molecule.py -- main module file with molecule class
 mod_calc.py       -- module with calculation functions
 mod_extend.py	  -- module to extend the molecule
-mod_lmp.py	  -- modules to read and write files
-mod_pwscf.py	  --  &&
-mod_xyz.py        --  &&
+mod_lmp.py	  -- modules to read and write files (LAMMPS)
+mod_pwscf.py	  --  &&                             (pwscf input and output)
+mod_xyz.py        --  &&                             (xyz)
+
+class_molecule.py -- extention to class_molecule.py to cut nanocrystals
  

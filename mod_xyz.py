@@ -3,7 +3,7 @@
 # writexyz
 # readfxyz
 ##########################################################################
-version=3.2
+version=3.3
 versiontext='# mod_xyz.py version {:.1f}'.format(version)
 #----------------------------------------------------------------------
 # import
@@ -25,15 +25,15 @@ class molecule_rw:
         else:
             f=open(filename, status)
         mol=self
-        print >>f, mol.natoms
-        print >>f, mol.comment
+        print >>f, mol.Rnatoms()
+        print >>f, mol.Rcomment()
         for cntat in range(0,mol.natoms):
             print >>f ,(
                 '{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                    mol.at[cntat].name, 
-                    mol.at[cntat].coord[0], 
-                    mol.at[cntat].coord[1], 
-                    mol.at[cntat].coord[2]
+                    mol.at[cntat].Rname(), 
+                    mol.at[cntat].Rcoord()[0], 
+                    mol.at[cntat].Rcoord()[1], 
+                    mol.at[cntat].Rcoord()[2]
                     )
                 )
         f.close()

@@ -25,8 +25,15 @@ import mod_calc as calc # several functions
 # MOLECULE CLASS
 ######################################################################
 class molecule_extend():
-    
+    #############################################################
+    # return functions
+    ############################################################# 
+    def Rnmol(self):
+        return len(self.mol)
 
+    #############################################################
+    # modify functions
+    #############################################################    
     # extend molecule
     def extend(self):
         if not hasattr(self, "mol"):

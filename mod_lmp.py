@@ -3,7 +3,7 @@
 # writexyz
 # readfxyz
 ##########################################################################
-version=0.9
+version=1.0
 versiontext='# mod_lmp.py version {:.1f}'.format(version)
 #----------------------------------------------------------------------
 # import
@@ -21,8 +21,8 @@ class molecule_rw:
     def writelmp(self,filename="",status='w'):
         ndim=calc.ndim
         # define vec and offset
-        v=self.vec
-        o=self.offset
+        v=self.Rvec()
+        o=self.Roffset()
         # check if vector is correct for lammps
         if not (v[1][0]==0.0 and v[2][0]==0.0 and v[2][1]==0.0): 
             print "vectors are not defined correctly for a lammps file"
@@ -36,10 +36,10 @@ class molecule_rw:
         print >>f
         print >>f
         # numbers
-        print >>f, ("{:d} atoms".format(mol.natoms))
+        print >>f, ("{:d} atoms".format(mol.Rnatoms()))
         print >>f
         # types
-        print >>f, ("{:d} atom types".format(mol.ntypes))
+        print >>f, ("{:d} atom types".format(mol.Rntypes()))
         print >>f
         # vectors
         if not (v[0][1]==0.0 and v[0][2]==0.0 and v[1][2]==0.0):
@@ -52,25 +52,25 @@ class molecule_rw:
         print >>f
         # atomtypes # CHANGE
         print >> f, "Masses"
-        for cnttype in range(mol.ntypes):
+        for cnttype in range(mol.Rntypes()):
             print >>f ,(
                 '{:6d} {:f} #{:s}'.format(
                     cnttype+1,
-                    self.type_number2weight(mol.typelist[cnttype]),
-                    self.type_weight2name(self.type_number2weight(mol.typelist[cnttype])),
+                    self.type_number2weight(mol.Rtypelist()[cnttype]),
+                    self.type_weight2name(self.type_number2weight(mol.Rtypelist()[cnttype])),
                     )
                 )       
         print >>f
         # atoms
         print >> f, "Atoms"
-        for cntat in range(mol.natoms):
+        for cntat in range(mol.Rnatoms()):
             print >>f ,(
                 '{:6d} {:4d} {:15.10f} {:15.10f} {:15.10f}'.format(
                     cntat+1, 
-                    mol.at[cntat].tid+1,
-                    mol.at[cntat].coord[0], 
-                    mol.at[cntat].coord[1], 
-                    mol.at[cntat].coord[2]
+                    mol.at[cntat].Rtid()+1,
+                    mol.at[cntat].Rcoord()[0], 
+                    mol.at[cntat].Rcoord()[1], 
+                    mol.at[cntat].Rcoord()[2]
                     )
                 )
         print >>f

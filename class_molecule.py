@@ -53,6 +53,9 @@ class molecule(mxyz.molecule_rw,mpw.molecule_rw,mlmp.molecule_rw,mext.molecule_e
 
     # initialize
     def __init__(self):           
+        # other inits
+        mpw.molecule_rw.__pwscfinit__(self)
+        # id
         self.id=id(self)
         # set molecule info
         self.natoms=0
@@ -66,6 +69,44 @@ class molecule(mxyz.molecule_rw,mpw.molecule_rw,mlmp.molecule_rw,mext.molecule_e
         self.vec=[[0.0 for x in xrange(0,ndim)]for x in xrange(0,ndim)]
         self.offset=[0.0,0.0,0.0]
 
+    #############################################################
+    # return functions
+    #############################################################                      
+    # return id
+    def Rid(self):
+        return self.id
+
+    # return at
+    def Rat(self):
+        return self.at
+
+    # return periodicity vectors
+    def Rvec(self):
+        return self.vec       
+        
+    # return offset vector
+    def Roffset(self):
+        return self.offset
+        
+    # return natoms
+    def Rnatoms(self):
+        return self.natoms
+        
+    # return ntypes
+    def Rntypes(self):
+        return self.ntypes
+        
+    # return typelist
+    def Rtypelist(self):
+        return self.typelist
+        
+    # return typelist
+    def Rcomment(self):
+        return self.comment
+
+    #############################################################
+    # modify functions
+    #############################################################    
     # append atom
     def append_atom_coo(self,type,x,y,z):
         i=len(self.at)
@@ -137,6 +178,19 @@ class molecule(mxyz.molecule_rw,mpw.molecule_rw,mlmp.molecule_rw,mext.molecule_e
         self.vec[1]=vec1
         self.vec[2]=vec2
         self.offset=off
+        return
+    
+    # set periodicity vectors separately
+    def set_vecs(self,a=[0.0,0.0,0.0],b=[0.0,0.0,0.0],c=[0.0,0.0,0.0],offset=[0.0,0.0,0.0]):
+        if not (a[0]==0.0 and a[1]==0.0 and a[2]==0.0):
+            self.vec[0]=a
+        if not (b[0]==0.0 and b[1]==0.0 and b[2]==0.0):
+            self.vec[1]=b
+        if not (c[0]==0.0 and c[1]==0.0 and c[2]==0.0):
+            self.vec[2]=c
+        o=offset
+        if not (o[0]==0.0 and o[1]==0.0 and o[2]==0.0):
+            self.offset=offset
         return
 
     # set number range
@@ -245,8 +299,6 @@ class molecule(mxyz.molecule_rw,mpw.molecule_rw,mlmp.molecule_rw,mext.molecule_e
             self.offset[d]=self.offset[d]*factor[d]    
         return
 
-    
-
 ######################################################################
 # ATOM CLASS
 ######################################################################
@@ -262,6 +314,26 @@ class molecule(mxyz.molecule_rw,mpw.molecule_rw,mlmp.molecule_rw,mext.molecule_e
             self.mult=[mx,my,mz]
             self.charge=atomcharge
 
+        #############################################################
+        # return functions
+        #############################################################                      
+        def Rid(self):
+            return self.id
+
+        def Rname(self):
+            return self.name
+
+        def Rnumber(self):
+            return self.number
+
+        def Rtid(self):
+            return self.tid
+
+        def Rcoord(self):
+            return self.coord
+        #############################################################
+        # return functions
+        #############################################################                      
         # set positon and name/number
         def set(self,type,x,y,z):
             if type.isdigit():
