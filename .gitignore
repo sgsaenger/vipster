@@ -56,3 +56,6 @@ docs/_build/
 *.xyz
 *.pwi
 *.pwo
+
+# vim swap files
+*.swp
