@@ -3,84 +3,41 @@
 
 import sys
 
-from ptb_mol import *
 from os.path import expanduser
+from os import getcwd
+from functools import partial
 
 from PyQt4.QtGui import *
 
 class CoordTB(QMainWindow):
 
-        def __init__(self):
+        def __init__(self,controller):
                 super(CoordTB,self).__init__()
+                self.controller = controller
                 self.initApp()
-                self.controller = TBController()
 
         def initApp(self):
 
                 #Just define central widget and window settings for now
-                mv = MainView()
+                mv = MainView(self.controller)
                 self.setCentralWidget(mv)
-                #self.setGeometry(300,300,250,150)
                 self.setWindowTitle('CoordToolBox')
                 self.show()
 
-        def parsePwi(self):
-                msgBox = QMessageBox()
-                msgBox.setText('Loading PWScf Input file')
-                msgBox.exec_()
-
-        def parsePwo(self):
-                msgBox = QMessageBox()
-                msgBox.setText("Loading PWScf Output file")
-                msgBox.exec_()
-
-        def parseXyz(self):
-                msgBox = QMessageBox()
-                msgBox.setText("Loading xyz file")
-                msgBox.exec_()
-
-        def parseFile(self,fmt,data):
-                options = {0 : self.parsePwi,
-                           1 : self.parsePwo,
-                           2 : self.parseXyz,
-                          }
-                options[fmt]()
-
-        def exportPwi(self):
-                msgBox = QMessageBox()
-                msgBox.setText('Saving PWScf Input file')
-                msgBox.exec_()
-
-        def exportPwo(self):
-                msgBox = QMessageBox()
-                msgBox.setText("Saving PWScf Output file")
-                msgBox.exec_()
-
-        def exportXyz(self):
-                msgBox = QMessageBox()
-                msgBox.setText("Saving xyz file")
-                msgBox.exec_()
-
-        def exportFile(self,fmt,data):
-                options = {0 : self.exportPwi,
-                           1 : self.exportXyz,
-                          }
-                options[fmt]()
-
-
 class MainView(QWidget):
 
-        def __init__(self):
+        def __init__(self,controller):
                 super(MainView,self).__init__()
+                self.controller = controller
                 self.initUI()
 
         def initUI(self):
 
                 #add main Views
-                iv = Input()
-                ov = Output()
+                iv = Input(self.controller)
+                ov = Output(self.controller)
                 mod = Modify()
-                tab = EditArea()
+                tab = EditArea(self.controller)
 
                 #Layout
                 vbox = QVBoxLayout()
@@ -97,8 +54,9 @@ class MainView(QWidget):
 
 class Input(QGroupBox):
 
-        def __init__(self):
+        def __init__(self,controller):
                 super(Input,self).__init__()
+                self.controller = controller
                 self.initBox()
 
         def initBox(self):
@@ -111,18 +69,18 @@ class Input(QGroupBox):
                 #text field with path to file
                 self.inpPath = QLineEdit()
 
-                #Load button
-                inpLoad = QPushButton('Load',self)
-                inpLoad.setToolTip('Load input file of specified format')
-                inpLoad.resize(inpLoad.sizeHint())
-                inpLoad.clicked.connect(self.loadHandler)
-
                 #Filetype selector
                 self.inpSel = QComboBox(self)
                 self.inpSel.setToolTip('Select format of input file')
                 self.inpSel.addItem("PWScf Input")
                 self.inpSel.addItem("PWScf Output")
                 self.inpSel.addItem("xyz")
+
+                #Load button
+                inpLoad = QPushButton('Load',self)
+                inpLoad.setToolTip('Load input file of specified format')
+                inpLoad.resize(inpLoad.sizeHint())
+                inpLoad.clicked.connect(self.loadHandler)
 
 
                 #Layout. Good.
@@ -141,19 +99,17 @@ class Input(QGroupBox):
                 self.setTitle('Input')
 
         def openDiag(self):
-                fname = QFileDialog.getOpenFileName(self, 'Open file',expanduser("~"))
+                fname = QFileDialog.getOpenFileName(self, 'Open file',getcwd())
                 self.inpPath.setText(fname)
         def loadHandler(self):
-                f = open(self.inpPath.text(),'r')
-                with f:
-                        data = f.read()
-                self.window().parseFile(self.inpSel.currentIndex(),data)
+                self.controller.readFile(str(self.inpSel.currentText()),str(self.inpPath.text()))
 
 
 class Output(QGroupBox):
 
-        def __init__(self):
+        def __init__(self,controller):
                 super(Output,self).__init__()
+                self.controller = controller
                 self.initBox()
 
         def initBox(self):
@@ -202,8 +158,9 @@ class Output(QGroupBox):
 
 class EditArea(QTabWidget):
 
-        def __init__(self):
+        def __init__(self,controller):
                 super(EditArea,self).__init__()
+                self.controller = controller
                 self.initArea()
 
         def initArea(self):
@@ -224,7 +181,7 @@ class EditArea(QTabWidget):
                 hbox = QHBoxLayout()
                 hbox.addWidget(coordFmt)
                 hbox.addStretch(1)
-                hbox.addWidget(QLabel('Celldimension:'))
+                hbox.addWidget(QLabel('Cell dimension:'))
                 hbox.addWidget(cellDm)
 
                 #Table
@@ -259,8 +216,7 @@ class Modify(QGroupBox):
 
 def main():
         app = QApplication(sys.argv)
-        main = CoordTB()
+        o = ''
+        main = CoordTB(o)
         sys.exit(app.exec_())
 
-if __name__ == '__main__':
-        main()

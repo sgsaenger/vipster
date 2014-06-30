@@ -3,9 +3,11 @@
 
 import sys
 import copy
+import pwtool
+from PyQt4.QtGui import *
 
 ######################################################################
-# PSE DICTIONARY ? suitable for lammps ?
+# PSE DICTIONARY
 ######################################################################
 # pse[0] id
 # pse[1] ~ weight
@@ -52,10 +54,11 @@ class TBController:
                 self.mol = []
                 self.pwdata = []
                 #self.data = []
+                self.gui = pwtool.CoordTB(self)
 
         def readFile(self,fmt,filename):
-                parser = {'PWi' : self.parsePwi,
-                          'PWo' : self.parsePwo,
+                parser = {'PWScf Input' : self.parsePwi,
+                          'PWScf Output' : self.parsePwo,
                           'xyz' : self.parseXyz,
                          }
                 data = open(filename,'r').readlines()
@@ -77,17 +80,16 @@ class TBController:
                         # create new molecule
                         tmol = Molecule()
                         # fixed format nat and comment
-                        nat = int(data[0].strip())
-                        tmol.comment = data[1].strip()
+                        nat = int(data.pop(0).strip())
+                        tmol.comment = data.pop(0).strip()
                         # read coordinates and types
-                        for i in range(2,nat+2):
-                                line = data[i].split()
+                        for i in range(nat):
+                                line = data.pop(0).split()
                                 tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
                         # remove parsed lines to check if there's more to do
-                        for i in range(0,nat+2):
-                                del data[0]
-                        tlist.append(copy.deepcopy(tmol))
-                        del tmol
+                        #for i in range(0,nat+2):
+                        #        del data[0]
+                        tlist.append(tmol)
                 #return tlist
                 self.mol = self.mol + tlist
 
@@ -95,54 +97,51 @@ class TBController:
                 # no need for list, only one molecule per file
                 tmol = Molecule()
                 tparam = PWParam()
-                k = 0
                 while data:
-                        k +=1
+                        header = data.pop(0).strip().split()
                         # ignore empty lines
-                        if not data[0].strip():
-                                del data[0]
+                        if not header:
+                                #debug output. case not really needed.
                                 print 'empty line'
-                                print data
                         # parse namelists
-                        elif data[0].strip()[0] == '&':
-                                tnl = tparam.Namelist()
-                                i = 1
+                        elif header[0][0] == '&':
+                                tnl = {}
                                 # parse entries
-                                while data[i].strip() != '/':
-                                        line = data[i].strip().split(',')
+                                line = data.pop(0).strip().split(',')
+                                while line[0] != '/':
+                                        #line = data[i].strip().split(',')
                                         for j in range(len(line)):
                                                 tnl[line[j].split('=')[0]]=line[j].split('=')[1]
-                                        i +=1
-                                tparam[data[0].strip()]=tnl
-                                # delete parsed namelist
-                                for j in range(i+1):
-                                        del data[0]
-                                print 'new namelist'
-                                print data
+                                        line = data.pop(0).strip().split(',')
+                                tparam[header[0]]=tnl
+                                #debug output
+                                print 'new namelist', header[0]
                         # parse card
-                        elif data[0].strip().split()[0].isupper():
-                                i = 1
+                        elif header[0][0].isupper():
                                 # 7 types of cards, need hardcoding
                                 # 4 supported for now
                                 # still need modes for all of them
-                                while data[i].strip():
-                                        line = data[i].strip().split()
-                                        if data[0].strip().split()[0] == 'ATOMIC_SPECIES':
+                                line = data.pop(0).strip().split()
+                                i=1
+                                while line:
+                                        if header[0] == 'ATOMIC_SPECIES':
                                                 tparam.pse[line[0]][1] = float(line[1])
                                                 tparam.pse[line[0]].append(line[2])
-                                        elif data[0].strip().split()[0] == 'ATOMIC_POSITIONS':
+                                        elif header[0] == 'ATOMIC_POSITIONS':
                                                 tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
-                                        elif data[0].strip().split()[0] == 'K_POINTS':
+                                        elif header[0] == 'K_POINTS':
                                                 tparam['K_POINTS']=[line[0:3],line[3:7]]
-                                        elif data[0].strip().split()[0] == 'CELL_PARAMETERS':
+                                        elif header[0] == 'CELL_PARAMETERS':
                                                 tmol.vec[i-1]=[float(line[0]),float(line[1]),float(line[2])]
-                                        i +=1
+                                                i+=1
+                                        else:
+                                                print 'unknown or unsupported card.'
+                                        if data:
+                                                line = data.pop(0).strip().split()
+                                        else:
+                                                break
                                 # delete parsed card
-                                for j in range(i):
-                                        del data[0]
-                                print 'new card'
-                                print data
-                print k
+                                print 'new card', header[0]
                 self.mol.append(tmol)
                 self.pwdata.append(tparam)
 
@@ -284,17 +283,29 @@ class PWParam(dict):
 
         def __init__(self):
                 # make local copy of pse
-                self.pse = copy.copy(pse)
+                self['pse'] = copy.copy(pse)
 
                 # k-point grid
                 # only MP-grids (automatic) for now
                 self['K_POINTS']=[[1,1,1],[0,0,0]]
 
         # define NL and Card classes just to distinguish
-        class Namelist(dict):
-                def is_namelist(self):
-                        return True
+        #class Namelist(dict):
+        #        def is_namelist(self):
+        #                return True
 
         #class Card(dict):
         #        def is_namelist(self):
         #                return False
+
+#####################################################
+# Application
+#####################################################
+
+def main():
+        app = QApplication(sys.argv)
+        control = TBController()
+        sys.exit(app.exec_())
+
+if __name__ == '__main__':
+        main()
