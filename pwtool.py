@@ -30,193 +30,117 @@ class MainView(QWidget):
                 super(MainView,self).__init__()
                 self.controller = controller
                 self.initUI()
+                self.tabs = ''
 
         def initUI(self):
 
                 #add main Views
-                iv = Input(self.controller)
-                ov = Output(self.controller)
-                mod = Modify()
-                tab = EditArea(self.controller)
+                self.io = IOBox(self.controller)
+                self.mol = MolArea(self.controller)
 
                 #Layout
-                vbox = QVBoxLayout()
-                vbox.addWidget(iv)
-                vbox.addWidget(mod)
-                vbox.addWidget(ov)
-                vbox.addStretch()
-                hbox = QHBoxLayout()
-                hbox.addLayout(vbox)
-                hbox.addWidget(tab,1)
+                self.vbox = QVBoxLayout()
+                self.vbox.addWidget(self.io)
+                self.vbox.addStretch()
+                self.hbox = QHBoxLayout()
+                self.hbox.addLayout(self.vbox)
+                self.hbox.addWidget(self.mol,1)
 
-                self.setLayout(hbox)
+                self.setLayout(self.hbox)
 
+        def updateView(self):
+                for i in range(len(self.controller.mol)):
+                        self.mol.addTab(MolTab(self.controller.mol[i]),'Mol '+str(i+1))
+                        self.mol.widget(i).fillTab()
 
-class Input(QGroupBox):
+class MolTab(QWidget):
+
+        def __init__(self,mol):
+                super(MolTab,self).__init__()
+                #self.controller = controller
+                self.mol = mol
+                self.initTab()
+
+        def initTab(self):
+
+                # coord fmt dropdown selector
+                self.fmt = QComboBox()
+                self.fmt.setToolTip('Select format of coordinates')
+                self.fmt.addItem('Angstrom')
+                self.fmt.addItem('Bohr')
+                self.fmt.addItem('Crystal')
+                self.fmt.addItem('Alat')
+
+                # show celldm
+                self.cellDm = QLineEdit()
+
+                # layout1
+                self.hbox = QHBoxLayout()
+                self.hbox.addWidget(self.fmt)
+                self.hbox.addStretch(1)
+                self.hbox.addWidget(QLabel('Cell dimension:'))
+                self.hbox.addWidget(self.cellDm)
+
+                # show coordinates in table
+                self.table = QTableWidget()
+                self.table.setColumnCount(4)
+                self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
+
+                # set Layout for Tab
+                self.vbox = QVBoxLayout()
+                self.vbox.addLayout(self.hbox)
+                self.vbox.addWidget(self.table)
+
+                self.setLayout(self.vbox)
+
+        def fillTab(self):
+                self.cellDm = self.mol.get_celldm()
+                for i in range(self.mol.get_nat()):
+                        name = QTableWidgetItem(self.mol.get_atom(i).get_name())
+                        self.table.setItem(i,1,name)
+
+class MolArea(QTabWidget):
 
         def __init__(self,controller):
-                super(Input,self).__init__()
+                super(MolArea,self).__init__()
+                self.controller = controller
+
+class IOBox(QGroupBox):
+
+        def __init__(self,controller):
+                super(IOBox,self).__init__()
                 self.controller = controller
                 self.initBox()
 
         def initBox(self):
-                #Open button
-                inpOpen = QPushButton('Open',self)
-                inpOpen.setToolTip('Search for file to open')
-                inpOpen.resize(inpOpen.sizeHint())
-                inpOpen.clicked.connect(self.openDiag)
-
-                #text field with path to file
-                self.inpPath = QLineEdit()
-
-                #Filetype selector
-                self.inpSel = QComboBox(self)
-                self.inpSel.setToolTip('Select format of input file')
-                self.inpSel.addItem("PWScf Input")
-                self.inpSel.addItem("PWScf Output")
-                self.inpSel.addItem("xyz")
-
                 #Load button
-                inpLoad = QPushButton('Load',self)
-                inpLoad.setToolTip('Load input file of specified format')
-                inpLoad.resize(inpLoad.sizeHint())
-                inpLoad.clicked.connect(self.loadHandler)
-
-
-                #Layout. Good.
-                vbox = QVBoxLayout()
-                hbox = QHBoxLayout()
-                hbox.addWidget(self.inpSel)
-                hbox.addStretch()
-                hbox.addWidget(inpOpen)
-                hbox.addWidget(inpLoad)
-                vbox.addWidget(self.inpPath)
-                vbox.addLayout(hbox)
-
-
-                #Finalize inpView
-                self.setLayout(vbox)
-                self.setTitle('Input')
-
-        def openDiag(self):
-                fname = QFileDialog.getOpenFileName(self, 'Open file',getcwd())
-                self.inpPath.setText(fname)
-        def loadHandler(self):
-                self.controller.readFile(str(self.inpSel.currentText()),str(self.inpPath.text()))
-
-
-class Output(QGroupBox):
-
-        def __init__(self,controller):
-                super(Output,self).__init__()
-                self.controller = controller
-                self.initBox()
-
-        def initBox(self):
+                load = QPushButton('Load',self)
+                load.setToolTip('Load input file')
+                load.resize(load.sizeHint())
+                load.clicked.connect(self.loadHandler)
 
                 #Output selector drop down and save button
-                outSave = QPushButton('Save',self)
-                outSave.setToolTip('Save in specified format')
-                outSave.resize(outSave.sizeHint())
+                save = QPushButton('Save',self)
+                save.setToolTip('Save in specified format')
+                save.resize(save.sizeHint())
+                save.clicked.connect(self.saveHandler)
 
-                #text field with path to file
-                self.outPath = QLineEdit()
-
-                outSel = QComboBox(self)
-                outSel.setToolTip('Select format of output file')
-                outSel.addItem("PWScf Input")
-                outSel.addItem("xyz")
-
-                #Open button
-                outOpen = QPushButton('Open',self)
-                outOpen.setToolTip('Search for file to open')
-                outOpen.resize(outOpen.sizeHint())
-                outOpen.clicked.connect(self.saveDiag)
-
-                vbox = QVBoxLayout()
+                #Layout. Good.
                 hbox = QHBoxLayout()
-                hbox.addWidget(outSel)
-                hbox.addStretch()
-                hbox.addWidget(outOpen)
-                hbox.addWidget(outSave)
-                vbox.addWidget(self.outPath)
-                vbox.addLayout(hbox)
+                hbox.addWidget(load)
+                hbox.addWidget(save)
 
-                self.setTitle('Output')
-                self.setLayout(vbox)
+                #Finalize inpView
+                self.setLayout(hbox)
+                self.setTitle('I/O')
 
-        def saveDiag(self):
-                fname = QFileDialog.getSaveFileName(self, 'Open file',expanduser("~"))
-                self.outPath.setText(fname)
-
+        def loadHandler(self):
+                fname = QFileDialog.getOpenFileName(self,'Open file',getcwd())
+                ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
+                ftype = str(ftype[0])
+                self.controller.readFile(ftype,fname)
+                self.parent().updateView()
         def saveHandler(self):
-                f = open(self.outPath.text(),'w')
-                with f:
-                        f.write('here be dragons')
-
-
-
-class EditArea(QTabWidget):
-
-        def __init__(self,controller):
-                super(EditArea,self).__init__()
-                self.controller = controller
-                self.initArea()
-
-        def initArea(self):
-
-                #Table with coordinates, different formats (see xcrysden?)
-                coordTab = QWidget()
-
-                #CellDM and format of coordinates
-                coordFmt = QComboBox()
-                coordFmt.setToolTip('Select format of coordinates')
-                coordFmt.addItem('Angstrom')
-                coordFmt.addItem('Bohr')
-                coordFmt.addItem('Crystal')
-                coordFmt.addItem('Alat')
-
-                cellDm = QLineEdit()
-
-                hbox = QHBoxLayout()
-                hbox.addWidget(coordFmt)
-                hbox.addStretch(1)
-                hbox.addWidget(QLabel('Cell dimension:'))
-                hbox.addWidget(cellDm)
-
-                #Table
-                coordTable = QTableWidget()
-                coordTable.setColumnCount(5)
-                coordTable.setHorizontalHeaderLabels(['#','Type','x','y','z'])
-
-                #set Layout for Tab
-                vbox = QVBoxLayout()
-                vbox.addLayout(hbox)
-                vbox.addWidget(coordTable)
-
-                coordTab.setLayout(vbox)
-
-                #Table or similar with calculation parameters
-                Calc = QTableWidget()
-
-                self.addTab(coordTab,'Coordinates')
-                self.addTab(Calc,'Calc. param.')
-
-class Modify(QGroupBox):
-
-        def __init__(self):
-                super(Modify,self).__init__()
-                self.initMod()
-
-        def initMod(self):
-
-                self.setCheckable(True)
-                self.setChecked(False)
-                self.setTitle('Modify')
-
-def main():
-        app = QApplication(sys.argv)
-        o = ''
-        main = CoordTB(o)
-        sys.exit(app.exec_())
-
+                msgBox = QMessageBox()
+                msgBox.setText('You had saved your file.\nIf this Program was able to.')
+                msgBox.exec_()

@@ -55,14 +55,17 @@ class TBController:
                 self.pwdata = []
                 #self.data = []
                 self.gui = pwtool.CoordTB(self)
-
-        def readFile(self,fmt,filename):
-                parser = {'PWScf Input' : self.parsePwi,
+                self.indict = {'PWScf Input' : self.parsePwi,
                           'PWScf Output' : self.parsePwo,
                           'xyz' : self.parseXyz,
                          }
+                self.outdict= {'PWScf Input' : self.parsePwi,
+                          'xyz' : self.parseXyz,
+                         }
+
+        def readFile(self,fmt,filename):
                 data = open(filename,'r').readlines()
-                parser[fmt](data)
+                self.indict[fmt](data)
                 #return data
 
         def parseXyz(self,data):
