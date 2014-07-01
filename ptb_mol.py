@@ -191,7 +191,7 @@ class Molecule:
 
         # append new atom
         def create_atom(self,name,x,y,z):
-                self.at.append(self.Atom(name,x,y,z))
+                self.at.append(self.Atom(self,name,x,y,z))
                 #self.nat = self.nat + 1
 
         # append copy of existing atom
@@ -241,9 +241,8 @@ class Molecule:
 
         # set vectors
         def set_periodicity(self,vec0,vec1,vec2,off=[0.0,0.0,0.0]):
-                self.vec[0]=vec0
-                self.vec[1]=vec1
-                self.vec[2]=vec2
+                self.vec = np.array([vec0,vec1,vec2]).T
+                self.vecinv = np.linalg.inv(self.vec)
                 self.offset=off
 
 ######################################################################
@@ -252,11 +251,12 @@ class Molecule:
 
         class Atom:
 
-                def __init__(self,name,x=0,y=0,z=0):
+                def __init__(self,mol,name,x=0,y=0,z=0):
                         self.name=name
                         self.number=pse[self.name][0]
                         self.weight=pse[self.name][1]
                         self.coord=np.array([x,y,z])
+                        self.mol = mol
 
                 ######################################################
                 # return functions
@@ -276,9 +276,9 @@ class Molecule:
                         elif fmt == 'Bohr':
                                 return self.coord/0.52917721092
                         elif fmt == 'Crystal':
-                                return self.coord
+                                return np.dot(self.mol.vecinv,self.coord)/self.mol.celldm
                         elif fmt == 'Alat':
-                                return self.coord
+                                return self.coord/self.mol.celldm
 
                 #############################################################
                 # set functions
@@ -288,6 +288,21 @@ class Molecule:
                         self.number=pse[name][0]
                         self.weight=pse[name][1]
                         self.coord=np.array([x,y,z])
+
+                def set_name(self,name):
+                        self.name = name
+
+                def set_coord(self,fmt,coord):
+                        self.coord=np.array(coord)
+                        if fmt == u'Ångström':
+                                pass
+                        elif fmt == 'Bohr':
+                                self.coord *= 0.52917721092
+                        elif fmt == 'Crystal':
+                                self.coord = np.dot(self.mol.vec,self.coord)*self.mol.celldm
+                        elif fmt == 'Alat':
+                                self.coord *= self.mol.celldm
+
 
         #Kommt spaeter:
         #class Bond:

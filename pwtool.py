@@ -71,9 +71,11 @@ class MolTab(QWidget):
                 self.fmt.addItem('Bohr')
                 self.fmt.addItem('Crystal')
                 self.fmt.addItem('Alat')
+                self.fmt.currentIndexChanged.connect(self.fillTab)
 
                 # show celldm
                 self.cellDm = QLineEdit()
+                self.cellDm.editingFinished.connect(self.updateCellDm)
 
                 # layout1
                 self.hbox = QHBoxLayout()
@@ -86,33 +88,66 @@ class MolTab(QWidget):
                 self.table = QTableWidget()
                 self.table.setColumnCount(4)
                 self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
+                self.table.itemChanged.connect(self.cellHandler)
+
+                # show coordinates in table
+                self.vtable = QTableWidget()
+                self.vtable.setColumnCount(3)
+                self.vtable.setRowCount(3)
+                self.vtable.setFixedHeight(120)
+                self.vtable.setHorizontalHeaderLabels(['x','y','z'])
+                #self.vtable.itemChanged.connect(self.cellHandler)
 
                 # set Layout for Tab
                 self.vbox = QVBoxLayout()
                 self.vbox.addLayout(self.hbox)
+                self.vbox.addWidget(QLabel('Coordinates:'))
                 self.vbox.addWidget(self.table)
+                self.vbox.addWidget(QLabel('Cell vectors:'))
+                self.vbox.addWidget(self.vtable)
 
                 self.setLayout(self.vbox)
+                self.resize(self.sizeHint())
 
-        def fillTab(self):
+                # initialize content
                 self.cellDm.setText(str(self.mol.get_celldm()))
                 self.table.setRowCount(self.mol.get_nat())
                 self.fmt.setCurrentIndex(0)
+
+                # fill tab with coordinates in Ångström
+                self.fillTab()
+
+        def fillTab(self):
+                self.tabledisable = True
                 for i in range(self.mol.get_nat()):
                         name = QTableWidgetItem(self.mol.get_atom(i).get_name())
                         self.table.setItem(i,0,name)
                         coord = self.mol.get_atom(i).get_coord(self.fmt.currentText())
                         for j in range(3):
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(coord[j])))
+                self.tabledisable = False
 
-        def updateTab(self):
+        def updateCellDm(self):
                 self.mol.set_celldm(float(self.cellDm.text()))
+                self.fillTab()
+
+        def cellHandler(self):
+                if self.tabledisable: return
+                atom = self.table.currentRow()
+                if self.table.currentColumn() == 0:
+                        self.mol.get_atom(atom).set_name(self.table.item(atom,0).text())
+                else:
+                        coord = [0,0,0]
+                        for j in range(3):
+                                coord[j]=float(self.table.item(atom,j+1).text())
+                        self.mol.get_atom(atom).set_coord(self.fmt.currentText(),coord)
 
 class MolArea(QTabWidget):
 
         def __init__(self,controller):
                 super(MolArea,self).__init__()
                 self.controller = controller
+                self.setMinimumSize(440,350)
 
 class IOBox(QGroupBox):
 
@@ -144,7 +179,7 @@ class IOBox(QGroupBox):
                 self.setTitle('I/O')
 
         def loadHandler(self):
-                fname = QFileDialog.getOpenFileName(self,'Open file',getcwd())
+                fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
                 ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
                 ftype = str(ftype[0])
                 self.controller.readFile(ftype,fname)
@@ -153,3 +188,6 @@ class IOBox(QGroupBox):
                 msgBox = QMessageBox()
                 msgBox.setText('You had saved your file.\nIf this Program was able to.')
                 msgBox.exec_()
+
+        def saveProto(self):
+                fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
