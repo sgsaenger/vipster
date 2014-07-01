@@ -49,7 +49,8 @@ class MainView(QWidget):
                 self.setLayout(self.hbox)
 
         def updateView(self):
-                for i in range(len(self.controller.mol)):
+                count = self.mol.count()
+                for i in range(count,len(self.controller.mol)):
                         self.mol.addTab(MolTab(self.controller.mol[i]),'Mol '+str(i+1))
                         self.mol.widget(i).fillTab()
 
@@ -66,7 +67,7 @@ class MolTab(QWidget):
                 # coord fmt dropdown selector
                 self.fmt = QComboBox()
                 self.fmt.setToolTip('Select format of coordinates')
-                self.fmt.addItem('Angstrom')
+                self.fmt.addItem(u'Ångström')
                 self.fmt.addItem('Bohr')
                 self.fmt.addItem('Crystal')
                 self.fmt.addItem('Alat')
@@ -94,10 +95,18 @@ class MolTab(QWidget):
                 self.setLayout(self.vbox)
 
         def fillTab(self):
-                self.cellDm = self.mol.get_celldm()
+                self.cellDm.setText(str(self.mol.get_celldm()))
+                self.table.setRowCount(self.mol.get_nat())
+                self.fmt.setCurrentIndex(0)
                 for i in range(self.mol.get_nat()):
                         name = QTableWidgetItem(self.mol.get_atom(i).get_name())
-                        self.table.setItem(i,1,name)
+                        self.table.setItem(i,0,name)
+                        coord = self.mol.get_atom(i).get_coord(self.fmt.currentText())
+                        for j in range(3):
+                                self.table.setItem(i,j+1,QTableWidgetItem(str(coord[j])))
+
+        def updateTab(self):
+                self.mol.set_celldm(float(self.cellDm.text()))
 
 class MolArea(QTabWidget):
 

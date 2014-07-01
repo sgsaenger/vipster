@@ -4,6 +4,8 @@
 import sys
 import copy
 import pwtool
+from math import sqrt
+import numpy as np
 from PyQt4.QtGui import *
 
 ######################################################################
@@ -55,13 +57,13 @@ class TBController:
                 self.pwdata = []
                 #self.data = []
                 self.gui = pwtool.CoordTB(self)
-                self.indict = {'PWScf Input' : self.parsePwi,
-                          'PWScf Output' : self.parsePwo,
-                          'xyz' : self.parseXyz,
-                         }
+                self.indict = {'xyz' : self.parseXyz,
+                               'PWScf Input' : self.parsePwi,
+                               'PWScf Output' : self.parsePwo,
+                               }
                 self.outdict= {'PWScf Input' : self.parsePwi,
-                          'xyz' : self.parseXyz,
-                         }
+                               'xyz' : self.parseXyz,
+                               }
 
         def readFile(self,fmt,filename):
                 data = open(filename,'r').readlines()
@@ -128,8 +130,8 @@ class TBController:
                                 i=1
                                 while line:
                                         if header[0] == 'ATOMIC_SPECIES':
-                                                tparam.pse[line[0]][1] = float(line[1])
-                                                tparam.pse[line[0]].append(line[2])
+                                                tparam['pse'][line[0]][1] = float(line[1])
+                                                tparam['pse'][line[0]].append(line[2])
                                         elif header[0] == 'ATOMIC_POSITIONS':
                                                 tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
                                         elif header[0] == 'K_POINTS':
@@ -182,7 +184,8 @@ class Molecule:
                 # set atom list
                 self.at=[]
                 self.celldm = 1.0
-                self.vec=[[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]]
+                self.vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+                self.vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
                 self.offset=[0.0,0.0,0.0]
                 self.comment = ''
 
@@ -236,7 +239,7 @@ class Molecule:
         def set_celldm(self,cdm):
                 self.celldm = cdm
 
-        # set periodicity
+        # set vectors
         def set_periodicity(self,vec0,vec1,vec2,off=[0.0,0.0,0.0]):
                 self.vec[0]=vec0
                 self.vec[1]=vec1
@@ -253,7 +256,7 @@ class Molecule:
                         self.name=name
                         self.number=pse[self.name][0]
                         self.weight=pse[self.name][1]
-                        self.coord=[x,y,z]
+                        self.coord=np.array([x,y,z])
 
                 ######################################################
                 # return functions
@@ -267,8 +270,15 @@ class Molecule:
                 def get_weight(self):
                         return self.weight
 
-                def get_coord(self):
-                        return self.coord
+                def get_coord(self,fmt):
+                        if fmt == u'Ångström':
+                                return self.coord
+                        elif fmt == 'Bohr':
+                                return self.coord/0.52917721092
+                        elif fmt == 'Crystal':
+                                return self.coord
+                        elif fmt == 'Alat':
+                                return self.coord
 
                 #############################################################
                 # set functions
@@ -277,7 +287,7 @@ class Molecule:
                         self.name=name
                         self.number=pse[name][0]
                         self.weight=pse[name][1]
-                        self.coord=[x,y,z]
+                        self.coord=np.array([x,y,z])
 
         #Kommt spaeter:
         #class Bond:
