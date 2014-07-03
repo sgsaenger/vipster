@@ -96,7 +96,7 @@ class MolTab(QWidget):
                 self.vtable.setRowCount(3)
                 self.vtable.setFixedHeight(120)
                 self.vtable.setHorizontalHeaderLabels(['x','y','z'])
-                #self.vtable.itemChanged.connect(self.cellHandler)
+                self.vtable.itemChanged.connect(self.vecHandler)
 
                 # set Layout for Tab
                 self.vbox = QVBoxLayout()
@@ -125,6 +125,10 @@ class MolTab(QWidget):
                         coord = self.mol.get_atom(i).get_coord(self.fmt.currentText())
                         for j in range(3):
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(coord[j])))
+                vec = self.mol.get_vec()
+                for i in range(3):
+                        for j in range(3):
+                                self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
                 self.tabledisable = False
 
         def updateCellDm(self):
@@ -141,6 +145,14 @@ class MolTab(QWidget):
                         for j in range(3):
                                 coord[j]=float(self.table.item(atom,j+1).text())
                         self.mol.get_atom(atom).set_coord(self.fmt.currentText(),coord)
+
+        def vecHandler(self):
+                if self.tabledisable: return
+                vec=[[0,0,0],[0,0,0],[0,0,0]]
+                for i in range(3):
+                        for j in range(3):
+                                vec[i][j]=float(self.vtable.item(i,j).text())
+                self.mol.set_vec(vec)
 
 class MolArea(QTabWidget):
 

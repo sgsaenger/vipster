@@ -114,38 +114,40 @@ class TBController:
                                 # parse entries
                                 line = data.pop(0).strip().split(',')
                                 while line[0] != '/':
-                                        #line = data[i].strip().split(',')
                                         for j in range(len(line)):
-                                                tnl[line[j].split('=')[0]]=line[j].split('=')[1]
+                                                tnl[line[j].split('=')[0].strip()]=line[j].split('=')[1].strip()
                                         line = data.pop(0).strip().split(',')
                                 tparam[header[0]]=tnl
                                 #debug output
                                 print 'new namelist', header[0]
+                                print tparam
                         # parse card
                         elif header[0][0].isupper():
                                 # 7 types of cards, need hardcoding
                                 # 4 supported for now
                                 # still need modes for all of them
-                                line = data.pop(0).strip().split()
-                                i=1
-                                while line:
-                                        if header[0] == 'ATOMIC_SPECIES':
+                                if header[0] == 'ATOMIC_SPECIES':
+                                        for i in range(int(tparam['&system']['ntyp'])):
+                                                line = data.pop(0).strip().split()
                                                 tparam['pse'][line[0]][1] = float(line[1])
                                                 tparam['pse'][line[0]].append(line[2])
-                                        elif header[0] == 'ATOMIC_POSITIONS':
-                                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
-                                        elif header[0] == 'K_POINTS':
-                                                tparam['K_POINTS']=[line[0:3],line[3:7]]
-                                        elif header[0] == 'CELL_PARAMETERS':
-                                                tmol.vec[i-1]=[float(line[0]),float(line[1]),float(line[2])]
-                                                i+=1
-                                        else:
-                                                print 'unknown or unsupported card.'
-                                        if data:
+                                elif header[0] == 'ATOMIC_POSITIONS':
+                                        for i in range(int(tparam['&system']['nat'])):
                                                 line = data.pop(0).strip().split()
-                                        else:
-                                                break
-                                # delete parsed card
+                                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
+                                elif header[0] == 'K_POINTS':
+                                        if header[1] == 'automatic':
+                                                line = data.pop(0).strip().split()
+                                                tparam['K_POINTS']=[line[0:3],line[3:7]]
+                                elif header[0] == 'CELL_PARAMETERS':
+                                        vec=[[0,0,0],[0,0,0],[0,0,0]]
+                                        for i in range(3):
+                                                line = data.pop(0).strip().split()
+                                                vec[i]=[float(x)for x in line]
+                                        tmol.set_vec(vec)
+                                        print tmol.get_vec()
+                                else:
+                                        print 'unknown or unsupported card.'
                                 print 'new card', header[0]
                 self.mol.append(tmol)
                 self.pwdata.append(tparam)
@@ -172,6 +174,13 @@ class TBController:
                                      )+'\n'
                                 )
 
+        def writePwi(self,mol,param,coordfmt='Crystal',filename=""):
+                if filename == "":
+                        f=sys.stdout
+                else:
+                        f=open(filename,'w')
+                #
+                
 
 ######################################################################
 # MOLECULE CLASS
@@ -222,6 +231,9 @@ class Molecule:
         def get_atom(self,atom):
                 return self.at[atom]
 
+        def get_vec(self):
+                return self.vec.T
+
         def get_comment(self):
                 return self.comment
 
@@ -240,6 +252,9 @@ class Molecule:
                 self.celldm = cdm
 
         # set vectors
+        def set_vec(self,vec):
+                self.vec = np.array(vec).T
+
         def set_periodicity(self,vec0,vec1,vec2,off=[0.0,0.0,0.0]):
                 self.vec = np.array([vec0,vec1,vec2]).T
                 self.vecinv = np.linalg.inv(self.vec)
