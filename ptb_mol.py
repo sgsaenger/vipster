@@ -102,6 +102,8 @@ class TBController:
                 # no need for list, only one molecule per file
                 tmol = Molecule()
                 tparam = PWParam()
+                tcoord = []
+                #parse data and create tparam
                 while data:
                         header = data.pop(0).strip().split()
                         # ignore empty lines
@@ -126,19 +128,47 @@ class TBController:
                                 # 7 types of cards, need hardcoding
                                 # 4 supported for now
                                 # still need modes for all of them
+
+                                #ATOMIC_SPECIES:
+                                #Name   Weight  PP-file
                                 if header[0] == 'ATOMIC_SPECIES':
                                         for i in range(int(tparam['&system']['ntyp'])):
                                                 line = data.pop(0).strip().split()
                                                 tparam['pse'][line[0]][1] = float(line[1])
                                                 tparam['pse'][line[0]].append(line[2])
+
+                                #ATOMIC_POSITIONS fmt
+                                #Name   x   y   z
+                                #Saved in temp list for parsing
                                 elif header[0] == 'ATOMIC_POSITIONS':
+                                        fmt = header[1]
                                         for i in range(int(tparam['&system']['nat'])):
-                                                line = data.pop(0).strip().split()
-                                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
+                                                tcoord.append(data.pop(0).strip().split())
+
+                                #K_POINTS fmt
                                 elif header[0] == 'K_POINTS':
-                                        if header[1] == 'automatic':
-                                                line = data.pop(0).strip().split()
-                                                tparam['K_POINTS']=[line[0:3],line[3:7]]
+                                        #Gamma point only
+                                        if header[1] == 'gamma':
+                                                tparam['K_POINTS']=['gamma']
+                                        #MPGrid:
+                                        #x y z offset
+                                        #passed as whole string for now
+                                        elif header[1] == 'automatic':
+                                                #line = data.pop(0).strip().split()
+                                                line = data.pop(0)
+                                                #tparam['K_POINTS']=['automatic',[line[0:3],line[3:7]]]
+                                                tparam['K_POINTS']=['automatic',line]
+                                        #else:
+                                        #number of kpoints
+                                        #x y z weight
+                                        #passed as whole string for now
+                                        else:
+                                                nk = data.pop(0).strip().split()
+                                                kpoints = []
+                                                for i in range(nk):
+                                                        #kpoints.append(data.pop(0).strip().split())
+                                                        kpoints.append(data.pop(0))
+                                                taparam['K_POINTS']=[header[1],nk,kpoints]
                                 elif header[0] == 'CELL_PARAMETERS':
                                         vec=[[0,0,0],[0,0,0],[0,0,0]]
                                         for i in range(3):
@@ -149,6 +179,15 @@ class TBController:
                                 else:
                                         print 'unknown or unsupported card.'
                                 print 'new card', header[0]
+
+                #Create Molecule after getting the cell parameters
+                #set celldm from input
+                tmol.set_celldm(tparam['&system']['celldm(1)'])
+                #create atoms:
+                for i in range(len(tcoord)):
+                        tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
+
+                #Append to controller
                 self.mol.append(tmol)
                 self.pwdata.append(tparam)
 
@@ -165,22 +204,102 @@ class TBController:
                 f.write(mol.get_comment()+'\n')
                 # write coordinates
                 for cntat in range(0,mol.get_nat()):
-                        f.write(
-                                '{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+                        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                                      mol.at[cntat].get_name(),
-                                     mol.at[cntat].get_coord()[0],
-                                     mol.at[cntat].get_coord()[1],
-                                     mol.at[cntat].get_coord()[2]
+                                     mol.at[cntat].get_coord('Bohr')[0],
+                                     mol.at[cntat].get_coord('Bohr')[1],
+                                     mol.at[cntat].get_coord('Bohr')[2]
                                      )+'\n'
                                 )
+                f.close()
 
-        def writePwi(self,mol,param,coordfmt='Crystal',filename=""):
+        def writePwi(self,mol,param,coordfmt='crystal',filename=""):
                 if filename == "":
                         f=sys.stdout
                 else:
                         f=open(filename,'w')
-                #
-                
+
+                #set nat and ntyp
+
+                #&control, &system and &electron namelists are mandatory
+                for i in ['&control','&system','&electrons']:
+                        f.write(i+'\n')
+                        #write all parameters
+                        for j in range(len(param[i])):
+                            f.write(param[i].keys()[j]+'='+param[i].values()[j]+'\n')
+                        f.write('/\n\n')
+                #&ions only when needed
+                if param['&control']['calculation'] in ['relax','vc-relax','md','vc-md']:
+                        f.write('&ions'+'\n')
+                        for j in range(len(param['&ions'])):
+                                f.write(param['&ions'].keys()[j]+'='+param['&ions'].values()[j]+'\n')
+                        f.write('/\n\n')
+                #&cell only when needed
+                if param['&control']['calculation'] in ['vc-relax','vc-md']:
+                        f.write('&cell'+'\n')
+                        for j in range(len(param['&cell'])):
+                                f.write(param['&cell'].keys()[j]+'='+param['&cell'].values()[j]+'\n')
+                        f.write('/\n\n')
+
+                #ATOMIC_SPECIES card:
+                f.write('ATOMIC_SPECIES'+'\n')
+                types = list(mol.get_types())
+                for i in range(len(mol.get_types())):
+                        atom = types[i]
+                        f.write(atom+'    '+str(param['pse'][atom][1])+'   '+str(param['pse'][atom][2])+'\n')
+                f.write('\n')
+
+                #ATOMIC_POSITIONS
+                f.write('ATOMIC_SPECIES'+' '+coordfmt+'\n')
+                for i in range(mol.get_nat()):
+                        atom=mol.get_atom(i)
+                        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+                            atom.get_name(),
+                            atom.get_coord(coordfmt)[0],
+                            atom.get_coord(coordfmt)[1],
+                            atom.get_coord(coordfmt)[2],
+                            )+'\n'
+                            )
+                f.write('\n')
+
+                #K_POINTS
+                f.write('K_POINTS'+' '+param['K_POINTS'][0]+'\n')
+                #Gamma point only
+                if param['K_POINTS'][0] == 'gamma':
+                        pass
+                #MPGrid:
+                #x y z offset
+                #passed as whole string for now
+                elif param['K_POINTS'][0] == 'automatic':
+                        #f.write('{:4i}{:4i}{:4i}{:4i}{:4i}{:4i}'.format(
+                        #        param['K_POINTS'][1][0][0],
+                        #        param['K_POINTS'][1][0][1],
+                        #        param['K_POINTS'][1][0][2],
+                        #        param['K_POINTS'][1][0][0],
+                        #        param['K_POINTS'][1][1][1],
+                        #        param['K_POINTS'][1][1][2]
+                        #        )+'\n\n')
+                        f.write(param['K_POINTS'][1])
+                #number of kpoints
+                #x y z weight
+                #passed as whole string for now
+                #UNTESTED, beware!
+                else:
+                        f.write(param['K_POINTS'][1])
+                        for i in range(param['K_POINTS'][1]):
+                                f.write(param['K_POINTS'][2][i])
+                f.write('\n')
+
+                #Cell parameters
+                f.write('CELL_PARAMETERS'+'\n')
+                vec = mol.get_vec()
+                fmt='{0[0][0]:15.10f} {0[0][1]:15.10f} {0[0][2]:15.10f}\n' + \
+                    '{0[1][0]:15.10f} {0[1][1]:15.10f} {0[1][2]:15.10f}\n' + \
+                    '{0[2][0]:15.10f} {0[2][1]:15.10f} {0[2][2]:15.10f}\n'
+                f.write(fmt.format(mol.get_vec()))
+
+                #Close file
+                f.close()
 
 ######################################################################
 # MOLECULE CLASS
@@ -188,8 +307,6 @@ class TBController:
 class Molecule:
 
         def __init__(self):
-                # set molecule info
-                #self.nat = 0
                 # set atom list
                 self.at=[]
                 self.celldm = 1.0
@@ -199,8 +316,8 @@ class Molecule:
                 self.comment = ''
 
         # append new atom
-        def create_atom(self,name,x,y,z):
-                self.at.append(self.Atom(self,name,x,y,z))
+        def create_atom(self,name,x=0.,y=0.,z=0.,fmt='angstrom'):
+                self.at.append(self.Atom(self,name,x,y,z,fmt))
                 #self.nat = self.nat + 1
 
         # append copy of existing atom
@@ -222,7 +339,6 @@ class Molecule:
         # return functions
         ######################################################
         def get_nat(self):
-                #return self.nat
                 return len(self.at)
 
         def get_celldm(self):
@@ -237,11 +353,11 @@ class Molecule:
         def get_comment(self):
                 return self.comment
 
-        def get_ntype(self):
+        def get_types(self):
                 types = set()
                 for i in self.at:
                     types.add(i.get_name())
-                return len(types)
+                return types
 
         ######################################################
         # set functions
@@ -249,16 +365,17 @@ class Molecule:
 
         # set celldm
         def set_celldm(self,cdm):
-                self.celldm = cdm
+                self.celldm = float(cdm)
 
         # set vectors
         def set_vec(self,vec):
                 self.vec = np.array(vec).T
-
-        def set_periodicity(self,vec0,vec1,vec2,off=[0.0,0.0,0.0]):
-                self.vec = np.array([vec0,vec1,vec2]).T
                 self.vecinv = np.linalg.inv(self.vec)
-                self.offset=off
+
+        #def set_periodicity(self,vec0,vec1,vec2,off=[0.0,0.0,0.0]):
+        #        self.vec = np.array([vec0,vec1,vec2]).T
+        #        self.vecinv = np.linalg.inv(self.vec)
+        #        self.offset=off
 
 ######################################################################
 # ATOM CLASS
@@ -266,12 +383,12 @@ class Molecule:
 
         class Atom:
 
-                def __init__(self,mol,name,x=0,y=0,z=0):
+                def __init__(self,mol,name,x,y,z,fmt):
                         self.name=name
-                        self.number=pse[self.name][0]
-                        self.weight=pse[self.name][1]
-                        self.coord=np.array([x,y,z])
+                        #self.number=pse[self.name][0]
+                        #self.weight=pse[self.name][1]
                         self.mol = mol
+                        self.set_coord(fmt,[x,y,z])
 
                 ######################################################
                 # return functions
@@ -279,43 +396,44 @@ class Molecule:
                 def get_name(self):
                         return self.name
 
-                def get_number(self):
-                        return self.number
+                #def get_number(self):
+                #        return self.number
 
-                def get_weight(self):
-                        return self.weight
+                #def get_weight(self):
+                #        return self.weight
 
                 def get_coord(self,fmt):
-                        if fmt == u'Ångström':
+                        if fmt == 'angstrom':
+                                return self.coord*0.52917721092
+                        elif fmt == 'bohr':
                                 return self.coord
-                        elif fmt == 'Bohr':
-                                return self.coord/0.52917721092
-                        elif fmt == 'Crystal':
+                        elif fmt == 'crystal':
                                 return np.dot(self.mol.vecinv,self.coord)/self.mol.celldm
-                        elif fmt == 'Alat':
+                        elif fmt == 'alat':
                                 return self.coord/self.mol.celldm
 
                 #############################################################
                 # set functions
                 #############################################################
-                def set(self,name,x,y,z):
-                        self.name=name
-                        self.number=pse[name][0]
-                        self.weight=pse[name][1]
-                        self.coord=np.array([x,y,z])
+                #def set(self,name,x,y,z):
+                #        self.name=name
+                #        self.number=pse[name][0]
+                #        self.weight=pse[name][1]
+                #        self.coord=np.array([x,y,z])
 
                 def set_name(self,name):
                         self.name = name
 
                 def set_coord(self,fmt,coord):
                         self.coord=np.array(coord)
-                        if fmt == u'Ångström':
+                        if fmt == 'angstrom':
+                                self.coord /=0.52917721092
+                        elif fmt == 'bohr':
+                                #self.coord *= 0.52917721092
                                 pass
-                        elif fmt == 'Bohr':
-                                self.coord *= 0.52917721092
-                        elif fmt == 'Crystal':
+                        elif fmt == 'crystal':
                                 self.coord = np.dot(self.mol.vec,self.coord)*self.mol.celldm
-                        elif fmt == 'Alat':
+                        elif fmt == 'alat':
                                 self.coord *= self.mol.celldm
 
 

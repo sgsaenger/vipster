@@ -67,10 +67,14 @@ class MolTab(QWidget):
                 # coord fmt dropdown selector
                 self.fmt = QComboBox()
                 self.fmt.setToolTip('Select format of coordinates')
-                self.fmt.addItem(u'Ångström')
-                self.fmt.addItem('Bohr')
-                self.fmt.addItem('Crystal')
-                self.fmt.addItem('Alat')
+                #self.fmt.addItem(u'Ångström')
+                #self.fmt.addItem('Bohr')
+                #self.fmt.addItem('Crystal')
+                #self.fmt.addItem('Alat')
+                self.fmt.addItem('angstrom')
+                self.fmt.addItem('bohr')
+                self.fmt.addItem('crystal')
+                self.fmt.addItem('alat')
                 self.fmt.currentIndexChanged.connect(self.fillTab)
 
                 # show celldm
