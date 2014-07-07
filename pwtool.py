@@ -157,6 +157,7 @@ class MolTab(QWidget):
                         for j in range(3):
                                 vec[i][j]=float(self.vtable.item(i,j).text())
                 self.mol.set_vec(vec)
+                self.fillTab()
 
 class MolArea(QTabWidget):
 

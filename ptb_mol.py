@@ -108,8 +108,8 @@ class TBController:
                         header = data.pop(0).strip().split()
                         # ignore empty lines
                         if not header:
+                                pass
                                 #debug output. case not really needed.
-                                print 'empty line'
                         # parse namelists
                         elif header[0][0] == '&':
                                 tnl = {}
@@ -121,13 +121,10 @@ class TBController:
                                         line = data.pop(0).strip().split(',')
                                 tparam[header[0]]=tnl
                                 #debug output
-                                print 'new namelist', header[0]
-                                print tparam
                         # parse card
                         elif header[0][0].isupper():
                                 # 7 types of cards, need hardcoding
                                 # 4 supported for now
-                                # still need modes for all of them
 
                                 #ATOMIC_SPECIES:
                                 #Name   Weight  PP-file
@@ -175,10 +172,8 @@ class TBController:
                                                 line = data.pop(0).strip().split()
                                                 vec[i]=[float(x)for x in line]
                                         tmol.set_vec(vec)
-                                        print tmol.get_vec()
                                 else:
-                                        print 'unknown or unsupported card.'
-                                print 'new card', header[0]
+                                        pass
 
                 #Create Molecule after getting the cell parameters
                 #set celldm from input
@@ -192,7 +187,10 @@ class TBController:
                 self.pwdata.append(tparam)
 
         def parsePwo(self,data):
-                bargl = 0
+                #Multiple configs supported
+                tlist = []
+                #no parameters for now
+                #tparam=PWParam()
 
         def writeXyz(self,mol,filename=""):
                 if filename == "":
@@ -447,8 +445,14 @@ class PWParam(dict):
                 self['pse'] = copy.copy(pse)
 
                 # k-point grid
-                # only MP-grids (automatic) for now
-                self['K_POINTS']=[[1,1,1],[0,0,0]]
+                self['K_POINTS']=['gamma']
+
+                # create dummy namelists
+                self['&control']=[]
+                self['&system']=[]
+                self['&electrons']=[]
+                self['&ions']=[]
+                self['&cell']=[]
 
         # define NL and Card classes just to distinguish
         #class Namelist(dict):
