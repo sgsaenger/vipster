@@ -18,11 +18,49 @@ class CoordTB(QMainWindow):
 
         def initApp(self):
 
-                #Just define central widget and window settings for now
+                #Create Menu
+                self.initMenu()
+
+                #Create main widget
                 mv = MainView(self.controller)
                 self.setCentralWidget(mv)
+
+                # Set Title and run:
                 self.setWindowTitle('CoordToolBox')
                 self.show()
+
+        def initMenu(self):
+                self.initActions()
+                menu = self.menuBar()
+                fMenu = menu.addMenu('&File')
+                fMenu.addAction(self.loadAction)
+                fMenu.addAction(self.saveAction)
+                fMenu.addSeparator()
+                fMenu.addAction(self.exitAction)
+
+        def initActions(self):
+                self.loadAction = QAction('Load',self)
+                self.loadAction.setShortcut('Ctrl+O')
+                self.loadAction.triggered.connect(self.loadHandler)
+                self.saveAction = QAction('Save',self)
+                self.saveAction.setShortcut('Ctrl+S')
+                self.saveAction.triggered.connect(self.saveHandler)
+                self.exitAction = QAction('Exit',self)
+                self.exitAction.setShortcut('Ctrl+Q')
+                self.exitAction.triggered.connect(qApp.quit)
+
+        def loadHandler(self):
+                fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
+                if not fname: return
+                ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
+                ftype = str(ftype[0])
+                self.controller.readFile(ftype,fname)
+                self.centralWidget().updateView()
+
+        def saveHandler(self):
+                msgBox = QMessageBox()
+                msgBox.setText('You had saved your file.\nIf this Program was able to.')
+                msgBox.exec_()
 
 class MainView(QWidget):
 
@@ -34,25 +72,47 @@ class MainView(QWidget):
 
         def initUI(self):
 
-                #add main Views
-                self.io = IOBox(self.controller)
-                self.mol = MolArea(self.controller)
+                #Molecules:
+                self.mol = EditArea(self.controller)
+
+                self.mlist = QListWidget()
+                self.mlist.currentRowChanged.connect(self.mol.setCurrentIndex)
+
+                #PWParameter stuff:
+                self.pw = EditArea(self.controller)
+                
+                self.pwlist = QListWidget()
+                self.pwlist.currentRowChanged.connect(self.pw.setCurrentIndex)
 
                 #Layout
                 self.vbox = QVBoxLayout()
-                self.vbox.addWidget(self.io)
-                self.vbox.addStretch()
+                self.vbox.addWidget(QLabel('Loaded Molecules:'))
+                self.vbox.addWidget(self.mlist)
+                self.vbox.addWidget(QLabel('PW Parameter sets:'))
+                self.vbox.addWidget(self.pwlist)
                 self.hbox = QHBoxLayout()
                 self.hbox.addLayout(self.vbox)
                 self.hbox.addWidget(self.mol,1)
+                self.hbox.addWidget(self.pw,1)
 
                 self.setLayout(self.hbox)
 
         def updateView(self):
                 count = self.mol.count()
-                for i in range(count,len(self.controller.mol)):
-                        self.mol.addTab(MolTab(self.controller.mol[i]),'Mol '+str(i+1))
-                        self.mol.widget(i).fillTab()
+                for i in range(count,self.controller.get_nmol()):
+                        self.mol.addWidget(MolTab(self.controller.get_mol(i)))#,'Mol '+str(i+1))
+                        self.mlist.addItem("Mol "+str(i+1))
+                count = self.pw.count()
+                for i in range(count,self.controller.get_npw()):
+                        self.pw.addWidget(PWTab(self.controller.get_pw(i)))
+                        self.pwlist.addItem("Param "+str(i+1))
+
+class EditArea(QStackedWidget):
+
+        def __init__(self,controller):
+                super(EditArea,self).__init__()
+                self.controller = controller
+                self.setMinimumSize(440,350)
 
 class MolTab(QWidget):
 
@@ -67,10 +127,6 @@ class MolTab(QWidget):
                 # coord fmt dropdown selector
                 self.fmt = QComboBox()
                 self.fmt.setToolTip('Select format of coordinates')
-                #self.fmt.addItem(u'Ångström')
-                #self.fmt.addItem('Bohr')
-                #self.fmt.addItem('Crystal')
-                #self.fmt.addItem('Alat')
                 self.fmt.addItem('angstrom')
                 self.fmt.addItem('bohr')
                 self.fmt.addItem('crystal')
@@ -122,17 +178,21 @@ class MolTab(QWidget):
                 self.fillTab()
 
         def fillTab(self):
+                #prevent handling of cell changes during fill
                 self.tabledisable = True
+                #fill atom table
                 for i in range(self.mol.get_nat()):
                         name = QTableWidgetItem(self.mol.get_atom(i).get_name())
                         self.table.setItem(i,0,name)
                         coord = self.mol.get_atom(i).get_coord(self.fmt.currentText())
                         for j in range(3):
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(coord[j])))
+                #fill cell vec list
                 vec = self.mol.get_vec()
                 for i in range(3):
                         for j in range(3):
                                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
+                #reenable handling
                 self.tabledisable = False
 
         def updateCellDm(self):
@@ -159,52 +219,34 @@ class MolTab(QWidget):
                 self.mol.set_vec(vec)
                 self.fillTab()
 
-class MolArea(QTabWidget):
+class PWTab(QTreeWidget):
 
-        def __init__(self,controller):
-                super(MolArea,self).__init__()
-                self.controller = controller
-                self.setMinimumSize(440,350)
+        def __init__(self,pw):
+                super(PWTab,self).__init__()
+                self.pw = pw
+                self.setColumnCount(2)
+                self.setHeaderLabels(['Parameter','Value'])
+                self.makeTree()
+                
+        def makeTree(self):
+                #container for items
+                items=[[],[]]
+                #mandatory namelists
+                for i in ['&control','&system','&electrons']:
+                        items[0].append(QTreeWidgetItem(self))
+                        items[0][-1].setText(0,i)
 
-class IOBox(QGroupBox):
+                #show optional namelists only if existing
+                if '&ions' in self.pw:
+                        items[0].append(QTreeWidgetItem(self))
+                        items[0][-1].setText(0,'&ions')
+                if '&cell' in self.pw:
+                        items[0].append(QTreeWidgetItem(self))
+                        items[0][-1].setText(0,'&cell')
 
-        def __init__(self,controller):
-                super(IOBox,self).__init__()
-                self.controller = controller
-                self.initBox()
-
-        def initBox(self):
-                #Load button
-                load = QPushButton('Load',self)
-                load.setToolTip('Load input file')
-                load.resize(load.sizeHint())
-                load.clicked.connect(self.loadHandler)
-
-                #Output selector drop down and save button
-                save = QPushButton('Save',self)
-                save.setToolTip('Save in specified format')
-                save.resize(save.sizeHint())
-                save.clicked.connect(self.saveHandler)
-
-                #Layout. Good.
-                hbox = QHBoxLayout()
-                hbox.addWidget(load)
-                hbox.addWidget(save)
-
-                #Finalize inpView
-                self.setLayout(hbox)
-                self.setTitle('I/O')
-
-        def loadHandler(self):
-                fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
-                ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
-                ftype = str(ftype[0])
-                self.controller.readFile(ftype,fname)
-                self.parent().updateView()
-        def saveHandler(self):
-                msgBox = QMessageBox()
-                msgBox.setText('You had saved your file.\nIf this Program was able to.')
-                msgBox.exec_()
-
-        def saveProto(self):
-                fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
+                #show child entries
+                for i in items[0]:
+                        for j in self.pw[str(i.text(0))].items():
+                                items[1].append(QTreeWidgetItem(i))
+                                items[1][-1].setText(0,j[0])
+                                items[1][-1].setText(1,j[1])

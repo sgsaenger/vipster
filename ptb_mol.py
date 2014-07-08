@@ -65,6 +65,28 @@ class TBController:
                                'xyz' : self.parseXyz,
                                }
 
+
+#####################################################################
+# GET FUNCTIONS
+#####################################################################
+
+        def get_mol(self,index):
+                return self.mol[index]
+
+        def get_nmol(self):
+                return len(self.mol)
+
+        def get_pw(self,index):
+                return self.pwdata[index]
+
+        def get_npw(self):
+                return len(self.pwdata)
+
+
+#####################################################################
+# READ FUNCTIONS
+#####################################################################
+
         def readFile(self,fmt,filename):
                 data = open(filename,'r').readlines()
                 self.indict[fmt](data)
@@ -181,6 +203,9 @@ class TBController:
                 #create atoms:
                 for i in range(len(tcoord)):
                         tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
+                #delete nat and ntype before returning to controller
+                del tparam['&system']['nat']
+                del tparam['&system']['ntyp']
 
                 #Append to controller
                 self.mol.append(tmol)
@@ -191,6 +216,10 @@ class TBController:
                 tlist = []
                 #no parameters for now
                 #tparam=PWParam()
+
+#############################################################################
+# WRITE FUNCTIONS
+#############################################################################
 
         def writeXyz(self,mol,filename=""):
                 if filename == "":
@@ -356,6 +385,9 @@ class Molecule:
                 for i in self.at:
                     types.add(i.get_name())
                 return types
+        
+        def get_ntyp(self):
+                return len(self.get_types())
 
         ######################################################
         # set functions
@@ -448,20 +480,14 @@ class PWParam(dict):
                 self['K_POINTS']=['gamma']
 
                 # create dummy namelists
-                self['&control']=[]
-                self['&system']=[]
-                self['&electrons']=[]
-                self['&ions']=[]
-                self['&cell']=[]
+                #self['&control']=[]
+                #self['&system']=[]
+                #self['&electrons']=[]
+                #self['&ions']=[]
+                #self['&cell']=[]
 
-        # define NL and Card classes just to distinguish
-        #class Namelist(dict):
-        #        def is_namelist(self):
-        #                return True
+                # create dummy cards
 
-        #class Card(dict):
-        #        def is_namelist(self):
-        #                return False
 
 #####################################################
 # Application
