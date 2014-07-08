@@ -73,14 +73,16 @@ class MainView(QWidget):
         def initUI(self):
 
                 #Molecules:
-                self.mol = EditArea(self.controller)
+                self.mol = QStackedWidget()
+                self.mol.setMinimumSize(440,350)
 
                 self.mlist = QListWidget()
                 self.mlist.currentRowChanged.connect(self.mol.setCurrentIndex)
 
                 #PWParameter stuff:
-                self.pw = EditArea(self.controller)
-                
+                self.pw = QStackedWidget()
+                self.pw.setMinimumSize(440,350)
+
                 self.pwlist = QListWidget()
                 self.pwlist.currentRowChanged.connect(self.pw.setCurrentIndex)
 
@@ -100,19 +102,12 @@ class MainView(QWidget):
         def updateView(self):
                 count = self.mol.count()
                 for i in range(count,self.controller.get_nmol()):
-                        self.mol.addWidget(MolTab(self.controller.get_mol(i)))#,'Mol '+str(i+1))
+                        self.mol.addWidget(MolTab(self.controller.get_mol(i)))
                         self.mlist.addItem("Mol "+str(i+1))
                 count = self.pw.count()
                 for i in range(count,self.controller.get_npw()):
                         self.pw.addWidget(PWTab(self.controller.get_pw(i)))
                         self.pwlist.addItem("Param "+str(i+1))
-
-class EditArea(QStackedWidget):
-
-        def __init__(self,controller):
-                super(EditArea,self).__init__()
-                self.controller = controller
-                self.setMinimumSize(440,350)
 
 class MolTab(QWidget):
 
@@ -127,10 +122,8 @@ class MolTab(QWidget):
                 # coord fmt dropdown selector
                 self.fmt = QComboBox()
                 self.fmt.setToolTip('Select format of coordinates')
-                self.fmt.addItem('angstrom')
-                self.fmt.addItem('bohr')
-                self.fmt.addItem('crystal')
-                self.fmt.addItem('alat')
+                for i in ['angstrom','bohr','crystal','alat']:
+                        self.fmt.addItem(i)
                 self.fmt.currentIndexChanged.connect(self.fillTab)
 
                 # show celldm
@@ -139,6 +132,7 @@ class MolTab(QWidget):
 
                 # layout1
                 self.hbox = QHBoxLayout()
+                self.hbox.addWidget(QLabel('Coordinates:'))
                 self.hbox.addWidget(self.fmt)
                 self.hbox.addStretch(1)
                 self.hbox.addWidget(QLabel('Cell dimension:'))
@@ -150,7 +144,7 @@ class MolTab(QWidget):
                 self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
                 self.table.itemChanged.connect(self.cellHandler)
 
-                # show coordinates in table
+                # show cell vectors in table
                 self.vtable = QTableWidget()
                 self.vtable.setColumnCount(3)
                 self.vtable.setRowCount(3)
@@ -158,11 +152,28 @@ class MolTab(QWidget):
                 self.vtable.setHorizontalHeaderLabels(['x','y','z'])
                 self.vtable.itemChanged.connect(self.vecHandler)
 
+                #New Atom button:
+                self.new = QPushButton()
+                self.new.setText('New Atom')
+                self.new.clicked.connect(self.newAtom)
+
+                #Copy Atom button:
+                self.copy = QPushButton()
+                self.copy.setText('Copy Atom(s)')
+                self.copy.clicked.connect(self.copyAt)
+                
+                #paste button:
+                self.paste = QPushButton()
+                self.paste.setText('Paste Atom(s)')
+                self.paste.clicked.connect(self.pasteAt)
+
                 # set Layout for Tab
                 self.vbox = QVBoxLayout()
                 self.vbox.addLayout(self.hbox)
-                self.vbox.addWidget(QLabel('Coordinates:'))
                 self.vbox.addWidget(self.table)
+                self.vbox.addWidget(self.copy)
+                self.vbox.addWidget(self.paste)
+                self.vbox.addWidget(self.new)
                 self.vbox.addWidget(QLabel('Cell vectors:'))
                 self.vbox.addWidget(self.vtable)
 
@@ -171,16 +182,33 @@ class MolTab(QWidget):
 
                 # initialize content
                 self.cellDm.setText(str(self.mol.get_celldm()))
-                self.table.setRowCount(self.mol.get_nat())
                 self.fmt.setCurrentIndex(0)
 
                 # fill tab with coordinates in Ångström
+                self.fillTab()
+
+        def newAtom(self):
+                self.mol.create_atom()
+                self.fillTab()
+
+        def copyAt(self):
+                self.sel = []
+                for i in self.table.selectedRanges():
+                        for j in range(i.topRow(),i.bottomRow()+1):
+                                self.sel.append(j)
+
+        def pasteAt(self):
+                pos = self.table.currentRow()+1
+                for i in self.sel:
+                        at = self.mol.get_atom(i)
+                        self.mol.insert_atom(pos,at)
                 self.fillTab()
 
         def fillTab(self):
                 #prevent handling of cell changes during fill
                 self.tabledisable = True
                 #fill atom table
+                self.table.setRowCount(self.mol.get_nat())
                 for i in range(self.mol.get_nat()):
                         name = QTableWidgetItem(self.mol.get_atom(i).get_name())
                         self.table.setItem(i,0,name)
@@ -219,29 +247,94 @@ class MolTab(QWidget):
                 self.mol.set_vec(vec)
                 self.fillTab()
 
-class PWTab(QTreeWidget):
+class PWTab(QWidget):
 
         def __init__(self,pw):
                 super(PWTab,self).__init__()
                 self.pw = pw
-                self.setColumnCount(2)
-                self.setHeaderLabels(['Parameter','Value'])
-                self.makeTree()
-                
-        def makeTree(self):
+                self.initTab()
+
+        def initTab(self):
+                self.initTree()
+                self.initKpoints()
+                self.fillTree()
+                #self.fillKpoints()
+                self.vbox = QVBoxLayout()
+                self.vbox.addWidget(self.tree)
+                self.vbox.addWidget(self.kp)
+                self.setLayout(self.vbox)
+
+        def initKpoints(self):
+                self.kp = QWidget()
+                kp = self.kp
+                #choose k point format
+                kp.fmt = QComboBox()
+                for i in ['gamma','automatic','tpiba','crystal','tpiba_b','crystal_b']:
+                        kp.fmt.addItem(i)
+
+                #Automatic: x,y,z, offset(x,y,z)
+                kp.auto = QWidget()
+                kp.auto.widg = []
+                for i in range(3):
+                        kp.auto.widg.append(QLineEdit())
+                for i in range(3):
+                        kp.auto.widg.append(QCheckBox())
+                kp.auto.hbox1=QHBoxLayout()
+                kp.auto.hbox1.addWidget(QLabel('x:'))
+                kp.auto.hbox1.addWidget(kp.auto.widg[0])
+                kp.auto.hbox1.addWidget(QLabel('y:'))
+                kp.auto.hbox1.addWidget(kp.auto.widg[1])
+                kp.auto.hbox1.addWidget(QLabel('z:'))
+                kp.auto.hbox1.addWidget(kp.auto.widg[2])
+                kp.auto.hbox2 = QHBoxLayout()
+                kp.auto.hbox2.addWidget(QLabel('x offs.:'))
+                kp.auto.hbox2.addWidget(kp.auto.widg[3])
+                kp.auto.hbox2.addWidget(QLabel('y offs.:'))
+                kp.auto.hbox2.addWidget(kp.auto.widg[4])
+                kp.auto.hbox2.addWidget(QLabel('z offs.:'))
+                kp.auto.hbox2.addWidget(kp.auto.widg[5])
+                kp.auto.vbox = QVBoxLayout()
+                kp.auto.vbox.addLayout(kp.auto.hbox1)
+                kp.auto.vbox.addLayout(kp.auto.hbox2)
+                kp.auto.setLayout(kp.auto.vbox)
+
+                #stacked display of various formats
+                kp.disp = QStackedWidget()
+                kp.disp.addWidget(QLabel('Gamma point only'))
+                kp.disp.addWidget(kp.auto)
+                for i in range(4):
+                        kp.disp.addWidget(QLabel('not implemented yet'))
+                kp.fmt.currentIndexChanged.connect(kp.disp.setCurrentIndex)
+
+                #layout
+                kp.hbox = QHBoxLayout()
+                kp.hbox.addWidget(QLabel('K Points:'))
+                kp.hbox.addWidget(kp.fmt)
+                kp.vbox = QVBoxLayout()
+                kp.vbox.addLayout(kp.hbox)
+                kp.vbox.addWidget(kp.disp)
+                kp.setLayout(kp.vbox)
+                kp.setMaximumHeight(100)
+
+        def initTree(self):
+                self.tree = QTreeWidget()
+                self.tree.setColumnCount(2)
+                self.tree.setHeaderLabels(['Parameter','Value'])
+
+        def fillTree(self):
                 #container for items
                 items=[[],[]]
                 #mandatory namelists
                 for i in ['&control','&system','&electrons']:
-                        items[0].append(QTreeWidgetItem(self))
+                        items[0].append(QTreeWidgetItem(self.tree))
                         items[0][-1].setText(0,i)
 
                 #show optional namelists only if existing
                 if '&ions' in self.pw:
-                        items[0].append(QTreeWidgetItem(self))
+                        items[0].append(QTreeWidgetItem(self.tree))
                         items[0][-1].setText(0,'&ions')
                 if '&cell' in self.pw:
-                        items[0].append(QTreeWidgetItem(self))
+                        items[0].append(QTreeWidgetItem(self.tree))
                         items[0][-1].setText(0,'&cell')
 
                 #show child entries
@@ -250,3 +343,5 @@ class PWTab(QTreeWidget):
                                 items[1].append(QTreeWidgetItem(i))
                                 items[1][-1].setText(0,j[0])
                                 items[1][-1].setText(1,j[1])
+
+        #def fillKpoints(self):

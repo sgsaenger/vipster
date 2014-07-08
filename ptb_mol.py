@@ -343,20 +343,21 @@ class Molecule:
                 self.comment = ''
 
         # append new atom
-        def create_atom(self,name,x=0.,y=0.,z=0.,fmt='angstrom'):
+        def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
                 self.at.append(self.Atom(self,name,x,y,z,fmt))
-                #self.nat = self.nat + 1
 
         # append copy of existing atom
         def append_atom_cp(self,addat):
                 self.at.append(copy.copy(addat))
-                #self.nat = self.nat + 1
+
+        # inser atom at given position
+        def insert_atom(self,pos,addat):
+                self.at.insert(pos,copy.copy(addat))
 
         # append molecule
         def append_mol(self, mol):
                 for i in range(mol.get_nat()):
                         self.at.append(copy.copy(mol.at[i]))
-                #self.nat = self.nat + mol.nat
 
         # remove atom
         def del_atom(self,index):
@@ -385,7 +386,7 @@ class Molecule:
                 for i in self.at:
                     types.add(i.get_name())
                 return types
-        
+
         def get_ntyp(self):
                 return len(self.get_types())
 
