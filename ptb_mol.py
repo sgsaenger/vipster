@@ -5,6 +5,7 @@ import sys
 import copy
 import pwtool
 from math import sqrt
+from collections import OrderedDict
 import numpy as np
 from PyQt4.QtGui import *
 
@@ -13,9 +14,9 @@ from PyQt4.QtGui import *
 ######################################################################
 # pse[0] id
 # pse[1] ~ weight
-pse={"X":  [0, 0.0],
+pse={"X":  [0,0.0],
 
-     "H" : [1, 1.0079],
+     "H" : [1,1.0079],
      "He": [2,4.0026],
 
      "Li": [3, 6.941],
@@ -57,10 +58,9 @@ class TBController:
                 self.pwdata = []
                 #self.data = []
                 self.gui = pwtool.CoordTB(self)
-                self.indict = {'xyz' : self.parseXyz,
-                               'PWScf Input' : self.parsePwi,
-                               'PWScf Output' : self.parsePwo,
-                               }
+                self.indict = OrderedDict([('xyz',self.parseXyz),
+                               ('PWScf Input',self.parsePwi),
+                               ('PWScf Output' , self.parsePwo)])
                 self.outdict= {'PWScf Input' : self.parsePwi,
                                'xyz' : self.parseXyz,
                                }
@@ -371,6 +371,9 @@ class Molecule:
 
         def get_celldm(self):
                 return self.celldm
+
+        def get_atoms(self):
+                return self.at
 
         def get_atom(self,atom):
                 return self.at[atom]

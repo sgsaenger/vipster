@@ -8,6 +8,9 @@ from os import getcwd
 from functools import partial
 
 from PyQt4.QtGui import *
+from PyQt4.QtOpenGL import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
 class CoordTB(QMainWindow):
 
@@ -55,7 +58,7 @@ class CoordTB(QMainWindow):
                 ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
                 ftype = str(ftype[0])
                 self.controller.readFile(ftype,fname)
-                self.centralWidget().updateView()
+                self.centralWidget().loadView()
 
         def saveHandler(self):
                 msgBox = QMessageBox()
@@ -68,53 +71,69 @@ class MainView(QWidget):
                 super(MainView,self).__init__()
                 self.controller = controller
                 self.initUI()
-                self.tabs = ''
 
         def initUI(self):
 
-                #Molecules:
-                self.mol = QStackedWidget()
+                #Molecule edit area:
+                self.mol = MolArea()
                 self.mol.setMinimumSize(440,350)
 
+                #Molecule list:
                 self.mlist = QListWidget()
-                self.mlist.currentRowChanged.connect(self.mol.setCurrentIndex)
+                self.mlist.currentRowChanged.connect(self.setMolecule)
 
-                #PWParameter stuff:
-                self.pw = QStackedWidget()
+                #PWParameter edit area:
+                self.pw = PWTab()
                 self.pw.setMinimumSize(440,350)
 
+                #PWParameter list:
                 self.pwlist = QListWidget()
-                self.pwlist.currentRowChanged.connect(self.pw.setCurrentIndex)
+                self.pwlist.currentRowChanged.connect(self.setParam)
+
+                #opengl visualisation:
+                self.visual = ViewArea()
+                self.visual.setMinimumSize(440,350)
+                #make molecule editor aware of visualization:
+                self.mol.setVisual(self.visual)
+
+                #nest edit areas in tabwidget
+                self.tabs = QTabWidget()
+                self.tabs.addTab(self.mol,'Molecule coordinates')
+                self.tabs.addTab(self.pw,'PW Parameters')
 
                 #Layout
-                self.vbox = QVBoxLayout()
-                self.vbox.addWidget(QLabel('Loaded Molecules:'))
-                self.vbox.addWidget(self.mlist)
-                self.vbox.addWidget(QLabel('PW Parameter sets:'))
-                self.vbox.addWidget(self.pwlist)
-                self.hbox = QHBoxLayout()
-                self.hbox.addLayout(self.vbox)
-                self.hbox.addWidget(self.mol,1)
-                self.hbox.addWidget(self.pw,1)
+                vbox = QVBoxLayout()
+                vbox.addWidget(QLabel('Loaded Molecules:'))
+                vbox.addWidget(self.mlist)
+                vbox.addWidget(QLabel('PW Parameter sets:'))
+                vbox.addWidget(self.pwlist)
+                hbox = QHBoxLayout()
+                hbox.addLayout(vbox)
+                #hbox.addWidget(self.mol,1)
+                #hbox.addWidget(self.pw,1)
+                hbox.addWidget(self.tabs,1)
+                hbox.addWidget(self.visual,1)
 
-                self.setLayout(self.hbox)
+                self.setLayout(hbox)
 
-        def updateView(self):
-                count = self.mol.count()
+        def setMolecule(self,sel):
+                self.mol.setMol(self.controller.get_mol(sel))
+        
+        def setParam(self,sel):
+                self.pw.setPW(self.controller.get_pw(sel))
+
+        def loadView(self):
+                count = self.mlist.count()
                 for i in range(count,self.controller.get_nmol()):
-                        self.mol.addWidget(MolTab(self.controller.get_mol(i)))
                         self.mlist.addItem("Mol "+str(i+1))
-                count = self.pw.count()
+                count = self.pwlist.count()
                 for i in range(count,self.controller.get_npw()):
-                        self.pw.addWidget(PWTab(self.controller.get_pw(i)))
                         self.pwlist.addItem("Param "+str(i+1))
 
-class MolTab(QWidget):
+class MolArea(QWidget):
 
-        def __init__(self,mol):
-                super(MolTab,self).__init__()
-                #self.controller = controller
-                self.mol = mol
+        def __init__(self):
+                super(MolArea,self).__init__()
                 self.initTab()
 
         def initTab(self):
@@ -131,18 +150,20 @@ class MolTab(QWidget):
                 self.cellDm.editingFinished.connect(self.updateCellDm)
 
                 # layout1
-                self.hbox = QHBoxLayout()
-                self.hbox.addWidget(QLabel('Coordinates:'))
-                self.hbox.addWidget(self.fmt)
-                self.hbox.addStretch(1)
-                self.hbox.addWidget(QLabel('Cell dimension:'))
-                self.hbox.addWidget(self.cellDm)
+                hbox = QHBoxLayout()
+                hbox.addWidget(QLabel('Coordinates:'))
+                hbox.addWidget(self.fmt)
+                hbox.addStretch(1)
+                hbox.addWidget(QLabel('Cell dimension:'))
+                hbox.addWidget(self.cellDm)
 
                 # show coordinates in table
                 self.table = QTableWidget()
                 self.table.setColumnCount(4)
                 self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
                 self.table.itemChanged.connect(self.cellHandler)
+                #show actions in right click menu
+                self.table.setContextMenuPolicy(2)
 
                 # show cell vectors in table
                 self.vtable = QTableWidget()
@@ -153,39 +174,53 @@ class MolTab(QWidget):
                 self.vtable.itemChanged.connect(self.vecHandler)
 
                 #New Atom button:
-                self.new = QPushButton()
-                self.new.setText('New Atom')
-                self.new.clicked.connect(self.newAtom)
+                self.newB = QPushButton()
+                self.newB.setText('New Atom')
+                self.newB.clicked.connect(self.newAtom)
 
                 #Copy Atom button:
-                self.copy = QPushButton()
-                self.copy.setText('Copy Atom(s)')
-                self.copy.clicked.connect(self.copyAt)
-                
+                self.copyB = QPushButton()
+                self.copyB.setText('Copy Atom(s)')
+                self.copyB.clicked.connect(self.copyAt)
+
                 #paste button:
-                self.paste = QPushButton()
-                self.paste.setText('Paste Atom(s)')
-                self.paste.clicked.connect(self.pasteAt)
+                self.pasteB = QPushButton()
+                self.pasteB.setText('Paste Atom(s)')
+                self.pasteB.clicked.connect(self.pasteAt)
+
+                #sort buttons
+                btns = QHBoxLayout()
+                btns.addWidget(self.copyB)
+                btns.addWidget(self.pasteB)
+                btns.addWidget(self.newB)
+
+                # actions
+                self.newA = QAction('New Atom',self)
+                self.newA.setShortcut('Ctrl+N')
+                self.newA.triggered.connect(self.newAtom)
+                self.table.addAction(self.newA)
 
                 # set Layout for Tab
-                self.vbox = QVBoxLayout()
-                self.vbox.addLayout(self.hbox)
-                self.vbox.addWidget(self.table)
-                self.vbox.addWidget(self.copy)
-                self.vbox.addWidget(self.paste)
-                self.vbox.addWidget(self.new)
-                self.vbox.addWidget(QLabel('Cell vectors:'))
-                self.vbox.addWidget(self.vtable)
+                vbox = QVBoxLayout()
+                vbox.addLayout(hbox)
+                vbox.addWidget(self.table)
+                vbox.addLayout(btns)
+                vbox.addWidget(QLabel('Cell vectors:'))
+                vbox.addWidget(self.vtable)
 
-                self.setLayout(self.vbox)
+                self.setLayout(vbox)
                 self.resize(self.sizeHint())
 
-                # initialize content
-                self.cellDm.setText(str(self.mol.get_celldm()))
-                self.fmt.setCurrentIndex(0)
+        def setVisual(self,visual):
+                self.visual = visual
 
-                # fill tab with coordinates in Ångström
+        def setMol(self,mol):
+                #initialize edit area
+                self.mol = mol
                 self.fillTab()
+                #initialize viewarea
+                self.visual.setMol(self.mol)
+                self.visual.updateGL()
 
         def newAtom(self):
                 self.mol.create_atom()
@@ -195,24 +230,25 @@ class MolTab(QWidget):
                 self.sel = []
                 for i in self.table.selectedRanges():
                         for j in range(i.topRow(),i.bottomRow()+1):
-                                self.sel.append(j)
+                                self.sel.append(self.mol.get_atom(j))
 
         def pasteAt(self):
                 pos = self.table.currentRow()+1
-                for i in self.sel:
-                        at = self.mol.get_atom(i)
+                for at in self.sel:
                         self.mol.insert_atom(pos,at)
                 self.fillTab()
 
         def fillTab(self):
                 #prevent handling of cell changes during fill
-                self.tabledisable = True
+                self.updatedisable = True
+                self.cellDm.setText(str(self.mol.get_celldm()))
                 #fill atom table
                 self.table.setRowCount(self.mol.get_nat())
                 for i in range(self.mol.get_nat()):
-                        name = QTableWidgetItem(self.mol.get_atom(i).get_name())
+                        at = self.mol.get_atom(i)
+                        name = QTableWidgetItem(at.get_name())
                         self.table.setItem(i,0,name)
-                        coord = self.mol.get_atom(i).get_coord(self.fmt.currentText())
+                        coord = at.get_coord(self.fmt.currentText())
                         for j in range(3):
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(coord[j])))
                 #fill cell vec list
@@ -221,14 +257,18 @@ class MolTab(QWidget):
                         for j in range(3):
                                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
                 #reenable handling
-                self.tabledisable = False
+                self.updatedisable = False
+                
+                #TODO TODO
+                self.visual.updateGL()
 
         def updateCellDm(self):
+                if self.updatedisable: return
                 self.mol.set_celldm(float(self.cellDm.text()))
                 self.fillTab()
 
         def cellHandler(self):
-                if self.tabledisable: return
+                if self.updatedisable: return
                 atom = self.table.currentRow()
                 if self.table.currentColumn() == 0:
                         self.mol.get_atom(atom).set_name(self.table.item(atom,0).text())
@@ -239,7 +279,7 @@ class MolTab(QWidget):
                         self.mol.get_atom(atom).set_coord(self.fmt.currentText(),coord)
 
         def vecHandler(self):
-                if self.tabledisable: return
+                if self.updatedisable: return
                 vec=[[0,0,0],[0,0,0],[0,0,0]]
                 for i in range(3):
                         for j in range(3):
@@ -247,12 +287,12 @@ class MolTab(QWidget):
                 self.mol.set_vec(vec)
                 self.fillTab()
 
+#TODO TODO
 class PWTab(QWidget):
 
-        def __init__(self,pw):
+        def __init__(self):
                 super(PWTab,self).__init__()
-                self.pw = pw
-                self.initTab()
+                #self.initTab()
 
         def initTab(self):
                 self.initTree()
@@ -263,6 +303,9 @@ class PWTab(QWidget):
                 self.vbox.addWidget(self.tree)
                 self.vbox.addWidget(self.kp)
                 self.setLayout(self.vbox)
+
+        def setPW(self,pw):
+                self.pw = pw
 
         def initKpoints(self):
                 self.kp = QWidget()
@@ -344,4 +387,251 @@ class PWTab(QWidget):
                                 items[1][-1].setText(0,j[0])
                                 items[1][-1].setText(1,j[1])
 
-        #def fillKpoints(self):
+class ViewArea(QGLWidget):
+        def __init__(self):
+                super(ViewArea,self).__init__()
+                self.shaderProgram = QGLShaderProgram()
+                self.alpha = 0
+                self.beta = 0
+                self.xsh = 0
+                self.ysh = 0
+                self.distance = 25
+                self.pse={'H' : [1.20,0.38,QColor(191,191,191)],
+                          'He': [1.40,0.32,QColor(216,255,255)],
+                          'Li': [1.82,1.34,QColor(204,127,255)],
+                          'Be': [1.53,0.90,QColor(193,255,0)],
+                          'B' : [1.92,0.82,QColor(255,181,181)],
+                          'C' : [1.70,0.77,QColor(102,102,102)],
+                          'N' : [1.55,0.75,QColor(12 ,12 ,255)],
+                          'O' : [1.52,0.73,QColor(255,12 ,12)],
+                          'F' : [1.47,0.71,QColor(127,178,255)],
+                          'Ne': [1.54,0.69,QColor(178,226,244)],
+                          'Na': [2.27,1.54,QColor(170,91 ,242)],
+                          'Mg': [1.73,1.30,QColor(137,255,0)],
+                          'Al': [1.84,1.18,QColor(191,165,165)],
+                          'Si': [2.10,1.11,QColor(127,153,153)],
+                          'P' : [1.80,1.06,QColor(255,127,0)],
+                          'S' : [1.80,1.02,QColor(178,178,0)],
+                          'Cl': [1.75,0.99,QColor(30 ,239,30)],
+                          'Ar': [1.88,0.97,QColor(127,209,226)],
+                          'K' : [2.75,1.96,QColor(142,63 ,211)],
+                          'Ca': [2.31,1.74,QColor(61 ,255,0)],
+                          'Sc': [2.11,1.44,QColor(229,229,229)],
+                          'Ti': [1.70,1.36,QColor(191,193,198)],
+                          'V' : [1.70,1.25,QColor(165,165,170)],
+                          'Cr': [1.70,1.27,QColor(137,153,198)],
+                          'Mn': [1.70,1.39,QColor(155,122,198)],
+                          'Fe': [1.70,1.25,QColor(224,102,51)],
+                          'Co': [1.70,1.26,QColor(239,142,160)],
+                          'Ni': [1.63,1.21,QColor(79 ,209,79)],
+                          'Cu': [1.40,1.38,QColor(198,127,51)],
+                          'Zn': [1.39,1.31,QColor(124,127,175)],
+                          'Ga': [1.87,1.26,QColor(193,142,142)],
+                          'Ge': [2.11,1.22,QColor(102,142,142)],
+                          'As': [1.85,1.19,QColor(188,127,226)],
+                          'Se': [1.90,1.16,QColor(255,160,0)],
+                          'Br': [1.85,1.14,QColor(165,40 ,40)],
+                          'Kr': [2.02,1.10,QColor(91 ,183,209)],
+                          'Rb': [3.03,2.11,QColor(112,45 ,175)],
+                          'Sr': [2.49,1.92,QColor(0  ,255,0)],
+                          'Y' : [1.70,1.62,QColor(147,255,255)],
+                          'Zr': [1.70,1.48,QColor(147,224,224)],
+                          'Nb': [1.70,1.37,QColor(114,193,201)],
+                          'Mo': [1.70,1.45,QColor(84 ,181,181)],
+                          'Tc': [1.70,1.56,QColor(58 ,158,158)],
+                          'Ru': [1.70,1.26,QColor(35 ,142,142)],
+                          'Rh': [1.70,1.35,QColor(10 ,124,140)],
+                          'Pd': [1.63,1.31,QColor(0  ,104,132)],
+                          'Ag': [1.72,1.53,QColor(224,224,255)],
+                          'Cd': [1.58,1.48,QColor(255,216,142)],
+                          'In': [1.93,1.44,QColor(165,117,114)],
+                          'Sn': [2.17,1.41,QColor(102,127,127)],
+                          'Sb': [2.06,1.38,QColor(158,99 ,181)],
+                          'Te': [2.06,1.35,QColor(211,122,0)],
+                          'I' : [1.98,1.33,QColor(147,0  ,147)],
+                          'Xe': [2.16,1.30,QColor(66 ,158,175)],
+                          'Cs': [3.43,2.25,QColor(86 ,22 ,142)],
+                          'Ba': [2.68,1.98,QColor(0  ,201,0)],
+                          'La': [1.70,1.69,QColor(112,211,255)],
+                          'Ce': [1.70,0.77,QColor(255,255,198)],
+                          'Pr': [1.70,0.77,QColor(216,255,198)],
+                          'Nd': [1.70,0.77,QColor(198,255,198)],
+                          'Pm': [1.70,0.77,QColor(163,255,198)],
+                          'Sm': [1.70,0.77,QColor(142,255,198)],
+                          'Eu': [1.70,0.77,QColor(96 ,255,198)],
+                          'Gd': [1.70,0.77,QColor(68 ,255,198)],
+                          'Tb': [1.70,0.77,QColor(48 ,255,198)],
+                          'Dy': [1.70,0.77,QColor(30 ,255,198)],
+                          'Ho': [1.70,0.77,QColor(0  ,255,155)],
+                          'Er': [1.70,0.77,QColor(0  ,229,117)],
+                          'Tm': [1.70,0.77,QColor(0  ,211,81)],
+                          'Yb': [1.70,0.77,QColor(0  ,191,56)],
+                          'Lu': [1.70,1.60,QColor(0  ,170,35)],
+                          'Hf': [1.70,1.50,QColor(76 ,193,255)],
+                          'Ta': [1.70,1.38,QColor(76 ,165,255)],
+                          'W' : [1.70,1.46,QColor(33 ,147,214)],
+                          'Re': [1.70,1.59,QColor(38 ,124,170)],
+                          'Os': [1.70,1.28,QColor(38 ,102,150)],
+                          'Ir': [1.70,1.37,QColor(22 ,84 ,135)],
+                          'Pt': [1.75,1.28,QColor(244,237,209)],
+                          'Au': [1.66,1.44,QColor(204,209,30)],
+                          'Hg': [1.55,1.49,QColor(181,181,193)],
+                          'Tl': [1.96,1.48,QColor(165,84 ,76)],
+                          'Pb': [2.02,1.47,QColor(86 ,89 ,96)],
+                          'Bi': [2.07,1.46,QColor(158,79 ,181)],
+                          'Po': [1.97,0.77,QColor(170,91 ,0)],
+                          'At': [2.02,0.77,QColor(117,79 ,68)],
+                          'Rn': [2.20,1.45,QColor(66 ,130,150)],
+                          'Fr': [3.48,0.77,QColor(66 ,0  ,102)],
+                          'Ra': [2.83,0.77,QColor(0  ,124,0)],
+                          'Ac': [1.70,0.77,QColor(112,170,249)],
+                          'Th': [1.70,0.77,QColor(0  ,186,255)],
+                          'Pa': [1.70,0.77,QColor(0  ,160,255)],
+                          'U' : [1.86,0.77,QColor(0  ,142,255)],
+                          'Np': [1.70,0.77,QColor(0  ,127,255)],
+                          'Pu': [1.70,0.77,QColor(0  ,107,255)],
+                          'Am': [1.70,0.77,QColor(84 ,91 ,242)],
+                          'Cm': [1.70,0.77,QColor(119,91 ,226)],
+                          'Bk': [1.70,0.77,QColor(137,79 ,226)],
+                          'Cf': [1.70,0.77,QColor(160,53 ,211)],
+                          'Es': [1.70,0.77,QColor(178,30 ,211)],
+                          'Fm': [1.70,0.77,QColor(178,30 ,186)],
+                          'Md': [1.70,0.77,QColor(178,12 ,165)],
+                          'No': [1.70,0.77,QColor(188,12 ,135)],
+                          'Lr': [1.70,0.77,QColor(198,0  ,102)],
+                          'Rf': [1.70,0.77,QColor(204,0  ,89)],
+                          'Db': [1.70,0.77,QColor(209,0  ,79)],
+                          'Sg': [1.70,0.77,QColor(216,0  ,68)],
+                          'Bh': [1.70,0.77,QColor(224,0  ,56)],
+                          'Hs': [1.70,0.77,QColor(229,0  ,45)],
+                          'Mt': [1.70,0.77,QColor(234,0  ,38)],
+                          'Ds': [1.70,0.77,QColor(237,0  ,35)],
+                          'Rg': [1.70,0.77,QColor(239,0  ,33)],
+                          'Cn': [1.70,0.77,QColor(242,0  ,30)],
+                          'Uut':[1.70,0.77,QColor(244,0  ,28)],
+                          'Fl': [1.70,0.77,QColor(247,0  ,25)],
+                          'Uup':[1.70,0.77,QColor(249,0  ,22)],
+                          'Lv': [1.70,0.77,QColor(252,0  ,20)],
+                          'Uus':[1.70,0.77,QColor(252,0  ,17)],
+                          'Uuo':[1.70,0.77,QColor(252,0  ,15)]}
+
+        def setMol(self,mol):
+                self.mol = mol
+
+        def initializeGL(self):
+                #render only visible vertices
+                glEnable(GL_DEPTH_TEST)
+                #backface culling: render only front of vertex
+                glEnable(GL_CULL_FACE)
+
+                #set color
+                self.qglClearColor(QColor(255,255,255))
+
+                #add shaders:
+                self.shaderProgram.addShaderFromSourceFile(QGLShader.Vertex,'vertexShader.vsh')
+                self.shaderProgram.addShaderFromSourceFile(QGLShader.Fragment,'fragmentShader.fsh')
+                self.shaderProgram.link()
+
+        def resizeGL(self,width,height):
+                #prevent divide by zero
+                if height == 0: height = 1
+
+                #set projection matrix
+                self.pMatrix = QMatrix4x4()
+                self.pMatrix.setToIdentity()
+                self.pMatrix.perspective(60.0,float(width)/float(height),0.001,1000)
+                #move to paintGL or scaling won't work. ideal situation?
+                #self.pMatrix.ortho(-10-self.distance,10+self.distance,-10-self.distance,10+self.distance,0.001,1000)
+
+                #set viewport
+                glViewport(0,0,width,height)
+
+        def paintGL(self):
+                #clear depth and color buffer:
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+                #initialize transformation matrices:
+                self.mMatrix = QMatrix4x4()
+                self.vMatrix = QMatrix4x4()
+
+                #camera stuff:
+                cRot = QMatrix4x4()
+                cTrans = QMatrix4x4()
+                cPos = QVector3D()
+                cUpDir = QVector3D()
+                #xrot
+                cRot.rotate(self.alpha,0,1,0)
+                #yrot
+                cRot.rotate(self.beta,1,0,0)
+
+                cPos = cRot*QVector3D(0,0,self.distance)
+                cUpDir = cRot*QVector3D(0,1,0)
+
+                #make view Matrix:
+                self.vMatrix.lookAt(cPos,QVector3D(0,0,0),cUpDir)
+                
+                #translationtest:
+                cTrans.translate(self.xsh,self.ysh,0)
+                self.vMatrix = cTrans*self.vMatrix
+
+                #bind shaders:
+                self.shaderProgram.bind()
+                #don't do anything if there's no molecule
+                if not hasattr(self,'mol'):return
+
+                quad = gluNewQuadric()
+                for i in self.mol.get_atoms():
+                        #load model matrix with coordinates
+                        self.mMatrix.setToIdentity()
+                        name = i.get_name()
+                        coord = i.get_coord('bohr')
+                        self.mMatrix.translate(coord[0],coord[1],coord[2])
+                        #place vertices
+                        self.shaderProgram.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
+                        #color vertices
+                        self.shaderProgram.setUniformValue('color',self.pse[name][2])
+                        #render atoms
+                        gluSphere(quad,self.pse[name][1],20,20)
+                self.shaderProgram.release()
+
+        def mousePressEvent(self,e):
+                #store initial position
+                self.mousePos = e.pos()
+                #stop event from getting pushed to parent
+                e.accept()
+
+        def mouseMoveEvent(self,e):
+                #calculate deviation from initial position
+                deltaX = e.x() - self.mousePos.x()
+                deltaY = e.y() - self.mousePos.y()
+
+                #left click: rotate molecule
+                if (e.buttons() & 1):
+                        self.alpha -= deltaX
+                        while self.alpha < 0: self.alpha +=360
+                        while self.alpha > 360: self.alpha -=360
+
+                        self.beta -= deltaY
+                        if self.beta < -90: self.beta = -90
+                        if self.beta > 90 : self.beta = 90
+                        self.updateGL()
+                #middle click: shift position
+                #TODO TODO
+                elif (e.buttons() & 4):
+                        self.xsh = deltaX/10.
+                        self.ysh = deltaY/10.
+                        self.updateGL()
+
+                self.mousePos = e.pos()
+                e.accept()
+
+        def wheelEvent(self,e):
+                delta = e.delta()
+                #zoom with vertical wheel
+                if e.orientation() & 2:
+                        if delta < 0:
+                                self.distance *= 1.1
+                        elif delta > 0:
+                                self.distance *= 0.9
+                        self.updateGL()
+                e.accept()
