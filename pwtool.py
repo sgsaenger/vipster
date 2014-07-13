@@ -5,6 +5,7 @@ import sys
 
 from os.path import expanduser
 from os import getcwd
+from math import sqrt
 from functools import partial
 
 from PyQt4.QtGui import *
@@ -118,7 +119,7 @@ class MainView(QWidget):
 
         def setMolecule(self,sel):
                 self.mol.setMol(self.controller.get_mol(sel))
-        
+
         def setParam(self,sel):
                 self.pw.setPW(self.controller.get_pw(sel))
 
@@ -215,12 +216,12 @@ class MolArea(QWidget):
                 self.visual = visual
 
         def setMol(self,mol):
-                #initialize edit area
+                #connect molecule
                 self.mol = mol
-                self.fillTab()
                 #initialize viewarea
                 self.visual.setMol(self.mol)
-                self.visual.updateGL()
+                #initialize view
+                self.fillTab()
 
         def newAtom(self):
                 self.mol.create_atom()
@@ -258,8 +259,8 @@ class MolArea(QWidget):
                                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
                 #reenable handling
                 self.updatedisable = False
-                
-                #TODO TODO
+
+                #update View
                 self.visual.updateGL()
 
         def updateCellDm(self):
@@ -277,6 +278,7 @@ class MolArea(QWidget):
                         for j in range(3):
                                 coord[j]=float(self.table.item(atom,j+1).text())
                         self.mol.get_atom(atom).set_coord(self.fmt.currentText(),coord)
+                self.fillTab()
 
         def vecHandler(self):
                 if self.updatedisable: return
@@ -389,7 +391,8 @@ class PWTab(QWidget):
 
 class ViewArea(QGLWidget):
         def __init__(self):
-                super(ViewArea,self).__init__()
+                #init with antialiasing
+                super(ViewArea,self).__init__(QGLFormat(QGL.SampleBuffers))
                 self.shaderProgram = QGLShaderProgram()
                 self.alpha = 0
                 self.beta = 0
@@ -532,6 +535,36 @@ class ViewArea(QGLWidget):
                 self.shaderProgram.addShaderFromSourceFile(QGLShader.Fragment,'fragmentShader.fsh')
                 self.shaderProgram.link()
 
+                self.makeSphere()
+
+        def makeSphere(self):
+                #start from octahedron:
+                sphere = [QVector3D(-1.0, 0.0, 1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0, 1.0, 0.0),
+                               QVector3D( 1.0, 0.0, 1.0),QVector3D( 1.0, 0.0,-1.0),QVector3D( 0.0, 1.0, 0.0),
+                               QVector3D( 1.0, 0.0,-1.0),QVector3D(-1.0, 0.0,-1.0),QVector3D( 0.0, 1.0, 0.0),
+                               QVector3D(-1.0, 0.0,-1.0),QVector3D(-1.0, 0.0, 1.0),QVector3D( 0.0, 1.0, 0.0),
+                               QVector3D( 1.0, 0.0, 1.0),QVector3D(-1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0),
+                               QVector3D(-1.0, 0.0, 1.0),QVector3D(-1.0, 0.0,-1.0),QVector3D( 0.0,-1.0, 0.0),
+                               QVector3D(-1.0, 0.0,-1.0),QVector3D( 1.0, 0.0,-1.0),QVector3D( 0.0,-1.0, 0.0),
+                               QVector3D( 1.0, 0.0,-1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0)]
+                #subdivide and normalize for sphere:
+                for i in range(4):
+                        sphere = self.subdivide(sphere)
+                self.vertex_modelspace = sphere
+                self.normals_modelspace = sphere
+
+        def subdivide(self,vertex):
+                subdivide = []
+                for i in range(0,len(vertex),3):
+                        a = vertex[i].normalized()
+                        b = vertex[i+1].normalized()
+                        c = vertex[i+2].normalized()
+                        d = (a+b).normalized()
+                        e = (a+c).normalized()
+                        f = (b+c).normalized()
+                        subdivide +=[a,d,e,d,f,e,e,f,c,d,b,f]
+                return subdivide
+
         def resizeGL(self,width,height):
                 #prevent divide by zero
                 if height == 0: height = 1
@@ -539,7 +572,9 @@ class ViewArea(QGLWidget):
                 #set projection matrix
                 self.pMatrix = QMatrix4x4()
                 self.pMatrix.setToIdentity()
+                #perspective projection
                 self.pMatrix.perspective(60.0,float(width)/float(height),0.001,1000)
+                #TODO
                 #move to paintGL or scaling won't work. ideal situation?
                 #self.pMatrix.ortho(-10-self.distance,10+self.distance,-10-self.distance,10+self.distance,0.001,1000)
 
@@ -549,6 +584,9 @@ class ViewArea(QGLWidget):
         def paintGL(self):
                 #clear depth and color buffer:
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+                #don't do anything if there's no molecule
+                if not hasattr(self,'mol'):return
 
                 #initialize transformation matrices:
                 self.mMatrix = QMatrix4x4()
@@ -569,29 +607,42 @@ class ViewArea(QGLWidget):
 
                 #make view Matrix:
                 self.vMatrix.lookAt(cPos,QVector3D(0,0,0),cUpDir)
-                
-                #translationtest:
+
+                #preliminary solution!
+                #translate the view point:
                 cTrans.translate(self.xsh,self.ysh,0)
                 self.vMatrix = cTrans*self.vMatrix
 
                 #bind shaders:
                 self.shaderProgram.bind()
-                #don't do anything if there's no molecule
-                if not hasattr(self,'mol'):return
 
-                quad = gluNewQuadric()
                 for i in self.mol.get_atoms():
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
                         name = i.get_name()
                         coord = i.get_coord('bohr')
                         self.mMatrix.translate(coord[0],coord[1],coord[2])
-                        #place vertices
+                        #bind transformation matrices
                         self.shaderProgram.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
+                        self.shaderProgram.setUniformValue('vMatrix',self.vMatrix)
+                        self.shaderProgram.setUniformValue('mMatrix',self.mMatrix)
+                        #create light source:
+                        self.shaderProgram.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
-                        self.shaderProgram.setUniformValue('color',self.pse[name][2])
-                        #render atoms
-                        gluSphere(quad,self.pse[name][1],20,20)
+                        self.shaderProgram.setUniformValue('MaterialDiffuseColor',self.pse[name][2])
+                        #send vertices
+                        self.shaderProgram.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
+                        self.shaderProgram.enableAttributeArray('vertex_modelspace')
+                        #send normals for lighting
+                        self.shaderProgram.setAttributeArray('normals_modelspace',self.normals_modelspace)
+                        self.shaderProgram.enableAttributeArray('normals_modelspace')
+                        #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+                        #draw
+                        glDrawArrays(GL_TRIANGLES,0,len(self.vertex_modelspace))
+                        #reset
+                        self.shaderProgram.disableAttributeArray('vertex_modelspace')
+                        self.shaderProgram.disableAttributeArray('normals_modelspace')
+
                 self.shaderProgram.release()
 
         def mousePressEvent(self,e):
@@ -616,10 +667,9 @@ class ViewArea(QGLWidget):
                         if self.beta > 90 : self.beta = 90
                         self.updateGL()
                 #middle click: shift position
-                #TODO TODO
                 elif (e.buttons() & 4):
-                        self.xsh = deltaX/10.
-                        self.ysh = deltaY/10.
+                        self.xsh += deltaX/10.
+                        self.ysh -= deltaY/10.
                         self.updateGL()
 
                 self.mousePos = e.pos()
