@@ -3,7 +3,8 @@
 
 import sys
 
-from os.path import expanduser
+from os.path import expanduser,realpath
+from os import path
 from os import getcwd
 from math import sqrt
 from functools import partial
@@ -11,7 +12,6 @@ from functools import partial
 from PyQt4.QtGui import *
 from PyQt4.QtOpenGL import *
 from OpenGL.GL import *
-from OpenGL.GLU import *
 
 class CoordTB(QMainWindow):
 
@@ -544,8 +544,8 @@ class ViewArea(QGLWidget):
                 self.qglClearColor(QColor(255,255,255))
 
                 #add shaders:
-                self.shaderProgram.addShaderFromSourceFile(QGLShader.Vertex,'vertexShader.vsh')
-                self.shaderProgram.addShaderFromSourceFile(QGLShader.Fragment,'fragmentShader.fsh')
+                self.shaderProgram.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexShader.vsh')
+                self.shaderProgram.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentShader.fsh')
                 self.shaderProgram.link()
 
                 self.makeSphere()

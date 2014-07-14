@@ -53,7 +53,7 @@ pse={"X":  [0,0.0],
 ######################################################################
 class TBController:
 
-        def __init__(self):
+        def __init__(self,argv):
                 self.mol = []
                 self.pwdata = []
                 #self.data = []
@@ -63,6 +63,20 @@ class TBController:
                                ('PWScf Output' , self.parsePwo)])
                 self.outdict= OrderedDict([('PWScf Input',self.writePwi),
                                ('xyz',self.writeXyz)])
+                self.argumentHandler(argv)
+
+
+#####################################################################
+# Handle command line arguments:
+#####################################################################
+        def argumentHandler(self,argv):
+                for i in range(1,len(argv)):
+                        if argv[i] == '-pwi':
+                                self.readFile('PWScf Input',argv[i+1])
+                                self.gui.centralWidget().loadView()
+                        elif argv[i] == '-xyz':
+                                self.readFile('xyz',argv[i+1])
+                                self.gui.centralWidget().loadView()
 
 
 #####################################################################
@@ -503,7 +517,7 @@ class PWParam(dict):
 
 def main():
         app = QApplication(sys.argv)
-        control = TBController()
+        control = TBController(sys.argv)
         sys.exit(app.exec_())
 
 if __name__ == '__main__':
