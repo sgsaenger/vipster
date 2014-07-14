@@ -61,9 +61,8 @@ class TBController:
                 self.indict = OrderedDict([('xyz',self.parseXyz),
                                ('PWScf Input',self.parsePwi),
                                ('PWScf Output' , self.parsePwo)])
-                self.outdict= {'PWScf Input' : self.parsePwi,
-                               'xyz' : self.parseXyz,
-                               }
+                self.outdict= OrderedDict([('PWScf Input',self.writePwi),
+                               ('xyz',self.writeXyz)])
 
 
 #####################################################################
@@ -221,7 +220,10 @@ class TBController:
 # WRITE FUNCTIONS
 #############################################################################
 
-        def writeXyz(self,mol,filename=""):
+        def writeFile(self,ftype,mol,filename,param="",coordfmt=""):
+                self.outdict[ftype](mol,filename,param,coordfmt)
+
+        def writeXyz(self,mol,filename,param,coordfmt):
                 if filename == "":
                         f=sys.stdout
                 else:
@@ -240,7 +242,7 @@ class TBController:
                                 )
                 f.close()
 
-        def writePwi(self,mol,param,coordfmt='crystal',filename=""):
+        def writePwi(self,mol,filename,param,coordfmt):
                 if filename == "":
                         f=sys.stdout
                 else:
@@ -252,20 +254,23 @@ class TBController:
                 for i in ['&control','&system','&electrons']:
                         f.write(i+'\n')
                         #write all parameters
+                        if i == '&system':
+                                f.write(' nat='+str(mol.get_nat())+'\n')
+                                f.write(' ntyp='+str(mol.get_ntyp())+'\n')
                         for j in range(len(param[i])):
-                            f.write(param[i].keys()[j]+'='+param[i].values()[j]+'\n')
+                                f.write(' '+param[i].keys()[j]+'='+param[i].values()[j]+'\n')
                         f.write('/\n\n')
                 #&ions only when needed
                 if param['&control']['calculation'] in ['relax','vc-relax','md','vc-md']:
                         f.write('&ions'+'\n')
                         for j in range(len(param['&ions'])):
-                                f.write(param['&ions'].keys()[j]+'='+param['&ions'].values()[j]+'\n')
+                                f.write(' '+param['&ions'].keys()[j]+'='+param['&ions'].values()[j]+'\n')
                         f.write('/\n\n')
                 #&cell only when needed
                 if param['&control']['calculation'] in ['vc-relax','vc-md']:
                         f.write('&cell'+'\n')
                         for j in range(len(param['&cell'])):
-                                f.write(param['&cell'].keys()[j]+'='+param['&cell'].values()[j]+'\n')
+                                f.write(' '+param['&cell'].keys()[j]+'='+param['&cell'].values()[j]+'\n')
                         f.write('/\n\n')
 
                 #ATOMIC_SPECIES card:
@@ -277,7 +282,7 @@ class TBController:
                 f.write('\n')
 
                 #ATOMIC_POSITIONS
-                f.write('ATOMIC_SPECIES'+' '+coordfmt+'\n')
+                f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
                 for i in range(mol.get_nat()):
                         atom=mol.get_atom(i)
                         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
@@ -469,7 +474,6 @@ class Molecule:
                                 self.coord = np.dot(self.mol.vec,self.coord)*self.mol.celldm
                         elif fmt == 'alat':
                                 self.coord *= self.mol.celldm
-
 
         #Kommt spaeter:
         #class Bond:

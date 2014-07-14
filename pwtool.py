@@ -62,9 +62,17 @@ class CoordTB(QMainWindow):
                 self.centralWidget().loadView()
 
         def saveHandler(self):
-                msgBox = QMessageBox()
-                msgBox.setText('You had saved your file.\nIf this Program was able to.')
-                msgBox.exec_()
+                #msgBox = QMessageBox()
+                #msgBox.setText('You had saved your file.\nIf this Program was able to.')
+                #msgBox.exec_()
+                fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
+                if not fname: return
+                ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
+                ftype = str(ftype[0])
+                mol = self.centralWidget().getMolecule()
+                param = self.centralWidget().getParam()
+                coordfmt = self.centralWidget().mol.fmt.currentText()
+                self.controller.writeFile(ftype,mol,fname,param,coordfmt)
 
 class MainView(QWidget):
 
@@ -120,8 +128,14 @@ class MainView(QWidget):
         def setMolecule(self,sel):
                 self.mol.setMol(self.controller.get_mol(sel))
 
+        def getMolecule(self):
+                return self.controller.get_mol(self.mlist.currentRow())
+
         def setParam(self,sel):
                 self.pw.setPW(self.controller.get_pw(sel))
+
+        def getParam(self):
+                return self.controller.get_pw(self.pwlist.currentRow())
 
         def loadView(self):
                 count = self.mlist.count()
@@ -138,7 +152,6 @@ class MolArea(QWidget):
                 self.initTab()
 
         def initTab(self):
-
                 # coord fmt dropdown selector
                 self.fmt = QComboBox()
                 self.fmt.setToolTip('Select format of coordinates')
