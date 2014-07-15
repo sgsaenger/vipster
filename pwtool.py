@@ -62,9 +62,6 @@ class CoordTB(QMainWindow):
                 self.centralWidget().loadView()
 
         def saveHandler(self):
-                #msgBox = QMessageBox()
-                #msgBox.setText('You had saved your file.\nIf this Program was able to.')
-                #msgBox.exec_()
                 fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
                 if not fname: return
                 ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
@@ -157,6 +154,7 @@ class MolArea(QWidget):
                 self.fmt.setToolTip('Select format of coordinates')
                 for i in ['angstrom','bohr','crystal','alat']:
                         self.fmt.addItem(i)
+                self.fmt.setCurrentIndex(2)
                 self.fmt.currentIndexChanged.connect(self.fillTab)
 
                 # show celldm
@@ -406,7 +404,8 @@ class ViewArea(QGLWidget):
         def __init__(self):
                 #init with antialiasing
                 super(ViewArea,self).__init__(QGLFormat(QGL.SampleBuffers))
-                self.shaderProgram = QGLShaderProgram()
+                self.sphereShader = QGLShaderProgram()
+                self.lineShader = QGLShaderProgram()
                 self.alpha = 0
                 self.beta = 0
                 self.xsh = 0
@@ -533,6 +532,7 @@ class ViewArea(QGLWidget):
 
         def setMol(self,mol):
                 self.mol = mol
+                self.makeCell()
 
         def initializeGL(self):
                 #render only visible vertices
@@ -544,9 +544,10 @@ class ViewArea(QGLWidget):
                 self.qglClearColor(QColor(255,255,255))
 
                 #add shaders:
-                self.shaderProgram.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexShader.vsh')
-                self.shaderProgram.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentShader.fsh')
-                self.shaderProgram.link()
+                self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexSpheres.vsh')
+                self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentSpheres.fsh')
+                self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexLines.vsh')
+                self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentLines.fsh')
 
                 self.makeSphere()
 
@@ -626,8 +627,13 @@ class ViewArea(QGLWidget):
                 cTrans.translate(self.xsh,self.ysh,0)
                 self.vMatrix = cTrans*self.vMatrix
 
+                #rendering:
+                self.drawAtoms()
+                self.drawCell()
+
+        def drawAtoms(self):
                 #bind shaders:
-                self.shaderProgram.bind()
+                self.sphereShader.bind()
 
                 for i in self.mol.get_atoms():
                         #load model matrix with coordinates
@@ -636,27 +642,58 @@ class ViewArea(QGLWidget):
                         coord = i.get_coord('bohr')
                         self.mMatrix.translate(coord[0],coord[1],coord[2])
                         #bind transformation matrices
-                        self.shaderProgram.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
-                        self.shaderProgram.setUniformValue('vMatrix',self.vMatrix)
-                        self.shaderProgram.setUniformValue('mMatrix',self.mMatrix)
+                        self.sphereShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
+                        self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
+                        self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
                         #create light source:
-                        self.shaderProgram.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
-                        self.shaderProgram.setUniformValue('MaterialDiffuseColor',self.pse[name][2])
+                        self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[name][2])
                         #send vertices
-                        self.shaderProgram.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
-                        self.shaderProgram.enableAttributeArray('vertex_modelspace')
+                        self.sphereShader.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
+                        self.sphereShader.enableAttributeArray('vertex_modelspace')
                         #send normals for lighting
-                        self.shaderProgram.setAttributeArray('normals_modelspace',self.normals_modelspace)
-                        self.shaderProgram.enableAttributeArray('normals_modelspace')
+                        self.sphereShader.setAttributeArray('normals_modelspace',self.normals_modelspace)
+                        self.sphereShader.enableAttributeArray('normals_modelspace')
                         #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
                         #draw
                         glDrawArrays(GL_TRIANGLES,0,len(self.vertex_modelspace))
                         #reset
-                        self.shaderProgram.disableAttributeArray('vertex_modelspace')
-                        self.shaderProgram.disableAttributeArray('normals_modelspace')
+                        self.sphereShader.disableAttributeArray('vertex_modelspace')
+                        self.sphereShader.disableAttributeArray('normals_modelspace')
 
-                self.shaderProgram.release()
+                self.sphereShader.release()
+
+        def drawCell(self):
+                #bind shaders:
+                self.lineShader.link()
+                self.lineShader.bind()
+                self.mMatrix.setToIdentity()
+                self.lineShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
+                self.lineShader.setUniformValue('color',QColor(0,0,0))
+                self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
+                self.lineShader.enableAttributeArray('vertex_modelspace')
+                glDrawArrays(GL_LINES,0,len(self.cell_modelspace))
+                self.lineShader.disableAttributeArray('vertex_modelspace')
+                self.lineShader.release()
+
+
+        def makeCell(self):
+                #get vectors:
+                vec = self.mol.get_vec()
+                cdm = self.mol.get_celldm()
+                null = QVector3D(0,0,0)
+                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
+                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
+                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
+                #define vertices:
+                self.cell_modelspace=[null,a,null,b,null,c,
+                                      a,a+b,a,a+c,
+                                      b,b+a,b,b+c,
+                                      c,c+a,c,c+b,
+                                      a+b,a+b+c,
+                                      a+c,a+b+c,
+                                      b+c,a+b+c]
 
         def mousePressEvent(self,e):
                 #store initial position
@@ -676,8 +713,10 @@ class ViewArea(QGLWidget):
                         while self.alpha > 360: self.alpha -=360
 
                         self.beta -= deltaY
-                        if self.beta < -90: self.beta = -90
-                        if self.beta > 90 : self.beta = 90
+                        if self.beta < 0 : self.beta += 360
+                        if self.beta > 360 : self.beta = -360
+                        #if self.beta < -90: self.beta = -90
+                        #if self.beta > 90 : self.beta = 90
                         self.updateGL()
                 #middle click: shift position
                 elif (e.buttons() & 4):
