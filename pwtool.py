@@ -257,12 +257,10 @@ class MolArea(QWidget):
                 #fill atom table
                 self.table.setRowCount(self.mol.get_nat())
                 for i in range(self.mol.get_nat()):
-                        at = self.mol.get_atom(i)
-                        name = QTableWidgetItem(at.get_name())
-                        self.table.setItem(i,0,name)
-                        coord = at.get_coord(self.fmt.currentText())
+                        at = self.mol.get_atom(i,self.fmt.currentText())
+                        self.table.setItem(i,0,QTableWidgetItem(at[0]))
                         for j in range(3):
-                                self.table.setItem(i,j+1,QTableWidgetItem(str(coord[j])))
+                                self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
                 #fill cell vec list
                 vec = self.mol.get_vec()
                 for i in range(3):
@@ -282,13 +280,11 @@ class MolArea(QWidget):
         def cellHandler(self):
                 if self.updatedisable: return
                 atom = self.table.currentRow()
-                if self.table.currentColumn() == 0:
-                        self.mol.get_atom(atom).set_name(self.table.item(atom,0).text())
-                else:
-                        coord = [0,0,0]
-                        for j in range(3):
-                                coord[j]=float(self.table.item(atom,j+1).text())
-                        self.mol.get_atom(atom).set_coord(self.fmt.currentText(),coord)
+                name = self.table.item(atom,0).text()
+                coord = [0,0,0]
+                for j in range(3):
+                        coord[j]=float(self.table.item(atom,j+1).text())
+                self.mol.set_atom(atom,name,coord,self.fmt.currentText())
                 self.fillTab()
 
         def vecHandler(self):
@@ -635,12 +631,12 @@ class ViewArea(QGLWidget):
                 #bind shaders:
                 self.sphereShader.bind()
 
-                for i in self.mol.get_atoms():
+                for i in range(self.mol.get_nat()):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
-                        name = i.get_name()
-                        coord = i.get_coord('bohr')
-                        self.mMatrix.translate(coord[0],coord[1],coord[2])
+                        atom = self.mol.get_atom(i,'bohr')
+                        #self.mMatrix.translate(coord[0],coord[1],coord[2])
+                        self.mMatrix.translate(atom[1][0],atom[1][1],atom[1][2])
                         #bind transformation matrices
                         self.sphereShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
                         self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
@@ -648,7 +644,7 @@ class ViewArea(QGLWidget):
                         #create light source:
                         self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
-                        self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[name][2])
+                        self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[atom[0]][2])
                         #send vertices
                         self.sphereShader.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
                         self.sphereShader.enableAttributeArray('vertex_modelspace')

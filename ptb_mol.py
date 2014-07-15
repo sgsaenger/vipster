@@ -126,9 +126,6 @@ class TBController:
                         for i in range(nat):
                                 line = data.pop(0).split()
                                 tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
-                        # remove parsed lines to check if there's more to do
-                        #for i in range(0,nat+2):
-                        #        del data[0]
                         tlist.append(tmol)
                 #return tlist
                 self.mol = self.mol + tlist
@@ -180,7 +177,6 @@ class TBController:
                                                 while not temp:
                                                         temp = data.pop(0).strip().split()
                                                 tcoord.append(temp)
-                                                #tcoord.append(data.pop(0).strip().split())
 
                                 #K_POINTS fmt
                                 elif header[0] == 'K_POINTS':
@@ -206,6 +202,7 @@ class TBController:
                                                         #kpoints.append(data.pop(0).strip().split())
                                                         kpoints.append(data.pop(0))
                                                 taparam['K_POINTS']=[header[1],nk,kpoints]
+
                                 elif header[0] == 'CELL_PARAMETERS':
                                         vec=[[0,0,0],[0,0,0],[0,0,0]]
                                         for i in range(3):
@@ -252,13 +249,9 @@ class TBController:
                 f.write(mol.get_comment()+'\n')
                 # write coordinates
                 for cntat in range(0,mol.get_nat()):
+                        atom=mol.get_atom(cntat,'angstrom')
                         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                                     mol.at[cntat].get_name(),
-                                     mol.at[cntat].get_coord('Bohr')[0],
-                                     mol.at[cntat].get_coord('Bohr')[1],
-                                     mol.at[cntat].get_coord('Bohr')[2]
-                                     )+'\n'
-                                )
+                                     atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
                 f.close()
 
         def writePwi(self,mol,filename,param,coordfmt):
@@ -303,12 +296,7 @@ class TBController:
                 for i in range(mol.get_nat()):
                         atom=mol.get_atom(i)
                         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                            atom.get_name(),
-                            atom.get_coord(coordfmt)[0],
-                            atom.get_coord(coordfmt)[1],
-                            atom.get_coord(coordfmt)[2],
-                            )+'\n'
-                            )
+                            atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
                 f.write('\n')
 
                 #K_POINTS
@@ -357,7 +345,8 @@ class Molecule:
 
         def __init__(self):
                 # set atom list
-                self.at=[]
+                self.at_n=[]
+                self.at_c=[]
                 self.celldm = 1.0
                 self.vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
                 self.vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
@@ -366,39 +355,90 @@ class Molecule:
 
         # append new atom
         def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
-                self.at.append(self.Atom(self,name,x,y,z,fmt))
+                #self.at.append(self.Atom(self,name,x,y,z,fmt))
+                self.at_n.append(name)
+                self.at_c.append(self.set_coord([x,y,z],fmt))
 
         # append copy of existing atom
         def append_atom_cp(self,addat):
-                self.at.append(copy.copy(addat))
+                #self.at.append(copy.copy(addat))
+                self.at_n.append(addat[0])
+                self.at_c.append(self.set_coord(addat[1],addat[2]))
 
         # inser atom at given position
         def insert_atom(self,pos,addat):
-                self.at.insert(pos,copy.copy(addat))
-
-        # append molecule
-        def append_mol(self, mol):
-                for i in range(mol.get_nat()):
-                        self.at.append(copy.copy(mol.at[i]))
+                #self.at.insert(pos,copy.copy(addat))
+                self.at_n.insert(pos,adddat[0])
+                self.at_c.insert(pos,self.set_coord(addat[1],addat[2]))
 
         # remove atom
         def del_atom(self,index):
                 del self.at[index]
 
+        # append molecule
+        #def append_mol(self, mol):
+        #        for i in range(mol.get_nat()):
+        #                self.at.append(copy.copy(mol.at[i]))
+
+        ######################################################
+        # set functions
+        ######################################################
+
+        def set_atom(self,index,name,coord,fmt):
+                self.at_n[index]=name
+                self.at_c[index]=self.set_coord(coord,fmt)
+
+        def set_comment(self,comment):
+                self.comment = comment
+
+        # set celldm
+        def set_celldm(self,cdm):
+                self.celldm = float(cdm)
+
+        # set vectors
+        def set_vec(self,vec):
+                self.vec = np.array(vec).T
+                self.vecinv = np.linalg.inv(self.vec)
+
+        ######################################################
+        # coord fmt functions
+        ######################################################
+
+        def set_coord(self,coord,fmt='bohr'):
+                coord = np.array(coord)
+                if fmt == 'angstrom':
+                        return coord/0.52917721092
+                elif fmt == 'bohr':
+                        return coord
+                elif fmt == 'crystal':
+                        return np.dot(self.vec,coord)*self.celldm
+                elif fmt == 'alat':
+                        return coord*self.celldm
+
+        def get_coord(self,coord,fmt):
+                if fmt == 'angstrom':
+                        return coord*0.52917721092
+                elif fmt == 'bohr':
+                        return coord
+                elif fmt == 'crystal':
+                        return np.dot(self.vecinv,coord)/self.celldm
+                elif fmt == 'alat':
+                        return coord/self.celldm
+
         ######################################################
         # return functions
         ######################################################
         def get_nat(self):
-                return len(self.at)
+                return len(self.at_c)
 
         def get_celldm(self):
                 return self.celldm
 
-        def get_atoms(self):
-                return self.at
+        #def get_atoms(self):
+        #        return self.at_n+self.at_c
 
-        def get_atom(self,atom):
-                return self.at[atom]
+        def get_atom(self,index,fmt='bohr'):
+                return [self.at_n[index],self.get_coord(self.at_c[index],fmt),fmt]
 
         def get_vec(self):
                 return self.vec.T
@@ -415,26 +455,8 @@ class Molecule:
         def get_ntyp(self):
                 return len(self.get_types())
 
-        ######################################################
-        # set functions
-        ######################################################
-
-        # set celldm
-        def set_celldm(self,cdm):
-                self.celldm = float(cdm)
-
-        # set vectors
-        def set_vec(self,vec):
-                self.vec = np.array(vec).T
-                self.vecinv = np.linalg.inv(self.vec)
-
-        #def set_periodicity(self,vec0,vec1,vec2,off=[0.0,0.0,0.0]):
-        #        self.vec = np.array([vec0,vec1,vec2]).T
-        #        self.vecinv = np.linalg.inv(self.vec)
-        #        self.offset=off
-
 ######################################################################
-# ATOM CLASS
+# ATOM CLASS TO BE REMOVED
 ######################################################################
 
         class Atom:
