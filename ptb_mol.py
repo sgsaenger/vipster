@@ -395,6 +395,15 @@ class Molecule:
         def set_celldm(self,cdm):
                 self.celldm = float(cdm)
 
+        def set_center(self):
+                xr = [self.at_c[i][0] for i in range(len(self.at_n))]
+                yr = [self.at_c[i][1] for i in range(len(self.at_n))]
+                zr = [self.at_c[i][2] for i in range(len(self.at_n))]
+                x = (max(xr)+min(xr))/2
+                y = (max(yr)+min(yr))/2
+                z = (max(zr)+min(zr))/2
+                self.center = [x,y,z]
+
         # set vectors
         def set_vec(self,vec):
                 self.vec = np.array(vec).T
@@ -455,67 +464,13 @@ class Molecule:
         def get_ntyp(self):
                 return len(self.get_types())
 
-######################################################################
-# ATOM CLASS TO BE REMOVED
-######################################################################
+        def get_center(self):
+                if not hasattr(self,'center'):
+                        self.set_center()
+                return self.center
 
-        class Atom:
-
-                def __init__(self,mol,name,x,y,z,fmt):
-                        self.name=name
-                        #self.number=pse[self.name][0]
-                        #self.weight=pse[self.name][1]
-                        self.mol = mol
-                        self.set_coord(fmt,[x,y,z])
-
-                ######################################################
-                # return functions
-                ######################################################
-                def get_name(self):
-                        return self.name
-
-                #def get_number(self):
-                #        return self.number
-
-                #def get_weight(self):
-                #        return self.weight
-
-                def get_coord(self,fmt):
-                        if fmt == 'angstrom':
-                                return self.coord*0.52917721092
-                        elif fmt == 'bohr':
-                                return self.coord
-                        elif fmt == 'crystal':
-                                return np.dot(self.mol.vecinv,self.coord)/self.mol.celldm
-                        elif fmt == 'alat':
-                                return self.coord/self.mol.celldm
-
-                #############################################################
-                # set functions
-                #############################################################
-                #def set(self,name,x,y,z):
-                #        self.name=name
-                #        self.number=pse[name][0]
-                #        self.weight=pse[name][1]
-                #        self.coord=np.array([x,y,z])
-
-                def set_name(self,name):
-                        self.name = name
-
-                def set_coord(self,fmt,coord):
-                        self.coord=np.array(coord)
-                        if fmt == 'angstrom':
-                                self.coord /=0.52917721092
-                        elif fmt == 'bohr':
-                                #self.coord *= 0.52917721092
-                                pass
-                        elif fmt == 'crystal':
-                                self.coord = np.dot(self.mol.vec,self.coord)*self.mol.celldm
-                        elif fmt == 'alat':
-                                self.coord *= self.mol.celldm
-
-        #Kommt spaeter:
-        #class Bond:
+        #TODO
+        #BONDS!
 
 class PWParam(dict):
 

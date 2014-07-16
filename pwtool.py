@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import copy
 
 from os.path import expanduser,realpath
 from os import path
@@ -229,8 +230,6 @@ class MolArea(QWidget):
         def setMol(self,mol):
                 #connect molecule
                 self.mol = mol
-                #initialize viewarea
-                self.visual.setMol(self.mol)
                 #initialize view
                 self.fillTab()
 
@@ -270,7 +269,7 @@ class MolArea(QWidget):
                 self.updatedisable = False
 
                 #update View
-                self.visual.updateGL()
+                self.visual.setMol(self.mol)
 
         def updateCellDm(self):
                 if self.updatedisable: return
@@ -527,8 +526,9 @@ class ViewArea(QGLWidget):
                           'Uuo':[1.70,0.77,QColor(252,0  ,15)]}
 
         def setMol(self,mol):
-                self.mol = mol
+                self.mol = copy.deepcopy(mol)
                 self.makeCell()
+                self.updateGL()
 
         def initializeGL(self):
                 #render only visible vertices
@@ -635,8 +635,9 @@ class ViewArea(QGLWidget):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
                         atom = self.mol.get_atom(i,'bohr')
-                        #self.mMatrix.translate(coord[0],coord[1],coord[2])
-                        self.mMatrix.translate(atom[1][0],atom[1][1],atom[1][2])
+                        cent = self.mol.get_center()
+                        #move atoms to pos relative to center:
+                        self.mMatrix.translate(atom[1][0]-cent[0],atom[1][1]-cent[1],atom[1][2]-cent[2])
                         #bind transformation matrices
                         self.sphereShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
                         self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
@@ -665,6 +666,9 @@ class ViewArea(QGLWidget):
                 self.lineShader.link()
                 self.lineShader.bind()
                 self.mMatrix.setToIdentity()
+                #move viewpoint to center
+                cent = self.mol.get_center()
+                self.mMatrix.translate(-cent[0],-cent[1],-cent[2])
                 self.lineShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
                 self.lineShader.setUniformValue('color',QColor(0,0,0))
                 self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
