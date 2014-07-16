@@ -353,6 +353,10 @@ class Molecule:
                 self.offset=[0.0,0.0,0.0]
                 self.comment = ''
 
+        ######################################################
+        # CREATION FUNCTIONS
+        ######################################################
+
         # append new atom
         def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
                 #self.at.append(self.Atom(self,name,x,y,z,fmt))
@@ -381,6 +385,12 @@ class Molecule:
         #                self.at.append(copy.copy(mol.at[i]))
 
         ######################################################
+        # MODIFICATION
+        ######################################################
+
+        #TODO
+
+        ######################################################
         # set functions
         ######################################################
 
@@ -395,21 +405,20 @@ class Molecule:
         def set_celldm(self,cdm):
                 self.celldm = float(cdm)
 
-        def set_center(self):
-                xr = [self.at_c[i][0] for i in range(len(self.at_n))]
-                yr = [self.at_c[i][1] for i in range(len(self.at_n))]
-                zr = [self.at_c[i][2] for i in range(len(self.at_n))]
-                x = (max(xr)+min(xr))/2
-                y = (max(yr)+min(yr))/2
-                z = (max(zr)+min(zr))/2
-                self.center = [x,y,z]
-
         # set vectors
         def set_vec(self,vec):
                 self.vec = np.array(vec).T
                 self.vecinv = np.linalg.inv(self.vec)
 
-        ######################################################
+        # set center of cell
+        def set_center(self):
+                vec = self.get_vec()
+                x = self.vec[0]
+                y = self.vec[1]
+                z = self.vec[2]
+                self.center = (vec[0]+vec[1]+vec[2])*self.celldm/2
+
+        #######################################################
         # coord fmt functions
         ######################################################
 

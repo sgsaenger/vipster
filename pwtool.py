@@ -7,7 +7,7 @@ import copy
 from os.path import expanduser,realpath
 from os import path
 from os import getcwd
-from math import sqrt
+from math import sqrt,floor
 from functools import partial
 
 from PyQt4.QtGui import *
@@ -98,10 +98,13 @@ class MainView(QWidget):
                 self.pwlist.currentRowChanged.connect(self.setParam)
 
                 #opengl visualisation:
-                self.visual = ViewArea()
+                self.visual = ViewPort()
                 self.visual.setMinimumSize(440,350)
                 #make molecule editor aware of visualization:
                 self.mol.setVisual(self.visual)
+
+                #controls for visualisation:
+                self.vcont = ViewMods(self.visual)
 
                 #nest edit areas in tabwidget
                 self.tabs = QTabWidget()
@@ -114,12 +117,13 @@ class MainView(QWidget):
                 vbox.addWidget(self.mlist)
                 vbox.addWidget(QLabel('PW Parameter sets:'))
                 vbox.addWidget(self.pwlist)
+                v2 = QVBoxLayout()
+                v2.addWidget(self.visual,1)
+                v2.addWidget(self.vcont)
                 hbox = QHBoxLayout()
                 hbox.addLayout(vbox)
-                #hbox.addWidget(self.mol,1)
-                #hbox.addWidget(self.pw,1)
                 hbox.addWidget(self.tabs,1)
-                hbox.addWidget(self.visual,1)
+                hbox.addLayout(v2,1)
 
                 self.setLayout(hbox)
 
@@ -258,12 +262,12 @@ class MolArea(QWidget):
                 for i in range(self.mol.get_nat()):
                         at = self.mol.get_atom(i,self.fmt.currentText())
                         self.table.setItem(i,0,QTableWidgetItem(at[0]))
-                        for j in range(3):
+                        for j in [0,1,2]:
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
                 #fill cell vec list
                 vec = self.mol.get_vec()
-                for i in range(3):
-                        for j in range(3):
+                for i in [0,1,2]:
+                        for j in [0,1,2]:
                                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
                 #reenable handling
                 self.updatedisable = False
@@ -279,9 +283,9 @@ class MolArea(QWidget):
         def cellHandler(self):
                 if self.updatedisable: return
                 atom = self.table.currentRow()
-                name = self.table.item(atom,0).text()
+                name = str(self.table.item(atom,0).text())
                 coord = [0,0,0]
-                for j in range(3):
+                for j in [0,1,2]:
                         coord[j]=float(self.table.item(atom,j+1).text())
                 self.mol.set_atom(atom,name,coord,self.fmt.currentText())
                 self.fillTab()
@@ -289,8 +293,8 @@ class MolArea(QWidget):
         def vecHandler(self):
                 if self.updatedisable: return
                 vec=[[0,0,0],[0,0,0],[0,0,0]]
-                for i in range(3):
-                        for j in range(3):
+                for i in [0,1,2]:
+                        for j in [0,1,2]:
                                 vec[i][j]=float(self.vtable.item(i,j).text())
                 self.mol.set_vec(vec)
                 self.fillTab()
@@ -326,9 +330,9 @@ class PWTab(QWidget):
                 #Automatic: x,y,z, offset(x,y,z)
                 kp.auto = QWidget()
                 kp.auto.widg = []
-                for i in range(3):
+                for i in [0,1,2]:
                         kp.auto.widg.append(QLineEdit())
-                for i in range(3):
+                for i in [0,1,2]:
                         kp.auto.widg.append(QCheckBox())
                 kp.auto.hbox1=QHBoxLayout()
                 kp.auto.hbox1.addWidget(QLabel('x:'))
@@ -395,16 +399,19 @@ class PWTab(QWidget):
                                 items[1][-1].setText(0,j[0])
                                 items[1][-1].setText(1,j[1])
 
-class ViewArea(QGLWidget):
+class ViewPort(QGLWidget):
         def __init__(self):
                 #init with antialiasing
-                super(ViewArea,self).__init__(QGLFormat(QGL.SampleBuffers))
+                #super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers))
+                super(ViewPort,self).__init__()
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.alpha = 0
                 self.beta = 0
                 self.xsh = 0
                 self.ysh = 0
+                self.view = 1
+                self.mult = [1,1,1]
                 self.distance = 25
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191)],
                           'He': [1.40,0.32,QColor(216,255,255)],
@@ -528,7 +535,7 @@ class ViewArea(QGLWidget):
         def setMol(self,mol):
                 self.mol = copy.deepcopy(mol)
                 self.makeCell()
-                self.updateGL()
+                self.setOffset(self.mult)
 
         def initializeGL(self):
                 #render only visible vertices
@@ -536,7 +543,7 @@ class ViewArea(QGLWidget):
                 #backface culling: render only front of vertex
                 glEnable(GL_CULL_FACE)
 
-                #set color
+                #set background color
                 self.qglClearColor(QColor(255,255,255))
 
                 #add shaders:
@@ -545,6 +552,7 @@ class ViewArea(QGLWidget):
                 self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexLines.vsh')
                 self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentLines.fsh')
 
+                # prepare sphere
                 self.makeSphere()
 
         def makeSphere(self):
@@ -558,7 +566,7 @@ class ViewArea(QGLWidget):
                                QVector3D(-1.0, 0.0,-1.0),QVector3D( 1.0, 0.0,-1.0),QVector3D( 0.0,-1.0, 0.0),
                                QVector3D( 1.0, 0.0,-1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0)]
                 #subdivide and normalize for sphere:
-                for i in range(4):
+                for i in range(3):
                         sphere = self.subdivide(sphere)
                 self.vertex_modelspace = sphere
                 self.normals_modelspace = sphere
@@ -579,14 +587,15 @@ class ViewArea(QGLWidget):
                 #prevent divide by zero
                 if height == 0: height = 1
 
+                aspect = float(width)/float(height)
                 #set projection matrix
                 self.pMatrix = QMatrix4x4()
                 self.pMatrix.setToIdentity()
-                #perspective projection
-                self.pMatrix.perspective(60.0,float(width)/float(height),0.001,1000)
-                #TODO
-                #move to paintGL or scaling won't work. ideal situation?
-                #self.pMatrix.ortho(-10-self.distance,10+self.distance,-10-self.distance,10+self.distance,0.001,1000)
+                self.pMatrix.perspective(60.0,aspect,0.001,1000)
+                #set orthogonal matrix:
+                self.oMatrix = QMatrix4x4()
+                self.oMatrix.setToIdentity()
+                self.oMatrix.ortho(-10*aspect,10*aspect,-10/aspect,10/aspect,0.001,1000)
 
                 #set viewport
                 glViewport(0,0,width,height)
@@ -618,16 +627,24 @@ class ViewArea(QGLWidget):
                 #make view Matrix:
                 self.vMatrix.lookAt(cPos,QVector3D(0,0,0),cUpDir)
 
-                #preliminary solution!
                 #translate the view point:
                 cTrans.translate(self.xsh,self.ysh,0)
                 self.vMatrix = cTrans*self.vMatrix
 
+                #check for projection:
+                print self.view
+                if self.view == 1:
+                        self.proj = self.pMatrix
+                elif self.view == 0:
+                        self.proj = self.oMatrix
+                        #scale based on distance for zoom effect
+                        self.vMatrix.scale(10/self.distance)
                 #rendering:
-                self.drawAtoms()
-                self.drawCell()
+                for i in self.off:
+                        self.drawCell(i)
+                        self.drawAtoms(i)
 
-        def drawAtoms(self):
+        def drawAtoms(self,off):
                 #bind shaders:
                 self.sphereShader.bind()
 
@@ -635,11 +652,10 @@ class ViewArea(QGLWidget):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
                         atom = self.mol.get_atom(i,'bohr')
-                        cent = self.mol.get_center()
-                        #move atoms to pos relative to center:
-                        self.mMatrix.translate(atom[1][0]-cent[0],atom[1][1]-cent[1],atom[1][2]-cent[2])
+                        #move atoms to coord and recognize offset
+                        self.mMatrix.translate(atom[1][0]+off[0],atom[1][1]+off[1],atom[1][2]+off[2])
                         #bind transformation matrices
-                        self.sphereShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
+                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
                         self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
                         self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
                         #create light source:
@@ -658,18 +674,15 @@ class ViewArea(QGLWidget):
                         #reset
                         self.sphereShader.disableAttributeArray('vertex_modelspace')
                         self.sphereShader.disableAttributeArray('normals_modelspace')
-
                 self.sphereShader.release()
 
-        def drawCell(self):
+        def drawCell(self,off):
                 #bind shaders:
-                self.lineShader.link()
                 self.lineShader.bind()
                 self.mMatrix.setToIdentity()
                 #move viewpoint to center
-                cent = self.mol.get_center()
-                self.mMatrix.translate(-cent[0],-cent[1],-cent[2])
-                self.lineShader.setUniformValue('mvpMatrix',self.pMatrix*self.vMatrix*self.mMatrix)
+                self.mMatrix.translate(off[0],off[1],off[2])
+                self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
                 self.lineShader.setUniformValue('color',QColor(0,0,0))
                 self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
                 self.lineShader.enableAttributeArray('vertex_modelspace')
@@ -677,6 +690,37 @@ class ViewArea(QGLWidget):
                 self.lineShader.disableAttributeArray('vertex_modelspace')
                 self.lineShader.release()
 
+        def drawCenter(self):
+                self.lineShader.bind()
+                self.mMatrix.setToIdentity()
+                self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
+                self.lineShader.setUniformValue('color',QColor(0,0,0))
+                self.lineShader.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
+                self.lineShader.enableAttributeArray('vertex_modelspace')
+                glDrawArrays(GL_TRIANGLES,0,len(self.vertex_modelspace))
+                self.lineShader.disableAttributeArray('vertex_modelspace')
+                self.lineShader.release()
+
+        def setOffset(self,mult):
+                #don't do anything if there's no molecule
+                if not hasattr(self,'mol'):return
+                vec = self.mol.get_vec()*self.mol.get_celldm()
+                cent = self.mol.get_center()
+                self.off = []
+                tmult = [1,1,1]
+                #save the multiplicators for vec:
+                for i in [0,1,2]:
+                        if mult[i]%2 == 0:
+                                tmult[i]=[x+0.5-mult[i]/2 for x in range(mult[i])]
+                        else:
+                                tmult[i]=[x-floor(mult[i]/2) for x in range(mult[i])]
+                #generate offsets:
+                for i in tmult[0]:
+                        for j in tmult[1]:
+                                for k in tmult[2]:
+                                        self.off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
+                #render:
+                self.updateGL()
 
         def makeCell(self):
                 #get vectors:
@@ -737,3 +781,65 @@ class ViewArea(QGLWidget):
                                 self.distance *= 0.9
                         self.updateGL()
                 e.accept()
+
+        def xmult(self,i):
+                self.mult[0]=i
+                self.setOffset(self.mult)
+
+        def ymult(self,i):
+                self.mult[1]=i
+                self.setOffset(self.mult)
+
+        def zmult(self,i):
+                self.mult[2]=i
+                self.setOffset(self.mult)
+
+        def setProj(self):
+                self.view = 1
+                self.updateGL()
+
+        def setOrtho(self):
+                self.view = 0
+                self.updateGL()
+
+class ViewMods(QWidget):
+        def __init__(self,visual):
+                super(ViewMods,self).__init__()
+                self.visual=visual
+                self.initMods()
+
+        def initMods(self):
+                # Cell multiplication
+                xspin = QSpinBox()
+                xspin.valueChanged.connect(self.visual.xmult)
+                yspin = QSpinBox()
+                yspin.valueChanged.connect(self.visual.ymult)
+                zspin = QSpinBox()
+                zspin.valueChanged.connect(self.visual.zmult)
+                for i in [xspin,yspin,zspin]:
+                        i.setMinimum(1)
+                # Change projection
+                pbut = QPushButton()
+                pbut.setText('Perspective proj.')
+                pbut.clicked.connect(self.visual.setProj)
+                obut = QPushButton()
+                obut.setText('Orthogonal proj.')
+                obut.clicked.connect(self.visual.setOrtho)
+                #Layout
+                hbox = QHBoxLayout()
+                hbox.addWidget(QLabel('Cell multiply:'))
+                hbox.addStretch()
+                hbox.addWidget(QLabel('x:'))
+                hbox.addWidget(xspin)
+                hbox.addStretch()
+                hbox.addWidget(QLabel('y:'))
+                hbox.addWidget(yspin)
+                hbox.addStretch()
+                hbox.addWidget(QLabel('z:'))
+                hbox.addWidget(zspin)
+                vbox = QVBoxLayout()
+                vbox.addWidget(pbut)
+                vbox.addWidget(obut)
+                hbox.addLayout(vbox)
+                self.setLayout(hbox)
+                self.resize(self.sizeHint())
