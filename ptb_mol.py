@@ -475,7 +475,6 @@ class Molecule:
                         self.set_center()
                 return self.center
 
-        #TODO
         #BONDS!
         def get_bonds(self):
                 if not hasattr(self,'bonds'): self.set_bonds()
@@ -490,8 +489,7 @@ class Molecule:
                                 at_j = self.get_atom(j)
                                 dist = np.linalg.norm(at_i[1]-at_j[1])
                                 if 0.755 < dist < 3.59:
-                                        pos = (at_i[1]+at_j[1])/2
-                                        self.bonds.append((at_i[0],at_j[0],pos,dist))
+                                        self.bonds.append((i,j,dist))
 
 
 

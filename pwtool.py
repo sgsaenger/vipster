@@ -9,6 +9,7 @@ from os import path
 from os import getcwd
 from math import sqrt,floor
 from functools import partial
+import numpy as np
 
 from PyQt4.QtGui import *
 from PyQt4.QtOpenGL import *
@@ -406,6 +407,7 @@ class ViewPort(QGLWidget):
                 super(ViewPort,self).__init__()
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
+                self.bondShader = QGLShaderProgram()
                 self.alpha = 0
                 self.beta = 0
                 self.xsh = 0
@@ -535,7 +537,26 @@ class ViewPort(QGLWidget):
         def setMol(self,mol):
                 self.mol = copy.deepcopy(mol)
                 self.makeCell()
+                self.prepObjects()
                 self.setOffset(self.mult)
+
+        def prepObjects(self):
+                #save atoms for direct access
+                self.atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                #prepare bonds with position,angle,axis and names (for coloring)
+                self.bonds = []
+                bonds = self.mol.get_bonds()
+                for i in bonds:
+                        a = self.atoms[i[0]][1]
+                        b = self.atoms[i[1]][1]
+                        n1 = self.atoms[i[0]][0]
+                        n2 = self.atoms[i[1]][0]
+                        pos = (a+b)/2
+                        c = (a-b)/np.linalg.norm(a-b)
+                        d = np.array([1,0,0])
+                        theta = np.degrees(np.arccos(np.dot(c,d)))
+                        axis = -np.cross(c,d)
+                        self.bonds.append((pos,theta,axis,n1,n2))
 
         def initializeGL(self):
                 #render only visible vertices
@@ -549,6 +570,8 @@ class ViewPort(QGLWidget):
                 #add shaders:
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexSpheres.vsh')
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentSpheres.fsh')
+                self.bondShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexBonds.vsh')
+                self.bondShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentBonds.fsh')
                 self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexLines.vsh')
                 self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentLines.fsh')
 
@@ -574,23 +597,12 @@ class ViewPort(QGLWidget):
                 self.at_normals_modelspace = sphere
 
         def makeBond(self):
-                #start from cuboid:
-                #cylinder = [QVector3D(-1.0, 0.5, 0.5),QVector3D(-1.0,-0.5, 0.5),QVector3D( 1.0, 0.5, 0.5),
-                #            QVector3D( 1.0,-0.5, 0.5),QVector3D( 1.0, 0.5, 0.5),QVector3D(-1.0,-0.5, 0.5),
-                #            QVector3D(-1.0,-0.5,-0.5),QVector3D(-1.0, 0.5,-0.5),QVector3D( 1.0,-0.5,-0.5),
-                #            QVector3D( 1.0, 0.5,-0.5),QVector3D( 1.0,-0.5,-0.5),QVector3D(-1.0, 0.5,-0.5),
-                #            QVector3D(-1.0, 0.5,-0.5),QVector3D(-1.0, 0.5, 0.5),QVector3D( 1.0, 0.5,-0.5),
-                #            QVector3D( 1.0, 0.5, 0.5),QVector3D( 1.0, 0.5,-0.5),QVector3D(-1.0, 0.5, 0.5),
-                #            QVector3D(-1.0,-0.5, 0.5),QVector3D(-1.0,-0.5,-0.5),QVector3D( 1.0,-0.5, 0.5),
-                #            QVector3D( 1.0,-0.5,-0.5),QVector3D( 1.0,-0.5, 0.5),QVector3D(-1.0,-0.5,-0.5)]
+                #start from circle
                 cylinder = [QVector3D(0.0,0.5,0.5),QVector3D(0.0,0.5,-0.5),QVector3D(0.0,-0.5,-0.5),
                             QVector3D(0.0,-0.5,0.5)]
-                for i in range(3):
+                for i in range(2):
                         cylinder = self.cylinder_subdiv(cylinder)
-                print cylinder
                 cylinder = self.cylinder_puzzle(cylinder)
-                print cylinder
-
                 self.bond_modelspace = cylinder
                 self.bo_normals_modelspace = cylinder
 
@@ -722,33 +734,36 @@ class ViewPort(QGLWidget):
                 self.sphereShader.release()
 
         def drawBonds(self,off):
-                bonds = self.mol.get_bonds()
-                self.sphereShader.bind()
-                for bond in bonds:
+                #bonds = self.mol.get_bonds()
+                self.bondShader.bind()
+                #for bond in bonds:
+                for bond in self.bonds:
                         #load model Matrix with coordinates relative to offset
                         self.mMatrix.setToIdentity()
-                        self.mMatrix.translate(bond[2][0]+off[0],bond[2][1]+off[1],bond[2][2]+off[2])
+                        self.mMatrix.translate(bond[0][0]+off[0],bond[0][1]+off[1],bond[0][2]+off[2])
+                        self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
                         # bind transformation matrices
-                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
-                        self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
+                        self.bondShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
+                        self.bondShader.setUniformValue('vMatrix',self.vMatrix)
+                        self.bondShader.setUniformValue('mMatrix',self.mMatrix)
                         #light source:
-                        self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        self.bondShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
-                        self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[bond[0]][2])
+                        self.bondShader.setUniformValue('Side1DiffuseColor',self.pse[bond[3]][2])
+                        self.bondShader.setUniformValue('Side2DiffuseColor',self.pse[bond[4]][2])
                         #send vertices
-                        self.sphereShader.setAttributeArray('vertex_modelspace',self.bond_modelspace)
-                        self.sphereShader.enableAttributeArray('vertex_modelspace')
+                        self.bondShader.setAttributeArray('vertex_modelspace',self.bond_modelspace)
+                        self.bondShader.enableAttributeArray('vertex_modelspace')
                         #send normals for lighting
-                        self.sphereShader.setAttributeArray('normals_modelspace',self.bo_normals_modelspace)
-                        self.sphereShader.enableAttributeArray('normals_modelspace')
+                        self.bondShader.setAttributeArray('normals_modelspace',self.bo_normals_modelspace)
+                        self.bondShader.enableAttributeArray('normals_modelspace')
                         #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
                         #draw
                         glDrawArrays(GL_TRIANGLES,0,len(self.bond_modelspace))
                         #reset
-                        self.sphereShader.disableAttributeArray('vertex_modelspace')
-                        self.sphereShader.disableAttributeArray('normals_modelspace')
-                self.sphereShader.release()
+                        self.bondShader.disableAttributeArray('vertex_modelspace')
+                        self.bondShader.disableAttributeArray('normals_modelspace')
+                self.bondShader.release()
 
         def drawCell(self,off):
                 #bind shaders:
