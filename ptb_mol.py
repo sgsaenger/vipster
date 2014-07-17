@@ -452,9 +452,6 @@ class Molecule:
         def get_celldm(self):
                 return self.celldm
 
-        #def get_atoms(self):
-        #        return self.at_n+self.at_c
-
         def get_atom(self,index,fmt='bohr'):
                 return [self.at_n[index],self.get_coord(self.at_c[index],fmt),fmt]
 
@@ -480,6 +477,23 @@ class Molecule:
 
         #TODO
         #BONDS!
+        def get_bonds(self):
+                if not hasattr(self,'bonds'): self.set_bonds()
+                return self.bonds
+
+        def set_bonds(self):
+                nat = self.get_nat()
+                self.bonds = []
+                for i in range(nat):
+                        for j in range(i,nat):
+                                at_i = self.get_atom(i)
+                                at_j = self.get_atom(j)
+                                dist = np.linalg.norm(at_i[1]-at_j[1])
+                                if 0.755 < dist < 3.59:
+                                        pos = (at_i[1]+at_j[1])/2
+                                        self.bonds.append((at_i[0],at_j[0],pos,dist))
+
+
 
 class PWParam(dict):
 

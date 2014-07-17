@@ -554,6 +554,8 @@ class ViewPort(QGLWidget):
 
                 # prepare sphere
                 self.makeSphere()
+                #prepare bond
+                self.makeBond()
 
         def makeSphere(self):
                 #start from octahedron:
@@ -567,11 +569,54 @@ class ViewPort(QGLWidget):
                                QVector3D( 1.0, 0.0,-1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0)]
                 #subdivide and normalize for sphere:
                 for i in range(3):
-                        sphere = self.subdivide(sphere)
-                self.vertex_modelspace = sphere
-                self.normals_modelspace = sphere
+                        sphere = self.sphere_subdiv(sphere)
+                self.atom_modelspace = sphere
+                self.at_normals_modelspace = sphere
 
-        def subdivide(self,vertex):
+        def makeBond(self):
+                #start from cuboid:
+                #cylinder = [QVector3D(-1.0, 0.5, 0.5),QVector3D(-1.0,-0.5, 0.5),QVector3D( 1.0, 0.5, 0.5),
+                #            QVector3D( 1.0,-0.5, 0.5),QVector3D( 1.0, 0.5, 0.5),QVector3D(-1.0,-0.5, 0.5),
+                #            QVector3D(-1.0,-0.5,-0.5),QVector3D(-1.0, 0.5,-0.5),QVector3D( 1.0,-0.5,-0.5),
+                #            QVector3D( 1.0, 0.5,-0.5),QVector3D( 1.0,-0.5,-0.5),QVector3D(-1.0, 0.5,-0.5),
+                #            QVector3D(-1.0, 0.5,-0.5),QVector3D(-1.0, 0.5, 0.5),QVector3D( 1.0, 0.5,-0.5),
+                #            QVector3D( 1.0, 0.5, 0.5),QVector3D( 1.0, 0.5,-0.5),QVector3D(-1.0, 0.5, 0.5),
+                #            QVector3D(-1.0,-0.5, 0.5),QVector3D(-1.0,-0.5,-0.5),QVector3D( 1.0,-0.5, 0.5),
+                #            QVector3D( 1.0,-0.5,-0.5),QVector3D( 1.0,-0.5, 0.5),QVector3D(-1.0,-0.5,-0.5)]
+                cylinder = [QVector3D(0.0,0.5,0.5),QVector3D(0.0,0.5,-0.5),QVector3D(0.0,-0.5,-0.5),
+                            QVector3D(0.0,-0.5,0.5)]
+                for i in range(3):
+                        cylinder = self.cylinder_subdiv(cylinder)
+                print cylinder
+                cylinder = self.cylinder_puzzle(cylinder)
+                print cylinder
+
+                self.bond_modelspace = cylinder
+                self.bo_normals_modelspace = cylinder
+
+        def cylinder_subdiv(self,vertex):
+                temp = []
+                for i in range(0,len(vertex)-1):
+                        a = vertex[i].normalized()
+                        b = vertex[i+1].normalized()
+                        c = (a+b).normalized()
+                        temp += [a,c]
+                temp += [vertex[-1].normalized(),(vertex[-1]+vertex[0]).normalized()]
+                return temp
+
+        def cylinder_puzzle(self,vertex):
+                puzzle = []
+                for i in range(0,len(vertex)-1)+[-1]:
+                        a = vertex[i]/3+QVector3D(-1.0,0,0)
+                        b = vertex[i+1]/3+QVector3D(-1.0,0,0)
+                        c = vertex[i]/3+QVector3D( 1.0,0,0)
+                        d = vertex[i+1]/3+QVector3D( 1.0,0,0)
+                        e = vertex[i]/3+QVector3D( 1.0,0,0)
+                        f = vertex[i+1]/3+QVector3D(-1.0,0,0)
+                        puzzle += [a,c,b,d,f,e]
+                return puzzle
+
+        def sphere_subdiv(self,vertex):
                 subdivide = []
                 for i in range(0,len(vertex),3):
                         a = vertex[i].normalized()
@@ -632,7 +677,6 @@ class ViewPort(QGLWidget):
                 self.vMatrix = cTrans*self.vMatrix
 
                 #check for projection:
-                print self.view
                 if self.view == 1:
                         self.proj = self.pMatrix
                 elif self.view == 0:
@@ -643,6 +687,7 @@ class ViewPort(QGLWidget):
                 for i in self.off:
                         self.drawCell(i)
                         self.drawAtoms(i)
+                        self.drawBonds(i)
 
         def drawAtoms(self,off):
                 #bind shaders:
@@ -663,14 +708,43 @@ class ViewPort(QGLWidget):
                         #color vertices
                         self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[atom[0]][2])
                         #send vertices
-                        self.sphereShader.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
+                        self.sphereShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
                         self.sphereShader.enableAttributeArray('vertex_modelspace')
                         #send normals for lighting
-                        self.sphereShader.setAttributeArray('normals_modelspace',self.normals_modelspace)
+                        self.sphereShader.setAttributeArray('normals_modelspace',self.at_normals_modelspace)
                         self.sphereShader.enableAttributeArray('normals_modelspace')
                         #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
                         #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.vertex_modelspace))
+                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                        #reset
+                        self.sphereShader.disableAttributeArray('vertex_modelspace')
+                        self.sphereShader.disableAttributeArray('normals_modelspace')
+                self.sphereShader.release()
+
+        def drawBonds(self,off):
+                bonds = self.mol.get_bonds()
+                self.sphereShader.bind()
+                for bond in bonds:
+                        #load model Matrix with coordinates relative to offset
+                        self.mMatrix.setToIdentity()
+                        self.mMatrix.translate(bond[2][0]+off[0],bond[2][1]+off[1],bond[2][2]+off[2])
+                        # bind transformation matrices
+                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
+                        self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
+                        self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
+                        #light source:
+                        self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        #color vertices
+                        self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[bond[0]][2])
+                        #send vertices
+                        self.sphereShader.setAttributeArray('vertex_modelspace',self.bond_modelspace)
+                        self.sphereShader.enableAttributeArray('vertex_modelspace')
+                        #send normals for lighting
+                        self.sphereShader.setAttributeArray('normals_modelspace',self.bo_normals_modelspace)
+                        self.sphereShader.enableAttributeArray('normals_modelspace')
+                        #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+                        #draw
+                        glDrawArrays(GL_TRIANGLES,0,len(self.bond_modelspace))
                         #reset
                         self.sphereShader.disableAttributeArray('vertex_modelspace')
                         self.sphereShader.disableAttributeArray('normals_modelspace')
@@ -695,9 +769,9 @@ class ViewPort(QGLWidget):
                 self.mMatrix.setToIdentity()
                 self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
                 self.lineShader.setUniformValue('color',QColor(0,0,0))
-                self.lineShader.setAttributeArray('vertex_modelspace',self.vertex_modelspace)
+                self.lineShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
                 self.lineShader.enableAttributeArray('vertex_modelspace')
-                glDrawArrays(GL_TRIANGLES,0,len(self.vertex_modelspace))
+                glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
                 self.lineShader.disableAttributeArray('vertex_modelspace')
                 self.lineShader.release()
 
