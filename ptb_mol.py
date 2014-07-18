@@ -354,7 +354,7 @@ class Molecule:
                 self.comment = ''
 
         ######################################################
-        # CREATION FUNCTIONS
+        # ATOM FUNCTIONS
         ######################################################
 
         # append new atom
@@ -385,13 +385,13 @@ class Molecule:
         #                self.at.append(copy.copy(mol.at[i]))
 
         ######################################################
-        # MODIFICATION
+        # MOL MODIFICATION FUNCTIONS
         ######################################################
 
         #TODO
 
         ######################################################
-        # set functions
+        # SET FUNCTIONS
         ######################################################
 
         def set_atom(self,index,name,coord,fmt):
@@ -419,7 +419,7 @@ class Molecule:
                 self.center = (vec[0]+vec[1]+vec[2])*self.celldm/2
 
         #######################################################
-        # coord fmt functions
+        # COORD FMT FUNCTIONS
         ######################################################
 
         def set_coord(self,coord,fmt='bohr'):
@@ -444,7 +444,7 @@ class Molecule:
                         return coord/self.celldm
 
         ######################################################
-        # return functions
+        # RETURN FUNCTIONS
         ######################################################
         def get_nat(self):
                 return len(self.at_c)
@@ -475,7 +475,10 @@ class Molecule:
                         self.set_center()
                 return self.center
 
-        #BONDS!
+        ######################################################
+        # BOND FUNCTIONS
+        ######################################################
+
         def get_bonds(self):
                 if not hasattr(self,'bonds'): self.set_bonds()
                 return self.bonds

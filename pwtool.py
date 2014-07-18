@@ -128,9 +128,11 @@ class MainView(QWidget):
 
                 self.setLayout(hbox)
 
+        #from controller
         def setMolecule(self,sel):
                 self.mol.setMol(self.controller.get_mol(sel))
 
+        #to controller
         def getMolecule(self):
                 return self.controller.get_mol(self.mlist.currentRow())
 
@@ -140,6 +142,7 @@ class MainView(QWidget):
         def getParam(self):
                 return self.controller.get_pw(self.pwlist.currentRow())
 
+        #insert loaded molecules
         def loadView(self):
                 count = self.mlist.count()
                 for i in range(count,self.controller.get_nmol()):
@@ -229,15 +232,20 @@ class MolArea(QWidget):
                 self.setLayout(vbox)
                 self.resize(self.sizeHint())
 
+        #connect to visualisation
         def setVisual(self,visual):
                 self.visual = visual
 
+        #load selected molecule
         def setMol(self,mol):
                 #connect molecule
                 self.mol = mol
                 #initialize view
                 self.fillTab()
 
+        ##################################################################
+        # EDIT FUNCTIONS
+        ##################################################################
         def newAtom(self):
                 self.mol.create_atom()
                 self.fillTab()
@@ -254,27 +262,9 @@ class MolArea(QWidget):
                         self.mol.insert_atom(pos,at)
                 self.fillTab()
 
-        def fillTab(self):
-                #prevent handling of cell changes during fill
-                self.updatedisable = True
-                self.cellDm.setText(str(self.mol.get_celldm()))
-                #fill atom table
-                self.table.setRowCount(self.mol.get_nat())
-                for i in range(self.mol.get_nat()):
-                        at = self.mol.get_atom(i,self.fmt.currentText())
-                        self.table.setItem(i,0,QTableWidgetItem(at[0]))
-                        for j in [0,1,2]:
-                                self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
-                #fill cell vec list
-                vec = self.mol.get_vec()
-                for i in [0,1,2]:
-                        for j in [0,1,2]:
-                                self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
-                #reenable handling
-                self.updatedisable = False
-
-                #update View
-                self.visual.setMol(self.mol)
+        #####################################################
+        # UPDATE HANDLER
+        ####################################################
 
         def updateCellDm(self):
                 if self.updatedisable: return
@@ -299,6 +289,32 @@ class MolArea(QWidget):
                                 vec[i][j]=float(self.vtable.item(i,j).text())
                 self.mol.set_vec(vec)
                 self.fillTab()
+
+        ##############################################################
+        # MAIN WIDGET UPDATE FUNCTION
+        #############################################################
+
+        def fillTab(self):
+                #prevent handling of cell changes during fill
+                self.updatedisable = True
+                self.cellDm.setText(str(self.mol.get_celldm()))
+                #fill atom table
+                self.table.setRowCount(self.mol.get_nat())
+                for i in range(self.mol.get_nat()):
+                        at = self.mol.get_atom(i,self.fmt.currentText())
+                        self.table.setItem(i,0,QTableWidgetItem(at[0]))
+                        for j in [0,1,2]:
+                                self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
+                #fill cell vec list
+                vec = self.mol.get_vec()
+                for i in [0,1,2]:
+                        for j in [0,1,2]:
+                                self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
+                #reenable handling
+                self.updatedisable = False
+
+                #update View
+                self.visual.setMol(self.mol)
 
 #TODO TODO
 class PWTab(QWidget):
@@ -401,6 +417,9 @@ class PWTab(QWidget):
                                 items[1][-1].setText(1,j[1])
 
 class ViewPort(QGLWidget):
+        ##################################################
+        # CALLED UPON INITIALISATION
+        ##################################################
         def __init__(self):
                 #init with antialiasing
                 #super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers))
@@ -534,30 +553,6 @@ class ViewPort(QGLWidget):
                           'Uus':[1.70,0.77,QColor(252,0  ,17)],
                           'Uuo':[1.70,0.77,QColor(252,0  ,15)]}
 
-        def setMol(self,mol):
-                self.mol = copy.deepcopy(mol)
-                self.makeCell()
-                self.prepObjects()
-                self.setOffset(self.mult)
-
-        def prepObjects(self):
-                #save atoms for direct access
-                self.atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
-                #prepare bonds with position,angle,axis and names (for coloring)
-                self.bonds = []
-                bonds = self.mol.get_bonds()
-                for i in bonds:
-                        a = self.atoms[i[0]][1]
-                        b = self.atoms[i[1]][1]
-                        n1 = self.atoms[i[0]][0]
-                        n2 = self.atoms[i[1]][0]
-                        pos = (a+b)/2
-                        c = (a-b)/np.linalg.norm(a-b)
-                        d = np.array([1,0,0])
-                        theta = np.degrees(np.arccos(np.dot(c,d)))
-                        axis = -np.cross(c,d)
-                        self.bonds.append((pos,theta,axis,n1,n2))
-
         def initializeGL(self):
                 #render only visible vertices
                 glEnable(GL_DEPTH_TEST)
@@ -580,6 +575,9 @@ class ViewPort(QGLWidget):
                 #prepare bond
                 self.makeBond()
 
+        ##########################
+        # prepare models
+        #########################
         def makeSphere(self):
                 #start from octahedron:
                 sphere = [QVector3D(-1.0, 0.0, 1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0, 1.0, 0.0),
@@ -595,6 +593,18 @@ class ViewPort(QGLWidget):
                         sphere = self.sphere_subdiv(sphere)
                 self.atom_modelspace = sphere
                 self.at_normals_modelspace = sphere
+
+        def sphere_subdiv(self,vertex):
+                subdivide = []
+                for i in range(0,len(vertex),3):
+                        a = vertex[i].normalized()
+                        b = vertex[i+1].normalized()
+                        c = vertex[i+2].normalized()
+                        d = (a+b).normalized()
+                        e = (a+c).normalized()
+                        f = (b+c).normalized()
+                        subdivide +=[a,d,e,d,f,e,e,f,c,d,b,f]
+                return subdivide
 
         def makeBond(self):
                 #start from circle
@@ -628,18 +638,55 @@ class ViewPort(QGLWidget):
                         puzzle += [a,c,b,d,f,e]
                 return puzzle
 
-        def sphere_subdiv(self,vertex):
-                subdivide = []
-                for i in range(0,len(vertex),3):
-                        a = vertex[i].normalized()
-                        b = vertex[i+1].normalized()
-                        c = vertex[i+2].normalized()
-                        d = (a+b).normalized()
-                        e = (a+c).normalized()
-                        f = (b+c).normalized()
-                        subdivide +=[a,d,e,d,f,e,e,f,c,d,b,f]
-                return subdivide
 
+        #################################################
+        # CALLED UPON SELECTING MOLECULE
+        #################################################
+
+        def setMol(self,mol):
+                self.mol = copy.deepcopy(mol)
+                self.makeCell()
+                self.prepObjects()
+                self.setOffset(self.mult)
+
+        def makeCell(self):
+                #get vectors:
+                vec = self.mol.get_vec()
+                cdm = self.mol.get_celldm()
+                null = QVector3D(0,0,0)
+                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
+                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
+                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
+                #define vertices:
+                self.cell_modelspace=[null,a,null,b,null,c,
+                                      a,a+b,a,a+c,
+                                      b,b+a,b,b+c,
+                                      c,c+a,c,c+b,
+                                      a+b,a+b+c,
+                                      a+c,a+b+c,
+                                      b+c,a+b+c]
+
+        def prepObjects(self):
+                #save atoms for direct access
+                self.atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                #prepare bonds with position,angle,axis and names (for coloring)
+                self.bonds = []
+                bonds = self.mol.get_bonds()
+                for i in bonds:
+                        a = self.atoms[i[0]][1]
+                        b = self.atoms[i[1]][1]
+                        n1 = self.atoms[i[0]][0]
+                        n2 = self.atoms[i[1]][0]
+                        pos = (a+b)/2
+                        c = (a-b)/np.linalg.norm(a-b)
+                        d = np.array([1,0,0])
+                        theta = np.degrees(np.arccos(np.dot(c,d)))
+                        axis = -np.cross(c,d)
+                        self.bonds.append((pos,theta,axis,n1,n2))
+
+        ################################################
+        # CALLED UPON WINDOW RESIZE
+        ################################################
         def resizeGL(self,width,height):
                 #prevent divide by zero
                 if height == 0: height = 1
@@ -656,6 +703,10 @@ class ViewPort(QGLWidget):
 
                 #set viewport
                 glViewport(0,0,width,height)
+
+        ###############################################
+        # CALLED UPON WINDOW UPDATE EVENT
+        ##############################################
 
         def paintGL(self):
                 #clear depth and color buffer:
@@ -790,6 +841,7 @@ class ViewPort(QGLWidget):
                 self.lineShader.disableAttributeArray('vertex_modelspace')
                 self.lineShader.release()
 
+        #TODO: move to ptb_mol
         def setOffset(self,mult):
                 #don't do anything if there's no molecule
                 if not hasattr(self,'mol'):return
@@ -811,22 +863,9 @@ class ViewPort(QGLWidget):
                 #render:
                 self.updateGL()
 
-        def makeCell(self):
-                #get vectors:
-                vec = self.mol.get_vec()
-                cdm = self.mol.get_celldm()
-                null = QVector3D(0,0,0)
-                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
-                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
-                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
-                #define vertices:
-                self.cell_modelspace=[null,a,null,b,null,c,
-                                      a,a+b,a,a+c,
-                                      b,b+a,b,b+c,
-                                      c,c+a,c,c+b,
-                                      a+b,a+b+c,
-                                      a+c,a+b+c,
-                                      b+c,a+b+c]
+        ###############################################
+        # INPUT HANDLING
+        ###############################################
 
         def mousePressEvent(self,e):
                 #store initial position
@@ -870,6 +909,10 @@ class ViewPort(QGLWidget):
                                 self.distance *= 0.9
                         self.updateGL()
                 e.accept()
+
+        ##############################################
+        # CONNECT TO CONTROLS
+        ##############################################
 
         def xmult(self,i):
                 self.mult[0]=i
