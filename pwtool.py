@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import copy
 
-from os.path import expanduser,realpath
-from os import path
+from copy import deepcopy
+from os.path import dirname
 from os import getcwd
-from math import sqrt,floor
-from functools import partial
+from math import floor
 import numpy as np
 
 from PyQt4.QtGui import *
@@ -99,13 +97,14 @@ class MainView(QWidget):
                 self.pwlist.currentRowChanged.connect(self.setParam)
 
                 #opengl visualisation:
-                self.visual = ViewPort()
-                self.visual.setMinimumSize(440,350)
+                #self.visual = ViewPort()
+                #self.visual.setMinimumSize(440,350)
                 #make molecule editor aware of visualization:
-                self.mol.setVisual(self.visual)
+                #self.mol.setVisual(self.visual)
 
                 #controls for visualisation:
-                self.vcont = ViewMods(self.visual)
+                self.vcont = ViewMods()
+                self.mol.setVisual(self.vcont)
 
                 #nest edit areas in tabwidget
                 self.tabs = QTabWidget()
@@ -118,13 +117,14 @@ class MainView(QWidget):
                 vbox.addWidget(self.mlist)
                 vbox.addWidget(QLabel('PW Parameter sets:'))
                 vbox.addWidget(self.pwlist)
-                v2 = QVBoxLayout()
-                v2.addWidget(self.visual,1)
-                v2.addWidget(self.vcont)
+                #v2 = QVBoxLayout()
+                #v2.addWidget(self.visual,1)
+                #v2.addWidget(self.vcont)
                 hbox = QHBoxLayout()
                 hbox.addLayout(vbox)
                 hbox.addWidget(self.tabs,1)
-                hbox.addLayout(v2,1)
+                #hbox.addLayout(v2,1)
+                hbox.addWidget(self.vcont)
 
                 self.setLayout(hbox)
 
@@ -563,12 +563,12 @@ class ViewPort(QGLWidget):
                 self.qglClearColor(QColor(255,255,255))
 
                 #add shaders:
-                self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexSpheres.vsh')
-                self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentSpheres.fsh')
-                self.bondShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexBonds.vsh')
-                self.bondShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentBonds.fsh')
-                self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,path.dirname(__file__)+'/vertexLines.vsh')
-                self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,path.dirname(__file__)+'/fragmentLines.fsh')
+                self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres.vsh')
+                self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
+                self.bondShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexBonds.vsh')
+                self.bondShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentBonds.fsh')
+                self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexLines.vsh')
+                self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentLines.fsh')
 
                 # prepare sphere
                 self.makeSphere()
@@ -644,10 +644,10 @@ class ViewPort(QGLWidget):
         #################################################
 
         def setMol(self,mol):
-                self.mol = copy.deepcopy(mol)
+                self.mol = deepcopy(mol)
                 self.makeCell()
                 self.prepObjects()
-                self.setOffset(self.mult)
+                self.updateGL()
 
         def makeCell(self):
                 #get vectors:
@@ -746,8 +746,9 @@ class ViewPort(QGLWidget):
                         self.proj = self.oMatrix
                         #scale based on distance for zoom effect
                         self.vMatrix.scale(10/self.distance)
+                #TODO: decrease quality with increasing number of atoms
                 #rendering:
-                for i in self.off:
+                for i in self.mol.getOffset():
                         self.drawCell(i)
                         self.drawAtoms(i)
                         self.drawBonds(i)
@@ -841,28 +842,6 @@ class ViewPort(QGLWidget):
                 self.lineShader.disableAttributeArray('vertex_modelspace')
                 self.lineShader.release()
 
-        #TODO: move to ptb_mol
-        def setOffset(self,mult):
-                #don't do anything if there's no molecule
-                if not hasattr(self,'mol'):return
-                vec = self.mol.get_vec()*self.mol.get_celldm()
-                cent = self.mol.get_center()
-                self.off = []
-                tmult = [1,1,1]
-                #save the multiplicators for vec:
-                for i in [0,1,2]:
-                        if mult[i]%2 == 0:
-                                tmult[i]=[x+0.5-mult[i]/2 for x in range(mult[i])]
-                        else:
-                                tmult[i]=[x-floor(mult[i]/2) for x in range(mult[i])]
-                #generate offsets:
-                for i in tmult[0]:
-                        for j in tmult[1]:
-                                for k in tmult[2]:
-                                        self.off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
-                #render:
-                self.updateGL()
-
         ###############################################
         # INPUT HANDLING
         ###############################################
@@ -910,68 +889,73 @@ class ViewPort(QGLWidget):
                         self.updateGL()
                 e.accept()
 
-        ##############################################
-        # CONNECT TO CONTROLS
-        ##############################################
-
-        def xmult(self,i):
-                self.mult[0]=i
-                self.setOffset(self.mult)
-
-        def ymult(self,i):
-                self.mult[1]=i
-                self.setOffset(self.mult)
-
-        def zmult(self,i):
-                self.mult[2]=i
-                self.setOffset(self.mult)
-
-        def setProj(self):
-                self.view = 1
-                self.updateGL()
-
-        def setOrtho(self):
-                self.view = 0
-                self.updateGL()
-
 class ViewMods(QWidget):
-        def __init__(self,visual):
+        def __init__(self):
                 super(ViewMods,self).__init__()
-                self.visual=visual
                 self.initMods()
 
         def initMods(self):
+                #ViewArea:
+                self.visual = ViewPort()
                 # Cell multiplication
-                xspin = QSpinBox()
-                xspin.valueChanged.connect(self.visual.xmult)
-                yspin = QSpinBox()
-                yspin.valueChanged.connect(self.visual.ymult)
-                zspin = QSpinBox()
-                zspin.valueChanged.connect(self.visual.zmult)
-                for i in [xspin,yspin,zspin]:
+                self.xspin = QSpinBox()
+                self.xspin.valueChanged.connect(self.multView)
+                #xspin.valueChanged.connect(self.visual.xmult)
+                self.yspin = QSpinBox()
+                self.yspin.valueChanged.connect(self.multView)
+                #yspin.valueChanged.connect(self.visual.ymult)
+                self.zspin = QSpinBox()
+                self.zspin.valueChanged.connect(self.multView)
+                #zspin.valueChanged.connect(self.visual.zmult)
+                for i in [self.xspin,self.yspin,self.zspin]:
                         i.setMinimum(1)
                 # Change projection
                 pbut = QPushButton()
                 pbut.setText('Perspective proj.')
-                pbut.clicked.connect(self.visual.setProj)
+                #pbut.clicked.connect(self.visual.setProj)
+                pbut.clicked.connect(self.setProj)
                 obut = QPushButton()
                 obut.setText('Orthogonal proj.')
-                obut.clicked.connect(self.visual.setOrtho)
+                obut.clicked.connect(self.setOrtho)
+                #obut.clicked.connect(self.visual.setOrtho)
                 #Layout
                 hbox = QHBoxLayout()
                 hbox.addWidget(QLabel('Cell multiply:'))
                 hbox.addStretch()
                 hbox.addWidget(QLabel('x:'))
-                hbox.addWidget(xspin)
+                hbox.addWidget(self.xspin)
                 hbox.addStretch()
                 hbox.addWidget(QLabel('y:'))
-                hbox.addWidget(yspin)
+                hbox.addWidget(self.yspin)
                 hbox.addStretch()
                 hbox.addWidget(QLabel('z:'))
-                hbox.addWidget(zspin)
-                vbox = QVBoxLayout()
-                vbox.addWidget(pbut)
-                vbox.addWidget(obut)
-                hbox.addLayout(vbox)
-                self.setLayout(hbox)
+                hbox.addWidget(self.zspin)
+                vbox2 = QVBoxLayout()
+                vbox2.addWidget(pbut)
+                vbox2.addWidget(obut)
+                hbox.addLayout(vbox2)
+                vbox1 = QVBoxLayout()
+                vbox1.addWidget(self.visual)
+                vbox1.addLayout(hbox)
+                self.setLayout(vbox1)
                 self.resize(self.sizeHint())
+
+        # display molecule with repetition preserved
+        def setMol(self,mol):
+                self.visual.setMol(mol)
+                self.multView()
+
+        #update repetition
+        def multView(self):
+                if hasattr(self.visual,'mol'):
+                        self.visual.mol.setOffset([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                        self.visual.updateGL()
+
+        # change projection
+        def setProj(self):
+                self.visual.view = 1
+                self.visual.updateGL()
+
+        def setOrtho(self):
+                self.visual.view = 0
+                self.visual.updateGL()

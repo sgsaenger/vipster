@@ -4,7 +4,7 @@
 import sys
 import copy
 import pwtool
-from math import sqrt
+from math import sqrt,floor
 from collections import OrderedDict
 import numpy as np
 from PyQt4.QtGui import *
@@ -350,7 +350,8 @@ class Molecule:
                 self.celldm = 1.0
                 self.vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
                 self.vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
-                self.offset=[0.0,0.0,0.0]
+                # initialize as single cell
+                #self.setOffset([1,1,1])
                 self.comment = ''
 
         ######################################################
@@ -369,7 +370,7 @@ class Molecule:
                 self.at_n.append(addat[0])
                 self.at_c.append(self.set_coord(addat[1],addat[2]))
 
-        # inser atom at given position
+        # insert atom at given position
         def insert_atom(self,pos,addat):
                 #self.at.insert(pos,copy.copy(addat))
                 self.at_n.insert(pos,adddat[0])
@@ -385,10 +386,31 @@ class Molecule:
         #                self.at.append(copy.copy(mol.at[i]))
 
         ######################################################
-        # MOL MODIFICATION FUNCTIONS
+        # CELL MULTIPLICATION
         ######################################################
 
         #TODO
+        def setOffset(self,mult):
+                vec = self.get_vec()*self.celldm
+                cent = self.get_center()
+                self.off = []
+                tmult = [1,1,1]
+                #save the multiplicators for vec:
+                for i in [0,1,2]:
+                        if mult[i]%2 == 0:
+                                tmult[i]=[x+0.5-mult[i]/2 for x in range(mult[i])]
+                        else:
+                                tmult[i]=[x-floor(mult[i]/2) for x in range(mult[i])]
+                #generate offsets:
+                for i in tmult[0]:
+                        for j in tmult[1]:
+                                for k in tmult[2]:
+                                        self.off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
+
+        def getOffset(self):
+                if not hasattr(self,'off'):
+                        self.setOffset([1,1,1])
+                return self.off
 
         ######################################################
         # SET FUNCTIONS
@@ -404,11 +426,13 @@ class Molecule:
         # set celldm
         def set_celldm(self,cdm):
                 self.celldm = float(cdm)
+                self.set_center()
 
         # set vectors
         def set_vec(self,vec):
                 self.vec = np.array(vec).T
                 self.vecinv = np.linalg.inv(self.vec)
+                self.set_center()
 
         # set center of cell
         def set_center(self):
