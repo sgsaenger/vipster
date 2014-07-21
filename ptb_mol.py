@@ -516,8 +516,12 @@ class Molecule:
                                 at_i = self.get_atom(i)
                                 at_j = self.get_atom(j)
                                 dist = np.linalg.norm(at_i[1]-at_j[1])
-                                if 0.755 < dist < 3.59:
-                                        self.bonds.append((i,j,dist))
+                                if at_i[0] != 'H' and at_j[0] != 'H':
+                                        if 0.755 < dist < 3.5:
+                                                self.bonds.append((i,j,dist))
+                                else:
+                                        if 0.755 < dist < 2.27:
+                                                self.bonds.append((i,j,dist))
 
 
 
