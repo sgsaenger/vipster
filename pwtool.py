@@ -417,6 +417,7 @@ class PWTab(QWidget):
                                 items[1][-1].setText(1,j[1])
 
 class ViewPort(QGLWidget):
+
         ##################################################
         # CALLED UPON INITIALISATION
         ##################################################
@@ -592,7 +593,6 @@ class ViewPort(QGLWidget):
                 for i in range(3):
                         sphere = self.sphere_subdiv(sphere)
                 self.atom_modelspace = sphere
-                self.at_normals_modelspace = sphere
 
         def sphere_subdiv(self,vertex):
                 subdivide = []
@@ -614,7 +614,10 @@ class ViewPort(QGLWidget):
                         cylinder = self.cylinder_subdiv(cylinder)
                 cylinder = self.cylinder_puzzle(cylinder)
                 self.bond_modelspace = cylinder
-                self.bo_normals_modelspace = cylinder
+                #set normals
+                self.bo_normals_modelspace = deepcopy(cylinder)
+                for i in self.bo_normals_modelspace:
+                        i.setX(0)
 
         def cylinder_subdiv(self,vertex):
                 temp = []
@@ -775,7 +778,8 @@ class ViewPort(QGLWidget):
                         self.sphereShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
                         self.sphereShader.enableAttributeArray('vertex_modelspace')
                         #send normals for lighting
-                        self.sphereShader.setAttributeArray('normals_modelspace',self.at_normals_modelspace)
+                        #equal coordinates for sphere
+                        self.sphereShader.setAttributeArray('normals_modelspace',self.atom_modelspace)
                         self.sphereShader.enableAttributeArray('normals_modelspace')
                         #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
                         #draw
