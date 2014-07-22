@@ -124,7 +124,7 @@ class MainView(QWidget):
                 hbox.addLayout(vbox)
                 hbox.addWidget(self.tabs,1)
                 #hbox.addLayout(v2,1)
-                hbox.addWidget(self.vcont)
+                hbox.addWidget(self.vcont,1)
 
                 self.setLayout(hbox)
 
@@ -942,7 +942,6 @@ class ViewMods(QWidget):
                 vbox1.addWidget(self.visual)
                 vbox1.addLayout(hbox)
                 self.setLayout(vbox1)
-                self.resize(self.sizeHint())
 
         # display molecule with repetition preserved
         def setMol(self,mol):
