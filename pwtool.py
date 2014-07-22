@@ -10,13 +10,14 @@ from math import floor
 import numpy as np
 
 from PyQt4.QtGui import *
+from PyQt4.QtCore import QTimer
 from PyQt4.QtOpenGL import *
 from OpenGL.GL import *
 
-class CoordTB(QMainWindow):
+class MainWindow(QMainWindow):
 
         def __init__(self,controller):
-                super(CoordTB,self).__init__()
+                super(MainWindow,self).__init__()
                 self.controller = controller
                 self.initApp()
 
@@ -80,57 +81,138 @@ class MainView(QWidget):
 
         def initUI(self):
 
-                #Molecule edit area:
-                self.mol = MolArea()
-                self.mol.setMinimumSize(440,350)
-
+                #Left column:
                 #Molecule list:
                 self.mlist = QListWidget()
-                self.mlist.currentRowChanged.connect(self.setMolecule)
-
-                #PWParameter edit area:
-                self.pw = PWTab()
-                self.pw.setMinimumSize(440,350)
+                self.mlist.currentRowChanged.connect(self.updateMolList)
 
                 #PWParameter list:
                 self.pwlist = QListWidget()
                 self.pwlist.currentRowChanged.connect(self.setParam)
 
-                #opengl visualisation:
-                #self.visual = ViewPort()
-                #self.visual.setMinimumSize(440,350)
-                #make molecule editor aware of visualization:
-                #self.mol.setVisual(self.visual)
+                #TODO TODO
+                #Edit stuff?
 
-                #controls for visualisation:
-                self.vcont = ViewMods()
-                self.mol.setVisual(self.vcont)
+                #Layout:
+                lcol = QVBoxLayout()
+                lcol.addWidget(QLabel('Loaded Molecules:'))
+                lcol.addWidget(self.mlist)
+                lcol.addWidget(QLabel('PW Parameter sets:'))
+                lcol.addWidget(self.pwlist)
+
+                #Central Column:
+                #OpenGL Viewport:
+                self.visual = ViewPort()
+
+                #Control visual:
+                #Cell multiplication
+                self.xspin = QSpinBox()
+                self.xspin.valueChanged.connect(self.multView)
+                self.yspin = QSpinBox()
+                self.yspin.valueChanged.connect(self.multView)
+                self.zspin = QSpinBox()
+                self.zspin.valueChanged.connect(self.multView)
+                for i in [self.xspin,self.yspin,self.zspin]:
+                        i.setMinimum(1)
+                #Switch projection:
+                pbut = QPushButton()
+                pbut.setText('Perspective proj.')
+                pbut.clicked.connect(self.setProj)
+                obut = QPushButton()
+                obut.setText('Orthogonal proj.')
+                obut.clicked.connect(self.setOrtho)
+                #create Timers
+                self.animStep = QTimer()
+                self.animStep.setInterval(50)
+                self.animStep.timeout.connect(self.incStep)
+                #Choose step, animate
+                incBut = QPushButton()
+                incBut.pressed.connect(self.incStep)
+                incBut.setIcon(self.style().standardIcon(65))
+                decBut = QPushButton()
+                decBut.pressed.connect(self.decStep)
+                decBut.setIcon(self.style().standardIcon(66))
+                playBut = QPushButton()
+                playBut.setIcon(self.style().standardIcon(60))
+                playBut.clicked.connect(self.animStep.start)
+                firstBut = QPushButton()
+                firstBut.setIcon(self.style().standardIcon(64))
+                firstBut.clicked.connect(self.firstStep)
+                lastBut = QPushButton()
+                lastBut.setIcon(self.style().standardIcon(63))
+                lastBut.clicked.connect(self.lastStep)
+                self.currentStep = QLineEdit()
+                self.currentStep.setText('0')
+                self.currentStep.textChanged.connect(self.updateMolStep)
+                self.maxStep = QLabel('0')
+                #Control Layout:
+                mult = QHBoxLayout()
+                mult.addWidget(QLabel('Cell multiply:'))
+                mult.addStretch()
+                mult.addWidget(QLabel('x:'))
+                mult.addWidget(self.xspin)
+                mult.addStretch()
+                mult.addWidget(QLabel('y:'))
+                mult.addWidget(self.yspin)
+                mult.addStretch()
+                mult.addWidget(QLabel('z:'))
+                mult.addWidget(self.zspin)
+                mult.addWidget(pbut)
+                steps = QHBoxLayout()
+                steps.addWidget(firstBut)
+                steps.addWidget(decBut)
+                steps.addWidget(self.currentStep)
+                steps.addWidget(QLabel('/'))
+                steps.addWidget(self.maxStep)
+                steps.addWidget(playBut)
+                steps.addWidget(incBut)
+                steps.addWidget(lastBut)
+                steps.addWidget(obut)
+
+                #Layout:
+                mcol = QVBoxLayout()
+                mcol.addWidget(self.visual)
+                mcol.addLayout(mult)
+                mcol.addLayout(steps)
+
+                #Right column:
+                #Molecule edit area:
+                self.mol = MolArea(self)
+                #self.mol.setMinimumSize(440,350)
+
+                #PWParameter edit area:
+                self.pw = PWTab()
+                #self.pw.setMinimumSize(440,350)
 
                 #nest edit areas in tabwidget
                 self.tabs = QTabWidget()
                 self.tabs.addTab(self.mol,'Molecule coordinates')
                 self.tabs.addTab(self.pw,'PW Parameters')
 
-                #Layout
-                vbox = QVBoxLayout()
-                vbox.addWidget(QLabel('Loaded Molecules:'))
-                vbox.addWidget(self.mlist)
-                vbox.addWidget(QLabel('PW Parameter sets:'))
-                vbox.addWidget(self.pwlist)
-                #v2 = QVBoxLayout()
-                #v2.addWidget(self.visual,1)
-                #v2.addWidget(self.vcont)
-                hbox = QHBoxLayout()
-                hbox.addLayout(vbox)
-                hbox.addWidget(self.tabs,1)
-                #hbox.addLayout(v2,1)
-                hbox.addWidget(self.vcont,1)
+                #Layout:
+                rcol = QVBoxLayout()
+                rcol.addWidget(self.tabs)
 
+                #Lay out columns:
+                hbox = QHBoxLayout()
+                hbox.addLayout(lcol)
+                hbox.addLayout(mcol)
+                hbox.addLayout(rcol)
                 self.setLayout(hbox)
 
         #from controller
-        def setMolecule(self,sel):
-                self.mol.setMol(self.controller.get_mol(sel))
+        def updateMolList(self,sel):
+                steps = self.controller.get_lmol(sel)
+                self.currentStep.setValidator(QIntValidator(1,steps))
+                self.currentStep.setText(str(steps))
+                self.maxStep.setText(str(steps))
+                #currentStep triggers event to load Mol
+
+        def updateMolStep(self):
+                sel = self.mlist.currentRow()
+                step = int(self.currentStep.text())-1
+                self.mol.setMol(self.controller.get_mol(sel,step))
+                self.visual.setMol(self.controller.get_mol(sel,step))
 
         #to controller
         def getMolecule(self):
@@ -151,11 +233,40 @@ class MainView(QWidget):
                 for i in range(count,self.controller.get_npw()):
                         self.pwlist.addItem("Param "+str(i+1))
 
+        # change projection
+        def setProj(self):
+                self.visual.view = 1
+                self.visual.updateGL()
+
+        def setOrtho(self):
+                self.visual.view = 0
+                self.visual.updateGL()
+
+        #update repetition
+        def multView(self):
+                if hasattr(self.visual,'mol'):
+                        self.visual.mol.setOffsets([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                        self.visual.updateGL()
+
+        #cycle steps:
+        def incStep(self):
+                self.currentStep.setText(str(int(self.currentStep.text())+1))
+
+        def decStep(self):
+                self.currentStep.setText(str(int(self.currentStep.text())-1))
+
+        def firstStep(self):
+                self.currentStep.setText('1')
+
+        def lastStep(self):
+                self.currentStep.setText(self.maxStep.text())
+
 class MolArea(QWidget):
 
-        def __init__(self):
+        def __init__(self,parent):
                 super(MolArea,self).__init__()
                 self.initTab()
+                self.parent = parent
 
         def initTab(self):
                 # coord fmt dropdown selector
@@ -232,10 +343,6 @@ class MolArea(QWidget):
                 self.setLayout(vbox)
                 self.resize(self.sizeHint())
 
-        #connect to visualisation
-        def setVisual(self,visual):
-                self.visual = visual
-
         #load selected molecule
         def setMol(self,mol):
                 #connect molecule
@@ -248,7 +355,9 @@ class MolArea(QWidget):
         ##################################################################
         def newAtom(self):
                 self.mol.create_atom()
-                self.fillTab()
+
+                #update Main Widget
+                self.parent.updateMolStep()
 
         def copyAt(self):
                 self.sel = []
@@ -260,7 +369,9 @@ class MolArea(QWidget):
                 pos = self.table.currentRow()+1
                 for at in self.sel:
                         self.mol.insert_atom(pos,at)
-                self.fillTab()
+
+                #update Main Widget
+                self.parent.updateMolStep()
 
         #####################################################
         # UPDATE HANDLER
@@ -279,7 +390,9 @@ class MolArea(QWidget):
                 for j in [0,1,2]:
                         coord[j]=float(self.table.item(atom,j+1).text())
                 self.mol.set_atom(atom,name,coord,self.fmt.currentText())
-                self.fillTab()
+
+                #update Main Widget
+                self.parent.updateMolStep()
 
         def vecHandler(self):
                 if self.updatedisable: return
@@ -288,7 +401,9 @@ class MolArea(QWidget):
                         for j in [0,1,2]:
                                 vec[i][j]=float(self.vtable.item(i,j).text())
                 self.mol.set_vec(vec)
-                self.fillTab()
+
+                #update Main Widget
+                self.parent.updateMolStep()
 
         ##############################################################
         # MAIN WIDGET UPDATE FUNCTION
@@ -312,9 +427,6 @@ class MolArea(QWidget):
                                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
                 #reenable handling
                 self.updatedisable = False
-
-                #update View
-                self.visual.setMol(self.mol)
 
 #TODO TODO
 class PWTab(QWidget):
@@ -702,7 +814,7 @@ class ViewPort(QGLWidget):
                 #set orthogonal matrix:
                 self.oMatrix = QMatrix4x4()
                 self.oMatrix.setToIdentity()
-                self.oMatrix.ortho(-10*aspect,10*aspect,-10/aspect,10/aspect,0.001,1000)
+                self.oMatrix.ortho(-10*aspect,10*aspect,-10,10,0.001,1000)
 
                 #set viewport
                 glViewport(0,0,width,height)
@@ -751,7 +863,7 @@ class ViewPort(QGLWidget):
                         self.vMatrix.scale(10/self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
-                for i in self.mol.getOffset():
+                for i in self.mol.getOffsets():
                         self.drawCell(i)
                         self.drawAtoms(i)
                         self.drawBonds(i)
@@ -893,72 +1005,3 @@ class ViewPort(QGLWidget):
                         self.updateGL()
                 e.accept()
 
-class ViewMods(QWidget):
-        def __init__(self):
-                super(ViewMods,self).__init__()
-                self.initMods()
-
-        def initMods(self):
-                #ViewArea:
-                self.visual = ViewPort()
-                # Cell multiplication
-                self.xspin = QSpinBox()
-                self.xspin.valueChanged.connect(self.multView)
-                #xspin.valueChanged.connect(self.visual.xmult)
-                self.yspin = QSpinBox()
-                self.yspin.valueChanged.connect(self.multView)
-                #yspin.valueChanged.connect(self.visual.ymult)
-                self.zspin = QSpinBox()
-                self.zspin.valueChanged.connect(self.multView)
-                #zspin.valueChanged.connect(self.visual.zmult)
-                for i in [self.xspin,self.yspin,self.zspin]:
-                        i.setMinimum(1)
-                # Change projection
-                pbut = QPushButton()
-                pbut.setText('Perspective proj.')
-                #pbut.clicked.connect(self.visual.setProj)
-                pbut.clicked.connect(self.setProj)
-                obut = QPushButton()
-                obut.setText('Orthogonal proj.')
-                obut.clicked.connect(self.setOrtho)
-                #obut.clicked.connect(self.visual.setOrtho)
-                #Layout
-                hbox = QHBoxLayout()
-                hbox.addWidget(QLabel('Cell multiply:'))
-                hbox.addStretch()
-                hbox.addWidget(QLabel('x:'))
-                hbox.addWidget(self.xspin)
-                hbox.addStretch()
-                hbox.addWidget(QLabel('y:'))
-                hbox.addWidget(self.yspin)
-                hbox.addStretch()
-                hbox.addWidget(QLabel('z:'))
-                hbox.addWidget(self.zspin)
-                vbox2 = QVBoxLayout()
-                vbox2.addWidget(pbut)
-                vbox2.addWidget(obut)
-                hbox.addLayout(vbox2)
-                vbox1 = QVBoxLayout()
-                vbox1.addWidget(self.visual)
-                vbox1.addLayout(hbox)
-                self.setLayout(vbox1)
-
-        # display molecule with repetition preserved
-        def setMol(self,mol):
-                self.visual.setMol(mol)
-                self.multView()
-
-        #update repetition
-        def multView(self):
-                if hasattr(self.visual,'mol'):
-                        self.visual.mol.setOffset([self.xspin.value(),self.yspin.value(),self.zspin.value()])
-                        self.visual.updateGL()
-
-        # change projection
-        def setProj(self):
-                self.visual.view = 1
-                self.visual.updateGL()
-
-        def setOrtho(self):
-                self.visual.view = 0
-                self.visual.updateGL()
