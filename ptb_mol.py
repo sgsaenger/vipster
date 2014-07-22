@@ -447,6 +447,7 @@ class Molecule:
 
         #######################################################
         # COORD FMT FUNCTIONS
+        # to be called only by atom set/get
         ######################################################
 
         def set_coord(self,coord,fmt='bohr'):

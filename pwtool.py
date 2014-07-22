@@ -122,19 +122,21 @@ class MainView(QWidget):
                 obut.setText('Orthogonal proj.')
                 obut.clicked.connect(self.setOrtho)
                 #create Timers
-                self.animStep = QTimer()
-                self.animStep.setInterval(50)
-                self.animStep.timeout.connect(self.incStep)
+                self.animTimer = QTimer()
+                self.animTimer.setInterval(50)
+                self.animTimer.timeout.connect(self.incStep)
                 #Choose step, animate
                 incBut = QPushButton()
-                incBut.pressed.connect(self.incStep)
+                incBut.clicked.connect(self.incStep)
+                incBut.setAutoRepeat(True)
                 incBut.setIcon(self.style().standardIcon(65))
                 decBut = QPushButton()
-                decBut.pressed.connect(self.decStep)
+                decBut.clicked.connect(self.decStep)
+                decBut.setAutoRepeat(True)
                 decBut.setIcon(self.style().standardIcon(66))
                 playBut = QPushButton()
                 playBut.setIcon(self.style().standardIcon(60))
-                playBut.clicked.connect(self.animStep.start)
+                playBut.clicked.connect(self.toggleAnim)
                 firstBut = QPushButton()
                 firstBut.setIcon(self.style().standardIcon(64))
                 firstBut.clicked.connect(self.firstStep)
@@ -206,7 +208,7 @@ class MainView(QWidget):
                 self.currentStep.setValidator(QIntValidator(1,steps))
                 self.currentStep.setText(str(steps))
                 self.maxStep.setText(str(steps))
-                #currentStep triggers event to load Mol
+                #currentStep triggers updateMolStep
 
         def updateMolStep(self):
                 sel = self.mlist.currentRow()
@@ -248,11 +250,15 @@ class MainView(QWidget):
                         self.visual.mol.setOffsets([self.xspin.value(),self.yspin.value(),self.zspin.value()])
                         self.visual.updateGL()
 
-        #cycle steps:
+        #steps and animation:
         def incStep(self):
-                self.currentStep.setText(str(int(self.currentStep.text())+1))
+                if self.currentStep.text()==self.maxStep.text():
+                        self.animTimer.stop()
+                else:
+                        self.currentStep.setText(str(int(self.currentStep.text())+1))
 
         def decStep(self):
+                if self.currentStep.text()=='1':return
                 self.currentStep.setText(str(int(self.currentStep.text())-1))
 
         def firstStep(self):
@@ -260,6 +266,12 @@ class MainView(QWidget):
 
         def lastStep(self):
                 self.currentStep.setText(self.maxStep.text())
+
+        def toggleAnim(self):
+                if self.animTimer.isActive():
+                        self.animTimer.stop()
+                else:
+                        self.animTimer.start()
 
 class MolArea(QWidget):
 
@@ -759,7 +771,7 @@ class ViewPort(QGLWidget):
         #################################################
 
         def setMol(self,mol):
-                self.mol = deepcopy(mol)
+                self.mol = mol
                 self.makeCell()
                 self.prepObjects()
                 self.updateGL()
