@@ -3,7 +3,7 @@
 
 import sys
 import copy
-import pwtool
+from ptb_gui import MainWindow
 from math import sqrt,floor
 from collections import OrderedDict
 import numpy as np
@@ -57,7 +57,7 @@ class TBController:
                 self.mol = []
                 self.pwdata = []
                 #self.data = []
-                self.gui = pwtool.MainWindow(self)
+                self.gui = MainWindow(self)
                 self.indict = OrderedDict([('xyz',self.parseXyz),
                                ('PWScf Input',self.parsePwi),
                                ('PWScf Output' , self.parsePwo)])
@@ -532,15 +532,3 @@ class PWParam(dict):
 
                 # k-point grid
                 self['K_POINTS']=['gamma']
-
-#####################################################
-# Application
-#####################################################
-
-def main():
-        app = QApplication(sys.argv)
-        control = TBController(sys.argv)
-        sys.exit(app.exec_())
-
-if __name__ == '__main__':
-        main()
