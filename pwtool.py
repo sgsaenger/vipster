@@ -107,11 +107,8 @@ class MainView(QWidget):
                 #Control visual:
                 #Cell multiplication
                 self.xspin = QSpinBox()
-                self.xspin.valueChanged.connect(self.multView)
                 self.yspin = QSpinBox()
-                self.yspin.valueChanged.connect(self.multView)
                 self.zspin = QSpinBox()
-                self.zspin.valueChanged.connect(self.multView)
                 for i in [self.xspin,self.yspin,self.zspin]:
                         i.setMinimum(1)
                 #Switch projection:
@@ -145,8 +142,12 @@ class MainView(QWidget):
                 lastBut.clicked.connect(self.lastStep)
                 self.currentStep = QLineEdit()
                 self.currentStep.setText('0')
-                self.currentStep.textChanged.connect(self.updateMolStep)
                 self.maxStep = QLabel('0')
+                #connect updateMolStep as everything is ready
+                self.currentStep.textChanged.connect(self.updateMolStep)
+                self.xspin.valueChanged.connect(self.updateMolStep)
+                self.yspin.valueChanged.connect(self.updateMolStep)
+                self.zspin.valueChanged.connect(self.updateMolStep)
                 #Control Layout:
                 mult = QHBoxLayout()
                 mult.addWidget(QLabel('Cell multiply:'))
@@ -180,11 +181,9 @@ class MainView(QWidget):
                 #Right column:
                 #Molecule edit area:
                 self.mol = MolArea(self)
-                #self.mol.setMinimumSize(440,350)
 
                 #PWParameter edit area:
                 self.pw = PWTab()
-                #self.pw.setMinimumSize(440,350)
 
                 #nest edit areas in tabwidget
                 self.tabs = QTabWidget()
@@ -214,7 +213,7 @@ class MainView(QWidget):
                 sel = self.mlist.currentRow()
                 step = int(self.currentStep.text())-1
                 self.mol.setMol(self.controller.get_mol(sel,step))
-                self.visual.setMol(self.controller.get_mol(sel,step))
+                self.visual.setMol(self.controller.get_mol(sel,step),[self.xspin.value(),self.yspin.value(),self.zspin.value()])
 
         #to controller
         def getMolecule(self):
@@ -557,7 +556,6 @@ class ViewPort(QGLWidget):
                 self.xsh = 0
                 self.ysh = 0
                 self.view = 1
-                self.mult = [1,1,1]
                 self.distance = 25
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191)],
                           'He': [1.40,0.32,QColor(216,255,255)],
@@ -770,8 +768,9 @@ class ViewPort(QGLWidget):
         # CALLED UPON SELECTING MOLECULE
         #################################################
 
-        def setMol(self,mol):
+        def setMol(self,mol,mult):
                 self.mol = mol
+                self.mult = mult
                 self.makeCell()
                 self.prepObjects()
                 self.updateGL()
@@ -875,7 +874,7 @@ class ViewPort(QGLWidget):
                         self.vMatrix.scale(10/self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
-                for i in self.mol.getOffsets():
+                for i in self.mol.getOffsets(self.mult):
                         self.drawCell(i)
                         self.drawAtoms(i)
                         self.drawBonds(i)

@@ -393,10 +393,10 @@ class Molecule:
         ######################################################
 
         #TODO
-        def setOffsets(self,mult):
+        def getOffsets(self,mult):
                 vec = self.get_vec()*self.celldm
                 cent = self.get_center()
-                self.off = []
+                off = []
                 tmult = [1,1,1]
                 #save the multiplicators for vec:
                 for i in [0,1,2]:
@@ -408,12 +408,8 @@ class Molecule:
                 for i in tmult[0]:
                         for j in tmult[1]:
                                 for k in tmult[2]:
-                                        self.off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
-
-        def getOffsets(self):
-                if not hasattr(self,'off'):
-                        self.setOffsets([1,1,1])
-                return self.off
+                                        off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
+                return off
 
         ######################################################
         # SET FUNCTIONS
