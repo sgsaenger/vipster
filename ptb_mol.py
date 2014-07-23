@@ -3,7 +3,7 @@
 
 import sys
 import copy
-import pwtool
+from ptb_gui import MainWindow
 from math import sqrt,floor
 from collections import OrderedDict
 import numpy as np
@@ -57,7 +57,7 @@ class TBController:
                 self.mol = []
                 self.pwdata = []
                 #self.data = []
-                self.gui = pwtool.CoordTB(self)
+                self.gui = MainWindow(self)
                 self.indict = OrderedDict([('xyz',self.parseXyz),
                                ('PWScf Input',self.parsePwi),
                                ('PWScf Output' , self.parsePwo)])
@@ -83,8 +83,11 @@ class TBController:
 # GET FUNCTIONS
 #####################################################################
 
-        def get_mol(self,index):
-                return self.mol[index]
+        def get_mol(self,index,step):
+                return self.mol[index][step]
+        
+        def get_lmol(self,index):
+                return len(self.mol[index])
 
         def get_nmol(self):
                 return len(self.mol)
@@ -129,7 +132,8 @@ class TBController:
                         tlist.append(tmol)
                         del data[0:nat+2]
                 #return tlist
-                self.mol = self.mol + tlist
+                #self.mol = self.mol + tlist
+                self.mol.append(tlist)
 
         def parsePwi(self,data):
                 # no need for list, only one molecule per file
@@ -224,7 +228,7 @@ class TBController:
                 del tparam['&system']['ntyp']
 
                 #Append to controller
-                self.mol.append(tmol)
+                self.mol.append([tmol])
                 self.pwdata.append(tparam)
 
         def parsePwo(self,data):
@@ -351,8 +355,6 @@ class Molecule:
                 self.celldm = 1.0
                 self.vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
                 self.vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
-                # initialize as single cell
-                #self.setOffset([1,1,1])
                 self.comment = ''
 
         ######################################################
@@ -391,10 +393,10 @@ class Molecule:
         ######################################################
 
         #TODO
-        def setOffset(self,mult):
+        def getOffsets(self,mult):
                 vec = self.get_vec()*self.celldm
                 cent = self.get_center()
-                self.off = []
+                off = []
                 tmult = [1,1,1]
                 #save the multiplicators for vec:
                 for i in [0,1,2]:
@@ -406,12 +408,8 @@ class Molecule:
                 for i in tmult[0]:
                         for j in tmult[1]:
                                 for k in tmult[2]:
-                                        self.off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
-
-        def getOffset(self):
-                if not hasattr(self,'off'):
-                        self.setOffset([1,1,1])
-                return self.off
+                                        off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
+                return off
 
         ######################################################
         # SET FUNCTIONS
@@ -445,6 +443,7 @@ class Molecule:
 
         #######################################################
         # COORD FMT FUNCTIONS
+        # to be called only by atom set/get
         ######################################################
 
         def set_coord(self,coord,fmt='bohr'):
@@ -533,15 +532,3 @@ class PWParam(dict):
 
                 # k-point grid
                 self['K_POINTS']=['gamma']
-
-#####################################################
-# Application
-#####################################################
-
-def main():
-        app = QApplication(sys.argv)
-        control = TBController(sys.argv)
-        sys.exit(app.exec_())
-
-if __name__ == '__main__':
-        main()
