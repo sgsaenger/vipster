@@ -115,24 +115,22 @@ class TBController:
                 if not data[0].strip().isdigit():
                         print 'not a xyz file'
                         return
-                while data:
+                i=0
+                while i < len(data):
                         # handle empty lines at eof or between molecules
-                        if not data[0].strip().isdigit():
-                                del data[0]
-                                if not data: break
+                        if not data[i].strip().isdigit(): i+=1
                         # create new molecule
                         tmol = Molecule()
-                        # fixed format nat and comment
-                        nat = int(data[0])
-                        tmol.comment = data[1]
-                        # read coordinates and types
-                        for i in range(2,nat+2):
-                                line = data[i].split()
+                        #fixed format nat and comment
+                        nat = int(data[i])
+                        tmol.comment = data[i+1]
+                        #read coordinates and types
+                        for j in range(i+2,i+nat+2):
+                                line = data[j].split()
                                 tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
+                        i+=nat+2
                         tlist.append(tmol)
-                        del data[0:nat+2]
-                #return tlist
-                #self.mol = self.mol + tlist
+                #append to list of molecules
                 self.mol.append(tlist)
 
         def parsePwi(self,data):
