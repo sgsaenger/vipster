@@ -85,7 +85,7 @@ class TBController:
 
         def get_mol(self,index,step):
                 return self.mol[index][step]
-        
+
         def get_lmol(self,index):
                 return len(self.mol[index])
 
@@ -234,6 +234,35 @@ class TBController:
                 tlist = []
                 #no parameters for now
                 #tparam=PWParam()
+                #read list of molecules:
+                i=0
+                while i<len(data):
+                        line = data[i].split()
+                        if not line: 
+                                pass
+                        elif line[0:3] == ['number', 'of', 'atoms/cell']:
+                                nat = int(line[4])
+                        elif line[0] == 'celldm(1)=':
+                                celldm = float(line[1])
+                        elif line[0:2] == ['crystal','axes:']:
+                                vec=[[0,0,0],[0,0,0],[0,0,0]]
+                                for j in range(3):
+                                        temp = data[i+1+j].split()
+                                        vec[j]=[float(x) for x in temp[3:6]]
+                        elif line[0] == 'ATOMIC_POSITIONS':
+                                tmol = Molecule()
+                                tmol.set_celldm(celldm)
+                                tmol.set_vec(vec)
+                                for j in range(i+1,i+nat+1):
+                                        atom = data[j].split()
+                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip(')').strip('('))
+                                i+=nat
+                                tlist.append(tmol)
+                        else:
+                                pass
+                        i+=1
+                self.mol.append(tlist)
+
 
 #############################################################################
 # WRITE FUNCTIONS
