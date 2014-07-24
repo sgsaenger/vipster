@@ -236,19 +236,40 @@ class TBController:
                 #tparam=PWParam()
                 #read list of molecules:
                 i=0
+                vec=[[0,0,0],[0,0,0],[0,0,0]]
                 while i<len(data):
                         line = data[i].split()
-                        if not line: 
+                        #ignore empty lines
+                        if not line:
                                 pass
+                        #read number of atoms
                         elif line[0:3] == ['number', 'of', 'atoms/cell']:
                                 nat = int(line[4])
+                        #TODO: tweak to recognize celldm(n), save if !0 in param
+                        #read cell dimension
                         elif line[0] == 'celldm(1)=':
                                 celldm = float(line[1])
+                        #read initial cell vectors
                         elif line[0:2] == ['crystal','axes:']:
-                                vec=[[0,0,0],[0,0,0],[0,0,0]]
                                 for j in range(3):
                                         temp = data[i+1+j].split()
                                         vec[j]=[float(x) for x in temp[3:6]]
+                        # read initial positions:
+                        elif line[0] == 'site':
+                                tmol = Molecule()
+                                tmol.set_celldm(celldm)
+                                tmol.set_vec(vec)
+                                for j in range(i+1,i+nat+1):
+                                        atom = data[j].split()
+                                        tmol.create_atom(atom[1],float(atom[6]),float(atom[7]),float(atom[8]),'alat')
+                                i+=nat
+                                tlist.append(tmol)
+                        #read step-vectors if cell is variable
+                        elif line[0] == 'CELL_PARAMETERS':
+                                for j in range(3):
+                                        temp = data[i+1+j].split()
+                                        vec[j]=[float(x) for x in temp[0:3]]
+                        #read step-coordinates
                         elif line[0] == 'ATOMIC_POSITIONS':
                                 tmol = Molecule()
                                 tmol.set_celldm(celldm)
@@ -258,6 +279,7 @@ class TBController:
                                         tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip(')').strip('('))
                                 i+=nat
                                 tlist.append(tmol)
+                        #ignore everything else
                         else:
                                 pass
                         i+=1
