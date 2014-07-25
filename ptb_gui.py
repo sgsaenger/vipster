@@ -113,8 +113,8 @@ class MainView(QWidget):
                 lcol.addWidget(mlist)
                 lcol.addWidget(pwlist)
                 lcol.setOrientation(0)
-                lcol.setFixedWidth(426)
                 lcol.setFrameStyle(38)
+                lcol.setMaximumWidth(300)
 
 
         #Central Column:
@@ -128,6 +128,10 @@ class MainView(QWidget):
                 self.zspin = QSpinBox()
                 for i in [self.xspin,self.yspin,self.zspin]:
                         i.setMinimum(1)
+                #Toggle edit column:
+                editBut = QPushButton()
+                editBut.setText('Edit')
+                editBut.setCheckable(True)
                 #Switch projection:
                 pbut = QPushButton()
                 pbut.setText('Perspective proj.')
@@ -187,7 +191,8 @@ class MainView(QWidget):
                 steps.addWidget(playBut)
                 steps.addWidget(incBut)
                 steps.addWidget(lastBut)
-                steps.addWidget(obut)
+                #steps.addWidget(obut)
+                steps.addWidget(editBut)
 
                 #Layout:
                 viewlay = QVBoxLayout()
@@ -211,7 +216,10 @@ class MainView(QWidget):
                 rcol = QTabWidget()
                 rcol.addTab(self.mol,'Molecule coordinates')
                 rcol.addTab(self.pw,'PW Parameters')
-                rcol.setFixedWidth(426)
+                rcol.setMaximumWidth(467)
+                #connect to toggle button
+                rcol.hide()
+                editBut.clicked.connect(rcol.setVisible)
 
 
         #Lay out columns:
@@ -286,6 +294,7 @@ class MainView(QWidget):
                 else:
                         self.animTimer.start()
 
+#TODO: deactivate when not shown? reduce cpu-load!
 class MolArea(QWidget):
 
         def __init__(self,parent):
@@ -453,7 +462,7 @@ class MolArea(QWidget):
                 #reenable handling
                 self.updatedisable = False
 
-#TODO TODO
+#TODO: almost everything
 class PWTab(QWidget):
 
         def __init__(self):
