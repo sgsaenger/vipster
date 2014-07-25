@@ -81,26 +81,43 @@ class MainView(QWidget):
 
         def initUI(self):
 
-                #Left column:
+        #Left column:
                 #Molecule list:
                 self.mlist = QListWidget()
                 self.mlist.currentRowChanged.connect(self.updateMolList)
+                #splitter-container
+                mlist=QWidget()
+                mlayout=QVBoxLayout()
+                mlabel=QLabel('Loaded Molecules:')
+                mlayout.addWidget(mlabel)
+                mlayout.addWidget(self.mlist)
+                mlist.setLayout(mlayout)
 
                 #PWParameter list:
                 self.pwlist = QListWidget()
                 self.pwlist.currentRowChanged.connect(self.setParam)
+                #splitter-container
+                pwlist=QWidget()
+                pwlayout=QVBoxLayout()
+                pwlabel=QLabel('PW Parameter sets:')
+                pwlayout.addWidget(pwlabel)
+                pwlayout.addWidget(self.pwlist)
+                pwlist.setLayout(pwlayout)
+
 
                 #TODO TODO
                 #Edit stuff?
 
-                #Layout:
-                lcol = QVBoxLayout()
-                lcol.addWidget(QLabel('Loaded Molecules:'))
-                lcol.addWidget(self.mlist)
-                lcol.addWidget(QLabel('PW Parameter sets:'))
-                lcol.addWidget(self.pwlist)
+                #encapsulate in splitter:
+                lcol = QSplitter()
+                lcol.addWidget(mlist)
+                lcol.addWidget(pwlist)
+                lcol.setOrientation(0)
+                lcol.setFixedWidth(426)
+                lcol.setFrameStyle(38)
 
-                #Central Column:
+
+        #Central Column:
                 #OpenGL Viewport:
                 self.visual = ViewPort()
 
@@ -178,7 +195,8 @@ class MainView(QWidget):
                 mcol.addLayout(mult)
                 mcol.addLayout(steps)
 
-                #Right column:
+
+        #Right column:
                 #Molecule edit area:
                 self.mol = MolArea(self)
 
@@ -189,14 +207,17 @@ class MainView(QWidget):
                 self.tabs = QTabWidget()
                 self.tabs.addTab(self.mol,'Molecule coordinates')
                 self.tabs.addTab(self.pw,'PW Parameters')
+                self.tabs.setFixedWidth(426)
 
                 #Layout:
                 rcol = QVBoxLayout()
                 rcol.addWidget(self.tabs)
 
-                #Lay out columns:
+
+        #Lay out columns:
                 hbox = QHBoxLayout()
-                hbox.addLayout(lcol)
+                #hbox.addLayout(lcol)
+                hbox.addWidget(lcol)
                 hbox.addLayout(mcol)
                 hbox.addLayout(rcol)
                 self.setLayout(hbox)

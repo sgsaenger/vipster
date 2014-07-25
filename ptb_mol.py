@@ -562,12 +562,13 @@ class Molecule:
                 return self.bonds
 
         #TODO: needs to be called upon coordinate change
+        #TODO: PBC!
         def set_bonds(self):
                 nat = self.get_nat()
                 self.bonds = []
                 for i in range(nat):
+                        at_i = self.get_atom(i)
                         for j in range(i,nat):
-                                at_i = self.get_atom(i)
                                 at_j = self.get_atom(j)
                                 #print at_i[1]<at_j[1]
                                 dist = np.linalg.norm(at_i[1]-at_j[1])
