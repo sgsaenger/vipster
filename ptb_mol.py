@@ -565,19 +565,31 @@ class Molecule:
         #TODO: PBC!
         def set_bonds(self):
                 nat = self.get_nat()
+                vec = abs(self.get_vec()*self.get_celldm())
+                x = vec[0]
+                y = vec[1]
+                z = vec[2]
+                xy = x+y
+                xz = x+z
+                yz = y+z
+                xyz = x+y+z
+                lim = np.array([3.5,3.5,3.5])
                 self.bonds = []
                 for i in range(nat):
                         at_i = self.get_atom(i)
-                        for j in range(i,nat):
+                        for j in range(i+1,nat):
                                 at_j = self.get_atom(j)
-                                #print at_i[1]<at_j[1]
-                                dist = np.linalg.norm(at_i[1]-at_j[1])
-                                if at_i[0] != 'H' and at_j[0] != 'H':
-                                        if 0.755 < dist < 3.5:
-                                                self.bonds.append((i,j,0))
-                                else:
-                                        if 0.755 < dist < 2.27:
-                                                self.bonds.append((i,j,0))
+                                dist = abs(at_i[1]-at_j[1])
+                                for k in [0,x,y,z,xy,xz,yz,xyz]:
+                                        pbc_dist = np.linalg.norm(dist-k)
+                                        if at_i[0] != 'H' and at_j[0] != 'H':
+                                                if 0.755 < pbc_dist < 3.5:
+                                                        self.bonds.append((i,j,k))
+                                                        break
+                                        else:
+                                                if 0.755 < pbc_dist < 2.27:
+                                                        self.bonds.append((i,j,k))
+                                                        break
 
 
 

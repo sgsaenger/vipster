@@ -190,11 +190,15 @@ class MainView(QWidget):
                 steps.addWidget(obut)
 
                 #Layout:
-                mcol = QVBoxLayout()
-                mcol.addWidget(self.visual)
-                mcol.addLayout(mult)
-                mcol.addLayout(steps)
+                viewlay = QVBoxLayout()
+                viewlay.addWidget(self.visual)
+                viewlay.addLayout(mult)
+                viewlay.addLayout(steps)
 
+                #Frame it:
+                mcol = QFrame()
+                mcol.setLayout(viewlay)
+                mcol.setFrameStyle(38)
 
         #Right column:
                 #Molecule edit area:
@@ -204,22 +208,17 @@ class MainView(QWidget):
                 self.pw = PWTab()
 
                 #nest edit areas in tabwidget
-                self.tabs = QTabWidget()
-                self.tabs.addTab(self.mol,'Molecule coordinates')
-                self.tabs.addTab(self.pw,'PW Parameters')
-                self.tabs.setFixedWidth(426)
-
-                #Layout:
-                rcol = QVBoxLayout()
-                rcol.addWidget(self.tabs)
+                rcol = QTabWidget()
+                rcol.addTab(self.mol,'Molecule coordinates')
+                rcol.addTab(self.pw,'PW Parameters')
+                rcol.setFixedWidth(426)
 
 
         #Lay out columns:
                 hbox = QHBoxLayout()
-                #hbox.addLayout(lcol)
                 hbox.addWidget(lcol)
-                hbox.addLayout(mcol)
-                hbox.addLayout(rcol)
+                hbox.addWidget(mcol)
+                hbox.addWidget(rcol)
                 self.setLayout(hbox)
 
         #from controller
@@ -263,12 +262,6 @@ class MainView(QWidget):
         def setOrtho(self):
                 self.visual.view = 0
                 self.visual.updateGL()
-
-        #update repetition
-        def multView(self):
-                if hasattr(self.visual,'mol'):
-                        self.visual.mol.setOffsets([self.xspin.value(),self.yspin.value(),self.zspin.value()])
-                        self.visual.updateGL()
 
         #steps and animation:
         def incStep(self):
@@ -894,6 +887,7 @@ class ViewPort(QGLWidget):
                 cTrans.translate(self.xsh,self.ysh,0)
                 self.vMatrix = cTrans*self.vMatrix
 
+                #TODO: orthogonal zooming needs fix
                 #check for projection:
                 if self.view == 1:
                         self.proj = self.pMatrix
