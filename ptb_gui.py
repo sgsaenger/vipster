@@ -794,21 +794,29 @@ class ViewPort(QGLWidget):
 
         def prepObjects(self):
                 #save atoms for direct access
-                self.atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                self.atoms=[]
+                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                for i in atoms:
+                        #save coord,color,size
+                        self.atoms.append((i[1],self.pse[i[0]][2],self.pse[i[0]][1]))
                 #prepare bonds with position,angle,axis and names (for coloring)
                 self.bonds = []
                 bonds = self.mol.get_bonds()
                 for i in bonds:
-                        a = self.atoms[i[0]][1]
-                        b = self.atoms[i[1]][1]
-                        n1 = self.atoms[i[0]][0]
-                        n2 = self.atoms[i[1]][0]
-                        pos = (a+b)/2
-                        c = (a-b)/np.linalg.norm(a-b)
+                        #get positions of atoms
+                        a = self.atoms[i[0]][0]
+                        b = self.atoms[i[1]][0]
+                        #save colors
+                        c1 = self.atoms[i[0]][1]
+                        c2 = self.atoms[i[1]][1]
+                        #position of bond
+                        pos = (a+b+i[2])/2
+                        #rotate bond from x-axis d to bond-axis c
+                        c = (a-b+i[2])/np.linalg.norm(a-b+i[2])
                         d = np.array([1,0,0])
                         theta = np.degrees(np.arccos(np.dot(c,d)))
                         axis = -np.cross(c,d)
-                        self.bonds.append((pos,theta,axis,n1,n2))
+                        self.bonds.append((pos,theta,axis,c1,c2))
 
         ################################################
         # CALLED UPON WINDOW RESIZE
@@ -886,9 +894,11 @@ class ViewPort(QGLWidget):
                 for i in range(self.mol.get_nat()):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
-                        atom = self.mol.get_atom(i,'bohr')
+                        atom = self.atoms[i]
                         #move atoms to coord and recognize offset
-                        self.mMatrix.translate(atom[1][0]+off[0],atom[1][1]+off[1],atom[1][2]+off[2])
+                        self.mMatrix.translate(atom[0][0]+off[0],atom[0][1]+off[1],atom[0][2]+off[2])
+                        #scale atoms depending on species
+                        self.mMatrix.scale(atom[2])
                         #bind transformation matrices
                         self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
                         self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
@@ -896,7 +906,7 @@ class ViewPort(QGLWidget):
                         #create light source:
                         self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
-                        self.sphereShader.setUniformValue('MaterialDiffuseColor',self.pse[atom[0]][2])
+                        self.sphereShader.setUniformValue('MaterialDiffuseColor',atom[1])
                         #send vertices
                         self.sphereShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
                         self.sphereShader.enableAttributeArray('vertex_modelspace')
@@ -920,6 +930,7 @@ class ViewPort(QGLWidget):
                         #load model Matrix with coordinates relative to offset
                         self.mMatrix.setToIdentity()
                         self.mMatrix.translate(bond[0][0]+off[0],bond[0][1]+off[1],bond[0][2]+off[2])
+                        #rotate to fit bond vector
                         self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
                         # bind transformation matrices
                         self.bondShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
@@ -928,8 +939,8 @@ class ViewPort(QGLWidget):
                         #light source:
                         self.bondShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
-                        self.bondShader.setUniformValue('Side1DiffuseColor',self.pse[bond[3]][2])
-                        self.bondShader.setUniformValue('Side2DiffuseColor',self.pse[bond[4]][2])
+                        self.bondShader.setUniformValue('Side1DiffuseColor',bond[3])
+                        self.bondShader.setUniformValue('Side2DiffuseColor',bond[4])
                         #send vertices
                         self.bondShader.setAttributeArray('vertex_modelspace',self.bond_modelspace)
                         self.bondShader.enableAttributeArray('vertex_modelspace')

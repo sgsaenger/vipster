@@ -206,6 +206,7 @@ class TBController:
                                                         kpoints.append(data.pop(0))
                                                 taparam['K_POINTS']=[header[1],nk,kpoints]
 
+                                #TODO: care for different formats
                                 elif header[0] == 'CELL_PARAMETERS':
                                         vec=[[0,0,0],[0,0,0],[0,0,0]]
                                         for i in range(3):
@@ -229,6 +230,7 @@ class TBController:
                 self.mol.append([tmol])
                 self.pwdata.append(tparam)
 
+        #TODO: 2nd routine that only reads final config?
         def parsePwo(self,data):
                 #Multiple configs supported
                 tlist = []
@@ -249,6 +251,7 @@ class TBController:
                         #read cell dimension
                         elif line[0] == 'celldm(1)=':
                                 celldm = float(line[1])
+                        #TODO: care for different formats
                         #read initial cell vectors
                         elif line[0:2] == ['crystal','axes:']:
                                 for j in range(3):
@@ -279,6 +282,9 @@ class TBController:
                                         tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip(')').strip('('))
                                 i+=nat
                                 tlist.append(tmol)
+                        #break on reaching final coordinates (duplicate)
+                        elif line[0] == 'Begin':
+                                break
                         #ignore everything else
                         else:
                                 pass
@@ -441,7 +447,6 @@ class Molecule:
         # CELL MULTIPLICATION
         ######################################################
 
-        #TODO
         def getOffsets(self,mult):
                 vec = self.get_vec()*self.celldm
                 cent = self.get_center()
@@ -556,6 +561,7 @@ class Molecule:
                 if not hasattr(self,'bonds'): self.set_bonds()
                 return self.bonds
 
+        #TODO: needs to be called upon coordinate change
         def set_bonds(self):
                 nat = self.get_nat()
                 self.bonds = []
@@ -563,13 +569,14 @@ class Molecule:
                         for j in range(i,nat):
                                 at_i = self.get_atom(i)
                                 at_j = self.get_atom(j)
+                                #print at_i[1]<at_j[1]
                                 dist = np.linalg.norm(at_i[1]-at_j[1])
                                 if at_i[0] != 'H' and at_j[0] != 'H':
                                         if 0.755 < dist < 3.5:
-                                                self.bonds.append((i,j,dist))
+                                                self.bonds.append((i,j,0))
                                 else:
                                         if 0.755 < dist < 2.27:
-                                                self.bonds.append((i,j,dist))
+                                                self.bonds.append((i,j,0))
 
 
 
