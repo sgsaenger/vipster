@@ -51,13 +51,12 @@ pse={"X":  [0,0.0],
 ######################################################################
 # MAIN CONTROLLER CLASS
 ######################################################################
-class TBController:
+class TBController(QApplication):
 
         def __init__(self,argv):
+                super(TBController,self).__init__(argv)
                 self.mol = []
                 self.pwdata = []
-                #self.data = []
-                self.gui = MainWindow(self)
                 self.indict = OrderedDict([('xyz',self.parseXyz),
                                ('PWScf Input',self.parsePwi),
                                ('PWScf Output' , self.parsePwo)])
@@ -70,13 +69,22 @@ class TBController:
 # Handle command line arguments:
 #####################################################################
         def argumentHandler(self,argv):
-                for i in range(1,len(argv)):
-                        if argv[i] == '-pwi':
-                                self.readFile('PWScf Input',argv[i+1])
-                                self.gui.centralWidget().loadView()
-                        elif argv[i] == '-xyz':
-                                self.readFile('xyz',argv[i+1])
-                                self.gui.centralWidget().loadView()
+                #no argument: start GUI
+                if len(argv) == 1:
+                        self.gui = MainWindow(self)
+                else:
+                        self.gui = MainWindow(self)
+                        for i in range(1,len(argv)):
+                                #load a single configuration, start GUI
+                                if argv[i] == '-pwi':
+                                        self.readFile('PWScf Input',argv[i+1])
+                                        self.gui.centralWidget().loadView()
+                                if argv[i] == '-pwo':
+                                        self.readFile('PWScf Output',argv[i+1])
+                                        self.gui.centralWidget().loadView()
+                                elif argv[i] == '-xyz':
+                                        self.readFile('xyz',argv[i+1])
+                                        self.gui.centralWidget().loadView()
 
 
 #####################################################################

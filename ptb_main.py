@@ -10,8 +10,7 @@ from PyQt4.QtGui import *
 #####################################################
 
 def main():
-        app = QApplication(sys.argv)
-        control = TBController(sys.argv)
+        app = TBController(sys.argv)
         sys.exit(app.exec_())
 
 if __name__ == '__main__':
