@@ -452,6 +452,9 @@ class MolArea(QWidget):
                         coord[j]=float(self.table.item(atom,j+1).text())
                 self.mol.set_atom(atom,name,coord,self.fmt.currentText())
 
+                #update Bonds
+                self.mol.set_bonds()
+
                 #update Main Widget
                 self.parent.updateMolStep()
 
