@@ -245,7 +245,7 @@ class MainView(QWidget):
 
         #to controller
         def getMolecule(self):
-                return self.controller.get_mol(self.mlist.currentRow())
+                return self.controller.get_mol(self.mlist.currentRow(),int(self.currentStep.text())-1)
 
         def setParam(self,sel):
                 self.pw.setPW(self.controller.get_pw(sel))
@@ -258,9 +258,11 @@ class MainView(QWidget):
                 count = self.mlist.count()
                 for i in range(count,self.controller.get_nmol()):
                         self.mlist.addItem("Mol "+str(i+1))
+                self.mlist.setCurrentRow(self.mlist.count()-1)
                 count = self.pwlist.count()
                 for i in range(count,self.controller.get_npw()):
                         self.pwlist.addItem("Param "+str(i+1))
+                self.pwlist.setCurrentRow(self.pwlist.count()-1)
 
         # change projection
         def setProj(self):
@@ -340,25 +342,31 @@ class MolArea(QWidget):
                 self.vtable.itemChanged.connect(self.vecHandler)
 
                 #New Atom button:
-                self.newB = QPushButton()
-                self.newB.setText('New Atom')
-                self.newB.clicked.connect(self.newAtom)
+                newB = QPushButton()
+                newB.setText('New Atom')
+                newB.clicked.connect(self.newAtom)
 
                 #Copy Atom button:
-                self.copyB = QPushButton()
-                self.copyB.setText('Copy Atom(s)')
-                self.copyB.clicked.connect(self.copyAt)
+                copyB = QPushButton()
+                copyB.setText('Copy Atom(s)')
+                copyB.clicked.connect(self.copyAt)
 
                 #paste button:
-                self.pasteB = QPushButton()
-                self.pasteB.setText('Paste Atom(s)')
-                self.pasteB.clicked.connect(self.pasteAt)
+                pasteB = QPushButton()
+                pasteB.setText('Paste Atom(s)')
+                pasteB.clicked.connect(self.pasteAt)
+
+                #delete button:
+                delB = QPushButton()
+                delB.setText('Delete Atom(s)')
+                delB.clicked.connect(self.delAt)
 
                 #sort buttons
                 btns = QHBoxLayout()
-                btns.addWidget(self.copyB)
-                btns.addWidget(self.pasteB)
-                btns.addWidget(self.newB)
+                btns.addWidget(copyB)
+                btns.addWidget(pasteB)
+                btns.addWidget(newB)
+                btns.addWidget(delB)
 
                 # actions
                 self.newA = QAction('New Atom',self)
@@ -381,8 +389,11 @@ class MolArea(QWidget):
         def setMol(self,mol):
                 #connect molecule
                 self.mol = mol
-                #initialize view
-                self.fillTab()
+                #fill if visible
+                if self.isVisible(): self.fillTab()
+
+        def showEvent(self,e):
+                if hasattr(self,'mol'): self.fillTab()
 
         ##################################################################
         # EDIT FUNCTIONS
@@ -398,11 +409,27 @@ class MolArea(QWidget):
                 for i in self.table.selectedRanges():
                         for j in range(i.topRow(),i.bottomRow()+1):
                                 self.sel.append(self.mol.get_atom(j))
+                #update Bonds
+                self.mol.set_bonds()
 
         def pasteAt(self):
                 pos = self.table.currentRow()+1
                 for at in self.sel:
                         self.mol.insert_atom(pos,at)
+
+                #update Bonds
+                self.mol.set_bonds()
+
+                #update Main Widget
+                self.parent.updateMolStep()
+
+        def delAt(self):
+                self.sel = []
+                for i in self.table.selectedRanges():
+                        for j in range(i.topRow(),i.bottomRow()+1):
+                                self.mol.del_atom(j)
+                #update Bonds
+                self.mol.set_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -462,26 +489,37 @@ class MolArea(QWidget):
                 #reenable handling
                 self.updatedisable = False
 
-#TODO: almost everything
+#TODO: Editing capabilities
 class PWTab(QWidget):
 
         def __init__(self):
                 super(PWTab,self).__init__()
-                #self.initTab()
+                self.initTab()
 
         def initTab(self):
                 self.initTree()
                 self.initKpoints()
-                self.fillTree()
-                #self.fillKpoints()
+                self.items=[[],[]]
                 self.vbox = QVBoxLayout()
                 self.vbox.addWidget(self.tree)
                 self.vbox.addWidget(self.kp)
                 self.setLayout(self.vbox)
 
+        #call fill functions when necessary:
         def setPW(self,pw):
+                #load parameters
                 self.pw = pw
+                #show if visible
+                if self.isVisible():
+                        self.fillTree()
+                        self.fillKpoints()
 
+        def showEvent(self,e):
+                if hasattr(self,'pw'):
+                        self.fillTree()
+                        self.fillKpoints()
+
+        #init sections:
         def initKpoints(self):
                 self.kp = QWidget()
                 kp = self.kp
@@ -490,6 +528,7 @@ class PWTab(QWidget):
                 for i in ['gamma','automatic','tpiba','crystal','tpiba_b','crystal_b']:
                         kp.fmt.addItem(i)
 
+                #TODO: set input validators
                 #Automatic: x,y,z, offset(x,y,z)
                 kp.auto = QWidget()
                 kp.auto.widg = []
@@ -539,28 +578,42 @@ class PWTab(QWidget):
                 self.tree.setColumnCount(2)
                 self.tree.setHeaderLabels(['Parameter','Value'])
 
+        #fill sections:
         def fillTree(self):
-                #container for items
-                items=[[],[]]
+                #delete previous entries
+                for i in self.items[0]:
+                        self.tree.invisibleRootItem().removeChild(i)
+                #reset container
+                self.items=[[],[]]
                 #mandatory namelists
                 for i in ['&control','&system','&electrons']:
-                        items[0].append(QTreeWidgetItem(self.tree))
-                        items[0][-1].setText(0,i)
+                        self.items[0].append(QTreeWidgetItem(self.tree))
+                        self.items[0][-1].setText(0,i)
 
                 #show optional namelists only if existing
                 if '&ions' in self.pw:
-                        items[0].append(QTreeWidgetItem(self.tree))
-                        items[0][-1].setText(0,'&ions')
+                        self.items[0].append(QTreeWidgetItem(self.tree))
+                        self.items[0][-1].setText(0,'&ions')
                 if '&cell' in self.pw:
-                        items[0].append(QTreeWidgetItem(self.tree))
-                        items[0][-1].setText(0,'&cell')
+                        self.items[0].append(QTreeWidgetItem(self.tree))
+                        self.items[0][-1].setText(0,'&cell')
 
                 #show child entries
-                for i in items[0]:
+                for i in self.items[0]:
                         for j in self.pw[str(i.text(0))].items():
-                                items[1].append(QTreeWidgetItem(i))
-                                items[1][-1].setText(0,j[0])
-                                items[1][-1].setText(1,j[1])
+                                self.items[1].append(QTreeWidgetItem(i))
+                                self.items[1][-1].setText(0,j[0])
+                                self.items[1][-1].setText(1,j[1])
+                self.tree.expandAll()
+
+        def fillKpoints(self):
+                #TODO: actually handle formats different from mp-grids
+                if self.pw['K_POINTS'][0] == 'automatic':
+                        print self.pw['K_POINTS']
+                        for i in [0,1,2]:
+                                self.kp.auto.widg[i].setText(self.pw['K_POINTS'][1][i])
+                        for i in [3,4,5]:
+                                self.kp.auto.widg[i].setChecked(bool(int(self.pw['K_POINTS'][1][i])))
 
 class ViewPort(QGLWidget):
 

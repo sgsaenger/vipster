@@ -73,9 +73,9 @@ class TBController(QApplication):
                 if len(argv) == 1:
                         self.gui = MainWindow(self)
                 else:
+                        #load a single configuration, start GUI
                         self.gui = MainWindow(self)
                         for i in range(1,len(argv)):
-                                #load a single configuration, start GUI
                                 if argv[i] == '-pwi':
                                         self.readFile('PWScf Input',argv[i+1])
                                         self.gui.centralWidget().loadView()
@@ -198,9 +198,8 @@ class TBController(QApplication):
                                         #x y z offset
                                         #passed as whole string for now
                                         elif header[1] == 'automatic':
-                                                #line = data.pop(0).strip().split()
-                                                line = data.pop(0)
-                                                #tparam['K_POINTS']=['automatic',[line[0:3],line[3:7]]]
+                                                line = data.pop(0).strip().split()
+                                                #line = data.pop(0)
                                                 tparam['K_POINTS']=['automatic',line]
                                         #else:
                                         #number of kpoints
@@ -242,7 +241,7 @@ class TBController(QApplication):
         def parsePwo(self,data):
                 #Multiple configs supported
                 tlist = []
-                #no parameters for now
+                #TODO: recreate used parameters
                 #tparam=PWParam()
                 #read list of molecules:
                 i=0
@@ -370,21 +369,20 @@ class TBController(QApplication):
                 #K_POINTS
                 f.write('K_POINTS'+' '+param['K_POINTS'][0]+'\n')
                 #Gamma point only
-                if param['K_POINTS'][0] == 'gamma':
+                if param['K_POINTS'][0] == 'gamma\n':
                         pass
                 #MPGrid:
                 #x y z offset
                 #passed as whole string for now
                 elif param['K_POINTS'][0] == 'automatic':
-                        #f.write('{:4i}{:4i}{:4i}{:4i}{:4i}{:4i}'.format(
-                        #        param['K_POINTS'][1][0][0],
-                        #        param['K_POINTS'][1][0][1],
-                        #        param['K_POINTS'][1][0][2],
-                        #        param['K_POINTS'][1][0][0],
-                        #        param['K_POINTS'][1][1][1],
-                        #        param['K_POINTS'][1][1][2]
-                        #        )+'\n\n')
-                        f.write(param['K_POINTS'][1])
+                        f.write('{:4s}{:4s}{:4s}{:4s}{:4s}{:4s}'.format(
+                                param['K_POINTS'][1][0],
+                                param['K_POINTS'][1][1],
+                                param['K_POINTS'][1][2],
+                                param['K_POINTS'][1][3],
+                                param['K_POINTS'][1][4],
+                                param['K_POINTS'][1][5]
+                                )+'\n')
                 #number of kpoints
                 #x y z weight
                 #passed as whole string for now
@@ -393,6 +391,7 @@ class TBController(QApplication):
                         f.write(param['K_POINTS'][1])
                         for i in range(param['K_POINTS'][1]):
                                 f.write(param['K_POINTS'][2][i])
+                        f.write('\n')
                 f.write('\n')
 
                 #Cell parameters
@@ -444,7 +443,8 @@ class Molecule:
 
         # remove atom
         def del_atom(self,index):
-                del self.at[index]
+                del self.at_n[index]
+                del self.at_c[index]
 
         # append molecule
         #def append_mol(self, mol):
@@ -549,8 +549,8 @@ class Molecule:
 
         def get_types(self):
                 types = set()
-                for i in self.at:
-                    types.add(i.get_name())
+                for i in self.at_n:
+                    types.add(i)
                 return types
 
         def get_ntyp(self):
@@ -569,9 +569,23 @@ class Molecule:
                 if not hasattr(self,'bonds'): self.set_bonds()
                 return self.bonds
 
-        #TODO: needs to be called upon coordinate change
-        #TODO: PBC!
         def set_bonds(self):
+                nat = self.get_nat()
+                self.bonds = []
+                for i in range(nat):
+                        at_i = self.get_atom(i)
+                        for j in range(i+1,nat):
+                                at_j = self.get_atom(j)
+                                dist = np.linalg.norm(at_i[1]-at_j[1])
+                                if at_i[0] != 'H' and at_j[0] != 'H':
+                                        if 0.755 < dist < 3.5:
+                                                self.bonds.append((i,j,0))
+                                else:
+                                        if 0.755 < dist < 2.27:
+                                                self.bonds.append((i,j,0))
+
+        #TODO: PBC!
+        def set_pbc_bonds(self):
                 nat = self.get_nat()
                 vec = abs(self.get_vec()*self.get_celldm())
                 x = vec[0]
@@ -581,14 +595,13 @@ class Molecule:
                 xz = x+z
                 yz = y+z
                 xyz = x+y+z
-                lim = np.array([3.5,3.5,3.5])
                 self.bonds = []
                 for i in range(nat):
                         at_i = self.get_atom(i)
                         for j in range(i+1,nat):
                                 at_j = self.get_atom(j)
                                 dist = abs(at_i[1]-at_j[1])
-                                for k in [0,x,y,z,xy,xz,yz,xyz]:
+                                for k in [x,y,z,xy,xz,yz,xyz]:
                                         pbc_dist = np.linalg.norm(dist-k)
                                         if at_i[0] != 'H' and at_j[0] != 'H':
                                                 if 0.755 < pbc_dist < 3.5:
