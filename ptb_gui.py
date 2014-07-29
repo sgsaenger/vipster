@@ -238,10 +238,17 @@ class MainView(QWidget):
                 #currentStep triggers updateMolStep
 
         def updateMolStep(self):
+                #get current Molecule from MolList
                 sel = self.mlist.currentRow()
                 step = int(self.currentStep.text())-1
-                self.mol.setMol(self.controller.get_mol(sel,step))
-                self.visual.setMol(self.controller.get_mol(sel,step),[self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                mol = self.controller.get_mol(sel,step)
+                #Set MolMultiplication
+                mol.setMultiplication([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                #Update bonds:
+                mol.set_bonds()
+                #Send Molecule to Visualisation and Editor
+                self.mol.setMol(mol)
+                self.visual.setMol(mol,[self.xspin.value(),self.yspin.value(),self.zspin.value()])
 
         #to controller
         def getMolecule(self):
@@ -409,28 +416,23 @@ class MolArea(QWidget):
                 for i in self.table.selectedRanges():
                         for j in range(i.topRow(),i.bottomRow()+1):
                                 self.sel.append(self.mol.get_atom(j))
-                #update Bonds
-                self.mol.set_bonds()
 
         def pasteAt(self):
                 pos = self.table.currentRow()+1
+                self.sel.reverse()
                 for at in self.sel:
                         self.mol.insert_atom(pos,at)
-
-                #update Bonds
-                self.mol.set_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
 
         def delAt(self):
-                self.sel = []
+                delrange = set()
                 for i in self.table.selectedRanges():
                         for j in range(i.topRow(),i.bottomRow()+1):
-                                self.mol.del_atom(j)
-                #update Bonds
-                self.mol.set_bonds()
-
+                                delrange.add(j)
+                for i in sorted(delrange,reverse=True):
+                        self.mol.del_atom(i)
                 #update Main Widget
                 self.parent.updateMolStep()
 
@@ -443,6 +445,9 @@ class MolArea(QWidget):
                 self.mol.set_celldm(float(self.cellDm.text()))
                 self.fillTab()
 
+                #update Main Widget
+                self.parent.updateMolStep()
+
         def cellHandler(self):
                 if self.updatedisable: return
                 atom = self.table.currentRow()
@@ -451,9 +456,6 @@ class MolArea(QWidget):
                 for j in [0,1,2]:
                         coord[j]=float(self.table.item(atom,j+1).text())
                 self.mol.set_atom(atom,name,coord,self.fmt.currentText())
-
-                #update Bonds
-                self.mol.set_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -874,7 +876,7 @@ class ViewPort(QGLWidget):
         def prepObjects(self):
                 #save atoms for direct access
                 self.atoms=[]
-                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                atoms = [self.mol.get_atom_mult(i) for i in range(self.mol.get_nat_mult())]
                 for i in atoms:
                         #save coord,color,size
                         self.atoms.append((i[1],self.pse[i[0]][2],self.pse[i[0]][1]))
@@ -962,21 +964,23 @@ class ViewPort(QGLWidget):
                         self.vMatrix.scale(10/self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
+                self.drawAtoms()
+                self.drawBonds()
                 for i in self.mol.getOffsets(self.mult):
                         self.drawCell(i)
-                        self.drawAtoms(i)
-                        self.drawBonds(i)
+                        #self.drawBonds(i)
 
-        def drawAtoms(self,off):
+        def drawAtoms(self):
                 #bind shaders:
                 self.sphereShader.bind()
 
-                for i in range(self.mol.get_nat()):
+                for i in range(len(self.atoms)):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
                         atom = self.atoms[i]
                         #move atoms to coord and recognize offset
-                        self.mMatrix.translate(atom[0][0]+off[0],atom[0][1]+off[1],atom[0][2]+off[2])
+                        #self.mMatrix.translate(atom[0][0]+off[0],atom[0][1]+off[1],atom[0][2]+off[2])
+                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
                         #scale atoms depending on species
                         self.mMatrix.scale(atom[2])
                         #bind transformation matrices
@@ -1002,14 +1006,15 @@ class ViewPort(QGLWidget):
                         self.sphereShader.disableAttributeArray('normals_modelspace')
                 self.sphereShader.release()
 
-        def drawBonds(self,off):
+        def drawBonds(self):
                 #bonds = self.mol.get_bonds()
                 self.bondShader.bind()
                 #for bond in bonds:
                 for bond in self.bonds:
                         #load model Matrix with coordinates relative to offset
                         self.mMatrix.setToIdentity()
-                        self.mMatrix.translate(bond[0][0]+off[0],bond[0][1]+off[1],bond[0][2]+off[2])
+                        self.mMatrix.translate(bond[0][0],bond[0][1],bond[0][2])
+                        #self.mMatrix.translate(bond[0][0]+off[0],bond[0][1]+off[1],bond[0][2]+off[2])
                         #rotate to fit bond vector
                         self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
                         # bind transformation matrices

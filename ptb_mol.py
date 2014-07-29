@@ -438,7 +438,7 @@ class Molecule:
         # insert atom at given position
         def insert_atom(self,pos,addat):
                 #self.at.insert(pos,copy.copy(addat))
-                self.at_n.insert(pos,adddat[0])
+                self.at_n.insert(pos,addat[0])
                 self.at_c.insert(pos,self.set_coord(addat[1],addat[2]))
 
         # remove atom
@@ -450,28 +450,6 @@ class Molecule:
         #def append_mol(self, mol):
         #        for i in range(mol.get_nat()):
         #                self.at.append(copy.copy(mol.at[i]))
-
-        ######################################################
-        # CELL MULTIPLICATION
-        ######################################################
-
-        def getOffsets(self,mult):
-                vec = self.get_vec()*self.celldm
-                cent = self.get_center()
-                off = []
-                tmult = [1,1,1]
-                #save the multiplicators for vec:
-                for i in [0,1,2]:
-                        if mult[i]%2 == 0:
-                                tmult[i]=[x+0.5-mult[i]/2 for x in range(mult[i])]
-                        else:
-                                tmult[i]=[x-floor(mult[i]/2) for x in range(mult[i])]
-                #generate offsets:
-                for i in tmult[0]:
-                        for j in tmult[1]:
-                                for k in tmult[2]:
-                                        off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
-                return off
 
         ######################################################
         # SET FUNCTIONS
@@ -535,11 +513,17 @@ class Molecule:
         def get_nat(self):
                 return len(self.at_c)
 
+        def get_nat_mult(self):
+                return len(self.at_c_mult)
+
         def get_celldm(self):
                 return self.celldm
 
         def get_atom(self,index,fmt='bohr'):
                 return [self.at_n[index],self.get_coord(self.at_c[index],fmt),fmt]
+
+        def get_atom_mult(self,index,fmt='bohr'):
+                return [self.at_n_mult[index],self.get_coord(self.at_c_mult[index],fmt),fmt]
 
         def get_vec(self):
                 return self.vec.T
@@ -562,6 +546,38 @@ class Molecule:
                 return self.center
 
         ######################################################
+        # CELL MULTIPLICATION
+        ######################################################
+
+        def getOffsets(self,mult):
+                vec = self.get_vec()*self.celldm
+                cent = self.get_center()
+                off = []
+                tmult = [1,1,1]
+                #save the multiplicators for vec:
+                for i in [0,1,2]:
+                        if mult[i]%2 == 0:
+                                tmult[i]=[x+0.5-mult[i]/2 for x in range(mult[i])]
+                        else:
+                                tmult[i]=[x-floor(mult[i]/2) for x in range(mult[i])]
+                #generate offsets:
+                for i in tmult[0]:
+                        for j in tmult[1]:
+                                for k in tmult[2]:
+                                        off.append((i*vec[0]+j*vec[1]+k*vec[2])-cent)
+                return off
+
+        def setMultiplication(self,mult=[1,1,1]):
+                off = self.getOffsets(mult)
+                self.at_n_mult = []
+                self.at_c_mult = []
+                for i in off:
+                        self.at_n_mult += self.at_n
+                        for j in range(self.get_nat()):
+                                #new list with atoms shifted by respective offset
+                                self.at_c_mult += [np.array([self.at_c[j][k]+i[k] for k in [0,1,2]])]
+
+        ######################################################
         # BOND FUNCTIONS
         ######################################################
 
@@ -570,12 +586,12 @@ class Molecule:
                 return self.bonds
 
         def set_bonds(self):
-                nat = self.get_nat()
+                nat = self.get_nat_mult()
                 self.bonds = []
                 for i in range(nat):
-                        at_i = self.get_atom(i)
+                        at_i = self.get_atom_mult(i)
                         for j in range(i+1,nat):
-                                at_j = self.get_atom(j)
+                                at_j = self.get_atom_mult(j)
                                 dist = np.linalg.norm(at_i[1]-at_j[1])
                                 if at_i[0] != 'H' and at_j[0] != 'H':
                                         if 0.755 < dist < 3.5:
@@ -583,36 +599,6 @@ class Molecule:
                                 else:
                                         if 0.755 < dist < 2.27:
                                                 self.bonds.append((i,j,0))
-
-        #TODO: PBC!
-        def set_pbc_bonds(self):
-                nat = self.get_nat()
-                vec = abs(self.get_vec()*self.get_celldm())
-                x = vec[0]
-                y = vec[1]
-                z = vec[2]
-                xy = x+y
-                xz = x+z
-                yz = y+z
-                xyz = x+y+z
-                self.bonds = []
-                for i in range(nat):
-                        at_i = self.get_atom(i)
-                        for j in range(i+1,nat):
-                                at_j = self.get_atom(j)
-                                dist = abs(at_i[1]-at_j[1])
-                                for k in [x,y,z,xy,xz,yz,xyz]:
-                                        pbc_dist = np.linalg.norm(dist-k)
-                                        if at_i[0] != 'H' and at_j[0] != 'H':
-                                                if 0.755 < pbc_dist < 3.5:
-                                                        self.bonds.append((i,j,k))
-                                                        break
-                                        else:
-                                                if 0.755 < pbc_dist < 2.27:
-                                                        self.bonds.append((i,j,k))
-                                                        break
-
-
 
 class PWParam(dict):
 

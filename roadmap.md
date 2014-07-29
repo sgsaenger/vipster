@@ -10,26 +10,30 @@
   - [x] delete atoms in the editor
 - [x] Fix PWI Write function
 
-# In the long run, wishlist:
+# V0.2:
 
+- [x] Speed!
+  - [x] remove coordination calculation with offset from paintGL routine
+- [x] PBC Bonds
 - [x] Make GUI optional
-- [ ] Improve orthogonal projection
-  - [ ] display without zooming first
-  - [ ] make it zoom on the same scale as perspective projection
+- [x] Fix C&P and Delete functions for multiple selection ranges
+
+# V0.3:
+
+- [ ] Checkboxes that applies editing to all molecules in mol-list
+- [ ] Actually handle multiple KPoint formats
 - [ ] Add more editing capabilities:
   - [ ] multiply cells automatically
   - [ ] Coord editor right click menu
   - [ ] PW Editor editing capabilities
-- [ ] Speed!
-  - [ ] remove coordination calculation with offset from paintGL routine
+
+# In the long run, wishlist:
+
+- [ ] Improve orthogonal projection
+  - [ ] display without zooming first
+  - [ ] make it zoom on the same scale as perspective projection
 - [ ] Improve rotation
-- [ ] Bonds:
-  - [ ] between periodic images
-    - [ ] orientation! check if +/-
-  - [ ] speed up
-    - maybe initalize upon reading the file, not loading the configuration?
-- [ ] Checkboxes that applies editing to all molecules in mol-list
 - [ ] Default PW Parameter sets
 - [ ] PW Parameters from PW Output
-- [ ] Actually handle multiple KPoint formats
 - [ ] Input validators
+- [ ] More speed
