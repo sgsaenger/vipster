@@ -20,6 +20,7 @@
 
 # V0.3:
 
+- [ ] Reduce bond calculations
 - [ ] Checkboxes that applies editing to all molecules in mol-list
 - [ ] Actually handle multiple KPoint formats
 - [ ] Add more editing capabilities:
@@ -36,4 +37,5 @@
 - [ ] Default PW Parameter sets
 - [ ] PW Parameters from PW Output
 - [ ] Input validators
-- [ ] More speed
+- [ ] Select Atoms graphically
+- [ ] Reduce Model polygons with increasing model count

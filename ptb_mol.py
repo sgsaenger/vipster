@@ -5,6 +5,7 @@ import sys
 import copy
 from ptb_gui import MainWindow
 from math import sqrt,floor
+from time import clock
 from collections import OrderedDict
 import numpy as np
 from PyQt4.QtGui import *
@@ -547,6 +548,7 @@ class Molecule:
 
         ######################################################
         # CELL MULTIPLICATION
+        # SORT THIS OUT. MOST OF THIS DOESN'T BELONG HERE!
         ######################################################
 
         def getOffsets(self,mult):
@@ -568,14 +570,61 @@ class Molecule:
                 return off
 
         def setMultiplication(self,mult=[1,1,1]):
+                #for multiple cells, calculate
                 off = self.getOffsets(mult)
+                nat = self.get_nat()
                 self.at_n_mult = []
                 self.at_c_mult = []
+                #copy and shift atoms
                 for i in off:
                         self.at_n_mult += self.at_n
-                        for j in range(self.get_nat()):
+                        for j in range(nat):
                                 #new list with atoms shifted by respective offset
-                                self.at_c_mult += [np.array([self.at_c[j][k]+i[k] for k in [0,1,2]])]
+                                self.at_c_mult.append(self.at_c[j]+i)
+                #break here if only first unit cell is requested
+                if mult==[1,1,1]: return
+                #copy and shift intra cellular bonds
+                nat_mult = len(self.at_n_mult)
+                bonds_mult = []
+                for i in off:
+                        for j in self.bonds:
+                                bonds_mult.append([j[0]+i,j[1]+i,j[2],j[3]])
+                #determine, copy and shift inter cellular bonds
+                pbc_bonds = []
+                #determine which periodic images are relevant neighbours
+                neighbours = [1]
+                if mult[2] != 1:
+                        if mult[0]!=1 or mult[1]!=1:
+                                neighbours += [mult[2],mult[2]+1]
+                        if mult[0]!=1 and mult[1]!=1:
+                                neighbours += [mult[1]*mult[2],mult[1]*mult[2]+1,(mult[1]+1)*mult[2],(mult[1]+1)*mult[2]+1]
+                elif mult[2] == 1 and mult[0]!=1 and mult[1]!=1:
+                        neighbours += [mult[1],mult[1]+1]
+                #calculate bonds
+                for nb in neighbours:
+                        for i in range(nat):
+                                at_i = self.get_atom_mult(i)
+                                for j in range(nb*nat,(nb+1)*nat):
+                                        at_j = self.get_atom_mult(j)
+                                        dist = np.linalg.norm(at_i[1]-at_j[1])
+                                        if at_i[0] != 'H' and at_j[0] != 'H':
+                                                if 0.755 < dist < 3.5:
+                                                        pbc_bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
+                                        else:
+                                                if 0.755 < dist < 2.27:
+                                                        pbc_bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
+                #copy and shift bonds
+                pbc_bonds_mult = []
+                edge = np.max(self.at_c_mult,axis=0)
+                for i in off[1:]:
+                        shift = i-off[0]
+                        for j in pbc_bonds:
+                                #don't copy to edges of multicell
+                                if ((j[0]+shift)>edge).any(): continue
+                                if ((j[1]+shift)>edge).any(): continue
+                                pbc_bonds_mult.append([j[0]+shift,j[1]+shift,j[2],j[3]])
+                #print xmax,ymax,zmax
+                self.bonds =bonds_mult+pbc_bonds+pbc_bonds_mult
 
         ######################################################
         # BOND FUNCTIONS
@@ -586,19 +635,22 @@ class Molecule:
                 return self.bonds
 
         def set_bonds(self):
-                nat = self.get_nat_mult()
+                nat = self.get_nat()
                 self.bonds = []
+
                 for i in range(nat):
-                        at_i = self.get_atom_mult(i)
+                        at_i = self.get_atom(i)
                         for j in range(i+1,nat):
-                                at_j = self.get_atom_mult(j)
+                                at_j = self.get_atom(j)
                                 dist = np.linalg.norm(at_i[1]-at_j[1])
                                 if at_i[0] != 'H' and at_j[0] != 'H':
+                                        #maximum bond length: 1.9A
                                         if 0.755 < dist < 3.5:
-                                                self.bonds.append((i,j,0))
+                                                self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
                                 else:
+                                        #maximum bond length for hydrogen: 1.2A
                                         if 0.755 < dist < 2.27:
-                                                self.bonds.append((i,j,0))
+                                                self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
 
 class PWParam(dict):
 
