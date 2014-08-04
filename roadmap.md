@@ -20,7 +20,7 @@
 
 # V0.3:
 
-- [ ] Reduce bond calculations
+- [x] Reduce bond calculations
 - [ ] Checkboxes that applies editing to all molecules in mol-list
 - [ ] Actually handle multiple KPoint formats
 - [ ] Add more editing capabilities:

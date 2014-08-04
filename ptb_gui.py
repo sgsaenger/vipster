@@ -166,9 +166,9 @@ class MainView(QWidget):
                 self.maxStep = QLabel('0')
                 #connect updateMolStep as everything is ready
                 self.currentStep.textChanged.connect(self.updateMolStep)
-                self.xspin.valueChanged.connect(self.updateMolStep)
-                self.yspin.valueChanged.connect(self.updateMolStep)
-                self.zspin.valueChanged.connect(self.updateMolStep)
+                self.xspin.valueChanged.connect(self.updateMult)
+                self.yspin.valueChanged.connect(self.updateMult)
+                self.zspin.valueChanged.connect(self.updateMult)
                 #Control Layout:
                 mult = QHBoxLayout()
                 mult.addWidget(QLabel('Cell multiply:'))
@@ -243,12 +243,15 @@ class MainView(QWidget):
                 step = int(self.currentStep.text())-1
                 mol = self.controller.get_mol(sel,step)
                 #Update bonds:
-                mol.set_bonds()
+                #mol.set_bonds()
                 #Set MolMultiplication
-                mol.setMultiplication([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                #mol.setMultiplication([self.xspin.value(),self.yspin.value(),self.zspin.value()])
                 #Send Molecule to Visualisation and Editor
                 self.mol.setMol(mol)
-                self.visual.setMol(mol,[self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                self.visual.setMol(mol)
+
+        def updateMult(self):
+                self.visual.setMult([self.xspin.value(),self.yspin.value(),self.zspin.value()])
 
         #to controller
         def getMolecule(self):
@@ -637,6 +640,7 @@ class ViewPort(QGLWidget):
                 self.xsh = 0
                 self.ysh = 0
                 self.view = 1
+                self.mult = [1,1,1]
                 self.distance = 25
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191)],
                           'He': [1.40,0.32,QColor(216,255,255)],
@@ -849,13 +853,10 @@ class ViewPort(QGLWidget):
         # CALLED UPON SELECTING MOLECULE
         #################################################
 
-        def setMol(self,mol,mult):
+        def setMol(self,mol):
                 self.mol = mol
-                self.mult = mult
-                self.off = self.mol.getOffsets(mult)
                 self.makeCell()
                 self.prepObjects()
-                self.updateGL()
 
         def makeCell(self):
                 #get vectors:
@@ -874,35 +875,120 @@ class ViewPort(QGLWidget):
                                       a+c,a+b+c,
                                       b+c,a+b+c]
 
+        def setMult(self,mult):
+                self.mult = mult
+                self.prepObjects()
+
         def prepObjects(self):
-                #save atoms for direct access
-                self.atoms=[]
-                atoms = [self.mol.get_atom_mult(i) for i in range(self.mol.get_nat_mult())]
-                for i in atoms:
-                        #save coord,color,size
-                        self.atoms.append((i[1],self.pse[i[0]][2],self.pse[i[0]][1]))
+                if not hasattr(self,'mol'):return
+                #local variables for convenience
+                mult = self.mult
+                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                vec = self.mol.get_vec()*self.mol.get_celldm()
+                center = self.mol.get_center()
+
+                #get bonds and offsets
+                if mult == [1,1,1]:
+                        #self.off = [-self.mol.get_center()]
+                        self.off = [[0,0,0]]
+                        bonds = [self.mol.get_bonds(),[],[],[],[],[],[],[]]
+                else:
+                        self.off = []
+                        tmult = [1,1,1]
+                        #save the multiplicators:
+                        for i in [0,1,2]:
+                                if self.mult[i]%2 == 0:
+                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
+                                else:
+                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
+                        #generate offsets:
+                        for i in tmult[0]:
+                                for j in tmult[1]:
+                                        for k in tmult[2]:
+                                                self.off.append([i,j,k])
+                        #self.off = self.getOffsets()
+                        bonds = self.mol.get_pbc_bonds()
+
                 #prepare bonds with position,angle,axis and names (for coloring)
+                tempbonds=[[],[],[],[],[],[],[],[]]
+                for j in range(8):
+                        for i in bonds[j]:
+                                #get positions of atoms
+                                a = i[0]
+                                b = i[1]
+                                #save colors
+                                c1 = self.pse[i[2]][2]
+                                c2 = self.pse[i[3]][2]
+                                #position of bond
+                                pos= (a+b)/2
+                                #rotate bond from x-axis d to bond-axis c
+                                c = (a-b)/np.linalg.norm(a-b)
+                                d = np.array([1,0,0])
+                                theta = np.degrees(np.arccos(np.dot(c,d)))
+                                axis = -np.cross(c,d)
+                                tempbonds[j].append([pos,theta,axis,c1,c2])
+
+                #save positions of atoms and bonds in world space
+                self.atoms=[]
                 self.bonds = []
-                bonds = self.mol.get_bonds()
-                for i in bonds:
-                        #get positions of atoms
-                        #a = self.atoms[i[0]][0]
-                        #b = self.atoms[i[1]][0]
-                        a = i[0]
-                        b = i[1]
-                        #save colors
-                        #c1 = self.atoms[i[0]][1]
-                        #c2 = self.atoms[i[1]][1]
-                        c1 = self.pse[i[2]][2]
-                        c2 = self.pse[i[3]][2]
-                        #position of bond
-                        pos= (a+b)/2
-                        #rotate bond from x-axis d to bond-axis c
-                        c = (a-b)/np.linalg.norm(a-b)
-                        d = np.array([1,0,0])
-                        theta = np.degrees(np.arccos(np.dot(c,d)))
-                        axis = -np.cross(c,d)
-                        self.bonds.append((pos,theta,axis,c1,c2))
+                self.cells = []
+                edge = np.max(self.off,axis=0)
+                for i1 in self.off:
+                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
+                        self.cells.append(off)
+                        for j in atoms:
+                                #save coord,color,size
+                                self.atoms.append((j[1]+off,self.pse[j[0]][2],self.pse[j[0]][1]))
+                        for j in tempbonds[0]:
+                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                pass
+                        #vec0
+                        if mult[0]!=1 and i1[0]!=edge[0]:
+                                for j in tempbonds[1]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec0+vec1
+                                if mult[1]!=1 and i1[1]!=edge[1]:
+                                        for j in tempbonds[4]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                        #vec0+vec1+vec2
+                                        if mult[2]!=1 and i1[2]!=edge[2]:
+                                                for j in tempbonds[7]:
+                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec0+vec2
+                                if mult[2]!=1 and i1[2]!=edge[2]:
+                                        for j in tempbonds[5]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                        #vec1
+                        if mult[1]!=1 and i1[1]!=edge[1]:
+                                for j in tempbonds[2]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec1+vec2
+                                if mult[2]!=1 and i1[2]!=edge[2]:
+                                        for j in tempbonds[6]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                        #vec2
+                        if mult[2]!=1 and i1[2]!=edge[2]:
+                                for j in tempbonds[3]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                self.updateGL()
+
+        def getOffsets(self):
+                vec = self.mol.get_vec()*self.mol.celldm
+                cent = self.mol.get_center()
+                off = []
+                tmult = [1,1,1]
+                #save the multiplicators for vec:
+                for i in [0,1,2]:
+                        if self.mult[i]%2 == 0:
+                                tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
+                        else:
+                                tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
+                #generate offsets:
+                for i in tmult[0]:
+                        for j in tmult[1]:
+                                for k in tmult[2]:
+                                        off.append([i,j,k])
+                return off
 
         ################################################
         # CALLED UPON WINDOW RESIZE
@@ -1049,10 +1135,10 @@ class ViewPort(QGLWidget):
                 self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
                 self.lineShader.enableAttributeArray('vertex_modelspace')
                 self.lineShader.setUniformValue('color',QColor(0,0,0))
-                for off in self.off:
+                for i in self.cells:
                         self.mMatrix.setToIdentity()
                         #move viewpoint to center
-                        self.mMatrix.translate(off[0],off[1],off[2])
+                        self.mMatrix.translate(i[0],i[1],i[2])
                         self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
                         glDrawArrays(GL_LINES,0,len(self.cell_modelspace))
                 self.lineShader.disableAttributeArray('vertex_modelspace')
