@@ -23,7 +23,7 @@
 - [x] Reduce bond calculations
 - [ ] Recalculate bonds upon edit when necessary (always?)
 - [x] Checkboxes that applies editing to all molecules in mol-list
-- [ ] Actually handle multiple KPoint formats
+- [x] Actually handle multiple KPoint formats
 - [ ] Add more editing capabilities:
   - [ ] multiply cells automatically
   - [x] Coord editor right click menu

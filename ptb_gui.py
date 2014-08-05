@@ -566,6 +566,9 @@ class PWTab(QSplitter):
 
         #call fill functions when necessary:
         def setPW(self,pw):
+                #save previous changes if applicable:
+                if hasattr(self,'pw') and self.isVisible():
+                        self.saveParam()
                 #load parameters
                 self.pw = pw
                 #show if visible
@@ -577,6 +580,9 @@ class PWTab(QSplitter):
                 if hasattr(self,'pw'):
                         self.fillTree()
                         self.fillKpoints()
+
+        def hideEvent(self,e):
+                self.saveParam()
 
         #init sections:
         def initKpoints(self):
@@ -674,6 +680,7 @@ class PWTab(QSplitter):
                 def createNamelist(self):
                         new = QTreeWidgetItem(self)
                         new.setText(0,'&')
+                        new.setFlags(new.flags()|Qt.ItemIsEditable)
 
                 def createParameter(self):
                         #new = QTreeWidgetItem(self)
@@ -681,6 +688,7 @@ class PWTab(QSplitter):
                                 new = QTreeWidgetItem(self.currentItem().parent())
                         else:
                                 new = QTreeWidgetItem(self.currentItem())
+                        new.setFlags(new.flags()|Qt.ItemIsEditable)
 
                 def deleteItem(self):
                         if self.currentItem().parent():
@@ -721,12 +729,24 @@ class PWTab(QSplitter):
                 self.tree.resizeColumnToContents(0)
 
         def fillKpoints(self):
-                #TODO: actually handle formats different from mp-grids
-                if self.pw['K_POINTS'][0] == 'automatic':
+                self.kp.fmt.setCurrentIndex(['gamma','automatic','tpiba','crystal','tpiba_b','crystal_b'].index(self.pw['K_POINTS']['active']))
+                if 'automatic' in self.pw['K_POINTS']:
                         for i in [0,1,2]:
-                                self.kp.auto.widg[i].setText(self.pw['K_POINTS'][1][i])
+                                self.kp.auto.widg[i].setText(self.pw['K_POINTS']['automatic'][i])
                         for i in [3,4,5]:
-                                self.kp.auto.widg[i].setChecked(bool(int(self.pw['K_POINTS'][1][i])))
+                                self.kp.auto.widg[i].setChecked(bool(int(self.pw['K_POINTS']['automatic'][i])))
+                else:
+                        for i in [0,1,2]:
+                                self.kp.auto.widg[i].setText('')
+                        for i in [3,4,5]:
+                                self.kp.auto.widg[i].setChecked(False)
+                if 'disc' in self.pw['K_POINTS']:
+                        self.kp.disc.setRowCount(len(self.pw['K_POINTS']['disc']))
+                        for i in range(len(self.pw['K_POINTS']['disc'])):
+                                for j in [0,1,2,3]:
+                                        self.kp.disc.setItem(i,j,QTableWidgetItem(self.pw['K_POINTS']['disc'][i][j]))
+                else:
+                        self.kp.disc.setRowCount(0)
 
         def newKpoint(self):
                 self.kp.disc.setRowCount(self.kp.disc.rowCount()+1)
@@ -734,6 +754,26 @@ class PWTab(QSplitter):
         def delKpoint(self):
                 tab = self.kp.disc
                 tab.removeRow(tab.currentRow())
+
+        def saveParam(self):
+                #save monkhorst-pack-grid
+                auto=[str(self.kp.auto.widg[i].text()) for i in [0,1,2]]
+                auto+=[int(self.kp.auto.widg[i].isChecked()) for i in [3,4,5]]
+                self.pw['K_POINTS']['automatic']=auto
+                #save discrete k-points
+                if self.kp.disc.rowCount() > 0:
+                        disc = []
+                        for i in range(self.kp.disc.rowCount()):
+                                disc.append([self.kp.disc.item(i,j).text() for j in [0,1,2,3]])
+                        self.pw['K_POINTS']['disc']=disc
+                #save chosen k-point format
+                self.pw['K_POINTS']['active']=str(self.kp.fmt.currentText())
+                #save NameLists and parameters:
+                for i in range(self.tree.invisibleRootItem().childCount()):
+                        nl = self.tree.invisibleRootItem().child(i)
+                        self.pw[str(nl.text(0))]={}
+                        for i in range(nl.childCount()):
+                                self.pw[str(nl.text(0))][str(nl.child(i).text(0))]=str(nl.child(i).text(1))
 
 class ViewPort(QGLWidget):
 

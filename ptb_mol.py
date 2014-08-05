@@ -194,25 +194,27 @@ class TBController(QApplication):
                                 elif header[0] == 'K_POINTS':
                                         #Gamma point only
                                         if header[1] == 'gamma':
-                                                tparam['K_POINTS']=['gamma']
+                                                tparam['K_POINTS']['active']='gamma'
                                         #MPGrid:
                                         #x y z offset
                                         #passed as whole string for now
                                         elif header[1] == 'automatic':
                                                 line = data.pop(0).strip().split()
-                                                #line = data.pop(0)
-                                                tparam['K_POINTS']=['automatic',line]
+                                                tparam['K_POINTS']['automatic']=line
+                                                tparam['K_POINTS']['active']='automatic'
                                         #else:
                                         #number of kpoints
                                         #x y z weight
                                         #passed as whole string for now
                                         else:
-                                                nk = data.pop(0).strip().split()
+                                                nk = int(data.pop(0).strip().split()[0])
                                                 kpoints = []
                                                 for i in range(nk):
-                                                        #kpoints.append(data.pop(0).strip().split())
-                                                        kpoints.append(data.pop(0))
-                                                taparam['K_POINTS']=[header[1],nk,kpoints]
+                                                        kpoints.append(data.pop(0).strip().split())
+                                                        #kpoints.append(data.pop(0))
+                                                #tparam['K_POINTS']=[header[1],nk,kpoints]
+                                                tparam['K_POINTS']['disc']=kpoints
+                                                tparam['K_POINTS']['active']=header[1]
 
                                 #TODO: care for different formats
                                 elif header[0] == 'CELL_PARAMETERS':
@@ -602,4 +604,4 @@ class PWParam(dict):
                 self['pse'] = copy.copy(pse)
 
                 # k-point grid
-                self['K_POINTS']=['gamma']
+                self['K_POINTS']={'active':'gamma'}
