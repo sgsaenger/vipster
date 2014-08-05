@@ -554,10 +554,6 @@ class PWTab(QSplitter):
         def initTab(self):
                 self.tree = self.Tree()
                 self.initKpoints()
-                #vbox = QVBoxLayout()
-                #vbox.addWidget(self.tree)
-                #vbox.addWidget(self.kp)
-                #self.setLayout(vbox)
                 self.setOrientation(0)
                 self.setChildrenCollapsible(False)
                 self.setFixedWidth(445)
@@ -637,10 +633,8 @@ class PWTab(QSplitter):
                 kp.disp = QStackedWidget()
                 kp.disp.addWidget(QLabel('Gamma point only'))
                 kp.disp.addWidget(kp.auto)
-                for i in range(4):
-                        #kp.disp.addWidget(QLabel('not implemented yet'))
-                        kp.disp.addWidget(kp.disc)
-                kp.fmt.currentIndexChanged.connect(kp.disp.setCurrentIndex)
+                kp.disp.addWidget(kp.disc)
+                kp.fmt.currentIndexChanged.connect(self.setCurrentIndex)
 
                 #layout
                 hbox = QHBoxLayout()
@@ -650,6 +644,10 @@ class PWTab(QSplitter):
                 vbox.addLayout(hbox)
                 vbox.addWidget(kp.disp)
                 kp.setLayout(vbox)
+
+        def setCurrentIndex(self,i):
+                if i>2: i=2
+                self.kp.disp.setCurrentIndex(i)
 
         class Tree(QTreeWidget):
                 def __init__(self):
