@@ -9,6 +9,7 @@ from time import clock
 from collections import OrderedDict
 import numpy as np
 from PyQt4.QtGui import *
+from PyQt4.QtCore import QTimer
 
 ######################################################################
 # PSE DICTIONARY
@@ -56,6 +57,7 @@ class TBController(QApplication):
 
         def __init__(self,argv):
                 super(TBController,self).__init__(argv)
+                self.argv = argv
                 self.mol = []
                 self.pwdata = []
                 self.indict = OrderedDict([('xyz',self.parseXyz),
@@ -63,29 +65,68 @@ class TBController(QApplication):
                                ('PWScf Output' , self.parsePwo)])
                 self.outdict= OrderedDict([('PWScf Input',self.writePwi),
                                ('xyz',self.writeXyz)])
-                self.argumentHandler(argv)
+                QTimer.singleShot(0,self.argumentHandler)
 
 
 #####################################################################
 # Handle command line arguments:
 #####################################################################
-        def argumentHandler(self,argv):
+        def argumentHandler(self):
                 #no argument: start GUI
-                if len(argv) == 1:
+                if len(self.argv) == 1:
                         self.gui = MainWindow(self)
+                #check for misformatted options:
+                elif self.argv[1][0]!='-': self.print_help()
+                #check for help request:
+                elif '-h' in self.argv: self.print_help()
+                #check for input files, start gui and load
                 else:
-                        #load a single configuration, start GUI
                         self.gui = MainWindow(self)
-                        for i in range(1,len(argv)):
-                                if argv[i] == '-pwi':
-                                        self.readFile('PWScf Input',argv[i+1])
+                        #for i in range(1,len(self.argv)):
+                        i=1
+                        while i<len(self.argv):
+                                if self.argv[i] == '-pwi':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('PWScf Input',self.argv[i])
+                                                i+=1
                                         self.gui.centralWidget().loadView()
-                                if argv[i] == '-pwo':
-                                        self.readFile('PWScf Output',argv[i+1])
+                                elif self.argv[i] == '-pwo':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('PWScf Output',self.argv[i])
+                                                i+=1
                                         self.gui.centralWidget().loadView()
-                                elif argv[i] == '-xyz':
-                                        self.readFile('xyz',argv[i+1])
+                                elif self.argv[i] == '-xyz':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('xyz',self.argv[i])
+                                                i+=1
                                         self.gui.centralWidget().loadView()
+
+#####################################################################
+# Print help
+#####################################################################
+
+        def print_help(self):
+                f = sys.stdout
+                f.write('PWToolBox usage:\n')
+                f.write('ptb_main [OPTIONS]\n\n')
+                f.write('No option given: start GUI\n\n')
+                f.write('Options:\n')
+                f.write('-h: print this help\n')
+                f.write('-xyz [FILES]: open xyz file(s)\n')
+                f.write('-pwi [FILES]: open PWScf input file(s)\n')
+                f.write('-pwo [FILES]: open PWScf output file(s)\n')
+                self.quit()
+
+#####################################################################
+# Commandline Actions
+#####################################################################
+
+        #TODO: generate new files programmatically
+        #def newFile(self,newfmt,newfile,oldcoord,oldparam=""):
+        #def multFile(self,file,fmt,mult)
 
 
 #####################################################################
@@ -305,6 +346,32 @@ class TBController(QApplication):
                         i+=1
                 self.mol.append(tlist)
 
+        def parsePwoFinal(self,data):
+                #parse only the final config for commandline actions
+                tlist = []
+                i=0
+                vec=[[0,0,0],[0,0,0],[0,0,0]]
+                while i<len(data):
+                        line = data[i].split()
+                        if not line:
+                                pass
+                        elif line[0:3] == ['number', 'of', 'atoms/cell']:
+                                nat = int(line[4])
+                        elif line[0] == 'celldm(1)=':
+                                celldm = float(line[1])
+                        elif line[0:2] == ['crystal','axes:']:
+                                for j in range(3):
+                                        temp = data[i+1+j].split()
+                                        vec[j]=[float(x) for x in temp[3:6]]
+                        elif line[0] == 'Begin':
+                                fmt = data[i+2].split()[1].strip(')').strip('(')
+                                tmol = Molecule()
+                                tmol.set_celldm(celldm)
+                                tmol.set_vec(vec)
+                                for j in range(i+3,i+nat+3):
+                                        atom = data[j].split()
+                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),fmt)
+                self.mol.append([tmol])
 
 #############################################################################
 # WRITE FUNCTIONS

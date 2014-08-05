@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
                 self.setCentralWidget(mv)
 
                 # Set Title and run:
-                self.setWindowTitle('CoordToolBox')
+                self.setWindowTitle('PWToolBox')
                 self.show()
 
         def initMenu(self):

@@ -25,9 +25,9 @@
 - [x] Checkboxes that applies editing to all molecules in mol-list
 - [x] Actually handle multiple KPoint formats
 - [ ] Add more editing capabilities:
-  - [ ] multiply cells automatically
   - [x] Coord editor right click menu
   - [x] PW Editor editing capabilities
+  - [x] Better commandline parsing
   - [ ] Commandline creation of new Files
 
 # In the long run, wishlist:
