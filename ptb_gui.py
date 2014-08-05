@@ -10,7 +10,7 @@ from math import floor
 import numpy as np
 
 from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer
+from PyQt4.QtCore import QTimer,Qt
 from PyQt4.QtOpenGL import *
 from OpenGL.GL import *
 
@@ -113,6 +113,7 @@ class MainView(QWidget):
                 lcol.addWidget(mlist)
                 lcol.addWidget(pwlist)
                 lcol.setOrientation(0)
+                lcol.setChildrenCollapsible(False)
                 lcol.setFrameStyle(38)
                 lcol.setMaximumWidth(300)
 
@@ -163,6 +164,7 @@ class MainView(QWidget):
                 lastBut.clicked.connect(self.lastStep)
                 self.currentStep = QLineEdit()
                 self.currentStep.setText('0')
+                self.currentStep.setValidator(QIntValidator(0,0))
                 self.maxStep = QLabel('0')
                 #connect updateMolStep as everything is ready
                 self.currentStep.textChanged.connect(self.updateMolStep)
@@ -216,7 +218,7 @@ class MainView(QWidget):
                 rcol = QTabWidget()
                 rcol.addTab(self.mol,'Molecule coordinates')
                 rcol.addTab(self.pw,'PW Parameters')
-                rcol.setMaximumWidth(467)
+                rcol.setFixedWidth(467)
                 #connect to toggle button
                 rcol.hide()
                 editBut.clicked.connect(rcol.setVisible)
@@ -235,7 +237,7 @@ class MainView(QWidget):
                 self.currentStep.setValidator(QIntValidator(1,steps))
                 self.currentStep.setText(str(steps))
                 self.maxStep.setText(str(steps))
-                #currentStep triggers updateMolStep
+                self.updateMolStep()
 
         def updateMolStep(self):
                 #get current Molecule from MolList
@@ -341,7 +343,7 @@ class MolArea(QWidget):
                 self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
                 self.table.itemChanged.connect(self.cellHandler)
                 #show actions in right click menu
-                self.table.setContextMenuPolicy(2)
+                self.table.setContextMenuPolicy(Qt.ActionsContextMenu)
 
                 # show cell vectors in table
                 self.vtable = QTableWidget()
@@ -352,23 +354,19 @@ class MolArea(QWidget):
                 self.vtable.itemChanged.connect(self.vecHandler)
 
                 #New Atom button:
-                newB = QPushButton()
-                newB.setText('New Atom')
+                newB = QPushButton('New Atom')
                 newB.clicked.connect(self.newAtom)
 
                 #Copy Atom button:
-                copyB = QPushButton()
-                copyB.setText('Copy Atom(s)')
+                copyB = QPushButton('Copy Atom(s)')
                 copyB.clicked.connect(self.copyAt)
 
                 #paste button:
-                pasteB = QPushButton()
-                pasteB.setText('Paste Atom(s)')
+                pasteB = QPushButton('Paste Atom(s)')
                 pasteB.clicked.connect(self.pasteAt)
 
                 #delete button:
-                delB = QPushButton()
-                delB.setText('Delete Atom(s)')
+                delB = QPushButton('Delete Atom(s)')
                 delB.clicked.connect(self.delAt)
 
                 #sort buttons
@@ -383,6 +381,32 @@ class MolArea(QWidget):
                 self.newA.setShortcut('Ctrl+N')
                 self.newA.triggered.connect(self.newAtom)
                 self.table.addAction(self.newA)
+                self.copyA = QAction('Copy Atom(s)',self)
+                self.copyA.setShortcut('Ctrl+C')
+                self.copyA.triggered.connect(self.copyAt)
+                self.table.addAction(self.copyA)
+                self.pasteA = QAction('Paste Atom(s)',self)
+                self.pasteA.setShortcut('Ctrl+V')
+                self.pasteA.triggered.connect(self.copyAt)
+                self.table.addAction(self.pasteA)
+                self.delA = QAction('Delete Atom(s)',self)
+                self.delA.setShortcut('Del')
+                self.delA.triggered.connect(self.delAt)
+                self.table.addAction(self.delA)
+
+                # Action modifiers
+                #TODO: cellHandler,newAt,delAt,pasteAt ?
+                self.appAll = QCheckBox('Apply to all Molecules')
+                self.appAll.setAutoExclusive(True)
+                self.scale = QCheckBox('Scale coordinates with cell')
+                self.scale.setAutoExclusive(True)
+                self.none = QCheckBox()
+                self.none.setAutoExclusive(True)
+                #TODO: exclusive choices for now. evaluate!
+                hbox2 = QHBoxLayout()
+                hbox2.addWidget(self.appAll)
+                hbox2.addWidget(self.scale)
+                hbox2.addWidget(self.none)
 
                 # set Layout for Tab
                 vbox = QVBoxLayout()
@@ -391,6 +415,7 @@ class MolArea(QWidget):
                 vbox.addLayout(btns)
                 vbox.addWidget(QLabel('Cell vectors:'))
                 vbox.addWidget(self.vtable)
+                vbox.addLayout(hbox2)
 
                 self.setLayout(vbox)
                 self.resize(self.sizeHint())
@@ -445,7 +470,18 @@ class MolArea(QWidget):
 
         def updateCellDm(self):
                 if self.updatedisable: return
-                self.mol.set_celldm(float(self.cellDm.text()))
+                if self.appAll.isChecked():
+                        par = self.parent
+                        for i in range(int(par.maxStep.text())):
+                                par.controller.get_mol(par.mlist.currentRow(),i).set_celldm(float(self.cellDm.text()))
+                elif self.scale.isChecked():
+                        mol = deepcopy(self.mol)
+                        self.mol.set_celldm(float(self.cellDm.text()))
+                        for i in range(mol.get_nat()):
+                                self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
+                        del(mol)
+                else:
+                    self.mol.set_celldm(float(self.cellDm.text()))
                 self.fillTab()
 
                 #update Main Widget
@@ -469,7 +505,18 @@ class MolArea(QWidget):
                 for i in [0,1,2]:
                         for j in [0,1,2]:
                                 vec[i][j]=float(self.vtable.item(i,j).text())
-                self.mol.set_vec(vec)
+                if self.appAll.isChecked():
+                        par = self.parent
+                        for i in range(int(par.maxStep.text())):
+                                par.controller.get_mol(par.mlist.currentRow(),i).set_vec(vec)
+                elif self.scale.isChecked():
+                        mol = deepcopy(self.mol)
+                        self.mol.set_vec(vec)
+                        for i in range(mol.get_nat()):
+                                self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
+                        del(mol)
+                else:
+                        self.mol.set_vec(vec)
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -498,20 +545,24 @@ class MolArea(QWidget):
                 self.updatedisable = False
 
 #TODO: Editing capabilities
-class PWTab(QWidget):
+class PWTab(QSplitter):
 
         def __init__(self):
                 super(PWTab,self).__init__()
                 self.initTab()
 
         def initTab(self):
-                self.initTree()
+                self.tree = self.Tree()
                 self.initKpoints()
-                self.items=[[],[]]
-                self.vbox = QVBoxLayout()
-                self.vbox.addWidget(self.tree)
-                self.vbox.addWidget(self.kp)
-                self.setLayout(self.vbox)
+                #vbox = QVBoxLayout()
+                #vbox.addWidget(self.tree)
+                #vbox.addWidget(self.kp)
+                #self.setLayout(vbox)
+                self.setOrientation(0)
+                self.setChildrenCollapsible(False)
+                self.setFixedWidth(445)
+                self.addWidget(self.tree)
+                self.addWidget(self.kp)
 
         #call fill functions when necessary:
         def setPW(self,pw):
@@ -536,12 +587,12 @@ class PWTab(QWidget):
                 for i in ['gamma','automatic','tpiba','crystal','tpiba_b','crystal_b']:
                         kp.fmt.addItem(i)
 
-                #TODO: set input validators
                 #Automatic: x,y,z, offset(x,y,z)
                 kp.auto = QWidget()
                 kp.auto.widg = []
                 for i in [0,1,2]:
                         kp.auto.widg.append(QLineEdit())
+                        kp.auto.widg[-1].setValidator(QIntValidator(1,40000))
                 for i in [0,1,2]:
                         kp.auto.widg.append(QCheckBox())
                 kp.auto.hbox1=QHBoxLayout()
@@ -563,65 +614,126 @@ class PWTab(QWidget):
                 kp.auto.vbox.addLayout(kp.auto.hbox2)
                 kp.auto.setLayout(kp.auto.vbox)
 
+                #discrete kpoints
+                kp.disc = QTableWidget()
+                kp.disc.setColumnCount(4)
+                kp.disc.setHorizontalHeaderLabels(['x','y','z','weight'])
+                kp.disc.setContextMenuPolicy(Qt.ActionsContextMenu)
+                newKp = QAction('New k-point',kp.disc)
+                newKp.setShortcut('Ctrl+K')
+                newKp.triggered.connect(self.newKpoint)
+                kp.disc.addAction(newKp)
+                delKp = QAction('Delete k-point',kp.disc)
+                delKp.triggered.connect(self.delKpoint)
+                kp.disc.addAction(delKp)
+
                 #stacked display of various formats
                 kp.disp = QStackedWidget()
                 kp.disp.addWidget(QLabel('Gamma point only'))
                 kp.disp.addWidget(kp.auto)
                 for i in range(4):
-                        kp.disp.addWidget(QLabel('not implemented yet'))
+                        #kp.disp.addWidget(QLabel('not implemented yet'))
+                        kp.disp.addWidget(kp.disc)
                 kp.fmt.currentIndexChanged.connect(kp.disp.setCurrentIndex)
 
                 #layout
-                kp.hbox = QHBoxLayout()
-                kp.hbox.addWidget(QLabel('K Points:'))
-                kp.hbox.addWidget(kp.fmt)
-                kp.vbox = QVBoxLayout()
-                kp.vbox.addLayout(kp.hbox)
-                kp.vbox.addWidget(kp.disp)
-                kp.setLayout(kp.vbox)
-                kp.setMaximumHeight(100)
+                hbox = QHBoxLayout()
+                hbox.addWidget(QLabel('K Points:'))
+                hbox.addWidget(kp.fmt)
+                vbox = QVBoxLayout()
+                vbox.addLayout(hbox)
+                vbox.addWidget(kp.disp)
+                kp.setLayout(vbox)
 
-        def initTree(self):
-                self.tree = QTreeWidget()
-                self.tree.setColumnCount(2)
-                self.tree.setHeaderLabels(['Parameter','Value'])
+        class Tree(QTreeWidget):
+                def __init__(self):
+                        super(PWTab.Tree,self).__init__()
+                        self.setColumnCount(2)
+                        self.setHeaderLabels(['Parameter','Value'])
+                        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+
+                        # Actions:
+                        newNl = QAction('New Namelist',self)
+                        newNl.setShortcut('Ctrl+N')
+                        newNl.triggered.connect(self.createNamelist)
+                        self.addAction(newNl)
+                        newPar = QAction('New Parameter',self)
+                        newPar.setShortcut('Ctrl+P')
+                        newPar.triggered.connect(self.createParameter)
+                        self.addAction(newPar)
+                        delItem = QAction('Delete Item',self)
+                        delItem.setShortcut('Del')
+                        delItem.triggered.connect(self.deleteItem)
+                        self.addAction(delItem)
+
+                def mouseDoubleClickEvent(self,e):
+                        #on double left click, edit selected item
+                        if (e.buttons() & 1):
+                                self.editItem(self.currentItem(),self.currentColumn())
+
+                def createNamelist(self):
+                        new = QTreeWidgetItem(self)
+                        new.setText(0,'&')
+
+                def createParameter(self):
+                        #new = QTreeWidgetItem(self)
+                        if self.currentItem().parent():
+                                new = QTreeWidgetItem(self.currentItem().parent())
+                        else:
+                                new = QTreeWidgetItem(self.currentItem())
+
+                def deleteItem(self):
+                        if self.currentItem().parent():
+                                self.currentItem().parent().removeChild(self.currentItem())
+                        else:
+                                self.invisibleRootItem().removeChild(self.currentItem())
 
         #fill sections:
         def fillTree(self):
+                root = self.tree.invisibleRootItem()
                 #delete previous entries
-                for i in self.items[0]:
-                        self.tree.invisibleRootItem().removeChild(i)
-                #reset container
-                self.items=[[],[]]
+                for i in range(root.childCount()):
+                        root.removeChild(root.child(0))
                 #mandatory namelists
                 for i in ['&control','&system','&electrons']:
-                        self.items[0].append(QTreeWidgetItem(self.tree))
-                        self.items[0][-1].setText(0,i)
+                        new = QTreeWidgetItem(self.tree)
+                        new.setText(0,i)
+                        new.setFlags(new.flags()|Qt.ItemIsEditable)
 
                 #show optional namelists only if existing
                 if '&ions' in self.pw:
-                        self.items[0].append(QTreeWidgetItem(self.tree))
-                        self.items[0][-1].setText(0,'&ions')
+                        new = QTreeWidgetItem(self.tree)
+                        new.setText(0,'&ions')
+                        new.setFlags(new.flags()|Qt.ItemIsEditable)
                 if '&cell' in self.pw:
-                        self.items[0].append(QTreeWidgetItem(self.tree))
-                        self.items[0][-1].setText(0,'&cell')
+                        new = QTreeWidgetItem(self.tree)
+                        new.setText(0,'&cell')
+                        new.setFlags(new.flags()|Qt.ItemIsEditable)
 
                 #show child entries
-                for i in self.items[0]:
-                        for j in self.pw[str(i.text(0))].items():
-                                self.items[1].append(QTreeWidgetItem(i))
-                                self.items[1][-1].setText(0,j[0])
-                                self.items[1][-1].setText(1,j[1])
+                for i in range(root.childCount()):
+                        for j in self.pw[str(root.child(i).text(0))].items():
+                                new = QTreeWidgetItem(root.child(i))
+                                new.setText(0,j[0])
+                                new.setText(1,j[1])
+                                new.setFlags(new.flags()|Qt.ItemIsEditable)
                 self.tree.expandAll()
+                self.tree.resizeColumnToContents(0)
 
         def fillKpoints(self):
                 #TODO: actually handle formats different from mp-grids
                 if self.pw['K_POINTS'][0] == 'automatic':
-                        print self.pw['K_POINTS']
                         for i in [0,1,2]:
                                 self.kp.auto.widg[i].setText(self.pw['K_POINTS'][1][i])
                         for i in [3,4,5]:
                                 self.kp.auto.widg[i].setChecked(bool(int(self.pw['K_POINTS'][1][i])))
+
+        def newKpoint(self):
+                self.kp.disc.setRowCount(self.kp.disc.rowCount()+1)
+
+        def delKpoint(self):
+                tab = self.kp.disc
+                tab.removeRow(tab.currentRow())
 
 class ViewPort(QGLWidget):
 

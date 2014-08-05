@@ -21,12 +21,14 @@
 # V0.3:
 
 - [x] Reduce bond calculations
-- [ ] Checkboxes that applies editing to all molecules in mol-list
+- [ ] Recalculate bonds upon edit when necessary (always?)
+- [x] Checkboxes that applies editing to all molecules in mol-list
 - [ ] Actually handle multiple KPoint formats
 - [ ] Add more editing capabilities:
   - [ ] multiply cells automatically
-  - [ ] Coord editor right click menu
-  - [ ] PW Editor editing capabilities
+  - [x] Coord editor right click menu
+  - [x] PW Editor editing capabilities
+  - [ ] Commandline creation of new Files
 
 # In the long run, wishlist:
 

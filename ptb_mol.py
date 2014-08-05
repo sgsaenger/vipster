@@ -366,7 +366,7 @@ class TBController(QApplication):
                 #ATOMIC_POSITIONS
                 f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
                 for i in range(mol.get_nat()):
-                        atom=mol.get_atom(i)
+                        atom=mol.get_atom(i,coordfmt)
                         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                             atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
                 f.write('\n')
@@ -518,17 +518,11 @@ class Molecule:
         def get_nat(self):
                 return len(self.at_c)
 
-        def get_nat_mult(self):
-                return len(self.at_c_mult)
-
         def get_celldm(self):
                 return self.celldm
 
         def get_atom(self,index,fmt='bohr'):
                 return [self.at_n[index],self.get_coord(self.at_c[index],fmt),fmt]
-
-        def get_atom_mult(self,index,fmt='bohr'):
-                return [self.at_n_mult[index],self.get_coord(self.at_c_mult[index],fmt),fmt]
 
         def get_vec(self):
                 return self.vec.T
