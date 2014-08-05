@@ -325,17 +325,10 @@ class MolArea(QWidget):
                 self.fmt.setCurrentIndex(2)
                 self.fmt.currentIndexChanged.connect(self.fillTab)
 
-                # show celldm
-                self.cellDm = QLineEdit()
-                self.cellDm.editingFinished.connect(self.updateCellDm)
-
                 # layout1
                 hbox = QHBoxLayout()
                 hbox.addWidget(QLabel('Coordinates:'))
                 hbox.addWidget(self.fmt)
-                hbox.addStretch(1)
-                hbox.addWidget(QLabel('Cell dimension:'))
-                hbox.addWidget(self.cellDm)
 
                 # show coordinates in table
                 self.table = QTableWidget()
@@ -345,6 +338,10 @@ class MolArea(QWidget):
                 #show actions in right click menu
                 self.table.setContextMenuPolicy(Qt.ActionsContextMenu)
 
+                # show celldm
+                self.cellDm = QLineEdit()
+                self.cellDm.editingFinished.connect(self.updateCellDm)
+
                 # show cell vectors in table
                 self.vtable = QTableWidget()
                 self.vtable.setColumnCount(3)
@@ -352,6 +349,13 @@ class MolArea(QWidget):
                 self.vtable.setFixedHeight(120)
                 self.vtable.setHorizontalHeaderLabels(['x','y','z'])
                 self.vtable.itemChanged.connect(self.vecHandler)
+
+                #cell header with label and celldm
+                hbox2=QHBoxLayout()
+                hbox2.addWidget(QLabel('Cell vectors:'))
+                hbox2.addStretch(1)
+                hbox2.addWidget(QLabel('Cell dimension:'))
+                hbox2.addWidget(self.cellDm)
 
                 #New Atom button:
                 newB = QPushButton('New Atom')
@@ -397,25 +401,19 @@ class MolArea(QWidget):
                 # Action modifiers
                 #TODO: cellHandler,newAt,delAt,pasteAt ?
                 self.appAll = QCheckBox('Apply to all Molecules')
-                self.appAll.setAutoExclusive(True)
                 self.scale = QCheckBox('Scale coordinates with cell')
-                self.scale.setAutoExclusive(True)
-                self.none = QCheckBox()
-                self.none.setAutoExclusive(True)
-                #TODO: exclusive choices for now. evaluate!
-                hbox2 = QHBoxLayout()
-                hbox2.addWidget(self.appAll)
-                hbox2.addWidget(self.scale)
-                hbox2.addWidget(self.none)
+                hbox3 = QHBoxLayout()
+                hbox3.addWidget(self.appAll)
+                hbox3.addWidget(self.scale)
 
                 # set Layout for Tab
                 vbox = QVBoxLayout()
                 vbox.addLayout(hbox)
                 vbox.addWidget(self.table)
                 vbox.addLayout(btns)
-                vbox.addWidget(QLabel('Cell vectors:'))
-                vbox.addWidget(self.vtable)
                 vbox.addLayout(hbox2)
+                vbox.addWidget(self.vtable)
+                vbox.addLayout(hbox3)
 
                 self.setLayout(vbox)
                 self.resize(self.sizeHint())
@@ -435,6 +433,8 @@ class MolArea(QWidget):
         ##################################################################
         def newAtom(self):
                 self.mol.create_atom()
+                self.mol.set_bonds()
+                self.mol.set_pbc_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -450,6 +450,8 @@ class MolArea(QWidget):
                 self.sel.reverse()
                 for at in self.sel:
                         self.mol.insert_atom(pos,at)
+                self.mol.set_bonds()
+                self.mol.set_pbc_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -461,6 +463,8 @@ class MolArea(QWidget):
                                 delrange.add(j)
                 for i in sorted(delrange,reverse=True):
                         self.mol.del_atom(i)
+                self.mol.set_bonds()
+                self.mol.set_pbc_bonds()
                 #update Main Widget
                 self.parent.updateMolStep()
 
@@ -470,19 +474,34 @@ class MolArea(QWidget):
 
         def updateCellDm(self):
                 if self.updatedisable: return
+                if float(self.cellDm.text()) == self.mol.get_celldm():return
                 if self.appAll.isChecked():
-                        par = self.parent
-                        for i in range(int(par.maxStep.text())):
-                                par.controller.get_mol(par.mlist.currentRow(),i).set_celldm(float(self.cellDm.text()))
-                elif self.scale.isChecked():
-                        mol = deepcopy(self.mol)
-                        self.mol.set_celldm(float(self.cellDm.text()))
-                        for i in range(mol.get_nat()):
-                                self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
-                        del(mol)
+                        if self.scale.isChecked():
+                                par=self.parent
+                                for i in range(int(par.maxStep.text())):
+                                        mol=par.controller.get_mol(par.mlist.currentRow(),i)
+                                        molc = deepcopy(mol)
+                                        mol.set_celldm(float(self.cellDm.text()))
+                                        for j in range(mol.get_nat()):
+                                                mol.set_atom(j,*molc.get_atom(j,'crystal'))
+                                        mol.set_bonds()
+                                        mol.set_pbc_bonds()
+                                        del(molc)
+                        else:
+                                par = self.parent
+                                for i in range(int(par.maxStep.text())):
+                                        par.controller.get_mol(par.mlist.currentRow(),i).set_celldm(float(self.cellDm.text()))
                 else:
-                    self.mol.set_celldm(float(self.cellDm.text()))
-                self.fillTab()
+                        if self.scale.isChecked():
+                                mol = deepcopy(self.mol)
+                                self.mol.set_celldm(float(self.cellDm.text()))
+                                for i in range(mol.get_nat()):
+                                        self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
+                                self.mol.set_bonds()
+                                self.mol.set_pbc_bonds()
+                                del(mol)
+                        else:
+                            self.mol.set_celldm(float(self.cellDm.text()))
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -495,6 +514,8 @@ class MolArea(QWidget):
                 for j in [0,1,2]:
                         coord[j]=float(self.table.item(atom,j+1).text())
                 self.mol.set_atom(atom,name,coord,self.fmt.currentText())
+                self.mol.set_bonds()
+                self.mol.set_pbc_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -505,18 +526,34 @@ class MolArea(QWidget):
                 for i in [0,1,2]:
                         for j in [0,1,2]:
                                 vec[i][j]=float(self.vtable.item(i,j).text())
+                if vec == self.mol.get_vec().tolist(): return
                 if self.appAll.isChecked():
-                        par = self.parent
-                        for i in range(int(par.maxStep.text())):
-                                par.controller.get_mol(par.mlist.currentRow(),i).set_vec(vec)
-                elif self.scale.isChecked():
-                        mol = deepcopy(self.mol)
-                        self.mol.set_vec(vec)
-                        for i in range(mol.get_nat()):
-                                self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
-                        del(mol)
+                        if self.scale.isChecked():
+                                par = self.parent
+                                for i in range(int(par.maxStep.text())):
+                                        mol = par.controller.get_mol(par.mlist.currentRow(),i)
+                                        molc = deepcopy(mol)
+                                        mol.set_vec(vec)
+                                        for j in range(mol.get_nat()):
+                                                mol.set_atom(j,*molc.get_atom(j,'crystal'))
+                                        mol.set_bonds()
+                                        mol.set_pbc_bonds()
+                                        del(molc)
+                        else:
+                                par = self.parent
+                                for i in range(int(par.maxStep.text())):
+                                        par.controller.get_mol(par.mlist.currentRow(),i).set_vec(vec)
                 else:
-                        self.mol.set_vec(vec)
+                        if self.scale.isChecked():
+                                mol = deepcopy(self.mol)
+                                self.mol.set_vec(vec)
+                                for i in range(mol.get_nat()):
+                                        self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
+                                self.mol.set_bonds()
+                                self.mol.set_pbc_bonds()
+                                del(mol)
+                        else:
+                                self.mol.set_vec(vec)
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -559,11 +596,12 @@ class PWTab(QSplitter):
                 self.setFixedWidth(445)
                 self.addWidget(self.tree)
                 self.addWidget(self.kp)
+                self.setStretchFactor(0,1)
 
         #call fill functions when necessary:
         def setPW(self,pw):
                 #save previous changes if applicable:
-                if hasattr(self,'pw') and self.isVisible():
+                if self.isVisible():
                         self.saveParam()
                 #load parameters
                 self.pw = pw
@@ -579,6 +617,10 @@ class PWTab(QSplitter):
 
         def hideEvent(self,e):
                 self.saveParam()
+
+        def setCurrentIndex(self,i):
+                if i>2: i=2
+                self.kp.disp.setCurrentIndex(i)
 
         #init sections:
         def initKpoints(self):
@@ -644,10 +686,6 @@ class PWTab(QSplitter):
                 vbox.addLayout(hbox)
                 vbox.addWidget(kp.disp)
                 kp.setLayout(vbox)
-
-        def setCurrentIndex(self,i):
-                if i>2: i=2
-                self.kp.disp.setCurrentIndex(i)
 
         class Tree(QTreeWidget):
                 def __init__(self):
@@ -754,6 +792,7 @@ class PWTab(QSplitter):
                 tab.removeRow(tab.currentRow())
 
         def saveParam(self):
+                if not hasattr(self,'pw'):return
                 #save monkhorst-pack-grid
                 auto=[str(self.kp.auto.widg[i].text()) for i in [0,1,2]]
                 auto+=[int(self.kp.auto.widg[i].isChecked()) for i in [3,4,5]]
