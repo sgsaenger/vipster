@@ -24,17 +24,17 @@
 - [x] Recalculate bonds upon edit when necessary
 - [x] Checkboxes that applies editing to all molecules in mol-list
 - [x] Actually handle multiple KPoint formats
-- [ ] Add more editing capabilities:
+- [x] Add more editing capabilities:
   - [x] Coord editor right click menu
   - [x] PW Editor editing capabilities
   - [x] Better commandline parsing
-  - [ ] Commandline creation of new Files
 
 # In the long run, wishlist:
 
 - [ ] Improve orthogonal projection
   - [ ] display without zooming first
   - [ ] make it zoom on the same scale as perspective projection
+- [ ] Commandline creation of new Files
 - [ ] Improve rotation
 - [ ] Default PW Parameter sets
 - [ ] PW Parameters from PW Output
