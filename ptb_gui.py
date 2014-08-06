@@ -263,6 +263,7 @@ class MainView(QWidget):
                 self.pw.setPW(self.controller.get_pw(sel))
 
         def getParam(self):
+                self.pw.saveParam()
                 return self.controller.get_pw(self.pwlist.currentRow())
 
         #insert loaded molecules

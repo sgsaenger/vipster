@@ -441,31 +441,32 @@ class TBController(QApplication):
                 f.write('\n')
 
                 #K_POINTS
-                f.write('K_POINTS'+' '+param['K_POINTS'][0]+'\n')
+                f.write('K_POINTS'+' '+param['K_POINTS']['active']+'\n')
                 #Gamma point only
-                if param['K_POINTS'][0] == 'gamma\n':
+                if param['K_POINTS']['active'] == 'gamma':
                         pass
                 #MPGrid:
                 #x y z offset
-                #passed as whole string for now
-                elif param['K_POINTS'][0] == 'automatic':
+                elif param['K_POINTS']['active'] == 'automatic':
                         f.write('{:4s}{:4s}{:4s}{:4s}{:4s}{:4s}'.format(
-                                param['K_POINTS'][1][0],
-                                param['K_POINTS'][1][1],
-                                param['K_POINTS'][1][2],
-                                param['K_POINTS'][1][3],
-                                param['K_POINTS'][1][4],
-                                param['K_POINTS'][1][5]
+                                param['K_POINTS']['automatic'][0],
+                                param['K_POINTS']['automatic'][1],
+                                param['K_POINTS']['automatic'][2],
+                                param['K_POINTS']['automatic'][3],
+                                param['K_POINTS']['automatic'][4],
+                                param['K_POINTS']['automatic'][5]
                                 )+'\n')
                 #number of kpoints
                 #x y z weight
-                #passed as whole string for now
-                #UNTESTED, beware!
                 else:
-                        f.write(param['K_POINTS'][1])
-                        for i in range(param['K_POINTS'][1]):
-                                f.write(param['K_POINTS'][2][i])
-                        f.write('\n')
+                        f.write(str(len(param['K_POINTS']['disc']))+'\n')
+                        for i in range(len(param['K_POINTS']['disc'])):
+                                f.write('{:4s}{:4s}{:4s}{:4s}'.format(
+                                        param['K_POINTS']['disc'][i][0],
+                                        param['K_POINTS']['disc'][i][1],
+                                        param['K_POINTS']['disc'][i][2],
+                                        param['K_POINTS']['disc'][i][3]
+                                        )+'\n')
                 f.write('\n')
 
                 #Cell parameters
