@@ -679,6 +679,7 @@ class Molecule:
                                         atom = self.get_atom(-1)
                                         self.set_atom(-1,atom[0],atom[1]+i*vec[k],'bohr')
                         nat = self.get_nat()
+                self.set_vec(self.get_vec()*[x,y,z])
 
 
 
