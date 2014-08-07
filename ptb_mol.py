@@ -542,7 +542,7 @@ class Molecule:
                 self.celldm = float(cdm)
                 self.set_center()
 
-        # set vectors
+        # set vectors in bohr
         def set_vec(self,vec):
                 self.vec = np.array(vec).T
                 self.vecinv = np.linalg.inv(self.vec)
@@ -663,6 +663,23 @@ class Molecule:
                                                 #maximum bond length for hydrogen: 1.2A
                                                 if 0.755 < dist < 2.27:
                                                         self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
+
+        #####################################################
+        # EDIT FUNCTIONS
+        #####################################################
+
+        def mult(self,x,y,z):
+                nat = self.get_nat()
+                vec = self.get_vec()*self.get_celldm()
+                mult = [x,y,z]
+                for k in [0,1,2]:
+                        for i in range(1,mult[k]):
+                                for j in range(nat):
+                                        self.append_atom_cp(self.get_atom(j))
+                                        atom = self.get_atom(-1)
+                                        self.set_atom(-1,atom[0],atom[1]+i*vec[k],'bohr')
+                        nat = self.get_nat()
+
 
 
 class PWParam(dict):

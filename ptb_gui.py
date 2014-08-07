@@ -107,11 +107,13 @@ class MainView(QWidget):
 
                 #TODO TODO
                 #Edit stuff?
+                self.edit = EditArea(self)
 
                 #encapsulate in splitter:
                 lcol = QSplitter()
                 lcol.addWidget(mlist)
                 lcol.addWidget(pwlist)
+                lcol.addWidget(self.edit)
                 lcol.setOrientation(0)
                 lcol.setChildrenCollapsible(False)
                 lcol.setFrameStyle(38)
@@ -244,12 +246,9 @@ class MainView(QWidget):
                 sel = self.mlist.currentRow()
                 step = int(self.currentStep.text())-1
                 mol = self.controller.get_mol(sel,step)
-                #Update bonds:
-                #mol.set_bonds()
-                #Set MolMultiplication
-                #mol.setMultiplication([self.xspin.value(),self.yspin.value(),self.zspin.value()])
                 #Send Molecule to Visualisation and Editor
                 self.mol.setMol(mol)
+                self.edit.setMol(mol)
                 self.visual.setMol(mol)
 
         def updateMult(self):
@@ -309,7 +308,6 @@ class MainView(QWidget):
                 else:
                         self.animTimer.start()
 
-#TODO: deactivate when not shown? reduce cpu-load!
 class MolArea(QWidget):
 
         def __init__(self,parent):
@@ -582,7 +580,6 @@ class MolArea(QWidget):
                 #reenable handling
                 self.updatedisable = False
 
-#TODO: Editing capabilities
 class PWTab(QSplitter):
 
         def __init__(self):
@@ -812,6 +809,56 @@ class PWTab(QSplitter):
                         self.pw[str(nl.text(0))]={}
                         for i in range(nl.childCount()):
                                 self.pw[str(nl.text(0))][str(nl.child(i).text(0))]=str(nl.child(i).text(1))
+
+class EditArea(QWidget):
+        def __init__(self,parent):
+                super(EditArea,self).__init__()
+                self.initStack()
+                self.initMult()
+                self.parent = parent
+
+        def setMol(self,mol):
+                self.mol = mol
+
+        def initStack(self):
+                self.stack = QStackedWidget()
+                self.combo = QComboBox()
+                self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
+                vbox = QVBoxLayout()
+                hbox = QHBoxLayout()
+                hbox.addWidget(QLabel('Edit:'))
+                hbox.addWidget(self.combo)
+                vbox.addLayout(hbox)
+                vbox.addWidget(self.stack)
+                self.setLayout(vbox)
+
+        def initMult(self):
+                self.mult = QWidget()
+                self.combo.addItem('Mult. cell')
+                self.stack.addWidget(self.mult)
+                self.xmult = QLineEdit()
+                self.ymult = QLineEdit()
+                self.zmult = QLineEdit()
+                multBut = QPushButton('Apply')
+                multBut.clicked.connect(self.multHandler)
+                hbox = QHBoxLayout()
+                hbox.addWidget(QLabel('x:'))
+                hbox.addWidget(self.xmult)
+                hbox.addWidget(QLabel('y:'))
+                hbox.addWidget(self.ymult)
+                hbox.addWidget(QLabel('z:'))
+                hbox.addWidget(self.zmult)
+                vbox = QVBoxLayout()
+                vbox.addLayout(hbox)
+                vbox.addWidget(multBut)
+                self.mult.setLayout(vbox)
+
+        def multHandler(self):
+                if not hasattr(self,'mol'): return
+                self.mol.mult(int(self.xmult.text()),int(self.ymult.text()),int(self.zmult.text()))
+                self.mol.set_bonds()
+                self.mol.set_pbc_bonds()
+                self.parent.updateMolStep()
 
 class ViewPort(QGLWidget):
 
