@@ -146,6 +146,10 @@ class MainView(QWidget):
                 self.animTimer = QTimer()
                 self.animTimer.setInterval(50)
                 self.animTimer.timeout.connect(self.incStep)
+                #Screenshot test
+                screenbut = QPushButton()
+                screenbut.setText('Save Screenshot')
+                screenbut.clicked.connect(self.makeScreen)
                 #Choose step, animate
                 incBut = QPushButton()
                 incBut.clicked.connect(self.incStep)
@@ -185,7 +189,8 @@ class MainView(QWidget):
                 mult.addStretch()
                 mult.addWidget(QLabel('z:'))
                 mult.addWidget(self.zspin)
-                mult.addWidget(pbut)
+                #mult.addWidget(pbut)
+                mult.addWidget(screenbut)
                 steps = QHBoxLayout()
                 steps.addWidget(firstBut)
                 steps.addWidget(decBut)
@@ -232,6 +237,17 @@ class MainView(QWidget):
                 hbox.addWidget(mcol)
                 hbox.addWidget(rcol)
                 self.setLayout(hbox)
+
+        #screenshot test
+        def makeScreen(self):
+                #cheat by resizing the actual widget and grabbing the FB
+                size = self.visual.size()
+                self.visual.resize(1024,768)
+                self.visual.updateGL()
+                img = self.visual.grabFrameBuffer(True)
+                self.visual.resize(size)
+                self.visual.updateGL()
+                img.save('pic.png','PNG',100)
 
         #from controller
         def updateMolList(self,sel):
@@ -1011,7 +1027,7 @@ class ViewPort(QGLWidget):
                 glEnable(GL_CULL_FACE)
 
                 #set background color
-                self.qglClearColor(QColor(255,255,255))
+                self.qglClearColor(QColor(255,255,255,0))
 
                 #add shaders:
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres.vsh')
