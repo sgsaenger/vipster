@@ -3,10 +3,10 @@
 //! [0]
 uniform vec4 color;
 
-out vec3 cellColor;
+out vec4 cellColor;
 
 void main(void)
 {
-    cellColor = color.xyz;
+    cellColor = color;
 }
 //! [0]
