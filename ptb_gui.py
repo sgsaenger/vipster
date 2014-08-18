@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
                 self.initMenu()
 
                 #Create main widget
-                mv = MainView(self.controller)
+                mv = MainView(self,self.controller)
                 self.setCentralWidget(mv)
 
                 # Set Title and run:
@@ -44,13 +44,13 @@ class MainWindow(QMainWindow):
                 fMenu.addAction(self.exitAction)
 
         def initActions(self):
-                self.loadAction = QAction('Load',self)
+                self.loadAction = QAction('&Load',self)
                 self.loadAction.setShortcut('Ctrl+O')
                 self.loadAction.triggered.connect(self.loadHandler)
-                self.saveAction = QAction('Save',self)
+                self.saveAction = QAction('&Save',self)
                 self.saveAction.setShortcut('Ctrl+S')
                 self.saveAction.triggered.connect(self.saveHandler)
-                self.exitAction = QAction('Exit',self)
+                self.exitAction = QAction('&Exit',self)
                 self.exitAction.setShortcut('Ctrl+Q')
                 self.exitAction.triggered.connect(qApp.quit)
 
@@ -74,10 +74,17 @@ class MainWindow(QMainWindow):
 
 class MainView(QWidget):
 
-        def __init__(self,controller):
+        def __init__(self,parent,controller):
                 super(MainView,self).__init__()
+                self.parent = parent
                 self.controller = controller
+                # initialize GUI and accompanying actions
                 self.initUI()
+                self.initActions()
+                # set persisten render parameters
+                self.mult =[1,1,1]
+                self.view = True
+                self.cell = True
 
         def initUI(self):
 
@@ -122,7 +129,7 @@ class MainView(QWidget):
 
         #Central Column:
                 #OpenGL Viewport:
-                self.visual = ViewPort()
+                self.visual = ViewPort(self)
 
                 #Control visual:
                 #Cell multiplication
@@ -135,13 +142,6 @@ class MainView(QWidget):
                 editBut = QPushButton()
                 editBut.setText('Edit')
                 editBut.setCheckable(True)
-                #Switch projection:
-                pbut = QPushButton()
-                pbut.setText('Perspective proj.')
-                pbut.clicked.connect(self.setProj)
-                obut = QPushButton()
-                obut.setText('Orthogonal proj.')
-                obut.clicked.connect(self.setOrtho)
                 #create Timers
                 self.animTimer = QTimer()
                 self.animTimer.setInterval(50)
@@ -189,7 +189,6 @@ class MainView(QWidget):
                 mult.addStretch()
                 mult.addWidget(QLabel('z:'))
                 mult.addWidget(self.zspin)
-                #mult.addWidget(pbut)
                 mult.addWidget(screenbut)
                 steps = QHBoxLayout()
                 steps.addWidget(firstBut)
@@ -200,7 +199,6 @@ class MainView(QWidget):
                 steps.addWidget(playBut)
                 steps.addWidget(incBut)
                 steps.addWidget(lastBut)
-                #steps.addWidget(obut)
                 steps.addWidget(editBut)
 
                 #Layout:
@@ -216,14 +214,14 @@ class MainView(QWidget):
 
         #Right column:
                 #Molecule edit area:
-                self.mol = MolArea(self)
+                self.coord = MolArea(self)
 
                 #PWParameter edit area:
                 self.pw = PWTab()
 
                 #nest edit areas in tabwidget
                 rcol = QTabWidget()
-                rcol.addTab(self.mol,'Molecule coordinates')
+                rcol.addTab(self.coord,'Molecule coordinates')
                 rcol.addTab(self.pw,'PW Parameters')
                 rcol.setFixedWidth(467)
                 #connect to toggle button
@@ -238,50 +236,22 @@ class MainView(QWidget):
                 hbox.addWidget(rcol)
                 self.setLayout(hbox)
 
-        #screenshot test
-        def makeScreen(self):
-                #cheat by resizing the actual widget and grabbing the FB
-                size = self.visual.size()
-                self.visual.resize(1024,768)
-                self.visual.updateGL()
-                img = self.visual.grabFrameBuffer(True)
-                self.visual.resize(size)
-                self.visual.updateGL()
-                img.save('pic.png','PNG',100)
+        def initActions(self):
+                #define actions
+                changeProj = QAction('Change &Projection',self)
+                changeProj.setShortcut('p')
+                changeProj.triggered.connect(self.projHandler)
+                toggleCell = QAction('Toggle &Cell',self)
+                toggleCell.setShortcut('c')
+                toggleCell.triggered.connect(self.cellHandler)
+                #create menu
+                vMenu = self.parent.menuBar().addMenu('&View')
+                vMenu.addAction(changeProj)
+                vMenu.addAction(toggleCell)
 
-        #from controller
-        def updateMolList(self,sel):
-                steps = self.controller.get_lmol(sel)
-                self.currentStep.setValidator(QIntValidator(1,steps))
-                self.currentStep.setText(str(steps))
-                self.maxStep.setText(str(steps))
-                self.updateMolStep()
-
-        def updateMolStep(self):
-                #get current Molecule from MolList
-                sel = self.mlist.currentRow()
-                step = int(self.currentStep.text())-1
-                mol = self.controller.get_mol(sel,step)
-                #Send Molecule to Visualisation and Editor
-                self.mol.setMol(mol)
-                self.edit.setMol(mol)
-                self.visual.setMol(mol)
-
-        def updateMult(self):
-                self.visual.setMult([self.xspin.value(),self.yspin.value(),self.zspin.value()])
-
-        #to controller
-        def getMolecule(self):
-                return self.controller.get_mol(self.mlist.currentRow(),int(self.currentStep.text())-1)
-
-        def setParam(self,sel):
-                self.pw.setPW(self.controller.get_pw(sel))
-
-        def getParam(self):
-                self.pw.saveParam()
-                return self.controller.get_pw(self.pwlist.currentRow())
-
+        ########################################################
         #insert loaded molecules
+        ########################################################
         def loadView(self):
                 count = self.mlist.count()
                 for i in range(count,self.controller.get_nmol()):
@@ -292,16 +262,194 @@ class MainView(QWidget):
                         self.pwlist.addItem("Param "+str(i+1))
                 self.pwlist.setCurrentRow(self.pwlist.count()-1)
 
-        # change projection
-        def setProj(self):
-                self.visual.view = 1
+        ########################################################
+        #get data from controller
+        ########################################################
+        def updateMolList(self,sel):
+                steps = self.controller.get_lmol(sel)
+                self.currentStep.setValidator(QIntValidator(1,steps))
+                self.currentStep.setText(str(steps))
+                self.maxStep.setText(str(steps))
+                self.updateMolStep()
+
+        def setParam(self,sel):
+                self.pw.setPW(self.controller.get_pw(sel))
+
+        def updateMolStep(self):
+                #get current Molecule from MolList
+                sel = self.mlist.currentRow()
+                step = int(self.currentStep.text())-1
+                mol = self.controller.get_mol(sel,step)
+                #Send Molecule to Visualisation and Editor
+                self.coord.setMol(mol)
+                self.edit.setMol(mol)
+                self.setMol(mol)
+
+        def updateMult(self):
+                self.setMult([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+
+        #################################################
+        # CALLED UPON SELECTING MOLECULE
+        #################################################
+
+        def setMol(self,mol):
+                self.mol = mol
+                self.makeCell()
+                self.prepObjects()
+
+        def makeCell(self):
+                #get vectors:
+                vec = self.mol.get_vec()
+                cdm = self.mol.get_celldm()
+                null = QVector3D(0,0,0)
+                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
+                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
+                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
+                #define vertices:
+                self.cell_modelspace=[null,a,null,b,null,c,
+                                      a,a+b,a,a+c,
+                                      b,b+a,b,b+c,
+                                      c,c+a,c,c+b,
+                                      a+b,a+b+c,
+                                      a+c,a+b+c,
+                                      b+c,a+b+c]
+
+        def setMult(self,mult):
+                self.mult = mult
+                self.prepObjects()
+
+        def prepObjects(self):
+                if not hasattr(self,'mol'):return
+                #local variables for convenience
+                mult = self.mult
+                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                vec = self.mol.get_vec()*self.mol.get_celldm()
+                center = self.mol.get_center()
+
+                #get bonds and offsets
+                if mult == [1,1,1]:
+                        #self.off = [-self.mol.get_center()]
+                        self.off = [[0,0,0]]
+                        bonds = [self.mol.get_bonds(),[],[],[],[],[],[],[]]
+                else:
+                        self.off = []
+                        tmult = [1,1,1]
+                        #save the multiplicators:
+                        for i in [0,1,2]:
+                                if self.mult[i]%2 == 0:
+                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
+                                else:
+                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
+                        #generate offsets:
+                        for i in tmult[0]:
+                                for j in tmult[1]:
+                                        for k in tmult[2]:
+                                                self.off.append([i,j,k])
+                        #self.off = self.getOffsets()
+                        bonds = self.mol.get_pbc_bonds()
+
+                #prepare bonds with position,angle,axis and names (for coloring)
+                tempbonds=[[],[],[],[],[],[],[],[]]
+                for j in range(8):
+                        for i in bonds[j]:
+                                #get positions of atoms
+                                a = i[0]
+                                b = i[1]
+                                #save colors
+                                c1 = self.visual.pse[i[2]][2]
+                                c2 = self.visual.pse[i[3]][2]
+                                #position of bond
+                                pos= (a+b)/2
+                                #rotate bond from x-axis d to bond-axis c
+                                c = (a-b)/np.linalg.norm(a-b)
+                                d = np.array([1,0,0])
+                                theta = np.degrees(np.arccos(np.dot(c,d)))
+                                axis = -np.cross(c,d)
+                                tempbonds[j].append([pos,theta,axis,c1,c2])
+
+                #save positions of atoms and bonds in world space
+                self.atoms=[]
+                self.bonds = []
+                self.cells = []
+                edge = np.max(self.off,axis=0)
+                for i1 in self.off:
+                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
+                        self.cells.append(off)
+                        for j in atoms:
+                                #save coord,color,size
+                                self.atoms.append((j[1]+off,self.visual.pse[j[0]][2],self.visual.pse[j[0]][1]))
+                        for j in tempbonds[0]:
+                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                pass
+                        #vec0
+                        if mult[0]!=1 and i1[0]!=edge[0]:
+                                for j in tempbonds[1]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec0+vec1
+                                if mult[1]!=1 and i1[1]!=edge[1]:
+                                        for j in tempbonds[4]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                        #vec0+vec1+vec2
+                                        if mult[2]!=1 and i1[2]!=edge[2]:
+                                                for j in tempbonds[7]:
+                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec0+vec2
+                                if mult[2]!=1 and i1[2]!=edge[2]:
+                                        for j in tempbonds[5]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                        #vec1
+                        if mult[1]!=1 and i1[1]!=edge[1]:
+                                for j in tempbonds[2]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec1+vec2
+                                if mult[2]!=1 and i1[2]!=edge[2]:
+                                        for j in tempbonds[6]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                        #vec2
+                        if mult[2]!=1 and i1[2]!=edge[2]:
+                                for j in tempbonds[3]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
                 self.visual.updateGL()
 
-        def setOrtho(self):
-                self.visual.view = 0
+        ########################################################
+        #to controller
+        ########################################################
+        def getMolecule(self):
+                return self.controller.get_mol(self.mlist.currentRow(),int(self.currentStep.text())-1)
+
+        def getParam(self):
+                self.pw.saveParam()
+                return self.controller.get_pw(self.pwlist.currentRow())
+
+        ########################################################
+        # view modifier
+        ########################################################
+
+        def projHandler(self):
+                self.view = not self.view
                 self.visual.updateGL()
 
+        def cellHandler(self):
+                self.cell = not self.cell
+                self.visual.updateGL()
+
+        ########################################################
+        #screenshot test
+        ########################################################
+        def makeScreen(self):
+                #cheat by resizing the actual widget and grabbing the FB
+                #size = self.visual.size()
+                #self.visual.resize(1024,768)
+                #self.visual.updateGL()
+                img = self.visual.grabFrameBuffer(True)
+                #self.visual.resize(size)
+                #self.visual.updateGL()
+                #img = self.visual.renderPixmap(1024,768)
+                img.save('pic.png','PNG',100)
+
+        ########################################################
         #steps and animation:
+        ########################################################
         def incStep(self):
                 if self.currentStep.text()==self.maxStep.text():
                         self.animTimer.stop()
@@ -887,10 +1035,11 @@ class ViewPort(QGLWidget):
         ##################################################
         # CALLED UPON INITIALISATION
         ##################################################
-        def __init__(self):
+        def __init__(self,parent,aa=False):
                 #init with antialiasing
-                #super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers))
-                super(ViewPort,self).__init__()
+                super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers))
+                #super(ViewPort,self).__init__()
+                self.parent = parent
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.bondShader = QGLShaderProgram()
@@ -899,7 +1048,7 @@ class ViewPort(QGLWidget):
                 self.xsh = 0
                 self.ysh = 0
                 self.view = 1
-                self.mult = [1,1,1]
+                self.cell = 1
                 self.distance = 25
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191)],
                           'He': [1.40,0.32,QColor(216,255,255)],
@@ -1107,148 +1256,6 @@ class ViewPort(QGLWidget):
                         puzzle += [a,c,b,d,f,e]
                 return puzzle
 
-
-        #################################################
-        # CALLED UPON SELECTING MOLECULE
-        #################################################
-
-        def setMol(self,mol):
-                self.mol = mol
-                self.makeCell()
-                self.prepObjects()
-
-        def makeCell(self):
-                #get vectors:
-                vec = self.mol.get_vec()
-                cdm = self.mol.get_celldm()
-                null = QVector3D(0,0,0)
-                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
-                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
-                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
-                #define vertices:
-                self.cell_modelspace=[null,a,null,b,null,c,
-                                      a,a+b,a,a+c,
-                                      b,b+a,b,b+c,
-                                      c,c+a,c,c+b,
-                                      a+b,a+b+c,
-                                      a+c,a+b+c,
-                                      b+c,a+b+c]
-
-        def setMult(self,mult):
-                self.mult = mult
-                self.prepObjects()
-
-        def prepObjects(self):
-                if not hasattr(self,'mol'):return
-                #local variables for convenience
-                mult = self.mult
-                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
-                vec = self.mol.get_vec()*self.mol.get_celldm()
-                center = self.mol.get_center()
-
-                #get bonds and offsets
-                if mult == [1,1,1]:
-                        #self.off = [-self.mol.get_center()]
-                        self.off = [[0,0,0]]
-                        bonds = [self.mol.get_bonds(),[],[],[],[],[],[],[]]
-                else:
-                        self.off = []
-                        tmult = [1,1,1]
-                        #save the multiplicators:
-                        for i in [0,1,2]:
-                                if self.mult[i]%2 == 0:
-                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
-                                else:
-                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
-                        #generate offsets:
-                        for i in tmult[0]:
-                                for j in tmult[1]:
-                                        for k in tmult[2]:
-                                                self.off.append([i,j,k])
-                        #self.off = self.getOffsets()
-                        bonds = self.mol.get_pbc_bonds()
-
-                #prepare bonds with position,angle,axis and names (for coloring)
-                tempbonds=[[],[],[],[],[],[],[],[]]
-                for j in range(8):
-                        for i in bonds[j]:
-                                #get positions of atoms
-                                a = i[0]
-                                b = i[1]
-                                #save colors
-                                c1 = self.pse[i[2]][2]
-                                c2 = self.pse[i[3]][2]
-                                #position of bond
-                                pos= (a+b)/2
-                                #rotate bond from x-axis d to bond-axis c
-                                c = (a-b)/np.linalg.norm(a-b)
-                                d = np.array([1,0,0])
-                                theta = np.degrees(np.arccos(np.dot(c,d)))
-                                axis = -np.cross(c,d)
-                                tempbonds[j].append([pos,theta,axis,c1,c2])
-
-                #save positions of atoms and bonds in world space
-                self.atoms=[]
-                self.bonds = []
-                self.cells = []
-                edge = np.max(self.off,axis=0)
-                for i1 in self.off:
-                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
-                        self.cells.append(off)
-                        for j in atoms:
-                                #save coord,color,size
-                                self.atoms.append((j[1]+off,self.pse[j[0]][2],self.pse[j[0]][1]))
-                        for j in tempbonds[0]:
-                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                pass
-                        #vec0
-                        if mult[0]!=1 and i1[0]!=edge[0]:
-                                for j in tempbonds[1]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec1
-                                if mult[1]!=1 and i1[1]!=edge[1]:
-                                        for j in tempbonds[4]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                        #vec0+vec1+vec2
-                                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                                for j in tempbonds[7]:
-                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[5]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec1
-                        if mult[1]!=1 and i1[1]!=edge[1]:
-                                for j in tempbonds[2]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec1+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[6]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec2
-                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                for j in tempbonds[3]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                self.updateGL()
-
-        def getOffsets(self):
-                vec = self.mol.get_vec()*self.mol.celldm
-                cent = self.mol.get_center()
-                off = []
-                tmult = [1,1,1]
-                #save the multiplicators for vec:
-                for i in [0,1,2]:
-                        if self.mult[i]%2 == 0:
-                                tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
-                        else:
-                                tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
-                #generate offsets:
-                for i in tmult[0]:
-                        for j in tmult[1]:
-                                for k in tmult[2]:
-                                        off.append([i,j,k])
-                return off
-
         ################################################
         # CALLED UPON WINDOW RESIZE
         ################################################
@@ -1278,7 +1285,7 @@ class ViewPort(QGLWidget):
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
                 #don't do anything if there's no molecule
-                if not hasattr(self,'mol'):return
+                #if not hasattr(self.parent(),'mol'):return
 
                 #initialize transformation matrices:
                 self.mMatrix = QMatrix4x4()
@@ -1306,17 +1313,18 @@ class ViewPort(QGLWidget):
 
                 #TODO: orthogonal zooming needs fix
                 #check for projection:
-                if self.view == 1:
+                if self.parent.view:
                         self.proj = self.pMatrix
-                elif self.view == 0:
+                else:
                         self.proj = self.oMatrix
                         #scale based on distance for zoom effect
-                        self.vMatrix.scale(10/self.distance)
+                        self.vMatrix.scale(10./self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
                 self.drawAtoms()
                 self.drawBonds()
-                self.drawCell()
+                if self.parent.cell:
+                        self.drawCell()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -1331,10 +1339,10 @@ class ViewPort(QGLWidget):
                 self.sphereShader.enableAttributeArray('normals_modelspace')
 
                 #render loop
-                for i in range(len(self.atoms)):
+                for i in range(len(self.parent.atoms)):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
-                        atom = self.atoms[i]
+                        atom = self.parent.atoms[i]
                         #move atoms to coord and recognize offset
                         self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
                         #scale atoms depending on species
@@ -1366,7 +1374,7 @@ class ViewPort(QGLWidget):
                 self.bondShader.enableAttributeArray('normals_modelspace')
 
                 #render loop
-                for bond in self.bonds:
+                for bond in self.parent.bonds:
                         #load model Matrix with coordinates relative to offset
                         self.mMatrix.setToIdentity()
                         self.mMatrix.translate(bond[0][0],bond[0][1],bond[0][2])
@@ -1391,15 +1399,15 @@ class ViewPort(QGLWidget):
         def drawCell(self):
                 #bind shaders:
                 self.lineShader.bind()
-                self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
+                self.lineShader.setAttributeArray('vertex_modelspace',self.parent.cell_modelspace)
                 self.lineShader.enableAttributeArray('vertex_modelspace')
                 self.lineShader.setUniformValue('color',QColor(0,0,0))
-                for i in self.cells:
+                for i in self.parent.cells:
                         self.mMatrix.setToIdentity()
                         #move viewpoint to center
                         self.mMatrix.translate(i[0],i[1],i[2])
                         self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        glDrawArrays(GL_LINES,0,len(self.cell_modelspace))
+                        glDrawArrays(GL_LINES,0,len(self.parent.cell_modelspace))
                 self.lineShader.disableAttributeArray('vertex_modelspace')
                 self.lineShader.release()
 
