@@ -459,7 +459,7 @@ class TBController(QApplication):
                 #MPGrid:
                 #x y z offset
                 elif param['K_POINTS']['active'] == 'automatic':
-                        f.write('{:4s}{:4s}{:4s}{:4s}{:4s}{:4s}'.format(
+                        f.write('{:4s}{:4s}{:4s}{:4d}{:4d}{:4d}'.format(
                                 param['K_POINTS']['automatic'][0],
                                 param['K_POINTS']['automatic'][1],
                                 param['K_POINTS']['automatic'][2],

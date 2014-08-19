@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
                 ftype = str(ftype[0])
                 mol = self.centralWidget().getMolecule()
                 param = self.centralWidget().getParam()
-                coordfmt = self.centralWidget().mol.fmt.currentText()
+                coordfmt = self.centralWidget().coord.fmt.currentText()
                 self.controller.writeFile(ftype,mol,fname,param,coordfmt)
 
 class MainView(QWidget):
