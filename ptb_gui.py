@@ -6,7 +6,7 @@ import sys
 from copy import deepcopy
 from os.path import dirname
 from os import getcwd
-from math import floor
+from math import floor,sqrt
 import numpy as np
 
 from PyQt4.QtGui import *
@@ -112,8 +112,7 @@ class MainView(QWidget):
                 pwlist.setLayout(pwlayout)
 
 
-                #TODO TODO
-                #Edit stuff?
+                #Edit stuff
                 self.edit = EditArea(self)
 
                 #encapsulate in splitter:
@@ -1045,12 +1044,9 @@ class ViewPort(QGLWidget):
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.bondShader = QGLShaderProgram()
-                self.alpha = 0
-                self.beta = 0
                 self.xsh = 0
                 self.ysh = 0
-                self.view = 1
-                self.cell = 1
+                self.rotMat = QMatrix4x4()
                 self.distance = 25
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191,255)],
                           'He': [1.40,0.32,QColor(216,255,255,255)],
@@ -1287,7 +1283,7 @@ class ViewPort(QGLWidget):
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
                 #don't do anything if there's no molecule
-                #if not hasattr(self.parent(),'mol'):return
+                if not hasattr(self.parent,'mol'):return
 
                 #initialize transformation matrices:
                 self.mMatrix = QMatrix4x4()
@@ -1296,22 +1292,15 @@ class ViewPort(QGLWidget):
                 #camera stuff:
                 cRot = QMatrix4x4()
                 cTrans = QMatrix4x4()
-                cPos = QVector3D()
-                cUpDir = QVector3D()
-                #xrot
-                cRot.rotate(self.alpha,0,1,0)
-                #yrot
-                cRot.rotate(self.beta,1,0,0)
 
-                cPos = cRot*QVector3D(0,0,self.distance)
-                cUpDir = cRot*QVector3D(0,1,0)
-
-                #make view Matrix:
-                self.vMatrix.lookAt(cPos,QVector3D(0,0,0),cUpDir)
+                #perspective
+                self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
 
                 #translate the view point:
-                cTrans.translate(self.xsh,self.ysh,0)
-                self.vMatrix = cTrans*self.vMatrix
+                self.vMatrix.translate(self.xsh,self.ysh,0)
+
+                #apply rotation
+                self.vMatrix*=self.rotMat
 
                 #TODO: orthogonal zooming needs fix
                 #check for projection:
@@ -1429,6 +1418,12 @@ class ViewPort(QGLWidget):
         ###############################################
 
         def mousePressEvent(self,e):
+                if (e.buttons() & 1):
+                        self.oldX = self.newX = e.x()
+                        self.oldY = self.newY = e.y()
+                elif (e.buttons() & 2):
+                        self.rotMat.setToIdentity()
+                        self.updateGL()
                 #store initial position
                 self.mousePos = e.pos()
                 #stop event from getting pushed to parent
@@ -1441,17 +1436,20 @@ class ViewPort(QGLWidget):
 
                 #left click: rotate molecule
                 if (e.buttons() & 1):
-                        self.alpha -= deltaX
-                        while self.alpha < 0: self.alpha +=360
-                        while self.alpha > 360: self.alpha -=360
-
-                        self.beta -= deltaY
-                        if self.beta < 0 : self.beta += 360
-                        if self.beta > 360 : self.beta = -360
-                        #if self.beta < -90: self.beta = -90
-                        #if self.beta > 90 : self.beta = 90
+                        #get new position
+                        self.newX = e.x()
+                        self.newY = e.y()
+                        #apply rotation and store it (important!)
+                        tmp = QMatrix4x4()
+                        deltaX = self.newX-self.oldX
+                        deltaY = self.newY - self.oldY
+                        tmp.rotate(deltaX,0,1,0)
+                        tmp.rotate(deltaY,1,0,0)
+                        self.rotMat = tmp*self.rotMat
+                        #save as old positions for next step
+                        self.oldX = e.x()
+                        self.oldY = e.y()
                         self.updateGL()
-                #middle click: shift position
                 elif (e.buttons() & 4):
                         self.xsh += deltaX/10.
                         self.ysh -= deltaY/10.
