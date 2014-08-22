@@ -436,17 +436,10 @@ class MainView(QWidget):
         #screenshot test
         ########################################################
         def makeScreen(self):
-                #cheat by resizing the actual widget and grabbing the FB
-                #size = self.visual.size()
-                #self.visual.resize(1024,768)
-                #self.visual.updateGL()
                 img = self.visual.grabFrameBuffer(True)
-                #self.visual.resize(size)
-                #self.visual.updateGL()
-                #img = self.visual.renderPixmap(1024,768)
-                img.save('transparent.png','PNG',100)
-                img = self.visual.grabFrameBuffer(False)
-                img.save('opaque.png','PNG',100)
+                fn = QFileDialog.getSaveFileName(self,'Save Screenshot',getcwd())
+                if not fn: return
+                img.save(fn+'.png','PNG',100)
 
         ########################################################
         #steps and animation:
