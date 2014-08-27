@@ -6,7 +6,7 @@ import sys
 from copy import deepcopy
 from os.path import dirname
 from os import getcwd
-from math import floor
+from math import floor,sqrt
 import numpy as np
 
 from PyQt4.QtGui import *
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
                 self.initMenu()
 
                 #Create main widget
-                mv = MainView(self.controller)
+                mv = MainView(self,self.controller)
                 self.setCentralWidget(mv)
 
                 # Set Title and run:
@@ -44,13 +44,13 @@ class MainWindow(QMainWindow):
                 fMenu.addAction(self.exitAction)
 
         def initActions(self):
-                self.loadAction = QAction('Load',self)
+                self.loadAction = QAction('&Load',self)
                 self.loadAction.setShortcut('Ctrl+O')
                 self.loadAction.triggered.connect(self.loadHandler)
-                self.saveAction = QAction('Save',self)
+                self.saveAction = QAction('&Save',self)
                 self.saveAction.setShortcut('Ctrl+S')
                 self.saveAction.triggered.connect(self.saveHandler)
-                self.exitAction = QAction('Exit',self)
+                self.exitAction = QAction('&Exit',self)
                 self.exitAction.setShortcut('Ctrl+Q')
                 self.exitAction.triggered.connect(qApp.quit)
 
@@ -69,15 +69,22 @@ class MainWindow(QMainWindow):
                 ftype = str(ftype[0])
                 mol = self.centralWidget().getMolecule()
                 param = self.centralWidget().getParam()
-                coordfmt = self.centralWidget().mol.fmt.currentText()
+                coordfmt = self.centralWidget().coord.fmt.currentText()
                 self.controller.writeFile(ftype,mol,fname,param,coordfmt)
 
 class MainView(QWidget):
 
-        def __init__(self,controller):
+        def __init__(self,parent,controller):
                 super(MainView,self).__init__()
+                self.parent = parent
                 self.controller = controller
+                # initialize GUI and accompanying actions
                 self.initUI()
+                self.initActions()
+                # set persisten render parameters
+                self.mult =[1,1,1]
+                self.view = True
+                self.cell = True
 
         def initUI(self):
 
@@ -105,8 +112,7 @@ class MainView(QWidget):
                 pwlist.setLayout(pwlayout)
 
 
-                #TODO TODO
-                #Edit stuff?
+                #Edit stuff
                 self.edit = EditArea(self)
 
                 #encapsulate in splitter:
@@ -122,7 +128,7 @@ class MainView(QWidget):
 
         #Central Column:
                 #OpenGL Viewport:
-                self.visual = ViewPort()
+                self.visual = ViewPort(self)
 
                 #Control visual:
                 #Cell multiplication
@@ -135,17 +141,14 @@ class MainView(QWidget):
                 editBut = QPushButton()
                 editBut.setText('Edit')
                 editBut.setCheckable(True)
-                #Switch projection:
-                pbut = QPushButton()
-                pbut.setText('Perspective proj.')
-                pbut.clicked.connect(self.setProj)
-                obut = QPushButton()
-                obut.setText('Orthogonal proj.')
-                obut.clicked.connect(self.setOrtho)
                 #create Timers
                 self.animTimer = QTimer()
                 self.animTimer.setInterval(50)
                 self.animTimer.timeout.connect(self.incStep)
+                #Screenshot test
+                screenbut = QPushButton()
+                screenbut.setText('Save Screenshot')
+                screenbut.clicked.connect(self.makeScreen)
                 #Choose step, animate
                 incBut = QPushButton()
                 incBut.clicked.connect(self.incStep)
@@ -185,7 +188,7 @@ class MainView(QWidget):
                 mult.addStretch()
                 mult.addWidget(QLabel('z:'))
                 mult.addWidget(self.zspin)
-                mult.addWidget(pbut)
+                mult.addWidget(screenbut)
                 steps = QHBoxLayout()
                 steps.addWidget(firstBut)
                 steps.addWidget(decBut)
@@ -195,7 +198,6 @@ class MainView(QWidget):
                 steps.addWidget(playBut)
                 steps.addWidget(incBut)
                 steps.addWidget(lastBut)
-                #steps.addWidget(obut)
                 steps.addWidget(editBut)
 
                 #Layout:
@@ -211,14 +213,14 @@ class MainView(QWidget):
 
         #Right column:
                 #Molecule edit area:
-                self.mol = MolArea(self)
+                self.coord = MolArea(self)
 
                 #PWParameter edit area:
                 self.pw = PWTab()
 
                 #nest edit areas in tabwidget
                 rcol = QTabWidget()
-                rcol.addTab(self.mol,'Molecule coordinates')
+                rcol.addTab(self.coord,'Molecule coordinates')
                 rcol.addTab(self.pw,'PW Parameters')
                 rcol.setFixedWidth(467)
                 #connect to toggle button
@@ -233,39 +235,22 @@ class MainView(QWidget):
                 hbox.addWidget(rcol)
                 self.setLayout(hbox)
 
-        #from controller
-        def updateMolList(self,sel):
-                steps = self.controller.get_lmol(sel)
-                self.currentStep.setValidator(QIntValidator(1,steps))
-                self.currentStep.setText(str(steps))
-                self.maxStep.setText(str(steps))
-                self.updateMolStep()
+        def initActions(self):
+                #define actions
+                changeProj = QAction('Change &Projection',self)
+                changeProj.setShortcut('p')
+                changeProj.triggered.connect(self.projHandler)
+                toggleCell = QAction('Toggle &Cell',self)
+                toggleCell.setShortcut('c')
+                toggleCell.triggered.connect(self.cellHandler)
+                #create menu
+                vMenu = self.parent.menuBar().addMenu('&View')
+                vMenu.addAction(changeProj)
+                vMenu.addAction(toggleCell)
 
-        def updateMolStep(self):
-                #get current Molecule from MolList
-                sel = self.mlist.currentRow()
-                step = int(self.currentStep.text())-1
-                mol = self.controller.get_mol(sel,step)
-                #Send Molecule to Visualisation and Editor
-                self.mol.setMol(mol)
-                self.edit.setMol(mol)
-                self.visual.setMol(mol)
-
-        def updateMult(self):
-                self.visual.setMult([self.xspin.value(),self.yspin.value(),self.zspin.value()])
-
-        #to controller
-        def getMolecule(self):
-                return self.controller.get_mol(self.mlist.currentRow(),int(self.currentStep.text())-1)
-
-        def setParam(self,sel):
-                self.pw.setPW(self.controller.get_pw(sel))
-
-        def getParam(self):
-                self.pw.saveParam()
-                return self.controller.get_pw(self.pwlist.currentRow())
-
+        ########################################################
         #insert loaded molecules
+        ########################################################
         def loadView(self):
                 count = self.mlist.count()
                 for i in range(count,self.controller.get_nmol()):
@@ -276,16 +261,189 @@ class MainView(QWidget):
                         self.pwlist.addItem("Param "+str(i+1))
                 self.pwlist.setCurrentRow(self.pwlist.count()-1)
 
-        # change projection
-        def setProj(self):
-                self.visual.view = 1
+        ########################################################
+        #get data from controller
+        ########################################################
+        def updateMolList(self,sel):
+                steps = self.controller.get_lmol(sel)
+                self.currentStep.setValidator(QIntValidator(1,steps))
+                self.currentStep.setText(str(steps))
+                self.maxStep.setText(str(steps))
+                self.updateMolStep()
+
+        def setParam(self,sel):
+                self.pw.setPW(self.controller.get_pw(sel))
+
+        def updateMolStep(self):
+                #get current Molecule from MolList
+                sel = self.mlist.currentRow()
+                step = int(self.currentStep.text())-1
+                mol = self.controller.get_mol(sel,step)
+                #Send Molecule to Visualisation and Editor
+                self.coord.setMol(mol)
+                self.edit.setMol(mol)
+                self.setMol(mol)
+
+        def updateMult(self):
+                self.setMult([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+
+        #################################################
+        # CALLED UPON SELECTING MOLECULE
+        #################################################
+
+        def setMol(self,mol):
+                self.mol = mol
+                self.makeCell()
+                self.prepObjects()
+
+        def makeCell(self):
+                #get vectors:
+                vec = self.mol.get_vec()
+                cdm = self.mol.get_celldm()
+                null = QVector3D(0,0,0)
+                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
+                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
+                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
+                #define vertices:
+                self.cell_modelspace=[null,a,null,b,null,c,
+                                      a,a+b,a,a+c,
+                                      b,b+a,b,b+c,
+                                      c,c+a,c,c+b,
+                                      a+b,a+b+c,
+                                      a+c,a+b+c,
+                                      b+c,a+b+c]
+
+        def setMult(self,mult):
+                self.mult = mult
+                self.prepObjects()
+
+        def prepObjects(self):
+                if not hasattr(self,'mol'):return
+                #local variables for convenience
+                mult = self.mult
+                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
+                vec = self.mol.get_vec()*self.mol.get_celldm()
+                center = self.mol.get_center()
+
+                #get bonds and offsets
+                if mult == [1,1,1]:
+                        #self.off = [-self.mol.get_center()]
+                        self.off = [[0,0,0]]
+                        bonds = [self.mol.get_bonds(),[],[],[],[],[],[],[]]
+                else:
+                        self.off = []
+                        tmult = [1,1,1]
+                        #save the multiplicators:
+                        for i in [0,1,2]:
+                                if self.mult[i]%2 == 0:
+                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
+                                else:
+                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
+                        #generate offsets:
+                        for i in tmult[0]:
+                                for j in tmult[1]:
+                                        for k in tmult[2]:
+                                                self.off.append([i,j,k])
+                        #self.off = self.getOffsets()
+                        bonds = self.mol.get_pbc_bonds()
+
+                #prepare bonds with position,angle,axis and names (for coloring)
+                tempbonds=[[],[],[],[],[],[],[],[]]
+                for j in range(8):
+                        for i in bonds[j]:
+                                #get positions of atoms
+                                a = i[0]
+                                b = i[1]
+                                #save colors
+                                c1 = self.visual.pse[i[2]][2]
+                                c2 = self.visual.pse[i[3]][2]
+                                #position of bond
+                                pos= (a+b)/2
+                                #rotate bond from x-axis d to bond-axis c
+                                c = (a-b)/np.linalg.norm(a-b)
+                                d = np.array([1,0,0])
+                                theta = np.degrees(np.arccos(np.dot(c,d)))
+                                axis = -np.cross(c,d)
+                                tempbonds[j].append([pos,theta,axis,c1,c2])
+
+                #save positions of atoms and bonds in world space
+                self.atoms=[]
+                self.bonds = []
+                self.cells = []
+                edge = np.max(self.off,axis=0)
+                for i1 in self.off:
+                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
+                        self.cells.append(off)
+                        for j in atoms:
+                                #save coord,color,size
+                                self.atoms.append((j[1]+off,self.visual.pse[j[0]][2],self.visual.pse[j[0]][1]))
+                        for j in tempbonds[0]:
+                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                pass
+                        #vec0
+                        if mult[0]!=1 and i1[0]!=edge[0]:
+                                for j in tempbonds[1]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec0+vec1
+                                if mult[1]!=1 and i1[1]!=edge[1]:
+                                        for j in tempbonds[4]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                        #vec0+vec1+vec2
+                                        if mult[2]!=1 and i1[2]!=edge[2]:
+                                                for j in tempbonds[7]:
+                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec0+vec2
+                                if mult[2]!=1 and i1[2]!=edge[2]:
+                                        for j in tempbonds[5]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                        #vec1
+                        if mult[1]!=1 and i1[1]!=edge[1]:
+                                for j in tempbonds[2]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                                #vec1+vec2
+                                if mult[2]!=1 and i1[2]!=edge[2]:
+                                        for j in tempbonds[6]:
+                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                        #vec2
+                        if mult[2]!=1 and i1[2]!=edge[2]:
+                                for j in tempbonds[3]:
+                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
                 self.visual.updateGL()
 
-        def setOrtho(self):
-                self.visual.view = 0
+        ########################################################
+        #to controller
+        ########################################################
+        def getMolecule(self):
+                return self.controller.get_mol(self.mlist.currentRow(),int(self.currentStep.text())-1)
+
+        def getParam(self):
+                self.pw.saveParam()
+                return self.controller.get_pw(self.pwlist.currentRow())
+
+        ########################################################
+        # view modifier
+        ########################################################
+
+        def projHandler(self):
+                self.view = not self.view
                 self.visual.updateGL()
 
+        def cellHandler(self):
+                self.cell = not self.cell
+                self.visual.updateGL()
+
+        ########################################################
+        #screenshot test
+        ########################################################
+        def makeScreen(self):
+                img = self.visual.grabFrameBuffer(True)
+                fn = QFileDialog.getSaveFileName(self,'Save Screenshot',getcwd())
+                if not fn: return
+                img.save(fn+'.png','PNG',100)
+
+        ########################################################
         #steps and animation:
+        ########################################################
         def incStep(self):
                 if self.currentStep.text()==self.maxStep.text():
                         self.animTimer.stop()
@@ -871,138 +1029,136 @@ class ViewPort(QGLWidget):
         ##################################################
         # CALLED UPON INITIALISATION
         ##################################################
-        def __init__(self):
+        def __init__(self,parent,aa=False):
                 #init with antialiasing
-                #super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers))
-                super(ViewPort,self).__init__()
+                super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel))
+                #super(ViewPort,self).__init__()
+                self.parent = parent
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.bondShader = QGLShaderProgram()
-                self.alpha = 0
-                self.beta = 0
                 self.xsh = 0
                 self.ysh = 0
-                self.view = 1
-                self.mult = [1,1,1]
+                self.rotMat = QMatrix4x4()
                 self.distance = 25
-                self.pse={'H' : [1.20,0.38,QColor(191,191,191)],
-                          'He': [1.40,0.32,QColor(216,255,255)],
-                          'Li': [1.82,1.34,QColor(204,127,255)],
-                          'Be': [1.53,0.90,QColor(193,255,0)],
-                          'B' : [1.92,0.82,QColor(255,181,181)],
-                          'C' : [1.70,0.77,QColor(102,102,102)],
-                          'N' : [1.55,0.75,QColor(12 ,12 ,255)],
-                          'O' : [1.52,0.73,QColor(255,12 ,12)],
-                          'F' : [1.47,0.71,QColor(127,178,255)],
-                          'Ne': [1.54,0.69,QColor(178,226,244)],
-                          'Na': [2.27,1.54,QColor(170,91 ,242)],
-                          'Mg': [1.73,1.30,QColor(137,255,0)],
-                          'Al': [1.84,1.18,QColor(191,165,165)],
-                          'Si': [2.10,1.11,QColor(127,153,153)],
-                          'P' : [1.80,1.06,QColor(255,127,0)],
-                          'S' : [1.80,1.02,QColor(178,178,0)],
-                          'Cl': [1.75,0.99,QColor(30 ,239,30)],
-                          'Ar': [1.88,0.97,QColor(127,209,226)],
-                          'K' : [2.75,1.96,QColor(142,63 ,211)],
-                          'Ca': [2.31,1.74,QColor(61 ,255,0)],
-                          'Sc': [2.11,1.44,QColor(229,229,229)],
-                          'Ti': [1.70,1.36,QColor(191,193,198)],
-                          'V' : [1.70,1.25,QColor(165,165,170)],
-                          'Cr': [1.70,1.27,QColor(137,153,198)],
-                          'Mn': [1.70,1.39,QColor(155,122,198)],
-                          'Fe': [1.70,1.25,QColor(224,102,51)],
-                          'Co': [1.70,1.26,QColor(239,142,160)],
-                          'Ni': [1.63,1.21,QColor(79 ,209,79)],
-                          'Cu': [1.40,1.38,QColor(198,127,51)],
-                          'Zn': [1.39,1.31,QColor(124,127,175)],
-                          'Ga': [1.87,1.26,QColor(193,142,142)],
-                          'Ge': [2.11,1.22,QColor(102,142,142)],
-                          'As': [1.85,1.19,QColor(188,127,226)],
-                          'Se': [1.90,1.16,QColor(255,160,0)],
-                          'Br': [1.85,1.14,QColor(165,40 ,40)],
-                          'Kr': [2.02,1.10,QColor(91 ,183,209)],
-                          'Rb': [3.03,2.11,QColor(112,45 ,175)],
-                          'Sr': [2.49,1.92,QColor(0  ,255,0)],
-                          'Y' : [1.70,1.62,QColor(147,255,255)],
-                          'Zr': [1.70,1.48,QColor(147,224,224)],
-                          'Nb': [1.70,1.37,QColor(114,193,201)],
-                          'Mo': [1.70,1.45,QColor(84 ,181,181)],
-                          'Tc': [1.70,1.56,QColor(58 ,158,158)],
-                          'Ru': [1.70,1.26,QColor(35 ,142,142)],
-                          'Rh': [1.70,1.35,QColor(10 ,124,140)],
-                          'Pd': [1.63,1.31,QColor(0  ,104,132)],
-                          'Ag': [1.72,1.53,QColor(224,224,255)],
-                          'Cd': [1.58,1.48,QColor(255,216,142)],
-                          'In': [1.93,1.44,QColor(165,117,114)],
-                          'Sn': [2.17,1.41,QColor(102,127,127)],
-                          'Sb': [2.06,1.38,QColor(158,99 ,181)],
-                          'Te': [2.06,1.35,QColor(211,122,0)],
-                          'I' : [1.98,1.33,QColor(147,0  ,147)],
-                          'Xe': [2.16,1.30,QColor(66 ,158,175)],
-                          'Cs': [3.43,2.25,QColor(86 ,22 ,142)],
-                          'Ba': [2.68,1.98,QColor(0  ,201,0)],
-                          'La': [1.70,1.69,QColor(112,211,255)],
-                          'Ce': [1.70,0.77,QColor(255,255,198)],
-                          'Pr': [1.70,0.77,QColor(216,255,198)],
-                          'Nd': [1.70,0.77,QColor(198,255,198)],
-                          'Pm': [1.70,0.77,QColor(163,255,198)],
-                          'Sm': [1.70,0.77,QColor(142,255,198)],
-                          'Eu': [1.70,0.77,QColor(96 ,255,198)],
-                          'Gd': [1.70,0.77,QColor(68 ,255,198)],
-                          'Tb': [1.70,0.77,QColor(48 ,255,198)],
-                          'Dy': [1.70,0.77,QColor(30 ,255,198)],
-                          'Ho': [1.70,0.77,QColor(0  ,255,155)],
-                          'Er': [1.70,0.77,QColor(0  ,229,117)],
-                          'Tm': [1.70,0.77,QColor(0  ,211,81)],
-                          'Yb': [1.70,0.77,QColor(0  ,191,56)],
-                          'Lu': [1.70,1.60,QColor(0  ,170,35)],
-                          'Hf': [1.70,1.50,QColor(76 ,193,255)],
-                          'Ta': [1.70,1.38,QColor(76 ,165,255)],
-                          'W' : [1.70,1.46,QColor(33 ,147,214)],
-                          'Re': [1.70,1.59,QColor(38 ,124,170)],
-                          'Os': [1.70,1.28,QColor(38 ,102,150)],
-                          'Ir': [1.70,1.37,QColor(22 ,84 ,135)],
-                          'Pt': [1.75,1.28,QColor(244,237,209)],
-                          'Au': [1.66,1.44,QColor(204,209,30)],
-                          'Hg': [1.55,1.49,QColor(181,181,193)],
-                          'Tl': [1.96,1.48,QColor(165,84 ,76)],
-                          'Pb': [2.02,1.47,QColor(86 ,89 ,96)],
-                          'Bi': [2.07,1.46,QColor(158,79 ,181)],
-                          'Po': [1.97,0.77,QColor(170,91 ,0)],
-                          'At': [2.02,0.77,QColor(117,79 ,68)],
-                          'Rn': [2.20,1.45,QColor(66 ,130,150)],
-                          'Fr': [3.48,0.77,QColor(66 ,0  ,102)],
-                          'Ra': [2.83,0.77,QColor(0  ,124,0)],
-                          'Ac': [1.70,0.77,QColor(112,170,249)],
-                          'Th': [1.70,0.77,QColor(0  ,186,255)],
-                          'Pa': [1.70,0.77,QColor(0  ,160,255)],
-                          'U' : [1.86,0.77,QColor(0  ,142,255)],
-                          'Np': [1.70,0.77,QColor(0  ,127,255)],
-                          'Pu': [1.70,0.77,QColor(0  ,107,255)],
-                          'Am': [1.70,0.77,QColor(84 ,91 ,242)],
-                          'Cm': [1.70,0.77,QColor(119,91 ,226)],
-                          'Bk': [1.70,0.77,QColor(137,79 ,226)],
-                          'Cf': [1.70,0.77,QColor(160,53 ,211)],
-                          'Es': [1.70,0.77,QColor(178,30 ,211)],
-                          'Fm': [1.70,0.77,QColor(178,30 ,186)],
-                          'Md': [1.70,0.77,QColor(178,12 ,165)],
-                          'No': [1.70,0.77,QColor(188,12 ,135)],
-                          'Lr': [1.70,0.77,QColor(198,0  ,102)],
-                          'Rf': [1.70,0.77,QColor(204,0  ,89)],
-                          'Db': [1.70,0.77,QColor(209,0  ,79)],
-                          'Sg': [1.70,0.77,QColor(216,0  ,68)],
-                          'Bh': [1.70,0.77,QColor(224,0  ,56)],
-                          'Hs': [1.70,0.77,QColor(229,0  ,45)],
-                          'Mt': [1.70,0.77,QColor(234,0  ,38)],
-                          'Ds': [1.70,0.77,QColor(237,0  ,35)],
-                          'Rg': [1.70,0.77,QColor(239,0  ,33)],
-                          'Cn': [1.70,0.77,QColor(242,0  ,30)],
-                          'Uut':[1.70,0.77,QColor(244,0  ,28)],
-                          'Fl': [1.70,0.77,QColor(247,0  ,25)],
-                          'Uup':[1.70,0.77,QColor(249,0  ,22)],
-                          'Lv': [1.70,0.77,QColor(252,0  ,20)],
-                          'Uus':[1.70,0.77,QColor(252,0  ,17)],
-                          'Uuo':[1.70,0.77,QColor(252,0  ,15)]}
+                self.pse={'H' : [1.20,0.38,QColor(191,191,191,255)],
+                          'He': [1.40,0.32,QColor(216,255,255,255)],
+                          'Li': [1.82,1.34,QColor(204,127,255,255)],
+                          'Be': [1.53,0.90,QColor(193,255,  0,255)],
+                          'B' : [1.92,0.82,QColor(255,181,181,255)],
+                          'C' : [1.70,0.77,QColor(102,102,102,255)],
+                          'N' : [1.55,0.75,QColor( 12, 12,255,255)],
+                          'O' : [1.52,0.73,QColor(255, 12, 12,255)],
+                          'F' : [1.47,0.71,QColor(127,178,255,255)],
+                          'Ne': [1.54,0.69,QColor(178,226,244,255)],
+                          'Na': [2.27,1.54,QColor(170, 91,242,255)],
+                          'Mg': [1.73,1.30,QColor(137,255,  0,255)],
+                          'Al': [1.84,1.18,QColor(191,165,165,255)],
+                          'Si': [2.10,1.11,QColor(127,153,153,255)],
+                          'P' : [1.80,1.06,QColor(255,127,  0,255)],
+                          'S' : [1.80,1.02,QColor(178,178,  0,255)],
+                          'Cl': [1.75,0.99,QColor( 30,239, 30,255)],
+                          'Ar': [1.88,0.97,QColor(127,209,226,255)],
+                          'K' : [2.75,1.96,QColor(142, 63,211,255)],
+                          'Ca': [2.31,1.74,QColor( 61,255,  0,255)],
+                          'Sc': [2.11,1.44,QColor(229,229,229,255)],
+                          'Ti': [1.70,1.36,QColor(191,193,198,255)],
+                          'V' : [1.70,1.25,QColor(165,165,170,255)],
+                          'Cr': [1.70,1.27,QColor(137,153,198,255)],
+                          'Mn': [1.70,1.39,QColor(155,122,198,255)],
+                          'Fe': [1.70,1.25,QColor(224,102, 51,255)],
+                          'Co': [1.70,1.26,QColor(239,142,160,255)],
+                          'Ni': [1.63,1.21,QColor( 79,209, 79,255)],
+                          'Cu': [1.40,1.38,QColor(198,127, 51,255)],
+                          'Zn': [1.39,1.31,QColor(124,127,175,255)],
+                          'Ga': [1.87,1.26,QColor(193,142,142,255)],
+                          'Ge': [2.11,1.22,QColor(102,142,142,255)],
+                          'As': [1.85,1.19,QColor(188,127,226,255)],
+                          'Se': [1.90,1.16,QColor(255,160,  0,255)],
+                          'Br': [1.85,1.14,QColor(165, 40, 40,255)],
+                          'Kr': [2.02,1.10,QColor( 91,183,209,255)],
+                          'Rb': [3.03,2.11,QColor(112, 45,175,255)],
+                          'Sr': [2.49,1.92,QColor(  0,255,  0,255)],
+                          'Y' : [1.70,1.62,QColor(147,255,255,255)],
+                          'Zr': [1.70,1.48,QColor(147,224,224,255)],
+                          'Nb': [1.70,1.37,QColor(114,193,201,255)],
+                          'Mo': [1.70,1.45,QColor( 84,181,181,255)],
+                          'Tc': [1.70,1.56,QColor( 58,158,158,255)],
+                          'Ru': [1.70,1.26,QColor( 35,142,142,255)],
+                          'Rh': [1.70,1.35,QColor( 10,124,140,255)],
+                          'Pd': [1.63,1.31,QColor(  0,104,132,255)],
+                          'Ag': [1.72,1.53,QColor(224,224,255,255)],
+                          'Cd': [1.58,1.48,QColor(255,216,142,255)],
+                          'In': [1.93,1.44,QColor(165,117,114,255)],
+                          'Sn': [2.17,1.41,QColor(102,127,127,255)],
+                          'Sb': [2.06,1.38,QColor(158,99 ,181,255)],
+                          'Te': [2.06,1.35,QColor(211,122,  0,255)],
+                          'I' : [1.98,1.33,QColor(147,  0,147,255)],
+                          'Xe': [2.16,1.30,QColor( 66,158,175,255)],
+                          'Cs': [3.43,2.25,QColor( 86, 22,142,255)],
+                          'Ba': [2.68,1.98,QColor(  0,201,  0,255)],
+                          'La': [1.70,1.69,QColor(112,211,255,255)],
+                          'Ce': [1.70,0.77,QColor(255,255,198,255)],
+                          'Pr': [1.70,0.77,QColor(216,255,198,255)],
+                          'Nd': [1.70,0.77,QColor(198,255,198,255)],
+                          'Pm': [1.70,0.77,QColor(163,255,198,255)],
+                          'Sm': [1.70,0.77,QColor(142,255,198,255)],
+                          'Eu': [1.70,0.77,QColor( 96,255,198,255)],
+                          'Gd': [1.70,0.77,QColor( 68,255,198,255)],
+                          'Tb': [1.70,0.77,QColor( 48,255,198,255)],
+                          'Dy': [1.70,0.77,QColor( 30,255,198,255)],
+                          'Ho': [1.70,0.77,QColor(  0,255,155,255)],
+                          'Er': [1.70,0.77,QColor(  0,229,117,255)],
+                          'Tm': [1.70,0.77,QColor(  0,211, 81,255)],
+                          'Yb': [1.70,0.77,QColor(  0,191, 56,255)],
+                          'Lu': [1.70,1.60,QColor(  0,170, 35,255)],
+                          'Hf': [1.70,1.50,QColor( 76,193,255,255)],
+                          'Ta': [1.70,1.38,QColor( 76,165,255,255)],
+                          'W' : [1.70,1.46,QColor( 33,147,214,255)],
+                          'Re': [1.70,1.59,QColor( 38,124,170,255)],
+                          'Os': [1.70,1.28,QColor( 38,102,150,255)],
+                          'Ir': [1.70,1.37,QColor( 22, 84,135,255)],
+                          'Pt': [1.75,1.28,QColor(244,237,209,255)],
+                          'Au': [1.66,1.44,QColor(204,209, 30,255)],
+                          'Hg': [1.55,1.49,QColor(181,181,193,255)],
+                          'Tl': [1.96,1.48,QColor(165, 84, 76,255)],
+                          'Pb': [2.02,1.47,QColor( 86, 89, 96,255)],
+                          'Bi': [2.07,1.46,QColor(158, 79,181,255)],
+                          'Po': [1.97,0.77,QColor(170, 91,  0,255)],
+                          'At': [2.02,0.77,QColor(117, 79, 68,255)],
+                          'Rn': [2.20,1.45,QColor( 66,130,150,255)],
+                          'Fr': [3.48,0.77,QColor( 66,  0,102,255)],
+                          'Ra': [2.83,0.77,QColor(0  ,124,  0,255)],
+                          'Ac': [1.70,0.77,QColor(112,170,249,255)],
+                          'Th': [1.70,0.77,QColor(0  ,186,255,255)],
+                          'Pa': [1.70,0.77,QColor(0  ,160,255,255)],
+                          'U' : [1.86,0.77,QColor(0  ,142,255,255)],
+                          'Np': [1.70,0.77,QColor(0  ,127,255,255)],
+                          'Pu': [1.70,0.77,QColor(0  ,107,255,255)],
+                          'Am': [1.70,0.77,QColor(84 , 91,242,255)],
+                          'Cm': [1.70,0.77,QColor(119, 91,226,255)],
+                          'Bk': [1.70,0.77,QColor(137, 79,226,255)],
+                          'Cf': [1.70,0.77,QColor(160, 53,211,255)],
+                          'Es': [1.70,0.77,QColor(178, 30,211,255)],
+                          'Fm': [1.70,0.77,QColor(178, 30,186,255)],
+                          'Md': [1.70,0.77,QColor(178, 12,165,255)],
+                          'No': [1.70,0.77,QColor(188, 12,135,255)],
+                          'Lr': [1.70,0.77,QColor(198,  0,102,255)],
+                          'Rf': [1.70,0.77,QColor(204,  0, 89,255)],
+                          'Db': [1.70,0.77,QColor(209,  0, 79,255)],
+                          'Sg': [1.70,0.77,QColor(216,  0, 68,255)],
+                          'Bh': [1.70,0.77,QColor(224,  0, 56,255)],
+                          'Hs': [1.70,0.77,QColor(229,  0, 45,255)],
+                          'Mt': [1.70,0.77,QColor(234,  0, 38,255)],
+                          'Ds': [1.70,0.77,QColor(237,  0, 35,255)],
+                          'Rg': [1.70,0.77,QColor(239,  0, 33,255)],
+                          'Cn': [1.70,0.77,QColor(242,  0, 30,255)],
+                          'Uut':[1.70,0.77,QColor(244,  0, 28,255)],
+                          'Fl': [1.70,0.77,QColor(247,  0, 25,255)],
+                          'Uup':[1.70,0.77,QColor(249,  0, 22,255)],
+                          'Lv': [1.70,0.77,QColor(252,  0, 20,255)],
+                          'Uus':[1.70,0.77,QColor(252,  0, 17,255)],
+                          'Uuo':[1.70,0.77,QColor(252,  0, 15,255)]}
 
         def initializeGL(self):
                 #render only visible vertices
@@ -1011,7 +1167,7 @@ class ViewPort(QGLWidget):
                 glEnable(GL_CULL_FACE)
 
                 #set background color
-                self.qglClearColor(QColor(255,255,255))
+                self.qglClearColor(QColor(255,255,255,0))
 
                 #add shaders:
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres.vsh')
@@ -1091,148 +1247,6 @@ class ViewPort(QGLWidget):
                         puzzle += [a,c,b,d,f,e]
                 return puzzle
 
-
-        #################################################
-        # CALLED UPON SELECTING MOLECULE
-        #################################################
-
-        def setMol(self,mol):
-                self.mol = mol
-                self.makeCell()
-                self.prepObjects()
-
-        def makeCell(self):
-                #get vectors:
-                vec = self.mol.get_vec()
-                cdm = self.mol.get_celldm()
-                null = QVector3D(0,0,0)
-                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
-                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
-                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
-                #define vertices:
-                self.cell_modelspace=[null,a,null,b,null,c,
-                                      a,a+b,a,a+c,
-                                      b,b+a,b,b+c,
-                                      c,c+a,c,c+b,
-                                      a+b,a+b+c,
-                                      a+c,a+b+c,
-                                      b+c,a+b+c]
-
-        def setMult(self,mult):
-                self.mult = mult
-                self.prepObjects()
-
-        def prepObjects(self):
-                if not hasattr(self,'mol'):return
-                #local variables for convenience
-                mult = self.mult
-                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
-                vec = self.mol.get_vec()*self.mol.get_celldm()
-                center = self.mol.get_center()
-
-                #get bonds and offsets
-                if mult == [1,1,1]:
-                        #self.off = [-self.mol.get_center()]
-                        self.off = [[0,0,0]]
-                        bonds = [self.mol.get_bonds(),[],[],[],[],[],[],[]]
-                else:
-                        self.off = []
-                        tmult = [1,1,1]
-                        #save the multiplicators:
-                        for i in [0,1,2]:
-                                if self.mult[i]%2 == 0:
-                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
-                                else:
-                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
-                        #generate offsets:
-                        for i in tmult[0]:
-                                for j in tmult[1]:
-                                        for k in tmult[2]:
-                                                self.off.append([i,j,k])
-                        #self.off = self.getOffsets()
-                        bonds = self.mol.get_pbc_bonds()
-
-                #prepare bonds with position,angle,axis and names (for coloring)
-                tempbonds=[[],[],[],[],[],[],[],[]]
-                for j in range(8):
-                        for i in bonds[j]:
-                                #get positions of atoms
-                                a = i[0]
-                                b = i[1]
-                                #save colors
-                                c1 = self.pse[i[2]][2]
-                                c2 = self.pse[i[3]][2]
-                                #position of bond
-                                pos= (a+b)/2
-                                #rotate bond from x-axis d to bond-axis c
-                                c = (a-b)/np.linalg.norm(a-b)
-                                d = np.array([1,0,0])
-                                theta = np.degrees(np.arccos(np.dot(c,d)))
-                                axis = -np.cross(c,d)
-                                tempbonds[j].append([pos,theta,axis,c1,c2])
-
-                #save positions of atoms and bonds in world space
-                self.atoms=[]
-                self.bonds = []
-                self.cells = []
-                edge = np.max(self.off,axis=0)
-                for i1 in self.off:
-                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
-                        self.cells.append(off)
-                        for j in atoms:
-                                #save coord,color,size
-                                self.atoms.append((j[1]+off,self.pse[j[0]][2],self.pse[j[0]][1]))
-                        for j in tempbonds[0]:
-                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                pass
-                        #vec0
-                        if mult[0]!=1 and i1[0]!=edge[0]:
-                                for j in tempbonds[1]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec1
-                                if mult[1]!=1 and i1[1]!=edge[1]:
-                                        for j in tempbonds[4]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                        #vec0+vec1+vec2
-                                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                                for j in tempbonds[7]:
-                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[5]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec1
-                        if mult[1]!=1 and i1[1]!=edge[1]:
-                                for j in tempbonds[2]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec1+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[6]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec2
-                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                for j in tempbonds[3]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                self.updateGL()
-
-        def getOffsets(self):
-                vec = self.mol.get_vec()*self.mol.celldm
-                cent = self.mol.get_center()
-                off = []
-                tmult = [1,1,1]
-                #save the multiplicators for vec:
-                for i in [0,1,2]:
-                        if self.mult[i]%2 == 0:
-                                tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
-                        else:
-                                tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
-                #generate offsets:
-                for i in tmult[0]:
-                        for j in tmult[1]:
-                                for k in tmult[2]:
-                                        off.append([i,j,k])
-                return off
-
         ################################################
         # CALLED UPON WINDOW RESIZE
         ################################################
@@ -1262,7 +1276,7 @@ class ViewPort(QGLWidget):
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
                 #don't do anything if there's no molecule
-                if not hasattr(self,'mol'):return
+                if not hasattr(self.parent,'mol'):return
 
                 #initialize transformation matrices:
                 self.mMatrix = QMatrix4x4()
@@ -1271,36 +1285,30 @@ class ViewPort(QGLWidget):
                 #camera stuff:
                 cRot = QMatrix4x4()
                 cTrans = QMatrix4x4()
-                cPos = QVector3D()
-                cUpDir = QVector3D()
-                #xrot
-                cRot.rotate(self.alpha,0,1,0)
-                #yrot
-                cRot.rotate(self.beta,1,0,0)
 
-                cPos = cRot*QVector3D(0,0,self.distance)
-                cUpDir = cRot*QVector3D(0,1,0)
-
-                #make view Matrix:
-                self.vMatrix.lookAt(cPos,QVector3D(0,0,0),cUpDir)
+                #perspective
+                self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
 
                 #translate the view point:
-                cTrans.translate(self.xsh,self.ysh,0)
-                self.vMatrix = cTrans*self.vMatrix
+                self.vMatrix.translate(self.xsh,self.ysh,0)
+
+                #apply rotation
+                self.vMatrix*=self.rotMat
 
                 #TODO: orthogonal zooming needs fix
                 #check for projection:
-                if self.view == 1:
+                if self.parent.view:
                         self.proj = self.pMatrix
-                elif self.view == 0:
+                else:
                         self.proj = self.oMatrix
                         #scale based on distance for zoom effect
-                        self.vMatrix.scale(10/self.distance)
+                        self.vMatrix.scale(10./self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
                 self.drawAtoms()
                 self.drawBonds()
-                self.drawCell()
+                if self.parent.cell:
+                        self.drawCell()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -1315,10 +1323,10 @@ class ViewPort(QGLWidget):
                 self.sphereShader.enableAttributeArray('normals_modelspace')
 
                 #render loop
-                for i in range(len(self.atoms)):
+                for i in range(len(self.parent.atoms)):
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
-                        atom = self.atoms[i]
+                        atom = self.parent.atoms[i]
                         #move atoms to coord and recognize offset
                         self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
                         #scale atoms depending on species
@@ -1350,7 +1358,7 @@ class ViewPort(QGLWidget):
                 self.bondShader.enableAttributeArray('normals_modelspace')
 
                 #render loop
-                for bond in self.bonds:
+                for bond in self.parent.bonds:
                         #load model Matrix with coordinates relative to offset
                         self.mMatrix.setToIdentity()
                         self.mMatrix.translate(bond[0][0],bond[0][1],bond[0][2])
@@ -1375,15 +1383,15 @@ class ViewPort(QGLWidget):
         def drawCell(self):
                 #bind shaders:
                 self.lineShader.bind()
-                self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
+                self.lineShader.setAttributeArray('vertex_modelspace',self.parent.cell_modelspace)
                 self.lineShader.enableAttributeArray('vertex_modelspace')
                 self.lineShader.setUniformValue('color',QColor(0,0,0))
-                for i in self.cells:
+                for i in self.parent.cells:
                         self.mMatrix.setToIdentity()
                         #move viewpoint to center
                         self.mMatrix.translate(i[0],i[1],i[2])
                         self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        glDrawArrays(GL_LINES,0,len(self.cell_modelspace))
+                        glDrawArrays(GL_LINES,0,len(self.parent.cell_modelspace))
                 self.lineShader.disableAttributeArray('vertex_modelspace')
                 self.lineShader.release()
 
@@ -1403,6 +1411,12 @@ class ViewPort(QGLWidget):
         ###############################################
 
         def mousePressEvent(self,e):
+                if (e.buttons() & 1):
+                        self.oldX = self.newX = e.x()
+                        self.oldY = self.newY = e.y()
+                elif (e.buttons() & 2):
+                        self.rotMat.setToIdentity()
+                        self.updateGL()
                 #store initial position
                 self.mousePos = e.pos()
                 #stop event from getting pushed to parent
@@ -1415,17 +1429,20 @@ class ViewPort(QGLWidget):
 
                 #left click: rotate molecule
                 if (e.buttons() & 1):
-                        self.alpha -= deltaX
-                        while self.alpha < 0: self.alpha +=360
-                        while self.alpha > 360: self.alpha -=360
-
-                        self.beta -= deltaY
-                        if self.beta < 0 : self.beta += 360
-                        if self.beta > 360 : self.beta = -360
-                        #if self.beta < -90: self.beta = -90
-                        #if self.beta > 90 : self.beta = 90
+                        #get new position
+                        self.newX = e.x()
+                        self.newY = e.y()
+                        #apply rotation and store it (important!)
+                        tmp = QMatrix4x4()
+                        deltaX = self.newX-self.oldX
+                        deltaY = self.newY - self.oldY
+                        tmp.rotate(deltaX,0,1,0)
+                        tmp.rotate(deltaY,1,0,0)
+                        self.rotMat = tmp*self.rotMat
+                        #save as old positions for next step
+                        self.oldX = e.x()
+                        self.oldY = e.y()
                         self.updateGL()
-                #middle click: shift position
                 elif (e.buttons() & 4):
                         self.xsh += deltaX/10.
                         self.ysh -= deltaY/10.

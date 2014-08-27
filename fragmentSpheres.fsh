@@ -3,7 +3,7 @@
 //! [0]
 uniform vec4 MaterialDiffuseColor;
 
-out vec3 fragColor;
+out vec4 fragColor;
 
 in vec3 normals_cameraspace;
 in vec3 EyeDirection_cameraspace;
@@ -35,8 +35,9 @@ void main(void)
     float cosAlpha = clamp(dot(E,R),0,1);
 
     //final color
-    fragColor = MaterialAmbientColor +
+    vec3 fragTemp = MaterialAmbientColor +
 		MaterialSpecularColor*LightColor*LightPower * pow(cosAlpha,10)/(distance*distance)+
                 MaterialDiffuseColor.xyz*LightColor*LightPower*cosTheta/(distance*distance);
+    fragColor = vec4(fragTemp,1.0);
 }
 //! [0]

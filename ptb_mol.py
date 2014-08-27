@@ -62,7 +62,8 @@ class TBController(QApplication):
                 self.pwdata = []
                 self.indict = OrderedDict([('xyz',self.parseXyz),
                                ('PWScf Input',self.parsePwi),
-                               ('PWScf Output' , self.parsePwo)])
+                               ('PWScf Output' , self.parsePwo),
+                               ('PWO Final Conf.',self.parsePwoFinal)])
                 self.outdict= OrderedDict([('PWScf Input',self.writePwi),
                                ('xyz',self.writeXyz)])
                 QTimer.singleShot(0,self.argumentHandler)
@@ -97,6 +98,12 @@ class TBController(QApplication):
                                                 self.readFile('PWScf Output',self.argv[i])
                                                 i+=1
                                         self.gui.centralWidget().loadView()
+                                elif self.argv[i] == '-pwof':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('PWO Final Conf.',self.argv[i])
+                                                i+=1
+                                        self.gui.centralWidget().loadView()
                                 elif self.argv[i] == '-xyz':
                                         i+=1
                                         while i<len(self.argv) and self.argv[i][0]!='-':
@@ -118,6 +125,7 @@ class TBController(QApplication):
                 f.write('-xyz [FILES]: open xyz file(s)\n')
                 f.write('-pwi [FILES]: open PWScf input file(s)\n')
                 f.write('-pwo [FILES]: open PWScf output file(s)\n')
+                f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
                 self.quit()
 
 #####################################################################
@@ -348,11 +356,11 @@ class TBController(QApplication):
 
         def parsePwoFinal(self,data):
                 #parse only the final config for commandline actions
-                tlist = []
                 i=0
                 vec=[[0,0,0],[0,0,0],[0,0,0]]
                 while i<len(data):
                         line = data[i].split()
+                        #print line
                         if not line:
                                 pass
                         elif line[0:3] == ['number', 'of', 'atoms/cell']:
@@ -371,6 +379,9 @@ class TBController(QApplication):
                                 for j in range(i+3,i+nat+3):
                                         atom = data[j].split()
                                         tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),fmt)
+                        else:
+                                pass
+                        i+=1
                 self.mol.append([tmol])
 
 #############################################################################
@@ -448,7 +459,7 @@ class TBController(QApplication):
                 #MPGrid:
                 #x y z offset
                 elif param['K_POINTS']['active'] == 'automatic':
-                        f.write('{:4s}{:4s}{:4s}{:4s}{:4s}{:4s}'.format(
+                        f.write('{:4s}{:4s}{:4s}{:4d}{:4d}{:4d}'.format(
                                 param['K_POINTS']['automatic'][0],
                                 param['K_POINTS']['automatic'][1],
                                 param['K_POINTS']['automatic'][2],
@@ -634,14 +645,20 @@ class Molecule:
                         at_i = self.get_atom(i)
                         for j in range(i+1,nat):
                                 at_j = self.get_atom(j)
-                                dist = np.linalg.norm(at_i[1]-at_j[1])
+
+                                dist = at_i[1]-at_j[1]
+
+                                #cancel if distance in one direction is greater than allowed bond length
+                                if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
+
+                                dist = np.dot(dist,dist)
                                 if at_i[0] != 'H' and at_j[0] != 'H':
                                         #maximum bond length: 1.9A
-                                        if 0.755 < dist < 3.5:
+                                        if 0.57 < dist < 12.25:
                                                 self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
                                 else:
                                         #maximum bond length for hydrogen: 1.2A
-                                        if 0.755 < dist < 2.27:
+                                        if 0.57 < dist < 5.15:
                                                 self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
 
         def set_pbc_bonds(self):
@@ -653,15 +670,21 @@ class Molecule:
                         at_i = self.get_atom(i)
                         for j in range(nat):
                                 at_j = self.get_atom(j)
+                                dist_at = at_i[1]-at_j[1]
                                 for k in range(1,8):
-                                        dist = np.linalg.norm(at_i[1]-at_j[1]+off[k])
+                                        dist = dist_at+off[k]
+
+                                        #cancel if distance in one direction is greater than allowed bond length
+                                        if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
+
+                                        dist = np.dot(dist,dist)
                                         if at_i[0] != 'H' and at_j[0] != 'H':
                                                 #maximum bond length: 1.9A
-                                                if 0.755 < dist < 3.5:
+                                                if 0.57 < dist < 12.25:
                                                         self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
                                         else:
                                                 #maximum bond length for hydrogen: 1.2A
-                                                if 0.755 < dist < 2.27:
+                                                if 0.57 < dist < 5.15:
                                                         self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
 
         #####################################################
