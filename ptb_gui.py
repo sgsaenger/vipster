@@ -762,9 +762,8 @@ class PWTab(QSplitter):
                 #load parameters
                 self.pw = pw
                 #show if visible
-                if self.isVisible():
-                        self.fillTree()
-                        self.fillKpoints()
+                self.fillTree()
+                self.fillKpoints()
 
         def showEvent(self,e):
                 if hasattr(self,'pw'):
@@ -1411,6 +1410,7 @@ class ViewPort(QGLWidget):
         ###############################################
 
         def mousePressEvent(self,e):
+                self.setFocus()
                 if (e.buttons() & 1):
                         self.oldX = self.newX = e.x()
                         self.oldY = self.newY = e.y()
@@ -1462,3 +1462,24 @@ class ViewPort(QGLWidget):
                         self.updateGL()
                 e.accept()
 
+        def keyPressEvent(self,e):
+                if e.key() == Qt.Key_Up:
+                        tmp = QMatrix4x4()
+                        tmp.rotate(90,1,0,0)
+                        self.rotMat = tmp*self.rotMat
+                        self.updateGL()
+                if e.key() == Qt.Key_Down:
+                        tmp = QMatrix4x4()
+                        tmp.rotate(-90,1,0,0)
+                        self.rotMat = tmp*self.rotMat
+                        self.updateGL()
+                if e.key() == Qt.Key_Left:
+                        tmp = QMatrix4x4()
+                        tmp.rotate(90,0,1,0)
+                        self.rotMat = tmp*self.rotMat
+                        self.updateGL()
+                if e.key() == Qt.Key_Right:
+                        tmp = QMatrix4x4()
+                        tmp.rotate(-90,0,1,0)
+                        self.rotMat = tmp*self.rotMat
+                        self.updateGL()
