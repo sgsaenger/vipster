@@ -645,14 +645,20 @@ class Molecule:
                         at_i = self.get_atom(i)
                         for j in range(i+1,nat):
                                 at_j = self.get_atom(j)
-                                dist = np.linalg.norm(at_i[1]-at_j[1])
+
+                                dist = at_i[1]-at_j[1]
+
+                                #cancel if distance in one direction is greater than allowed bond length
+                                if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
+
+                                dist = np.dot(dist,dist)
                                 if at_i[0] != 'H' and at_j[0] != 'H':
                                         #maximum bond length: 1.9A
-                                        if 0.755 < dist < 3.5:
+                                        if 0.57 < dist < 12.25:
                                                 self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
                                 else:
                                         #maximum bond length for hydrogen: 1.2A
-                                        if 0.755 < dist < 2.27:
+                                        if 0.57 < dist < 5.15:
                                                 self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
 
         def set_pbc_bonds(self):
@@ -664,15 +670,21 @@ class Molecule:
                         at_i = self.get_atom(i)
                         for j in range(nat):
                                 at_j = self.get_atom(j)
+                                dist_at = at_i[1]-at_j[1]
                                 for k in range(1,8):
-                                        dist = np.linalg.norm(at_i[1]-at_j[1]+off[k])
+                                        dist = dist_at+off[k]
+
+                                        #cancel if distance in one direction is greater than allowed bond length
+                                        if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
+
+                                        dist = np.dot(dist,dist)
                                         if at_i[0] != 'H' and at_j[0] != 'H':
                                                 #maximum bond length: 1.9A
-                                                if 0.755 < dist < 3.5:
+                                                if 0.57 < dist < 12.25:
                                                         self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
                                         else:
                                                 #maximum bond length for hydrogen: 1.2A
-                                                if 0.755 < dist < 2.27:
+                                                if 0.57 < dist < 5.15:
                                                         self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
 
         #####################################################
