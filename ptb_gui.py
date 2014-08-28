@@ -4,7 +4,7 @@
 import sys
 
 from copy import deepcopy
-from os.path import dirname
+from os.path import dirname,splitext
 from os import getcwd
 from math import floor,sqrt
 import numpy as np
@@ -437,9 +437,10 @@ class MainView(QWidget):
         ########################################################
         def makeScreen(self):
                 img = self.visual.grabFrameBuffer(True)
-                fn = QFileDialog.getSaveFileName(self,'Save Screenshot',getcwd())
+                fn = QFileDialog.getSaveFileName(self,'Save Screenshot',getcwd(),'Portable Network Graphics (*.png)')
                 if not fn: return
-                img.save(fn+'.png','PNG',100)
+                if splitext(str(fn))[1] == '': fn+='.png'
+                img.save(fn,None,100)
 
         ########################################################
         #steps and animation:
@@ -1465,21 +1466,21 @@ class ViewPort(QGLWidget):
         def keyPressEvent(self,e):
                 if e.key() == Qt.Key_Up:
                         tmp = QMatrix4x4()
-                        tmp.rotate(90,1,0,0)
+                        tmp.rotate(-10,1,0,0)
                         self.rotMat = tmp*self.rotMat
                         self.updateGL()
                 if e.key() == Qt.Key_Down:
                         tmp = QMatrix4x4()
-                        tmp.rotate(-90,1,0,0)
+                        tmp.rotate(10,1,0,0)
                         self.rotMat = tmp*self.rotMat
                         self.updateGL()
                 if e.key() == Qt.Key_Left:
                         tmp = QMatrix4x4()
-                        tmp.rotate(90,0,1,0)
+                        tmp.rotate(-10,0,1,0)
                         self.rotMat = tmp*self.rotMat
                         self.updateGL()
                 if e.key() == Qt.Key_Right:
                         tmp = QMatrix4x4()
-                        tmp.rotate(-90,0,1,0)
+                        tmp.rotate(10,0,1,0)
                         self.rotMat = tmp*self.rotMat
                         self.updateGL()

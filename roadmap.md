@@ -28,14 +28,27 @@
   - [x] Coord editor right click menu
   - [x] PW Editor editing capabilities
   - [x] Better commandline parsing
+# V0.4:
+
+- [x] Improve rotation
+- [x] Improved Keyboard controls:
+  - [x] GLWidget can retain focus
+  - [x] Rotate with arrow keys
+- [x] Screenshots
+- [x] Vastly improved speed of bond-setting routine
 
 # In the long run, wishlist:
 
+- [ ] Better picture generation
+  - [ ] Better screenshot dialog
+  - [ ] Export to Povray
+- [ ] Bond setting has to be faster
+  - [ ] Move to fortran code
+  - [ ] Reevaluate when calculation needs to happen
 - [ ] Improve orthogonal projection
-  - [ ] display without zooming first
+  - [x] display without zooming first
   - [ ] make it zoom on the same scale as perspective projection
 - [ ] Commandline creation of new Files
-- [ ] Improve rotation
 - [ ] Default PW Parameter sets
 - [ ] PW Parameters from PW Output
 - [ ] Input validators
