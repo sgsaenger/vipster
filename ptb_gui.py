@@ -85,6 +85,8 @@ class MainView(QWidget):
                 self.mult =[1,1,1]
                 self.view = True
                 self.cell = True
+                self.mouseMode = True
+                self.selection=[]
 
         def initUI(self):
 
@@ -243,10 +245,19 @@ class MainView(QWidget):
                 toggleCell = QAction('Toggle &Cell',self)
                 toggleCell.setShortcut('c')
                 toggleCell.triggered.connect(self.cellHandler)
+                mouseRotate = QAction('&Rotate',self)
+                mouseRotate.setShortcut('r')
+                mouseRotate.triggered.connect(self.mmHandler)
+                mouseSelect = QAction('&Select',self)
+                mouseSelect.setShortcut('s')
+                mouseSelect.triggered.connect(self.mmHandler)
                 #create menu
                 vMenu = self.parent.menuBar().addMenu('&View')
                 vMenu.addAction(changeProj)
                 vMenu.addAction(toggleCell)
+                vMenu.addSeparator()
+                vMenu.addAction(mouseRotate)
+                vMenu.addAction(mouseSelect)
 
         ########################################################
         #insert loaded molecules
@@ -431,6 +442,15 @@ class MainView(QWidget):
         def cellHandler(self):
                 self.cell = not self.cell
                 self.visual.updateGL()
+        ########################################################
+        # Mouse mode
+        ########################################################
+
+        def mmHandler(self):
+                source = self.sender()
+                if source == None: self.mouseMode = not self.mouseMode
+                elif source.text() == '&Rotate': self.mouseMode = True
+                elif source.text() == '&Select': self.mouseMode = False
 
         ########################################################
         #screenshot test
@@ -1032,11 +1052,11 @@ class ViewPort(QGLWidget):
         def __init__(self,parent,aa=False):
                 #init with antialiasing
                 super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel))
-                #super(ViewPort,self).__init__()
                 self.parent = parent
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.bondShader = QGLShaderProgram()
+                self.selectShader = QGLShaderProgram()
                 self.xsh = 0
                 self.ysh = 0
                 self.rotMat = QMatrix4x4()
@@ -1165,6 +1185,9 @@ class ViewPort(QGLWidget):
                 glEnable(GL_DEPTH_TEST)
                 #backface culling: render only front of vertex
                 glEnable(GL_CULL_FACE)
+                #enable transparency for selection
+                glEnable(GL_BLEND)
+                glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
 
                 #set background color
                 self.qglClearColor(QColor(255,255,255,0))
@@ -1176,6 +1199,8 @@ class ViewPort(QGLWidget):
                 self.bondShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentBonds.fsh')
                 self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexLines.vsh')
                 self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentLines.fsh')
+                self.selectShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSelect.vsh')
+                self.selectShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSelect.fsh')
 
                 # prepare sphere
                 self.makeSphere()
@@ -1271,7 +1296,7 @@ class ViewPort(QGLWidget):
         # CALLED UPON WINDOW UPDATE EVENT
         ##############################################
 
-        def paintGL(self):
+        def paintGL(self,select=False):
                 #clear depth and color buffer:
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -1305,10 +1330,14 @@ class ViewPort(QGLWidget):
                         self.vMatrix.scale(10./self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
-                self.drawAtoms()
-                self.drawBonds()
-                if self.parent.cell:
-                        self.drawCell()
+                if select:
+                        self.drawAtomsSelect()
+                else:
+                        self.drawAtoms()
+                        self.drawBonds()
+                        self.drawSelection()
+                        if self.parent.cell:
+                                self.drawCell()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -1323,10 +1352,9 @@ class ViewPort(QGLWidget):
                 self.sphereShader.enableAttributeArray('normals_modelspace')
 
                 #render loop
-                for i in range(len(self.parent.atoms)):
+                for atom in self.parent.atoms:
                         #load model matrix with coordinates
                         self.mMatrix.setToIdentity()
-                        atom = self.parent.atoms[i]
                         #move atoms to coord and recognize offset
                         self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
                         #scale atoms depending on species
@@ -1339,6 +1367,75 @@ class ViewPort(QGLWidget):
                         self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
                         #color vertices
                         self.sphereShader.setUniformValue('MaterialDiffuseColor',atom[1])
+                        #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+                        #draw
+                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                #reset
+                self.sphereShader.disableAttributeArray('vertex_modelspace')
+                self.sphereShader.disableAttributeArray('normals_modelspace')
+                self.sphereShader.release()
+
+        def drawAtomsSelect(self):
+                #bind shaders:
+                self.selectShader.bind()
+
+                #send vertices
+                self.selectShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
+                self.selectShader.enableAttributeArray('vertex_modelspace')
+
+                #render loop
+                for i in range(len(self.parent.atoms)):
+                        #color from atom number:
+                        r = (i & 0x000000FF) >> 0
+                        g = (i & 0x0000FF00) >> 8
+                        b = (i & 0x00FF0000) >> 16
+                        #load model matrix with coordinates
+                        self.mMatrix.setToIdentity()
+                        atom = self.parent.atoms[i]
+                        #move atoms to coord and recognize offset
+                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
+                        #scale atoms depending on species
+                        self.mMatrix.scale(atom[2])
+                        #bind transformation matrix
+                        self.selectShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
+                        #color vertices
+                        self.selectShader.setUniformValue('MaterialDiffuseColor',QColor(r,g,b,255))
+                        #draw
+                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                #reset
+                self.selectShader.disableAttributeArray('vertex_modelspace')
+                self.selectShader.disableAttributeArray('normals_modelspace')
+                self.selectShader.release()
+
+        def drawSelection(self):
+                #bind shaders:
+                self.sphereShader.bind()
+
+                #send vertices
+                self.sphereShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
+                self.sphereShader.enableAttributeArray('vertex_modelspace')
+                #send normals for lighting
+                #equal coordinates for sphere
+                self.sphereShader.setAttributeArray('normals_modelspace',self.atom_modelspace)
+                self.sphereShader.enableAttributeArray('normals_modelspace')
+
+                #render loop
+                for i in self.parent.selection:
+                        #load model matrix with coordinates
+                        self.mMatrix.setToIdentity()
+                        #move atoms to coord and recognize offset
+                        atom = self.parent.atoms[i]
+                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
+                        #scale atoms depending on species
+                        self.mMatrix.scale(atom[2]*1.3)
+                        #bind transformation matrices
+                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
+                        self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
+                        self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
+                        #create light source:
+                        self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        #color vertices
+                        self.sphereShader.setUniformValue('MaterialDiffuseColor',QColor(120,120,150,200))
                         #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
                         #draw
                         glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
@@ -1411,6 +1508,7 @@ class ViewPort(QGLWidget):
         ###############################################
 
         def mousePressEvent(self,e):
+                if self.parent.mouseMode!=True:return
                 self.setFocus()
                 if (e.buttons() & 1):
                         self.oldX = self.newX = e.x()
@@ -1424,6 +1522,7 @@ class ViewPort(QGLWidget):
                 e.accept()
 
         def mouseMoveEvent(self,e):
+                if self.parent.mouseMode != True:return
                 #calculate deviation from initial position
                 deltaX = e.x() - self.mousePos.x()
                 deltaY = e.y() - self.mousePos.y()
@@ -1451,6 +1550,39 @@ class ViewPort(QGLWidget):
 
                 self.mousePos = e.pos()
                 e.accept()
+
+        def mouseReleaseEvent(self,e):
+                if self.parent.mouseMode != False:return
+                #here be render function
+                self.paintGL(True)
+
+                #Wait for everything to render,configure memory alignment
+                glFlush()
+                glFinish()
+                glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+
+                #Read pixel from GPU
+                color = (GLubyte*4)(0)
+                x = e.x()
+                y = self.height() - e.y()
+                glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,color)
+                if color[3]==0:
+                        self.parent.selection=[]
+                else:
+                        id = color[0] + 256*color[1] + 65536*color[2]
+                        ctrl = e.modifiers() == Qt.ControlModifier
+                        prev = id in self.parent.selection
+                        if ctrl and prev:
+                                del self.parent.selection[self.parent.selection.index(id)]
+                        elif ctrl and not prev:
+                                self.parent.selection.append(id)
+                        elif prev and not ctrl and len(self.parent.selection)>1:
+                                self.parent.selection = [id]
+                        elif prev and not ctrl and len(self.parent.selection)<2:
+                                self.parent.selection = []
+                        elif not prev and not ctrl:
+                                self.parent.selection = [id]
+                self.updateGL()
 
         def wheelEvent(self,e):
                 delta = e.delta()
