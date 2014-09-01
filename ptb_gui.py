@@ -86,6 +86,7 @@ class MainView(QWidget):
                 self.view = True
                 self.cell = True
                 self.mouseMode = True
+                self.AA = True
                 self.selection=[]
 
         def initUI(self):
@@ -251,10 +252,14 @@ class MainView(QWidget):
                 mouseSelect = QAction('&Select',self)
                 mouseSelect.setShortcut('s')
                 mouseSelect.triggered.connect(self.mmHandler)
+                antiAlias = QAction('Toggle &Antialiasing',self)
+                antiAlias.setShortcut('a')
+                antiAlias.triggered.connect(self.aaHandler)
                 #create menu
                 vMenu = self.parent.menuBar().addMenu('&View')
                 vMenu.addAction(changeProj)
                 vMenu.addAction(toggleCell)
+                vMenu.addAction(antiAlias)
                 vMenu.addSeparator()
                 vMenu.addAction(mouseRotate)
                 vMenu.addAction(mouseSelect)
@@ -451,6 +456,19 @@ class MainView(QWidget):
                 if source == None: self.mouseMode = not self.mouseMode
                 elif source.text() == '&Rotate': self.mouseMode = True
                 elif source.text() == '&Select': self.mouseMode = False
+
+        ########################################################
+        # Toggle AntiAliasing
+        ########################################################
+        
+        def aaHandler(self):
+                if self.AA:
+                        self.AA = False
+                        glDisable(GL_MULTISAMPLE)
+                elif not self.AA:
+                        self.AA = True
+                        glEnable(GL_MULTISAMPLE)
+                self.visual.updateGL()
 
         ########################################################
         #screenshot test
