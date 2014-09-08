@@ -478,7 +478,7 @@ class MainView(QWidget):
                 fn = QFileDialog.getSaveFileName(self,'Save Screenshot',getcwd(),'Portable Network Graphics (*.png)')
                 if not fn: return
                 if splitext(str(fn))[1] == '': fn+='.png'
-                img.save(fn,None,100)
+                img.save(fn,None,0)
 
         ########################################################
         #steps and animation:
