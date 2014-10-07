@@ -78,6 +78,7 @@ class TBController(QApplication):
                         self.gui = MainWindow(self)
                 #check for misformatted options:
                 elif self.argv[1][0]!='-': self.print_help()
+                elif self.argv[1][0:2]=='--': self.print_help()
                 #check for help request:
                 elif '-h' in self.argv: self.print_help()
                 #check for input files, start gui and load
@@ -136,7 +137,6 @@ class TBController(QApplication):
         #def newFile(self,newfmt,newfile,oldcoord,oldparam=""):
         #def multFile(self,file,fmt,mult)
 
-
 #####################################################################
 # GET FUNCTIONS
 #####################################################################
@@ -155,7 +155,6 @@ class TBController(QApplication):
 
         def get_npw(self):
                 return len(self.pwdata)
-
 
 #####################################################################
 # READ FUNCTIONS
@@ -231,7 +230,7 @@ class TBController(QApplication):
                                 #Name   x   y   z
                                 #Saved in temp list for parsing
                                 elif header[0] == 'ATOMIC_POSITIONS':
-                                        fmt = header[1]
+                                        fmt = header[1].strip('()')
                                         for i in range(int(tparam['&system']['nat'])):
                                                 #support empty lines
                                                 temp = data.pop(0).strip().split()
@@ -268,7 +267,7 @@ class TBController(QApplication):
                                 #TODO: care for different formats
                                 elif header[0] == 'CELL_PARAMETERS':
                                         vec=[[0,0,0],[0,0,0],[0,0,0]]
-                                        for i in range(3):
+                                        for i in [0,1,2]:
                                                 line = data.pop(0).strip().split()
                                                 vec[i]=[float(x)for x in line]
                                         tmol.set_vec(vec)
@@ -282,7 +281,7 @@ class TBController(QApplication):
                 for i in range(len(tcoord)):
                         tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
                 #initialize bonds:
-                tmol.set_pbc_bonds()
+                #tmol.set_pbc_bonds()
                 #delete nat and ntype before returning to controller
                 del tparam['&system']['nat']
                 del tparam['&system']['ntyp']
@@ -291,7 +290,6 @@ class TBController(QApplication):
                 self.mol.append([tmol])
                 self.pwdata.append(tparam)
 
-        #TODO: 2nd routine that only reads final config?
         def parsePwo(self,data):
                 #Multiple configs supported
                 tlist = []
@@ -315,7 +313,7 @@ class TBController(QApplication):
                         #TODO: care for different formats
                         #read initial cell vectors
                         elif line[0:2] == ['crystal','axes:']:
-                                for j in range(3):
+                                for j in [0,1,2]:
                                         temp = data[i+1+j].split()
                                         vec[j]=[float(x) for x in temp[3:6]]
                         # read initial positions:
@@ -327,11 +325,11 @@ class TBController(QApplication):
                                         atom = data[j].split()
                                         tmol.create_atom(atom[1],float(atom[6]),float(atom[7]),float(atom[8]),'alat')
                                 i+=nat
-                                tmol.set_pbc_bonds()
+                                #tmol.set_pbc_bonds()
                                 tlist.append(tmol)
                         #read step-vectors if cell is variable
                         elif line[0] == 'CELL_PARAMETERS':
-                                for j in range(3):
+                                for j in [0,1,2]:
                                         temp = data[i+1+j].split()
                                         vec[j]=[float(x) for x in temp[0:3]]
                         #read step-coordinates
@@ -341,9 +339,9 @@ class TBController(QApplication):
                                 tmol.set_vec(vec)
                                 for j in range(i+1,i+nat+1):
                                         atom = data[j].split()
-                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip(')').strip('('))
+                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip('()'))
                                 i+=nat
-                                tmol.set_pbc_bonds()
+                                #tmol.set_pbc_bonds()
                                 tlist.append(tmol)
                         #break on reaching final coordinates (duplicate)
                         elif line[0] == 'Begin':
@@ -358,6 +356,7 @@ class TBController(QApplication):
                 #parse only the final config for commandline actions
                 i=0
                 vec=[[0,0,0],[0,0,0],[0,0,0]]
+                final = False
                 while i<len(data):
                         line = data[i].split()
                         #print line
@@ -368,17 +367,24 @@ class TBController(QApplication):
                         elif line[0] == 'celldm(1)=':
                                 celldm = float(line[1])
                         elif line[0:2] == ['crystal','axes:']:
-                                for j in range(3):
+                                for j in [0,1,2]:
                                         temp = data[i+1+j].split()
                                         vec[j]=[float(x) for x in temp[3:6]]
                         elif line[0] == 'Begin':
-                                fmt = data[i+2].split()[1].strip(')').strip('(')
+                                final = True
+                        #update cell parameters for vc calculations
+                        elif final and line[0] == 'CELL_PARAMETERS':
+                                for j in [0,1,2]:
+                                        temp = data[i+1+j].split()
+                                        vec[j]=[float(x) for x in temp[0:3]]
+
+                        elif final and line[0] == 'ATOMIC_POSITIONS':
                                 tmol = Molecule()
                                 tmol.set_celldm(celldm)
                                 tmol.set_vec(vec)
-                                for j in range(i+3,i+nat+3):
+                                for j in range(i+1,i+nat+1):
                                         atom = data[j].split()
-                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),fmt)
+                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip('()'))
                         else:
                                 pass
                         i+=1
@@ -511,19 +517,16 @@ class Molecule:
 
         # append new atom
         def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
-                #self.at.append(self.Atom(self,name,x,y,z,fmt))
                 self.at_n.append(name)
                 self.at_c.append(self.set_coord([x,y,z],fmt))
 
         # append copy of existing atom
         def append_atom_cp(self,addat):
-                #self.at.append(copy.copy(addat))
                 self.at_n.append(addat[0])
                 self.at_c.append(self.set_coord(addat[1],addat[2]))
 
         # insert atom at given position
         def insert_atom(self,pos,addat):
-                #self.at.insert(pos,copy.copy(addat))
                 self.at_n.insert(pos,addat[0])
                 self.at_c.insert(pos,self.set_coord(addat[1],addat[2]))
 
@@ -640,52 +643,51 @@ class Molecule:
         def set_bonds(self):
                 nat = self.get_nat()
                 self.bonds = []
+                at_c = self.at_c
+                at_n = self.at_n
 
                 for i in range(nat):
-                        at_i = self.get_atom(i)
                         for j in range(i+1,nat):
-                                at_j = self.get_atom(j)
-
-                                dist = at_i[1]-at_j[1]
+                                dist = at_c[i]-at_c[j]
 
                                 #cancel if distance in one direction is greater than allowed bond length
                                 if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
 
                                 dist = np.dot(dist,dist)
-                                if at_i[0] != 'H' and at_j[0] != 'H':
+                                if at_n[i] != 'H' and at_n[j] != 'H':
                                         #maximum bond length: 1.9A
                                         if 0.57 < dist < 12.25:
-                                                self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
+                                                self.bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
                                 else:
                                         #maximum bond length for hydrogen: 1.2A
                                         if 0.57 < dist < 5.15:
-                                                self.bonds.append([at_i[1],at_j[1],at_i[0],at_j[0]])
+                                                self.bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
 
         def set_pbc_bonds(self):
                 nat = self.get_nat()
                 self.pbc_bonds=[self.get_bonds(),[],[],[],[],[],[],[]]
                 vec = self.get_vec()*self.get_celldm()
                 off = [0,vec[0],vec[1],vec[2],vec[0]+vec[1],vec[0]+vec[2],vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
+                at_c = self.at_c
+                at_n = self.at_n
                 for i in range(nat):
-                        at_i = self.get_atom(i)
                         for j in range(nat):
-                                at_j = self.get_atom(j)
-                                dist_at = at_i[1]-at_j[1]
-                                for k in range(1,8):
+                                dist_at = self.at_c[i] - self.at_c[j]
+                                for k in [1,2,3,4,5,6,7]:
                                         dist = dist_at+off[k]
 
                                         #cancel if distance in one direction is greater than allowed bond length
                                         if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
 
                                         dist = np.dot(dist,dist)
-                                        if at_i[0] != 'H' and at_j[0] != 'H':
+                                        if at_n[i] != 'H' and at_n[j] != 'H':
                                                 #maximum bond length: 1.9A
                                                 if 0.57 < dist < 12.25:
-                                                        self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
+                                                        self.pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
                                         else:
                                                 #maximum bond length for hydrogen: 1.2A
                                                 if 0.57 < dist < 5.15:
-                                                        self.pbc_bonds[k].append([at_i[1]+off[k],at_j[1],at_i[0],at_j[0]])
+                                                        self.pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
 
         #####################################################
         # EDIT FUNCTIONS

@@ -87,6 +87,7 @@ class MainView(QWidget):
                 self.cell = True
                 self.mouseMode = True
                 self.AA = True
+                self.bondShow = True
                 self.selection=[]
 
         def initUI(self):
@@ -255,10 +256,14 @@ class MainView(QWidget):
                 antiAlias = QAction('Toggle &Antialiasing',self)
                 antiAlias.setShortcut('a')
                 antiAlias.triggered.connect(self.aaHandler)
+                toggleBonds = QAction('Toggle &Bonds',self)
+                toggleBonds.setShortcut('b')
+                toggleBonds.triggered.connect(self.bondHandler)
                 #create menu
                 vMenu = self.parent.menuBar().addMenu('&View')
                 vMenu.addAction(changeProj)
                 vMenu.addAction(toggleCell)
+                vMenu.addAction(toggleBonds)
                 vMenu.addAction(antiAlias)
                 vMenu.addSeparator()
                 vMenu.addAction(mouseRotate)
@@ -365,7 +370,7 @@ class MainView(QWidget):
 
                 #prepare bonds with position,angle,axis and names (for coloring)
                 tempbonds=[[],[],[],[],[],[],[],[]]
-                for j in range(8):
+                for j in [0,1,2,3,4,5,6,7]:
                         for i in bonds[j]:
                                 #get positions of atoms
                                 a = i[0]
@@ -447,6 +452,15 @@ class MainView(QWidget):
         def cellHandler(self):
                 self.cell = not self.cell
                 self.visual.updateGL()
+
+        ########################################################
+        # Toggle Bonds
+        ########################################################
+
+        def bondHandler(self):
+                self.bondShow = not self.bondShow
+                self.visual.updateGL()
+
         ########################################################
         # Mouse mode
         ########################################################
@@ -460,7 +474,7 @@ class MainView(QWidget):
         ########################################################
         # Toggle AntiAliasing
         ########################################################
-        
+
         def aaHandler(self):
                 if self.AA:
                         self.AA = False
@@ -1239,7 +1253,7 @@ class ViewPort(QGLWidget):
                                QVector3D(-1.0, 0.0,-1.0),QVector3D( 1.0, 0.0,-1.0),QVector3D( 0.0,-1.0, 0.0),
                                QVector3D( 1.0, 0.0,-1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0)]
                 #subdivide and normalize for sphere:
-                for i in range(3):
+                for i in [0,1,2]:
                         sphere = self.sphere_subdiv(sphere)
                 self.atom_modelspace = sphere
 
@@ -1259,7 +1273,7 @@ class ViewPort(QGLWidget):
                 #start from circle
                 cylinder = [QVector3D(0.0,0.5,0.5),QVector3D(0.0,0.5,-0.5),QVector3D(0.0,-0.5,-0.5),
                             QVector3D(0.0,-0.5,0.5)]
-                for i in range(2):
+                for i in [0,1]:
                         cylinder = self.cylinder_subdiv(cylinder)
                 cylinder = self.cylinder_puzzle(cylinder)
                 self.bond_modelspace = cylinder
@@ -1352,7 +1366,8 @@ class ViewPort(QGLWidget):
                         self.drawAtomsSelect()
                 else:
                         self.drawAtoms()
-                        self.drawBonds()
+                        if self.parent.bondShow:
+                                self.drawBonds()
                         self.drawSelection()
                         if self.parent.cell:
                                 self.drawCell()
