@@ -195,6 +195,7 @@ class TBController(QApplication):
                 tmol = Molecule()
                 tparam = PWParam()
                 tcoord = []
+                tvec = [[0,0,0],[0,0,0],[0,0,0]]
                 #parse data and create tparam
                 while data:
                         header = data.pop(0).strip().split()
@@ -264,20 +265,163 @@ class TBController(QApplication):
                                                 tparam['K_POINTS']['disc']=kpoints
                                                 tparam['K_POINTS']['active']=header[1]
 
-                                #TODO: care for different formats
+                                #CELL_PARAMETERS tbd
+                                #only needed if ibrav=0
+                                #tbd changed between pw4 and pw5, ignored for now
                                 elif header[0] == 'CELL_PARAMETERS':
-                                        vec=[[0,0,0],[0,0,0],[0,0,0]]
                                         for i in [0,1,2]:
                                                 line = data.pop(0).strip().split()
-                                                vec[i]=[float(x)for x in line]
-                                        tmol.set_vec(vec)
+                                                tvec[i]=[float(x)for x in line]
                                 else:
                                         pass
 
-                #Create Molecule after getting the cell parameters
+                #Identify cell parameter representation, parse it
+                #TODO: temporarily saving everythin in ibrav=0 format, for gui-edit and saving
                 #set celldm from input
                 tmol.set_celldm(tparam['&system']['celldm(1)'])
-                #create atoms:
+                if tparam['&system']['ibrav'] == '0':
+                        #check if CELL_PARAMETERS card has been read, if not present, throw error
+                        if tvec == [[0,0,0],[0,0,0],[0,0,0]]:
+                                print 'CELL_PARAMETERS missing'
+                        else:
+                                tmol.set_vec(tvec)
+                elif tparam['&system']['ibrav'] == '1':
+                        #simple cubic is the default for new molecules
+                        #do nothing
+                        pass
+                elif tparam['&system']['ibrav'] == '2':
+                        #face centered cubic
+                        tmol.set_vec([[-0.5,0,0.5],[0,0.5,0.5],[-0.5,0.5,0]])
+                elif tparam['&system']['ibrav'] == '3':
+                        #body centered cubic
+                        tmol.set_vec([[0.5,0.5,0.5],[-0.5,0.5,0.5],[-0.5,-0.5,0.5]])
+                elif tparam['&system']['ibrav'] == '4':
+                        #hexagonal
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                tmol.set_vec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,ca]])
+                elif tparam['&system']['ibrav'] == '5':
+                        print 'cell descriptor not implemented yet'
+                elif tparam['&system']['ibrav'] == '-5':
+                        print 'cell descriptor not implemented yet'
+                elif tparam['&system']['ibrav'] == '6':
+                        #simple tetragonal
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                tmol.set_vec([[1,0,0],[0,1,0],[0,0,ca]])
+                elif tparam['&system']['ibrav'] == '7':
+                        #body centered tetragonal
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                tmol.set_vec([[0.5,-0.5,ca*0.5],[0.5,0.5,ca*0.5],[-0.5,-0.5,ca*0.5]])
+                elif tparam['&system']['ibrav'] == '8':
+                        #simple orthorhombic
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                tmol.set_vec([[1,0,0],[0,ba,0],[0,0,ca]])
+                elif tparam['&system']['ibrav'] == '9':
+                        #basis centered orthorhombic
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                tmol.set_vec([[0.5,ba*0.5,0],[-0.5,ba*0.5,0],[0,0,ca]])
+                elif tparam['&system']['ibrav'] == '10':
+                        #face centered orthorhombic
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                tmol.set_vec([[0.5,0,ca*0.5],[0.5,ba*0.5,0],[0,ba*0.5,ca*0.5]])
+                elif tparam['&system']['ibrav'] == '11':
+                        #body centered orthorhombic
+                        if not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                tmol.set_vec([[0.5,ba*0.5,ca*0.5],[-0.5,ba*0.5,ca*0.5],[-0.5,-ba*0.5,ca*0.5]])
+                elif tparam['&system']['ibrav'] == '12':
+                        #simple monoclinic
+                        if not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        elif not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(4)' in tparam['&system']:
+                                print 'celldm(4) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                cg = float(tparam['&system']['celldm(4)'])
+                                tmol.set_vec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],[0,0,ca]])
+                elif tparam['&system']['ibrav'] == '-12':
+                        #simple monoclinic, alternate definition
+                        if not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        elif not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(5)' in tparam['&system']:
+                                print 'celldm(5) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                cb = float(tparam['&system']['celldm(5)'])
+                                tmol.set_vec([[1,0,0],[0,ba,0],[ca*cb,0,ca*sqrt(1-cb)]])
+                elif tparam['&system']['ibrav'] == '13':
+                        #base centered monoclinic
+                        if not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        elif not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(4)' in tparam['&system']:
+                                print 'celldm(4) missing'
+                        else:
+                                ca = float(tparam['&system']['celldm(3)'])
+                                ba = float(tparam['&system']['celldm(2)'])
+                                cg = float(tparam['&system']['celldm(4)'])
+                                tmol.set_vec([[0.5,0,-ca*0.5],[ba*cg,ba*sqrt(1-cg),0],[0.5,0,ca*0.5]])
+                elif tparam['&system']['ibrav'] == '14':
+                        #base centered monoclinic
+                        if not 'celldm(2)' in tparam['&system']:
+                                print 'celldm(2) missing'
+                        elif not 'celldm(3)' in tparam['&system']:
+                                print 'celldm(3) missing'
+                        elif not 'celldm(4)' in tparam['&system']:
+                                print 'celldm(4) missing'
+                        elif not 'celldm(5)' in tparam['&system']:
+                                print 'celldm(5) missing'
+                        elif not 'celldm(6)' in tparam['&system']:
+                                print 'celldm(6) missing'
+                        else:
+                                ba = float(tparam['&system']['celldm(2)'])
+                                ca = float(tparam['&system']['celldm(3)'])
+                                cg = float(tparam['&system']['celldm(4)'])
+                                cb = float(tparam['&system']['celldm(5)'])
+                                cal = float(tparam['&system']['celldm(6)'])
+                                tmol.set_vec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],
+                                        [ca*cb,ca*(cal-cb*cg)/sqrt(1-cg),ca*sqrt(1+2*cal*cb*cg-cal*cal-cb*cb-cg*cg)/sqrt(1-cg)]])
+
+
+                #create atoms after creating cell:
                 for i in range(len(tcoord)):
                         tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
                 #delete nat and ntype before returning to controller

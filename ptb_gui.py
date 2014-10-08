@@ -68,7 +68,10 @@ class MainWindow(QMainWindow):
                 ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
                 ftype = str(ftype[0])
                 mol = self.centralWidget().getMolecule()
-                param = self.centralWidget().getParam()
+                if ftype=='PWScf Input':
+                        param = self.centralWidget().getParam()
+                else:
+                        param = False
                 coordfmt = self.centralWidget().coord.fmt.currentText()
                 self.controller.writeFile(ftype,mol,fname,param,coordfmt)
 

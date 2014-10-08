@@ -40,12 +40,15 @@
 
 # V0.5:
 
+- [ ] parse different bravais lattice specifications
+  - [ ] transform to primitive representation
 - [ ] Speed up rendering
   - [x] Deleted unnecessary setUniformValue calls
   - [ ] Evaluate Displaylists and VBOs
 - [x] Select Atoms graphically
   - [ ] Do something with it
 - [x] Improved startup by removing unnecessary bond calculations
+- [x] Fixed bug asking for PW parameters when saving to xyz
 
 # In the long run, wishlist:
 
