@@ -1221,6 +1221,9 @@ class ViewPort(QGLWidget):
                 glEnable(GL_BLEND)
                 glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
 
+                #set line width for cell
+                glLineWidth(2)
+
                 #set background color
                 self.qglClearColor(QColor(255,255,255,0))
 

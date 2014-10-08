@@ -10,7 +10,7 @@ from PyQt4.QtGui import *
 # Application
 #####################################################
 def main():
-        cProfile.run('main2()','prof-stats')
+        cProfile.run('main2()','stats.log')
 
 def main2():
         app = TBController(sys.argv)
