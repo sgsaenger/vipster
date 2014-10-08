@@ -28,6 +28,7 @@
   - [x] Coord editor right click menu
   - [x] PW Editor editing capabilities
   - [x] Better commandline parsing
+
 # V0.4:
 
 - [x] Improve rotation
@@ -37,6 +38,15 @@
 - [x] Screenshots
 - [x] Vastly improved speed of bond-setting routine
 
+# V0.5:
+
+- [ ] Speed up rendering
+  - [x] Deleted unnecessary setUniformValue calls
+  - [ ] Evaluate Displaylists and VBOs
+- [x] Select Atoms graphically
+  - [ ] Do something with it
+- [x] Improved startup by removing unnecessary bond calculations
+
 # In the long run, wishlist:
 
 - [ ] Better picture generation
@@ -44,7 +54,7 @@
   - [ ] Export to Povray
 - [ ] Bond setting has to be faster
   - [ ] Move to fortran code
-  - [ ] Reevaluate when calculation needs to happen
+  - [ ] Threads to improve responsiveness
 - [ ] Improve orthogonal projection
   - [x] display without zooming first
   - [ ] make it zoom on the same scale as perspective projection
@@ -52,5 +62,4 @@
 - [ ] Default PW Parameter sets
 - [ ] PW Parameters from PW Output
 - [ ] Input validators
-- [ ] Select Atoms graphically
 - [ ] Reduce Model polygons with increasing model count

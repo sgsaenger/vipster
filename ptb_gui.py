@@ -1081,7 +1081,7 @@ class ViewPort(QGLWidget):
         ##################################################
         # CALLED UPON INITIALISATION
         ##################################################
-        def __init__(self,parent,aa=False):
+        def __init__(self,parent):
                 #init with antialiasing
                 super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel))
                 self.parent = parent
@@ -1394,13 +1394,9 @@ class ViewPort(QGLWidget):
                         self.mMatrix.scale(atom[2])
                         #bind transformation matrices
                         self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
-                        self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
-                        #create light source:
-                        self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        self.sphereShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
                         #color vertices
                         self.sphereShader.setUniformValue('MaterialDiffuseColor',atom[1])
-                        #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
                         #draw
                         glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
                 #reset
@@ -1463,10 +1459,7 @@ class ViewPort(QGLWidget):
                         self.mMatrix.scale(atom[2]*1.3)
                         #bind transformation matrices
                         self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.sphereShader.setUniformValue('vMatrix',self.vMatrix)
-                        self.sphereShader.setUniformValue('mMatrix',self.mMatrix)
-                        #create light source:
-                        self.sphereShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        self.sphereShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
                         #color vertices
                         self.sphereShader.setUniformValue('MaterialDiffuseColor',QColor(120,120,150,200))
                         #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
@@ -1496,10 +1489,7 @@ class ViewPort(QGLWidget):
                         self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
                         # bind transformation matrices
                         self.bondShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.bondShader.setUniformValue('vMatrix',self.vMatrix)
-                        self.bondShader.setUniformValue('mMatrix',self.mMatrix)
-                        #light source:
-                        self.bondShader.setUniformValue('LightPosition_cameraspace',QVector3D(10,10,10))
+                        self.bondShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
                         #color vertices
                         self.bondShader.setUniformValue('Side1DiffuseColor',bond[3])
                         self.bondShader.setUniformValue('Side2DiffuseColor',bond[4])
@@ -1549,6 +1539,7 @@ class ViewPort(QGLWidget):
                 elif (e.buttons() & 2):
                         self.rotMat.setToIdentity()
                         self.updateGL()
+                self.updateGL()
                 #store initial position
                 self.mousePos = e.pos()
                 #stop event from getting pushed to parent

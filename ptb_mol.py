@@ -280,8 +280,6 @@ class TBController(QApplication):
                 #create atoms:
                 for i in range(len(tcoord)):
                         tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
-                #initialize bonds:
-                #tmol.set_pbc_bonds()
                 #delete nat and ntype before returning to controller
                 del tparam['&system']['nat']
                 del tparam['&system']['ntyp']
@@ -325,7 +323,6 @@ class TBController(QApplication):
                                         atom = data[j].split()
                                         tmol.create_atom(atom[1],float(atom[6]),float(atom[7]),float(atom[8]),'alat')
                                 i+=nat
-                                #tmol.set_pbc_bonds()
                                 tlist.append(tmol)
                         #read step-vectors if cell is variable
                         elif line[0] == 'CELL_PARAMETERS':
@@ -341,7 +338,6 @@ class TBController(QApplication):
                                         atom = data[j].split()
                                         tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip('()'))
                                 i+=nat
-                                #tmol.set_pbc_bonds()
                                 tlist.append(tmol)
                         #break on reaching final coordinates (duplicate)
                         elif line[0] == 'Begin':
