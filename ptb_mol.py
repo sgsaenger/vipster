@@ -303,9 +303,27 @@ class TBController(QApplication):
                                 ca = float(tparam['&system']['celldm(3)'])
                                 tmol.set_vec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,ca]])
                 elif tparam['&system']['ibrav'] == '5':
-                        print 'cell descriptor not implemented yet'
+                        #trigonal
+                        if not 'celldm(4)' in tparam['&system']:
+                                print 'celldm(4) missing'
+                        else:
+                                c = float(tparam['&system']['celldm(4)'])
+                                tx=sqrt((1-c)/2)
+                                ty=sqrt((1-c)/6)
+                                tz=sqrt((1+2*c)/3)
+                                tmol.set_vec([[tx,-ty,tz],[0,2*ty,tz],[-tx,-ty,tz]])
                 elif tparam['&system']['ibrav'] == '-5':
-                        print 'cell descriptor not implemented yet'
+                        #trigonal,alternative
+                        if not 'celldm(4)' in tparam['&system']:
+                                print 'celldm(4) missing'
+                        else:
+                                c = float(tparam['&system']['celldm(4)'])
+                                tx=sqrt((1-c)/2)
+                                ty=sqrt((1-c)/6)
+                                tz=sqrt((1+2*c)/3)
+                                u=(tz-2*sqrt(2)*ty)/sqrt(3)
+                                v=(tz+sqrt(2)*ty)/sqrt(3)
+                                tmol.set_vec([[u,v,v],[v,u,v],[v,v,u]])
                 elif tparam['&system']['ibrav'] == '6':
                         #simple tetragonal
                         if not 'celldm(3)' in tparam['&system']:
