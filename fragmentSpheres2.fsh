@@ -1,28 +1,17 @@
 #version 330
 
 //! [0]
-uniform vec4 Side1DiffuseColor;
-uniform vec4 Side2DiffuseColor;
+//layout(location=4) in vec4 MaterialDiffuseColor;
+uniform vec4 MaterialDiffuseColor;
 
 out vec4 fragColor;
 
-in float vertex_side;
 in vec3 normals_cameraspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
 
 void main(void)
 {
-    //determine color:
-    vec4 MaterialDiffuseColor = vec4(0,0,0,0);
-    if (vertex_side > 0.0)
-    {
-        MaterialDiffuseColor = Side1DiffuseColor;
-    }
-    else if (vertex_side < 0.0)
-    {
-        MaterialDiffuseColor = Side2DiffuseColor;
-    }
     //hardcoded lighting parameters.
     //think about putting them as uniforms.
     vec3 LightColor = vec3(1,1,1);
@@ -50,6 +39,6 @@ void main(void)
     vec3 fragTemp = MaterialAmbientColor +
 		MaterialSpecularColor*LightColor*LightPower * pow(cosAlpha,10)/(distance*distance)+
                 MaterialDiffuseColor.xyz*LightColor*LightPower*cosTheta/(distance*distance);
-    fragColor = vec4(fragTemp,1.0);
+    fragColor = vec4(fragTemp,MaterialDiffuseColor.a);
 }
 //! [0]
