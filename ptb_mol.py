@@ -41,14 +41,107 @@ pse={"X":  [0,0.0],
 
      "K" : [19,39.098],
      "Ca": [20,40.078],
+     "Sc": [21,44.9559],
+     "Ti": [22,47.867],
+     "V" : [23,50.9415],
+     "Cr": [24,51.9961],
+     "Mn": [25,54.938],
+     "Fe": [26,55.845],
+     "Co": [27,58.9332],
+     "Ni": [28,58.6934],
+     "Cu": [29,63.546],
+     "Zn": [30,65.39],
      "Ga": [31,69.723],
      "Ge": [32,72.64],
      "As": [33,74.922],
      "Se": [34,78.96],
      "Br": [35,79.904],
-     "Kr": [36,83.798]
+     "Kr": [36,83.798],
 
-     }
+     "Rb" : [37,85.4678],
+     "Sr" : [38,87.62],
+     "Y"  : [39,88.9059],
+     "Zr" : [40,91.224],
+     "Nb" : [41,92.9064],
+     "Mo" : [42,95.94],
+     "Tc" : [43,98.0],
+     "Ru" : [44,101.07],
+     "Rh" : [45,102.9055],
+     "Pd" : [46,106.42],
+     "Ag" : [47,107.8682],
+     "Cd" : [48,112.411],
+     "In" : [49,114.818],
+     "Sn" : [50,118.71],
+     "Sb" : [51,121.76],
+     "Te" : [52,127.6],
+     "I"  : [53,126.9045],
+     "Xe" : [54,131.293],
+
+     "Cs" : [55,132.9055],
+     "Ba" : [56,137.327],
+     "La" : [57,138.9055],
+     "Ce" : [58,140.116],
+     "Pr" : [59,140.9077],
+     "Nd" : [60,144.24],
+     "Pm" : [61,145.0],
+     "Sm" : [62,150.36],
+     "Eu" : [63,151.964],
+     "Gd" : [64,157.25],
+     "Tb" : [65,158.9253],
+     "Dy" : [66,162.5],
+     "Ho" : [67,164.9303],
+     "Er" : [68,167.259],
+     "Tm" : [69,168.9342],
+     "Yb" : [70,173.04],
+     "Lu" : [71,174.967],
+     "Hf" : [72,178.49],
+     "Ta" : [73,180.9479],
+     "W"  : [74,183.84],
+     "Re" : [75,186.207],
+     "Os" : [76,190.23],
+     "Ir" : [77,192.217],
+     "Pt" : [78,195.078],
+     "Au" : [79,196.9665],
+     "Hg" : [80,200.592],
+     "Tl" : [81,204.3833],
+     "Pb" : [82,207.2],
+     "Bi" : [83,208.9804],
+     "Po" : [84,209],
+     "At" : [85,210],
+     "Rn" : [86,222],
+
+     "Fr" : [87,223],
+     "Ra" : [88,226],
+     "Ac" : [89,227],
+     "Th" : [90,232.03806],
+     "Pa" : [91,231.03588],
+     "U"  : [92,238.02891],
+     "Np" : [93,237],
+     "Pu" : [94,244],
+     "Am" : [95,243],
+     "Cm" : [96,247],
+     "Bk" : [97,247],
+     "Cf" : [98,251],
+     "Es" : [99,252],
+     "Fm" : [100,257],
+     "Md" : [101,258],
+     "No" : [102,259],
+     "Lr" : [103,266],
+     "Rf" : [104,267],
+     "Db" : [105,268],
+     "Sg" : [106,269],
+     "Bh" : [107,270],
+     "Hs" : [108,269],
+     "Mt" : [109,278],
+     "Ds" : [110,281],
+     "Rg" : [111,281],
+     "Cn" : [112,285],
+     "Uut": [113,286],
+     "Fl" : [114,289],
+     "Uup": [115,289],
+     "Lv" : [116,293],
+     "Uus": [117,294],
+     "Uuo": [118,294]}
 
 ######################################################################
 # MAIN CONTROLLER CLASS
@@ -63,7 +156,8 @@ class TBController(QApplication):
                 self.indict = OrderedDict([('xyz',self.parseXyz),
                                ('PWScf Input',self.parsePwi),
                                ('PWScf Output' , self.parsePwo),
-                               ('PWO Final Conf.',self.parsePwoFinal)])
+                               ('PWO Final Conf.',self.parsePwoFinal),
+                               ('Gaussian Cube File',self.parseCube)])
                 self.outdict= OrderedDict([('PWScf Input',self.writePwi),
                                ('xyz',self.writeXyz)])
                 QTimer.singleShot(0,self.argumentHandler)
@@ -109,6 +203,12 @@ class TBController(QApplication):
                                         i+=1
                                         while i<len(self.argv) and self.argv[i][0]!='-':
                                                 self.readFile('xyz',self.argv[i])
+                                                i+=1
+                                        self.gui.centralWidget().loadView()
+                                elif self.argv[i] == '-cube':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('Gaussian Cube File',self.argv[i])
                                                 i+=1
                                         self.gui.centralWidget().loadView()
 
@@ -278,7 +378,7 @@ class TBController(QApplication):
                 #Identify cell parameter representation, parse it
                 #TODO: temporarily saving everythin in ibrav=0 format, for gui-edit and saving
                 #set celldm from input
-                tmol.set_celldm(tparam['&system']['celldm(1)'])
+                tmol.set_celldm(np.float(tparam['&system']['celldm(1)']))
                 if tparam['&system']['ibrav'] == '0':
                         #check if CELL_PARAMETERS card has been read, if not present, throw error
                         if tvec == [[0,0,0],[0,0,0],[0,0,0]]:
@@ -546,6 +646,49 @@ class TBController(QApplication):
                         else:
                                 pass
                         i+=1
+                self.mol.append([tmol])
+
+        def parseCube(self,data):
+                tmol = Molecule()
+                tcoord=[]
+                tvec=[[0,0,0],[0,0,0],[0,0,0]]
+                #parse data
+                i=0
+                #two lines of comments, combine
+                tmol.comment=data[0]+";"+data[1]
+                #nat, origin[3]
+                nat=int(data[2].split()[0])
+                origin=[float(data[2].split()[i]) for i in [1,2,3]]
+                #n of datapoints(dir),cell_vec[3]
+                nvol=[0,0,0]
+                tvec=[0,0,0]
+                for i in [0,1,2]:
+                        line=data[i+3].split()
+                        nvol[i]=int(line[0])
+                        tvec[i]=[float(line[j])*nvol[i] for j in [1,2,3]]
+                tmol.set_vec(tvec)
+                tmol.nvol=nvol
+                for i in range(nat):
+                        # line = Z, charge(ignored), coord(x,y,z)
+                        line=data[i+6].split()
+                        # crazy list comprehension in order to identify the name of the atom
+                        tmol.create_atom([j[0] for j in pse.items() if j[1][0]==int(line[0])][0],\
+                                        float(line[2]),float(line[3]),float(line[4]),'bohr')
+                #rest of file has datagrid, x is outer loop, z inner
+                tmol.volume=np.array([[[0.]*nvol[0]]*nvol[1]]*nvol[2])
+                i=6+nat
+                j=0
+                line=data[i].split()
+                for x in range(nvol[0]):
+                        for y in range(nvol[1]):
+                                for z in range(nvol[2]):
+                                        tmol.volume[x][y][z]=float(line[j])
+                                        j+=1
+                                        if j==len(line) and i<(len(data)-1):
+                                                j=0
+                                                i+=1
+                                                line=data[i].split()
+                #finished molecule will be appended to list
                 self.mol.append([tmol])
 
 #############################################################################
@@ -864,6 +1007,15 @@ class Molecule:
                         nat = self.get_nat()
                 self.set_vec(self.get_vec()*[[x],[y],[z]])
 
+        #####################################################
+        # VOLUME DATA FUNCTIONS
+        #####################################################
+
+        def vol_plane(self,height):
+                if not 0<=height<self.nvol[2]:
+                        return
+                plane=self.volume[0:self.nvol[0],0:self.nvol[1],height]
+                return plane
 
 class PWParam(dict):
 

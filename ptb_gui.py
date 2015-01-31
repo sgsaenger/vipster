@@ -234,7 +234,6 @@ class MainView(QWidget):
                 rcol.hide()
                 editBut.clicked.connect(rcol.setVisible)
 
-
         #Lay out columns:
                 hbox = QHBoxLayout()
                 hbox.addWidget(lcol)
@@ -342,6 +341,7 @@ class MainView(QWidget):
                 self.prepObjects()
 
         def prepObjects(self):
+                #prepare atoms and bonds for drawing
                 if not hasattr(self,'mol'):return
                 #local variables for convenience
                 mult = self.mult
@@ -394,6 +394,10 @@ class MainView(QWidget):
                 self.atoms=[]
                 self.bonds = []
                 self.cells = []
+                #seperate lists for instanced rendering:
+                self.atom_pos=[]
+                self.atom_size=[]
+                self.atom_col=[]
                 edge = np.max(self.off,axis=0)
                 for i1 in self.off:
                         off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
@@ -401,6 +405,9 @@ class MainView(QWidget):
                         for j in atoms:
                                 #save coord,color,size
                                 self.atoms.append((j[1]+off,self.visual.pse[j[0]][2],self.visual.pse[j[0]][1]))
+                                self.atom_pos.append(QVector3D((j[1]+off)[0],(j[1]+off)[1],(j[1]+off)[2]))
+                                self.atom_col.append(QVector4D(self.visual.pse[j[0]][2].redF(),self.visual.pse[j[0]][2].blueF(),self.visual.pse[j[0]][2].greenF(),1))
+                                self.atom_size.append([self.visual.pse[j[0]][1]])
                         for j in tempbonds[0]:
                                 self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
                                 pass
@@ -604,7 +611,7 @@ class MolArea(QWidget):
                 self.table.addAction(self.copyA)
                 self.pasteA = QAction('Paste Atom(s)',self)
                 self.pasteA.setShortcut('Ctrl+V')
-                self.pasteA.triggered.connect(self.copyAt)
+                self.pasteA.triggered.connect(self.pasteAt)
                 self.table.addAction(self.pasteA)
                 self.delA = QAction('Delete Atom(s)',self)
                 self.delA.setShortcut('Del')
@@ -1028,10 +1035,13 @@ class EditArea(QWidget):
                 super(EditArea,self).__init__()
                 self.initStack()
                 self.initMult()
+                self.initPlane()
                 self.parent = parent
 
         def setMol(self,mol):
                 self.mol = mol
+                if hasattr(self.mol,'volume'):
+                        self.zPlane.setValidator(QIntValidator(0,len(self.mol.volume[0][0])))
 
         def initStack(self):
                 self.stack = QStackedWidget()
@@ -1079,6 +1089,41 @@ class EditArea(QWidget):
                 self.mol.set_pbc_bonds()
                 self.parent.updateMolStep()
 
+        def initPlane(self):
+                self.plane = QWidget()
+                self.combo.addItem('2D-PP')
+                self.stack.addWidget(self.plane)
+                self.zPlane = QLineEdit()
+                self.zPlane.setText('0')
+                self.zPlane.setValidator(QIntValidator(0,0))
+                planeBut = QPushButton('Calc')
+                planeBut.clicked.connect(self.planeHandler)
+                hbox=QHBoxLayout()
+                hbox.addWidget(QLabel('z-Plane:'))
+                hbox.addWidget(self.zPlane)
+                hbox.addWidget(planeBut)
+                self.plane.setLayout(hbox)
+
+        def planeHandler(self):
+                #plane = self.mol.vol_plane(int(self.zPlane.text()))
+                print 'mean potential: '+str(self.mol.volume.mean())
+                for k in range(self.mol.nvol[2]):
+                        plane = self.mol.vol_plane(k)
+                        #img = QImage(len(plane),len(plane[0]),QImage.Format_RGB888)
+                        #min=self.mol.volume.min()
+                        #max=self.mol.volume.max()
+                        #diff=max-min
+                        #for i in range(len(plane)):
+                        #        for j in range(len(plane[0])):
+                        #                c=(plane[i][j]-min)/diff
+                        #                r=255*np.exp(-6.25*(c-0.9)**2)
+                        #                g=255*np.exp(-6.25*(c-0.5)**2)
+                        #                b=255*np.exp(-6.25*(c-0.1)**2)
+                        #                img.setPixel(i,j,qRgb(r,g,b))
+                        #img.save('plane'+str(k)+'.png',None,-1)
+                        print "potential "+str(k)+': '+str(plane.mean())
+                        print "min: "+str(plane.min())+" max: "+str(plane.max())
+
 class ViewPort(QGLWidget):
 
         ##################################################
@@ -1089,6 +1134,7 @@ class ViewPort(QGLWidget):
                 super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel))
                 self.parent = parent
                 self.sphereShader = QGLShaderProgram()
+                self.sphereShader2 = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.bondShader = QGLShaderProgram()
                 self.selectShader = QGLShaderProgram()
@@ -1096,6 +1142,7 @@ class ViewPort(QGLWidget):
                 self.ysh = 0
                 self.rotMat = QMatrix4x4()
                 self.distance = 25
+                # radii, color
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191,255)],
                           'He': [1.40,0.32,QColor(216,255,255,255)],
                           'Li': [1.82,1.34,QColor(204,127,255,255)],
@@ -1231,6 +1278,8 @@ class ViewPort(QGLWidget):
                 self.qglClearColor(QColor(255,255,255,0))
 
                 #add shaders:
+                self.sphereShader2.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres2.vsh')
+                self.sphereShader2.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres2.fsh')
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres.vsh')
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
                 self.bondShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexBonds.vsh')
@@ -1371,10 +1420,14 @@ class ViewPort(QGLWidget):
                 if select:
                         self.drawAtomsSelect()
                 else:
-                        self.drawAtoms()
+                        #self.drawAtomsInstanced()
+                        #self.drawAtoms()
                         if self.parent.bondShow:
+                                self.drawAtoms()
                                 self.drawBonds()
-                        self.drawSelection()
+                        else:
+                                self.drawAtomsInstanced()
+                        #self.drawSelection()
                         if self.parent.cell:
                                 self.drawCell()
 
@@ -1409,6 +1462,49 @@ class ViewPort(QGLWidget):
                 self.sphereShader.disableAttributeArray('vertex_modelspace')
                 self.sphereShader.disableAttributeArray('normals_modelspace')
                 self.sphereShader.release()
+
+
+        def drawAtomsInstanced(self):
+                #bind sahders:
+                self.sphereShader2.bind()
+
+                #send vertices
+                self.sphereShader2.setAttributeArray('vertex_modelspace',self.atom_modelspace)
+                self.sphereShader2.enableAttributeArray('vertex_modelspace')
+                #send normals for lighting
+                #equal coordinates for sphere
+                self.sphereShader2.setAttributeArray('normals_modelspace',self.atom_modelspace)
+                self.sphereShader2.enableAttributeArray('normals_modelspace')
+
+                # transformation matrices, model matrix needs not perform anything here
+                self.sphereShader2.setUniformValue('mvpMatrix',self.proj*self.vMatrix)
+                self.sphereShader2.setUniformValue('mvMatrix',self.vMatrix)
+
+                # instanced vector for shift of position
+                self.sphereShader2.setAttributeArray('position_modelspace',self.parent.atom_pos)
+                self.sphereShader2.enableAttributeArray('position_modelspace')
+                glVertexAttribDivisor(0,1)
+                # instanced scaling factor
+                self.sphereShader2.setAttributeArray('scale_modelspace',self.parent.atom_size)
+                self.sphereShader2.enableAttributeArray('scale_modelspace')
+                glVertexAttribDivisor(1,1)
+                # instanced color
+                self.sphereShader2.setUniformValue('MaterialDiffuseColor',self.pse['C'][2])
+                #self.sphereShader2.setAttributeArray('MaterialDiffuseColor',self.parent.atom_col)
+                #self.sphereShader2.enableAttributeArray('MaterialDiffuseColor')
+                #glVertexAttribDivisor(2,1)
+                # draw instances
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.atom_modelspace),len(self.parent.atom_pos))
+
+                #reset
+                self.sphereShader2.disableAttributeArray('vertex_modelspace')
+                self.sphereShader2.disableAttributeArray('normals_modelspace')
+                self.sphereShader2.disableAttributeArray('position_modelspace')
+                glVertexAttribDivisor(0,0)
+                glVertexAttribDivisor(1,0)
+                #self.sphereShader2.disableAttributeArray('scale_modelspace')
+                #self.sphereShader2.disableAttributeArray('MaterialDiffuseColor')
+                self.sphereShader2.release()
 
         def drawAtomsSelect(self):
                 #bind shaders:
