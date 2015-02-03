@@ -667,8 +667,7 @@ class MolArea(QWidget):
 
         def pasteAt(self):
                 pos = self.table.currentRow()+1
-                self.sel.reverse()
-                for at in self.sel:
+                for at in reversed(self.sel):
                         self.mol.insert_atom(pos,at)
                 self.mol.set_bonds()
                 self.mol.set_pbc_bonds()
