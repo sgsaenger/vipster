@@ -804,12 +804,12 @@ class Molecule:
 
         def __init__(self):
                 # set atom list
-                self.at_n=[]
-                self.at_c=[]
-                self.celldm = 1.0
-                self.vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
-                self.vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
-                self.comment = ''
+                self._atom_name=[]
+                self._atom_coord=[]
+                self._celldm = 1.0
+                self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+                self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+                self._comment = ''
 
         ######################################################
         # ATOM FUNCTIONS
@@ -817,23 +817,23 @@ class Molecule:
 
         # append new atom
         def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
-                self.at_n.append(name)
-                self.at_c.append(self.set_coord([x,y,z],fmt))
+                self._atom_name.append(name)
+                self._atom_coord.append(self._set_coord([x,y,z],fmt))
 
         # append copy of existing atom
         def append_atom_cp(self,addat):
-                self.at_n.append(addat[0])
-                self.at_c.append(self.set_coord(addat[1],addat[2]))
+                self._atom_name.append(addat[0])
+                self._atom_coord.append(self._set_coord(addat[1],addat[2]))
 
         # insert atom at given position
         def insert_atom(self,pos,addat):
-                self.at_n.insert(pos,addat[0])
-                self.at_c.insert(pos,self.set_coord(addat[1],addat[2]))
+                self._atom_name.insert(pos,addat[0])
+                self._atom_coord.insert(pos,self._set_coord(addat[1],addat[2]))
 
         # remove atom
         def del_atom(self,index):
-                del self.at_n[index]
-                del self.at_c[index]
+                del self._atom_name[index]
+                del self._atom_coord[index]
 
         # append molecule
         #def append_mol(self, mol):
@@ -845,78 +845,68 @@ class Molecule:
         ######################################################
 
         def set_atom(self,index,name,coord,fmt):
-                self.at_n[index]=name
-                self.at_c[index]=self.set_coord(coord,fmt)
+                self._atom_name[index]=name
+                self._atom_coord[index]=self._set_coord(coord,fmt)
 
         def set_comment(self,comment):
-                self.comment = comment
+                self._comment = comment
 
         # set celldm
         def set_celldm(self,cdm):
-                self.celldm = float(cdm)
-                self.set_center()
+                self._celldm = float(cdm)
 
         # set vectors in bohr
         def set_vec(self,vec):
-                self.vec = np.array(vec).T
-                self.vecinv = np.linalg.inv(self.vec)
-                self.set_center()
-
-        # set center of cell
-        def set_center(self):
-                vec = self.get_vec()
-                x = self.vec[0]
-                y = self.vec[1]
-                z = self.vec[2]
-                self.center = (vec[0]+vec[1]+vec[2])*self.celldm/2
+                self._vec = np.array(vec)
+                self._vecinv = np.linalg.inv(self._vec)
 
         #######################################################
         # COORD FMT FUNCTIONS
         # to be called only by atom set/get
         ######################################################
 
-        def set_coord(self,coord,fmt='bohr'):
+        def _set_coord(self,coord,fmt='bohr'):
                 coord = np.array(coord)
                 if fmt == 'angstrom':
                         return coord/0.52917721092
                 elif fmt == 'bohr':
                         return coord
                 elif fmt == 'crystal':
-                        return np.dot(self.vec,coord)*self.celldm
+                        return np.dot(coord,self._vec)*self._celldm
                 elif fmt == 'alat':
-                        return coord*self.celldm
+                        return coord*self._celldm
 
-        def get_coord(self,coord,fmt):
+        def _get_coord(self,coord,fmt):
                 if fmt == 'angstrom':
                         return coord*0.52917721092
                 elif fmt == 'bohr':
                         return coord
                 elif fmt == 'crystal':
-                        return np.dot(self.vecinv,coord)/self.celldm
+                        return np.dot(coord,self._vecinv)/self._celldm
                 elif fmt == 'alat':
-                        return coord/self.celldm
+                        return coord/self._celldm
 
         ######################################################
         # RETURN FUNCTIONS
         ######################################################
         def get_nat(self):
-                return len(self.at_c)
+                return len(self._atom_coord)
 
         def get_celldm(self):
-                return self.celldm
+                return self._celldm
 
         def get_atom(self,index,fmt='bohr'):
-                return [self.at_n[index],self.get_coord(self.at_c[index],fmt),fmt]
+                return [self._atom_name[index],self._get_coord(self._atom_coord[index],fmt),fmt]
 
         def get_vec(self):
-                return self.vec.T
+                return self._vec
 
         def get_comment(self):
-                return self.comment
+                return self._comment
 
         def get_types(self):
                 types = set()
-                for i in self.at_n:
+                for i in self._atom_name:
                     types.add(i)
                 return types
 
@@ -924,27 +914,25 @@ class Molecule:
                 return len(self.get_types())
 
         def get_center(self):
-                if not hasattr(self,'center'):
-                        self.set_center()
-                return self.center
+                return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
 
         ######################################################
         # BOND FUNCTIONS
         ######################################################
 
         def get_bonds(self):
-                if not hasattr(self,'bonds'): self.set_bonds()
-                return self.bonds
+                if not hasattr(self,'_bonds'): self.set_bonds()
+                return self._bonds
 
         def get_pbc_bonds(self):
-                if not hasattr(self,'pbc_bonds'): self.set_pbc_bonds()
-                return self.pbc_bonds
+                if not hasattr(self,'_pbc_bonds'): self.set_pbc_bonds()
+                return self._pbc_bonds
 
         def set_bonds(self):
                 nat = self.get_nat()
-                self.bonds = []
-                at_c = self.at_c
-                at_n = self.at_n
+                self._bonds = []
+                at_c = self._atom_coord
+                at_n = self._atom_name
 
                 for i in range(nat):
                         for j in range(i+1,nat):
@@ -957,22 +945,22 @@ class Molecule:
                                 if at_n[i] != 'H' and at_n[j] != 'H':
                                         #maximum bond length: 1.9A
                                         if 0.57 < dist < 12.25:
-                                                self.bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
+                                                self._bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
                                 else:
                                         #maximum bond length for hydrogen: 1.2A
                                         if 0.57 < dist < 5.15:
-                                                self.bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
+                                                self._bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
 
         def set_pbc_bonds(self):
                 nat = self.get_nat()
-                self.pbc_bonds=[self.get_bonds(),[],[],[],[],[],[],[]]
+                self._pbc_bonds=[self.get_bonds(),[],[],[],[],[],[],[]]
                 vec = self.get_vec()*self.get_celldm()
                 off = [0,vec[0],vec[1],vec[2],vec[0]+vec[1],vec[0]+vec[2],vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
-                at_c = self.at_c
-                at_n = self.at_n
+                at_c = self._atom_coord
+                at_n = self._atom_name
                 for i in range(nat):
                         for j in range(nat):
-                                dist_at = self.at_c[i] - self.at_c[j]
+                                dist_at = self._atom_coord[i] - self._atom_coord[j]
                                 for k in [1,2,3,4,5,6,7]:
                                         dist = dist_at+off[k]
 
@@ -983,11 +971,11 @@ class Molecule:
                                         if at_n[i] != 'H' and at_n[j] != 'H':
                                                 #maximum bond length: 1.9A
                                                 if 0.57 < dist < 12.25:
-                                                        self.pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
+                                                        self._pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
                                         else:
                                                 #maximum bond length for hydrogen: 1.2A
                                                 if 0.57 < dist < 5.15:
-                                                        self.pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
+                                                        self._pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
 
         #####################################################
         # EDIT FUNCTIONS
@@ -1011,7 +999,7 @@ class Molecule:
         #####################################################
 
         def vol_plane(self,height):
-                if not 0<=height<self.nvol[2]:
+                if not (0<=height<self.nvol[2] or hasattr(self,'volume')):
                         return
                 plane=self.volume[0:self.nvol[0],0:self.nvol[1],height]
                 return plane
