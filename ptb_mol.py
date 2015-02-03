@@ -151,22 +151,22 @@ class TBController(QApplication):
         def __init__(self,argv):
                 super(TBController,self).__init__(argv)
                 self.argv = argv
-                self.mol = []
-                self.pwdata = []
-                self.indict = OrderedDict([('xyz',self.parseXyz),
-                               ('PWScf Input',self.parsePwi),
-                               ('PWScf Output' , self.parsePwo),
-                               ('PWO Final Conf.',self.parsePwoFinal),
-                               ('Gaussian Cube File',self.parseCube)])
-                self.outdict= OrderedDict([('PWScf Input',self.writePwi),
-                               ('xyz',self.writeXyz)])
-                QTimer.singleShot(0,self.argumentHandler)
+                self._mol = []
+                self._pwdata = []
+                self.indict = OrderedDict([('xyz',self._parseXyz),
+                               ('PWScf Input',self._parsePwi),
+                               ('PWScf Output' , self._parsePwo),
+                               ('PWO Final Conf.',self._parsePwoFinal),
+                               ('Gaussian Cube File',self._parseCube)])
+                self.outdict= OrderedDict([('PWScf Input',self._writePwi),
+                               ('xyz',self._writeXyz)])
+                QTimer.singleShot(0,self._argumentHandler)
 
 
 #####################################################################
 # Handle command line arguments:
 #####################################################################
-        def argumentHandler(self):
+        def _argumentHandler(self):
                 #no argument: start GUI
                 if len(self.argv) == 1:
                         self.gui = MainWindow(self)
@@ -216,7 +216,7 @@ class TBController(QApplication):
 # Print help
 #####################################################################
 
-        def print_help(self):
+        def _print_help(self):
                 f = sys.stdout
                 f.write('PWToolBox usage:\n')
                 f.write('ptb_main [OPTIONS]\n\n')
@@ -242,19 +242,19 @@ class TBController(QApplication):
 #####################################################################
 
         def get_mol(self,index,step):
-                return self.mol[index][step]
+                return self._mol[index][step]
 
         def get_lmol(self,index):
-                return len(self.mol[index])
+                return len(self._mol[index])
 
         def get_nmol(self):
-                return len(self.mol)
+                return len(self._mol)
 
         def get_pw(self,index):
-                return self.pwdata[index]
+                return self._pwdata[index]
 
         def get_npw(self):
-                return len(self.pwdata)
+                return len(self._pwdata)
 
 #####################################################################
 # READ FUNCTIONS
@@ -265,7 +265,7 @@ class TBController(QApplication):
                 self.indict[fmt](data)
                 #return data
 
-        def parseXyz(self,data):
+        def _parseXyz(self,data):
                 # create list of mol, trajectory support
                 tlist = []
                 # if first line does not contain nat exit
@@ -288,9 +288,9 @@ class TBController(QApplication):
                         i+=nat+2
                         tlist.append(tmol)
                 #append to list of molecules
-                self.mol.append(tlist)
+                self._mol.append(tlist)
 
-        def parsePwi(self,data):
+        def _parsePwi(self,data):
                 # no need for list, only one molecule per file
                 tmol = Molecule()
                 tparam = PWParam()
@@ -547,10 +547,10 @@ class TBController(QApplication):
                 del tparam['&system']['ntyp']
 
                 #Append to controller
-                self.mol.append([tmol])
-                self.pwdata.append(tparam)
+                self._mol.append([tmol])
+                self._pwdata.append(tparam)
 
-        def parsePwo(self,data):
+        def _parsePwo(self,data):
                 #Multiple configs supported
                 tlist = []
                 #TODO: recreate used parameters
@@ -608,9 +608,9 @@ class TBController(QApplication):
                         else:
                                 pass
                         i+=1
-                self.mol.append(tlist)
+                self._mol.append(tlist)
 
-        def parsePwoFinal(self,data):
+        def _parsePwoFinal(self,data):
                 #parse only the final config for commandline actions
                 i=0
                 vec=[[0,0,0],[0,0,0],[0,0,0]]
@@ -646,9 +646,9 @@ class TBController(QApplication):
                         else:
                                 pass
                         i+=1
-                self.mol.append([tmol])
+                self._mol.append([tmol])
 
-        def parseCube(self,data):
+        def _parseCube(self,data):
                 tmol = Molecule()
                 tcoord=[]
                 tvec=[[0,0,0],[0,0,0],[0,0,0]]
@@ -689,7 +689,7 @@ class TBController(QApplication):
                                                 i+=1
                                                 line=data[i].split()
                 #finished molecule will be appended to list
-                self.mol.append([tmol])
+                self._mol.append([tmol])
 
 #############################################################################
 # WRITE FUNCTIONS
@@ -698,7 +698,7 @@ class TBController(QApplication):
         def writeFile(self,ftype,mol,filename,param="",coordfmt=""):
                 self.outdict[ftype](mol,filename,param,coordfmt)
 
-        def writeXyz(self,mol,filename,param,coordfmt):
+        def _writeXyz(self,mol,filename,param,coordfmt):
                 if filename == "":
                         f=sys.stdout
                 else:
@@ -713,7 +713,7 @@ class TBController(QApplication):
                                      atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
                 f.close()
 
-        def writePwi(self,mol,filename,param,coordfmt):
+        def _writePwi(self,mol,filename,param,coordfmt):
                 if filename == "":
                         f=sys.stdout
                 else:
