@@ -170,11 +170,10 @@ class TBController(QApplication):
                 #no argument: start GUI
                 if len(self.argv) == 1:
                         self.gui = MainWindow(self)
-                #check for misformatted options:
-                elif self.argv[1][0]!='-': self.print_help()
-                elif self.argv[1][0:2]=='--': self.print_help()
-                #check for help request:
-                elif '-h' in self.argv: self.print_help()
+                #check for misformatted options or help request:
+                elif self.argv[1][0]!='-': self._print_help(22)
+                elif self.argv[1][0:2]=='--': self._print_help(22)
+                elif '-h' in self.argv: self._print_help(0)
                 #check for input files, start gui and load
                 else:
                         self.gui = MainWindow(self)
@@ -216,7 +215,7 @@ class TBController(QApplication):
 # Print help
 #####################################################################
 
-        def _print_help(self):
+        def _print_help(self,err):
                 f = sys.stdout
                 f.write('PWToolBox usage:\n')
                 f.write('ptb_main [OPTIONS]\n\n')
@@ -227,7 +226,7 @@ class TBController(QApplication):
                 f.write('-pwi [FILES]: open PWScf input file(s)\n')
                 f.write('-pwo [FILES]: open PWScf output file(s)\n')
                 f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
-                self.quit()
+                self.exit(err)
 
 #####################################################################
 # Commandline Actions
