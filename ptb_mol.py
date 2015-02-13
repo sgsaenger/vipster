@@ -788,7 +788,6 @@ class TBController(QApplication):
 
                 #Cell parameters
                 f.write('CELL_PARAMETERS'+'\n')
-                vec = mol.get_vec()
                 fmt='{0[0][0]:15.10f} {0[0][1]:15.10f} {0[0][2]:15.10f}\n' + \
                     '{0[1][0]:15.10f} {0[1][1]:15.10f} {0[1][2]:15.10f}\n' + \
                     '{0[2][0]:15.10f} {0[2][1]:15.10f} {0[2][2]:15.10f}\n'
@@ -894,6 +893,9 @@ class Molecule:
 
         def get_celldm(self):
                 return self._celldm
+
+        def get_all_atoms(self):
+                return zip(self._atom_name,self._atom_coord)
 
         def get_atom(self,index,fmt='bohr'):
                 return [self._atom_name[index],self._get_coord(self._atom_coord[index],fmt),fmt]

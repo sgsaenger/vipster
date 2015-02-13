@@ -1,6 +1,5 @@
 #version 330
 
-//! [0]
 uniform mat4 mvpMatrix;
 uniform mat4 mvMatrix;
 
@@ -30,4 +29,3 @@ void main(void)
     //Normals in camera space
     normals_cameraspace = (mvMatrix * vec4(normals_modelspace,0)).xyz;
 }
-//! [0]

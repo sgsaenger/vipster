@@ -1,6 +1,5 @@
 #version 330
 
-//! [0]
 uniform mat4 mvpMatrix;
 uniform mat4 mvMatrix;
 
@@ -8,8 +7,8 @@ out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
 out vec3 LightDirection_cameraspace;
 
-in vec3 vertex_modelspace;
-in vec3 normals_modelspace;
+layout(location=2) in vec3 vertex_modelspace;
+//normals == vertices
 
 void main(void)
 {
@@ -26,6 +25,5 @@ void main(void)
     LightDirection_cameraspace = vec3(10,10,10) + EyeDirection_cameraspace;
 
     //Normals in camera space
-    normals_cameraspace = (mvMatrix * vec4(normals_modelspace,0)).xyz;
+    normals_cameraspace = (mvMatrix * vec4(vertex_modelspace,0)).xyz;
 }
-//! [0]

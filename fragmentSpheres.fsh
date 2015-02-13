@@ -1,6 +1,5 @@
 #version 330
 
-//! [0]
 uniform vec4 MaterialDiffuseColor;
 
 out vec4 fragColor;
@@ -40,4 +39,3 @@ void main(void)
                 MaterialDiffuseColor.xyz*LightColor*LightPower*cosTheta/(distance*distance);
     fragColor = vec4(fragTemp,MaterialDiffuseColor.a);
 }
-//! [0]

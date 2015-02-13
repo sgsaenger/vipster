@@ -40,18 +40,29 @@
 
 # V0.5:
 
-- [ ] parse different bravais lattice specifications
-  - [ ] transform to primitive representation
-- [ ] Speed up rendering
-  - [x] Deleted unnecessary setUniformValue calls
-  - [ ] Evaluate Displaylists and VBOs
-- [x] Select Atoms graphically
-  - [ ] Calculate distances and angles
 - [x] Improved startup by removing unnecessary bond calculations
 - [x] Fixed bug asking for PW parameters when saving to xyz
+- [x] Select Atoms graphically
+- [x] parse different bravais lattice specifications from PWInput
+- [x] privatised functions in ptb_mol.py
+- [x] added function to get all atoms at once
+- [x] exported model of sphere to external file
+- [ ] exported model of bonds to external file
+- [ ] added VBOs and instanced rendering:
+  - [x] for atoms
+  - [ ] for bonds
+  - [ ] for everything else
+- [ ] some kind of visual representation of volume data:
+  - [ ] 2D
+  - [ ] 3D point cloud
+  - [ ] 3D isosurface
+
+
 
 # In the long run, wishlist:
 
+- [ ] OBJ support for model loading? something better at least
+- [ ] Calculate distances and angles
 - [ ] Small scripting language with point&click support
 - [ ] Better picture generation
   - [ ] Better screenshot dialog
