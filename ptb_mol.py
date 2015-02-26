@@ -956,15 +956,24 @@ class Molecule:
         def set_pbc_bonds(self):
                 nat = self.get_nat()
                 self._pbc_bonds=[self.get_bonds(),[],[],[],[],[],[],[]]
-                vec = self.get_vec()*self.get_celldm()
-                off = [0,vec[0],vec[1],vec[2],vec[0]+vec[1],vec[0]+vec[2],vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
+                v = self.get_vec()*self.get_celldm()
+                off = [[(0,0)],                             #orig
+                        [(v[0],0)],                         #x
+                        [(v[1],0)],                         #y
+                        [(v[0]+v[1],0),(v[0],v[1])],        #xy,x-y
+                        [(v[2],0)],                         #z
+                        [(v[0]+v[2],0),(v[0],v[2])],        #xz,x-z
+                        [(v[1]+v[2],0),(v[1],v[2])],        #yz,y-z
+                        [(v[0]+v[1]+v[2],0),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
+                #off=[0,vec[0],vec[1],vec[0]+vec[1],vec[2],vec[0]+vec[2],vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
                 at_c = self._atom_coord
                 at_n = self._atom_name
                 for i in range(nat):
                         for j in range(nat):
                                 dist_at = self._atom_coord[i] - self._atom_coord[j]
                                 for k in [1,2,3,4,5,6,7]:
-                                        dist = dist_at+off[k]
+                                    for l in off[k]:
+                                        dist= dist_at+l[0]-l[1]
 
                                         #cancel if distance in one direction is greater than allowed bond length
                                         if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
@@ -973,11 +982,11 @@ class Molecule:
                                         if at_n[i] != 'H' and at_n[j] != 'H':
                                                 #maximum bond length: 1.9A
                                                 if 0.57 < dist < 12.25:
-                                                        self._pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
+                                                        self._pbc_bonds[k].append([at_c[i]+l[0],at_c[j]+l[1],at_n[i],at_n[i]])
                                         else:
                                                 #maximum bond length for hydrogen: 1.2A
                                                 if 0.57 < dist < 5.15:
-                                                        self._pbc_bonds[k].append([at_c[i]+off[k],at_c[j],at_n[i],at_n[i]])
+                                                        self._pbc_bonds[k].append([at_c[i]+l[0],at_c[j]+l[1],at_n[i],at_n[i]])
 
         #####################################################
         # EDIT FUNCTIONS

@@ -87,7 +87,7 @@ class MainView(QWidget):
                 # initialize GUI and accompanying actions
                 self.initUI()
                 self.initActions()
-                # set persisten render parameters
+                # set persistent render parameters
                 self.mult =[1,1,1]
                 self.view = True
                 self.cell = True
@@ -309,142 +309,10 @@ class MainView(QWidget):
                 self.coord.setMol(mol)
                 self.edit.setMol(mol)
                 self.visual.setMol(mol,self.mult)
-                self.setMol(mol)
 
         def updateMult(self):
-                self.setMult([self.xspin.value(),self.yspin.value(),self.zspin.value()])
+                self.mult=[self.xspin.value(),self.yspin.value(),self.zspin.value()]
                 self.updateMolStep()
-
-        #################################################
-        # CALLED UPON SELECTING MOLECULE
-        #################################################
-
-        def setMol(self,mol):
-                self.mol = mol
-                self.makeCell()
-                self.prepObjects()
-
-        #TODO: merge with prepObjects
-        def makeCell(self):
-                #get vectors:
-                vec = self.mol.get_vec()
-                cdm = self.mol.get_celldm()
-                null = QVector3D(0,0,0)
-                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
-                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
-                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
-                #define vertices:
-                self.cell_modelspace=[null,a,null,b,null,c,
-                                      a,a+b,a,a+c,
-                                      b,b+a,b,b+c,
-                                      c,c+a,c,c+b,
-                                      a+b,a+b+c,
-                                      a+c,a+b+c,
-                                      b+c,a+b+c]
-
-        def setMult(self,mult):
-                self.mult = mult
-                self.prepObjects()
-
-        #TODO: move to ViewPort, send list of molecules instead of obtaining selection in function
-        def prepObjects(self):
-                #prepare atoms and bonds for drawing
-                if not hasattr(self,'mol'):return
-                #local variables for convenience
-                mult = self.mult
-                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
-                vec = self.mol.get_vec()*self.mol.get_celldm()
-                center = self.mol.get_center()
-
-                #get bonds and calculate offsets
-                if mult == [1,1,1]:
-                        self.off = [[0,0,0]]
-                        #avoid setting pbc bonds
-                        bonds = [self.mol.get_bonds(),[],[],[],[],[],[],[]]
-                else:
-                        self.off = []
-                        tmult = [1,1,1]
-                        #save the multiplicators:
-                        for i in [0,1,2]:
-                                if self.mult[i]%2 == 0:
-                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
-                                else:
-                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
-                        #generate offsets:
-                        for i in tmult[0]:
-                                for j in tmult[1]:
-                                        for k in tmult[2]:
-                                                self.off.append([i,j,k])
-                        bonds = self.mol.get_pbc_bonds()
-
-                #prepare bonds with position,angle,axis and names (for coloring)
-                tempbonds=[[],[],[],[],[],[],[],[]]
-                for j in [0,1,2,3,4,5,6,7]:
-                        for i in bonds[j]:
-                                #get positions of atoms
-                                a = i[0]
-                                b = i[1]
-                                #save colors
-                                c1 = self.visual.pse[i[2]][2]
-                                c2 = self.visual.pse[i[3]][2]
-                                #position of bond
-                                pos= (a+b)/2
-                                #rotate bond from x-axis d to bond-axis c
-                                c = (a-b)/np.linalg.norm(a-b)
-                                d = np.array([1,0,0])
-                                theta = np.degrees(np.arccos(np.dot(c,d)))
-                                axis = -np.cross(c,d)
-                                tempbonds[j].append([pos,theta,axis,c1,c2])
-
-                #save positions of atoms and bonds in world space
-                self.atoms=[]
-                self.bonds = []
-                self.cells = []
-                #seperate lists for instanced rendering:
-                self.atom_pos=[]
-                self.atom_size=[]
-                self.atom_col=[]
-                edge = np.max(self.off,axis=0)
-                for i1 in self.off:
-                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
-                        self.cells.append(off)
-                        for j in atoms:
-                                #save coord,color,size
-                                self.atoms.append((j[1]+off,self.visual.pse[j[0]][2],self.visual.pse[j[0]][1]))
-                                self.atom_pos.append((j[1]+off).tolist())
-                                self.atom_size.append([self.visual.pse[j[0]][1]])
-                        for j in tempbonds[0]:
-                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                pass
-                        #vec0
-                        if mult[0]!=1 and i1[0]!=edge[0]:
-                                for j in tempbonds[1]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec1
-                                if mult[1]!=1 and i1[1]!=edge[1]:
-                                        for j in tempbonds[4]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                        #vec0+vec1+vec2
-                                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                                for j in tempbonds[7]:
-                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[5]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec1
-                        if mult[1]!=1 and i1[1]!=edge[1]:
-                                for j in tempbonds[2]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec1+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[6]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec2
-                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                for j in tempbonds[3]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                self.visual.updateGL()
 
         ########################################################
         #to controller
@@ -1126,7 +994,7 @@ class EditArea(QWidget):
                         #                img.setPixel(i,j,qRgb(r,g,b))
                         #img.save('plane'+str(k)+'.png',None,-1)
                         print "potential "+str(k)+': '+str(plane.mean())
-                        print "min: "+str(plane.min())+" max: "+str(plane.max())
+                        #print "min: "+str(plane.min())+" max: "+str(plane.max())
 
 class ViewPort(QGLWidget):
 
@@ -1138,13 +1006,12 @@ class ViewPort(QGLWidget):
                 super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel))
                 self.parent = parent
                 self.sphereShader = QGLShaderProgram()
-                self.sphereShader2 = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
                 self.bondShader = QGLShaderProgram()
                 self.selectShader = QGLShaderProgram()
                 self.xsh = 0
                 self.ysh = 0
-                self.rotMat = QMatrix4x4()
+                self.rMatrix = QMatrix4x4()
                 self.distance = 25
                 # radii, color
                 self.pse={'H' : [1.20,0.38,QColor(191,191,191,255)],
@@ -1282,8 +1149,6 @@ class ViewPort(QGLWidget):
                 self.qglClearColor(QColor(255,255,255,0))
 
                 #add shaders:
-                self.sphereShader2.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres2.vsh')
-                self.sphereShader2.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres2.fsh')
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres.vsh')
                 self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
                 self.bondShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexBonds.vsh')
@@ -1292,9 +1157,6 @@ class ViewPort(QGLWidget):
                 self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentLines.fsh')
                 self.selectShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSelect.vsh')
                 self.selectShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSelect.fsh')
-                #self.sphereShader2 = compileProgram(
-                #        compileShader(open(dirname(__file__)+'/vertexSpheres2.vsh'),GL_VERTEX_SHADER),
-                #        compileShader(open(dirname(__file__)+'/fragmentSpheres2.fsh'),GL_FRAGMENT_SHADER))
 
                 # prepare sphere
                 self.makeSphere()
@@ -1317,6 +1179,7 @@ class ViewPort(QGLWidget):
                 if mult == [1,1,1]:
                         #only one (==no) offset
                         off = [-center]
+                        edge=[7]
                         #avoid setting pbc bonds
                         bonds = [mol.get_bonds(),[],[],[],[],[],[],[]]
                 else:
@@ -1330,36 +1193,72 @@ class ViewPort(QGLWidget):
                         #generate offsets:
                         off=[(i*vec[0]+j*vec[1]+k*vec[2])-center for i in tmult[0]
                                 for j in tmult[1] for k in tmult[2]]
+                        #save binary representation of disabled pbc-bonds (b'zyx')
+                        edge=[ (i==mult[0]) + ((j==mult[1])<<1) + ((k==mult[2])<<2)
+                                for i in range(1,mult[0]+1)
+                                for j in range(1,mult[1]+1)
+                                for k in range(1,mult[2]+1)]
                         bonds = mol.get_pbc_bonds()
 
-                #prepare bonds with position,angle,axis and names (for coloring)
-                tempbonds=[[],[],[],[],[],[],[],[]]
+                #prepare bond VBOs
+                tempbonds=[]
+                #binary representation of enabled pbc directions (b'zyx')
+                mult=np.sign(mult[0]-1)+np.sign(mult[1]-1)*2+np.sign(mult[2]-1)*4
                 for j in [0,1,2,3,4,5,6,7]:
+                        #check if pbc part is necessary
+                        if mult&j!=j: continue
                         for i in bonds[j]:
                                 #get positions of atoms
                                 a = i[0]
                                 b = i[1]
                                 #save colors
+                                #TODO: remove the fucking qcolors
                                 c1 = self.pse[i[2]][2]
                                 c2 = self.pse[i[3]][2]
                                 #position of bond
                                 pos= (a+b)/2
                                 #rotate bond from x-axis d to bond-axis c
                                 c = (a-b)/np.linalg.norm(a-b)
-                                d = np.array([1,0,0])
-                                theta = np.degrees(np.arccos(np.dot(c,d)))
-                                axis = -np.cross(c,d)
-                                tempbonds[j].append([pos,theta,axis,c1,c2])
+                                d = np.array([1,0,0],'f')
+                                #check if parallel to x-axis
+                                if np.all(np.equal(abs(c),d)):
+                                        ax=c
+                                        c=1
+                                        s=0
+                                        ic=0
+                                else:
+                                        theta=np.arccos(np.dot(c,d))
+                                        ax = -np.cross(c,d)
+                                        ax=ax/np.linalg.norm(ax)
+                                        #construct rotation matrix
+                                        c=np.float(np.cos(theta))
+                                        s=np.float(-np.sin(theta))
+                                        ic=np.float(1.-c)
+                                for idx,k in enumerate(off):
+                                        if j>0 and edge[idx]&j!=0:
+                                                continue
+                                        tempbonds+=[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1],0.,
+                                                    ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0],0.,
+                                                    ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c,0.,
+                                                    pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],1.,
+                                                    c1.redF(),c1.greenF(),c1.blueF(),c1.alphaF(),
+                                                    c2.redF(),c2.greenF(),c2.blueF(),c2.alphaF()]
+                self.bondPosVBO=VBO(np.array(tempbonds,'f'))
 
-                #save positions of atoms and bonds in world space
-                self.atPosVBO=VBO(np.array([pos[1]+j for pos in atoms for j in off],'f').flatten())
-                self.atSizeVBO=VBO(np.array([self.pse[size[0]][1] for size in atoms for j in off],'f'))
-                #TODO: change this. no QColors!
-                self.atColVBO=VBO(np.array([[self.pse[col[0]][2].redF(),self.pse[col[0]][2].greenF(),self.pse[col[0]][2].blueF(),self.pse[col[0]][2].alphaF()] for col in atoms for j in off],'f').flatten())
-                #TODO:REMOVE THIS
-                self.atoms=[(j[1]+i,self.pse[j[0]][2],self.pse[j[0]][1]) for j in atoms for i in off]
+                #make cell:
+                null=np.zeros(3)
+                celltmp=[null,vec[0],null,vec[1],null,vec[2],
+                        vec[0],vec[0]+vec[1],vec[0],vec[0]+vec[2],
+                        vec[1],vec[1]+vec[0],vec[1],vec[1]+vec[2],
+                        vec[2],vec[2]+vec[0],vec[2],vec[2]+vec[1],
+                        vec[0]+vec[1],vec[0]+vec[1]+vec[2],
+                        vec[0]+vec[2],vec[0]+vec[1]+vec[2],
+                        vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
+                self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
 
-                #self.atom_col=[]
+                #save atoms in VBOs
+                self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[self.pse[at[0]][1],self.pse[at[0]][2].redF(),self.pse[at[0]][2].greenF(),self.pse[at[0]][2].blueF(),self.pse[at[0]][2].alphaF()] for at in atoms for j in off],'f'))
+
                 self.updateGL()
 
 
@@ -1414,7 +1313,18 @@ class ViewPort(QGLWidget):
                         cylinder = self.cylinder_subdiv(cylinder)
                 cylinder = self.cylinder_puzzle(cylinder)
                 self.bond_modelspace = cylinder
+                #write to file
+                #bf=open('bond_model','w')
+                #bond2=np.array([[a.x(),a.y(),a.z()] for a in cylinder],'f').flatten()
+                #for i in range(len(bond2.tolist())/3):
+                #    bf.write(str(bond2[i*3:i*3+3]).strip('[]'))
+                #for i in bond2:
+                    #bf.write(str(i)+'\t')
                 #set normals
+                bf=open(dirname(__file__)+'/bond_model','r')
+                bond2=np.array(bf.readline().split(),'f')
+                bf.close
+                self.bondVBO=VBO(bond2)
                 self.bo_normals_modelspace = deepcopy(cylinder)
                 for i in self.bo_normals_modelspace:
                         i.setX(0)
@@ -1476,18 +1386,11 @@ class ViewPort(QGLWidget):
                 self.mMatrix = QMatrix4x4()
                 self.vMatrix = QMatrix4x4()
 
-                #camera stuff:
-                cRot = QMatrix4x4()
-                cTrans = QMatrix4x4()
-
                 #perspective
                 self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
 
                 #translate the view point:
                 self.vMatrix.translate(self.xsh,self.ysh,0)
-
-                #apply rotation
-                #self.vMatrix*=self.rotMat
 
                 #TODO: orthogonal zooming needs fix
                 #check for projection:
@@ -1502,158 +1405,144 @@ class ViewPort(QGLWidget):
                 if select:
                         self.drawAtomsSelect()
                 else:
-                        #self.drawAtomsInstanced()
-                        #self.drawAtoms()
+                        self.drawAtoms()
+                        #self.drawAtomsSelect()
                         if self.parent.bondShow:
-                                self.drawAtoms()
-                                #self.drawBonds()
+                                self.drawBonds()
                         else:
-                                self.drawAtomsInstanced()
-                        #self.drawSelection()
-                        #if self.parent.cell:
-                        #        self.drawCell()
+                                pass
+                        if self.parent.cell:
+                                self.drawCell()
 
         def drawAtoms(self):
-                begin=clock()
                 #bind shaders:
                 self.sphereShader.bind()
 
                 #send vertices
                 self.sphereVBO.bind()
-                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
-                glEnableVertexAttribArray(2)
-                self.sphereVBO.unbind()
-
-                #render loop
-                for i,atom in enumerate(self.atoms):
-                        #load model matrix with coordinates
-                        self.mMatrix.setToIdentity()
-                        #move atoms to coord and recognize offset
-                        #self.mMatrix.translate(*atom[0])
-                        self.mMatrix.translate(*self.atPosVBO.data[i*3:i*3+3])
-                        #scale atoms depending on species
-                        self.mMatrix.scale(atom[2])
-                        #bind transformation matrices
-                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.rotMat*self.mMatrix)
-                        self.sphereShader.setUniformValue('mvMatrix',self.vMatrix*self.rotMat*self.mMatrix)
-                        #color vertices
-                        self.sphereShader.setUniformValue('MaterialDiffuseColor',atom[1])
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
-                #reset
-                self.sphereShader.disableAttributeArray('vertex_modelspace')
-                self.sphereShader.release()
-                #print clock()-begin
-
-
-        def drawAtomsInstanced(self):
-                begin=clock()
-                #bind shaders:
-                self.sphereShader2.bind()
-                #glUseProgram(self.sphereShader2)
-
-                #send vertices
-                self.sphereVBO.bind()
-                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
-                glEnableVertexAttribArray(2)
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
                 self.sphereVBO.unbind()
 
                 # transformation matrices, model matrix needs not perform anything here
-                self.sphereShader2.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rotMat)
-                self.sphereShader2.setUniformValue('vMatrix',self.vMatrix)
-                self.sphereShader2.setUniformValue('rMatrix',self.rotMat)
+                self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
 
-                # instanced vector for shift of position
-                self.atPosVBO.bind()
-                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
-                glEnableVertexAttribArray(0)
-                self.atPosVBO.unbind()
-                glVertexAttribDivisor(0,1)
-                # instanced scaling factor
-                self.atSizeVBO.bind()
-                glVertexAttribPointer(1,1,GL_FLOAT,GL_FALSE,0,None)
+                #interleaved VBO
+                self.atomsVBO.bind()
+                #position vector
                 glEnableVertexAttribArray(1)
-                self.atSizeVBO.unbind()
-                glVertexAttribDivisor(1,1)
-                # instanced color
-                self.atColVBO.bind()
-                glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,0,None)
+                glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,None)
+                #scale factors
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,self.atomsVBO+12)
+                #color vectors
                 glEnableVertexAttribArray(3)
-                self.atColVBO.unbind()
+                glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,32,self.atomsVBO+16)
+                glVertexAttribDivisor(1,1)
+                glVertexAttribDivisor(2,1)
                 glVertexAttribDivisor(3,1)
+                self.atomsVBO.unbind()
                 # draw instances
-                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.atPosVBO))
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.atomsVBO))
 
                 #reset
-                self.sphereShader2.disableAttributeArray('vertex_modelspace')
-                self.sphereShader2.disableAttributeArray('position_modelspace')
-                glVertexAttribDivisor(0,0)
+                glDisableVertexAttribArray(0)
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glDisableVertexAttribArray(3)
                 glVertexAttribDivisor(1,0)
+                glVertexAttribDivisor(2,0)
                 glVertexAttribDivisor(3,0)
-                self.sphereShader2.release()
-                #print clock()-begin
-
-        def drawBondsInstanced(self):
-                self.bondShader2.bind()
-
-                #send vertices
-                self.bondShader2.setAttributeArray('vertex_modelspace',self.bond_modelspace)
-                self.bondShader2.enableAttributeArray('vertex_modelspace')
-                #send normals for lighting
-                self.bondShader2.setAttributeArray('normals_modelspace',self.bo_normals_modelspace)
-                self.bondShader2.enableAttributeArray('normals_modelspace')
-
-                #render loop
-                for bond in self.parent.bonds:
-                        #load model Matrix with coordinates relative to offset
-                        self.mMatrix.setToIdentity()
-                        self.mMatrix.translate(bond[0][0],bond[0][1],bond[0][2])
-                        #rotate to fit bond vector
-                        self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
-                        # bind transformation matrices
-                        self.bondShader2.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.bondShader2.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.bondShader2.setUniformValue('Side1DiffuseColor',bond[3])
-                        self.bondShader2.setUniformValue('Side2DiffuseColor',bond[4])
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.bond_modelspace))
-                #reset
-                self.bondShader2.disableAttributeArray('vertex_modelspace')
-                self.bondShader2.disableAttributeArray('normals_modelspace')
-                self.bondShader2.release()
+                self.sphereShader.release()
 
         def drawAtomsSelect(self):
                 #bind shaders:
                 self.selectShader.bind()
 
                 #send vertices
-                self.selectShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
-                self.selectShader.enableAttributeArray('vertex_modelspace')
+                self.sphereVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.sphereVBO.unbind()
 
-                #render loop
-                for i in range(len(self.parent.atoms)):
-                        #color from atom number:
-                        r = (i & 0x000000FF) >> 0
-                        g = (i & 0x0000FF00) >> 8
-                        b = (i & 0x00FF0000) >> 16
-                        #load model matrix with coordinates
-                        self.mMatrix.setToIdentity()
-                        atom = self.parent.atoms[i]
-                        #move atoms to coord and recognize offset
-                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
-                        #scale atoms depending on species
-                        self.mMatrix.scale(atom[2])
-                        #bind transformation matrix
-                        self.selectShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.selectShader.setUniformValue('MaterialDiffuseColor',QColor(r,g,b,255))
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                # transformation matrices, model matrix needs not perform anything here
+                self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+
+                #interleaved VBO
+                self.atomsVBO.bind()
+                #position vector
+                glEnableVertexAttribArray(1)
+                glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,None)
+                #scale factors
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,self.atomsVBO+12)
+                #colors are based on gl_InstanceID in vertex shader
+                glVertexAttribDivisor(1,1)
+                glVertexAttribDivisor(2,1)
+                self.atomsVBO.unbind()
+                # draw instances
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.atomsVBO))
+
                 #reset
-                self.selectShader.disableAttributeArray('vertex_modelspace')
-                self.selectShader.disableAttributeArray('normals_modelspace')
+                glDisableVertexAttribArray(0)
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glVertexAttribDivisor(1,0)
+                glVertexAttribDivisor(2,0)
                 self.selectShader.release()
+
+        def drawBonds(self):
+                self.bondShader.bind()
+
+                #send vertices
+                self.bondVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.bondVBO.unbind()
+
+                #send positions and rotations via mMatrix
+                self.bondPosVBO.bind()
+                for i in range(1,7):
+                    glEnableVertexAttribArray(i)
+                    glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,96,self.bondPosVBO+(i-1)*16)
+                    glVertexAttribDivisor(i,1)
+                self.bondPosVBO.unbind()
+
+                #load model Matrix with coordinates relative to offset
+                self.mMatrix.setToIdentity()
+                # bind transformation matrices
+                self.bondShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.bondShader.setUniformValue('rMatrix',self.rMatrix)
+                #color vertices
+                self.bondShader.setUniformValue('Side1DiffuseColor',self.pse['C'][2])
+                self.bondShader.setUniformValue('Side2DiffuseColor',self.pse['C'][2])
+                #draw
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.bond_modelspace),len(self.bondPosVBO)/24)
+
+                #reset
+                for i in range(1,7):
+                    glDisableVertexAttribArray(i)
+                    glVertexAttribDivisor(i,0)
+                glDisableVertexAttribArray(0)
+                self.bondShader.release()
+
+        def drawCell(self):
+                self.lineShader.bind()
+
+                self.cellVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.cellVBO.unbind()
+
+                self.lineShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.lineShader.setUniformValue('color',QColor(0,0,0))
+
+                glDrawArrays(GL_LINES,0,len(self.cellVBO))
+
+                glDisableVertexAttribArray(0)
+                self.lineShader.release()
+
 
         def drawSelection(self):
                 #bind shaders:
@@ -1689,51 +1578,6 @@ class ViewPort(QGLWidget):
                 self.sphereShader.disableAttributeArray('normals_modelspace')
                 self.sphereShader.release()
 
-        def drawBonds(self):
-                self.bondShader.bind()
-
-                #send vertices
-                self.bondShader.setAttributeArray('vertex_modelspace',self.bond_modelspace)
-                self.bondShader.enableAttributeArray('vertex_modelspace')
-                #send normals for lighting
-                self.bondShader.setAttributeArray('normals_modelspace',self.bo_normals_modelspace)
-                self.bondShader.enableAttributeArray('normals_modelspace')
-
-                #render loop
-                for bond in self.parent.bonds:
-                        #load model Matrix with coordinates relative to offset
-                        self.mMatrix.setToIdentity()
-                        self.mMatrix.translate(bond[0][0],bond[0][1],bond[0][2])
-                        #rotate to fit bond vector
-                        self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
-                        # bind transformation matrices
-                        self.bondShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.bondShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.bondShader.setUniformValue('Side1DiffuseColor',bond[3])
-                        self.bondShader.setUniformValue('Side2DiffuseColor',bond[4])
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.bond_modelspace))
-                #reset
-                self.bondShader.disableAttributeArray('vertex_modelspace')
-                self.bondShader.disableAttributeArray('normals_modelspace')
-                self.bondShader.release()
-
-        def drawCell(self):
-                #bind shaders:
-                self.lineShader.bind()
-                self.lineShader.setAttributeArray('vertex_modelspace',self.parent.cell_modelspace)
-                self.lineShader.enableAttributeArray('vertex_modelspace')
-                self.lineShader.setUniformValue('color',QColor(0,0,0))
-                for i in self.parent.cells:
-                        self.mMatrix.setToIdentity()
-                        #move viewpoint to center
-                        self.mMatrix.translate(i[0],i[1],i[2])
-                        self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        glDrawArrays(GL_LINES,0,len(self.parent.cell_modelspace))
-                self.lineShader.disableAttributeArray('vertex_modelspace')
-                self.lineShader.release()
-
         def drawCenter(self):
                 self.lineShader.bind()
                 self.mMatrix.setToIdentity()
@@ -1756,8 +1600,7 @@ class ViewPort(QGLWidget):
                         self.oldX = self.newX = e.x()
                         self.oldY = self.newY = e.y()
                 elif (e.buttons() & 2):
-                        self.rotMat.setToIdentity()
-                        self.updateGL()
+                        self.rMatrix.setToIdentity()
                 self.updateGL()
                 #store initial position
                 self.mousePos = e.pos()
@@ -1781,7 +1624,7 @@ class ViewPort(QGLWidget):
                         deltaY = self.newY - self.oldY
                         tmp.rotate(deltaX,0,1,0)
                         tmp.rotate(deltaY,1,0,0)
-                        self.rotMat = tmp*self.rotMat
+                        self.rMatrix = tmp*self.rMatrix
                         #save as old positions for next step
                         self.oldX = e.x()
                         self.oldY = e.y()
@@ -1842,20 +1685,20 @@ class ViewPort(QGLWidget):
                 if e.key() == Qt.Key_Up:
                         tmp = QMatrix4x4()
                         tmp.rotate(-10,1,0,0)
-                        self.rotMat = tmp*self.rotMat
+                        self.rMatrix = tmp*self.rMatrix
                         self.updateGL()
                 if e.key() == Qt.Key_Down:
                         tmp = QMatrix4x4()
                         tmp.rotate(10,1,0,0)
-                        self.rotMat = tmp*self.rotMat
+                        self.rMatrix = tmp*self.rMatrix
                         self.updateGL()
                 if e.key() == Qt.Key_Left:
                         tmp = QMatrix4x4()
                         tmp.rotate(-10,0,1,0)
-                        self.rotMat = tmp*self.rotMat
+                        self.rMatrix = tmp*self.rMatrix
                         self.updateGL()
                 if e.key() == Qt.Key_Right:
                         tmp = QMatrix4x4()
                         tmp.rotate(10,0,1,0)
-                        self.rotMat = tmp*self.rotMat
+                        self.rMatrix = tmp*self.rMatrix
                         self.updateGL()
