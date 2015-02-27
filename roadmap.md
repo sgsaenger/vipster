@@ -44,13 +44,16 @@
 - [x] Fixed bug asking for PW parameters when saving to xyz
 - [x] Select Atoms graphically
 - [x] parse different bravais lattice specifications from PWInput
-- [x] privatised functions in ptb_mol.py
+- [x] privatised functions in backend
 - [x] added function to get all atoms at once
 - [x] exported model of sphere to external file
-- [ ] exported model of bonds to external file
+- [x] exported model of bonds to external file
+- [ ] added doxygen documentation
+- [ ] moved classes to seperate files
+- [ ] moved k-points to molecule (including molecule edit area)
 - [ ] added VBOs and instanced rendering:
   - [x] for atoms
-  - [ ] for bonds
+  - [x] for bonds
   - [ ] for everything else
 - [ ] some kind of visual representation of volume data:
   - [ ] 2D
@@ -61,7 +64,6 @@
 
 # In the long run, wishlist:
 
-- [ ] OBJ support for model loading? something better at least
 - [ ] Calculate distances and angles
 - [ ] Small scripting language with point&click support
 - [ ] Better picture generation
