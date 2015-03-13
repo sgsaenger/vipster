@@ -3,6 +3,7 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
+from copy import deepcopy
 
 class MolArea(QWidget):
 
@@ -226,13 +227,14 @@ class MolArea(QWidget):
                                 par = self.parent
                                 for i in range(int(par.maxStep.text())):
                                         mol = par.controller.get_mol(par.mlist.currentRow(),i)
-                                        molc = deepcopy(mol)
+                                        #molc = deepcopy(mol)
                                         mol.set_vec(vec)
                                         for j in range(mol.get_nat()):
-                                                mol.set_atom(j,*molc.get_atom(j,'crystal'))
+                                                mol.set_atom(j,*mol.get_atom(j,'crystal'))
+                                                #mol.set_atom(j,*molc.get_atom(j,'crystal'))
                                         mol.set_bonds()
                                         mol.set_pbc_bonds()
-                                        del(molc)
+                                        #del(molc)
                         else:
                                 par = self.parent
                                 for i in range(int(par.maxStep.text())):

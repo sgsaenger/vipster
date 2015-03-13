@@ -3,12 +3,13 @@
 
 from PyQt4.QtGui import *
 
-class EditArea(QWidget):
+class ToolArea(QWidget):
         def __init__(self,parent):
-                super(EditArea,self).__init__()
+                super(ToolArea,self).__init__()
                 self.initStack()
                 self.initMult()
                 self.initPlane()
+                self.initScript()
                 self.parent = parent
 
         def setMol(self,mol):
@@ -22,7 +23,7 @@ class EditArea(QWidget):
                 self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
                 vbox = QVBoxLayout()
                 hbox = QHBoxLayout()
-                hbox.addWidget(QLabel('Edit:'))
+                hbox.addWidget(QLabel('Tools:'))
                 hbox.addWidget(self.combo)
                 vbox.addLayout(hbox)
                 vbox.addWidget(self.stack)
@@ -79,9 +80,10 @@ class EditArea(QWidget):
 
         def planeHandler(self):
                 #plane = self.mol.vol_plane(int(self.zPlane.text()))
-                print 'mean potential: '+str(self.mol.volume.mean())
-                for k in range(self.mol.nvol[2]):
-                        plane = self.mol.vol_plane(k)
+                #print 'mean potential: '+str(self.mol.volume.mean())
+                self.mol.stupid_me()
+                #for k in range(self.mol.nvol[2]):
+                        #plane = self.mol.vol_plane(k)
                         #img = QImage(len(plane),len(plane[0]),QImage.Format_RGB888)
                         #min=self.mol.volume.min()
                         #max=self.mol.volume.max()
@@ -94,5 +96,24 @@ class EditArea(QWidget):
                         #                b=255*np.exp(-6.25*(c-0.1)**2)
                         #                img.setPixel(i,j,qRgb(r,g,b))
                         #img.save('plane'+str(k)+'.png',None,-1)
-                        print "potential "+str(k)+': '+str(plane.mean())
+                        #print "potential "+str(k)+': '+str(plane.mean())
                         #print "min: "+str(plane.min())+" max: "+str(plane.max())
+
+        def initScript(self):
+            scriptWidget = QWidget()
+            self.combo.addItem('Script')
+            self.stack.addWidget(scriptWidget)
+            self.scriptArea = QTextEdit()
+            self.scriptResult = QLabel()
+            scriptBut = QPushButton('Evaluate')
+            scriptBut.clicked.connect(self.scriptHandler)
+            hbox=QHBoxLayout()
+            hbox.addWidget(self.scriptResult)
+            hbox.addWidget(scriptBut)
+            vbox=QVBoxLayout()
+            vbox.addWidget(self.scriptArea)
+            vbox.addLayout(hbox)
+            scriptWidget.setLayout(vbox)
+                        
+        def scriptHandler(self):
+            self.scriptResult.setText(self.mol.evalScript(str(self.scriptArea.toPlainText())))

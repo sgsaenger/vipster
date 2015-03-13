@@ -541,9 +541,13 @@ class TBController(QApplication):
                 #create atoms after creating cell:
                 for i in range(len(tcoord)):
                         tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
-                #delete nat and ntype before returning to controller
+                #delete nat, ntype and celldm before returning to controller
                 del tparam['&system']['nat']
                 del tparam['&system']['ntyp']
+                for i in range(1,7):
+                    test='celldm('+str(i)+')'
+                    if test in tparam['&system']:
+                        del tparam['&system'][test]
 
                 #Append to controller
                 self._mol.append([tmol])
@@ -725,6 +729,7 @@ class TBController(QApplication):
                         if i == '&system':
                                 f.write(' nat='+str(mol.get_nat())+'\n')
                                 f.write(' ntyp='+str(mol.get_ntyp())+'\n')
+                                f.write(' celldm(1)='+str(mol.get_celldm())+'\n')
                         for j in range(len(param[i])):
                                 f.write(' '+param[i].keys()[j]+'='+param[i].values()[j]+'\n')
                         f.write('/\n\n')
@@ -1014,6 +1019,73 @@ class Molecule:
                         return
                 plane=self.volume[0:self.nvol[0],0:self.nvol[1],height]
                 return plane
+
+        #####################################################
+        # CHECK CNTS FOR STUPID MISTAKES
+        #####################################################
+
+        def stupid_me(self):
+                self.set_pbc_bonds()
+                bargl = open('length.dat','w')
+                for idx,j in enumerate(self._pbc_bonds):
+                    bargl.write(str(idx)+'\n')
+                    for i in j:
+                        bargl.write('{:7.5g}{:7.5g}{:7.5g}\t{:7.5g}{:7.5g}{:7.5g}\t{:7.5g}'.format(
+                            i[0][0],i[0][1],i[0][2],i[1][0],i[1][1],i[1][2],np.dot(i[0]-i[1],i[0]-i[1]))+'\n')
+                bargl.close()
+
+        #####################################################
+        # SCRIPTING SUPPORT
+        #####################################################
+
+        def evalScript(self,script):
+            script=script.split()
+            ops={'rot':(self._rotate,5,self._evalArgs('iavo')),
+                    'shi':(self._shift,3,self._evalArgs('iv')),
+                    'def':(self._define,3,self._evalArgs('is')),
+                    'mir':(self._mirror,5,self._evalArgs('ivvo'))}
+            stack=[]
+            if len(script)<1:
+                return 'Too short'
+            while script:
+                try:
+                    op=ops[script[0][0:3].lower()]
+                    op[2](script[1:op[1]])
+                except KeyError:
+                    return 'Wrong Op'
+                except IndexError:
+                    return 'Argument(s) missing'
+                else:
+                    stack.append((op))
+                    del script[0]
+            return 'Success!'
+
+        def _evalArgs(self,args):
+            def eval(arglist):
+                for i,arg in enumerate(args):
+                    if arg == 'i':
+                        print 'check if ', arglist[i],'is list of atoms'
+                    elif arg == 'a':
+                        print 'check if ', arglist[i],'is angle'
+                    elif arg == 'v':
+                        print 'check if ', arglist[i],'is vec'
+                    elif arg == 'o':
+                        print 'check if ', arglist[i],'is optional vec'
+                    elif arg == 's':
+                        print 'check if ', arglist[i],'is string'
+            return eval
+
+        def _rotate(self):
+            return
+
+        def _define(self):
+            return
+
+        def _shift(self):
+            return
+
+        def _mirror(self):
+            return
 
 class PWParam(dict):
 

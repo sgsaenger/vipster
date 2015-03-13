@@ -14,7 +14,7 @@ from PyQt4.QtCore import QTimer,Qt
 from viewport import ViewPort
 from coordedit import MolArea
 from paramedit import PWTab
-from multiedit import EditArea
+from multiedit import ToolArea
 
 class MainWindow(QMainWindow):
 
@@ -122,7 +122,7 @@ class MainView(QWidget):
 
 
                 #Edit stuff
-                self.edit = EditArea(self)
+                self.edit = ToolArea(self)
 
                 #encapsulate in splitter:
                 lcol = QSplitter()

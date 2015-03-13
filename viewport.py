@@ -422,6 +422,7 @@ class ViewPort(QGLWidget):
                         self.vMatrix.scale(10./self.distance)
                 #TODO: decrease quality with increasing number of atoms
                 #rendering:
+                if not hasattr(self,'atomsVBO'): return
                 if select:
                         self.drawAtomsSelect()
                 else:
