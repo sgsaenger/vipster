@@ -174,6 +174,12 @@ class TBController(QApplication):
                 elif self.argv[1][0]!='-': self._print_help(22)
                 elif self.argv[1][0:2]=='--': self._print_help(22)
                 elif '-h' in self.argv: self._print_help(0)
+                #temporary interpreter test
+                elif self.argv[1] == '-int':
+                        self.readFile('PWScf Output','OUT')
+                        f = open('script','r')
+                        self._mol[0][0].evalScript(f.readlines()[0])
+                        self.exit(0)
                 #check for input files, start gui and load
                 else:
                         self.gui = MainWindow(self)
@@ -810,6 +816,7 @@ class Molecule:
                 # set atom list
                 self._atom_name=[]
                 self._atom_coord=[]
+                self._script_group=dict()
                 self._celldm = 1.0
                 self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
                 self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
@@ -870,7 +877,7 @@ class Molecule:
         ######################################################
 
         def _set_coord(self,coord,fmt='bohr'):
-                coord = np.array(coord)
+                coord = np.array(coord,'f')
                 if fmt == 'angstrom':
                         return coord/0.52917721092
                 elif fmt == 'bohr':
@@ -1040,52 +1047,116 @@ class Molecule:
 
         def evalScript(self,script):
             script=script.split()
-            ops={'rot':(self._rotate,5,self._evalArgs('iavo')),
-                    'shi':(self._shift,3,self._evalArgs('iv')),
-                    'def':(self._define,3,self._evalArgs('is')),
-                    'mir':(self._mirror,5,self._evalArgs('ivvo'))}
+            #reverse in order to pop faster
+            #script.reverse()
+            #dictionary returns closure containing target operation and argument-check
+            ops={'rot':self._evalArgs(self._rotate,'lavo'),
+                    'shi':self._evalArgs(self._shift,'lv'),
+                    'def':self._evalArgs('define','ls'),
+                    'mir':self._evalArgs(self._mirror,'lvvo'),
+                    'rep':self._evalArgs('repeat','i')}
             stack=[]
-            if len(script)<1:
-                return 'Too short'
+            #check for errors, parse and prepare
             while script:
                 try:
-                    op=ops[script[0][0:3].lower()]
-                    op[2](script[1:op[1]])
-                except KeyError:
+                    op=ops[script[0][0:3].lower()](script[1:])
+                    #op=ops[script.pop(0)[0:3].lower()](script)
+                except KeyError as e:
+                    print 'Wrong Op:', e.message
                     return 'Wrong Op'
-                except IndexError:
+                except ValueError as e:
+                    print 'Not an Angle!', e.message
+                    return 'Not an Angle!'
+                except NameError as e:
+                    print 'Argument(s) missing, new command', e.message
+                    return 'Argument(s) missing, new command', e.message
+                except IndexError as e:
+                    print 'Argument(s) missing, script over', e.message
                     return 'Argument(s) missing'
+                except TypeError as e:
+                    print e.message
+                    return e.message
                 else:
-                    stack.append((op))
-                    del script[0]
+                    if op[0]=='define':
+                        self._script_group[op[2]]=op[1]
+                    elif op[0]=='repeat':
+                        rep=op[1]
+                    else:
+                        for i in range(rep):
+                            stack.append((op))
+                        rep=1
+                    del script[0:len(op)]
+            # delete previous definitions
+            self._script_group={}
+
+            #if everything went well, execute operations
+            for op in stack:
+                op[0](*op[1:])
             return 'Success!'
 
-        def _evalArgs(self,args):
-            def eval(arglist):
-                for i,arg in enumerate(args):
-                    if arg == 'i':
-                        print 'check if ', arglist[i],'is list of atoms'
-                    elif arg == 'a':
-                        print 'check if ', arglist[i],'is angle'
-                    elif arg == 'v':
-                        print 'check if ', arglist[i],'is vec'
-                    elif arg == 'o':
-                        print 'check if ', arglist[i],'is optional vec'
-                    elif arg == 's':
-                        print 'check if ', arglist[i],'is string'
-            return eval
+        def _evalArgs(self,op,args):
+            def evArgs(arglist):
+                res = [op]
+                for i,t in enumerate(args):
+                    if i < len(arglist):
+                        arg=arglist[i]
+                    else:
+                        #if vec is optional, command can be executed
+                        if t=='o':
+                            return res
+                        #else, there's an error
+                        else:
+                            raise IndexError('list index out of range')
+                    # if there's an argument, evaluate it
+                    if t == 'l':
+                        print 'check if ', arg,'is list of atoms'
+                        if arg in self._script_group:
+                                res.append(self._script_group[arg])
+                        elif type(map(int,eval(arg)))==type([]):
+                                res.append(map(int,eval(arg)))
+                        else:
+                                raise TypeError('Not a list of atoms: '+str(arg))
+                    elif t == 'a':
+                        print 'check if ', arg,'is angle'
+                        res.append(float(arg))
+                    elif t == 'i':
+                        res.append(int(arg))
+                    elif t == 's':
+                        print 'check if ', arg,'is string'
+                        res.append(arg)
+                    elif t in 'vo':
+                        print 'check if ', arg,'is vec'
+                        arg=eval(arg)
+                        if len(arg)==4:
+                                arg=self._set_coord(arg[0:3],arg[3])
+                        else:
+                                arg=self._set_coord(arg)
+                        res.append(arg)
+                return res
+            return evArgs
 
-        def _rotate(self):
-            return
+        def _rotate(self,atoms,angle,ax,shift=np.zeros(3)):
+            c=np.float(np.cos(angle))
+            s=np.float(-np.sin(angle))
+            ic=np.float(1.-c)
+            mat=np.array([[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1]],
+                          [ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0]],
+                          [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
+            for i in atoms:
+                self._atom_coord[i-1]=np.dot(self._atom_coord[i-1]-shift,mat)+shift
 
-        def _define(self):
-            return
+        def _shift(self,atoms,vector):
+            for i in atoms:
+                self._atom_coord[i-1]+=np.array(vector,'f')
 
-        def _shift(self):
-            return
-
-        def _mirror(self):
-            return
+        def _mirror(self,atoms,v1,v2,shift=np.zeros(3)):
+            print 'mir'
+            normal=np.cross(v1,v2)
+            normal=normal/np.linalg.norm(normal)
+            for i in atoms:
+                pos=self._atom_coord[i-1]
+                proj = np.dot(pos-shift,normal)*normal
+                self._atom_coord[i-1]=pos-2*proj
 
 class PWParam(dict):
 
