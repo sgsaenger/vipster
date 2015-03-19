@@ -18,8 +18,11 @@ class ViewPort(QGLWidget):
         # CALLED UPON INITIALISATION
         ##################################################
         def __init__(self,parent):
-                #init with antialiasing
-                super(ViewPort,self).__init__(QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel))
+                #init with antialiasing, transparency and OGLv3.3 core profile
+		form=QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel)
+		form.setVersion(3,3)
+		form.setProfile(QGLFormat.CoreProfile)
+                super(ViewPort,self).__init__(form)
                 self.parent = parent
                 self.sphereShader = QGLShaderProgram()
                 self.lineShader = QGLShaderProgram()
@@ -150,6 +153,8 @@ class ViewPort(QGLWidget):
                           'Uuo':[1.70,0.77,QColor(252,  0, 15,255)]}
 
         def initializeGL(self):
+		#Bind VAO (necessary for modern OpenGL)
+		glBindVertexArray(glGenVertexArrays(1))
                 #render only visible vertices
                 glEnable(GL_DEPTH_TEST)
                 #backface culling: render only front of vertex

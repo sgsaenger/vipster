@@ -117,3 +117,6 @@ class ToolArea(QWidget):
                         
         def scriptHandler(self):
             self.scriptResult.setText(self.mol.evalScript(str(self.scriptArea.toPlainText())))
+	    self.mol.set_bonds()
+	    self.mol.set_pbc_bonds()
+	    self.parent.updateMolStep()

@@ -1047,8 +1047,7 @@ class Molecule:
 
         def evalScript(self,script):
             script=script.split()
-            #reverse in order to pop faster
-            #script.reverse()
+	    rep=1
             #dictionary returns closure containing target operation and argument-check
             ops={'rot':self._evalArgs(self._rotate,'lavo'),
                     'shi':self._evalArgs(self._shift,'lv'),
@@ -1150,7 +1149,6 @@ class Molecule:
                 self._atom_coord[i-1]+=np.array(vector,'f')
 
         def _mirror(self,atoms,v1,v2,shift=np.zeros(3)):
-            print 'mir'
             normal=np.cross(v1,v2)
             normal=normal/np.linalg.norm(normal)
             for i in atoms:
