@@ -14,8 +14,8 @@ class ToolArea(QWidget):
 
         def setMol(self,mol):
                 self.mol = mol
-                if hasattr(self.mol,'volume'):
-                        self.zPlane.setValidator(QIntValidator(0,len(self.mol.volume[0][0])))
+                #if hasattr(self.mol,'volume'):
+                #        self.zPlane.setValidator(QIntValidator(0,len(self.mol.volume[0][0])))
 
         def initStack(self):
                 self.stack = QStackedWidget()
