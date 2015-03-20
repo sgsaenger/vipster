@@ -51,32 +51,39 @@
 - [ ] added doxygen documentation
 - [ ] moved classes to seperate files
 - [ ] moved k-points to molecule (including molecule edit area)
-- [ ] added VBOs and instanced rendering:
+- [x] force OpenGL 3.3 core profile for compatibility
+- [x] added VBOs and instanced rendering:
   - [x] for atoms
   - [x] for bonds
-  - [ ] for everything else
-- [ ] some kind of visual representation of volume data:
-  - [ ] 2D
-  - [ ] 3D point cloud
-  - [ ] 3D isosurface
+  - [x] for everything else
+- [ ] Small scripting language
+  - [x] modify existing atoms
+  - [ ] create new atoms (randomly)
+  - [ ] connect to list/view widgets
 
 
 
 # In the long run, wishlist:
 
-- [ ] Calculate distances and angles
-- [ ] Small scripting language with point&click support
-- [ ] Better picture generation
-  - [ ] Better screenshot dialog
-  - [ ] Export to Povray
 - [ ] Bond setting has to be faster
   - [ ] Move to fortran code
   - [ ] Threads to improve responsiveness
+- [ ] Better picture generation
+  - [ ] Better screenshot dialog
+  - [ ] Export to Povray
+- [ ] some kind of visual representation of volume data:
+  - [ ] 2D
+  - [ ] 3D point cloud
+  - [ ] 3D isosurface
+- [ ] Calculate distances and angles
 - [ ] Improve orthogonal projection
   - [x] display without zooming first
   - [ ] make it zoom on the same scale as perspective projection
 - [ ] Commandline creation of new Files
-- [ ] Default PW Parameter sets
+- [ ] Save state of program
+  - [ ] variable and unified PSE
+  - [ ] config-file
+  - [ ] variable bond-threshholds
+  - [ ] Default PW Parameter sets
 - [ ] PW Parameters from PW Output
 - [ ] Input validators
-- [ ] Reduce Model polygons with increasing model count

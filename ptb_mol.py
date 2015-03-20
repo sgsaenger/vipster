@@ -1028,20 +1028,6 @@ class Molecule:
                 return plane
 
         #####################################################
-        # CHECK CNTS FOR STUPID MISTAKES
-        #####################################################
-
-        def stupid_me(self):
-                self.set_pbc_bonds()
-                bargl = open('length.dat','w')
-                for idx,j in enumerate(self._pbc_bonds):
-                    bargl.write(str(idx)+'\n')
-                    for i in j:
-                        bargl.write('{:7.5g}{:7.5g}{:7.5g}\t{:7.5g}{:7.5g}{:7.5g}\t{:7.5g}'.format(
-                            i[0][0],i[0][1],i[0][2],i[1][0],i[1][1],i[1][2],np.dot(i[0]-i[1],i[0]-i[1]))+'\n')
-                bargl.close()
-
-        #####################################################
         # SCRIPTING SUPPORT
         #####################################################
 
@@ -1097,44 +1083,54 @@ class Molecule:
             def evArgs(arglist):
                 res = [op]
                 for i,t in enumerate(args):
+                    # if there's an argument, evaluate it
                     if i < len(arglist):
                         arg=arglist[i]
                     else:
-                        #if vec is optional, command can be executed
+                        #if vec is optional, command can be executed anyways
                         if t=='o':
                             return res
                         #else, there's an error
                         else:
                             raise IndexError('list index out of range')
-                    # if there's an argument, evaluate it
+		    #list of atoms
                     if t == 'l':
-                        print 'check if ', arg,'is list of atoms'
                         if arg in self._script_group:
                                 res.append(self._script_group[arg])
-                        elif type(map(int,eval(arg)))==type([]):
+			elif type(eval(arg))==type(1):
+				res.append([int(arg)])
+                        elif type(eval(arg))==type([]):
                                 res.append(map(int,eval(arg)))
                         else:
                                 raise TypeError('Not a list of atoms: '+str(arg))
+		    #angle
                     elif t == 'a':
-                        print 'check if ', arg,'is angle'
                         res.append(float(arg))
+		    #index for loops
                     elif t == 'i':
                         res.append(int(arg))
+		    #arbitrary names for defined groups
                     elif t == 's':
-                        print 'check if ', arg,'is string'
                         res.append(arg)
+		    #valid vector for operations
                     elif t in 'vo':
-                        print 'check if ', arg,'is vec'
                         arg=eval(arg)
-                        if len(arg)==4:
+			if type(arg)==type(1) or (type(arg)==type([]) and len(arg)==1):
+				arg=self._atom_coord[arg-1]
+			elif type(arg)==type([]) and len(arg)==2:
+				arg=self._atom_coord[arg[0]]-self._atom_coord[arg[1]]
+                        elif type(arg)==type(()) and len(arg)==4:
                                 arg=self._set_coord(arg[0:3],arg[3])
-                        else:
+                        elif type(arg)==type(()) and len(arg)==3:
                                 arg=self._set_coord(arg)
+			else:
+				raise TypeError('Not a valid vector: '+str(arg))
                         res.append(arg)
                 return res
             return evArgs
 
         def _rotate(self,atoms,angle,ax,shift=np.zeros(3)):
+	    angle=np.radians(angle)
             c=np.float(np.cos(angle))
             s=np.float(-np.sin(angle))
             ic=np.float(1.-c)

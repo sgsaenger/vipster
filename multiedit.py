@@ -8,7 +8,7 @@ class ToolArea(QWidget):
                 super(ToolArea,self).__init__()
                 self.initStack()
                 self.initMult()
-                self.initPlane()
+                #self.initPlane()
                 self.initScript()
                 self.parent = parent
 
