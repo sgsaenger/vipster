@@ -235,14 +235,6 @@ class TBController(QApplication):
                 self.exit(err)
 
 #####################################################################
-# Commandline Actions
-#####################################################################
-
-        #TODO: generate new files programmatically
-        #def newFile(self,newfmt,newfile,oldcoord,oldparam=""):
-        #def multFile(self,file,fmt,mult)
-
-#####################################################################
 # GET FUNCTIONS
 #####################################################################
 
@@ -261,6 +253,12 @@ class TBController(QApplication):
         def get_npw(self):
                 return len(self._pwdata)
 
+#####################################################################
+# NEW MOLECULE
+#####################################################################
+
+	def newMol(self):
+		self._mol.append([Molecule()])
 #####################################################################
 # READ FUNCTIONS
 #####################################################################

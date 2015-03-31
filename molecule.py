@@ -1,7 +1,9 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
+from time import time
 import numpy as np
+from mol_f import set_bonds_f
 
 ######################################################################
 # MOLECULE CLASS
@@ -124,6 +126,7 @@ class Molecule:
         ######################################################
         # BOND FUNCTIONS
         ######################################################
+        #TODO: unify _bonds and _pbc_bonds, just return _pbc_bonds[0]
 
         def get_bonds(self):
                 if not hasattr(self,'_bonds'): self.set_bonds()
@@ -134,29 +137,48 @@ class Molecule:
                 return self._pbc_bonds
 
         def set_bonds(self):
-                nat = self.get_nat()
-                self._bonds = []
-                at_c = self._atom_coord
-                at_n = self._atom_name
+                self.set_bonds_2(0)
 
-                for i in range(nat):
-                        for j in range(i+1,nat):
-                                dist = at_c[i]-at_c[j]
-
-                                #cancel if distance in one direction is greater than allowed bond length
-                                if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
-
-                                dist = np.dot(dist,dist)
-                                if at_n[i] != 'H' and at_n[j] != 'H':
-                                        #maximum bond length: 1.9A
-                                        if 0.57 < dist < 12.25:
-                                                self._bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
-                                else:
-                                        #maximum bond length for hydrogen: 1.2A
-                                        if 0.57 < dist < 5.15:
-                                                self._bonds.append([at_c[i],at_c[j],at_n[i],at_n[j]])
+        def set_bonds_2(self,pbc):
+                if not pbc:
+                        if len(self._atom_coord)>1:
+                                at_c = self._atom_coord
+                                at_n = self._atom_name
+                                n = np.zeros(3)
+                                print (n,n)
+                                nbnds,b1,b2,n1,n2 = set_bonds_f(at_c,at_n,(n,n))
+                                self._bonds=zip(b1[:nbnds],b2[:nbnds],n1[:nbnds],n2[:nbnds])
+                        else:
+                                self._bonds = []
+                else:
+                        if len(self._atom_coord)>1:
+                                self._pbc_bonds=[[],[],[],[],[],[],[],[]]
+                                at_c = self._atom_coord
+                                at_n = self._atom_name
+                                v = self.get_vec()*self.get_celldm()
+                                n = np.zeros(3)
+                                off = [[(n,n)],                             #orig
+                                        [(v[0],n)],                         #x
+                                        [(v[1],n)],                         #y
+                                        [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
+                                        [(v[2],n)],                         #z
+                                        [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
+                                        [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
+                                        [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
+                                for k,os in enumerate(off):
+                                        self._pbc_bonds[k]=[]
+                                        for i in os:
+                                                print i
+                                                nbonds,b1,b2,n1,n2 = set_bonds_f(at_c,at_n,i)
+                                                self._pbc_bonds[k].extend(zip(b1[:nbonds],b2[:nbonds],n1[:nbonds],n2[:nbonds]))
+                        else:
+                                self._pbc_bonds=[self._bonds,[],[],[],[],[],[],[]]
+                print self._bonds
+                print self._pbc_bonds
 
         def set_pbc_bonds(self):
+                self.set_bonds_2(1)
+                return
                 nat = self.get_nat()
                 self._pbc_bonds=[self.get_bonds(),[],[],[],[],[],[],[]]
                 v = self.get_vec()*self.get_celldm()
@@ -168,7 +190,6 @@ class Molecule:
                         [(v[0]+v[2],0),(v[0],v[2])],        #xz,x-z
                         [(v[1]+v[2],0),(v[1],v[2])],        #yz,y-z
                         [(v[0]+v[1]+v[2],0),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
-                #off=[0,vec[0],vec[1],vec[0]+vec[1],vec[2],vec[0]+vec[2],vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
                 at_c = self._atom_coord
                 at_n = self._atom_name
                 for i in range(nat):
@@ -212,8 +233,8 @@ class Molecule:
         # VOLUME DATA FUNCTIONS
         #####################################################
 
-	def set_vol(self,dim,vol):
-		self.volume=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
+        def set_vol(self,dim,vol):
+                self.volume=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
                 i=0
                 j=0
                 line=vol[i].split()
@@ -239,7 +260,7 @@ class Molecule:
 
         def evalScript(self,script):
             script=script.split()
-	    rep=1
+            rep=1
             #dictionary returns closure containing target operation and argument-check
             ops={'rot':self._evalArgs(self._rotate,'lavo'),
                     'shi':self._evalArgs(self._shift,'lv'),
@@ -279,7 +300,6 @@ class Molecule:
                     del script[0:len(op)]
             # delete previous definitions
             self._script_group={}
-
             #if everything went well, execute operations
             for op in stack:
                 op[0](*op[1:])
@@ -299,44 +319,44 @@ class Molecule:
                         #else, there's an error
                         else:
                             raise IndexError('list index out of range')
-		    #list of atoms
+                    #list of atoms
                     if t == 'l':
                         if arg in self._script_group:
                                 res.append(self._script_group[arg])
-			elif type(eval(arg))==type(1):
-				res.append([int(arg)])
+                        elif type(eval(arg))==type(1):
+                                res.append([int(arg)])
                         elif type(eval(arg))==type([]):
                                 res.append(map(int,eval(arg)))
                         else:
                                 raise TypeError('Not a list of atoms: '+str(arg))
-		    #angle
+                    #angle
                     elif t == 'a':
                         res.append(float(arg))
-		    #index for loops
+                    #index for loops
                     elif t == 'i':
                         res.append(int(arg))
-		    #arbitrary names for defined groups
+                    #arbitrary names for defined groups
                     elif t == 's':
                         res.append(arg)
-		    #valid vector for operations
+                    #valid vector for operations
                     elif t in 'vo':
                         arg=eval(arg)
-			if type(arg)==type(1) or (type(arg)==type([]) and len(arg)==1):
-				arg=self._atom_coord[arg-1]
-			elif type(arg)==type([]) and len(arg)==2:
-				arg=self._atom_coord[arg[0]]-self._atom_coord[arg[1]]
+                        if type(arg)==type(1) or (type(arg)==type([]) and len(arg)==1):
+                                arg=self._atom_coord[arg-1]
+                        elif type(arg)==type([]) and len(arg)==2:
+                                arg=self._atom_coord[arg[0]]-self._atom_coord[arg[1]]
                         elif type(arg)==type(()) and len(arg)==4:
                                 arg=self._set_coord(arg[0:3],arg[3])
                         elif type(arg)==type(()) and len(arg)==3:
                                 arg=self._set_coord(arg)
-			else:
-				raise TypeError('Not a valid vector: '+str(arg))
+                        else:
+                                raise TypeError('Not a valid vector: '+str(arg))
                         res.append(arg)
                 return res
             return evArgs
 
         def _rotate(self,atoms,angle,ax,shift=np.zeros(3)):
-	    angle=np.radians(angle)
+            angle=np.radians(angle)
             c=np.float(np.cos(angle))
             s=np.float(-np.sin(angle))
             ic=np.float(1.-c)

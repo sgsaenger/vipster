@@ -19,9 +19,9 @@ class ViewPort(QGLWidget):
         ##################################################
         def __init__(self,parent):
                 #init with antialiasing, transparency and OGLv3.3 core profile
-		form=QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel)
-		form.setVersion(3,3)
-		form.setProfile(QGLFormat.CoreProfile)
+                form=QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel)
+                form.setVersion(3,3)
+                form.setProfile(QGLFormat.CoreProfile)
                 super(ViewPort,self).__init__(form)
                 self.parent = parent
                 self.sphereShader = QGLShaderProgram()
@@ -153,8 +153,8 @@ class ViewPort(QGLWidget):
                           'Uuo':[1.70,0.77,QColor(252,  0, 15,255)]}
 
         def initializeGL(self):
-		#Bind VAO (necessary for modern OpenGL)
-		glBindVertexArray(glGenVertexArrays(1))
+                #Bind VAO (necessary for modern OpenGL)
+                glBindVertexArray(glGenVertexArrays(1))
                 #render only visible vertices
                 glEnable(GL_DEPTH_TEST)
                 #backface culling: render only front of vertex
@@ -238,6 +238,8 @@ class ViewPort(QGLWidget):
                                 b = i[1]
                                 #save colors
                                 #TODO: remove the fucking qcolors
+                                print i[2]
+                                print type(i[2])
                                 c1 = self.pse[i[2]][2]
                                 c2 = self.pse[i[3]][2]
                                 #position of bond

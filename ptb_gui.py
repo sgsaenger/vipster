@@ -37,24 +37,29 @@ class MainWindow(QMainWindow):
                 self.show()
 
         def initMenu(self):
-                self.initActions()
-                menu = self.menuBar()
-                fMenu = menu.addMenu('&File')
-                fMenu.addAction(self.loadAction)
-                fMenu.addAction(self.saveAction)
-                fMenu.addSeparator()
-                fMenu.addAction(self.exitAction)
+		newAction = QAction('&New Molecule',self)
+		newAction.setShortcut('Ctrl+N')
+		newAction.triggered.connect(self.newHandler)
+                loadAction = QAction('&Load Molecule(s)',self)
+                loadAction.setShortcut('Ctrl+O')
+                loadAction.triggered.connect(self.loadHandler)
+                saveAction = QAction('&Save Molecule',self)
+                saveAction.setShortcut('Ctrl+S')
+                saveAction.triggered.connect(self.saveHandler)
+                exitAction = QAction('&Exit',self)
+                exitAction.setShortcut('Ctrl+Q')
+                exitAction.triggered.connect(qApp.quit)
 
-        def initActions(self):
-                self.loadAction = QAction('&Load',self)
-                self.loadAction.setShortcut('Ctrl+O')
-                self.loadAction.triggered.connect(self.loadHandler)
-                self.saveAction = QAction('&Save',self)
-                self.saveAction.setShortcut('Ctrl+S')
-                self.saveAction.triggered.connect(self.saveHandler)
-                self.exitAction = QAction('&Exit',self)
-                self.exitAction.setShortcut('Ctrl+Q')
-                self.exitAction.triggered.connect(qApp.quit)
+                fMenu = self.menuBar().addMenu('&File')
+                fMenu.addAction(newAction)
+                fMenu.addAction(loadAction)
+                fMenu.addAction(saveAction)
+                fMenu.addSeparator()
+                fMenu.addAction(exitAction)
+
+	def newHandler(self):
+		self.controller.newMol()
+		self.centralWidget().loadView()
 
         def loadHandler(self):
                 fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
