@@ -130,8 +130,6 @@ class MolArea(QWidget):
         def newAtom(self):
                 self.mol.create_atom()
                 self.mol.set_bonds()
-                self.mol.set_pbc_bonds()
-
                 #update Main Widget
                 self.parent.updateMolStep()
 
@@ -146,8 +144,6 @@ class MolArea(QWidget):
                 for at in reversed(self.sel):
                         self.mol.insert_atom(pos,at)
                 self.mol.set_bonds()
-                self.mol.set_pbc_bonds()
-
                 #update Main Widget
                 self.parent.updateMolStep()
 
@@ -159,7 +155,6 @@ class MolArea(QWidget):
                 for i in sorted(delrange,reverse=True):
                         self.mol.del_atom(i)
                 self.mol.set_bonds()
-                self.mol.set_pbc_bonds()
                 #update Main Widget
                 self.parent.updateMolStep()
 
@@ -180,7 +175,6 @@ class MolArea(QWidget):
                                         for j in range(mol.get_nat()):
                                                 mol.set_atom(j,*molc.get_atom(j,'crystal'))
                                         mol.set_bonds()
-                                        mol.set_pbc_bonds()
                                         del(molc)
                         else:
                                 par = self.parent
@@ -193,7 +187,6 @@ class MolArea(QWidget):
                                 for i in range(mol.get_nat()):
                                         self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
                                 self.mol.set_bonds()
-                                self.mol.set_pbc_bonds()
                                 del(mol)
                         else:
                             self.mol.set_celldm(float(self.cellDm.text()))
@@ -210,7 +203,6 @@ class MolArea(QWidget):
                         coord[j]=float(self.table.item(atom,j+1).text())
                 self.mol.set_atom(atom,name,coord,self.fmt.currentText())
                 self.mol.set_bonds()
-                self.mol.set_pbc_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -233,7 +225,6 @@ class MolArea(QWidget):
                                                 mol.set_atom(j,*mol.get_atom(j,'crystal'))
                                                 #mol.set_atom(j,*molc.get_atom(j,'crystal'))
                                         mol.set_bonds()
-                                        mol.set_pbc_bonds()
                                         #del(molc)
                         else:
                                 par = self.parent
@@ -246,7 +237,6 @@ class MolArea(QWidget):
                                 for i in range(mol.get_nat()):
                                         self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
                                 self.mol.set_bonds()
-                                self.mol.set_pbc_bonds()
                                 del(mol)
                         else:
                                 self.mol.set_vec(vec)

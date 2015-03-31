@@ -60,7 +60,6 @@ class ToolArea(QWidget):
                 if not hasattr(self,'mol'): return
                 self.mol.mult(int(self.xmult.text()),int(self.ymult.text()),int(self.zmult.text()))
                 self.mol.set_bonds()
-                self.mol.set_pbc_bonds()
                 self.parent.updateMolStep()
 
         def initPlane(self):
@@ -118,5 +117,4 @@ class ToolArea(QWidget):
         def scriptHandler(self):
             self.scriptResult.setText(self.mol.evalScript(str(self.scriptArea.toPlainText())))
 	    self.mol.set_bonds()
-	    self.mol.set_pbc_bonds()
 	    self.parent.updateMolStep()

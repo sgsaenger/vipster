@@ -199,14 +199,13 @@ class ViewPort(QGLWidget):
                 atoms = mol.get_all_atoms()
                 vec = mol.get_vec()*mol.get_celldm()
                 center = mol.get_center()
+                bonds = mol.get_bonds()
 
                 #get bonds and calculate offsets
                 if mult == [1,1,1]:
                         #only one (==no) offset
                         off = [-center]
                         edge=[7]
-                        #avoid setting pbc bonds
-                        bonds = [mol.get_bonds(),[],[],[],[],[],[],[]]
                 else:
                         tmult = [1,1,1]
                         #save the multiplicators:
@@ -223,7 +222,6 @@ class ViewPort(QGLWidget):
                                 for i in range(1,mult[0]+1)
                                 for j in range(1,mult[1]+1)
                                 for k in range(1,mult[2]+1)]
-                        bonds = mol.get_pbc_bonds()
 
                 #prepare bond VBOs
                 tempbonds=[]
@@ -234,14 +232,16 @@ class ViewPort(QGLWidget):
                         if mult&j!=j: continue
                         for i in bonds[j]:
                                 #get positions of atoms
-                                a = i[0]
-                                b = i[1]
+                                #a = i[0]
+                                #b = i[1]
+                                a = atoms[i[0]][1]+i[2][0]
+                                b = atoms[i[1]][1]+i[2][1]
                                 #save colors
                                 #TODO: remove the fucking qcolors
-                                print i[2]
-                                print type(i[2])
-                                c1 = self.pse[i[2]][2]
-                                c2 = self.pse[i[3]][2]
+                                #c1 = self.pse[i[2]][2]
+                                #c2 = self.pse[i[3]][2]
+                                c1 = self.pse[atoms[i[0]][0]][2]
+                                c2 = self.pse[atoms[i[1]][0]][2]
                                 #position of bond
                                 pos= (a+b)/2
                                 #rotate bond from x-axis d to bond-axis c

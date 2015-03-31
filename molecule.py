@@ -14,6 +14,7 @@ class Molecule:
                 # set atom list
                 self._atom_name=[]
                 self._atom_coord=[]
+                self._bond_cutoff=[]
                 self._script_group=dict()
                 self._celldm = 1.0
                 self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
@@ -132,85 +133,29 @@ class Molecule:
                 if not hasattr(self,'_bonds'): self.set_bonds()
                 return self._bonds
 
-        def get_pbc_bonds(self):
-                if not hasattr(self,'_pbc_bonds'): self.set_pbc_bonds()
-                return self._pbc_bonds
-
         def set_bonds(self):
-                self.set_bonds_2(0)
-
-        def set_bonds_2(self,pbc):
-                if not pbc:
-                        if len(self._atom_coord)>1:
-                                at_c = self._atom_coord
-                                at_n = self._atom_name
-                                n = np.zeros(3)
-                                print (n,n)
-                                nbnds,b1,b2,n1,n2 = set_bonds_f(at_c,at_n,(n,n))
-                                self._bonds=zip(b1[:nbnds],b2[:nbnds],n1[:nbnds],n2[:nbnds])
-                        else:
-                                self._bonds = []
-                else:
-                        if len(self._atom_coord)>1:
-                                self._pbc_bonds=[[],[],[],[],[],[],[],[]]
-                                at_c = self._atom_coord
-                                at_n = self._atom_name
-                                v = self.get_vec()*self.get_celldm()
-                                n = np.zeros(3)
-                                off = [[(n,n)],                             #orig
-                                        [(v[0],n)],                         #x
-                                        [(v[1],n)],                         #y
-                                        [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
-                                        [(v[2],n)],                         #z
-                                        [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
-                                        [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
-                                        [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
-                                for k,os in enumerate(off):
-                                        self._pbc_bonds[k]=[]
-                                        for i in os:
-                                                print i
-                                                nbonds,b1,b2,n1,n2 = set_bonds_f(at_c,at_n,i)
-                                                self._pbc_bonds[k].extend(zip(b1[:nbonds],b2[:nbonds],n1[:nbonds],n2[:nbonds]))
-                        else:
-                                self._pbc_bonds=[self._bonds,[],[],[],[],[],[],[]]
-                print self._bonds
-                print self._pbc_bonds
-
-        def set_pbc_bonds(self):
-                self.set_bonds_2(1)
-                return
-                nat = self.get_nat()
-                self._pbc_bonds=[self.get_bonds(),[],[],[],[],[],[],[]]
-                v = self.get_vec()*self.get_celldm()
-                off = [[(0,0)],                             #orig
-                        [(v[0],0)],                         #x
-                        [(v[1],0)],                         #y
-                        [(v[0]+v[1],0),(v[0],v[1])],        #xy,x-y
-                        [(v[2],0)],                         #z
-                        [(v[0]+v[2],0),(v[0],v[2])],        #xz,x-z
-                        [(v[1]+v[2],0),(v[1],v[2])],        #yz,y-z
-                        [(v[0]+v[1]+v[2],0),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
+                self._bonds=[[],[],[],[],[],[],[],[]]
+                if len(self._atom_coord)<2:
+                    return
                 at_c = self._atom_coord
-                at_n = self._atom_name
-                for i in range(nat):
-                        for j in range(nat):
-                                dist_at = self._atom_coord[i] - self._atom_coord[j]
-                                for k in [1,2,3,4,5,6,7]:
-                                    for l in off[k]:
-                                        dist= dist_at+l[0]-l[1]
-
-                                        #cancel if distance in one direction is greater than allowed bond length
-                                        if dist[0]>3.5 or dist[1]>3.5 or dist[2]>3.5: continue
-
-                                        dist = np.dot(dist,dist)
-                                        if at_n[i] != 'H' and at_n[j] != 'H':
-                                                #maximum bond length: 1.9A
-                                                if 0.57 < dist < 12.25:
-                                                        self._pbc_bonds[k].append([at_c[i]+l[0],at_c[j]+l[1],at_n[i],at_n[i]])
-                                        else:
-                                                #maximum bond length for hydrogen: 1.2A
-                                                if 0.57 < dist < 5.15:
-                                                        self._pbc_bonds[k].append([at_c[i]+l[0],at_c[j]+l[1],at_n[i],at_n[i]])
+                cutoff=np.array([3.5]*len(at_c),'f')
+                for i in range(len(at_c)):
+                    if self._atom_name[i] == 'H':
+                        cutoff[i]=2.27
+                n=np.zeros(3)
+                v = self.get_vec()*self.get_celldm()
+                off = [[(n,n)],                             #orig
+                        [(v[0],n)],                         #x
+                        [(v[1],n)],                         #y
+                        [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
+                        [(v[2],n)],                         #z
+                        [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
+                        [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
+                        [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
+                for k,os in enumerate(off):
+                        for i in os:
+                                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,i)
+                                self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
 
         #####################################################
         # EDIT FUNCTIONS
