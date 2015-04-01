@@ -174,12 +174,6 @@ class TBController(QApplication):
                 elif self.argv[1][0]!='-': self._print_help(22)
                 elif self.argv[1][0:2]=='--': self._print_help(22)
                 elif '-h' in self.argv: self._print_help(0)
-                #temporary interpreter test
-                elif self.argv[1] == '-int':
-                        self.readFile('PWScf Output','OUT')
-                        f = open('script','r')
-                        self._mol[0][0].evalScript(f.readlines()[0])
-                        self.exit(0)
                 #check for input files, start gui and load
                 else:
                         self.gui = MainWindow(self)
@@ -232,6 +226,7 @@ class TBController(QApplication):
                 f.write('-pwi [FILES]: open PWScf input file(s)\n')
                 f.write('-pwo [FILES]: open PWScf output file(s)\n')
                 f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
+                f.write('-cube [FILES]: open CUBE file(s)\n')
                 self.exit(err)
 
 #####################################################################

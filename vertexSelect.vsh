@@ -15,7 +15,7 @@ void main(void)
 
     //MaterialDiffuseColor = vec4(float((gl_InstanceID&16711680)>>16)/255.,float((gl_InstanceID&65280)>>8)&255.,float(gl_InstanceID&255)/255.,1);
     float red=float(gl_InstanceID&0xFF)/255.;
-    float blue=float((gl_InstanceID&0xFF00)>>8)/255.;
-    float green=float((gl_InstanceID&0xFF0000)>>16)/255.;
+    float green=float((gl_InstanceID&0xFF00)>>8)/255.;
+    float blue=float((gl_InstanceID&0xFF0000)>>16)/255.;
     MaterialDiffuseColor = vec4(red,green,blue,1);
 }

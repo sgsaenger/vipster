@@ -127,7 +127,6 @@ class Molecule:
         ######################################################
         # BOND FUNCTIONS
         ######################################################
-        #TODO: unify _bonds and _pbc_bonds, just return _pbc_bonds[0]
 
         def get_bonds(self):
                 if not hasattr(self,'_bonds'): self.set_bonds()
@@ -217,20 +216,18 @@ class Molecule:
             while script:
                 try:
                     op=ops[script[0][0:3].lower()](script[1:])
-                    #op=ops[script.pop(0)[0:3].lower()](script)
                 except KeyError as e:
-                    print 'Wrong Op:', e.message
-                    return 'Wrong Op'
-                except ValueError as e:
-                    print 'Not an Angle!', e.message
-                    return 'Not an Angle!'
+                    return 'Wrong Op: '+script[0]
                 except NameError as e:
-                    print 'Argument(s) missing, new command', e.message
-                    return 'Argument(s) missing, new command', e.message
-                except IndexError as e:
-                    print 'Argument(s) missing, script over', e.message
-                    return 'Argument(s) missing'
+                    print e.message
+                    return e.message
                 except TypeError as e:
+                    print e.message
+                    return e.message
+                except IndexError as e:
+                    print e.message
+                    return e.message
+                except ValueError as e:
                     print e.message
                     return e.message
                 else:
@@ -263,17 +260,23 @@ class Molecule:
                             return res
                         #else, there's an error
                         else:
-                            raise IndexError('list index out of range')
+                            raise IndexError('Argument index out of range')
                     #list of atoms
                     if t == 'l':
                         if arg in self._script_group:
-                                res.append(self._script_group[arg])
-                        elif type(eval(arg))==type(1):
-                                res.append([int(arg)])
-                        elif type(eval(arg))==type([]):
-                                res.append(map(int,eval(arg)))
+                            res.append(self._script_group[arg])
                         else:
-                                raise TypeError('Not a list of atoms: '+str(arg))
+                            arg = arg.strip('[]').split(',')
+                            l = []
+                            for j in arg:
+                                if '-' in j:
+                                    low,high=j.split('-')
+                                    l.extend(range(int(low)-1,int(high)))
+                                else:
+                                    l.append(int(j)-1)
+                            if not np.all(np.less(l,len(self._atom_coord))):
+                                raise IndexError('Atom index out of range')
+                            res.append(l)
                     #angle
                     elif t == 'a':
                         res.append(float(arg))
@@ -285,17 +288,19 @@ class Molecule:
                         res.append(arg)
                     #valid vector for operations
                     elif t in 'vo':
-                        arg=eval(arg)
-                        if type(arg)==type(1) or (type(arg)==type([]) and len(arg)==1):
-                                arg=self._atom_coord[arg-1]
-                        elif type(arg)==type([]) and len(arg)==2:
-                                arg=self._atom_coord[arg[0]]-self._atom_coord[arg[1]]
-                        elif type(arg)==type(()) and len(arg)==4:
+                        if '(' in arg:
+                            arg=eval(arg)
+                            if len(arg)==4:
                                 arg=self._set_coord(arg[0:3],arg[3])
-                        elif type(arg)==type(()) and len(arg)==3:
-                                arg=self._set_coord(arg)
+                            else:
+                                arg=self._set_coord(arg[0:3])
+                        elif '-' in arg:
+                            arg=arg.strip('[]').split('-')
+                            arg=self._atom_coord[int(arg[0])-1]-self._atom_coord[int(arg[1])-1]
+                        elif type(eval(arg))==type(1) or (type(arg)==type([]) and len(arg)==1):
+                            arg=self._atom_coord[int(arg)-1]
                         else:
-                                raise TypeError('Not a valid vector: '+str(arg))
+                            raise ValueError('Not a valid vector: '+str(arg))
                         res.append(arg)
                 return res
             return evArgs
@@ -305,21 +310,22 @@ class Molecule:
             c=np.float(np.cos(angle))
             s=np.float(-np.sin(angle))
             ic=np.float(1.-c)
+            ax=ax/np.linalg.norm(ax)
             mat=np.array([[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1]],
                           [ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0]],
                           [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
             for i in atoms:
-                self._atom_coord[i-1]=np.dot(self._atom_coord[i-1]-shift,mat)+shift
+                self._atom_coord[i]=np.dot(self._atom_coord[i]-shift,mat)+shift
 
         def _shift(self,atoms,vector):
             for i in atoms:
-                self._atom_coord[i-1]+=np.array(vector,'f')
+                self._atom_coord[i]+=np.array(vector,'f')
 
         def _mirror(self,atoms,v1,v2,shift=np.zeros(3)):
             normal=np.cross(v1,v2)
             normal=normal/np.linalg.norm(normal)
             for i in atoms:
-                pos=self._atom_coord[i-1]
+                pos=self._atom_coord[i]
                 proj = np.dot(pos-shift,normal)*normal
-                self._atom_coord[i-1]=pos-2*proj
+                self._atom_coord[i]=pos-2*proj
 

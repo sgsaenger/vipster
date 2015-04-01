@@ -48,7 +48,10 @@
 - [x] added function to get all atoms at once
 - [x] exported model of sphere to external file
 - [x] exported model of bonds to external file
-- [ ] added doxygen documentation
+- [x] Moved bond-setting to fortran code
+- [x] Visual picking
+- [x] Calculate distances and angles
+- [ ] added daxygen documentation
 - [ ] moved classes to seperate files
 - [ ] moved k-points to molecule (including molecule edit area)
 - [x] force OpenGL 3.3 core profile for compatibility
@@ -65,9 +68,7 @@
 
 # In the long run, wishlist:
 
-- [ ] Bond setting has to be faster
-  - [ ] Move to fortran code
-  - [ ] Threads to improve responsiveness
+- [ ] added doxygen documentation
 - [ ] Better picture generation
   - [ ] Better screenshot dialog
   - [ ] Export to Povray
@@ -75,7 +76,6 @@
   - [ ] 2D
   - [ ] 3D point cloud
   - [ ] 3D isosurface
-- [ ] Calculate distances and angles
 - [ ] Improve orthogonal projection
   - [x] display without zooming first
   - [ ] make it zoom on the same scale as perspective projection

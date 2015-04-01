@@ -6,7 +6,6 @@ import sys
 from copy import deepcopy
 from os.path import splitext
 from os import getcwd
-#import numpy as np
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import QTimer,Qt
@@ -37,9 +36,9 @@ class MainWindow(QMainWindow):
                 self.show()
 
         def initMenu(self):
-		newAction = QAction('&New Molecule',self)
-		newAction.setShortcut('Ctrl+N')
-		newAction.triggered.connect(self.newHandler)
+                newAction = QAction('&New Molecule',self)
+                newAction.setShortcut('Ctrl+N')
+                newAction.triggered.connect(self.newHandler)
                 loadAction = QAction('&Load Molecule(s)',self)
                 loadAction.setShortcut('Ctrl+O')
                 loadAction.triggered.connect(self.loadHandler)
@@ -57,9 +56,9 @@ class MainWindow(QMainWindow):
                 fMenu.addSeparator()
                 fMenu.addAction(exitAction)
 
-	def newHandler(self):
-		self.controller.newMol()
-		self.centralWidget().loadView()
+        def newHandler(self):
+                self.controller.newMol()
+                self.centralWidget().loadView()
 
         def loadHandler(self):
                 fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
@@ -90,15 +89,7 @@ class MainView(QWidget):
                 self.controller = controller
                 # initialize GUI and accompanying actions
                 self.initUI()
-                self.initActions()
-                # set persistent render parameters
                 self.mult =[1,1,1]
-                self.view = True
-                self.cell = True
-                self.mouseMode = True
-                self.AA = True
-                self.bondShow = True
-                self.selection=[]
 
         def initUI(self):
 
@@ -248,36 +239,6 @@ class MainView(QWidget):
                 hbox.addWidget(rcol)
                 self.setLayout(hbox)
 
-        def initActions(self):
-                #define actions
-                changeProj = QAction('Change &Projection',self)
-                changeProj.setShortcut('p')
-                changeProj.triggered.connect(self.projHandler)
-                toggleCell = QAction('Toggle &Cell',self)
-                toggleCell.setShortcut('c')
-                toggleCell.triggered.connect(self.cellHandler)
-                mouseRotate = QAction('&Rotate',self)
-                mouseRotate.setShortcut('r')
-                mouseRotate.triggered.connect(self.mmHandler)
-                mouseSelect = QAction('&Select',self)
-                mouseSelect.setShortcut('s')
-                mouseSelect.triggered.connect(self.mmHandler)
-                #antiAlias = QAction('Toggle &Antialiasing',self)
-                #antiAlias.setShortcut('a')
-                #antiAlias.triggered.connect(self.aaHandler)
-                toggleBonds = QAction('Toggle &Bonds',self)
-                toggleBonds.setShortcut('b')
-                toggleBonds.triggered.connect(self.bondHandler)
-                #create menu
-                vMenu = self.parent.menuBar().addMenu('&View')
-                vMenu.addAction(changeProj)
-                vMenu.addAction(toggleCell)
-                vMenu.addAction(toggleBonds)
-                #vMenu.addAction(antiAlias)
-                vMenu.addSeparator()
-                vMenu.addAction(mouseRotate)
-                vMenu.addAction(mouseSelect)
-
         ########################################################
         #insert loaded molecules
         ########################################################
@@ -328,48 +289,6 @@ class MainView(QWidget):
                 self.pw.saveParam()
                 return self.controller.get_pw(self.pwlist.currentRow())
 
-        ########################################################
-        # view modifier
-        ########################################################
-
-        def projHandler(self):
-                self.view = not self.view
-                self.visual.updateGL()
-
-        def cellHandler(self):
-                self.cell = not self.cell
-                self.visual.updateGL()
-
-        ########################################################
-        # Toggle Bonds
-        ########################################################
-
-        def bondHandler(self):
-                self.bondShow = not self.bondShow
-                self.visual.updateGL()
-
-        ########################################################
-        # Mouse mode
-        ########################################################
-
-        def mmHandler(self):
-                source = self.sender()
-                if source == None: self.mouseMode = not self.mouseMode
-                elif source.text() == '&Rotate': self.mouseMode = True
-                elif source.text() == '&Select': self.mouseMode = False
-
-        ########################################################
-        # Toggle AntiAliasing
-        ########################################################
-
-        def aaHandler(self):
-                if self.AA:
-                        self.AA = False
-                        glDisable(GL_MULTISAMPLE)
-                elif not self.AA:
-                        self.AA = True
-                        glEnable(GL_MULTISAMPLE)
-                self.visual.updateGL()
 
         ########################################################
         #screenshot test
