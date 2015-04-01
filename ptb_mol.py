@@ -273,7 +273,9 @@ class TBController(QApplication):
                 i=0
                 while i < len(data):
                         # handle empty lines at eof or between molecules
-                        if not data[i].strip().isdigit(): i+=1
+                        if not data[i].strip().isdigit():
+                        	i+=1
+                        	continue
                         # create new molecule
                         tmol = Molecule()
                         #fixed format nat and comment
