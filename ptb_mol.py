@@ -175,10 +175,6 @@ class TBController(QApplication):
                 elif self.argv[1][0:2]=='--': self._print_help(22)
                 elif '-h' in self.argv: self._print_help(0)
                 #check for input files, start gui and load
-                elif self.argv[1] == '-conv': 
-                    self.readFile('PWScf Output',self.argv[2])
-                    self.writeFile('xyz',self._mol[0][0],self.argv[3])
-                    self.exit(0)
                 else:
                         self.gui = MainWindow(self)
                         #for i in range(1,len(self.argv)):
@@ -256,8 +252,8 @@ class TBController(QApplication):
 # NEW MOLECULE
 #####################################################################
 
-	def newMol(self):
-		self._mol.append([Molecule()])
+        def newMol(self):
+                self._mol.append([Molecule()])
 #####################################################################
 # READ FUNCTIONS
 #####################################################################
@@ -278,8 +274,8 @@ class TBController(QApplication):
                 while i < len(data):
                         # handle empty lines at eof or between molecules
                         if not data[i].strip().isdigit():
-                        	i+=1
-                        	continue
+                                i+=1
+                                continue
                         # create new molecule
                         tmol = Molecule()
                         #fixed format nat and comment

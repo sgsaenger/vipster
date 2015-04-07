@@ -17,8 +17,8 @@ class Molecule:
                 self._bond_cutoff=[]
                 self._script_group=dict()
                 self._celldm = 1.0
-                self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
-                self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+                self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
+                self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
                 self._comment = ''
 
         ######################################################
@@ -57,12 +57,21 @@ class Molecule:
                 self._comment = comment
 
         # set celldm
-        def set_celldm(self,cdm):
+        def set_celldm(self,cdm,scale=False):
+                if scale:
+                    ratio=cdm/self._celldm
+                    for i in range(len(self._atom_coord)):
+                        self._atom_coord[i] = self._atom_coord[i]*ratio
                 self._celldm = float(cdm)
 
         # set vectors in bohr
-        def set_vec(self,vec):
-                self._vec = np.array(vec)
+        def set_vec(self,vec,scale=False):
+                vec = np.array(vec,'f')
+                inv = self._vecinv
+                if scale:
+                    for i in range(len(self._atom_coord)):
+                        self._atom_coord[i] = np.dot(np.dot(self._atom_coord[i],inv),vec)
+                self._vec = vec
                 self._vecinv = np.linalg.inv(self._vec)
 
         #######################################################

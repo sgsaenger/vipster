@@ -165,31 +165,14 @@ class MolArea(QWidget):
         def cdmHandler(self):
                 if self.updatedisable: return
                 if float(self.cellDm.text()) == self.mol.get_celldm():return
+                par= self.parent
                 if self.appAll.isChecked():
-                        if self.scale.isChecked():
-                                par=self.parent
-                                for i in range(int(par.maxStep.text())):
-                                        mol=par.controller.get_mol(par.mlist.currentRow(),i)
-                                        molc = deepcopy(mol)
-                                        mol.set_celldm(float(self.cellDm.text()))
-                                        for j in range(mol.get_nat()):
-                                                mol.set_atom(j,*molc.get_atom(j,'crystal'))
-                                        mol.set_bonds()
-                                        del(molc)
-                        else:
-                                par = self.parent
-                                for i in range(int(par.maxStep.text())):
-                                        par.controller.get_mol(par.mlist.currentRow(),i).set_celldm(float(self.cellDm.text()))
+                    mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(int(par.maxStep.text()))]
                 else:
-                        if self.scale.isChecked():
-                                mol = deepcopy(self.mol)
-                                self.mol.set_celldm(float(self.cellDm.text()))
-                                for i in range(mol.get_nat()):
-                                        self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
-                                self.mol.set_bonds()
-                                del(mol)
-                        else:
-                            self.mol.set_celldm(float(self.cellDm.text()))
+                    mols=[self.mol]
+                for m in mols:
+                    m.set_celldm(float(self.cellDm.text()),self.scale.isChecked())
+                    m.set_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
@@ -215,31 +198,12 @@ class MolArea(QWidget):
                                 vec[i][j]=float(self.vtable.item(i,j).text())
                 if vec == self.mol.get_vec().tolist(): return
                 if self.appAll.isChecked():
-                        if self.scale.isChecked():
-                                par = self.parent
-                                for i in range(int(par.maxStep.text())):
-                                        mol = par.controller.get_mol(par.mlist.currentRow(),i)
-                                        #molc = deepcopy(mol)
-                                        mol.set_vec(vec)
-                                        for j in range(mol.get_nat()):
-                                                mol.set_atom(j,*mol.get_atom(j,'crystal'))
-                                                #mol.set_atom(j,*molc.get_atom(j,'crystal'))
-                                        mol.set_bonds()
-                                        #del(molc)
-                        else:
-                                par = self.parent
-                                for i in range(int(par.maxStep.text())):
-                                        par.controller.get_mol(par.mlist.currentRow(),i).set_vec(vec)
+                    mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(int(par.maxStep.text()))]
                 else:
-                        if self.scale.isChecked():
-                                mol = deepcopy(self.mol)
-                                self.mol.set_vec(vec)
-                                for i in range(mol.get_nat()):
-                                        self.mol.set_atom(i,*mol.get_atom(i,'crystal'))
-                                self.mol.set_bonds()
-                                del(mol)
-                        else:
-                                self.mol.set_vec(vec)
+                    mols=[self.mol]
+                for m in mols:
+                    m.set_vec(vec,self.scale.isChecked())
+                    m.set_bonds()
 
                 #update Main Widget
                 self.parent.updateMolStep()
