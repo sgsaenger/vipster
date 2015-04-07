@@ -581,7 +581,7 @@ class ViewPort(QGLWidget):
                 if not self.mouseSelect:return
                 if(e.button() & 2):
                     self.sel=[]
-                elif(e.button()&4):
+                elif(e.button()&4) and self.sel:
                     self.sel.pop()
                 elif(e.button()&1) and len(self.sel)<4:
                     #render with selectionmode
@@ -599,7 +599,8 @@ class ViewPort(QGLWidget):
                     glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,color)
                     if color[3] == 0:
                         return
-                    id = color[0] + 256*color[1] + 65536*color[2]
+                    mult=self.mult[0]*self.mult[1]*self.mult[2]
+                    id = (color[0] + 256*color[1] + 65536*color[2])/mult
                     if id in self.sel or id>self.mol.get_nat():
                         return
                     else:
