@@ -3,13 +3,19 @@
 Visualization of PWScf, Cube and xyz files.
 
 Depends on Python2.7, Numpy, f2py, gfortran, PyQT4 and the Python OpenGL bindings.
-(https://pypi.python.org/pypi/PyOpenGL/3.0.2#downloads)
 
 ##Installation:
 
-Compile the fortran part and you're good to go:
+Compile the fortran part:
 ```
 f2py -c faster.f90 -m mol_f
+```
+Update PyOpenGl to >V3.0.2:
+```
+wget https://pypi.python.org/packages/source/P/PyOpenGL/PyOpenGL-3.0.2.tar.gz
+tar -xf PyOpenGL-3.0.2.tar.gz
+cd PyOpenGL-3.0.2
+python setup.py --user
 ```
 
 ##Usage:
