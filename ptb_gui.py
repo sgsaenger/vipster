@@ -73,13 +73,22 @@ class MainWindow(QMainWindow):
                 if not fname: return
                 ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
                 ftype = str(ftype[0])
-                mol = self.centralWidget().getMolecule()
-                if ftype=='PWScf Input':
-                        param = self.centralWidget().getParam()
-                else:
-                        param = False
-                coordfmt = self.centralWidget().coord.fmt.currentText()
-                self.controller.writeFile(ftype,mol,fname,param,coordfmt)
+                try:
+                    try:
+                        mol = self.centralWidget().getMolecule()
+                    except:
+                        raise IndexError('No Molecule')
+                    if ftype=='PWScf Input':
+                        try:
+                            param = self.centralWidget().getParam()
+                        except:
+                            raise IndexError('No PW Parameter set')
+                    else:
+                            param = False
+                    coordfmt = self.centralWidget().coord.fmt.currentText()
+                    self.controller.writeFile(ftype,mol,fname,param,coordfmt)
+                except StandardError as e:
+                    QMessageBox(QMessageBox.Critical,'Error',e.message,QMessageBox.Ok,self).exec_()
 
 class MainView(QWidget):
 
