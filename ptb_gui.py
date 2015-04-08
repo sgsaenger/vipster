@@ -269,6 +269,7 @@ class MainView(QWidget):
                 self.maxStep.setText(str(steps))
                 self.currentStep.setValidator(QIntValidator(1,steps))
                 self.currentStep.setText(str(steps))
+                self.updateMolStep()
 
         def selectPWParam(self,sel):
                 self.pw.setPW(self.controller.get_pw(sel))

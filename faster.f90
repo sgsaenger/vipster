@@ -6,8 +6,8 @@ INTEGER :: nat,i,j,k
 REAL,INTENT(IN),DIMENSION(2,3)::off
 REAL,INTENT(IN),DIMENSION(0:nat-1,3) :: coord
 REAL,INTENT(IN),DIMENSION(0:nat-1) :: cut
-INTEGER,INTENT(OUT),DIMENSION((nat*(nat-1))/2) :: at1,at2
-REAL,INTENT(OUT),DIMENSION((nat*(nat-1))/2) :: dist
+INTEGER,INTENT(OUT),DIMENSION(nat*nat) :: at1,at2
+REAL,INTENT(OUT),DIMENSION(nat*nat) :: dist
 REAL,DIMENSION(3) :: dist_v
 REAL :: effcut,dist_n
 !add one in order to use it as an index in fortran

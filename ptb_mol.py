@@ -170,6 +170,8 @@ class TBController(QApplication):
                 #no argument: start GUI
                 if len(self.argv) == 1:
                         self.gui = MainWindow(self)
+                        self.newMol()
+                        self.gui.centralWidget().loadView()
                 #check for misformatted options or help request:
                 elif self.argv[1][0]!='-': self._print_help(22)
                 elif self.argv[1][0:2]=='--': self._print_help(22)
