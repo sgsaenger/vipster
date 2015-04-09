@@ -24,6 +24,10 @@ For startup:
 ```
 ./ptb_main.py -h
 ```
+or, on computers with GLSL<3.3
+```
+./ptb_old.py -h
+```
 
 The GUI should be pretty self-explanatory (or will be at some point...)
 
