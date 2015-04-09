@@ -148,10 +148,11 @@ pse={"X":  [0,0.0],
 ######################################################################
 class TBController(QApplication):
 
-        def __init__(self,argv):
+        def __init__(self,argv,old=False):
                 super(TBController,self).__init__(argv)
                 self.argv = argv
                 self._mol = []
+                self.old = old
                 self._pwdata = []
                 self.indict = OrderedDict([('xyz',self._parseXyz),
                                ('PWScf Input',self._parsePwi),
@@ -169,7 +170,7 @@ class TBController(QApplication):
         def _argumentHandler(self):
                 #no argument: start GUI
                 if len(self.argv) == 1:
-                        self.gui = MainWindow(self)
+                        self.gui = MainWindow(self,self.old)
                         self.newMol()
                         self.gui.centralWidget().loadView()
                 #check for misformatted options or help request:
@@ -178,7 +179,7 @@ class TBController(QApplication):
                 elif '-h' in self.argv: self._print_help(0)
                 #check for input files, start gui and load
                 else:
-                        self.gui = MainWindow(self)
+                        self.gui = MainWindow(self,self.old)
                         #for i in range(1,len(self.argv)):
                         i=1
                         while i<len(self.argv):

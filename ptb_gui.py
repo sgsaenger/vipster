@@ -10,25 +10,20 @@ from os import getcwd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import QTimer,Qt
 
-from viewport import ViewPort
 from coordedit import MolArea
 from paramedit import PWTab
 from multiedit import ToolArea
 
 class MainWindow(QMainWindow):
 
-        def __init__(self,controller):
+        def __init__(self,controller,old):
                 super(MainWindow,self).__init__()
                 self.controller = controller
-                self.initApp()
-
-        def initApp(self):
-
                 #Create Menu
                 self.initMenu()
 
                 #Create main widget
-                mv = MainView(self,self.controller)
+                mv = MainView(self,self.controller,old)
                 self.setCentralWidget(mv)
 
                 # Set Title and run:
@@ -92,15 +87,12 @@ class MainWindow(QMainWindow):
 
 class MainView(QWidget):
 
-        def __init__(self,parent,controller):
+        def __init__(self,parent,controller,old):
                 super(MainView,self).__init__()
                 self.parent = parent
                 self.controller = controller
                 # initialize GUI and accompanying actions
-                self.initUI()
                 self.mult =[1,1,1]
-
-        def initUI(self):
 
         #Left column:
                 #Molecule list:
@@ -142,6 +134,10 @@ class MainView(QWidget):
 
         #Central Column:
                 #OpenGL Viewport:
+                if old:
+                    from old.viewport import ViewPort
+                else:
+                    from viewport import ViewPort
                 self.visual = ViewPort(self)
 
                 #Control visual:
