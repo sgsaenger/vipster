@@ -82,7 +82,7 @@ class Molecule:
         def _set_coord(self,coord,fmt='bohr'):
                 coord = np.array(coord,'f')
                 if fmt == 'angstrom':
-                        return coord/0.52917721092
+                        return coord*1.889726125
                 elif fmt == 'bohr':
                         return coord
                 elif fmt == 'crystal':
@@ -280,9 +280,9 @@ class Molecule:
                             for j in arg:
                                 if '-' in j:
                                     low,high=j.split('-')
-                                    l.extend(range(int(low)-1,int(high)))
+                                    l.extend(range(int(low),int(high)+1))
                                 else:
-                                    l.append(int(j)-1)
+                                    l.append(int(j))
                             if not np.all(np.less(l,len(self._atom_coord))):
                                 raise IndexError('Atom index out of range')
                             res.append(l)
@@ -304,12 +304,13 @@ class Molecule:
                             else:
                                 arg=self._set_coord(arg[0:3])
                         elif '-' in arg:
-                            arg=arg.strip('[]').split('-')
-                            arg=self._atom_coord[int(arg[0])-1]-self._atom_coord[int(arg[1])-1]
-                        elif type(eval(arg))==type(1) or (type(arg)==type([]) and len(arg)==1):
-                            arg=self._atom_coord[int(arg)-1]
-                        else:
+                            arg=self._atom_coord[int(arg[0])]-self._atom_coord[int(arg[1])]
+                        elif arg.isdigit():
+                            arg=self._atom_coord[int(arg)]
+                        elif t=='v':
                             raise ValueError('Not a valid vector: '+str(arg))
+                        else:
+                            continue
                         res.append(arg)
                 return res
             return evArgs

@@ -218,6 +218,7 @@ class MolArea(QWidget):
                 self.cellDm.setText(str(self.mol.get_celldm()))
                 #fill atom table
                 self.table.setRowCount(self.mol.get_nat())
+                self.table.setVerticalHeaderLabels(map(str,range(self.mol.get_nat())))
                 for i in range(self.mol.get_nat()):
                         at = self.mol.get_atom(i,self.fmt.currentText())
                         self.table.setItem(i,0,QTableWidgetItem(at[0]))

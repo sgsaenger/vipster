@@ -142,7 +142,7 @@ class ToolArea(QWidget):
                 self.pickArea.setPlainText('')
             elif len(sel)==1:
                 at = self.mol.get_atom(sel[0],'angstrom')
-                self.pickArea.setPlainText('Atom: '+str(sel[0]+1)+'\n'+
+                self.pickArea.setPlainText('Atom: '+str(sel[0])+'\n'+
                         'Type: '+at[0]+'\n'+
                         u'Coord(Å): {: 3.3f} {: 3.3f} {: 3.3f}'.format(*at[1][:]))
             else:
