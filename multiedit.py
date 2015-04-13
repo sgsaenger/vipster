@@ -82,9 +82,8 @@ class ToolArea(QWidget):
                 self.plane.setLayout(hbox)
 
         def planeHandler(self):
-                #plane = self.mol.vol_plane(int(self.zPlane.text()))
-                #print 'mean potential: '+str(self.mol.volume.mean())
-                self.mol.stupid_me()
+                plane = self.mol.vol_plane(int(self.zPlane.text()))
+                print 'mean potential: '+str(self.mol.volume.mean())
                 #for k in range(self.mol.nvol[2]):
                         #plane = self.mol.vol_plane(k)
                         #img = QImage(len(plane),len(plane[0]),QImage.Format_RGB888)
@@ -138,35 +137,29 @@ class ToolArea(QWidget):
             self.stack.addWidget(pickWidget)
 
         def pickHandler(self,sel):
+            br=0.52917721092
             if len(sel)==0:
                 self.pickArea.setPlainText('')
-            elif len(sel)==1:
-                at = self.mol.get_atom(sel[0],'angstrom')
-                self.pickArea.setPlainText('Atom: '+str(sel[0])+'\n'+
-                        'Type: '+at[0]+'\n'+
-                        u'Coord(Å): {: 3.3f} {: 3.3f} {: 3.3f}'.format(*at[1][:]))
             else:
-                at=[self.mol.get_atom(i,'angstrom') for i in sel]
-                output='Atoms: '+str(sel)+'\nTypes: '
-                for i in at:
-                    output+=i[0]+' '
-                diff12 = at[0][1]-at[1][1]
-                output+=u'\nDist {1}-{2}:  {0:3.3f} Å'.format(norm(diff12),*sel)
+                output ='Atoms: '+str([a[1] for a in sel])+'\n'
+                output+='Types: '+str([a[2] for a in sel])+'\n'
+                ids = [a[1] for a in sel]
+                if len(sel)>1:
+                    diff01 = sel[0][3]-sel[1][3]
+                    output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff01)*br,*ids[:2])
                 if len(sel)>2:
-                    diff23 = at[1][1]-at[2][1]
-                    output+=u'\nDist {1}-{2}:  {0:3.3f} Å'.format(norm(diff23),*sel[1:])
+                    diff12 = sel[1][3]-sel[2][3]
+                    output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff12)*br,*ids[1:3])
+                    if len(sel)>3:
+                        diff23 = sel[2][3]-sel[3][3]
+                        output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff23)*br,*ids[2:])
+                    a012 = degrees(arccos(dot(diff01,diff12)/(norm(diff01)*norm(diff12))))
+                    output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a012,*ids[:3])
                 if len(sel)>3:
-                    diff34 = at[2][1]-at[3][1]
-                    output+=u'\nDist {1}-{2}:  {0:3.3f} Å'.format(norm(diff34),*sel[2:])
-                if len(sel)>2:
-                    a123= degrees(arccos(dot(diff12,diff23)/(norm(diff12)*norm(diff23))))
-                    output+=u'\nAngle {1}-{2}-{3}:  {0:3.3f}°'.format(a123,*sel)
-                if len(sel)>3:
-                    a234 = degrees(arccos(dot(diff23,diff34)/(norm(diff23)*norm(diff34))))
+                    a123 = degrees(arccos(dot(diff12,diff23)/(norm(diff12)*norm(diff23))))
+                    c012 = cross(diff01,diff12)
                     c123 = cross(diff12,diff23)
-                    c234 = cross(diff23,diff34)
-                    d1234 = degrees(arccos(dot(c123,c234)/(norm(c123)*norm(c234))))
-                    output+=u'\nAngle {1}-{2}-{3}:  {0:3.3f}°'.format(a234,*sel[1:])
-                    output+=u'\nDihedral {1}-{2}-{3}-{4}:  {0:3.3f}°'.format(d1234,*sel)
+                    d0123 = degrees(arccos(dot(c012,c123)/(norm(c012)*norm(c123))))
+                    output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a123,*ids[1:])
+                    output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
                 self.pickArea.setPlainText(output)
-            pass

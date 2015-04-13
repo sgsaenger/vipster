@@ -267,6 +267,10 @@ class ViewPort(QGLWidget):
                 center = mol.get_center()
                 bonds = mol.get_bonds()
 
+                #clear old selection if present:
+                if hasattr(self,'selVBO'):
+                    del self.selVBO
+
                 #get bonds and calculate offsets
                 if mult == [1,1,1]:
                         #only one (==no) offset
@@ -401,6 +405,8 @@ class ViewPort(QGLWidget):
                                 self.drawBonds()
                         if self.showCell:
                                 self.drawCell()
+                        if hasattr(self,'selVBO'):
+                            self.drawSelection()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -479,6 +485,48 @@ class ViewPort(QGLWidget):
                 glVertexAttribDivisor(1,0)
                 glVertexAttribDivisor(2,0)
                 self.selectShader.release()
+
+        def drawSelection(self):
+                #bind shaders:
+                self.sphereShader.bind()
+
+                #send vertices
+                self.sphereVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.sphereVBO.unbind()
+
+                # transformation matrices, model matrix needs not perform anything here
+                self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
+
+                #interleaved VBO
+                self.selVBO.bind()
+                #position vector
+                glEnableVertexAttribArray(1)
+                glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,None)
+                #scale factors
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,self.selVBO+12)
+                #color vectors
+                glEnableVertexAttribArray(3)
+                glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,32,self.selVBO+16)
+                glVertexAttribDivisor(1,1)
+                glVertexAttribDivisor(2,1)
+                glVertexAttribDivisor(3,1)
+                self.selVBO.unbind()
+                # draw instances
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.selVBO))
+
+                #reset
+                glDisableVertexAttribArray(0)
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glDisableVertexAttribArray(3)
+                glVertexAttribDivisor(1,0)
+                glVertexAttribDivisor(2,0)
+                glVertexAttribDivisor(3,0)
+                self.sphereShader.release()
 
         def drawBonds(self):
                 self.bondShader.bind()
@@ -581,8 +629,17 @@ class ViewPort(QGLWidget):
                 if not self.mouseSelect:return
                 if(e.button() & 2):
                     self.sel=[]
+                    if hasattr(self,'selVBO'):
+                        del self.selVBO
                 elif(e.button()&4) and self.sel:
                     self.sel.pop()
+                    if hasattr(self,'selVBO'):
+                        if len(self.sel)==0:
+                            del self.selVBO
+                        else:
+                            self.selVBO=VBO(np.array([self.atomsVBO.data[a][:3].tolist()+
+                                [self.atomsVBO.data[a][3]*1.5,
+                                    0.4,0.4,0.5,0.5] for a in [b[0] for b in self.sel]],'f'))
                 elif(e.button()&1) and len(self.sel)<4:
                     #render with selectionmode
                     self.paintGL(True)
@@ -600,12 +657,22 @@ class ViewPort(QGLWidget):
                     if color[3] == 0:
                         return
                     mult=self.mult[0]*self.mult[1]*self.mult[2]
-                    id = (color[0] + 256*color[1] + 65536*color[2])/mult
-                    if id in self.sel or id>self.mol.get_nat():
-                        return
+                    id = color[0] + 256*color[1] + 65536*color[2]
+                    if id<len(self.atomsVBO.data):
+                        if id in [a[0] for a in self.sel]:
+                            return
+                        else:
+                            at = self.mol.get_atom(id/mult)
+                            self.sel.append([id,id/mult,at[0],
+                                    self.atomsVBO.data[id][0:3]])
+                            self.selVBO=VBO(np.array([self.atomsVBO.data[a][:3].tolist()+
+                                [self.atomsVBO.data[a][3]*1.5,
+                                    0.4,0.4,0.5,0.5] for a in [b[0] for b in self.sel]],'f'))
+
                     else:
-                        self.sel.append(id)
+                        return
                 self.parent.edit.pickHandler(self.sel)
+                self.updateGL()
 
         def wheelEvent(self,e):
                 delta = e.delta()

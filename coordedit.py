@@ -197,6 +197,7 @@ class MolArea(QWidget):
                         for j in [0,1,2]:
                                 vec[i][j]=float(self.vtable.item(i,j).text())
                 if vec == self.mol.get_vec().tolist(): return
+                par = self.parent
                 if self.appAll.isChecked():
                     mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(int(par.maxStep.text()))]
                 else:
