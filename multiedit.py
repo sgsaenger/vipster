@@ -9,19 +9,7 @@ from itertools import combinations
 class ToolArea(QWidget):
         def __init__(self,parent):
                 super(ToolArea,self).__init__()
-                self.initStack()
-                self.initPicker()
-                self.initScript()
-                self.initMult()
-                #self.initPlane()
                 self.parent = parent
-
-        def setMol(self,mol):
-                self.mol = mol
-                #if hasattr(self.mol,'volume'):
-                #        self.zPlane.setValidator(QIntValidator(0,len(self.mol.volume[0][0])))
-
-        def initStack(self):
                 self.stack = QStackedWidget()
                 self.combo = QComboBox()
                 self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
@@ -32,6 +20,21 @@ class ToolArea(QWidget):
                 vbox.addLayout(hbox)
                 vbox.addWidget(self.stack)
                 self.setLayout(vbox)
+                #initialize childwidgets (in order):
+                self.initPicker()
+                self.initScript()
+                self.initMult()
+                self.initVol()
+
+        def setMol(self,mol):
+                self.mol = mol
+                #inform childwidgets about new molecule:
+                self.volUpdate()
+                self.pickUpdate()
+
+####################################
+# Multiply unit cell
+####################################
 
         def initMult(self):
                 self.mult = QWidget()
@@ -66,40 +69,61 @@ class ToolArea(QWidget):
                 self.mol.set_bonds()
                 self.parent.updateMolStep()
 
-        def initPlane(self):
-                self.plane = QWidget()
-                self.combo.addItem('2D-PP')
-                self.stack.addWidget(self.plane)
-                self.zPlane = QLineEdit()
-                self.zPlane.setText('0')
-                self.zPlane.setValidator(QIntValidator(0,0))
-                planeBut = QPushButton('Calc')
-                planeBut.clicked.connect(self.planeHandler)
-                hbox=QHBoxLayout()
-                hbox.addWidget(QLabel('z-Plane:'))
-                hbox.addWidget(self.zPlane)
-                hbox.addWidget(planeBut)
-                self.plane.setLayout(hbox)
+####################################
+# Volume-PP
+####################################
 
-        def planeHandler(self):
-                plane = self.mol.vol_plane(int(self.zPlane.text()))
-                print 'mean potential: '+str(self.mol.volume.mean())
-                #for k in range(self.mol.nvol[2]):
-                        #plane = self.mol.vol_plane(k)
-                        #img = QImage(len(plane),len(plane[0]),QImage.Format_RGB888)
-                        #min=self.mol.volume.min()
-                        #max=self.mol.volume.max()
-                        #diff=max-min
-                        #for i in range(len(plane)):
-                        #        for j in range(len(plane[0])):
-                        #                c=(plane[i][j]-min)/diff
-                        #                r=255*np.exp(-6.25*(c-0.9)**2)
-                        #                g=255*np.exp(-6.25*(c-0.5)**2)
-                        #                b=255*np.exp(-6.25*(c-0.1)**2)
-                        #                img.setPixel(i,j,qRgb(r,g,b))
-                        #img.save('plane'+str(k)+'.png',None,-1)
-                        #print "potential "+str(k)+': '+str(plane.mean())
-                        #print "min: "+str(plane.min())+" max: "+str(plane.max())
+        def initVol(self):
+                self.vol = QWidget()
+                self.combo.addItem('Volume')
+                self.stack.addWidget(self.vol)
+                volMin = QLabel('1')
+                self.volSel = QSlider()
+                self.volSel.valueChanged.connect(self.volSHandler)
+                self.volSel.setOrientation(1)
+                self.volSel.setMinimum(1)
+                self.volSel.setMaximum(1)
+                self.volSel.setTickPosition(self.volSel.TicksBelow)
+                self.volSel.setSingleStep(1)
+                self.volMax = QLabel('1')
+                self.volWarn = QLabel()
+                self.volBut = QPushButton('Show/Hide')
+                self.volBut.clicked.connect(self.volBHandler)
+                self.volBut.setDisabled(True)
+                hbox=QHBoxLayout()
+                hbox.addWidget(volMin)
+                hbox.addWidget(self.volSel)
+                hbox.addWidget(self.volMax)
+                vbox=QVBoxLayout()
+                vbox.addWidget(QLabel('Plane:'))
+                vbox.addLayout(hbox)
+                vbox.addWidget(self.volBut)
+                vbox.addWidget(self.volWarn)
+                self.vol.setLayout(vbox)
+
+        def volSHandler(self):
+                self.parent.visual.setPlane('z',self.volSel.value()-1)
+
+        def volBHandler(self):
+                self.volSHandler()
+                self.parent.visual.activatePlane()
+
+        def volUpdate(self):
+                if hasattr(self.mol,'volume'):
+                    lim=self.mol.get_vol().shape[2]
+                    self.volSel.setMaximum(lim)
+                    self.volSel.setTickInterval(lim/10)
+                    self.volMax.setText(str(lim))
+                    self.volBut.setEnabled(True)
+                else:
+                    self.volSel.setMaximum(0)
+                    self.volMax.setText('0')
+                    self.volBut.setDisabled(True)
+
+
+####################################
+# Script handling
+####################################
 
         def initScript(self):
             scriptWidget = QWidget()
@@ -122,15 +146,20 @@ class ToolArea(QWidget):
             self.mol.set_bonds()
             self.parent.updateMolStep()
 
+####################################
+# Selected Atoms
+####################################
 
         def initPicker(self):
             self.pickArea = QTextEdit()
             self.pickArea.setReadOnly(True)
             tooltip = QLabel()
             tooltip.setText('Pick up to 4 atoms:')
+            self.pickWarn = QLabel()
             vbox=QVBoxLayout()
             vbox.addWidget(tooltip)
             vbox.addWidget(self.pickArea)
+            vbox.addWidget(self.pickWarn)
             pickWidget = QWidget()
             pickWidget.setLayout(vbox)
             self.combo.addItem('Pick')
@@ -138,6 +167,7 @@ class ToolArea(QWidget):
 
         def pickHandler(self,sel):
             br=0.52917721092
+            self.pickWarn.setText('')
             if len(sel)==0:
                 self.pickArea.setPlainText('')
             else:
@@ -163,3 +193,7 @@ class ToolArea(QWidget):
                     output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a123,*ids[1:])
                     output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
                 self.pickArea.setPlainText(output)
+
+        def pickUpdate(self):
+            if self.pickArea.toPlainText():
+                self.pickWarn.setText('Data has changed!')

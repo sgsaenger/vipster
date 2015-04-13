@@ -26,6 +26,8 @@ class ViewPort(QGLWidget):
                 self.parent = parent
                 self.showBonds = True
                 self.showCell = True
+                self.showPlane = False
+                self.planeVal = 0
                 self.perspective = True
                 self.mouseSelect = False
                 self.AA = True
@@ -258,6 +260,10 @@ class ViewPort(QGLWidget):
         def setMol(self,mol,mult):
                 #prepare atoms and bonds for drawing
                 if not mol:return
+                #deactivate plane and volume data when
+                #molecule changes
+                if hasattr(self,'mol') and (self.mol is not mol):
+                    self.showPlane = False
                 #save for interaction
                 self.mol=mol
                 self.mult=mult
@@ -354,6 +360,27 @@ class ViewPort(QGLWidget):
                 self.updateGL()
 
         ################################################
+        # CREATE AND MANAGE PLANES
+        ################################################
+        def togglePlane(self):
+                self.showPlane = not self.showPlane
+
+        def setPlane(self,ptype,pval):
+                #volume data:
+                #'x/y/z',int
+                if ptype in 'xyz':
+                    v = self.mol.get_vol()
+                    if ptype=='x':
+                        plane=v[pval,:,:]
+                    elif ptype=='y':
+                        plane=v[:,pval,:]
+                    elif ptype=='z':
+                        plane=v[:,:,pval]
+                #crystal data:
+                #'c',[tuple]
+                return
+
+        ################################################
         # CALLED UPON WINDOW RESIZE
         ################################################
         def resizeGL(self,width,height):
@@ -406,7 +433,9 @@ class ViewPort(QGLWidget):
                         if self.showCell:
                                 self.drawCell()
                         if hasattr(self,'selVBO'):
-                            self.drawSelection()
+                                self.drawSelection()
+                        if self.showPlane:
+                                self.drawPlane()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -449,6 +478,11 @@ class ViewPort(QGLWidget):
                 glVertexAttribDivisor(2,0)
                 glVertexAttribDivisor(3,0)
                 self.sphereShader.release()
+
+        def drawPlane(self):
+                self.planeShader.bind()
+                glDrawArrays(GL_TRIANGLES,0,4)
+                self.planeShader.release()
 
         def drawAtomsSelect(self):
                 #bind shaders:

@@ -201,11 +201,8 @@ class Molecule:
                                                 i+=1
                                                 line=vol[i].split()
 
-        def vol_plane(self,height):
-                if not (0<=height<self.nvol[2] or hasattr(self,'volume')):
-                        return
-                plane=self.volume[0:self.nvol[0],0:self.nvol[1],height]
-                return plane
+        def get_vol(self):
+                return self.volume
 
         #####################################################
         # SCRIPTING SUPPORT
