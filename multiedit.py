@@ -79,7 +79,7 @@ class ToolArea(QWidget):
                 self.stack.addWidget(self.vol)
                 volMin = QLabel('1')
                 self.volSel = QSlider()
-                self.volSel.valueChanged.connect(self.volSHandler)
+                self.volSel.setDisabled(True)
                 self.volSel.setOrientation(1)
                 self.volSel.setMinimum(1)
                 self.volSel.setMaximum(1)
@@ -102,11 +102,11 @@ class ToolArea(QWidget):
                 self.vol.setLayout(vbox)
 
         def volSHandler(self):
-                self.parent.visual.setPlane('z',self.volSel.value()-1)
+                self.parent.visual.setPlane('z',self.volSel.value()-1.)
 
         def volBHandler(self):
                 self.volSHandler()
-                self.parent.visual.activatePlane()
+                self.parent.visual.togglePlane()
 
         def volUpdate(self):
                 if hasattr(self.mol,'volume'):
@@ -114,10 +114,14 @@ class ToolArea(QWidget):
                     self.volSel.setMaximum(lim)
                     self.volSel.setTickInterval(lim/10)
                     self.volMax.setText(str(lim))
+                    self.volSel.setEnabled(True)
+                    self.volSel.valueChanged.connect(self.volSHandler)
                     self.volBut.setEnabled(True)
                 else:
                     self.volSel.setMaximum(0)
                     self.volMax.setText('0')
+                    self.volSel.valueChanged.disconnect()
+                    self.volSel.setDisabled(True)
                     self.volBut.setDisabled(True)
 
 

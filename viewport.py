@@ -192,6 +192,10 @@ class ViewPort(QGLWidget):
                 self.selectShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSelect.vsh')
                 self.selectShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSelect.fsh')
 
+                self.planeShader = QGLShaderProgram()
+                self.planeShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexPlane.vsh')
+                self.planeShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentPlane.fsh')
+
                 # load sphere
                 sf=open(dirname(__file__)+'/sphere_model','r')
                 self.sphereVBO = VBO(np.array(sf.readline().split(),'f'))
@@ -264,6 +268,10 @@ class ViewPort(QGLWidget):
                 #molecule changes
                 if hasattr(self,'mol') and (self.mol is not mol):
                     self.showPlane = False
+                    if hasattr(self,'plane'):
+                        del self.plane
+                    if hasattr(self,'planeVBO'):
+                        del self.planeVBO
                 #save for interaction
                 self.mol=mol
                 self.mult=mult
@@ -357,6 +365,10 @@ class ViewPort(QGLWidget):
                 #save atoms in VBOs
                 self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[self.pse[at[0]][1],self.pse[at[0]][2].redF(),self.pse[at[0]][2].greenF(),self.pse[at[0]][2].blueF(),self.pse[at[0]][2].alphaF()] for at in atoms for j in off],'f'))
 
+                #update planeVBO when existing:
+                if hasattr(self,'plane'):
+                    self.planeVBO=VBO(np.array([np.dot(i,vec)+j for j in off for i in self.plane],'f'))
+
                 self.updateGL()
 
         ################################################
@@ -364,6 +376,8 @@ class ViewPort(QGLWidget):
         ################################################
         def togglePlane(self):
                 self.showPlane = not self.showPlane
+                if self.showPlane:
+                    self.updateGL()
 
         def setPlane(self,ptype,pval):
                 #volume data:
@@ -372,13 +386,25 @@ class ViewPort(QGLWidget):
                     v = self.mol.get_vol()
                     if ptype=='x':
                         plane=v[pval,:,:]
+                        pcoord = pval/v.shape[0]
+                        self.plane=[[pcoord,0,0],[pcoord,1,0],[pcoord,0,1],[pcoord,1,1]]
                     elif ptype=='y':
                         plane=v[:,pval,:]
+                        pcoord = pval/v.shape[1]
+                        self.plane=[[0,pcoord,0],[1,pcoord,0],[0,pcoord,1],[1,pcoord,1]]
                     elif ptype=='z':
                         plane=v[:,:,pval]
+                        pcoord = pval/v.shape[2]
+                        self.plane=[[0,0,pcoord],[1,0,pcoord],[0,1,pcoord],[1,1,pcoord]]
                 #crystal data:
                 #'c',[tuple]
-                return
+                #deduce offsets from self.cellVBO
+                off=[self.cellVBO.data[i*24] for i in range(len(self.cellVBO)/24)]
+                #generate planeVBO
+                vec=self.mol.get_vec()
+                self.planeVBO=VBO(np.array([np.dot(i,vec)+j for j in off for i in self.plane],'f'))
+                if self.showPlane:
+                    self.updateGL()
 
         ################################################
         # CALLED UPON WINDOW RESIZE
@@ -480,9 +506,18 @@ class ViewPort(QGLWidget):
                 self.sphereShader.release()
 
         def drawPlane(self):
-                self.planeShader.bind()
-                glDrawArrays(GL_TRIANGLES,0,4)
-                self.planeShader.release()
+                print self.planeVBO.data
+                #self.planeShader.bind()
+                #self.planeShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                #self.planeVBO.bind()
+                #glEnableVertexAttribArray(1)
+                #glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,4,None)
+                #glVertexAttribDivisor(1,1)
+                #self.planeVBO.unbind()
+                #glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,4,len(self.planeVBO))
+                #glDisableVertexAttribArray(0)
+                ##glDrawArrays(GL_TRIANGLES,0,4)
+                #self.planeShader.release()
 
         def drawAtomsSelect(self):
                 #bind shaders:

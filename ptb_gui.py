@@ -94,44 +94,6 @@ class MainView(QWidget):
                 # initialize GUI and accompanying actions
                 self.mult =[1,1,1]
 
-        #Left column:
-                #Molecule list:
-                self.mlist = QListWidget()
-                self.mlist.currentRowChanged.connect(self.selectMolecule)
-                #splitter-container
-                mlist=QWidget()
-                mlayout=QVBoxLayout()
-                mlabel=QLabel('Loaded Molecules:')
-                mlayout.addWidget(mlabel)
-                mlayout.addWidget(self.mlist)
-                mlist.setLayout(mlayout)
-
-                #PWParameter list:
-                self.pwlist = QListWidget()
-                self.pwlist.currentRowChanged.connect(self.selectPWParam)
-                #splitter-container
-                pwlist=QWidget()
-                pwlayout=QVBoxLayout()
-                pwlabel=QLabel('PW Parameter sets:')
-                pwlayout.addWidget(pwlabel)
-                pwlayout.addWidget(self.pwlist)
-                pwlist.setLayout(pwlayout)
-
-
-                #Edit stuff
-                self.edit = ToolArea(self)
-
-                #encapsulate in splitter:
-                lcol = QSplitter()
-                lcol.addWidget(mlist)
-                lcol.addWidget(pwlist)
-                lcol.addWidget(self.edit)
-                lcol.setOrientation(0)
-                lcol.setChildrenCollapsible(False)
-                lcol.setFrameStyle(38)
-                lcol.setMaximumWidth(300)
-
-
         #Central Column:
                 #OpenGL Viewport:
                 if old:
@@ -220,6 +182,44 @@ class MainView(QWidget):
                 mcol = QFrame()
                 mcol.setLayout(viewlay)
                 mcol.setFrameStyle(38)
+
+        #Left column:
+                #Molecule list:
+                self.mlist = QListWidget()
+                self.mlist.currentRowChanged.connect(self.selectMolecule)
+                #splitter-container
+                mlist=QWidget()
+                mlayout=QVBoxLayout()
+                mlabel=QLabel('Loaded Molecules:')
+                mlayout.addWidget(mlabel)
+                mlayout.addWidget(self.mlist)
+                mlist.setLayout(mlayout)
+
+                #PWParameter list:
+                self.pwlist = QListWidget()
+                self.pwlist.currentRowChanged.connect(self.selectPWParam)
+                #splitter-container
+                pwlist=QWidget()
+                pwlayout=QVBoxLayout()
+                pwlabel=QLabel('PW Parameter sets:')
+                pwlayout.addWidget(pwlabel)
+                pwlayout.addWidget(self.pwlist)
+                pwlist.setLayout(pwlayout)
+
+
+                #Edit stuff
+                self.edit = ToolArea(self)
+
+                #encapsulate in splitter:
+                lcol = QSplitter()
+                lcol.addWidget(mlist)
+                lcol.addWidget(pwlist)
+                lcol.addWidget(self.edit)
+                lcol.setOrientation(0)
+                lcol.setChildrenCollapsible(False)
+                lcol.setFrameStyle(38)
+                lcol.setMaximumWidth(300)
+
 
         #Right column:
                 #Molecule edit area:
