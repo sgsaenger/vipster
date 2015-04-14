@@ -85,6 +85,7 @@ class ToolArea(QWidget):
                 self.volSel.setMaximum(1)
                 self.volSel.setTickPosition(self.volSel.TicksBelow)
                 self.volSel.setSingleStep(1)
+                self.volSel.valueChanged.connect(self.volSHandler)
                 self.volMax = QLabel('1')
                 self.volWarn = QLabel()
                 self.volBut = QPushButton('Show/Hide')
@@ -115,12 +116,10 @@ class ToolArea(QWidget):
                     self.volSel.setTickInterval(lim/10)
                     self.volMax.setText(str(lim))
                     self.volSel.setEnabled(True)
-                    self.volSel.valueChanged.connect(self.volSHandler)
                     self.volBut.setEnabled(True)
                 else:
-                    self.volSel.setMaximum(0)
-                    self.volMax.setText('0')
-                    self.volSel.valueChanged.disconnect()
+                    self.volSel.setMaximum(1)
+                    self.volMax.setText('1')
                     self.volSel.setDisabled(True)
                     self.volBut.setDisabled(True)
 
