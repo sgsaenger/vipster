@@ -25,6 +25,7 @@ class ToolArea(QWidget):
                 self.initScript()
                 self.initMult()
                 self.initVol()
+                self.initPlane()
 
         def setMol(self,mol):
                 self.mol = mol
@@ -70,6 +71,45 @@ class ToolArea(QWidget):
                 self.parent.updateMolStep()
 
 ####################################
+# Crystal plane
+####################################
+
+        def initPlane(self):
+                self.plane = QWidget()
+                self.combo.addItem('Plane')
+                self.stack.addWidget(self.plane)
+                self.planeBut = QPushButton('Show/Hide')
+                self.planeBut.clicked.connect(self.planeBHandler)
+                hbox2 = QHBoxLayout()
+                hbox2.addWidget(QLabel('h:'))
+                hbox2.addWidget(QLabel('k:'))
+                hbox2.addWidget(QLabel('l:'))
+                hbox = QHBoxLayout()
+                self.ph = QSpinBox()
+                self.pk = QSpinBox()
+                self.pl = QSpinBox()
+                for i in [self.ph,self.pk,self.pl]:
+                    hbox.addWidget(i)
+                    i.valueChanged.connect(self.planeSHandler)
+                    i.setMinimum(-99)
+                vbox = QVBoxLayout()
+                vbox.addLayout(hbox2)
+                vbox.addLayout(hbox)
+                vbox.addWidget(self.planeBut)
+                vbox.addStretch()
+                self.plane.setLayout(vbox)
+
+        def planeSHandler(self):
+                self.parent.visual.setPlane('c',[
+                    1./self.ph.value() if self.ph.value() else 0,
+                    1./self.pk.value() if self.pk.value() else 0,
+                    1./self.pl.value() if self.pl.value() else 0])
+
+        def planeBHandler(self):
+                self.planeSHandler()
+                self.parent.visual.togglePlane()
+
+####################################
 # Volume-PP
 ####################################
 
@@ -78,6 +118,11 @@ class ToolArea(QWidget):
                 self.combo.addItem('Volume')
                 self.stack.addWidget(self.vol)
                 volMin = QLabel('1')
+                self.volDir = QComboBox()
+                for i in 'xyz':
+                    self.volDir.addItem(i)
+                self.volDir.currentIndexChanged.connect(self.volSHandler)
+                self.volDir.setDisabled(True)
                 self.volSel = QSlider()
                 self.volSel.setDisabled(True)
                 self.volSel.setOrientation(1)
@@ -87,7 +132,6 @@ class ToolArea(QWidget):
                 self.volSel.setSingleStep(1)
                 self.volSel.valueChanged.connect(self.volSHandler)
                 self.volMax = QLabel('1')
-                self.volWarn = QLabel()
                 self.volBut = QPushButton('Show/Hide')
                 self.volBut.clicked.connect(self.volBHandler)
                 self.volBut.setDisabled(True)
@@ -95,15 +139,18 @@ class ToolArea(QWidget):
                 hbox.addWidget(volMin)
                 hbox.addWidget(self.volSel)
                 hbox.addWidget(self.volMax)
+                hbox2=QHBoxLayout()
+                hbox2.addWidget(QLabel('Plane:'))
+                hbox2.addWidget(self.volDir)
                 vbox=QVBoxLayout()
-                vbox.addWidget(QLabel('Plane:'))
+                vbox.addLayout(hbox2)
                 vbox.addLayout(hbox)
                 vbox.addWidget(self.volBut)
-                vbox.addWidget(self.volWarn)
+                vbox.addStretch()
                 self.vol.setLayout(vbox)
 
         def volSHandler(self):
-                self.parent.visual.setPlane('z',self.volSel.value()-1.)
+                self.parent.visual.setPlane(str(self.volDir.currentText()),self.volSel.value()-1.)
 
         def volBHandler(self):
                 self.volSHandler()
@@ -117,11 +164,13 @@ class ToolArea(QWidget):
                     self.volMax.setText(str(lim))
                     self.volSel.setEnabled(True)
                     self.volBut.setEnabled(True)
+                    self.volDir.setEnabled(True)
                 else:
                     self.volSel.setMaximum(1)
                     self.volMax.setText('1')
                     self.volSel.setDisabled(True)
                     self.volBut.setDisabled(True)
+                    self.volDir.setDisabled(True)
 
 
 ####################################

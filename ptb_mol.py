@@ -159,8 +159,12 @@ class TBController(QApplication):
                                ('PWScf Output' , self._parsePwo),
                                ('PWO Final Conf.',self._parsePwoFinal),
                                ('Gaussian Cube File',self._parseCube)])
+                               #('Lammps Data File',self._parseLmp),
+                               #('Lammps Custom Dump',self._parseDmp)])
                 self.outdict= OrderedDict([('PWScf Input',self._writePwi),
-                               ('xyz',self._writeXyz)])
+                               ('xyz',self._writeXyz),
+                               ('Empire xyz',self._writeEmpire)])
+                               #('Lammps Data File',self._writeLmp)])
                 QTimer.singleShot(0,self._argumentHandler)
 
 
@@ -213,6 +217,18 @@ class TBController(QApplication):
                                                 self.readFile('Gaussian Cube File',self.argv[i])
                                                 i+=1
                                         self.gui.centralWidget().loadView()
+                                elif self.argv[i] == '-lmp':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('Lammps Data File',self.argv[i])
+                                                i+=1
+                                                self.gui.centralWidget().loadView()
+                                elif self.argv[i] == '-dmp':
+                                        i+=1
+                                        while i<len(self.argv) and self.argv[i][0]!='-':
+                                                self.readFile('Lammps Custom Dump',self.argv[i])
+                                                i+=1
+                                                self.gui.centralWidget().loadView()
 
 #####################################################################
 # Print help
@@ -230,6 +246,7 @@ class TBController(QApplication):
                 f.write('-pwo [FILES]: open PWScf output file(s)\n')
                 f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
                 f.write('-cube [FILES]: open CUBE file(s)\n')
+                f.write('-lmp [FILES]: open Lammps custom dump file(s)\n')
                 self.exit(err)
 
 #####################################################################
@@ -293,6 +310,62 @@ class TBController(QApplication):
                 #append to list of molecules
                 self._mol.append(tlist)
 
+        def _parseLmp(self,data):
+                tmol=Molecule()
+                i=0
+                types=[]
+                tvec=[[0,0,0],[0,0,0],[0,0,0]]
+                while i< len(data):
+                    line = data[i].strip()
+                    if 'atoms' in line:
+                        nat = int(line.split()[0])
+                    elif 'atom types' in line:
+                        ntype = int(line.split()[0])
+                    elif 'xlo xhi' in line:
+                        tvec[0][0] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                    elif 'ylo yhi' in line:
+                        tvec[1][1] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                    elif 'zlo zhi' in line:
+                        tvec[2][2] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tmol.set_vec(tvec)
+                    elif 'Masses' in line:
+                        for j in range(i+2,i+2+ntype):
+                            if '#' in data[j]:
+                                types.append(data[j].strip().split('#')[1])
+                            else:
+                                raise NotImplementedError('cannot assign elements via masses yet')
+                        i+=ntype+1
+                    elif 'Atoms' in line:
+                        for j in range(i+2,i+2+nat):
+                            at = data[j].strip().split()
+                            tmol.create_atom(types[int(at[1])-1],float(at[-3]),float(at[-2]),float(at[-1]),'angstrom')
+                    i+=1
+                self._mol.append([tmol])
+
+        def _parseDmp(self,data):
+                tlist=[]
+        #        i=0
+        #        while i<len(data):
+        #            tmol=Molecule()
+        #            while True:
+        #                line = data[i].split()
+        #                if line[0]=='ITEM:':
+        #                    if line[1]=='NUMBER':
+        #                        nat=int(data[i+1])
+        #                        i+=2
+        #                    elif line[1]=='BOX':
+        #                        print 'found box geometry'
+        #                        i+=4
+        #                    # needs a little flexibility and checking for essentials
+        #                    elif line[1]=='ATOMS':
+        #                        for j in range(i+1,i+1+nat):
+        #                            tmol.create_atom(data[j].split()[1],*map(float,data[j].split()[2:5]))
+        #                    else:
+        #                        i+=1
+        #                else:
+        #                    i+=1
+        #            tlist.append(tmol)
+
         def _parsePwi(self,data):
                 # no need for list, only one molecule per file
                 tmol = Molecule()
@@ -313,9 +386,10 @@ class TBController(QApplication):
                                 line = data.pop(0).strip().split(',')
                                 while line[0] != '/':
                                         for j in range(len(line)):
+                                            if line[j]:
                                                 tnl[line[j].split('=')[0].strip()]=line[j].split('=')[1].strip()
                                         line = data.pop(0).strip().split(',')
-                                tparam[header[0]]=tnl
+                                tparam[header[0].lower()]=tnl
                                 #debug output
                         # parse card
                         elif header[0][0].isupper():
@@ -706,6 +780,57 @@ class TBController(QApplication):
                         atom=mol.get_atom(cntat,'angstrom')
                         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                                      atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
+                f.close()
+
+        def _writeEmpire(self,mol,filename,param,coordfmt):
+                if filename == "":
+                        f=sys.stdout
+                else:
+                        f=open(filename,'w')
+                # fixed format nat and comment
+                f.write(str(mol.get_nat())+'\n')
+                f.write('Hamil=PM3 calc=spt Periodic\n')
+                # write coordinates
+                for cntat in range(0,mol.get_nat()):
+                        atom=mol.get_atom(cntat,'angstrom')
+                        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+                                     atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
+
+                f.write('\n')
+                vec = mol.get_vec()*mol.get_celldm()*0.52917721092
+                f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[0]))
+                f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[1]))
+                f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[2]))
+                f.close()
+
+        def _writeLmp(self,mol,filename,param,coordfmt):
+                if filename == "":
+                    f=sys.stdout
+                else:
+                    f=open(filename,'w')
+                f.write('\n'+str(mol.get_nat())+' atoms\n')
+                f.write(str(mol.get_ntyp())+' atom types\n\n')
+                #check if box is orthogonal:
+                v=mol.get_vec()
+                if not v.diagonal(1).any() and not v.diagonal(2).any():
+                    if not v.diagonal(-1).any() and not v.diagonal(-2).any():
+                        f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0,v[0][0]))
+                        f.write('{:.5f} {:.5f} ylo yhi\n'.format(0.0,v[1][1]))
+                        f.write('{:.5f} {:.5f} zlo zhi\n\n'.format(0.0,v[2][2]))
+                    else:
+                        raise TypeError('Non-orthogonal cell not yet supported')
+                else:
+                    raise TypeError('Cell not in suitable Lammps format')
+                f.write('Masses\n\n')
+                t=list(mol.get_types())
+                for i,j in enumerate(t):
+                    f.write('{:d} {:2.4f} #{:s}\n'.format(i,pse[j][1],j))
+                f.write('\nAtoms\n\n')
+                for i in range(mol.get_nat()):
+                    at=mol.get_atom(i,coordfmt)
+                    f.write(('{:d} {:d}'+' {:d}'*1+' {:15.10f} {:15.10f} {:15.10f}\n').format(
+                        i,t.index(at[0]),0,*at[1]))
+                f.write('\n')
                 f.close()
 
         def _writePwi(self,mol,filename,param,coordfmt):

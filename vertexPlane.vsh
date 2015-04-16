@@ -2,9 +2,13 @@
 
 uniform mat4 vpMatrix;
 layout(location=0) in vec3 vertex_modelspace;
+layout(location=1) in vec2 vertex_UV;
+layout(location=2) in vec3 offset;
+
+out vec2 UV;
 
 void main(void)
 {
-    //standard vertex positioning:
-    gl_Position = vpMatrix * vec4(vertex_modelspace,1);
+    gl_Position = vpMatrix * vec4(vertex_modelspace+offset,1);
+    UV=vertex_UV;
 }
