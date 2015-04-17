@@ -301,6 +301,7 @@ class Molecule:
                             else:
                                 arg=self._set_coord(arg[0:3])
                         elif '-' in arg:
+                            arg=arg.split('-')
                             arg=self._atom_coord[int(arg[0])]-self._atom_coord[int(arg[1])]
                         elif arg.isdigit():
                             arg=self._atom_coord[int(arg)]
