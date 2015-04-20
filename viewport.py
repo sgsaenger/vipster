@@ -432,7 +432,7 @@ class ViewPort(QGLWidget):
                             p[:,i]+=1
 
                 #generate planeVBO
-                vec=self.mol.get_vec()
+                vec=self.mol.get_vec()*self.mol.get_celldm()
                 UV = [[0,0],[0,1],[1,0],[1,1]]
                 self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i] for i in range(len(p))],'f'))
 

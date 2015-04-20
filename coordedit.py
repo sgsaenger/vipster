@@ -185,10 +185,7 @@ class MolArea(QWidget):
                 for j in [0,1,2]:
                         coord[j]=float(self.table.item(row,j+1).text())
                         fix[j]=int(not self.table.item(row,j+1).checkState()/2)
-                        print(self.table.item(row,j+1).checkState()/2)
-                print fix
                 self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
-                print self.mol.get_atom(row)
                 self.mol.set_bonds()
 
                 #update Main Widget
