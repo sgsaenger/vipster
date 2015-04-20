@@ -288,7 +288,7 @@ class TBController(QApplication):
                 tlist = []
                 # if first line does not contain nat exit
                 if not data[0].strip().isdigit():
-                        print 'not a xyz file'
+                        print('not a xyz file')
                         return
                 i=0
                 while i < len(data):
@@ -459,7 +459,7 @@ class TBController(QApplication):
                 if tparam['&system']['ibrav'] == '0':
                         #check if CELL_PARAMETERS card has been read, if not present, throw error
                         if tvec == [[0,0,0],[0,0,0],[0,0,0]]:
-                                print 'CELL_PARAMETERS missing'
+                                print('CELL_PARAMETERS missing')
                         else:
                                 tmol.set_vec(tvec)
                 elif tparam['&system']['ibrav'] == '1':
@@ -475,14 +475,14 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '4':
                         #hexagonal
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print('celldm(3) missing')
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 tmol.set_vec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,ca]])
                 elif tparam['&system']['ibrav'] == '5':
                         #trigonal
                         if not 'celldm(4)' in tparam['&system']:
-                                print 'celldm(4) missing'
+                                print('celldm(4) missing')
                         else:
                                 c = float(tparam['&system']['celldm(4)'])
                                 tx=sqrt((1-c)/2)
@@ -492,7 +492,7 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '-5':
                         #trigonal,alternative
                         if not 'celldm(4)' in tparam['&system']:
-                                print 'celldm(4) missing'
+                                print('celldm(4) missing')
                         else:
                                 c = float(tparam['&system']['celldm(4)'])
                                 tx=sqrt((1-c)/2)
@@ -504,23 +504,23 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '6':
                         #simple tetragonal
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 tmol.set_vec([[1,0,0],[0,1,0],[0,0,ca]])
                 elif tparam['&system']['ibrav'] == '7':
                         #body centered tetragonal
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 tmol.set_vec([[0.5,-0.5,ca*0.5],[0.5,0.5,ca*0.5],[-0.5,-0.5,ca*0.5]])
                 elif tparam['&system']['ibrav'] == '8':
                         #simple orthorhombic
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -528,9 +528,9 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '9':
                         #basis centered orthorhombic
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -538,9 +538,9 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '10':
                         #face centered orthorhombic
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -548,9 +548,9 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '11':
                         #body centered orthorhombic
                         if not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -558,11 +558,11 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '12':
                         #simple monoclinic
                         if not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         elif not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(4)' in tparam['&system']:
-                                print 'celldm(4) missing'
+                                print(  'celldm(4) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -571,11 +571,11 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '-12':
                         #simple monoclinic, alternate definition
                         if not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         elif not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(5)' in tparam['&system']:
-                                print 'celldm(5) missing'
+                                print(  'celldm(5) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -584,11 +584,11 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '13':
                         #base centered monoclinic
                         if not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         elif not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(4)' in tparam['&system']:
-                                print 'celldm(4) missing'
+                                print(  'celldm(4) missing' )
                         else:
                                 ca = float(tparam['&system']['celldm(3)'])
                                 ba = float(tparam['&system']['celldm(2)'])
@@ -597,15 +597,15 @@ class TBController(QApplication):
                 elif tparam['&system']['ibrav'] == '14':
                         #base centered monoclinic
                         if not 'celldm(2)' in tparam['&system']:
-                                print 'celldm(2) missing'
+                                print(  'celldm(2) missing' )
                         elif not 'celldm(3)' in tparam['&system']:
-                                print 'celldm(3) missing'
+                                print(  'celldm(3) missing' )
                         elif not 'celldm(4)' in tparam['&system']:
-                                print 'celldm(4) missing'
+                                print(  'celldm(4) missing' )
                         elif not 'celldm(5)' in tparam['&system']:
-                                print 'celldm(5) missing'
+                                print(  'celldm(5) missing' )
                         elif not 'celldm(6)' in tparam['&system']:
-                                print 'celldm(6) missing'
+                                print(  'celldm(6) missing' )
                         else:
                                 ba = float(tparam['&system']['celldm(2)'])
                                 ca = float(tparam['&system']['celldm(3)'])

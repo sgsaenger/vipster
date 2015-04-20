@@ -164,14 +164,14 @@ class MolArea(QWidget):
 
         def cdmHandler(self):
                 if self.updatedisable: return
-                if float(self.cellDm.text()) == self.mol.get_celldm():return
+                if float(self.cellDm.text()) == self.mol.get_celldm(self.fmt.currentText()):return
                 par= self.parent
                 if self.appAll.isChecked():
                     mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(int(par.maxStep.text()))]
                 else:
                     mols=[self.mol]
                 for m in mols:
-                    m.set_celldm(float(self.cellDm.text()),self.scale.isChecked())
+                    m.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
                     m.set_bonds()
 
                 #update Main Widget
@@ -216,12 +216,13 @@ class MolArea(QWidget):
         def fillTab(self):
                 #prevent handling of cell changes during fill
                 self.updatedisable = True
-                self.cellDm.setText(str(self.mol.get_celldm()))
+                fmt = self.fmt.currentText()
+                self.cellDm.setText(str(self.mol.get_celldm(fmt)))
                 #fill atom table
                 self.table.setRowCount(self.mol.get_nat())
                 self.table.setVerticalHeaderLabels(map(str,range(self.mol.get_nat())))
                 for i in range(self.mol.get_nat()):
-                        at = self.mol.get_atom(i,self.fmt.currentText())
+                        at = self.mol.get_atom(i,fmt)
                         self.table.setItem(i,0,QTableWidgetItem(at[0]))
                         for j in [0,1,2]:
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
