@@ -158,13 +158,13 @@ class TBController(QApplication):
                                ('PWScf Input',self._parsePwi),
                                ('PWScf Output' , self._parsePwo),
                                ('PWO Final Conf.',self._parsePwoFinal),
-                               ('Gaussian Cube File',self._parseCube)])
-                               #('Lammps Data File',self._parseLmp),
-                               #('Lammps Custom Dump',self._parseDmp)])
+                               ('Gaussian Cube File',self._parseCube),
+                               ('Lammps Data File',self._parseLmp)],
+                               ('Lammps Custom Dump',self._parseDmp)])
                 self.outdict= OrderedDict([('PWScf Input',self._writePwi),
                                ('xyz',self._writeXyz),
-                               ('Empire xyz',self._writeEmpire)])
-                               #('Lammps Data File',self._writeLmp)])
+                               ('Empire xyz',self._writeEmpire),
+                               ('Lammps Data File',self._writeLmp)])
                 QTimer.singleShot(0,self._argumentHandler)
 
 
