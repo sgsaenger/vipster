@@ -1,7 +1,6 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from time import time
 import numpy as np
 from mol_f import set_bonds_f
 
@@ -57,7 +56,9 @@ class Molecule:
                 self._comment = comment
 
         # set celldm
-        def set_celldm(self,cdm,scale=False):
+        def set_celldm(self,cdm,scale=False,fmt='bohr'):
+                if fmt=='angstrom':
+                    cdm=cdm*1.889726125
                 if scale:
                     ratio=cdm/self._celldm
                     for i in range(len(self._atom_coord)):
@@ -106,8 +107,11 @@ class Molecule:
         def get_nat(self):
                 return len(self._atom_coord)
 
-        def get_celldm(self):
-                return self._celldm
+        def get_celldm(self,fmt='bohr'):
+                if fmt=='angstrom':
+                    return self._celldm*0.52917721092
+                else:
+                    return self._celldm
 
         def get_all_atoms(self):
                 return zip(self._atom_name,self._atom_coord)
@@ -225,16 +229,16 @@ class Molecule:
                 except KeyError as e:
                     return 'Wrong Op: '+script[0]
                 except NameError as e:
-                    print e.message
+                    print(e.message)
                     return e.message
                 except TypeError as e:
-                    print e.message
+                    print(e.message)
                     return e.message
                 except IndexError as e:
-                    print e.message
+                    print(e.message)
                     return e.message
                 except ValueError as e:
-                    print e.message
+                    print(e.message)
                     return e.message
                 else:
                     if op[0]=='define':
