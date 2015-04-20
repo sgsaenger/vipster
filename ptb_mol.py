@@ -877,8 +877,8 @@ class TBController(QApplication):
                 f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
                 for i in range(mol.get_nat()):
                         atom=mol.get_atom(i,coordfmt)
-                        if 1 in atom[3]:
-                            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {1d}'.format(
+                        if 0 in atom[3]:
+                            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {:1d}'.format(
                                 atom[0],atom[1][0],atom[1][1],atom[1][2],atom[3][0],atom[3][1],atom[3][2])+'\n')
                         else:
                             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
