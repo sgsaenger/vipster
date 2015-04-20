@@ -13,6 +13,7 @@ class Molecule:
                 # set atom list
                 self._atom_name=[]
                 self._atom_coord=[]
+                self._atom_fix=[]
                 self._bond_cutoff=[]
                 self._script_group=dict()
                 self._celldm = 1.0
@@ -28,29 +29,34 @@ class Molecule:
         def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
                 self._atom_name.append(name)
                 self._atom_coord.append(self._set_coord([x,y,z],fmt))
+                self._atom_fix.append([0,0,0])
 
         # append copy of existing atom
         def append_atom_cp(self,addat):
                 self._atom_name.append(addat[0])
                 self._atom_coord.append(self._set_coord(addat[1],addat[2]))
+                self._atom_fix.append(addat[3])
 
         # insert atom at given position
         def insert_atom(self,pos,addat):
                 self._atom_name.insert(pos,addat[0])
                 self._atom_coord.insert(pos,self._set_coord(addat[1],addat[2]))
+                self._atom_fix.insert(pos,addat[3])
 
         # remove atom
         def del_atom(self,index):
                 del self._atom_name[index]
                 del self._atom_coord[index]
+                del self._atom_fix[index]
 
         ######################################################
         # SET FUNCTIONS
         ######################################################
 
-        def set_atom(self,index,name,coord,fmt):
+        def set_atom(self,index,name,coord,fmt,fix=[0,0,0]):
                 self._atom_name[index]=name
                 self._atom_coord[index]=self._set_coord(coord,fmt)
+                self._atom_fix[index]=fix
 
         def set_comment(self,comment):
                 self._comment = comment
@@ -117,7 +123,7 @@ class Molecule:
                 return zip(self._atom_name,self._atom_coord)
 
         def get_atom(self,index,fmt='bohr'):
-                return [self._atom_name[index],self._get_coord(self._atom_coord[index],fmt),fmt]
+                return [self._atom_name[index],self._get_coord(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
 
         def get_vec(self):
                 return self._vec

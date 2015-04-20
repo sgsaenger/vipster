@@ -30,7 +30,7 @@ class MolArea(QWidget):
                 self.table = QTableWidget()
                 self.table.setColumnCount(4)
                 self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
-                self.table.itemChanged.connect(self.cellHandler)
+                self.table.cellChanged.connect(self.cellHandler)
                 #show actions in right click menu
                 self.table.setContextMenuPolicy(Qt.ActionsContextMenu)
 
@@ -95,7 +95,6 @@ class MolArea(QWidget):
                 self.table.addAction(self.delA)
 
                 # Action modifiers
-                #TODO: cellHandler,newAt,delAt,pasteAt ?
                 self.appAll = QCheckBox('Apply to all Molecules')
                 self.scale = QCheckBox('Scale coordinates with cell')
                 hbox3 = QHBoxLayout()
@@ -177,14 +176,16 @@ class MolArea(QWidget):
                 #update Main Widget
                 self.parent.updateMolStep()
 
-        def cellHandler(self):
+        def cellHandler(self,row,col):
                 if self.updatedisable: return
-                atom = self.table.currentRow()
-                name = str(self.table.item(atom,0).text())
+                #atom = self.table.currentRow()
+                name = str(self.table.item(row,0).text())
                 coord = [0,0,0]
+                fix = [0,0,0]
                 for j in [0,1,2]:
-                        coord[j]=float(self.table.item(atom,j+1).text())
-                self.mol.set_atom(atom,name,coord,self.fmt.currentText())
+                        coord[j]=float(self.table.item(row,j+1).text())
+                        fix[j]=int(self.table.item(row,j+1).checkState())/2
+                self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
                 self.mol.set_bonds()
 
                 #update Main Widget
@@ -226,6 +227,8 @@ class MolArea(QWidget):
                         self.table.setItem(i,0,QTableWidgetItem(at[0]))
                         for j in [0,1,2]:
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
+                                self.table.item(i,j+1).setFlags(Qt.ItemFlag(51))
+                                self.table.item(i,j+1).setCheckState(at[3][j]*2)
                 #fill cell vec list
                 vec = self.mol.get_vec()
                 for i in [0,1,2]:

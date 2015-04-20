@@ -304,7 +304,7 @@ class TBController(QApplication):
                         #read coordinates and types
                         for j in range(i+2,i+nat+2):
                                 line = data[j].split()
-                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
+                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]),'angstrom')
                         i+=nat+2
                         tlist.append(tmol)
                 #append to list of molecules
@@ -617,7 +617,12 @@ class TBController(QApplication):
 
 
                 #create atoms after creating cell:
+                #TODO: save fix
                 for i in range(len(tcoord)):
+                    if len(tcoord)>4:
+                        tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt,
+                                tcoord[4:])
+                    else:
                         tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
                 #delete nat, ntype and celldm before returning to controller
                 del tparam['&system']['nat']
@@ -634,8 +639,6 @@ class TBController(QApplication):
         def _parsePwo(self,data):
                 #Multiple configs supported
                 tlist = []
-                #TODO: recreate used parameters
-                #tparam=PWParam()
                 #read list of molecules:
                 i=0
                 vec=[[0,0,0],[0,0,0],[0,0,0]]
@@ -875,8 +878,12 @@ class TBController(QApplication):
                 f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
                 for i in range(mol.get_nat()):
                         atom=mol.get_atom(i,coordfmt)
-                        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                            atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
+                        if 1 in atom[3]:
+                            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {1d}'.format(
+                                atom[0],atom[1][0],atom[1][1],atom[1][2],atom[3][0],atom[3][1],atom[3][2])+'\n')
+                        else:
+                            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+                                atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
                 f.write('\n')
 
                 #K_POINTS
