@@ -211,22 +211,22 @@ class ViewPort(QGLWidget):
         def initActions(self):
                 changeProj = QAction('Change &Projection',self)
                 changeProj.setShortcut('p')
-                changeProj.triggered.connect(self.projHandler)
+                changeProj.triggered.connect(self.changeState)
                 toggleCell = QAction('Toggle &Cell',self)
                 toggleCell.setShortcut('c')
-                toggleCell.triggered.connect(self.cellHandler)
+                toggleCell.triggered.connect(self.changeState)
                 mouseRotate = QAction('&Rotate',self)
                 mouseRotate.setShortcut('r')
-                mouseRotate.triggered.connect(self.mmHandler)
+                mouseRotate.triggered.connect(self.changeState)
                 mouseSelect = QAction('&Select',self)
                 mouseSelect.setShortcut('s')
-                mouseSelect.triggered.connect(self.mmHandler)
+                mouseSelect.triggered.connect(self.changeState)
                 antiAlias = QAction('Toggle &Antialiasing',self)
                 antiAlias.setShortcut('a')
-                antiAlias.triggered.connect(self.aaHandler)
+                antiAlias.triggered.connect(self.changeState)
                 toggleBonds = QAction('Toggle &Bonds',self)
                 toggleBonds.setShortcut('b')
-                toggleBonds.triggered.connect(self.bondHandler)
+                toggleBonds.triggered.connect(self.changeState)
                 vMenu = self.parent.parent.menuBar().addMenu('&View')
                 vMenu.addAction(changeProj)
                 vMenu.addAction(toggleCell)
@@ -235,27 +235,29 @@ class ViewPort(QGLWidget):
                 vMenu.addSeparator()
                 vMenu.addAction(mouseRotate)
                 vMenu.addAction(mouseSelect)
-        def projHandler(self):
-                self.perspective = not self.perspective
-                self.updateGL()
-        def cellHandler(self):
-                self.showCell = not self.showCell
-                self.updateGL()
-        def bondHandler(self):
-                self.showBonds = not self.showBonds
-                self.updateGL()
-        def mmHandler(self):
-                source = self.sender()
-                if source == None: self.mouseSelect = not self.mouseMode
-                elif source.text() == '&Rotate': self.mouseSelect = False
-                elif source.text() == '&Select': self.mouseSelect = True
-        def aaHandler(self):
-                if self.AA:
-                        glDisable(GL_MULTISAMPLE)
-                elif not self.AA:
-                        glEnable(GL_MULTISAMPLE)
-                self.AA = not self.AA
-                self.updateGL()
+
+        def changeState(self):
+                reason = self.sender().text()
+                if reason=='Change &Projection':
+                    self.perspective = not self.perspective
+                    self.updateGL()
+                elif reason=='Toggle &Cell':
+                    self.showCell = not self.showCell
+                    self.updateGL()
+                elif reason=='Toggle &Bonds':
+                    self.showBonds = not self.showBonds
+                    self.updateGL()
+                elif reason=='&Rotate':
+                    self.mouseSelect=False
+                elif reason=='&Select':
+                    self.mouseSelect=True
+                elif reason=='Toggle &Antialiasing':
+                    if self.AA:
+                            glDisable(GL_MULTISAMPLE)
+                    elif not self.AA:
+                            glEnable(GL_MULTISAMPLE)
+                    self.AA = not self.AA
+                    self.updateGL()
 
         #########################
         # Update stuff that's going to be drawn

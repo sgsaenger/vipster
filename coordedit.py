@@ -53,46 +53,40 @@ class MolArea(QWidget):
                 hbox2.addWidget(QLabel('Cell dimension:'))
                 hbox2.addWidget(self.cellDm)
 
-                #New Atom button:
-                newB = QPushButton('New Atom')
-                newB.clicked.connect(self.newAtom)
+                #Buttons and right-click Actions:
+                btns = QHBoxLayout()
 
-                #Copy Atom button:
                 copyB = QPushButton('Copy Atom(s)')
                 copyB.clicked.connect(self.copyAt)
+                btns.addWidget(copyB)
+                copyA = QAction('Copy Atom(s)',self)
+                copyA.setShortcut('Ctrl+C')
+                copyA.triggered.connect(self.copyAt)
+                self.table.addAction(copyA)
 
-                #paste button:
                 pasteB = QPushButton('Paste Atom(s)')
                 pasteB.clicked.connect(self.pasteAt)
+                btns.addWidget(pasteB)
+                pasteA = QAction('Paste Atom(s)',self)
+                pasteA.setShortcut('Ctrl+V')
+                pasteA.triggered.connect(self.pasteAt)
+                self.table.addAction(pasteA)
 
-                #delete button:
+                newB = QPushButton('New Atom')
+                newB.clicked.connect(self.newAtom)
+                btns.addWidget(newB)
+                newA = QAction('New Atom',self)
+                newA.setShortcut('Ctrl+N')
+                newA.triggered.connect(self.newAtom)
+                self.table.addAction(newA)
+
                 delB = QPushButton('Delete Atom(s)')
                 delB.clicked.connect(self.delAt)
-
-                #sort buttons
-                btns = QHBoxLayout()
-                btns.addWidget(copyB)
-                btns.addWidget(pasteB)
-                btns.addWidget(newB)
                 btns.addWidget(delB)
-
-                # actions
-                self.newA = QAction('New Atom',self)
-                self.newA.setShortcut('Ctrl+N')
-                self.newA.triggered.connect(self.newAtom)
-                self.table.addAction(self.newA)
-                self.copyA = QAction('Copy Atom(s)',self)
-                self.copyA.setShortcut('Ctrl+C')
-                self.copyA.triggered.connect(self.copyAt)
-                self.table.addAction(self.copyA)
-                self.pasteA = QAction('Paste Atom(s)',self)
-                self.pasteA.setShortcut('Ctrl+V')
-                self.pasteA.triggered.connect(self.pasteAt)
-                self.table.addAction(self.pasteA)
-                self.delA = QAction('Delete Atom(s)',self)
-                self.delA.setShortcut('Del')
-                self.delA.triggered.connect(self.delAt)
-                self.table.addAction(self.delA)
+                delA = QAction('Delete Atom(s)',self)
+                delA.setShortcut('Del')
+                delA.triggered.connect(self.delAt)
+                self.table.addAction(delA)
 
                 # Action modifiers
                 self.appAll = QCheckBox('Apply to all Molecules')

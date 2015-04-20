@@ -3,12 +3,11 @@
 
 import sys
 
-from copy import deepcopy
 from os.path import splitext
 from os import getcwd
 
 from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer,Qt
+from PyQt4.QtCore import QTimer
 
 from coordedit import MolArea
 from paramedit import PWTab
@@ -19,8 +18,6 @@ class MainWindow(QMainWindow):
         def __init__(self,controller,old):
                 super(MainWindow,self).__init__()
                 self.controller = controller
-                #Create Menu
-                self.initMenu()
 
                 #Create main widget
                 mv = MainView(self,self.controller,old)
@@ -30,67 +27,13 @@ class MainWindow(QMainWindow):
                 self.setWindowTitle('PWToolBox')
                 self.show()
 
-        def initMenu(self):
-                newAction = QAction('&New Molecule',self)
-                newAction.setShortcut('Ctrl+N')
-                newAction.triggered.connect(self.newHandler)
-                loadAction = QAction('&Load Molecule(s)',self)
-                loadAction.setShortcut('Ctrl+O')
-                loadAction.triggered.connect(self.loadHandler)
-                saveAction = QAction('&Save Molecule',self)
-                saveAction.setShortcut('Ctrl+S')
-                saveAction.triggered.connect(self.saveHandler)
-                exitAction = QAction('&Exit',self)
-                exitAction.setShortcut('Ctrl+Q')
-                exitAction.triggered.connect(qApp.quit)
-
-                fMenu = self.menuBar().addMenu('&File')
-                fMenu.addAction(newAction)
-                fMenu.addAction(loadAction)
-                fMenu.addAction(saveAction)
-                fMenu.addSeparator()
-                fMenu.addAction(exitAction)
-
-        def newHandler(self):
-                self.controller.newMol()
-                self.centralWidget().loadView()
-
-        def loadHandler(self):
-                fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
-                if not fname: return
-                ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
-                ftype = str(ftype[0])
-                self.controller.readFile(ftype,fname)
-                self.centralWidget().loadView()
-
-        def saveHandler(self):
-                fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
-                if not fname: return
-                ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
-                ftype = str(ftype[0])
-                try:
-                    try:
-                        mol = self.centralWidget().getMolecule()
-                    except:
-                        raise IndexError('No Molecule')
-                    if ftype=='PWScf Input':
-                        try:
-                            param = self.centralWidget().getParam()
-                        except:
-                            raise IndexError('No PW Parameter set')
-                    else:
-                            param = False
-                    coordfmt = self.centralWidget().coord.fmt.currentText()
-                    self.controller.writeFile(ftype,mol,fname,param,coordfmt)
-                except StandardError as e:
-                    QMessageBox(QMessageBox.Critical,'Error',e.message,QMessageBox.Ok,self).exec_()
-
 class MainView(QWidget):
 
         def __init__(self,parent,controller,old):
                 super(MainView,self).__init__()
                 self.parent = parent
                 self.controller = controller
+                self.initMenu()
                 # initialize GUI and accompanying actions
                 self.mult =[1,1,1]
 
@@ -243,6 +186,61 @@ class MainView(QWidget):
                 hbox.addWidget(mcol)
                 hbox.addWidget(rcol)
                 self.setLayout(hbox)
+
+        def initMenu(self):
+                newAction = QAction('&New Molecule',self)
+                newAction.setShortcut('Ctrl+N')
+                newAction.triggered.connect(self.newHandler)
+                loadAction = QAction('&Load Molecule(s)',self)
+                loadAction.setShortcut('Ctrl+O')
+                loadAction.triggered.connect(self.loadHandler)
+                saveAction = QAction('&Save Molecule',self)
+                saveAction.setShortcut('Ctrl+S')
+                saveAction.triggered.connect(self.saveHandler)
+                exitAction = QAction('&Exit',self)
+                exitAction.setShortcut('Ctrl+Q')
+                exitAction.triggered.connect(qApp.quit)
+
+                fMenu = self.parent.menuBar().addMenu('&File')
+                fMenu.addAction(newAction)
+                fMenu.addAction(loadAction)
+                fMenu.addAction(saveAction)
+                fMenu.addSeparator()
+                fMenu.addAction(exitAction)
+
+        def newHandler(self):
+                self.controller.newMol()
+                self.loadView()
+
+        def loadHandler(self):
+                fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
+                if not fname: return
+                ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
+                ftype = str(ftype[0])
+                self.controller.readFile(ftype,fname)
+                self.loadView()
+
+        def saveHandler(self):
+                fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
+                if not fname: return
+                ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
+                ftype = str(ftype[0])
+                try:
+                    try:
+                        mol = self.getMolecule()
+                    except:
+                        raise IndexError('No Molecule')
+                    if ftype=='PWScf Input':
+                        try:
+                            param = self.getParam()
+                        except:
+                            raise IndexError('No PW Parameter set')
+                    else:
+                            param = False
+                    coordfmt = self.coord.fmt.currentText()
+                    self.controller.writeFile(ftype,mol,fname,param,coordfmt)
+                except StandardError as e:
+                    QMessageBox(QMessageBox.Critical,'Error',e.message,QMessageBox.Ok,self).exec_()
 
         ########################################################
         #insert loaded molecules
