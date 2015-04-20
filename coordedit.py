@@ -184,7 +184,7 @@ class MolArea(QWidget):
                 fix = [0,0,0]
                 for j in [0,1,2]:
                         coord[j]=float(self.table.item(row,j+1).text())
-                        fix[j]=int(self.table.item(row,j+1).checkState())/2
+                        fix[j]=int(not self.table.item(row,j+1).checkState())/2
                 self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
                 self.mol.set_bonds()
 
@@ -228,7 +228,7 @@ class MolArea(QWidget):
                         for j in [0,1,2]:
                                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
                                 self.table.item(i,j+1).setFlags(Qt.ItemFlag(51))
-                                self.table.item(i,j+1).setCheckState(at[3][j]*2)
+                                self.table.item(i,j+1).setCheckState(int(not at[3][j])*2)
                 #fill cell vec list
                 vec = self.mol.get_vec()
                 for i in [0,1,2]:

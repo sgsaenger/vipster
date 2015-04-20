@@ -304,7 +304,7 @@ class TBController(QApplication):
                         #read coordinates and types
                         for j in range(i+2,i+nat+2):
                                 line = data[j].split()
-                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]),'angstrom')
+                                tmol.create_atom(line[0],map(float,line[1:4]),'angstrom')
                         i+=nat+2
                         tlist.append(tmol)
                 #append to list of molecules
@@ -338,7 +338,7 @@ class TBController(QApplication):
                     elif 'Atoms' in line:
                         for j in range(i+2,i+2+nat):
                             at = data[j].strip().split()
-                            tmol.create_atom(types[int(at[1])-1],float(at[-3]),float(at[-2]),float(at[-1]),'angstrom')
+                            tmol.create_atom(types[int(at[1])-1],map(float,at[-3:0]),'angstrom')
                     i+=1
                 self._mol.append([tmol])
 
@@ -617,13 +617,12 @@ class TBController(QApplication):
 
 
                 #create atoms after creating cell:
-                #TODO: save fix
                 for i in range(len(tcoord)):
-                    if len(tcoord)>4:
-                        tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt,
-                                tcoord[4:])
+                    if len(tcoord[i])>4:
+                        tmol.create_atom(tcoord[i][0],map(float,tcoord[i][1:4]),fmt,
+                                map(int,tcoord[i][4:]))
                     else:
-                        tmol.create_atom(tcoord[i][0],float(tcoord[i][1]),float(tcoord[i][2]),float(tcoord[i][3]),fmt)
+                        tmol.create_atom(tcoord[i][0],map(float,tcoord[i][1:4]),fmt)
                 #delete nat, ntype and celldm before returning to controller
                 del tparam['&system']['nat']
                 del tparam['&system']['ntyp']
@@ -667,7 +666,7 @@ class TBController(QApplication):
                                 tmol.set_vec(vec)
                                 for j in range(i+1,i+nat+1):
                                         atom = data[j].split()
-                                        tmol.create_atom(atom[1],float(atom[6]),float(atom[7]),float(atom[8]),'alat')
+                                        tmol.create_atom(atom[1],map(float,atom[6:9]),'alat')
                                 i+=nat
                                 tlist.append(tmol)
                         #read step-vectors if cell is variable
@@ -682,7 +681,7 @@ class TBController(QApplication):
                                 tmol.set_vec(vec)
                                 for j in range(i+1,i+nat+1):
                                         atom = data[j].split()
-                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip('()'))
+                                        tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'))
                                 i+=nat
                                 tlist.append(tmol)
                         #break on reaching final coordinates (duplicate)
@@ -726,7 +725,7 @@ class TBController(QApplication):
                                 tmol.set_vec(vec)
                                 for j in range(i+1,i+nat+1):
                                         atom = data[j].split()
-                                        tmol.create_atom(atom[0],float(atom[1]),float(atom[2]),float(atom[3]),line[1].strip('()'))
+                                        tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'))
                         else:
                                 pass
                         i+=1
@@ -757,7 +756,7 @@ class TBController(QApplication):
                         line=data[i+6].split()
                         # crazy list comprehension in order to identify the name of the atom
                         tmol.create_atom([j[0] for j in pse.items() if j[1][0]==int(line[0])][0],\
-                                        float(line[2]),float(line[3]),float(line[4]),'bohr')
+                                map(float,line[2:5]),'bohr')
                 #rest of file has datagrid, x is outer loop, z inner
                 tmol.set_vol(nvol,data[6+nat:])
                 #finished molecule will be appended to list

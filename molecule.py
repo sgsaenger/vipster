@@ -26,10 +26,10 @@ class Molecule:
         ######################################################
 
         # append new atom
-        def create_atom(self,name='C',x=0.,y=0.,z=0.,fmt='angstrom'):
+        def create_atom(self,name='C',coord=[0.,0.,0.],fmt='angstrom',fix=[1,1,1]):
                 self._atom_name.append(name)
-                self._atom_coord.append(self._set_coord([x,y,z],fmt))
-                self._atom_fix.append([0,0,0])
+                self._atom_coord.append(self._set_coord(coord,fmt))
+                self._atom_fix.append(fix)
 
         # append copy of existing atom
         def append_atom_cp(self,addat):
