@@ -8,46 +8,59 @@ from mol_f import set_bonds_f
 # MOLECULE CLASS
 ######################################################################
 class Molecule:
+        """
+        Main Class for Molecule/Cell data
+
+        Includes:
+
+        Atom symbols/coordinates (_atom_name/_atom_coord)
+        Bonds between atoms (generated when requested) (_bonds)
+        List of fixed atoms in PWScf calculation (_atom_fix)
+        XYZ comment line (_comment)
+        Cube-style volume data (_vol)
+        Cell geometry (_celldm/_vec)
+        K-Point settings (_kpoints)
+        """
 
         def __init__(self):
-                # set atom list
-                self._atom_name=[]
-                self._atom_coord=[]
-                self._atom_fix=[]
-                self._bond_cutoff=[]
-                self._script_group=dict()
-                self._celldm = 1.0
-                self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
-                self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
-                self._comment = ''
+            self._atom_name=[]
+            self._atom_coord=[]
+            self._atom_fix=[]
+            self._bond_cutoff=[]
+            self._script_group=dict()
+            self._celldm = 1.0
+            self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
+            self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
+            self._comment = ''
+            self._kpoints={'active':'gamma'}
 
         ######################################################
         # ATOM FUNCTIONS
         ######################################################
 
-        # append new atom
         def create_atom(self,name='C',coord=[0.,0.,0.],fmt='angstrom',fix=[1,1,1]):
-                self._atom_name.append(name)
-                self._atom_coord.append(self._set_coord(coord,fmt))
-                self._atom_fix.append(fix)
+            """Make new atom
 
-        # append copy of existing atom
-        def append_atom_cp(self,addat):
-                self._atom_name.append(addat[0])
-                self._atom_coord.append(self._set_coord(addat[1],addat[2]))
-                self._atom_fix.append(addat[3])
+            @param name -> element symbol
+            @param coord -> coordinate-list
+            @param fmt -> str in [bohr/angstrom/crystal/alat]
+            @param fix -> integer-list
+            """
+            self._atom_name.append(name)
+            self._atom_coord.append(self._set_coord(coord,fmt))
+            self._atom_fix.append(fix)
 
         # insert atom at given position
         def insert_atom(self,pos,addat):
-                self._atom_name.insert(pos,addat[0])
-                self._atom_coord.insert(pos,self._set_coord(addat[1],addat[2]))
-                self._atom_fix.insert(pos,addat[3])
+            self._atom_name.insert(pos,addat[0])
+            self._atom_coord.insert(pos,self._set_coord(addat[1],addat[2]))
+            self._atom_fix.insert(pos,addat[3])
 
         # remove atom
         def del_atom(self,index):
-                del self._atom_name[index]
-                del self._atom_coord[index]
-                del self._atom_fix[index]
+            del self._atom_name[index]
+            del self._atom_coord[index]
+            del self._atom_fix[index]
 
         ######################################################
         # SET FUNCTIONS
@@ -61,7 +74,6 @@ class Molecule:
         def set_comment(self,comment):
                 self._comment = comment
 
-        # set celldm
         def set_celldm(self,cdm,scale=False,fmt='bohr'):
                 if fmt=='angstrom':
                     cdm=cdm*1.889726125
@@ -71,7 +83,6 @@ class Molecule:
                         self._atom_coord[i] = self._atom_coord[i]*ratio
                 self._celldm = float(cdm)
 
-        # set vectors in bohr
         def set_vec(self,vec,scale=False):
                 vec = np.array(vec,'f')
                 inv = self._vecinv
@@ -110,6 +121,7 @@ class Molecule:
         ######################################################
         # RETURN FUNCTIONS
         ######################################################
+
         def get_nat(self):
                 return len(self._atom_coord)
 
@@ -180,39 +192,39 @@ class Molecule:
         #####################################################
 
         def mult(self,x,y,z):
+            vec = self._vec*self._celldm
+            mult = [x,y,z]
+            for k in range(3):
                 nat = self.get_nat()
-                vec = self.get_vec()*self.get_celldm()
-                mult = [x,y,z]
-                for k in [0,1,2]:
-                        for i in range(1,mult[k]):
-                                for j in range(nat):
-                                        self.append_atom_cp(self.get_atom(j))
-                                        atom = self.get_atom(-1)
-                                        self.set_atom(-1,atom[0],atom[1]+i*vec[k],'bohr')
-                        nat = self.get_nat()
-                self.set_vec(self.get_vec()*[[x],[y],[z]])
+                self._atom_name = mult[k]*self._atom_name
+                self._atom_fix = mult[k]*self._atom_fix
+                self._atom_coord = mult[k]*self._atom_coord
+                for i in range(1,mult[k]):
+                    for j in range(i*nat,(i+1)*nat):
+                        self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
+            self.set_vec(self._vec*[[x],[y],[z]])
 
         #####################################################
         # VOLUME DATA FUNCTIONS
         #####################################################
 
         def set_vol(self,dim,vol):
-                self.volume=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
-                i=0
-                j=0
-                line=vol[i].split()
-                for x in range(dim[0]):
-                        for y in range(dim[1]):
-                                for z in range(dim[2]):
-                                        self.volume[x][y][z]=float(line[j])
-                                        j+=1
-                                        if j==len(line) and i<(len(vol)-1):
-                                                j=0
-                                                i+=1
-                                                line=vol[i].split()
+            self._vol=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
+            i=0
+            j=0
+            line=vol[i].split()
+            for x in range(dim[0]):
+                for y in range(dim[1]):
+                    for z in range(dim[2]):
+                        self._vol[x][y][z]=float(line[j])
+                        j+=1
+                        if j==len(line) and i<(len(vol)-1):
+                            j=0
+                            i+=1
+                            line=vol[i].split()
 
         def get_vol(self):
-                return self.volume
+            return self._vol
 
         #####################################################
         # SCRIPTING SUPPORT

@@ -157,7 +157,7 @@ class ToolArea(QWidget):
                 self.parent.visual.togglePlane()
 
         def volUpdate(self):
-                if hasattr(self.mol,'volume'):
+                if hasattr(self.mol,'_vol'):
                     lim=self.mol.get_vol().shape[2]
                     self.volSel.setMaximum(lim)
                     self.volSel.setTickInterval(lim/10)
