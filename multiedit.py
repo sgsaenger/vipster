@@ -23,7 +23,7 @@ class ToolArea(QWidget):
                 #initialize childwidgets (in order):
                 self.initPicker()
                 self.initScript()
-                self.initMult()
+                self.initMod()
                 self.initVol()
                 self.initPlane()
 
@@ -34,41 +34,76 @@ class ToolArea(QWidget):
                 self.pickUpdate()
 
 ####################################
-# Multiply unit cell
+# Modify unit cell
 ####################################
 
-        def initMult(self):
-                self.mult = QWidget()
-                self.combo.addItem('Mult. cell')
-                self.stack.addWidget(self.mult)
-                self.xmult = QLineEdit()
-                self.xmult.setText('1')
-                self.xmult.setValidator(QIntValidator(0,999))
-                self.ymult = QLineEdit()
-                self.ymult.setText('1')
-                self.ymult.setValidator(QIntValidator(0,999))
-                self.zmult = QLineEdit()
-                self.zmult.setText('1')
-                self.zmult.setValidator(QIntValidator(0,999))
-                multBut = QPushButton('Apply')
-                multBut.clicked.connect(self.multHandler)
-                hbox = QHBoxLayout()
-                hbox.addWidget(QLabel('x:'))
-                hbox.addWidget(self.xmult)
-                hbox.addWidget(QLabel('y:'))
-                hbox.addWidget(self.ymult)
-                hbox.addWidget(QLabel('z:'))
-                hbox.addWidget(self.zmult)
-                vbox = QVBoxLayout()
-                vbox.addLayout(hbox)
-                vbox.addWidget(multBut)
-                self.mult.setLayout(vbox)
+        def initMod(self):
+            self.mult = QWidget()
+            self.combo.addItem('Mod. cell')
+            self.stack.addWidget(self.mult)
 
-        def multHandler(self):
-                if not hasattr(self,'mol'): return
+            wrapBut = QPushButton('Wrap atoms')
+            wrapBut.clicked.connect(self.modHandler)
+            cropBut = QPushButton('Crop atoms')
+            cropBut.clicked.connect(self.modHandler)
+
+            self.xmult = QSpinBox()
+            self.xmult.setMinimum(1)
+            self.ymult = QSpinBox()
+            self.ymult.setMinimum(1)
+            self.zmult = QSpinBox()
+            self.zmult.setMinimum(1)
+            multBut = QPushButton('Multiply cell')
+            multBut.clicked.connect(self.modHandler)
+            mbox = QHBoxLayout()
+            mbox.addWidget(QLabel('x:'))
+            mbox.addWidget(self.xmult)
+            mbox.addWidget(QLabel('y:'))
+            mbox.addWidget(self.ymult)
+            mbox.addWidget(QLabel('z:'))
+            mbox.addWidget(self.zmult)
+
+            self.reshape = QTableWidget()
+            self.reshape.setColumnCount(3)
+            self.reshape.setRowCount(3)
+            self.reshape.setFixedHeight(120)
+            self.reshape.setColumnWidth(0,84)
+            self.reshape.setColumnWidth(1,84)
+            self.reshape.setColumnWidth(2,84)
+            self.reshape.setHorizontalHeaderLabels(['x','y','z'])
+            for i in range(3):
+                for j in range(3):
+                    self.reshape.setItem(i,j,QTableWidgetItem(str(0.0)))
+            rBut = QPushButton('Reshape cell')
+            rBut.clicked.connect(self.modHandler)
+
+            vbox = QVBoxLayout()
+            vbox.addWidget(wrapBut)
+            vbox.addWidget(cropBut)
+            vbox.addLayout(mbox)
+            vbox.addWidget(multBut)
+            vbox.addWidget(self.reshape)
+            vbox.addWidget(rBut)
+            vbox.addStretch()
+            self.mult.setLayout(vbox)
+
+        def modHandler(self):
+            if not hasattr(self,'mol'): return
+            reason=self.sender().text()
+            if reason=='Multiply cell':
                 self.mol.mult(int(self.xmult.text()),int(self.ymult.text()),int(self.zmult.text()))
-                self.mol.set_bonds()
-                self.parent.updateMolStep()
+            elif reason=='Reshape cell':
+                vec=[[0,0,0],[0,0,0],[0,0,0]]
+                for i in [0,1,2]:
+                        for j in [0,1,2]:
+                                vec[i][j]=float(self.reshape.item(i,j).text())
+                self.mol.reshape(vec)
+            elif reason=='Wrap atoms':
+                self.mol.wrap()
+            elif reason=='Crop atoms':
+                self.mol.crop()
+            self.mol.set_bonds()
+            self.parent.updateMolStep()
 
 ####################################
 # Crystal plane

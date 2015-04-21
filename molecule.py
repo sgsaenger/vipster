@@ -66,7 +66,7 @@ class Molecule:
         # SET FUNCTIONS
         ######################################################
 
-        def set_atom(self,index,name,coord,fmt,fix=[0,0,0]):
+        def set_atom(self,index,name,coord,fmt,fix=[1,1,1]):
                 self._atom_name[index]=name
                 self._atom_coord[index]=self._set_coord(coord,fmt)
                 self._atom_fix[index]=fix
@@ -203,6 +203,37 @@ class Molecule:
                     for j in range(i*nat,(i+1)*nat):
                         self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
             self.set_vec(self._vec*[[x],[y],[z]])
+
+        def crop(self):
+            nat=self.get_nat()
+            dellist = []
+            for i in range(nat):
+                at=self.get_atom(i,'crystal')
+                if np.any(at[1]>=1) or np.any(at[1]<0):
+                    dellist.append(i)
+            dellist.reverse()
+            for i in dellist:
+                self.del_atom(i)
+
+        def wrap(self):
+            nat = self.get_nat()
+            for i in range(nat):
+                at=self.get_atom(i,'crystal')
+                self.set_atom(i,at[0],at[1]%1,'crystal')
+
+        def reshape(self,newvec):
+            newdim=abs(np.array(newvec)).sum(0)
+            olddim=abs(self._vec).sum(0)
+            m = 1
+            while np.any(olddim*m<newdim):
+                m+=1
+            self.mult(m,m,m)
+            oldcenter=self.get_center()
+            self.set_vec(newvec)
+            newcenter=self.get_center()
+            for i in range(self.get_nat()):
+                self._atom_coord[i]+=newcenter-oldcenter
+            self.crop()
 
         #####################################################
         # VOLUME DATA FUNCTIONS
