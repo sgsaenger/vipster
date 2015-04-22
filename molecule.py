@@ -209,7 +209,7 @@ class Molecule:
             dellist = []
             for i in range(nat):
                 at=self.get_atom(i,'crystal')
-                if np.any(at[1]>=1) or np.any(at[1]<0):
+                if np.any(at[1]>1.000001) or np.any(at[1]<-0.000001) or np.any(np.isclose(at[1]-1,0,atol=1.e-6)):
                     dellist.append(i)
             dellist.reverse()
             for i in dellist:
