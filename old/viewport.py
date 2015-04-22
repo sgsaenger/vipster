@@ -381,6 +381,7 @@ class ViewPort(QGLWidget):
 
                 #save positions of atoms and bonds in world space
                 self.atoms=[]
+                self.selection=[]
                 self.bonds = []
                 self.cells = []
                 edge = np.max(self.off,axis=0)
@@ -390,6 +391,7 @@ class ViewPort(QGLWidget):
                         for j in atoms:
                                 #save coord,color,size
                                 self.atoms.append((j[1]+off,self.pse[j[0]][2],self.pse[j[0]][1]))
+                        print self.atoms
                         for j in tempbonds[0]:
                                 self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
                                 pass
@@ -477,6 +479,8 @@ class ViewPort(QGLWidget):
                                 self.drawBonds()
                         if self.showCell:
                                 self.drawCell()
+                        if self.selection:
+                            self.drawSelection()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -674,8 +678,10 @@ class ViewPort(QGLWidget):
                 if not self.mouseSelect:return
                 if(e.button() & 2):
                     self.sel=[]
+                    self.selection=[]
                 elif(e.button()&4) and self.sel:
                     self.sel.pop()
+                    self.selection.pop()
                 elif(e.button()&1) and len(self.sel)<4:
                     #render with selectionmode
                     self.paintGL(True)
@@ -693,12 +699,19 @@ class ViewPort(QGLWidget):
                     if color[3] == 0:
                         return
                     mult=self.mult[0]*self.mult[1]*self.mult[2]
-                    id = (color[0] + 256*color[1] + 65536*color[2])/mult
-                    if id in self.sel or id>self.mol.get_nat():
-                        return
+                    nat=self.mol.get_nat()
+                    id = color[0] + 256*color[1] + 65536*color[2]
+                    if id<len(self.atoms):
+                        if id in [a[0] for a in self.sel]:
+                            return
+                        else:
+                            at = self.mol.get_atom(id%nat)
+                            self.sel.append([id,id%nat,at[0],self.atoms[id][0]])
+                            self.selection.append(id)
                     else:
-                        self.sel.append(id)
+                        return
                 self.parent.edit.pickHandler(self.sel)
+                self.updateGL()
 
         def wheelEvent(self,e):
                 delta = e.delta()

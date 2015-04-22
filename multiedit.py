@@ -230,7 +230,7 @@ class ToolArea(QWidget):
                     diff01 = sel[0][3]-sel[1][3]
                     output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff01)*br,*ids[:2])
                 if len(sel)>2:
-                    diff12 = sel[1][3]-sel[2][3]
+                    diff12 = sel[2][3]-sel[1][3]
                     output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff12)*br,*ids[1:3])
                     if len(sel)>3:
                         diff23 = sel[2][3]-sel[3][3]
