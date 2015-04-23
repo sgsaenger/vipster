@@ -159,7 +159,7 @@ class TBController(QApplication):
                                ('PWScf Output' , self._parsePwo),
                                ('PWO Final Conf.',self._parsePwoFinal),
                                ('Gaussian Cube File',self._parseCube),
-                               ('Lammps Data File',self._parseLmp)],
+                               ('Lammps Data File',self._parseLmp),
                                ('Lammps Custom Dump',self._parseDmp)])
                 self.outdict= OrderedDict([('PWScf Input',self._writePwi),
                                ('xyz',self._writeXyz),
@@ -246,7 +246,8 @@ class TBController(QApplication):
                 f.write('-pwo [FILES]: open PWScf output file(s)\n')
                 f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
                 f.write('-cube [FILES]: open CUBE file(s)\n')
-                f.write('-lmp [FILES]: open Lammps custom dump file(s)\n')
+                f.write('-lmp [FILES]: open Lammps data file(s)\n')
+                f.write('-dmp [FILES]: open Lammps custom dump file(s)\n')
                 self.exit(err)
 
 #####################################################################
@@ -304,7 +305,7 @@ class TBController(QApplication):
                         #read coordinates and types
                         for j in range(i+2,i+nat+2):
                                 line = data[j].split()
-                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]))
+                                tmol.create_atom(line[0],float(line[1]),float(line[2]),float(line[3]),'angstrom')
                         i+=nat+2
                         tlist.append(tmol)
                 #append to list of molecules
@@ -313,32 +314,31 @@ class TBController(QApplication):
         def _parseLmp(self,data):
                 tmol=Molecule()
                 i=0
-                types=[]
                 tvec=[[0,0,0],[0,0,0],[0,0,0]]
                 while i< len(data):
                     line = data[i].strip()
                     if 'atoms' in line:
                         nat = int(line.split()[0])
                     elif 'atom types' in line:
-                        ntype = int(line.split()[0])
+                        types = [0]*int(line.split()[0])
                     elif 'xlo xhi' in line:
-                        tvec[0][0] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tvec[0][0] = (float(line.split()[1])-float(line.split()[0]))
                     elif 'ylo yhi' in line:
-                        tvec[1][1] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tvec[1][1] = (float(line.split()[1])-float(line.split()[0]))
                     elif 'zlo zhi' in line:
-                        tvec[2][2] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tvec[2][2] = (float(line.split()[1])-float(line.split()[0]))
                         tmol.set_vec(tvec)
                     elif 'Masses' in line:
-                        for j in range(i+2,i+2+ntype):
+                        for j in range(i+2,i+2+len(types)):
                             if '#' in data[j]:
-                                types.append(data[j].strip().split('#')[1])
+                                types[int(data[j].split()[0])-1]=data[j].split('#')[1].strip()
                             else:
                                 raise NotImplementedError('cannot assign elements via masses yet')
-                        i+=ntype+1
+                        i+=len(types)+1
                     elif 'Atoms' in line:
                         for j in range(i+2,i+2+nat):
                             at = data[j].strip().split()
-                            tmol.create_atom(types[int(at[1])-1],float(at[-3]),float(at[-2]),float(at[-1]),'angstrom')
+                            tmol.create_atom(types[int(at[1])-1],float(at[-3]),float(at[-2]),float(at[-1]))
                     i+=1
                 self._mol.append([tmol])
 
@@ -811,7 +811,7 @@ class TBController(QApplication):
                 f.write('\n'+str(mol.get_nat())+' atoms\n')
                 f.write(str(mol.get_ntyp())+' atom types\n\n')
                 #check if box is orthogonal:
-                v=mol.get_vec()
+                v=mol.get_vec()*mol.get_celldm(fmt=coordfmt)
                 if not v.diagonal(1).any() and not v.diagonal(2).any():
                     if not v.diagonal(-1).any() and not v.diagonal(-2).any():
                         f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0,v[0][0]))
@@ -824,12 +824,12 @@ class TBController(QApplication):
                 f.write('Masses\n\n')
                 t=list(mol.get_types())
                 for i,j in enumerate(t):
-                    f.write('{:d} {:2.4f} #{:s}\n'.format(i,pse[j][1],j))
+                    f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,pse[j][1],j))
                 f.write('\nAtoms\n\n')
                 for i in range(mol.get_nat()):
                     at=mol.get_atom(i,coordfmt)
                     f.write(('{:d} {:d}'+' {:d}'*1+' {:15.10f} {:15.10f} {:15.10f}\n').format(
-                        i,t.index(at[0]),0,*at[1]))
+                        i,t.index(at[0])+1,0,*at[1]))
                 f.write('\n')
                 f.close()
 
