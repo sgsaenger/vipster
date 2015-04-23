@@ -322,12 +322,13 @@ class TBController(QApplication):
                     elif 'atom types' in line:
                         types = [0]*int(line.split()[0])
                     elif 'xlo xhi' in line:
-                        tvec[0][0] = (float(line.split()[1])-float(line.split()[0]))
+                        tvec[0][0] = float(line.split()[1])-float(line.split()[0])
                     elif 'ylo yhi' in line:
-                        tvec[1][1] = (float(line.split()[1])-float(line.split()[0]))
+                        tvec[1][1] = float(line.split()[1])-float(line.split()[0])
                     elif 'zlo zhi' in line:
-                        tvec[2][2] = (float(line.split()[1])-float(line.split()[0]))
+                        tvec[2][2] = float(line.split()[1])-float(line.split()[0])
                         tmol.set_vec(tvec)
+                        tmol.set_celldm(1,fmt='angstrom')
                     elif 'Masses' in line:
                         for j in range(i+2,i+2+len(types)):
                             if '#' in data[j]:
@@ -338,33 +339,45 @@ class TBController(QApplication):
                     elif 'Atoms' in line:
                         for j in range(i+2,i+2+nat):
                             at = data[j].strip().split()
-                            tmol.create_atom(types[int(at[1])-1],float(at[-3]),float(at[-2]),float(at[-1]))
+                            tmol.create_atom(types[int(at[1])-1],float(at[-3]),float(at[-2]),float(at[-1]),'angstrom')
                     i+=1
                 self._mol.append([tmol])
 
         def _parseDmp(self,data):
-                tlist=[]
-        #        i=0
-        #        while i<len(data):
-        #            tmol=Molecule()
-        #            while True:
-        #                line = data[i].split()
-        #                if line[0]=='ITEM:':
-        #                    if line[1]=='NUMBER':
-        #                        nat=int(data[i+1])
-        #                        i+=2
-        #                    elif line[1]=='BOX':
-        #                        print 'found box geometry'
-        #                        i+=4
-        #                    # needs a little flexibility and checking for essentials
-        #                    elif line[1]=='ATOMS':
-        #                        for j in range(i+1,i+1+nat):
-        #                            tmol.create_atom(data[j].split()[1],*map(float,data[j].split()[2:5]))
-        #                    else:
-        #                        i+=1
-        #                else:
-        #                    i+=1
-        #            tlist.append(tmol)
+            tlist=[]
+            i=0
+            while i<len(data):
+                line = data[i]
+                if 'ITEM' in line:
+                    if 'TIMESTEP' in line:
+                        i+=2
+                        tmol=Molecule()
+                    elif 'NUMBER OF ATOMS' in line:
+                        nat=int(data[i+1])
+                        i+=2
+                    elif 'BOX BOUNDS' in line:
+                        tvec=[[0,0,0],[0,0,0],[0,0,0]]
+                        tvec[0][0] = float(data[i+1].split()[1])-float(data[i+1].split()[0])
+                        tvec[1][1] = float(data[i+2].split()[1])-float(data[i+2].split()[0])
+                        tvec[2][2] = float(data[i+3].split()[1])-float(data[i+3].split()[0])
+                        tmol.set_vec(tvec)
+                        tmol.set_celldm(1,fmt='angstrom')
+                        i+=4
+                    elif 'ATOMS' in line:
+                        if line.strip() == 'ITEM: ATOMS id element xs ys zs':
+                            fmt='crystal'
+                        elif line.strip() == 'ITEM: ATOMS id element x y z':
+                            fmt='angstrom'
+                        else:
+                            raise NotImplementedError('Lammps dump in not (yet) recognized format')
+                        for j in range(i+1,i+1+nat):
+                            at = data[j].split()
+                            tmol.create_atom(at[1],*map(float,at[2:]),fmt=fmt)
+                        i+=nat+1
+                        tlist.append(tmol)
+                else:
+                    i+=1
+            self._mol.append(tlist)
 
         def _parsePwi(self,data):
                 # no need for list, only one molecule per file
