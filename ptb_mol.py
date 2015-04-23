@@ -158,13 +158,13 @@ class TBController(QApplication):
                                ('PWScf Input',self._parsePwi),
                                ('PWScf Output' , self._parsePwo),
                                ('PWO Final Conf.',self._parsePwoFinal),
-                               ('Gaussian Cube File',self._parseCube)])
-                               #('Lammps Data File',self._parseLmp),
-                               #('Lammps Custom Dump',self._parseDmp)])
+                               ('Gaussian Cube File',self._parseCube),
+                               ('Lammps Data File',self._parseLmp),
+                               ('Lammps Custom Dump',self._parseDmp)])
                 self.outdict= OrderedDict([('PWScf Input',self._writePwi),
                                ('xyz',self._writeXyz),
-                               ('Empire xyz',self._writeEmpire)])
-                               #('Lammps Data File',self._writeLmp)])
+                               ('Empire xyz',self._writeEmpire),
+                               ('Lammps Data File',self._writeLmp)])
                 QTimer.singleShot(0,self._argumentHandler)
 
 
@@ -246,7 +246,8 @@ class TBController(QApplication):
                 f.write('-pwo [FILES]: open PWScf output file(s)\n')
                 f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
                 f.write('-cube [FILES]: open CUBE file(s)\n')
-                f.write('-lmp [FILES]: open Lammps custom dump file(s)\n')
+                f.write('-lmp [FILES]: open Lammps data file(s)\n')
+                f.write('-dmp [FILES]: open Lammps custom dump file(s)\n')
                 self.exit(err)
 
 #####################################################################
@@ -313,28 +314,28 @@ class TBController(QApplication):
         def _parseLmp(self,data):
                 tmol=Molecule()
                 i=0
-                types=[]
                 tvec=[[0,0,0],[0,0,0],[0,0,0]]
                 while i< len(data):
                     line = data[i].strip()
                     if 'atoms' in line:
                         nat = int(line.split()[0])
                     elif 'atom types' in line:
-                        ntype = int(line.split()[0])
+                        types = [0]*int(line.split()[0])
                     elif 'xlo xhi' in line:
-                        tvec[0][0] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tvec[0][0] = float(line.split()[1])-float(line.split()[0])
                     elif 'ylo yhi' in line:
-                        tvec[1][1] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tvec[1][1] = float(line.split()[1])-float(line.split()[0])
                     elif 'zlo zhi' in line:
-                        tvec[2][2] = (float(line.split()[1])-float(line.split()[0]))*1.889726125
+                        tvec[2][2] = float(line.split()[1])-float(line.split()[0])
                         tmol.set_vec(tvec)
+                        tmol.set_celldm(1,fmt='angstrom')
                     elif 'Masses' in line:
-                        for j in range(i+2,i+2+ntype):
+                        for j in range(i+2,i+2+len(types)):
                             if '#' in data[j]:
-                                types.append(data[j].strip().split('#')[1])
+                                types[int(data[j].split()[0])-1]=data[j].split('#')[1].strip()
                             else:
                                 raise NotImplementedError('cannot assign elements via masses yet')
-                        i+=ntype+1
+                        i+=len(types)+1
                     elif 'Atoms' in line:
                         for j in range(i+2,i+2+nat):
                             at = data[j].strip().split()
@@ -343,28 +344,40 @@ class TBController(QApplication):
                 self._mol.append([tmol])
 
         def _parseDmp(self,data):
-                tlist=[]
-        #        i=0
-        #        while i<len(data):
-        #            tmol=Molecule()
-        #            while True:
-        #                line = data[i].split()
-        #                if line[0]=='ITEM:':
-        #                    if line[1]=='NUMBER':
-        #                        nat=int(data[i+1])
-        #                        i+=2
-        #                    elif line[1]=='BOX':
-        #                        print 'found box geometry'
-        #                        i+=4
-        #                    # needs a little flexibility and checking for essentials
-        #                    elif line[1]=='ATOMS':
-        #                        for j in range(i+1,i+1+nat):
-        #                            tmol.create_atom(data[j].split()[1],*map(float,data[j].split()[2:5]))
-        #                    else:
-        #                        i+=1
-        #                else:
-        #                    i+=1
-        #            tlist.append(tmol)
+            tlist=[]
+            i=0
+            while i<len(data):
+                line = data[i]
+                if 'ITEM' in line:
+                    if 'TIMESTEP' in line:
+                        i+=2
+                        tmol=Molecule()
+                    elif 'NUMBER OF ATOMS' in line:
+                        nat=int(data[i+1])
+                        i+=2
+                    elif 'BOX BOUNDS' in line:
+                        tvec=[[0,0,0],[0,0,0],[0,0,0]]
+                        tvec[0][0] = float(data[i+1].split()[1])-float(data[i+1].split()[0])
+                        tvec[1][1] = float(data[i+2].split()[1])-float(data[i+2].split()[0])
+                        tvec[2][2] = float(data[i+3].split()[1])-float(data[i+3].split()[0])
+                        tmol.set_vec(tvec)
+                        tmol.set_celldm(1,fmt='angstrom')
+                        i+=4
+                    elif 'ATOMS' in line:
+                        if line.strip() == 'ITEM: ATOMS id element xs ys zs':
+                            fmt='crystal'
+                        elif line.strip() == 'ITEM: ATOMS id element x y z':
+                            fmt='angstrom'
+                        else:
+                            raise NotImplementedError('Lammps dump in not (yet) recognized format')
+                        for j in range(i+1,i+1+nat):
+                            at = data[j].split()
+                            tmol.create_atom(at[1],*map(float,at[2:]),fmt=fmt)
+                        i+=nat+1
+                        tlist.append(tmol)
+                else:
+                    i+=1
+            self._mol.append(tlist)
 
         def _parsePwi(self,data):
                 # no need for list, only one molecule per file
@@ -813,7 +826,7 @@ class TBController(QApplication):
                 f.write('\n'+str(mol.get_nat())+' atoms\n')
                 f.write(str(mol.get_ntyp())+' atom types\n\n')
                 #check if box is orthogonal:
-                v=mol.get_vec()
+                v=mol.get_vec()*mol.get_celldm(fmt=coordfmt)
                 if not v.diagonal(1).any() and not v.diagonal(2).any():
                     if not v.diagonal(-1).any() and not v.diagonal(-2).any():
                         f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0,v[0][0]))
@@ -826,12 +839,12 @@ class TBController(QApplication):
                 f.write('Masses\n\n')
                 t=list(mol.get_types())
                 for i,j in enumerate(t):
-                    f.write('{:d} {:2.4f} #{:s}\n'.format(i,pse[j][1],j))
+                    f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,pse[j][1],j))
                 f.write('\nAtoms\n\n')
                 for i in range(mol.get_nat()):
                     at=mol.get_atom(i,coordfmt)
                     f.write(('{:d} {:d}'+' {:d}'*1+' {:15.10f} {:15.10f} {:15.10f}\n').format(
-                        i,t.index(at[0]),0,*at[1]))
+                        i,t.index(at[0])+1,0,*at[1]))
                 f.write('\n')
                 f.close()
 
