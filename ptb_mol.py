@@ -217,12 +217,12 @@ class TBController():
 #####################################################################
 
         def readFile(self,fmt,filename,mode='gui'):
-                data = open(filename,'r').readlines()
+            with open(filename,'r') as data:
+                data = data.readlines()
                 if mode =='cli':
                     self.cli_indict[fmt](data)
                 else:
                     self.indict[fmt](data)
-                #return data
 
         def _parseXyz(self,data):
                 # create list of mol, trajectory support
@@ -708,13 +708,10 @@ class TBController():
 #############################################################################
 
         def writeFile(self,ftype,mol,filename,param="",coordfmt=""):
-                self.outdict[ftype](mol,filename,param,coordfmt)
+            with open(filename,'w') as f:
+                self.outdict[ftype](mol,f,param,coordfmt)
 
-        def _writeXyz(self,mol,filename,param,coordfmt):
-                if filename == "":
-                        f=sys.stdout
-                else:
-                        f=open(filename,'w')
+        def _writeXyz(self,mol,f,param,coordfmt):
                 # fixed format nat and comment
                 f.write(str(mol.get_nat())+'\n')
                 f.write(mol.get_comment()+'\n')
@@ -725,11 +722,7 @@ class TBController():
                                      atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
                 f.close()
 
-        def _writeEmpire(self,mol,filename,param,coordfmt):
-                if filename == "":
-                        f=sys.stdout
-                else:
-                        f=open(filename,'w')
+        def _writeEmpire(self,mol,f,param,coordfmt):
                 # fixed format nat and comment
                 f.write(str(mol.get_nat())+'\n')
                 f.write('Hamil=PM3 calc=spt Periodic\n')
@@ -744,13 +737,8 @@ class TBController():
                 f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[0]))
                 f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[1]))
                 f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[2]))
-                f.close()
 
-        def _writeLmp(self,mol,filename,param,coordfmt):
-                if filename == "":
-                    f=sys.stdout
-                else:
-                    f=open(filename,'w')
+        def _writeLmp(self,mol,f,param,coordfmt):
                 f.write('\n'+str(mol.get_nat())+' atoms\n')
                 f.write(str(mol.get_ntyp())+' atom types\n\n')
                 #check if box is orthogonal:
@@ -774,14 +762,8 @@ class TBController():
                     f.write(('{:d} {:d}'+' {:d}'*1+' {:15.10f} {:15.10f} {:15.10f}\n').format(
                         i,t.index(at[0]),0,*at[1]))
                 f.write('\n')
-                f.close()
 
-        def _writePwi(self,mol,filename,param,coordfmt):
-                if filename == "":
-                        f=sys.stdout
-                else:
-                        f=open(filename,'w')
-
+        def _writePwi(self,mol,f,param,coordfmt):
                 #&control, &system and &electron namelists are mandatory
                 for i in ['&control','&system','&electrons']:
                         f.write(i+'\n')
@@ -861,9 +843,6 @@ class TBController():
                     '{0[1][0]:15.10f} {0[1][1]:15.10f} {0[1][2]:15.10f}\n' + \
                     '{0[2][0]:15.10f} {0[2][1]:15.10f} {0[2][2]:15.10f}\n'
                 f.write(fmt.format(mol.get_vec()))
-
-                #Close file
-                f.close()
 
 class PWParam(dict):
 
