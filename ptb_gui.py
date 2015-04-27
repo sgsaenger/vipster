@@ -13,19 +13,15 @@ from coordedit import MolArea
 from paramedit import PWTab
 from multiedit import ToolArea
 
-class MainWindow(QMainWindow):
+def MakeWindow(controller,old):
 
-        def __init__(self,controller,old):
-                super(MainWindow,self).__init__()
-                self.controller = controller
-
-                #Create main widget
-                mv = MainView(self,self.controller,old)
-                self.setCentralWidget(mv)
-
-                # Set Title and run:
-                self.setWindowTitle('PWToolBox')
-                self.show()
+    mw = QMainWindow()
+    mv = MainView(mw,controller,old)
+    mw.setCentralWidget(mv)
+    mw.setWindowTitle('PWToolBox')
+    mw.show()
+    return mv
+    
 
 class MainView(QWidget):
 
@@ -34,7 +30,6 @@ class MainView(QWidget):
                 self.parent = parent
                 self.controller = controller
                 self.initMenu()
-                # initialize GUI and accompanying actions
                 self.mult =[1,1,1]
 
         #Central Column:

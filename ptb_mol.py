@@ -5,11 +5,8 @@ import sys
 import copy
 from math import sqrt
 from collections import OrderedDict
-from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer
 
 from molecule import Molecule
-from ptb_gui import MainWindow
 
 ######################################################################
 # PSE DICTIONARY
@@ -146,95 +143,36 @@ pse={"X":  [0,0.0],
 ######################################################################
 # MAIN CONTROLLER CLASS
 ######################################################################
-class TBController(QApplication):
+class TBController():
 
-        def __init__(self,argv,old=False):
-                super(TBController,self).__init__(argv)
-                self.argv = argv
+        def __init__(self,old=False):
                 self._mol = []
                 self.old = old
                 self._pwdata = []
+                self.cli_indict = {'-xyz':self._parseXyz,
+                                '-pwi':self._parsePwi,
+                                '-pwo':self._parsePwo,
+                                '-lmp':self._parseLmp,
+                                '-dmp':self._parseDmp,
+                                '-cube':self._parseCube,
+                                '-pwof':self._parsePwoFinal}
                 self.indict = OrderedDict([('xyz',self._parseXyz),
                                ('PWScf Input',self._parsePwi),
                                ('PWScf Output' , self._parsePwo),
                                ('PWO Final Conf.',self._parsePwoFinal),
-                               ('Gaussian Cube File',self._parseCube)])
-                               #('Lammps Data File',self._parseLmp),
-                               #('Lammps Custom Dump',self._parseDmp)])
+                               ('Gaussian Cube File',self._parseCube),
+                               ('Lammps Data File',self._parseLmp),
+                               ('Lammps Custom Dump',self._parseDmp)])
                 self.outdict= OrderedDict([('PWScf Input',self._writePwi),
                                ('xyz',self._writeXyz),
-                               ('Empire xyz',self._writeEmpire)])
-                               #('Lammps Data File',self._writeLmp)])
-                QTimer.singleShot(0,self._argumentHandler)
-
-
-#####################################################################
-# Handle command line arguments:
-#####################################################################
-        def _argumentHandler(self):
-                #no argument: start GUI
-                if len(self.argv) == 1:
-                        self.gui = MainWindow(self,self.old)
-                        self.newMol()
-                        self.gui.centralWidget().loadView()
-                #check for misformatted options or help request:
-                elif self.argv[1][0]!='-': self._print_help(22)
-                elif self.argv[1][0:2]=='--': self._print_help(22)
-                elif '-h' in self.argv: self._print_help(0)
-                #check for input files, start gui and load
-                else:
-                        self.gui = MainWindow(self,self.old)
-                        #for i in range(1,len(self.argv)):
-                        i=1
-                        while i<len(self.argv):
-                                if self.argv[i] == '-pwi':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('PWScf Input',self.argv[i])
-                                                i+=1
-                                        self.gui.centralWidget().loadView()
-                                elif self.argv[i] == '-pwo':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('PWScf Output',self.argv[i])
-                                                i+=1
-                                        self.gui.centralWidget().loadView()
-                                elif self.argv[i] == '-pwof':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('PWO Final Conf.',self.argv[i])
-                                                i+=1
-                                        self.gui.centralWidget().loadView()
-                                elif self.argv[i] == '-xyz':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('xyz',self.argv[i])
-                                                i+=1
-                                        self.gui.centralWidget().loadView()
-                                elif self.argv[i] == '-cube':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('Gaussian Cube File',self.argv[i])
-                                                i+=1
-                                        self.gui.centralWidget().loadView()
-                                elif self.argv[i] == '-lmp':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('Lammps Data File',self.argv[i])
-                                                i+=1
-                                                self.gui.centralWidget().loadView()
-                                elif self.argv[i] == '-dmp':
-                                        i+=1
-                                        while i<len(self.argv) and self.argv[i][0]!='-':
-                                                self.readFile('Lammps Custom Dump',self.argv[i])
-                                                i+=1
-                                                self.gui.centralWidget().loadView()
+                               ('Empire xyz',self._writeEmpire),
+                               ('Lammps Data File',self._writeLmp)])
 
 #####################################################################
 # Print help
 #####################################################################
 
-        def _print_help(self,err):
+        def print_help(self,err):
                 f = sys.stdout
                 f.write('PWToolBox usage:\n')
                 f.write('ptb_main [OPTIONS]\n\n')
@@ -247,7 +185,7 @@ class TBController(QApplication):
                 f.write('-pwof [FILES]: parse only the last config of PWO file(s)\n')
                 f.write('-cube [FILES]: open CUBE file(s)\n')
                 f.write('-lmp [FILES]: open Lammps custom dump file(s)\n')
-                self.exit(err)
+                raise SystemExit(err)
 
 #####################################################################
 # GET FUNCTIONS
@@ -278,9 +216,12 @@ class TBController(QApplication):
 # READ FUNCTIONS
 #####################################################################
 
-        def readFile(self,fmt,filename):
+        def readFile(self,fmt,filename,mode='gui'):
                 data = open(filename,'r').readlines()
-                self.indict[fmt](data)
+                if mode =='cli':
+                    self.cli_indict[fmt](data)
+                else:
+                    self.indict[fmt](data)
                 #return data
 
         def _parseXyz(self,data):

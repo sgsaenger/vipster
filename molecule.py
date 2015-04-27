@@ -245,7 +245,6 @@ class Molecule:
                 for i in os:
                     nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,i)
                     self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
-                    print self._bonds[k]
 
         #####################################################
         # EDIT FUNCTIONS
