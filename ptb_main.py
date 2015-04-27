@@ -17,7 +17,7 @@ def main():
     backend = TBController()
 
     if len(argv)==1:
-        pass
+        backend.newMol()
     elif argv[1] == '-h':
         backend.print_help(0)
     elif argv[1] in backend.cli_indict:
