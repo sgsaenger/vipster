@@ -391,7 +391,6 @@ class ViewPort(QGLWidget):
                         for j in atoms:
                                 #save coord,color,size
                                 self.atoms.append((j[1]+off,self.pse[j[0]][2],self.pse[j[0]][1]))
-                        print self.atoms
                         for j in tempbonds[0]:
                                 self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
                                 pass

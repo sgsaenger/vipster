@@ -26,216 +26,220 @@ def MakeWindow(controller,old):
 class MainView(QWidget):
 
         def __init__(self,parent,controller,old):
-                super(MainView,self).__init__()
-                self.parent = parent
-                self.controller = controller
-                self.initMenu()
-                self.mult =[1,1,1]
+            super(MainView,self).__init__()
+            self.parent = parent
+            self.controller = controller
+            self.initMenu()
+            self.mult =[1,1,1]
 
         #Central Column:
-                #OpenGL Viewport:
-                if old:
-                    from old.viewport import ViewPort
-                else:
-                    from viewport import ViewPort
-                self.visual = ViewPort(self)
+            #OpenGL Viewport:
+            if old:
+                from old.viewport import ViewPort
+            else:
+                from viewport import ViewPort
+            self.visual = ViewPort(self)
 
-                #Control visual:
-                #Cell multiplication
-                self.xspin = QSpinBox()
-                self.yspin = QSpinBox()
-                self.zspin = QSpinBox()
-                for i in [self.xspin,self.yspin,self.zspin]:
-                        i.setMinimum(1)
-                #Toggle edit column:
-                editBut = QPushButton()
-                editBut.setText('Edit')
-                editBut.setCheckable(True)
-                #create Timers
-                self.animTimer = QTimer()
-                self.animTimer.setInterval(50)
-                self.animTimer.timeout.connect(self.incStep)
-                #Screenshot test
-                screenbut = QPushButton()
-                screenbut.setText('Save Screenshot')
-                screenbut.clicked.connect(self.makeScreen)
-                #Choose step, animate
-                incBut = QPushButton()
-                incBut.clicked.connect(self.incStep)
-                incBut.setAutoRepeat(True)
-                incBut.setIcon(self.style().standardIcon(65))
-                decBut = QPushButton()
-                decBut.clicked.connect(self.decStep)
-                decBut.setAutoRepeat(True)
-                decBut.setIcon(self.style().standardIcon(66))
-                playBut = QPushButton()
-                playBut.setIcon(self.style().standardIcon(60))
-                playBut.clicked.connect(self.toggleAnim)
-                firstBut = QPushButton()
-                firstBut.setIcon(self.style().standardIcon(64))
-                firstBut.clicked.connect(self.firstStep)
-                lastBut = QPushButton()
-                lastBut.setIcon(self.style().standardIcon(63))
-                lastBut.clicked.connect(self.lastStep)
-                self.currentStep = QLineEdit()
-                self.currentStep.setText('0')
-                self.currentStep.setValidator(QIntValidator(0,0))
-                self.maxStep = QLabel('0')
-                #connect updateMolStep as everything is ready
-                self.currentStep.textChanged.connect(self.updateMolStep)
-                self.xspin.valueChanged.connect(self.updateMult)
-                self.yspin.valueChanged.connect(self.updateMult)
-                self.zspin.valueChanged.connect(self.updateMult)
-                #Control Layout:
-                mult = QHBoxLayout()
-                mult.addWidget(QLabel('Cell multiply:'))
-                mult.addStretch()
-                mult.addWidget(QLabel('x:'))
-                mult.addWidget(self.xspin)
-                mult.addStretch()
-                mult.addWidget(QLabel('y:'))
-                mult.addWidget(self.yspin)
-                mult.addStretch()
-                mult.addWidget(QLabel('z:'))
-                mult.addWidget(self.zspin)
-                mult.addWidget(screenbut)
-                steps = QHBoxLayout()
-                steps.addWidget(firstBut)
-                steps.addWidget(decBut)
-                steps.addWidget(self.currentStep)
-                steps.addWidget(QLabel('/'))
-                steps.addWidget(self.maxStep)
-                steps.addWidget(playBut)
-                steps.addWidget(incBut)
-                steps.addWidget(lastBut)
-                steps.addWidget(editBut)
+            #Control visual:
+            #Cell multiplication
+            self.xspin = QSpinBox()
+            self.yspin = QSpinBox()
+            self.zspin = QSpinBox()
+            for i in [self.xspin,self.yspin,self.zspin]:
+                    i.setMinimum(1)
+            #Toggle edit column:
+            editBut = QPushButton()
+            editBut.setText('Edit')
+            editBut.setCheckable(True)
+            #create Timers
+            self.animTimer = QTimer()
+            self.animTimer.setInterval(50)
+            self.animTimer.timeout.connect(self.incStep)
+            #Screenshot test
+            screenbut = QPushButton()
+            screenbut.setText('Save Screenshot')
+            screenbut.clicked.connect(self.makeScreen)
+            #Choose step, animate
+            incBut = QPushButton()
+            incBut.clicked.connect(self.incStep)
+            incBut.setAutoRepeat(True)
+            incBut.setIcon(self.style().standardIcon(65))
+            decBut = QPushButton()
+            decBut.clicked.connect(self.decStep)
+            decBut.setAutoRepeat(True)
+            decBut.setIcon(self.style().standardIcon(66))
+            playBut = QPushButton()
+            playBut.setIcon(self.style().standardIcon(60))
+            playBut.clicked.connect(self.toggleAnim)
+            firstBut = QPushButton()
+            firstBut.setIcon(self.style().standardIcon(64))
+            firstBut.clicked.connect(self.firstStep)
+            lastBut = QPushButton()
+            lastBut.setIcon(self.style().standardIcon(63))
+            lastBut.clicked.connect(self.lastStep)
+            self.Step = QSlider()
+            self.Step.setOrientation(1)
+            self.Step.setMinimum(1)
+            self.Step.setMaximum(1)
+            self.Step.setTickPosition(self.Step.TicksBelow)
+            self.Step.setSingleStep(1)
+            self.Step.valueChanged.connect(self.updateMolStep)
+            self.curStep = QLabel('1')
+            self.maxStep = QLabel('1')
+            self.xspin.valueChanged.connect(self.updateMult)
+            self.yspin.valueChanged.connect(self.updateMult)
+            self.zspin.valueChanged.connect(self.updateMult)
+            #Control Layout:
+            mult = QHBoxLayout()
+            mult.addWidget(QLabel('Cell multiply:'))
+            mult.addStretch()
+            mult.addWidget(QLabel('x:'))
+            mult.addWidget(self.xspin)
+            mult.addStretch()
+            mult.addWidget(QLabel('y:'))
+            mult.addWidget(self.yspin)
+            mult.addStretch()
+            mult.addWidget(QLabel('z:'))
+            mult.addWidget(self.zspin)
+            mult.addWidget(screenbut)
+            steps = QHBoxLayout()
+            steps.addWidget(firstBut)
+            steps.addWidget(decBut)
+            steps.addWidget(self.Step)
+            steps.addWidget(self.curStep)
+            steps.addWidget(QLabel('/'))
+            steps.addWidget(self.maxStep)
+            steps.addWidget(playBut)
+            steps.addWidget(incBut)
+            steps.addWidget(lastBut)
+            steps.addWidget(editBut)
 
-                #Layout:
-                viewlay = QVBoxLayout()
-                viewlay.addWidget(self.visual)
-                viewlay.addLayout(mult)
-                viewlay.addLayout(steps)
+            #Layout:
+            viewlay = QVBoxLayout()
+            viewlay.addWidget(self.visual)
+            viewlay.addLayout(mult)
+            viewlay.addLayout(steps)
 
-                #Frame it:
-                mcol = QFrame()
-                mcol.setLayout(viewlay)
-                mcol.setFrameStyle(38)
+            #Frame it:
+            mcol = QFrame()
+            mcol.setLayout(viewlay)
+            mcol.setFrameStyle(38)
 
         #Left column:
-                #Molecule list:
-                self.mlist = QListWidget()
-                self.mlist.currentRowChanged.connect(self.selectMolecule)
-                #splitter-container
-                mlist=QWidget()
-                mlayout=QVBoxLayout()
-                mlabel=QLabel('Loaded Molecules:')
-                mlayout.addWidget(mlabel)
-                mlayout.addWidget(self.mlist)
-                mlist.setLayout(mlayout)
+            #Molecule list:
+            self.mlist = QListWidget()
+            self.mlist.currentRowChanged.connect(self.selectMolecule)
+            #splitter-container
+            mlist=QWidget()
+            mlayout=QVBoxLayout()
+            mlabel=QLabel('Loaded Molecules:')
+            mlayout.addWidget(mlabel)
+            mlayout.addWidget(self.mlist)
+            mlist.setLayout(mlayout)
 
-                #PWParameter list:
-                self.pwlist = QListWidget()
-                self.pwlist.currentRowChanged.connect(self.selectPWParam)
-                #splitter-container
-                pwlist=QWidget()
-                pwlayout=QVBoxLayout()
-                pwlabel=QLabel('PW Parameter sets:')
-                pwlayout.addWidget(pwlabel)
-                pwlayout.addWidget(self.pwlist)
-                pwlist.setLayout(pwlayout)
+            #PWParameter list:
+            self.pwlist = QListWidget()
+            self.pwlist.currentRowChanged.connect(self.selectPWParam)
+            #splitter-container
+            pwlist=QWidget()
+            pwlayout=QVBoxLayout()
+            pwlabel=QLabel('PW Parameter sets:')
+            pwlayout.addWidget(pwlabel)
+            pwlayout.addWidget(self.pwlist)
+            pwlist.setLayout(pwlayout)
 
 
-                #Edit stuff
-                self.edit = ToolArea(self)
+            #Edit stuff
+            self.edit = ToolArea(self)
 
-                #encapsulate in splitter:
-                lcol = QSplitter()
-                lcol.addWidget(mlist)
-                lcol.addWidget(pwlist)
-                lcol.addWidget(self.edit)
-                lcol.setOrientation(0)
-                lcol.setChildrenCollapsible(False)
-                lcol.setFrameStyle(38)
-                lcol.setMaximumWidth(300)
+            #encapsulate in splitter:
+            lcol = QSplitter()
+            lcol.addWidget(mlist)
+            lcol.addWidget(pwlist)
+            lcol.addWidget(self.edit)
+            lcol.setOrientation(0)
+            lcol.setChildrenCollapsible(False)
+            lcol.setFrameStyle(38)
+            lcol.setMaximumWidth(300)
 
 
         #Right column:
-                #Molecule edit area:
-                self.coord = MolArea(self)
+            #Molecule edit area:
+            self.coord = MolArea(self)
 
-                #PWParameter edit area:
-                self.pw = PWTab()
+            #PWParameter edit area:
+            self.pw = PWTab()
 
-                #nest edit areas in tabwidget
-                rcol = QTabWidget()
-                rcol.addTab(self.coord,'Molecule coordinates')
-                rcol.addTab(self.pw,'PW Parameters')
-                rcol.setFixedWidth(467)
-                #connect to toggle button
-                rcol.hide()
-                editBut.clicked.connect(rcol.setVisible)
+            #nest edit areas in tabwidget
+            rcol = QTabWidget()
+            rcol.addTab(self.coord,'Molecule coordinates')
+            rcol.addTab(self.pw,'PW Parameters')
+            rcol.setFixedWidth(467)
+            #connect to toggle button
+            rcol.hide()
+            editBut.clicked.connect(rcol.setVisible)
 
         #Lay out columns:
-                hbox = QHBoxLayout()
-                hbox.addWidget(lcol)
-                hbox.addWidget(mcol)
-                hbox.addWidget(rcol)
-                self.setLayout(hbox)
+            hbox = QHBoxLayout()
+            hbox.addWidget(lcol)
+            hbox.addWidget(mcol)
+            hbox.addWidget(rcol)
+            self.setLayout(hbox)
 
         def initMenu(self):
-                newAction = QAction('&New Molecule',self)
-                newAction.setShortcut('Ctrl+N')
-                newAction.triggered.connect(self.newHandler)
-                loadAction = QAction('&Load Molecule(s)',self)
-                loadAction.setShortcut('Ctrl+O')
-                loadAction.triggered.connect(self.loadHandler)
-                saveAction = QAction('&Save Molecule',self)
-                saveAction.setShortcut('Ctrl+S')
-                saveAction.triggered.connect(self.saveHandler)
-                exitAction = QAction('&Exit',self)
-                exitAction.setShortcut('Ctrl+Q')
-                exitAction.triggered.connect(qApp.quit)
+            newAction = QAction('&New Molecule',self)
+            newAction.setShortcut('Ctrl+N')
+            newAction.triggered.connect(self.newHandler)
+            loadAction = QAction('&Load Molecule(s)',self)
+            loadAction.setShortcut('Ctrl+O')
+            loadAction.triggered.connect(self.loadHandler)
+            saveAction = QAction('&Save Molecule',self)
+            saveAction.setShortcut('Ctrl+S')
+            saveAction.triggered.connect(self.saveHandler)
+            exitAction = QAction('&Exit',self)
+            exitAction.setShortcut('Ctrl+Q')
+            exitAction.triggered.connect(qApp.quit)
 
-                fMenu = self.parent.menuBar().addMenu('&File')
-                fMenu.addAction(newAction)
-                fMenu.addAction(loadAction)
-                fMenu.addAction(saveAction)
-                fMenu.addSeparator()
-                fMenu.addAction(exitAction)
+            fMenu = self.parent.menuBar().addMenu('&File')
+            fMenu.addAction(newAction)
+            fMenu.addAction(loadAction)
+            fMenu.addAction(saveAction)
+            fMenu.addSeparator()
+            fMenu.addAction(exitAction)
 
         def newHandler(self):
-                self.controller.newMol()
-                self.loadView()
+            self.controller.newMol()
+            self.loadView()
 
         def loadHandler(self):
-                fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
-                if not fname: return
-                ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
-                ftype = str(ftype[0])
-                self.controller.readFile(ftype,fname)
-                self.loadView()
+            fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
+            if not fname: return
+            ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
+            ftype = str(ftype[0])
+            self.controller.readFile(ftype,fname)
+            self.loadView()
 
         def saveHandler(self):
-                fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
-                if not fname: return
-                ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
-                ftype = str(ftype[0])
+            fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
+            if not fname: return
+            ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
+            ftype = str(ftype[0])
+            try:
                 try:
+                    mol = self.getMolecule()
+                except:
+                    raise IndexError('No Molecule')
+                if ftype=='PWScf Input':
                     try:
-                        mol = self.getMolecule()
+                        param = self.getParam()
                     except:
-                        raise IndexError('No Molecule')
-                    if ftype=='PWScf Input':
-                        try:
-                            param = self.getParam()
-                        except:
-                            raise IndexError('No PW Parameter set')
-                    else:
-                            param = False
-                    coordfmt = self.coord.fmt.currentText()
-                    self.controller.writeFile(ftype,mol,fname,param,coordfmt)
-                except StandardError as e:
-                    QMessageBox(QMessageBox.Critical,'Error',e.message,QMessageBox.Ok,self).exec_()
+                        raise IndexError('No PW Parameter set')
+                else:
+                        param = False
+                coordfmt = self.coord.fmt.currentText()
+                self.controller.writeFile(ftype,mol,fname,param,coordfmt)
+            except StandardError as e:
+                QMessageBox(QMessageBox.Critical,'Error',e.message,QMessageBox.Ok,self).exec_()
 
         ########################################################
         #insert loaded molecules
@@ -256,8 +260,8 @@ class MainView(QWidget):
         def selectMolecule(self,sel):
                 steps = self.controller.get_lmol(sel)
                 self.maxStep.setText(str(steps))
-                self.currentStep.setValidator(QIntValidator(1,steps))
-                self.currentStep.setText(str(steps))
+                self.Step.setMaximum(steps)
+                self.Step.setValue(steps)
                 self.updateMolStep()
 
         def selectPWParam(self,sel):
@@ -266,7 +270,8 @@ class MainView(QWidget):
         def updateMolStep(self):
                 #get current Molecule from MolList
                 sel = self.mlist.currentRow()
-                step = int(self.currentStep.text())-1
+                step = self.Step.value()-1
+                self.curStep.setText(str(step+1))
                 mol = self.controller.get_mol(sel,step)
                 #Send Molecule to Visualisation and Editor
                 self.coord.setMol(mol)
@@ -281,7 +286,7 @@ class MainView(QWidget):
         #to controller
         ########################################################
         def getMolecule(self):
-                return self.controller.get_mol(self.mlist.currentRow(),int(self.currentStep.text())-1)
+                return self.controller.get_mol(self.mlist.currentRow(),int(self.Step.text())-1)
 
         def getParam(self):
                 self.pw.saveParam()
@@ -302,20 +307,20 @@ class MainView(QWidget):
         #steps and animation:
         ########################################################
         def incStep(self):
-                if self.currentStep.text()==self.maxStep.text():
+                if self.Step.value()==self.Step.maximum():
                         self.animTimer.stop()
                 else:
-                        self.currentStep.setText(str(int(self.currentStep.text())+1))
+                        self.Step.setValue(self.Step.value()+1)
 
         def decStep(self):
-                if self.currentStep.text()=='1':return
-                self.currentStep.setText(str(int(self.currentStep.text())-1))
+                if self.Step.value()==1:return
+                self.Step.setValue(self.Step.value()-1)
 
         def firstStep(self):
-                self.currentStep.setText('1')
+                self.Step.setValue(1)
 
         def lastStep(self):
-                self.currentStep.setText(self.maxStep.text())
+                self.Step.setValue(self.Step.maximum())
 
         def toggleAnim(self):
                 if self.animTimer.isActive():
