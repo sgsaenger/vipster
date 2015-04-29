@@ -286,7 +286,7 @@ class MainView(QWidget):
         #to controller
         ########################################################
         def getMolecule(self):
-                return self.controller.get_mol(self.mlist.currentRow(),int(self.Step.text())-1)
+                return self.controller.get_mol(self.mlist.currentRow(),self.Step.value()-1)
 
         def getParam(self):
                 self.pw.saveParam()
