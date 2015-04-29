@@ -76,7 +76,7 @@ class MolArea(QWidget):
                 newB.clicked.connect(self.newAtom)
                 btns.addWidget(newB)
                 newA = QAction('New Atom',self)
-                newA.setShortcut('Ctrl+N')
+                newA.setShortcut('N')
                 newA.triggered.connect(self.newAtom)
                 self.table.addAction(newA)
 
@@ -160,7 +160,7 @@ class MolArea(QWidget):
                 if float(self.cellDm.text()) == self.mol.get_celldm(self.fmt.currentText()):return
                 par= self.parent
                 if self.appAll.isChecked():
-                    mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(int(par.maxStep.text()))]
+                    mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
                 else:
                     mols=[self.mol]
                 for m in mols:
@@ -194,7 +194,7 @@ class MolArea(QWidget):
                 if vec == self.mol.get_vec().tolist(): return
                 par = self.parent
                 if self.appAll.isChecked():
-                    mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(int(par.maxStep.text()))]
+                    mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
                 else:
                     mols=[self.mol]
                 for m in mols:
