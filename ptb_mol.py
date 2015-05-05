@@ -332,7 +332,7 @@ class TBController():
                         raise NotImplementedError('Lammps dump in not (yet) recognized format')
                     for j in range(i+1,i+1+nat):
                         at = data[j].split()
-                        tmol.create_atom(at[1],*map(float,at[2:]),fmt=fmt)
+                        tmol.create_atom(at[1],map(float,at[2:]),fmt=fmt)
                     i+=nat+1
                     tlist.append(tmol)
             else:
