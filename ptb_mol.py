@@ -244,7 +244,7 @@ class TBController():
                 tmol = Molecule()
                 #fixed format nat and comment
                 nat = int(data[i])
-                tmol.comment = data[i+1]
+                tmol._comment = data[i+1]
                 #read coordinates and types
                 for j in range(i+2,i+nat+2):
                         line = data[j].split()
@@ -722,7 +722,7 @@ class TBController():
         #parse data
         i=0
         #two lines of comments, combine
-        tmol.comment=data[0]+";"+data[1]
+        tmol._comment=data[0]+";"+data[1]
         #nat, origin[3]
         nat=int(data[2].split()[0])
         origin=[float(data[2].split()[i]) for i in [1,2,3]]
