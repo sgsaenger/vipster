@@ -203,7 +203,7 @@ class Molecule:
 
     def get_bonds(self):
         """Return bonds
-        
+
         Sets bonds if not present.
         Returns list of lists.
         First entry: Bonds inside of cell
@@ -290,7 +290,7 @@ class Molecule:
 
         newvec -> new cell vectors
 
-        Transforms cell so new cell is a cut of 
+        Transforms cell so new cell is a cut of
         bulk-material with given geometry.
         PBC must be manually conserved!
         """
@@ -320,7 +320,7 @@ class Molecule:
         Parses string-list containing cube-style volume data
         to list of shape dim[0]*dim[1]*dim[2]
         """
-        self._vol=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
+        self._vol=np.zeros(dim,'f')
         i=0
         j=0
         line=vol[i].split()
@@ -349,7 +349,7 @@ class Molecule:
 
         Operators are defined in ops-dictionary.
         Defined groups of atoms are saved in instanced list '_script_group'.
-        Other evaluated operations are placed on stack and 
+        Other evaluated operations are placed on stack and
         executed after successful parsing.
         """
         script=script.split()

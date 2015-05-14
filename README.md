@@ -10,11 +10,11 @@ Compile the fortran part:
 ```
 f2py -c faster.f90 -m mol_f
 ```
-Update PyOpenGl to >V3.0.2:
+Update PyOpenGl to >V3.1.0:
 ```
-wget https://pypi.python.org/packages/source/P/PyOpenGL/PyOpenGL-3.0.2.tar.gz
-tar -xf PyOpenGL-3.0.2.tar.gz
-cd PyOpenGL-3.0.2
+wget https://pypi.python.org/packages/source/P/PyOpenGL/PyOpenGL-3.1.1a1.tar.gz
+tar -xf PyOpenGL-3.1.1a1.tar.gz
+cd PyOpenGL-3.1.1a1
 python setup.py --user
 ```
 
