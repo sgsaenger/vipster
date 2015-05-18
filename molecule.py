@@ -294,6 +294,7 @@ class Molecule:
         bulk-material with given geometry.
         PBC must be manually conserved!
         """
+        self.wrap()
         newdim=abs(np.array(newvec)).sum(0)
         olddim=abs(self._vec).sum(0)
         m = 1
@@ -323,25 +324,22 @@ class Molecule:
         else:
             raise ValueError('Align vectors: invalid direction!')
 
-        c = self.get_vec()[int(vec)]
-        c = c/np.linalg.norm(c)
+        v = self.get_vec()[int(vec)]
+        v = v/np.linalg.norm(v)
 
-        if np.all(np.equal(abs(c),d)):
+        if np.all(np.equal(abs(v),d)):
             return
 
-        theta = np.arccos(np.dot(c,d))
-        ax = np.cross(c,d)
+        ax = np.cross(v,d)
         ax = ax/np.linalg.norm(ax)
-        c = np.float(np.cos(theta))
+        c = np.float(np.dot(v,d))
+        theta = np.arccos(np.dot(v,d))
         s=np.float(-np.sin(theta))
         ic=np.float(1.-c)
         mat=np.array([[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1]],
                       [ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0]],
                       [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
-        print mat
-        print self.get_vec()
         mat = np.array([np.dot(i,mat) for i in self.get_vec()])
-        print mat
         self.set_vec(mat,scale=True)
 
     #####################################################
