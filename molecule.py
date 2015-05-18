@@ -203,7 +203,7 @@ class Molecule:
 
     def get_bonds(self):
         """Return bonds
-        
+
         Sets bonds if not present.
         Returns list of lists.
         First entry: Bonds inside of cell
@@ -290,7 +290,7 @@ class Molecule:
 
         newvec -> new cell vectors
 
-        Transforms cell so new cell is a cut of 
+        Transforms cell so new cell is a cut of
         bulk-material with given geometry.
         PBC must be manually conserved!
         """
@@ -306,6 +306,43 @@ class Molecule:
         for i in range(self.get_nat()):
             self._atom_coord[i]+=newcenter-oldcenter
         self.crop()
+
+    def align(self,vec,direc):
+        """Align cell vectors
+
+        vec -> int specifying the vector to align
+        direc -> str specifying the direction to align to
+        """
+
+        if direc == 'x':
+            d = np.array([1,0,0],'f')
+        elif direc == 'y':
+            d = np.array([0,1,0],'f')
+        elif direc == 'z':
+            d = np.array([0,0,1],'f')
+        else:
+            raise ValueError('Align vectors: invalid direction!')
+
+        c = self.get_vec()[int(vec)]
+        c = c/np.linalg.norm(c)
+
+        if np.all(np.equal(abs(c),d)):
+            return
+
+        theta = np.arccos(np.dot(c,d))
+        ax = np.cross(c,d)
+        ax = ax/np.linalg.norm(ax)
+        c = np.float(np.cos(theta))
+        s=np.float(-np.sin(theta))
+        ic=np.float(1.-c)
+        mat=np.array([[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1]],
+                      [ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0]],
+                      [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
+        print mat
+        print self.get_vec()
+        mat = np.array([np.dot(i,mat) for i in self.get_vec()])
+        print mat
+        self.set_vec(mat,scale=True)
 
     #####################################################
     # VOLUME DATA FUNCTIONS
@@ -349,7 +386,7 @@ class Molecule:
 
         Operators are defined in ops-dictionary.
         Defined groups of atoms are saved in instanced list '_script_group'.
-        Other evaluated operations are placed on stack and 
+        Other evaluated operations are placed on stack and
         executed after successful parsing.
         """
         script=script.split()

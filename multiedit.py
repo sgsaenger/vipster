@@ -77,6 +77,17 @@ class ToolArea(QWidget):
             rBut = QPushButton('Reshape cell')
             rBut.clicked.connect(self.modHandler)
 
+            self.alignVec = QComboBox()
+            self.alignDir = QComboBox()
+            for i,j in enumerate(['x','y','z']):
+                self.alignVec.addItem(str(i))
+                self.alignDir.addItem(j)
+            self.alignBut = QPushButton('Align cell')
+            self.alignBut.clicked.connect(self.modHandler)
+            abox = QHBoxLayout()
+            abox.addWidget(self.alignVec)
+            abox.addWidget(self.alignDir)
+
             vbox = QVBoxLayout()
             vbox.addWidget(wrapBut)
             vbox.addWidget(cropBut)
@@ -84,6 +95,8 @@ class ToolArea(QWidget):
             vbox.addWidget(multBut)
             vbox.addWidget(self.reshape)
             vbox.addWidget(rBut)
+            vbox.addLayout(abox)
+            vbox.addWidget(self.alignBut)
             vbox.addStretch()
             self.mult.setLayout(vbox)
 
@@ -102,6 +115,8 @@ class ToolArea(QWidget):
                 self.mol.wrap()
             elif reason=='Crop atoms':
                 self.mol.crop()
+            elif reason=='Align cell':
+                self.mol.align(self.alignVec.currentText(),self.alignDir.currentText())
             self.mol.set_bonds()
             self.parent.updateMolStep()
 
