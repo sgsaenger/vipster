@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from os.path import dirname
-from math import floor
+from mol_f import make_iso_surf
 import numpy as np
 
 from PyQt4.QtCore import Qt
@@ -27,6 +27,7 @@ class ViewPort(QGLWidget):
                 self.showBonds = True
                 self.showCell = True
                 self.showPlane = False
+                self.showSurf = False
                 self.planeVal = 0
                 self.perspective = True
                 self.mouseSelect = False
@@ -171,6 +172,7 @@ class ViewPort(QGLWidget):
 
                 #set line width for cell
                 glLineWidth(2)
+                glPointSize(2)
 
                 #set background color
                 self.qglClearColor(QColor(255,255,255,0))
@@ -195,6 +197,9 @@ class ViewPort(QGLWidget):
                 self.planeShader = QGLShaderProgram()
                 self.planeShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexPlane.vsh')
                 self.planeShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentPlane.fsh')
+                self.surfShader = QGLShaderProgram()
+                self.surfShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSurf.vsh')
+                self.surfShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSurf.fsh')
 
                 # load sphere
                 sf=open(dirname(__file__)+'/sphere_model','r')
@@ -270,8 +275,16 @@ class ViewPort(QGLWidget):
                 #molecule changes
                 if hasattr(self,'mol') and (self.mol is not mol):
                     self.showPlane = False
+                    self.showSurf = False
                     if hasattr(self,'planeVBO'):
                         del self.planeVBO
+                    if hasattr(self,'surfVBO'):
+                        del self.surfVBO
+
+                #clear old selection if present:
+                if hasattr(self,'selVBO'):
+                    del self.selVBO
+
                 #save for interaction
                 self.mol=mol
                 self.mult=mult
@@ -280,10 +293,6 @@ class ViewPort(QGLWidget):
                 vec = mol.get_vec()*mol.get_celldm()
                 center = mol.get_center()
                 bonds = mol.get_bonds()
-
-                #clear old selection if present:
-                if hasattr(self,'selVBO'):
-                    del self.selVBO
 
                 #get bonds and calculate offsets
                 if mult == [1,1,1]:
@@ -297,7 +306,7 @@ class ViewPort(QGLWidget):
                                 if j%2 == 0:
                                         tmult[i]=[x+0.5-j/2 for x in range(j)]
                                 else:
-                                        tmult[i]=[x-floor(j/2) for x in range(j)]
+                                        tmult[i]=[x-np.floor(j/2) for x in range(j)]
                         #generate offsets:
                         off=[(i*vec[0]+j*vec[1]+k*vec[2])-center for i in tmult[0]
                                 for j in tmult[1] for k in tmult[2]]
@@ -364,14 +373,24 @@ class ViewPort(QGLWidget):
                         vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
                 self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
 
-                # save offset for plane and cell
+                # save offset for plane and volume
                 self.offVBO=VBO(np.array(off,'f'))
 
                 self.updateGL()
 
         ################################################
-        # CREATE AND MANAGE PLANES
+        # CREATE AND MANAGE PLANES AND SURFACES
         ################################################
+        def toggleSurf(self):
+            self.showSurf = not self.showSurf
+            self.updateGL()
+
+        def setSurf(self,sval):
+            vertices,nv = make_iso_surf(self.mol.get_vol(),sval)
+            self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
+            if self.showSurf:
+                self.updateGL()
+
         def togglePlane(self):
                 self.showPlane = not self.showPlane
                 self.updateGL()
@@ -403,8 +422,6 @@ class ViewPort(QGLWidget):
                     self.planeTex=np.array([[1.]],'f')
                     #catch undefined case
                     if pval.count(0) == 3:
-                        #self.showPlane = False
-                        #self.updateGL()
                         if hasattr(self,'planeVBO'):
                             del self.planeVBO
                         self.updateGL()
@@ -498,6 +515,8 @@ class ViewPort(QGLWidget):
                                 self.drawSelection()
                         if self.showPlane and hasattr(self,'planeVBO'):
                                 self.drawPlane()
+                        if self.showSurf and hasattr(self,'surfVBO'):
+                            self.drawSurf()
 
         def drawAtoms(self):
                 #bind shaders:
@@ -541,6 +560,36 @@ class ViewPort(QGLWidget):
                 glVertexAttribDivisor(3,0)
                 self.sphereShader.release()
 
+        def drawSurf(self):
+            self.surfShader.bind()
+
+            #send vertices
+            self.surfVBO.bind()
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+            self.surfVBO.unbind()
+
+            self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
+
+            self.offVBO.bind()
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,None)
+            glVertexAttribDivisor(1,1)
+            self.offVBO.unbind()
+
+            #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+            glDisable(GL_CULL_FACE)
+            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO),len(self.offVBO))
+            #glDrawArraysInstanced(GL_POINTS,0,np.prod(shape),len(self.offVBO))
+            glEnable(GL_CULL_FACE)
+            #glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
+
+            glDisableVertexAttribArray(0)
+            glDisableVertexAttribArray(1)
+            glVertexAttribDivisor(1,0)
+            self.surfShader.release()
+
         def drawPlane(self):
                 self.planeShader.bind()
 
@@ -568,7 +617,7 @@ class ViewPort(QGLWidget):
                 glBindTexture(GL_TEXTURE_2D,ID)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
                 glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
-                glTexImage2D(GL_TEXTURE_2D,0,GL_RED,self.planeTex.shape[0],self.planeTex.shape[1],0,GL_RED,GL_FLOAT,self.planeTex)
+                glTexImage2D(GL_TEXTURE_2D,0,GL_RED,self.planeTex.shape[1],self.planeTex.shape[0],0,GL_RED,GL_FLOAT,self.planeTex)
                 self.planeShader.setUniformValue('texSampler',0)
 
                 #render with disabled culling
@@ -577,6 +626,7 @@ class ViewPort(QGLWidget):
                 glEnable(GL_CULL_FACE)
 
                 #reset
+                glDeleteTextures(1)
                 glDisableVertexAttribArray(0)
                 glDisableVertexAttribArray(1)
                 glDisableVertexAttribArray(2)
@@ -803,7 +853,7 @@ class ViewPort(QGLWidget):
                                     0.4,0.4,0.5,0.5] for a in [b[0] for b in self.sel]],'f'))
                     else:
                         return
-                self.parent.edit.pickHandler(self.sel)
+                self.parent.edit.setSel(self.sel)
                 self.updateGL()
 
         def wheelEvent(self,e):

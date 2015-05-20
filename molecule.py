@@ -355,7 +355,7 @@ class Molecule:
         Parses string-list containing cube-style volume data
         to list of shape dim[0]*dim[1]*dim[2]
         """
-        self._vol=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
+        self._vol=np.zeros(dim,'f')
         i=0
         j=0
         line=vol[i].split()
