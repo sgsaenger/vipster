@@ -11,7 +11,7 @@ from PyQt4.QtCore import QTimer
 
 from coordedit import MolArea
 from paramedit import PWTab
-from multiedit import ToolArea
+from tools.toolarea import ToolArea
 
 def MakeWindow(controller,old):
 
