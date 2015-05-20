@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from os.path import dirname
-from math import floor
+from mol_f import make_iso_surf
 import numpy as np
 
 from PyQt4.QtCore import Qt
@@ -199,7 +199,6 @@ class ViewPort(QGLWidget):
                 self.planeShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentPlane.fsh')
                 self.surfShader = QGLShaderProgram()
                 self.surfShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSurf.vsh')
-                self.surfShader.addShaderFromSourceFile(QGLShader.Geometry,dirname(__file__)+'/geometrySurf.gsh')
                 self.surfShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSurf.fsh')
 
                 # load sphere
@@ -281,6 +280,11 @@ class ViewPort(QGLWidget):
                         del self.planeVBO
                     if hasattr(self,'surfVBO'):
                         del self.surfVBO
+
+                #clear old selection if present:
+                if hasattr(self,'selVBO'):
+                    del self.selVBO
+
                 #save for interaction
                 self.mol=mol
                 self.mult=mult
@@ -289,10 +293,6 @@ class ViewPort(QGLWidget):
                 vec = mol.get_vec()*mol.get_celldm()
                 center = mol.get_center()
                 bonds = mol.get_bonds()
-
-                #clear old selection if present:
-                if hasattr(self,'selVBO'):
-                    del self.selVBO
 
                 #get bonds and calculate offsets
                 if mult == [1,1,1]:
@@ -306,7 +306,7 @@ class ViewPort(QGLWidget):
                                 if j%2 == 0:
                                         tmult[i]=[x+0.5-j/2 for x in range(j)]
                                 else:
-                                        tmult[i]=[x-floor(j/2) for x in range(j)]
+                                        tmult[i]=[x-np.floor(j/2) for x in range(j)]
                         #generate offsets:
                         off=[(i*vec[0]+j*vec[1]+k*vec[2])-center for i in tmult[0]
                                 for j in tmult[1] for k in tmult[2]]
@@ -373,7 +373,7 @@ class ViewPort(QGLWidget):
                         vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
                 self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
 
-                # save offset for plane and cell
+                # save offset for plane and volume
                 self.offVBO=VBO(np.array(off,'f'))
 
                 self.updateGL()
@@ -386,26 +386,8 @@ class ViewPort(QGLWidget):
             self.updateGL()
 
         def setSurf(self,sval):
-            truth=[]
-            if sval > 0:
-                truth.append((self.mol.get_vol() > sval).astype('uint8')) #Bit 0: 1
-            else:
-                truth.append((self.mol.get_vol() < sval).astype('uint8')) #Bit 0: 1
-
-            truth.append(np.roll(truth[0],-1,2)*2)   #Bit 1: 2  z
-            truth.append(np.roll(truth[0],-1,1)*4)   #Bit 2: 4  y
-            truth.append(np.roll(truth[1],-1,1)*4)   #Bit 3: 8 = 2*4 yz
-            truth.append(np.roll(truth[0],-1,0)*16)  #Bit 4: 16 x
-            truth.append(np.roll(truth[1],-1,0)*16)  #Bit 5: 32 = 2*16 xz
-            truth.append(np.roll(truth[2],-1,0)*16)  #Bit 6: 64 = 4*16 xy
-            truth.append(np.roll(truth[3],-1,0)*16)  #Bit 7: 128 = 8*16 xyz
-
-            vertices=np.zeros(truth[0].shape,'uint8')
-            for i in truth:
-                vertices+=i
-            self.surfVBO = VBO(vertices.flatten())
-            with open('marchCubeLookUp.dat','r') as lu:
-                self.surfLUVBO = VBO(np.array(lu.read().split(),'uint8'))
+            vertices,nv = make_iso_surf(self.mol.get_vol(),sval)
+            self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
             if self.showSurf:
                 self.updateGL()
 
@@ -581,45 +563,31 @@ class ViewPort(QGLWidget):
         def drawSurf(self):
             self.surfShader.bind()
 
-            #shape = [i for i in self.mol.get_vol().shape]
-            #shape = [1,1,1]
-            shape = self.mol.get_vol().shape
-
-            #upload volume and lookup data in textures
-            texVal,texLU = glGenTextures(2)
-            glActiveTexture(GL_TEXTURE0)
+            #send vertices
             self.surfVBO.bind()
-            glBindTexture(GL_TEXTURE_BUFFER,texVal)
-            glTexBuffer(GL_TEXTURE_BUFFER,GL_R8UI,self.surfVBO)
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
             self.surfVBO.unbind()
-            self.surfShader.setUniformValue('vol_val',0)
-            glActiveTexture(GL_TEXTURE1)
-            self.surfLUVBO.bind()
-            glBindTexture(GL_TEXTURE_BUFFER,texLU)
-            glTexBuffer(GL_TEXTURE_BUFFER,GL_R8UI,self.surfLUVBO)
-            self.surfLUVBO.unbind()
-            self.surfShader.setUniformValue('edgeOff',1)
 
             self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
             self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
-            self.surfShader.setUniformValue('shape',*shape)
 
             self.offVBO.bind()
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
-            glVertexAttribDivisor(0,1)
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,None)
+            glVertexAttribDivisor(1,1)
             self.offVBO.unbind()
 
             #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
             glDisable(GL_CULL_FACE)
-            glDrawArraysInstanced(GL_POINTS,0,np.prod(shape),len(self.offVBO))
+            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO),len(self.offVBO))
+            #glDrawArraysInstanced(GL_POINTS,0,np.prod(shape),len(self.offVBO))
             glEnable(GL_CULL_FACE)
             #glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
 
-            glDeleteTextures(1)
-            glVertexAttribDivisor(0,0)
             glDisableVertexAttribArray(0)
             glDisableVertexAttribArray(1)
+            glVertexAttribDivisor(1,0)
             self.surfShader.release()
 
         def drawPlane(self):
@@ -885,7 +853,7 @@ class ViewPort(QGLWidget):
                                     0.4,0.4,0.5,0.5] for a in [b[0] for b in self.sel]],'f'))
                     else:
                         return
-                self.parent.edit.pickHandler(self.sel)
+                self.parent.edit.setSel(self.sel)
                 self.updateGL()
 
         def wheelEvent(self,e):
