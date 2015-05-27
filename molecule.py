@@ -311,16 +311,18 @@ class Molecule:
     # VOLUME DATA FUNCTIONS
     #####################################################
 
-    def set_vol(self,dim,vol):
+    def set_vol(self,dim,vol,off):
         """Set volume data
 
         dim -> list of dimension of data-grid
         vol -> data-grid
+        off -> offset of data
 
         Parses string-list containing cube-style volume data
         to list of shape dim[0]*dim[1]*dim[2]
         """
         self._vol=np.array([[[0.]*dim[0]]*dim[1]]*dim[2],'f')
+        self._vol_off = np.array(off,'f')
         i=0
         j=0
         line=vol[i].split()
@@ -337,6 +339,10 @@ class Molecule:
     def get_vol(self):
         """Return volume data"""
         return self._vol
+
+    def get_vol_offset(self):
+        """Return offset of volume data"""
+        return self._vol_off
 
     #####################################################
     # SCRIPTING SUPPORT

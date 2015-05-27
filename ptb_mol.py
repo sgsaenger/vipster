@@ -744,7 +744,7 @@ class TBController():
             tmol.create_atom([j[0] for j in pse.items() if j[1][0]==int(line[0])][0],\
                 map(float,line[2:5]),'bohr')
         #rest of file has datagrid, x is outer loop, z inner
-        tmol.set_vol(nvol,data[6+nat:])
+        tmol.set_vol(nvol,data[6+nat:],origin)
         #finished molecule will be appended to list
         self._mol.append([tmol])
 
@@ -815,9 +815,6 @@ class TBController():
         for i in range(mol.get_nat()):
             at = mol.get_atom(i,'bohr')
             f.write('{:5d} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(pse[at[0]][0],0,*at[1]))
-        vol = roll(vol,s[0]/2,0)
-        vol = roll(vol,s[1]/2,1)
-        vol = roll(vol,s[2]/2,2)
         vol = vol.flatten()
         for i in range(1,vol.size+1):
             f.write(str(vol[i-1])+'  ')
