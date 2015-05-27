@@ -19,13 +19,12 @@ def main():
     if len(argv)==1:
         backend.newMol()
     elif argv[1] == '-h':
-        #backend.print_help(0)
         print_help(backend,0)
     elif argv[1] in backend.cli_indict:
         for i in argv[2:]:
             backend.readFile(argv[1],i,'cli')
     else:
-        backend.print_help(1)
+        print_help(backend,1)
 
     app = QApplication([])
     gui = MakeWindow(backend,False)

@@ -62,3 +62,6 @@ docs/_build/
 # vim swap files
 *.swp
 *.swo
+
+# compiled fortran modules
+*.mod
