@@ -569,6 +569,7 @@ class ViewPort(QGLWidget):
             glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
             self.surfVBO.unbind()
 
+            self.surfShader.setUniformValue('volOff',*self.mol.get_vol_offset().tolist())
             self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
             self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
 
