@@ -171,6 +171,7 @@ class TBController():
             self.outdict= OrderedDict([('PWScf Input',self._writePwi),
                            ('xyz',self._writeXyz),
                            ('Empire xyz',self._writeEmpire),
+                           ('Gaussian Cube File',self._writeCube),
                            ('Lammps Data File',self._writeLmp)])
 
 #####################################################################
@@ -742,7 +743,7 @@ class TBController():
             tmol.create_atom([j[0] for j in pse.items() if j[1][0]==int(line[0])][0],\
                 map(float,line[2:5]),'bohr')
         #rest of file has datagrid, x is outer loop, z inner
-        tmol.set_vol(nvol,data[6+nat:])
+        tmol.set_vol(nvol,data[6+nat:],origin)
         #finished molecule will be appended to list
         self._mol.append([tmol])
 
@@ -795,6 +796,29 @@ class TBController():
         f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[0]))
         f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[1]))
         f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[2]))
+
+    def _writeCube(self,mol,f,param,coordfmt):
+        f.write(mol.get_comment().split(';')[0])
+        f.write(mol.get_comment().split(';')[1])
+        vol = mol.get_vol()
+        s = vol.shape
+        vec = mol.get_vec()*mol.get_celldm()
+        shiftvec = 0.5*vec[0]+0.5*vec[1]+0.5*vec[2]
+        vec = vec/s
+        f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(mol.get_nat(),0.,0.,0.))
+        f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[0],vec[0][0],vec[0][1],vec[0][2]))
+        f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[1],vec[1][0],vec[1][1],vec[1][2]))
+        f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[2],vec[2][0],vec[2][1],vec[2][2]))
+        mol._shift(range(mol.get_nat()),shiftvec)
+        mol.wrap()
+        for i in range(mol.get_nat()):
+            at = mol.get_atom(i,'bohr')
+            f.write('{:5d} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(pse[at[0]][0],0,*at[1]))
+        vol = vol.flatten()
+        for i in range(1,vol.size+1):
+            f.write(str(vol[i-1])+'  ')
+            if i%6==0 or i%s[0]==0:
+                f.write('\n')
 
     def _writeLmp(self,mol,f,param,coordfmt):
         """
