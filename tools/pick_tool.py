@@ -46,11 +46,14 @@ class Picker(QWidget):
                 output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a012,*ids[:3])
             if len(sel)>3:
                 a123 = degrees(arccos(dot(diff12,diff23)/(norm(diff12)*norm(diff23))))
+                output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a123,*ids[1:])
                 c012 = cross(diff01,diff12)
                 c123 = cross(diff12,diff23)
-                d0123 = degrees(arccos(dot(c012,c123)/(norm(c012)*norm(c123))))
-                output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a123,*ids[1:])
-                output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
+                if norm(c012)==0 or norm(c123)==0:
+                    output+=u'Dihedral {1}-{2}-{3}-{4}: {0}\n'.format('not defined',*ids)
+                else:
+                    d0123 = degrees(arccos(dot(c012,c123)/(norm(c012)*norm(c123))))
+                    output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
             self.pickArea.setPlainText(output)
 
     def setMol(self,mol):
