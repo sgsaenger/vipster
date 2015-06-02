@@ -393,7 +393,7 @@ class Molecule:
         Other evaluated operations are placed on stack and
         executed after successful parsing.
         """
-        script=script.split()
+        script=script.strip().replace('\n',' ')
         rep=1
         #dictionary returns closure containing target operation and argument-check
         ops={'rot':self._evalArgs(self._rotate,'lavo'),
@@ -405,19 +405,11 @@ class Molecule:
         #check for errors, parse and prepare
         while script:
             try:
-                op=ops[script[0][0:3].lower()](script[1:])
+                op,script = script.split(' ',1)
+                op,script = ops[op[0:3]](script)
             except KeyError as e:
                 return 'Wrong Op: '+script[0]
-            except NameError as e:
-                print(e.message)
-                return e.message
-            except TypeError as e:
-                print(e.message)
-                return e.message
-            except IndexError as e:
-                print(e.message)
-                return e.message
-            except ValueError as e:
+            except StandardError as e:
                 print(e.message)
                 return e.message
             else:
@@ -429,7 +421,6 @@ class Molecule:
                     for i in range(rep):
                         stack.append((op))
                     rep=1
-                del script[0:len(op)]
         # delete previous definitions
         self._script_group={}
         #if everything went well, execute operations
@@ -444,63 +435,91 @@ class Molecule:
         args -> required arguments for operator
         retval -> closure for evaluation of given arguments
         """
+        def getArg(arglist,sep=' '):
+            arglist = arglist.split(sep,1)
+            arg = arglist[0]
+            if sep!=' ':
+                arg+=sep
+            if len(arglist)>1:
+                rest = arglist[1].strip()
+            else:
+                rest = ''
+            return arg,rest
+
         def evArgs(arglist):
             res = [op]
-            for i,t in enumerate(args):
-                # if there's an argument, evaluate it
-                if i < len(arglist):
-                    arg=arglist[i]
-                else:
-                    #if vec is optional, command can be executed anyways
-                    if t=='o':
-                        return res
-                    #else, there's an error
-                    else:
-                        raise IndexError('Argument index out of range')
+            for t in args:
                 #list of atoms
                 if t == 'l':
-                    if arg in self._script_group:
-                        res.append(self._script_group[arg])
-                    else:
+                    #list of indices
+                    if arglist[0] == '[':
+                        arg,arglist=getArg(arglist,']')
                         arg = arg.strip('[]').split(',')
-                        l = []
+                        l=[]
                         for j in arg:
+                            #interpret range
                             if '-' in j:
-                                low,high=j.split('-')
+                                low,high = j.split('-')
                                 l.extend(range(int(low),int(high)+1))
+                            #atom index
                             else:
                                 l.append(int(j))
                         if not np.all(np.less(l,len(self._atom_coord))):
                             raise IndexError('Atom index out of range')
                         res.append(l)
+                    else:
+                        arg,arglist = getArg(arglist)
+                        #reference to definition
+                        if arg.isalpha():
+                            res.append(self._script_group[arg])
+                        #single index
+                        elif arg.isdigit():
+                            res.append([int(arg)])
                 #angle
                 elif t == 'a':
+                    arg,arglist=getArg(arglist)
                     res.append(float(arg))
                 #index for loops
                 elif t == 'i':
+                    arg,arglist=getArg(arglist)
                     res.append(int(arg))
                 #arbitrary names for defined groups
                 elif t == 's':
+                    arg,arglist=getArg(arglist)
                     res.append(arg)
                 #valid vector for operations
                 elif t in 'vo':
-                    if '(' in arg:
-                        arg=eval(arg)
-                        if len(arg)==4:
-                            arg=self._set_coord(arg[0:3],arg[3])
+                    #nothing left and optional:
+                    if not arglist and t == 'o':
+                        continue
+                    #explicit vector
+                    if arglist[0] == '(':
+                        arg,arglist = getArg(arglist,')')
+                        arg = eval(arg)
+                        if len(arg)==4 and type(arg[3]) is str:
+                            arg = self._set_coord(arg[0:3],arg[3])
+                        elif len(arg)==3:
+                            arg = self._set_coord(arg)
                         else:
-                            arg=self._set_coord(arg[0:3])
-                    elif '-' in arg:
-                        arg=arg.split('-')
-                        arg=self._atom_coord[int(arg[0])]-self._atom_coord[int(arg[1])]
-                    elif arg.isdigit():
-                        arg=self._atom_coord[int(arg)]
+                            raise ValueError('Not a valid vector: '+str(arg))
+                    #implicit vector
+                    elif arglist[0].isdigit():
+                        arg,arglist = getArg(arglist)
+                        #difference between atoms
+                        if '-' in arg:
+                            arg=arg.split('-')
+                            arg=self._atom_coord[int(arg[0])]-self._atom_coord[int(arg[1])]
+                        #position of atom
+                        else:
+                            arg=np.array(self._atom_coord[int(arg)])
+                    #fail when not a vector and vector needed
                     elif t=='v':
                         raise ValueError('Not a valid vector: '+str(arg))
+                    #continue when not a vector and not needed
                     else:
                         continue
                     res.append(arg)
-            return res
+            return res,arglist
         return evArgs
 
     def _rotate(self,atoms,angle,ax,shift=np.zeros(3)):
