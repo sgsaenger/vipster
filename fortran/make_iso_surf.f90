@@ -51,53 +51,53 @@ DO i=1,x
 
                 !determine the interpolated edge-vertices for intersection
                 tempvert=0
-                IF(IAND(edge_lut(vsum),   1)==1)THEN
+                IF(IAND(edge_lut(vsum),   1)/=0)THEN
                     tempvert(:, 0)=vert_off(:,0)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,0)-vert_off(:,1))
+                        ((thresh-volume(i ,j ,k ))/(volume(i ,j ,k2)-volume(i ,j ,k )))*(vert_off(:,1)-vert_off(:,0))
                 END IF
-                IF(IAND(edge_lut(vsum),   2)==1)THEN
+                IF(IAND(edge_lut(vsum),   2)/=0)THEN
                     tempvert(:, 1)=vert_off(:,1)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,1)-vert_off(:,5))
+                        ((thresh-volume(i ,j ,k2))/(volume(i2,j ,k2)-volume(i ,j ,k2)))*(vert_off(:,5)-vert_off(:,1))
                 END IF
-                IF(IAND(edge_lut(vsum),   4)==1)THEN
+                IF(IAND(edge_lut(vsum),   4)/=0)THEN
                     tempvert(:, 2)=vert_off(:,5)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,5)-vert_off(:,4))
+                        ((thresh-volume(i2,j ,k2))/(volume(i2,j ,k )-volume(i2,j ,k2)))*(vert_off(:,4)-vert_off(:,5))
                 END IF
-                IF(IAND(edge_lut(vsum),   8)==1)THEN
+                IF(IAND(edge_lut(vsum),   8)/=0)THEN
                     tempvert(:, 3)=vert_off(:,0)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,0)-vert_off(:,4))
+                        ((thresh-volume(i ,j ,k ))/(volume(i2,j ,k )-volume(i ,j ,k )))*(vert_off(:,4)-vert_off(:,0))
                 END IF
-                IF(IAND(edge_lut(vsum),  16)==1)THEN
+                IF(IAND(edge_lut(vsum),  16)/=0)THEN
                     tempvert(:, 4)=vert_off(:,1)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,1)-vert_off(:,3))
+                        ((thresh-volume(i ,j ,k2))/(volume(i ,j2,k2)-volume(i ,j ,k2)))*(vert_off(:,3)-vert_off(:,1))
                 END IF
-                IF(IAND(edge_lut(vsum),  32)==1)THEN
+                IF(IAND(edge_lut(vsum),  32)/=0)THEN
                     tempvert(:, 5)=vert_off(:,5)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,5)-vert_off(:,7))
+                        ((thresh-volume(i2,j ,k2))/(volume(i2,j2,k2)-volume(i2,j ,k2)))*(vert_off(:,7)-vert_off(:,5))
                 END IF
-                IF(IAND(edge_lut(vsum),  64)==1)THEN
+                IF(IAND(edge_lut(vsum),  64)/=0)THEN
                     tempvert(:, 6)=vert_off(:,4)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,4)-vert_off(:,6))
+                        ((thresh-volume(i2,j ,k ))/(volume(i2,j2,k )-volume(i2,j ,k )))*(vert_off(:,6)-vert_off(:,4))
                 END IF
-                IF(IAND(edge_lut(vsum), 128)==1)THEN
+                IF(IAND(edge_lut(vsum), 128)/=0)THEN
                     tempvert(:, 7)=vert_off(:,0)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,0)-vert_off(:,2))
+                        ((thresh-volume(i ,j ,k ))/(volume(i ,j2,k )-volume(i ,j ,k )))*(vert_off(:,2)-vert_off(:,0))
                 END IF
-                IF(IAND(edge_lut(vsum), 256)==1)THEN
+                IF(IAND(edge_lut(vsum), 256)/=0)THEN
                     tempvert(:, 8)=vert_off(:,2)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,2)-vert_off(:,3))
+                        ((thresh-volume(i ,j2,k ))/(volume(i ,j2,k2)-volume(i ,j2,k )))*(vert_off(:,3)-vert_off(:,2))
                 END IF
-                IF(IAND(edge_lut(vsum), 512)==1)THEN
+                IF(IAND(edge_lut(vsum), 512)/=0)THEN
                     tempvert(:, 9)=vert_off(:,3)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,3)-vert_off(:,7))
+                        ((thresh-volume(i ,j2,k2))/(volume(i2,j2,k2)-volume(i ,j2,k2)))*(vert_off(:,7)-vert_off(:,3))
                 END IF
-                IF(IAND(edge_lut(vsum),1024)==1)THEN
+                IF(IAND(edge_lut(vsum),1024)/=0)THEN
                     tempvert(:,10)=vert_off(:,6)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,6)-vert_off(:,7))
+                        ((thresh-volume(i2,j2,k ))/(volume(i2,j2,k2)-volume(i2,j2,k )))*(vert_off(:,7)-vert_off(:,6))
                 END IF
-                IF(IAND(edge_lut(vsum),2048)==1)THEN
+                IF(IAND(edge_lut(vsum),2048)/=0)THEN
                     tempvert(:,11)=vert_off(:,2)+&
-                        ((thresh-volume(i,j,k))/(volume(i,j,k2)-volume(i,j,k)))*(vert_off(:,2)-vert_off(:,6))
+                        ((thresh-volume(i ,j2,k ))/(volume(i2,j2,k )-volume(i ,j2,k )))*(vert_off(:,6)-vert_off(:,2))
                 END IF
 
                 !create triangles

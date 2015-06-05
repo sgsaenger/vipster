@@ -1,18 +1,5 @@
 MODULE iso_surf_lut
 IMPLICIT NONE
-REAL,DIMENSION(3,0:11)::edge_off=reshape((/&
-    0.0, 0.0, 0.5,&
-    0.5, 0.0, 1.0,&
-    1.0, 0.0, 0.5,&
-    0.5, 0.0, 0.0,&
-    0.0, 0.5, 1.0,&
-    1.0, 0.5, 1.0,&
-    1.0, 0.5, 0.0,&
-    0.0, 0.5, 0.0,&
-    0.0, 1.0, 0.5,&
-    0.5, 1.0, 1.0,&
-    1.0, 1.0, 0.5,&
-    0.5, 1.0, 0.0/),(/3,12/))
 
 REAL,DIMENSION(3,0:7)::vert_off=reshape((/&
     0.0, 0.0, 0.0,&
@@ -346,11 +333,5 @@ INTEGER,DIMENSION(3,4,0:255)::tri_lut=reshape((/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0,&
   0, 3, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,&
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0/),(/3,4,256/))
-
-CONTAINS
-
-SUBROUTINE vert_interp()
-IMPLICIT NONE
-END SUBROUTINE
 
 END MODULE iso_surf_lut
