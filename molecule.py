@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from mol_f import set_bonds_f
+from mol_f import set_bonds_f,make_vol_gradient
 
 class Molecule:
     """
@@ -378,6 +378,20 @@ class Molecule:
     def get_vol_offset(self):
         """Return offset of volume data"""
         return self._vol_off
+
+    def set_vol_gradient(self):
+        """Calculate the gradient of volume data"""
+        self._vol_grad = make_vol_gradient(self._vol)
+        #grad_x = np.roll(self._vol,-1,0) - np.roll(self._vol,1,0)
+        #grad_y = np.roll(self._vol,-1,1) - np.roll(self._vol,1,1)
+        #grad_z = np.roll(self._vol,-1,2) - np.roll(self._vol,1,2)
+        #self._vol_grad = zip(grad_x,grad_y,grad_z)
+
+    def get_vol_gradient(self):
+        """Return volume gradient"""
+        if not hasattr(self,'_vol_grad'):
+            self.set_vol_gradient()
+        return self._vol_grad
 
     #####################################################
     # SCRIPTING SUPPORT

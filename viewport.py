@@ -199,7 +199,7 @@ class ViewPort(QGLWidget):
                 self.planeShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentPlane.fsh')
                 self.surfShader = QGLShaderProgram()
                 self.surfShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSurf.vsh')
-                self.surfShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSurf.fsh')
+                self.surfShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
 
                 # load sphere
                 sf=open(dirname(__file__)+'/sphere_model','r')
@@ -386,7 +386,7 @@ class ViewPort(QGLWidget):
             self.updateGL()
 
         def setSurf(self,sval):
-            vertices,nv = make_iso_surf(self.mol.get_vol(),sval)
+            vertices,nv = make_iso_surf(self.mol.get_vol(),sval,self.mol.get_vol_gradient())
             self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
             if self.showSurf:
                 self.updateGL()
@@ -566,17 +566,20 @@ class ViewPort(QGLWidget):
             #send vertices
             self.surfVBO.bind()
             glEnableVertexAttribArray(0)
-            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,24,None)
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,24,self.surfVBO+12)
             self.surfVBO.unbind()
 
             self.surfShader.setUniformValue('volOff',*self.mol.get_vol_offset().tolist())
             self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
             self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
+            self.surfShader.setUniformValue('rMatrix',self.rMatrix)
 
             self.offVBO.bind()
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,None)
-            glVertexAttribDivisor(1,1)
+            glEnableVertexAttribArray(2)
+            glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
+            glVertexAttribDivisor(2,1)
             self.offVBO.unbind()
 
             #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
@@ -588,7 +591,8 @@ class ViewPort(QGLWidget):
 
             glDisableVertexAttribArray(0)
             glDisableVertexAttribArray(1)
-            glVertexAttribDivisor(1,0)
+            glDisableVertexAttribArray(2)
+            glVertexAttribDivisor(2,0)
             self.surfShader.release()
 
         def drawPlane(self):

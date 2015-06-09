@@ -744,6 +744,7 @@ class TBController():
                 map(float,line[2:5]),'bohr')
         #rest of file has datagrid, x is outer loop, z inner
         tmol.set_vol(nvol,data[6+nat:],origin)
+        tmol.set_vol_gradient()
         #finished molecule will be appended to list
         self._mol.append([tmol])
 
