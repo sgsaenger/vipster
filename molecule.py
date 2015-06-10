@@ -40,7 +40,7 @@ class Molecule:
         fix -> 0 for no relaxation in PW
         """
         self._atom_name.append(name)
-        self._atom_coord.append(self._set_coord(coord,fmt))
+        self._atom_coord.append(self._coord_to_bohr(coord,fmt))
         self._atom_fix.append(fix)
 
     def insert_atom(self,pos,addat):
@@ -50,7 +50,7 @@ class Molecule:
         addat -> id of old atom
         """
         self._atom_name.insert(pos,addat[0])
-        self._atom_coord.insert(pos,self._set_coord(addat[1],addat[2]))
+        self._atom_coord.insert(pos,self._coord_to_bohr(addat[1],addat[2]))
         self._atom_fix.insert(pos,addat[3])
 
     def del_atom(self,index):
@@ -70,7 +70,7 @@ class Molecule:
         rest -> new properties
         """
         self._atom_name[index]=name
-        self._atom_coord[index]=self._set_coord(coord,fmt)
+        self._atom_coord[index]=self._coord_to_bohr(coord,fmt)
         self._atom_fix[index]=fix
 
     def set_comment(self,comment):
@@ -106,12 +106,23 @@ class Molecule:
         self._vec = vec
         self._vecinv = np.linalg.inv(self._vec)
 
+    def set_kpoints(self,mode,kpoints):
+        """Set and modify active k-points
+
+        mode -> str in [active,automatic,disc]
+        kpoints -> corresponding argument
+        self._kpoints['active'] in [gamma,automatic,disc]
+        self._kpoints['automatic'] = [x,y,z,xoff,yoff,zoff]
+        self._kpoints['tpiba|crystal|tpiba_b|crystal_b'] = [[x,y,z,weight]]*nk
+        """
+        self._kpoints[mode]=kpoints
+
     #######################################################
     # COORD FMT FUNCTIONS
     # to be called only by atom set/get
     ######################################################
 
-    def _set_coord(self,coord,fmt='bohr'):
+    def _coord_to_bohr(self,coord,fmt='bohr'):
         """Transform given coordinates to bohr
 
         coord -> new coordinates in given format
@@ -128,7 +139,7 @@ class Molecule:
         elif fmt == 'alat':
             return coord*self._celldm
 
-    def _get_coord(self,coord,fmt):
+    def _coord_from_bohr(self,coord,fmt):
         """Transform given coordinates from bohr
 
         coord -> old coordinates in bohr
@@ -172,7 +183,7 @@ class Molecule:
         index -> index of atom
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
-        return [self._atom_name[index],self._get_coord(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
+        return [self._atom_name[index],self._coord_from_bohr(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
 
     def get_vec(self):
         """Return cell-vectors"""
@@ -196,6 +207,10 @@ class Molecule:
     def get_center(self):
         """Return center-coordinates of cell"""
         return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
+
+    def get_kpoints(self,mode):
+        """Return active k-points or k-point-settings"""
+        return self._kpoints[mode]
 
     ######################################################
     # BOND FUNCTIONS
@@ -514,9 +529,9 @@ class Molecule:
                         arg,arglist = getArg(arglist,')')
                         arg = eval(arg)
                         if len(arg)==4 and type(arg[3]) is str:
-                            arg = self._set_coord(arg[0:3],arg[3])
+                            arg = self._coord_to_bohr(arg[0:3],arg[3])
                         elif len(arg)==3:
-                            arg = self._set_coord(arg)
+                            arg = self._coord_to_bohr(arg)
                         else:
                             raise ValueError('Not a valid vector: '+str(arg))
                     #implicit vector

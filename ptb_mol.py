@@ -352,7 +352,7 @@ class TBController():
         Not supported:
         - CONSTRAINTS
         - OCCUPATIONS
-        - ATOMIC_FORCES (v5)
+        - ATOMIC_FORCES (PWSCFv5)
         """
         # no need for list, only one molecule per file
         tmol = Molecule()
@@ -413,7 +413,9 @@ class TBController():
                     elif header[1] == 'automatic':
                         line = data.pop(0).strip().split()
                         tparam['K_POINTS']['automatic']=line
+                        tmol.set_kpoints('automatic',line)
                         tparam['K_POINTS']['active']='automatic'
+                        tmol.set_kpoints('active')='automatic'
                     #else:
                     #number of kpoints
                     #x y z weight
@@ -424,7 +426,9 @@ class TBController():
                         for i in range(nk):
                             kpoints.append(data.pop(0).strip().split())
                         tparam['K_POINTS']['disc']=kpoints
+                        tmol.set_kpoints('disc',kpoints)
                         tparam['K_POINTS']['active']=header[1]
+                        tmol.set_kpoints('active',header[1])
 
                 #CELL_PARAMETERS tbd
                 #only needed if ibrav=0
