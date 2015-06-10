@@ -489,6 +489,9 @@ class Molecule:
                         #single index
                         elif arg.isdigit():
                             res.append([int(arg)])
+                        elif '-' in arg:
+                            low,high = arg.split('-')
+                            res.append(range(int(low),int(high)+1))
                 #angle
                 elif t == 'a':
                     arg,arglist=getArg(arglist)
