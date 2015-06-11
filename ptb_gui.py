@@ -288,7 +288,6 @@ class MainView(QWidget):
                 return self.controller.get_mol(self.mlist.currentRow(),self.Step.value()-1)
 
         def getParam(self):
-                self.pw.saveParam()
                 return self.controller.get_pw(self.pwlist.currentRow())
 
 

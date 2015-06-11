@@ -279,7 +279,7 @@ class MolArea(QWidget):
         #stacked display of various formats
         def changeKpoint(index):
             kp.updatedisable=True
-            kp.disp.setCurrentIndex(index)
+            kp.disp.setCurrentIndex(min(index,2))
             fmt=kp.fmts[index]
             self.mol.set_kpoints('active',fmt)
             if fmt=='automatic':

@@ -406,15 +406,13 @@ class TBController():
                 elif header[0] == 'K_POINTS':
                     #Gamma point only
                     if header[1] == 'gamma':
-                        tparam['K_POINTS']['active']='gamma'
+                        tmol.set_kpoints('active','gamma')
                     #MPGrid:
                     #x y z offset
                     #passed as whole string for now
                     elif header[1] == 'automatic':
                         line = data.pop(0).strip().split()
-                        tparam['K_POINTS']['automatic']=line
                         tmol.set_kpoints('automatic',line)
-                        tparam['K_POINTS']['active']='automatic'
                         tmol.set_kpoints('active','automatic')
                     #else:
                     #number of kpoints
@@ -425,9 +423,7 @@ class TBController():
                         kpoints = []
                         for i in range(nk):
                             kpoints.append(data.pop(0).strip().split())
-                        tparam['K_POINTS']['disc']=kpoints
                         tmol.set_kpoints('disc',kpoints)
-                        tparam['K_POINTS']['active']=header[1]
                         tmol.set_kpoints('active',header[1])
 
                 #CELL_PARAMETERS tbd
@@ -910,32 +906,24 @@ class TBController():
         f.write('\n')
 
         #K_POINTS
-        f.write('K_POINTS'+' '+param['K_POINTS']['active']+'\n')
+        f.write('K_POINTS'+' '+mol.get_kpoints('active')+'\n')
         #Gamma point only
-        if param['K_POINTS']['active'] == 'gamma':
+        if mol.get_kpoints('active') == 'gamma':
             pass
         #MPGrid:
         #x y z offset
-        elif param['K_POINTS']['active'] == 'automatic':
+        elif mol.get_kpoints('active') == 'automatic':
+            auto = mol.get_kpoints('automatic')
             f.write('{:4s}{:4s}{:4s}{:4d}{:4d}{:4d}'.format(
-                    param['K_POINTS']['automatic'][0],
-                    param['K_POINTS']['automatic'][1],
-                    param['K_POINTS']['automatic'][2],
-                    param['K_POINTS']['automatic'][3],
-                    param['K_POINTS']['automatic'][4],
-                    param['K_POINTS']['automatic'][5]
-                    )+'\n')
+                    auto[0],auto[1],auto[2],auto[3],auto[4],auto[5])+'\n')
         #number of kpoints
         #x y z weight
         else:
-            f.write(str(len(param['K_POINTS']['disc']))+'\n')
-            for i in range(len(param['K_POINTS']['disc'])):
+            disc=mol.get_kpoints('disc')
+            f.write(str(len(disc))+'\n')
+            for i in range(len(disc)):
                 f.write('{:4s}{:4s}{:4s}{:4s}'.format(
-                        param['K_POINTS']['disc'][i][0],
-                        param['K_POINTS']['disc'][i][1],
-                        param['K_POINTS']['disc'][i][2],
-                        param['K_POINTS']['disc'][i][3]
-                        )+'\n')
+                        disc[i][0],disc[i][1],disc[i][2],disc[i][3])+'\n')
         f.write('\n')
 
         #Cell parameters
@@ -950,7 +938,4 @@ class PWParam(dict):
     def __init__(self):
             # make local copy of pse
             self['pse'] = copy.copy(pse)
-
-            # k-point grid
-            self['K_POINTS']={'active':'gamma'}
 
