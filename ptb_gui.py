@@ -21,7 +21,6 @@ def MakeWindow(controller,old):
     mw.setWindowTitle('PWToolBox')
     mw.show()
     return mv
-    
 
 class MainView(QWidget):
 

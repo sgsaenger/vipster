@@ -115,7 +115,10 @@ class Molecule:
         self._kpoints['automatic'] = [x,y,z,xoff,yoff,zoff]
         self._kpoints['tpiba|crystal|tpiba_b|crystal_b'] = [[x,y,z,weight]]*nk
         """
-        self._kpoints[mode]=kpoints
+        if mode in ['tpiba','crystal','tpiba_b','crystal_b']:
+            self._kpoints['disc']=kpoints
+        else:
+            self._kpoints[mode]=kpoints
 
     #######################################################
     # COORD FMT FUNCTIONS
@@ -210,7 +213,10 @@ class Molecule:
 
     def get_kpoints(self,mode):
         """Return active k-points or k-point-settings"""
-        return self._kpoints[mode]
+        if mode in ['crystal','tpiba','crystal_b','tpiba_b']:
+            return self._kpoints['disc']
+        else:
+            return self._kpoints[mode]
 
     ######################################################
     # BOND FUNCTIONS
