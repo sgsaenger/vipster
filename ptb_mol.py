@@ -415,7 +415,7 @@ class TBController():
                         tparam['K_POINTS']['automatic']=line
                         tmol.set_kpoints('automatic',line)
                         tparam['K_POINTS']['active']='automatic'
-                        tmol.set_kpoints('active')='automatic'
+                        tmol.set_kpoints('active','automatic')
                     #else:
                     #number of kpoints
                     #x y z weight
