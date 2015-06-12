@@ -4,7 +4,7 @@
 from sys import exit,argv,stdout
 import cProfile
 from ptb_mol import TBController
-from ptb_gui import MakeWindow
+from ptb_gui import MainView
 from PyQt4.QtGui import QApplication
 
 def main():
@@ -27,7 +27,7 @@ def main():
         print_help(backend,1)
 
     app = QApplication([])
-    gui = MakeWindow(backend,False)
+    gui = MainView(backend,False)
     app.aboutToQuit.connect(gui.deleteLater)
     gui.loadView()
     exit(app.exec_())
