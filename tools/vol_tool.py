@@ -66,6 +66,3 @@ class Volume(QWidget):
             self.volMax.setText('0')
             self.volSel.setDisabled(True)
             self.volBut.setDisabled(True)
-
-    def setSel(self,sel):
-        return

@@ -26,6 +26,7 @@ class Molecule:
         self._atom_fix=[]
         self._bond_cutoff=[]
         self._script_group=dict()
+        self._selection=[]
         self._celldm = 1.0
         self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
@@ -217,6 +218,28 @@ class Molecule:
             return self._kpoints['disc']
         else:
             return self._kpoints[mode]
+
+    ######################################################
+    # SELECTION FUNCTIONS
+    ######################################################
+
+    def add_selection(self,idx,offset):
+        item = [idx,offset]
+        if item in self._selection:
+            self._selection.remove(item)
+        else:
+            self._selection.append(item)
+
+    def del_selection(self,idx=None,offset=None):
+        if idx and offset:
+            self._selection.remove([idx,offset])
+        if idx and not offset:
+            self._selection.remove
+        elif not idx and not offset:
+            self._selection = []
+
+    def get_selection(self):
+        return self._selection
 
     ######################################################
     # BOND FUNCTIONS

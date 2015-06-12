@@ -22,12 +22,5 @@ class ToolArea(QWidget):
                     self.stack.addWidget(i[1](parent))
 
         def setMol(self,mol):
-            if hasattr(self,'mol') and self.mol is mol:
-                return
-            self.mol = mol
             for i in range(self.stack.count()):
                 self.stack.widget(i).setMol(mol)
-
-        def setSel(self,sel):
-            for i in range(self.stack.count()):
-                self.stack.widget(i).setSel(sel)

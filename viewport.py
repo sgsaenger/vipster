@@ -34,7 +34,6 @@ class ViewPort(QGLWidget):
                 self.AA = True
                 self.xsh = 0
                 self.ysh = 0
-                self.sel = []
                 self.rMatrix = QMatrix4x4()
                 self.distance = 25
                 self.initActions()
@@ -293,6 +292,7 @@ class ViewPort(QGLWidget):
                 vec = mol.get_vec()*mol.get_celldm()
                 center = mol.get_center()
                 bonds = mol.get_bonds()
+                sel = mol.get_selection()
 
                 #get bonds and calculate offsets
                 if mult == [1,1,1]:
@@ -362,6 +362,16 @@ class ViewPort(QGLWidget):
 
                 #save atoms in VBOs
                 self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[self.pse[at[0]][1],self.pse[at[0]][2].redF(),self.pse[at[0]][2].greenF(),self.pse[at[0]][2].blueF(),self.pse[at[0]][2].alphaF()] for at in atoms for j in off],'f'))
+                #check for selected atoms inside mult-range
+                if sel:
+                    selList=[]
+                    for i in sel:
+                        if all(i[1]<np.array(self.mult)):
+                            at=atoms[i[0]]
+                            pos = (at[1]+np.dot(vec,i[1])+off[0]).tolist()
+                            selList.append(pos+[self.pse[at[0]][1]*1.5,0.4,0.4,0.5,0.5])
+                    if selList:
+                        self.selVBO=VBO(np.array(selList,'f'))
                 #make cell:
                 null=np.zeros(3)
                 celltmp=[null,vec[0],null,vec[1],null,vec[2],
@@ -816,19 +826,8 @@ class ViewPort(QGLWidget):
         def mouseReleaseEvent(self,e):
                 if not self.mouseSelect:return
                 if(e.button() & 2):
-                    self.sel=[]
-                    if hasattr(self,'selVBO'):
-                        del self.selVBO
-                elif(e.button()&4) and self.sel:
-                    self.sel.pop()
-                    if hasattr(self,'selVBO'):
-                        if len(self.sel)==0:
-                            del self.selVBO
-                        else:
-                            self.selVBO=VBO(np.array([self.atomsVBO.data[a][:3].tolist()+
-                                [self.atomsVBO.data[a][3]*1.5,
-                                    0.4,0.4,0.5,0.5] for a in [b[0] for b in self.sel]],'f'))
-                elif(e.button()&1) and len(self.sel)<4:
+                    self.mol.del_selection()
+                elif e.button()&1:
                     #render with selectionmode
                     self.paintGL(True)
 
@@ -845,21 +844,17 @@ class ViewPort(QGLWidget):
                     if color[3] == 0:
                         return
                     mult=self.mult[0]*self.mult[1]*self.mult[2]
-                    id = color[0] + 256*color[1] + 65536*color[2]
-                    if id<len(self.atomsVBO.data):
-                        if id in [a[0] for a in self.sel]:
-                            return
-                        else:
-                            at = self.mol.get_atom(id/mult)
-                            self.sel.append([id,id/mult,at[0],
-                                    self.atomsVBO.data[id][0:3]])
-                            self.selVBO=VBO(np.array([self.atomsVBO.data[a][:3].tolist()+
-                                [self.atomsVBO.data[a][3]*1.5,
-                                    0.4,0.4,0.5,0.5] for a in [b[0] for b in self.sel]],'f'))
+                    idx = color[0] + 256*color[1] + 65536*color[2]
+                    if idx<len(self.atomsVBO.data):
+                        realid = idx/mult
+                        off = idx%mult
+                        zoff = off%self.mult[2]
+                        yoff = (off/self.mult[2])%self.mult[1]
+                        xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
+                        self.mol.add_selection(realid,[xoff,yoff,zoff])
                     else:
                         return
-                self.parent.edit.setSel(self.sel)
-                self.updateGL()
+                self.parent.updateMolStep()
 
         def wheelEvent(self,e):
                 delta = e.delta()

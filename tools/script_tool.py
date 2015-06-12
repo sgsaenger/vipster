@@ -32,6 +32,3 @@ class Script(QWidget):
 
     def setMol(self,mol):
         self.mol = mol
-
-    def setSel(self,sel):
-        return
