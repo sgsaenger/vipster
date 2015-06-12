@@ -63,6 +63,8 @@ Interface for more complex actions:
 Arguments can be given as follows:
 
 (list) of atoms can be either:
+- 'all'
+- 'sel': selected atoms
 - defined name
 - single index: idx/[idx]
 - range: i1-i2/[i1-i2]
