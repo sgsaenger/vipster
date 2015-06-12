@@ -303,6 +303,7 @@ class MolArea(QWidget):
         kp.disp.addWidget(QLabel('Gamma point only'))
         kp.disp.addWidget(kp.auto)
         kp.disp.addWidget(kp.disc)
+        kp.disp.setFixedHeight(120)
         kp.fmt.currentIndexChanged.connect(changeKpoint)
 
         #layout
