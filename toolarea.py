@@ -2,14 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4.QtGui import *
-from collections import OrderedDict
-
-from plane_tool import Plane
-from vol_tool import Volume
-from pick_tool import Picker
-from script_tool import Script
-from cellmod_tool import CellMod
-
+from tools import tools
 class ToolArea(QWidget):
         def __init__(self,parent):
                 super(ToolArea,self).__init__()
@@ -24,13 +17,6 @@ class ToolArea(QWidget):
                 vbox.addLayout(hbox)
                 vbox.addWidget(self.stack)
                 self.setLayout(vbox)
-                #initialize childwidgets (in order):
-                tools=OrderedDict([
-                        ('Pick',Picker),
-                        ('Script',Script),
-                        ('Cell Mod.',CellMod),
-                        ('Plane',Plane),
-                        ('Volume',Volume)])
                 for i in tools.items():
                     self.combo.addItem(i[0])
                     self.stack.addWidget(i[1](parent))

@@ -5,10 +5,10 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 from copy import deepcopy
 
-class MolArea(QWidget):
+class MolTab(QWidget):
 
     def __init__(self,parent):
-        super(MolArea,self).__init__()
+        super(MolTab,self).__init__()
         self.parent = parent
         coordCollapse = self.initCoord()
         cellCollapse = self.initCell()

@@ -9,9 +9,9 @@ from os import getcwd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import QTimer
 
-from coordedit import MolArea
-from paramedit import PWTab
-from tools.toolarea import ToolArea
+from moltab import MolTab
+from pwtab import PWTab
+from toolarea import ToolArea
 
 def MakeWindow(controller,old):
 
@@ -164,7 +164,7 @@ class MainView(QWidget):
 
         #Right column:
             #Molecule edit area:
-            self.coord = MolArea(self)
+            self.coord = MolTab(self)
 
             #PWParameter edit area:
             self.pw = PWTab()
