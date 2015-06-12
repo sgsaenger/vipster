@@ -26,6 +26,7 @@ class Molecule:
         self._atom_fix=[]
         self._bond_cutoff=[]
         self._script_group=dict()
+        self._selection=[]
         self._celldm = 1.0
         self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
@@ -217,6 +218,38 @@ class Molecule:
             return self._kpoints['disc']
         else:
             return self._kpoints[mode]
+
+    ######################################################
+    # SELECTION FUNCTIONS
+    ######################################################
+
+    def add_selection(self,idx,offset):
+        """Add an item to selection
+
+        idx -> index of atom
+        offset -> offset in multiples of vec
+        """
+        item = [idx,offset]
+        if item in self._selection:
+            self._selection.remove(item)
+        else:
+            self._selection.append(item)
+
+    def del_selection(self,idx=None,offset=None):
+        """Delete one or all atoms from selection
+
+        If both idx and offset are given, specific
+        periodic image of atom will be deleted,
+        else the whole selection will be cleared.
+        """
+        if idx and offset:
+            self._selection.remove([idx,offset])
+        elif not idx and not offset:
+            self._selection = []
+
+    def get_selection(self):
+        """Return the selection"""
+        return self._selection
 
     ######################################################
     # BOND FUNCTIONS
@@ -454,7 +487,7 @@ class Molecule:
                     rep=op[1]
                 else:
                     for i in range(rep):
-                        stack.append((op))
+                        stack.append(op)
                     rep=1
         # delete previous definitions
         self._script_group={}
@@ -506,7 +539,12 @@ class Molecule:
                         arg,arglist = getArg(arglist)
                         #reference to definition
                         if arg.isalpha():
-                            res.append(self._script_group[arg])
+                            if arg == 'all':
+                                res.append(range(len(self._atom_name)))
+                            elif arg == 'sel':
+                                res.append(set([a[0] for a in self._selection]))
+                            else:
+                                res.append(self._script_group[arg])
                         #single index
                         elif arg.isdigit():
                             res.append([int(arg)])

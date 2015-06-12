@@ -106,6 +106,3 @@ class Plane(QWidget):
             self.volSel.setDisabled(True)
             self.volBut.setDisabled(True)
             self.volDir.setDisabled(True)
-
-    def setSel(self,sel):
-        return
