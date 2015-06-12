@@ -13,20 +13,11 @@ from moltab import MolTab
 from pwtab import PWTab
 from toolarea import ToolArea
 
-def MakeWindow(controller,old):
-
-    mw = QMainWindow()
-    mv = MainView(mw,controller,old)
-    mw.setCentralWidget(mv)
-    mw.setWindowTitle('PWToolBox')
-    mw.show()
-    return mv
-
 class MainView(QWidget):
 
-        def __init__(self,parent,controller,old):
+        def __init__(self,controller,old):
             super(MainView,self).__init__()
-            self.parent = parent
+            self.parent = QMainWindow()
             self.controller = controller
             self.initMenu()
             self.mult =[1,1,1]
@@ -184,6 +175,11 @@ class MainView(QWidget):
             hbox.addWidget(mcol)
             hbox.addWidget(rcol)
             self.setLayout(hbox)
+
+        #Show window
+            self.parent.setCentralWidget(self)
+            self.parent.setWindowTitle('PWToolBox')
+            self.parent.show()
 
         def initMenu(self):
             newAction = QAction('&New Molecule',self)
