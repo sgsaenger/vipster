@@ -37,126 +37,6 @@ class ViewPort(QGLWidget):
                 self.rMatrix = QMatrix4x4()
                 self.distance = 25
                 self.initActions()
-                # radii, color
-                self.pse={'H' : [1.20,0.38,QColor(191,191,191,255)],
-                          'He': [1.40,0.32,QColor(216,255,255,255)],
-                          'Li': [1.82,1.34,QColor(204,127,255,255)],
-                          'Be': [1.53,0.90,QColor(193,255,  0,255)],
-                          'B' : [1.92,0.82,QColor(255,181,181,255)],
-                          'C' : [1.70,0.77,QColor(102,102,102,255)],
-                          'N' : [1.55,0.75,QColor( 12, 12,255,255)],
-                          'O' : [1.52,0.73,QColor(255, 12, 12,255)],
-                          'F' : [1.47,0.71,QColor(127,178,255,255)],
-                          'Ne': [1.54,0.69,QColor(178,226,244,255)],
-                          'Na': [2.27,1.54,QColor(170, 91,242,255)],
-                          'Mg': [1.73,1.30,QColor(137,255,  0,255)],
-                          'Al': [1.84,1.18,QColor(191,165,165,255)],
-                          'Si': [2.10,1.11,QColor(127,153,153,255)],
-                          'P' : [1.80,1.06,QColor(255,127,  0,255)],
-                          'S' : [1.80,1.02,QColor(178,178,  0,255)],
-                          'Cl': [1.75,0.99,QColor( 30,239, 30,255)],
-                          'Ar': [1.88,0.97,QColor(127,209,226,255)],
-                          'K' : [2.75,1.96,QColor(142, 63,211,255)],
-                          'Ca': [2.31,1.74,QColor( 61,255,  0,255)],
-                          'Sc': [2.11,1.44,QColor(229,229,229,255)],
-                          'Ti': [1.70,1.36,QColor(191,193,198,255)],
-                          'V' : [1.70,1.25,QColor(165,165,170,255)],
-                          'Cr': [1.70,1.27,QColor(137,153,198,255)],
-                          'Mn': [1.70,1.39,QColor(155,122,198,255)],
-                          'Fe': [1.70,1.25,QColor(224,102, 51,255)],
-                          'Co': [1.70,1.26,QColor(239,142,160,255)],
-                          'Ni': [1.63,1.21,QColor( 79,209, 79,255)],
-                          'Cu': [1.40,1.38,QColor(198,127, 51,255)],
-                          'Zn': [1.39,1.31,QColor(124,127,175,255)],
-                          'Ga': [1.87,1.26,QColor(193,142,142,255)],
-                          'Ge': [2.11,1.22,QColor(102,142,142,255)],
-                          'As': [1.85,1.19,QColor(188,127,226,255)],
-                          'Se': [1.90,1.16,QColor(255,160,  0,255)],
-                          'Br': [1.85,1.14,QColor(165, 40, 40,255)],
-                          'Kr': [2.02,1.10,QColor( 91,183,209,255)],
-                          'Rb': [3.03,2.11,QColor(112, 45,175,255)],
-                          'Sr': [2.49,1.92,QColor(  0,255,  0,255)],
-                          'Y' : [1.70,1.62,QColor(147,255,255,255)],
-                          'Zr': [1.70,1.48,QColor(147,224,224,255)],
-                          'Nb': [1.70,1.37,QColor(114,193,201,255)],
-                          'Mo': [1.70,1.45,QColor( 84,181,181,255)],
-                          'Tc': [1.70,1.56,QColor( 58,158,158,255)],
-                          'Ru': [1.70,1.26,QColor( 35,142,142,255)],
-                          'Rh': [1.70,1.35,QColor( 10,124,140,255)],
-                          'Pd': [1.63,1.31,QColor(  0,104,132,255)],
-                          'Ag': [1.72,1.53,QColor(224,224,255,255)],
-                          'Cd': [1.58,1.48,QColor(255,216,142,255)],
-                          'In': [1.93,1.44,QColor(165,117,114,255)],
-                          'Sn': [2.17,1.41,QColor(102,127,127,255)],
-                          'Sb': [2.06,1.38,QColor(158,99 ,181,255)],
-                          'Te': [2.06,1.35,QColor(211,122,  0,255)],
-                          'I' : [1.98,1.33,QColor(147,  0,147,255)],
-                          'Xe': [2.16,1.30,QColor( 66,158,175,255)],
-                          'Cs': [3.43,2.25,QColor( 86, 22,142,255)],
-                          'Ba': [2.68,1.98,QColor(  0,201,  0,255)],
-                          'La': [1.70,1.69,QColor(112,211,255,255)],
-                          'Ce': [1.70,0.77,QColor(255,255,198,255)],
-                          'Pr': [1.70,0.77,QColor(216,255,198,255)],
-                          'Nd': [1.70,0.77,QColor(198,255,198,255)],
-                          'Pm': [1.70,0.77,QColor(163,255,198,255)],
-                          'Sm': [1.70,0.77,QColor(142,255,198,255)],
-                          'Eu': [1.70,0.77,QColor( 96,255,198,255)],
-                          'Gd': [1.70,0.77,QColor( 68,255,198,255)],
-                          'Tb': [1.70,0.77,QColor( 48,255,198,255)],
-                          'Dy': [1.70,0.77,QColor( 30,255,198,255)],
-                          'Ho': [1.70,0.77,QColor(  0,255,155,255)],
-                          'Er': [1.70,0.77,QColor(  0,229,117,255)],
-                          'Tm': [1.70,0.77,QColor(  0,211, 81,255)],
-                          'Yb': [1.70,0.77,QColor(  0,191, 56,255)],
-                          'Lu': [1.70,1.60,QColor(  0,170, 35,255)],
-                          'Hf': [1.70,1.50,QColor( 76,193,255,255)],
-                          'Ta': [1.70,1.38,QColor( 76,165,255,255)],
-                          'W' : [1.70,1.46,QColor( 33,147,214,255)],
-                          'Re': [1.70,1.59,QColor( 38,124,170,255)],
-                          'Os': [1.70,1.28,QColor( 38,102,150,255)],
-                          'Ir': [1.70,1.37,QColor( 22, 84,135,255)],
-                          'Pt': [1.75,1.28,QColor(244,237,209,255)],
-                          'Au': [1.66,1.44,QColor(204,209, 30,255)],
-                          'Hg': [1.55,1.49,QColor(181,181,193,255)],
-                          'Tl': [1.96,1.48,QColor(165, 84, 76,255)],
-                          'Pb': [2.02,1.47,QColor( 86, 89, 96,255)],
-                          'Bi': [2.07,1.46,QColor(158, 79,181,255)],
-                          'Po': [1.97,0.77,QColor(170, 91,  0,255)],
-                          'At': [2.02,0.77,QColor(117, 79, 68,255)],
-                          'Rn': [2.20,1.45,QColor( 66,130,150,255)],
-                          'Fr': [3.48,0.77,QColor( 66,  0,102,255)],
-                          'Ra': [2.83,0.77,QColor(0  ,124,  0,255)],
-                          'Ac': [1.70,0.77,QColor(112,170,249,255)],
-                          'Th': [1.70,0.77,QColor(0  ,186,255,255)],
-                          'Pa': [1.70,0.77,QColor(0  ,160,255,255)],
-                          'U' : [1.86,0.77,QColor(0  ,142,255,255)],
-                          'Np': [1.70,0.77,QColor(0  ,127,255,255)],
-                          'Pu': [1.70,0.77,QColor(0  ,107,255,255)],
-                          'Am': [1.70,0.77,QColor(84 , 91,242,255)],
-                          'Cm': [1.70,0.77,QColor(119, 91,226,255)],
-                          'Bk': [1.70,0.77,QColor(137, 79,226,255)],
-                          'Cf': [1.70,0.77,QColor(160, 53,211,255)],
-                          'Es': [1.70,0.77,QColor(178, 30,211,255)],
-                          'Fm': [1.70,0.77,QColor(178, 30,186,255)],
-                          'Md': [1.70,0.77,QColor(178, 12,165,255)],
-                          'No': [1.70,0.77,QColor(188, 12,135,255)],
-                          'Lr': [1.70,0.77,QColor(198,  0,102,255)],
-                          'Rf': [1.70,0.77,QColor(204,  0, 89,255)],
-                          'Db': [1.70,0.77,QColor(209,  0, 79,255)],
-                          'Sg': [1.70,0.77,QColor(216,  0, 68,255)],
-                          'Bh': [1.70,0.77,QColor(224,  0, 56,255)],
-                          'Hs': [1.70,0.77,QColor(229,  0, 45,255)],
-                          'Mt': [1.70,0.77,QColor(234,  0, 38,255)],
-                          'Ds': [1.70,0.77,QColor(237,  0, 35,255)],
-                          'Rg': [1.70,0.77,QColor(239,  0, 33,255)],
-                          'Cn': [1.70,0.77,QColor(242,  0, 30,255)],
-                          'Uut':[1.70,0.77,QColor(244,  0, 28,255)],
-                          'Fl': [1.70,0.77,QColor(247,  0, 25,255)],
-                          'Uup':[1.70,0.77,QColor(249,  0, 22,255)],
-                          'Lv': [1.70,0.77,QColor(252,  0, 20,255)],
-                          'Uus':[1.70,0.77,QColor(252,  0, 17,255)],
-                          'Uuo':[1.70,0.77,QColor(252,  0, 15,255)]}
-
 
         def initializeGL(self):
                 #Bind VAO (necessary for modern OpenGL)
@@ -289,6 +169,7 @@ class ViewPort(QGLWidget):
                 self.mult=mult
                 #local variables for convenience
                 atoms = mol.get_all_atoms()
+                pse = mol.pse
                 vec = mol.get_vec()*mol.get_celldm()
                 center = mol.get_center()
                 bonds = mol.get_bonds()
@@ -328,8 +209,8 @@ class ViewPort(QGLWidget):
                                 a = atoms[i[0]][1]+i[2][0]
                                 b = atoms[i[1]][1]+i[2][1]
                                 #save colors
-                                c1 = self.pse[atoms[i[0]][0]][2]
-                                c2 = self.pse[atoms[i[1]][0]][2]
+                                c1 = pse[atoms[i[0]][0]][5:]
+                                c2 = pse[atoms[i[1]][0]][5:]
                                 #position of bond
                                 pos= (a+b)/2
                                 #rotate bond from x-axis d to bond-axis c
@@ -356,12 +237,12 @@ class ViewPort(QGLWidget):
                                                     ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0],0.,
                                                     ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c,0.,
                                                     pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],1.,
-                                                    c1.redF(),c1.greenF(),c1.blueF(),c1.alphaF(),
-                                                    c2.redF(),c2.greenF(),c2.blueF(),c2.alphaF()]
+                                                    c1[0],c1[1],c1[2],c1[3],
+                                                    c2[0],c2[1],c2[2],c2[3]]
                 self.bondPosVBO=VBO(np.array(tempbonds,'f'))
 
                 #save atoms in VBOs
-                self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[self.pse[at[0]][1],self.pse[at[0]][2].redF(),self.pse[at[0]][2].greenF(),self.pse[at[0]][2].blueF(),self.pse[at[0]][2].alphaF()] for at in atoms for j in off],'f'))
+                self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[pse[at[0]][4],pse[at[0]][5],pse[at[0]][6],pse[at[0]][7],pse[at[0]][8]] for at in atoms for j in off],'f'))
                 #check for selected atoms inside mult-range
                 if sel:
                     selList=[]
@@ -369,7 +250,7 @@ class ViewPort(QGLWidget):
                         if all(i[1]<np.array(self.mult)):
                             at=atoms[i[0]]
                             pos = (at[1]+np.dot(vec,i[1])+off[0]).tolist()
-                            selList.append(pos+[self.pse[at[0]][1]*1.5,0.4,0.4,0.5,0.5])
+                            selList.append(pos+[pse[at[0]][4]*1.5,0.4,0.4,0.5,0.5])
                     if selList:
                         self.selVBO=VBO(np.array(selList,'f'))
                 #make cell:
@@ -746,9 +627,6 @@ class ViewPort(QGLWidget):
                 # bind transformation matrices
                 self.bondShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
                 self.bondShader.setUniformValue('rMatrix',self.rMatrix)
-                #color vertices
-                self.bondShader.setUniformValue('Side1DiffuseColor',self.pse['C'][2])
-                self.bondShader.setUniformValue('Side2DiffuseColor',self.pse['C'][2])
                 #draw
                 glDrawArraysInstanced(GL_TRIANGLES,0,len(self.torusVBO.data),len(self.bondPosVBO)/24)
 

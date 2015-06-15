@@ -20,7 +20,8 @@ class Molecule:
     K-Point settings (_kpoints)
     """
 
-    def __init__(self):
+    def __init__(self,controller):
+        self.pse=self._pse(controller.pse)
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
@@ -158,6 +159,29 @@ class Molecule:
             return np.dot(coord,self._vecinv)/self._celldm
         elif fmt == 'alat':
             return coord/self._celldm
+
+    ######################################################
+    # LOCAL PSE-DICT
+    # overlay for global dict
+    ######################################################
+
+    class _pse(dict):
+        def __init__(self,cpse):
+            super(Molecule._pse,self).__init__()
+            self.cpse=cpse
+
+        def __getitem__(self,key):
+            if not key in self:
+                if key in self.cpse:
+                    self[key]=self.cpse[key]
+                else:
+                    for i in range(len(key),0,-1):
+                        if key[:i] in self.cpse:
+                            self[key] = self.cpse[key[:i]]
+                            break
+                    if not key in self:
+                        self[key]=self.cpse['X']
+            return super(Molecule._pse,self).__getitem__(key)
 
     ######################################################
     # RETURN FUNCTIONS

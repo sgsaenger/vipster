@@ -10,138 +10,6 @@ from os.path import dirname,isfile,expanduser
 from molecule import Molecule
 
 ######################################################################
-# PSE DICTIONARY
-######################################################################
-# pse[0] id
-# pse[1] ~ weight
-pse={"X":  [0,0.0],
-
-     "H" : [1,1.0079,'H.uspp736.pbe.UPF'],
-     "He": [2,4.0026,'He.uspp736.pbe.UPF'],
-
-     "Li": [3, 6.941],
-     "Be": [4, 9.0122],
-     "B" : [5,10.811,'B.uspp736.pbe.UPF'],
-     "C" : [6,12.0107,'C.uspp736.pbe.UPF'],
-     "N" : [7,14.007,'N.uspp736.pbe.UPF'],
-     "O" : [8,15.999,'O.uspp736.pbe.UPF'],
-     "F" : [9,18.998,'F.uspp736.pbe.UPF'],
-     "Ne": [10,20.18],
-
-     "Na": [11,22.99],
-     "Mg": [12,24.305],
-     "Al": [13,26.982,'Al.uspp736.pbe.UPF'],
-     "Si": [14,28.086,'Si.uspp736.pbe.UPF'],
-     "P" : [15,30.974,'P.uspp736.pbe.UPF'],
-     "S" : [16,32.065,'S.uspp736.pbe.UPF'],
-     "Cl": [17,35.453,'Cl.uspp736.pbe.UPF'],
-     "Ar": [18,39.948],
-
-     "K" : [19,39.098],
-     "Ca": [20,40.078],
-     "Sc": [21,44.9559],
-     "Ti": [22,47.867],
-     "V" : [23,50.9415],
-     "Cr": [24,51.9961],
-     "Mn": [25,54.938],
-     "Fe": [26,55.845],
-     "Co": [27,58.9332],
-     "Ni": [28,58.6934],
-     "Cu": [29,63.546],
-     "Zn": [30,65.39],
-     "Ga": [31,69.723],
-     "Ge": [32,72.64],
-     "As": [33,74.922],
-     "Se": [34,78.96],
-     "Br": [35,79.904,'Br.uspp736.pbe.UPF'],
-     "Kr": [36,83.798],
-
-     "Rb" : [37,85.4678],
-     "Sr" : [38,87.62],
-     "Y"  : [39,88.9059],
-     "Zr" : [40,91.224],
-     "Nb" : [41,92.9064],
-     "Mo" : [42,95.94],
-     "Tc" : [43,98.0],
-     "Ru" : [44,101.07],
-     "Rh" : [45,102.9055],
-     "Pd" : [46,106.42],
-     "Ag" : [47,107.8682],
-     "Cd" : [48,112.411],
-     "In" : [49,114.818],
-     "Sn" : [50,118.71],
-     "Sb" : [51,121.76],
-     "Te" : [52,127.6],
-     "I"  : [53,126.9045],
-     "Xe" : [54,131.293],
-
-     "Cs" : [55,132.9055],
-     "Ba" : [56,137.327],
-     "La" : [57,138.9055],
-     "Ce" : [58,140.116],
-     "Pr" : [59,140.9077],
-     "Nd" : [60,144.24],
-     "Pm" : [61,145.0],
-     "Sm" : [62,150.36],
-     "Eu" : [63,151.964],
-     "Gd" : [64,157.25],
-     "Tb" : [65,158.9253],
-     "Dy" : [66,162.5],
-     "Ho" : [67,164.9303],
-     "Er" : [68,167.259],
-     "Tm" : [69,168.9342],
-     "Yb" : [70,173.04],
-     "Lu" : [71,174.967],
-     "Hf" : [72,178.49],
-     "Ta" : [73,180.9479],
-     "W"  : [74,183.84],
-     "Re" : [75,186.207],
-     "Os" : [76,190.23],
-     "Ir" : [77,192.217],
-     "Pt" : [78,195.078],
-     "Au" : [79,196.9665],
-     "Hg" : [80,200.592],
-     "Tl" : [81,204.3833],
-     "Pb" : [82,207.2],
-     "Bi" : [83,208.9804],
-     "Po" : [84,209],
-     "At" : [85,210],
-     "Rn" : [86,222],
-
-     "Fr" : [87,223],
-     "Ra" : [88,226],
-     "Ac" : [89,227],
-     "Th" : [90,232.03806],
-     "Pa" : [91,231.03588],
-     "U"  : [92,238.02891],
-     "Np" : [93,237],
-     "Pu" : [94,244],
-     "Am" : [95,243],
-     "Cm" : [96,247],
-     "Bk" : [97,247],
-     "Cf" : [98,251],
-     "Es" : [99,252],
-     "Fm" : [100,257],
-     "Md" : [101,258],
-     "No" : [102,259],
-     "Lr" : [103,266],
-     "Rf" : [104,267],
-     "Db" : [105,268],
-     "Sg" : [106,269],
-     "Bh" : [107,270],
-     "Hs" : [108,269],
-     "Mt" : [109,278],
-     "Ds" : [110,281],
-     "Rg" : [111,281],
-     "Cn" : [112,285],
-     "Uut": [113,286],
-     "Fl" : [114,289],
-     "Uup": [115,289],
-     "Lv" : [116,293],
-     "Uus": [117,294],
-     "Uuo": [118,294]}
-
-######################################################################
 # MAIN CONTROLLER CLASS
 ######################################################################
 class TBController():
@@ -155,8 +23,8 @@ class TBController():
     def __init__(self):
             self._mol = []
             self._pwdata = []
-            self._pse = OrderedDict()
             self._config = dict()
+            self.pse = OrderedDict()
             self.cli_indict = OrderedDict([('-xyz',self._parseXyz),
                             ('-pwi',self._parsePwi),
                             ('-pwo',self._parsePwo),
@@ -212,7 +80,7 @@ class TBController():
 
     def newMol(self):
         """ Create a new (empty) Molecule """
-        self._mol.append([Molecule()])
+        self._mol.append([Molecule(self)])
 
 #####################################################################
 # READ FUNCTIONS
@@ -227,15 +95,15 @@ class TBController():
                     continue
                 if fl[i].strip()=='PSE:':
                     j=i+1
-                    while fl[j][0]=='/':
-                        pl = fl[j][0].split()
-                        self._pse[pl[0]]=[pl[1]]+map(float,pl[2:])
+                    while fl[j][0]!='/':
+                        pl = fl[j].split()
+                        self.pse[pl[0]]=[pl[1]]+map(float,pl[2:])
                         j+=1
                     i=j+1
                 elif fl[i].strip()=='General:':
                     j=i+1
-                    while fl[j][0]=='/':
-                        pl=fl[j][0].split(':',1)
+                    while fl[j][0]!='/':
+                        pl=fl[j].split(':',1)
                         self._config[pl[0]]=pl[1]
                         j+=1
                     i=j+1
@@ -272,7 +140,7 @@ class TBController():
                         i+=1
                         continue
                 # create new molecule
-                tmol = Molecule()
+                tmol = Molecule(self)
                 #fixed format nat and comment
                 nat = int(data[i])
                 tmol._comment = data[i+1]
@@ -293,7 +161,7 @@ class TBController():
         Only orthogonal cells supported
         Assumes angstrom
         """
-        tmol=Molecule()
+        tmol=Molecule(self)
         i=0
         tvec=[[0,0,0],[0,0,0],[0,0,0]]
         while i< len(data):
@@ -315,12 +183,12 @@ class TBController():
                     if '#' in data[j]:
                         types[int(data[j].split()[0])-1]=data[j].split('#')[1].strip()
                     else:
-                        raise NotImplementedError('cannot assign elements via masses yet')
+                        raise NotImplementedError('cannot assign elements via masses')
                 i+=len(types)+1
             elif 'Atoms' in line:
                 for j in range(i+2,i+2+nat):
                     at = data[j].strip().split()
-                    tmol.create_atom(types[int(at[1])-1],map(float,at[-3:0]),'angstrom')
+                    tmol.create_atom(types[int(at[1])-1],map(float,at[-3:]),'angstrom')
             i+=1
         self._mol.append([tmol])
 
@@ -342,7 +210,7 @@ class TBController():
             if 'ITEM' in line:
                 if 'TIMESTEP' in line:
                     i+=2
-                    tmol=Molecule()
+                    tmol=Molecule(self)
                 elif 'NUMBER OF ATOMS' in line:
                     nat=int(data[i+1])
                     i+=2
@@ -385,8 +253,8 @@ class TBController():
         - ATOMIC_FORCES (PWSCFv5)
         """
         # no need for list, only one molecule per file
-        tmol = Molecule()
-        tparam = PWParam()
+        tmol = Molecule(self)
+        tparam = OrderedDict()
         tcoord = []
         tvec = [[0,0,0],[0,0,0],[0,0,0]]
         #parse data and create tparam
@@ -398,7 +266,7 @@ class TBController():
                 #debug output. case not really needed.
             # parse namelists
             elif header[0][0] == '&':
-                tnl = {}
+                tnl = OrderedDict()
                 # parse entries
                 line = data.pop(0).strip().split(',')
                 while line[0] != '/':
@@ -417,8 +285,8 @@ class TBController():
                 if header[0] == 'ATOMIC_SPECIES':
                     for i in range(int(tparam['&system']['ntyp'])):
                         line = data.pop(0).strip().split()
-                        tparam['pse'][line[0]][1] = float(line[1])
-                        tparam['pse'][line[0]].append(line[2])
+                        tmol.pse[line[0]][2] = float(line[1])
+                        tmol.pse[line[0]][0] = line[2]
 
                 #ATOMIC_POSITIONS fmt
                 #Name   x   y   z
@@ -675,7 +543,7 @@ class TBController():
                     vec[j]=[float(x) for x in temp[3:6]]
             # read initial positions:
             elif line[0] == 'site':
-                tmol = Molecule()
+                tmol = Molecule(self)
                 tmol.set_celldm(celldm)
                 tmol.set_vec(vec)
                 for j in range(i+1,i+nat+1):
@@ -690,7 +558,7 @@ class TBController():
                     vec[j]=[float(x) for x in temp[0:3]]
             #read step-coordinates
             elif line[0] == 'ATOMIC_POSITIONS':
-                tmol = Molecule()
+                tmol = Molecule(self)
                 tmol.set_celldm(celldm)
                 tmol.set_vec(vec)
                 for j in range(i+1,i+nat+1):
@@ -734,7 +602,7 @@ class TBController():
                     vec[j]=[float(x) for x in temp[0:3]]
 
             elif final and line[0] == 'ATOMIC_POSITIONS':
-                tmol = Molecule()
+                tmol = Molecule(self)
                 tmol.set_celldm(celldm)
                 tmol.set_vec(vec)
                 for j in range(i+1,i+nat+1):
@@ -747,7 +615,7 @@ class TBController():
 
     def _parseCube(self,data):
         """ Parse Gaussian Cube file """
-        tmol = Molecule()
+        tmol = Molecule(self)
         tcoord=[]
         tvec=[[0,0,0],[0,0,0],[0,0,0]]
         #parse data
@@ -769,9 +637,7 @@ class TBController():
         for i in range(nat):
             # line = Z, charge(ignored), coord(x,y,z)
             line=data[i+6].split()
-            # crazy list comprehension in order to identify the name of the atom
-            tmol.create_atom([j[0] for j in pse.items() if j[1][0]==int(line[0])][0],\
-                map(float,line[2:5]),'bohr')
+            tmol.create_atom(self.pse.keys()[int(line[0])],map(float,line[2:5]),'bohr')
         #rest of file has datagrid, x is outer loop, z inner
         tmol.set_vol(nvol,data[6+nat:],origin)
         tmol.set_vol_gradient()
@@ -834,17 +700,14 @@ class TBController():
         vol = mol.get_vol()
         s = vol.shape
         vec = mol.get_vec()*mol.get_celldm()
-        shiftvec = 0.5*vec[0]+0.5*vec[1]+0.5*vec[2]
         vec = vec/s
         f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(mol.get_nat(),0.,0.,0.))
         f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[0],vec[0][0],vec[0][1],vec[0][2]))
         f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[1],vec[1][0],vec[1][1],vec[1][2]))
         f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[2],vec[2][0],vec[2][1],vec[2][2]))
-        mol._shift(range(mol.get_nat()),shiftvec)
-        mol.wrap()
         for i in range(mol.get_nat()):
             at = mol.get_atom(i,'bohr')
-            f.write('{:5d} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(pse[at[0]][0],0,*at[1]))
+            f.write('{:5.0f} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(mol.pse[at[0]][1],0,*at[1]))
         vol = vol.flatten()
         for i in range(1,vol.size+1):
             f.write(str(vol[i-1])+'  ')
@@ -876,7 +739,7 @@ class TBController():
         f.write('Masses\n\n')
         t=list(mol.get_types())
         for i,j in enumerate(t):
-            f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,pse[j][1],j))
+            f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,mol.pse[j][2],j))
         f.write('\nAtoms\n\n')
         for i in range(mol.get_nat()):
             at=mol.get_atom(i,coordfmt)
@@ -920,7 +783,7 @@ class TBController():
         types = list(mol.get_types())
         for i in range(len(mol.get_types())):
             atom = types[i]
-            f.write(atom+'    '+str(param['pse'][atom][1])+'   '+str(param['pse'][atom][2])+'\n')
+            f.write(atom+'    '+str(mol.pse[atom][2])+'   '+str(mol.pse[atom][0])+'\n')
         f.write('\n')
 
         #ATOMIC_POSITIONS
@@ -944,7 +807,7 @@ class TBController():
         #x y z offset
         elif mol.get_kpoints('active') == 'automatic':
             auto = mol.get_kpoints('automatic')
-            f.write('{:4s}{:4s}{:4s}{:4d}{:4d}{:4d}'.format(
+            f.write('{:4s}{:4s}{:4s}{:4s}{:4s}{:4s}'.format(
                     auto[0],auto[1],auto[2],auto[3],auto[4],auto[5])+'\n')
         #number of kpoints
         #x y z weight
@@ -962,10 +825,3 @@ class TBController():
             '{0[1][0]:15.10f} {0[1][1]:15.10f} {0[1][2]:15.10f}\n' + \
             '{0[2][0]:15.10f} {0[2][1]:15.10f} {0[2][2]:15.10f}\n'
         f.write(fmt.format(mol.get_vec()))
-
-class PWParam(dict):
-
-    def __init__(self):
-            # make local copy of pse
-            self['pse'] = copy.copy(pse)
-
