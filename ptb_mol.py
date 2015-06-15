@@ -5,6 +5,7 @@ import sys
 import copy
 from math import sqrt
 from collections import OrderedDict
+from os.path import dirname,isfile,expanduser
 
 from molecule import Molecule
 
@@ -154,6 +155,8 @@ class TBController():
     def __init__(self):
             self._mol = []
             self._pwdata = []
+            self._pse = OrderedDict()
+            self._config = dict()
             self.cli_indict = OrderedDict([('-xyz',self._parseXyz),
                             ('-pwi',self._parsePwi),
                             ('-pwo',self._parsePwo),
@@ -173,6 +176,11 @@ class TBController():
                            ('Empire xyz',self._writeEmpire),
                            ('Gaussian Cube File',self._writeCube),
                            ('Lammps Data File',self._writeLmp)])
+            #search for user-defined config, else take default.conf
+            if isfile(expanduser('~/.toolbox.conf')):
+                self.readConfig(expanduser('~/.toolbox.conf'))
+            else:
+                self.readConfig(dirname(__file__)+'/default.conf')
 
 #####################################################################
 # GET FUNCTIONS
@@ -209,6 +217,28 @@ class TBController():
 #####################################################################
 # READ FUNCTIONS
 #####################################################################
+
+    def readConfig(self,filename):
+        """Read config"""
+        with open(filename,'r') as f:
+            fl=f.readlines()
+            for i in range(len(fl)):
+                if fl[i][0]=='!':
+                    continue
+                if fl[i].strip()=='PSE:':
+                    j=i+1
+                    while fl[j][0]=='/':
+                        pl = fl[j][0].split()
+                        self._pse[pl[0]]=[pl[1]]+map(float,pl[2:])
+                        j+=1
+                    i=j+1
+                elif fl[i].strip()=='General:':
+                    j=i+1
+                    while fl[j][0]=='/':
+                        pl=fl[j][0].split(':',1)
+                        self._config[pl[0]]=pl[1]
+                        j+=1
+                    i=j+1
 
     def readFile(self,fmt,filename,mode='gui'):
         """
