@@ -644,7 +644,7 @@ class ViewPort(QGLWidget):
                 for j,i in enumerate(self.atomsVBO):
                     self.selectShader.setUniformValue('position_modelspace',*i[0:3])
                     self.selectShader.setUniformValue('scale_modelspace',i[3])
-                    self.selectShader.setUniformValue('InstanceID',j)
+                    self.selectShader.setUniformValue('in_color',(j&0xFF)/255.,((j&0xFF00)>>8)/255.,((j&0xFF0000)>>16)/255.,1)
                     glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
 
                 #reset
