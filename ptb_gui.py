@@ -42,10 +42,13 @@ class MainView(QWidget):
             self.animTimer = QTimer()
             self.animTimer.setInterval(50)
             self.animTimer.timeout.connect(self.incStep)
-            #Screenshot test
-            screenbut = QPushButton()
-            screenbut.setText('Save Screenshot')
-            screenbut.clicked.connect(self.makeScreen)
+            #camera-buttons
+            xcam = QPushButton('x')
+            xcam.clicked.connect(self.visual.alignView)
+            ycam = QPushButton('y')
+            ycam.clicked.connect(self.visual.alignView)
+            zcam = QPushButton('z')
+            zcam.clicked.connect(self.visual.alignView)
             #Choose step, animate
             incBut = QPushButton()
             incBut.clicked.connect(self.incStep)
@@ -77,6 +80,14 @@ class MainView(QWidget):
             self.yspin.valueChanged.connect(self.updateMult)
             self.zspin.valueChanged.connect(self.updateMult)
             #Control Layout:
+            cam = QHBoxLayout()
+            cam.addWidget(QLabel('Align camera:'))
+            cam.addStretch()
+            cam.addWidget(xcam)
+            cam.addStretch()
+            cam.addWidget(ycam)
+            cam.addStretch()
+            cam.addWidget(zcam)
             mult = QHBoxLayout()
             mult.addWidget(QLabel('Cell multiply:'))
             mult.addStretch()
@@ -88,7 +99,6 @@ class MainView(QWidget):
             mult.addStretch()
             mult.addWidget(QLabel('z:'))
             mult.addWidget(self.zspin)
-            mult.addWidget(screenbut)
             steps = QHBoxLayout()
             steps.addWidget(firstBut)
             steps.addWidget(decBut)
@@ -104,6 +114,7 @@ class MainView(QWidget):
             #Layout:
             viewlay = QVBoxLayout()
             viewlay.addWidget(self.visual)
+            viewlay.addLayout(cam)
             viewlay.addLayout(mult)
             viewlay.addLayout(steps)
 
@@ -188,6 +199,9 @@ class MainView(QWidget):
             saveAction = QAction('&Save Molecule',self)
             saveAction.setShortcut('Ctrl+S')
             saveAction.triggered.connect(self.saveHandler)
+            scrotAction = QAction('Save Screensho&t',self)
+            scrotAction.setShortcut('Ctrl+P')
+            scrotAction.triggered.connect(self.makeScreen)
             exitAction = QAction('&Exit',self)
             exitAction.setShortcut('Ctrl+Q')
             exitAction.triggered.connect(qApp.quit)
@@ -196,6 +210,7 @@ class MainView(QWidget):
             fMenu.addAction(newAction)
             fMenu.addAction(loadAction)
             fMenu.addAction(saveAction)
+            fMenu.addAction(scrotAction)
             fMenu.addSeparator()
             fMenu.addAction(exitAction)
 

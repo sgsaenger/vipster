@@ -156,6 +156,33 @@ class ViewPort(QGLWidget):
                           'Uus':[1.70,0.77,QColor(252,  0, 17,255)],
                           'Uuo':[1.70,0.77,QColor(252,  0, 15,255)]}
 
+        def initActions(self):
+                changeProj = QAction('Change &Projection',self)
+                changeProj.setShortcut('p')
+                changeProj.triggered.connect(self.changeState)
+                toggleCell = QAction('Toggle &Cell',self)
+                toggleCell.setShortcut('c')
+                toggleCell.triggered.connect(self.changeState)
+                mouseRotate = QAction('&Rotate',self)
+                mouseRotate.setShortcut('r')
+                mouseRotate.triggered.connect(self.changeState)
+                mouseSelect = QAction('&Select',self)
+                mouseSelect.setShortcut('s')
+                mouseSelect.triggered.connect(self.changeState)
+                antiAlias = QAction('Toggle &Antialiasing',self)
+                antiAlias.setShortcut('a')
+                antiAlias.triggered.connect(self.changeState)
+                toggleBonds = QAction('Toggle &Bonds',self)
+                toggleBonds.setShortcut('b')
+                toggleBonds.triggered.connect(self.changeState)
+                vMenu = self.parent.parent.menuBar().addMenu('&View')
+                vMenu.addAction(changeProj)
+                vMenu.addAction(toggleCell)
+                vMenu.addAction(toggleBonds)
+                vMenu.addAction(antiAlias)
+                vMenu.addSeparator()
+                vMenu.addAction(mouseRotate)
+                vMenu.addAction(mouseSelect)
 
         def initializeGL(self):
                 #Bind VAO (necessary for modern OpenGL)
@@ -213,33 +240,6 @@ class ViewPort(QGLWidget):
         ##########################################
         # Modify state of Visualization
         ##########################################
-        def initActions(self):
-                changeProj = QAction('Change &Projection',self)
-                changeProj.setShortcut('p')
-                changeProj.triggered.connect(self.changeState)
-                toggleCell = QAction('Toggle &Cell',self)
-                toggleCell.setShortcut('c')
-                toggleCell.triggered.connect(self.changeState)
-                mouseRotate = QAction('&Rotate',self)
-                mouseRotate.setShortcut('r')
-                mouseRotate.triggered.connect(self.changeState)
-                mouseSelect = QAction('&Select',self)
-                mouseSelect.setShortcut('s')
-                mouseSelect.triggered.connect(self.changeState)
-                antiAlias = QAction('Toggle &Antialiasing',self)
-                antiAlias.setShortcut('a')
-                antiAlias.triggered.connect(self.changeState)
-                toggleBonds = QAction('Toggle &Bonds',self)
-                toggleBonds.setShortcut('b')
-                toggleBonds.triggered.connect(self.changeState)
-                vMenu = self.parent.parent.menuBar().addMenu('&View')
-                vMenu.addAction(changeProj)
-                vMenu.addAction(toggleCell)
-                vMenu.addAction(toggleBonds)
-                vMenu.addAction(antiAlias)
-                vMenu.addSeparator()
-                vMenu.addAction(mouseRotate)
-                vMenu.addAction(mouseSelect)
 
         def changeState(self):
                 reason = self.sender().text()
@@ -263,6 +263,15 @@ class ViewPort(QGLWidget):
                             glEnable(GL_MULTISAMPLE)
                     self.AA = not self.AA
                     self.updateGL()
+
+        def alignView(self):
+            if self.sender().text()=='x':
+                self.rMatrix = QMatrix4x4([0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,1])
+            elif self.sender().text()=='y':
+                self.rMatrix = QMatrix4x4([1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1])
+            elif self.sender().text()=='z':
+                self.rMatrix.setToIdentity()
+            self.updateGL()
 
         #########################
         # Update stuff that's going to be drawn
