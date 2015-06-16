@@ -368,7 +368,7 @@ class ViewPort(QGLWidget):
                     for i in sel:
                         if all(i[1]<np.array(self.mult)):
                             at=atoms[i[0]]
-                            pos = (at[1]+np.dot(vec,i[1])+off[0]).tolist()
+                            pos = (at[1]+np.dot(i[1],vec)+off[0]).tolist()
                             self.selVBO.append(pos+[self.pse[at[0]][1]*1.5,0.4,0.4,0.5,0.5])
                 #make cell:
                 null=np.zeros(3)
