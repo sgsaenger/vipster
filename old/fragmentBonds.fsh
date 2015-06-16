@@ -1,8 +1,4 @@
-#version 130
-
-//! [0]
-uniform vec4 Side1DiffuseColor;
-uniform vec4 Side2DiffuseColor;
+#version 330
 
 out vec4 fragColor;
 
@@ -10,6 +6,8 @@ in float vertex_side;
 in vec3 normals_cameraspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
+in vec4 s1Cpass;
+in vec4 s2Cpass;
 
 void main(void)
 {
@@ -17,11 +15,11 @@ void main(void)
     vec4 MaterialDiffuseColor = vec4(0,0,0,0);
     if (vertex_side > 0.0)
     {
-        MaterialDiffuseColor = Side1DiffuseColor;
+        MaterialDiffuseColor = s1Cpass;
     }
     else if (vertex_side < 0.0)
     {
-        MaterialDiffuseColor = Side2DiffuseColor;
+        MaterialDiffuseColor = s2Cpass;
     }
     //hardcoded lighting parameters.
     //think about putting them as uniforms.
@@ -52,4 +50,3 @@ void main(void)
                 MaterialDiffuseColor.xyz*LightColor*LightPower*cosTheta/(distance*distance);
     fragColor = vec4(fragTemp,1.0);
 }
-//! [0]

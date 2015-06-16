@@ -1,9 +1,8 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from copy import deepcopy
 from os.path import dirname
-from math import floor
+from mol_f import make_iso_surf
 import numpy as np
 
 from PyQt4.QtCore import Qt
@@ -21,16 +20,20 @@ class ViewPort(QGLWidget):
         def __init__(self,parent):
                 #init with antialiasing, transparency and OGLv3.3 core profile
                 form=QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel)
+                form.setVersion(3,3)
+                form.setProfile(QGLFormat.CoreProfile)
                 super(ViewPort,self).__init__(form)
                 self.parent = parent
                 self.showBonds = True
                 self.showCell = True
+                self.showPlane = False
+                self.showSurf = False
+                self.planeVal = 0
                 self.perspective = True
                 self.mouseSelect = False
                 self.AA = True
                 self.xsh = 0
                 self.ysh = 0
-                self.sel = []
                 self.rMatrix = QMatrix4x4()
                 self.distance = 25
                 self.initActions()
@@ -156,6 +159,8 @@ class ViewPort(QGLWidget):
 
 
         def initializeGL(self):
+                #Bind VAO (necessary for modern OpenGL)
+                glBindVertexArray(glGenVertexArrays(1))
                 #render only visible vertices
                 glEnable(GL_DEPTH_TEST)
                 #backface culling: render only front of vertex
@@ -166,6 +171,7 @@ class ViewPort(QGLWidget):
 
                 #set line width for cell
                 glLineWidth(2)
+                glPointSize(2)
 
                 #set background color
                 self.qglClearColor(QColor(255,255,255,0))
@@ -187,75 +193,21 @@ class ViewPort(QGLWidget):
                 self.selectShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSelect.vsh')
                 self.selectShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSelect.fsh')
 
-                # prepare sphere
-                self.makeSphere()
-                #prepare bond
-                self.makeBond()
+                self.planeShader = QGLShaderProgram()
+                self.planeShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexPlane.vsh')
+                self.planeShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentPlane.fsh')
+                self.surfShader = QGLShaderProgram()
+                self.surfShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSurf.vsh')
+                self.surfShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
 
-        ##########################
-        # prepare models
-        #########################
-        def makeSphere(self):
-                #start from octahedron:
-                sphere = [QVector3D(-1.0, 0.0, 1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0, 1.0, 0.0),
-                               QVector3D( 1.0, 0.0, 1.0),QVector3D( 1.0, 0.0,-1.0),QVector3D( 0.0, 1.0, 0.0),
-                               QVector3D( 1.0, 0.0,-1.0),QVector3D(-1.0, 0.0,-1.0),QVector3D( 0.0, 1.0, 0.0),
-                               QVector3D(-1.0, 0.0,-1.0),QVector3D(-1.0, 0.0, 1.0),QVector3D( 0.0, 1.0, 0.0),
-                               QVector3D( 1.0, 0.0, 1.0),QVector3D(-1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0),
-                               QVector3D(-1.0, 0.0, 1.0),QVector3D(-1.0, 0.0,-1.0),QVector3D( 0.0,-1.0, 0.0),
-                               QVector3D(-1.0, 0.0,-1.0),QVector3D( 1.0, 0.0,-1.0),QVector3D( 0.0,-1.0, 0.0),
-                               QVector3D( 1.0, 0.0,-1.0),QVector3D( 1.0, 0.0, 1.0),QVector3D( 0.0,-1.0, 0.0)]
-                #subdivide and normalize for sphere:
-                for i in [0,1]:
-                        sphere = self.sphere_subdiv(sphere)
-                self.atom_modelspace = sphere
-
-        def sphere_subdiv(self,vertex):
-                subdivide = []
-                for i in range(0,len(vertex),3):
-                        a = vertex[i].normalized()
-                        b = vertex[i+1].normalized()
-                        c = vertex[i+2].normalized()
-                        d = (a+b).normalized()
-                        e = (a+c).normalized()
-                        f = (b+c).normalized()
-                        subdivide +=[a,d,e,d,f,e,e,f,c,d,b,f]
-                return subdivide
-
-        def makeBond(self):
-                #start from circle
-                cylinder = [QVector3D(0.0,0.5,0.5),QVector3D(0.0,0.5,-0.5),QVector3D(0.0,-0.5,-0.5),
-                            QVector3D(0.0,-0.5,0.5)]
-                for i in [0]:
-                        cylinder = self.cylinder_subdiv(cylinder)
-                cylinder = self.cylinder_puzzle(cylinder)
-                self.bond_modelspace = cylinder
-                #set normals
-                self.bo_normals_modelspace = deepcopy(cylinder)
-                for i in self.bo_normals_modelspace:
-                        i.setX(0)
-
-        def cylinder_subdiv(self,vertex):
-                temp = []
-                for i in range(0,len(vertex)-1):
-                        a = vertex[i].normalized()
-                        b = vertex[i+1].normalized()
-                        c = (a+b).normalized()
-                        temp += [a,c]
-                temp += [vertex[-1].normalized(),(vertex[-1]+vertex[0]).normalized()]
-                return temp
-
-        def cylinder_puzzle(self,vertex):
-                puzzle = []
-                for i in range(0,len(vertex)-1)+[-1]:
-                        a = vertex[i]/3+QVector3D(-1.0,0,0)
-                        b = vertex[i+1]/3+QVector3D(-1.0,0,0)
-                        c = vertex[i]/3+QVector3D( 1.0,0,0)
-                        d = vertex[i+1]/3+QVector3D( 1.0,0,0)
-                        e = vertex[i]/3+QVector3D( 1.0,0,0)
-                        f = vertex[i+1]/3+QVector3D(-1.0,0,0)
-                        puzzle += [a,c,b,d,f,e]
-                return puzzle
+                # load sphere
+                sf=open(dirname(__file__)+'/sphere_model','r')
+                self.sphereVBO = VBO(np.array(sf.readline().split(),'f'))
+                sf.close()
+                # load torus
+                tf=open(dirname(__file__)+'/bond_model','r')
+                self.torusVBO=VBO(np.array(tf.readline().split(),'f'))
+                tf.close()
 
         ##########################################
         # Modify state of Visualization
@@ -263,22 +215,22 @@ class ViewPort(QGLWidget):
         def initActions(self):
                 changeProj = QAction('Change &Projection',self)
                 changeProj.setShortcut('p')
-                changeProj.triggered.connect(self.projHandler)
+                changeProj.triggered.connect(self.changeState)
                 toggleCell = QAction('Toggle &Cell',self)
                 toggleCell.setShortcut('c')
-                toggleCell.triggered.connect(self.cellHandler)
+                toggleCell.triggered.connect(self.changeState)
                 mouseRotate = QAction('&Rotate',self)
                 mouseRotate.setShortcut('r')
-                mouseRotate.triggered.connect(self.mmHandler)
+                mouseRotate.triggered.connect(self.changeState)
                 mouseSelect = QAction('&Select',self)
                 mouseSelect.setShortcut('s')
-                mouseSelect.triggered.connect(self.mmHandler)
+                mouseSelect.triggered.connect(self.changeState)
                 antiAlias = QAction('Toggle &Antialiasing',self)
                 antiAlias.setShortcut('a')
-                antiAlias.triggered.connect(self.aaHandler)
+                antiAlias.triggered.connect(self.changeState)
                 toggleBonds = QAction('Toggle &Bonds',self)
                 toggleBonds.setShortcut('b')
-                toggleBonds.triggered.connect(self.bondHandler)
+                toggleBonds.triggered.connect(self.changeState)
                 vMenu = self.parent.parent.menuBar().addMenu('&View')
                 vMenu.addAction(changeProj)
                 vMenu.addAction(toggleCell)
@@ -287,82 +239,90 @@ class ViewPort(QGLWidget):
                 vMenu.addSeparator()
                 vMenu.addAction(mouseRotate)
                 vMenu.addAction(mouseSelect)
-        def projHandler(self):
-                self.perspective = not self.perspective
-                self.updateGL()
-        def cellHandler(self):
-                self.showCell = not self.showCell
-                self.updateGL()
-        def bondHandler(self):
-                self.showBonds = not self.showBonds
-                self.updateGL()
-        def mmHandler(self):
-                source = self.sender()
-                if source == None: self.mouseSelect = not self.mouseMode
-                elif source.text() == '&Rotate': self.mouseSelect = False
-                elif source.text() == '&Select': self.mouseSelect = True
-        def aaHandler(self):
-                if self.AA:
-                        glDisable(GL_MULTISAMPLE)
-                elif not self.AA:
-                        glEnable(GL_MULTISAMPLE)
-                self.AA = not self.AA
-                self.updateGL()
+
+        def changeState(self):
+                reason = self.sender().text()
+                if reason=='Change &Projection':
+                    self.perspective = not self.perspective
+                    self.updateGL()
+                elif reason=='Toggle &Cell':
+                    self.showCell = not self.showCell
+                    self.updateGL()
+                elif reason=='Toggle &Bonds':
+                    self.showBonds = not self.showBonds
+                    self.updateGL()
+                elif reason=='&Rotate':
+                    self.mouseSelect=False
+                elif reason=='&Select':
+                    self.mouseSelect=True
+                elif reason=='Toggle &Antialiasing':
+                    if self.AA:
+                            glDisable(GL_MULTISAMPLE)
+                    elif not self.AA:
+                            glEnable(GL_MULTISAMPLE)
+                    self.AA = not self.AA
+                    self.updateGL()
 
         #########################
         # Update stuff that's going to be drawn
         #########################
 
         def setMol(self,mol,mult):
-                if not mol: return
+                #prepare atoms and bonds for drawing
+                if not mol:return
+                #deactivate plane and volume data when
+                #molecule changes
+                if hasattr(self,'mol') and (self.mol is not mol):
+                    self.showPlane = False
+                    self.showSurf = False
+                    if hasattr(self,'planeVBO'):
+                        del self.planeVBO
+                    if hasattr(self,'surfVBO'):
+                        del self.surfVBO
+
+                #clear old selection if present:
+                if hasattr(self,'selVBO'):
+                    del self.selVBO
+
+                #save for interaction
                 self.mol=mol
                 self.mult=mult
-
-                #make Cell:
-                #get vectors:
-                vec = self.mol.get_vec()
-                cdm = self.mol.get_celldm()
-                null = QVector3D(0,0,0)
-                a = QVector3D(vec[0,0],vec[0,1],vec[0,2])*cdm
-                b = QVector3D(vec[1,0],vec[1,1],vec[1,2])*cdm
-                c = QVector3D(vec[2,0],vec[2,1],vec[2,2])*cdm
-                #define vertices:
-                self.cell_modelspace=[null,a,null,b,null,c,
-                                      a,a+b,a,a+c,
-                                      b,b+a,b,b+c,
-                                      c,c+a,c,c+b,
-                                      a+b,a+b+c,
-                                      a+c,a+b+c,
-                                      b+c,a+b+c]
                 #local variables for convenience
-                atoms = [self.mol.get_atom(i) for i in range(self.mol.get_nat())]
-                vec = self.mol.get_vec()*self.mol.get_celldm()
-                center = self.mol.get_center()
+                atoms = mol.get_all_atoms()
+                vec = mol.get_vec()*mol.get_celldm()
+                center = mol.get_center()
+                bonds = mol.get_bonds()
+                sel = mol.get_selection()
 
-                #get bonds and offsets
+                #get bonds and calculate offsets
                 if mult == [1,1,1]:
-                        #self.off = [-self.mol.get_center()]
-                        self.off = [[0,0,0]]
+                        #only one (==no) offset
+                        off = [-center]
+                        edge=[7]
                 else:
-                        self.off = []
                         tmult = [1,1,1]
                         #save the multiplicators:
-                        for i in [0,1,2]:
-                                if self.mult[i]%2 == 0:
-                                        tmult[i]=[x+0.5-self.mult[i]/2 for x in range(self.mult[i])]
+                        for i,j in enumerate(mult):
+                                if j%2 == 0:
+                                        tmult[i]=[x+0.5-j/2 for x in range(j)]
                                 else:
-                                        tmult[i]=[x-floor(self.mult[i]/2) for x in range(self.mult[i])]
+                                        tmult[i]=[x-np.floor(j/2) for x in range(j)]
                         #generate offsets:
-                        for i in tmult[0]:
-                                for j in tmult[1]:
-                                        for k in tmult[2]:
-                                                self.off.append([i,j,k])
-                        #self.off = self.getOffsets()
-                bonds = self.mol.get_bonds()
+                        off=[(i*vec[0]+j*vec[1]+k*vec[2])-center for i in tmult[0]
+                                for j in tmult[1] for k in tmult[2]]
+                        #save binary representation of disabled pbc-bonds (b'zyx')
+                        edge=[ (i==mult[0]) + ((j==mult[1])<<1) + ((k==mult[2])<<2)
+                                for i in range(1,mult[0]+1)
+                                for j in range(1,mult[1]+1)
+                                for k in range(1,mult[2]+1)]
 
-                #prepare bonds with position,angle,axis and names (for coloring)
-                tempbonds=[[],[],[],[],[],[],[],[]]
+                #prepare bond VBOs
+                tempbonds=[]
+                #binary representation of enabled pbc directions (b'zyx')
+                mult=np.sign(mult[0]-1)+np.sign(mult[1]-1)*2+np.sign(mult[2]-1)*4
                 for j in [0,1,2,3,4,5,6,7]:
+                        #check if pbc part is necessary
+                        if mult&j!=j: continue
                         for i in bonds[j]:
                                 #get positions of atoms
                                 a = atoms[i[0]][1]+i[2][0]
@@ -374,55 +334,138 @@ class ViewPort(QGLWidget):
                                 pos= (a+b)/2
                                 #rotate bond from x-axis d to bond-axis c
                                 c = (a-b)/np.linalg.norm(a-b)
-                                d = np.array([1,0,0])
-                                theta = np.degrees(np.arccos(np.dot(c,d)))
-                                axis = -np.cross(c,d)
-                                tempbonds[j].append([pos,theta,axis,c1,c2])
+                                d = np.array([1,0,0],'f')
+                                #check if parallel to x-axis
+                                if np.all(np.equal(abs(c),d)):
+                                        ax=np.array([0,1,0],'f')
+                                        c=c[0]
+                                        s=0
+                                        ic=1-c
+                                else:
+                                        theta=np.arccos(np.dot(c,d))
+                                        ax = -np.cross(c,d)
+                                        ax=ax/np.linalg.norm(ax)
+                                        #construct rotation matrix
+                                        c=np.float(np.cos(theta))
+                                        s=np.float(-np.sin(theta))
+                                        ic=np.float(1.-c)
+                                for idx,k in enumerate(off):
+                                        if j>0 and edge[idx]&j!=0:
+                                                continue
+                                        tempbonds.append([ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1],0.,
+                                                    ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0],0.,
+                                                    ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c,0.,
+                                                    pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],1.,
+                                                    c1.redF(),c1.greenF(),c1.blueF(),c1.alphaF(),
+                                                    c2.redF(),c2.greenF(),c2.blueF(),c2.alphaF()])
+                self.bondPosVBO=tempbonds
 
-                #save positions of atoms and bonds in world space
-                self.atoms=[]
-                self.selection=[]
-                self.bonds = []
-                self.cells = []
-                edge = np.max(self.off,axis=0)
-                for i1 in self.off:
-                        off = (i1[0]*vec[0]+i1[1]*vec[1]+i1[2]*vec[2])-center
-                        self.cells.append(off)
-                        for j in atoms:
-                                #save coord,color,size
-                                self.atoms.append((j[1]+off,self.pse[j[0]][2],self.pse[j[0]][1]))
-                        for j in tempbonds[0]:
-                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                pass
-                        #vec0
-                        if mult[0]!=1 and i1[0]!=edge[0]:
-                                for j in tempbonds[1]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec1
-                                if mult[1]!=1 and i1[1]!=edge[1]:
-                                        for j in tempbonds[4]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                        #vec0+vec1+vec2
-                                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                                for j in tempbonds[7]:
-                                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec0+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[5]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec1
-                        if mult[1]!=1 and i1[1]!=edge[1]:
-                                for j in tempbonds[2]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                                #vec1+vec2
-                                if mult[2]!=1 and i1[2]!=edge[2]:
-                                        for j in tempbonds[6]:
-                                                self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
-                        #vec2
-                        if mult[2]!=1 and i1[2]!=edge[2]:
-                                for j in tempbonds[3]:
-                                        self.bonds.append([j[0]+off,j[1],j[2],j[3],j[4]])
+                #save atoms in VBOs
+                self.atomsVBO=[(at[1]+j).tolist()+[self.pse[at[0]][1],self.pse[at[0]][2].redF(),self.pse[at[0]][2].greenF(),self.pse[at[0]][2].blueF(),self.pse[at[0]][2].alphaF()] for at in atoms for j in off]
+                #check for selected atoms inside mult-range
+                if sel:
+                    self.selVBO=[]
+                    for i in sel:
+                        if all(i[1]<np.array(self.mult)):
+                            at=atoms[i[0]]
+                            pos = (at[1]+np.dot(vec,i[1])+off[0]).tolist()
+                            self.selVBO.append(pos+[self.pse[at[0]][1]*1.5,0.4,0.4,0.5,0.5])
+                #make cell:
+                null=np.zeros(3)
+                celltmp=[null,vec[0],null,vec[1],null,vec[2],
+                        vec[0],vec[0]+vec[1],vec[0],vec[0]+vec[2],
+                        vec[1],vec[1]+vec[0],vec[1],vec[1]+vec[2],
+                        vec[2],vec[2]+vec[0],vec[2],vec[2]+vec[1],
+                        vec[0]+vec[1],vec[0]+vec[1]+vec[2],
+                        vec[0]+vec[2],vec[0]+vec[1]+vec[2],
+                        vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
+                self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
+
+                # save offset for plane and volume
+                self.offVBO=VBO(np.array(off,'f'))
+
                 self.updateGL()
+
+        ################################################
+        # CREATE AND MANAGE PLANES AND SURFACES
+        ################################################
+        def toggleSurf(self):
+            self.showSurf = not self.showSurf
+            self.updateGL()
+
+        def setSurf(self,sval):
+            vertices,nv = make_iso_surf(self.mol.get_vol(),sval,self.mol.get_vol_gradient())
+            self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
+            if self.showSurf:
+                self.updateGL()
+
+        def togglePlane(self):
+                self.showPlane = not self.showPlane
+                self.updateGL()
+
+        def setPlane(self,ptype,pval):
+                #volume data:
+                #'x/y/z',int
+                if ptype in 'xyz':
+                    v = self.mol.get_vol()
+                    vmin = v.min()
+                    vdiff = v.max()-vmin
+                    if ptype=='x':
+                        pdat=v[pval,:,:]
+                        pval = pval/v.shape[0]
+                        p=[[pval,0,0],[pval,1,0],[pval,0,1],[pval,1,1]]
+                    elif ptype=='y':
+                        pdat=v[:,pval,:]
+                        pval = pval/v.shape[1]
+                        p=[[0,pval,0],[1,pval,0],[0,pval,1],[1,pval,1]]
+                    elif ptype=='z':
+                        pdat=v[:,:,pval]
+                        pval = pval/v.shape[2]
+                        p=[[0,0,pval],[1,0,pval],[0,1,pval],[1,1,pval]]
+                    self.planeTex=np.array(map(lambda x:(x-vmin)/vdiff,pdat),'f')
+
+                #crystal data:
+                #'c',[tuple]
+                elif ptype == 'c':
+                    self.planeTex=np.array([[1.]],'f')
+                    #catch undefined case
+                    if pval.count(0) == 3:
+                        if hasattr(self,'planeVBO'):
+                            del self.planeVBO
+                        self.updateGL()
+                        return
+                    elif pval[0] == 0:
+                        if pval[1] == 0:
+                            p=[[0,0,pval[2]],[1,0,pval[2]],[0,1,pval[2]],[1,1,pval[2]]]
+                        elif pval[2] == 0:
+                            p=[[0,pval[1],0],[1,pval[1],0],[0,pval[1],1],[1,pval[1],1]]
+                        else:
+                            p=[[0,0,pval[2]],[0,pval[1],0],[1,0,pval[2]],[1,pval[1],0]]
+                    else:
+                        if pval[1] == 0:
+                            if pval[2]==0:
+                                p=[[pval[0],0,0],[pval[0],1,0],[pval[0],0,1],[pval[0],1,1]]
+                            else:
+                                p=[[pval[0],0,0],[pval[0],1,0],[0,0,pval[2]],[0,1,pval[2]]]
+                        elif pval[2] == 0:
+                            p=[[pval[0],0,0],[pval[0],0,1],[0,pval[1],0],[0,pval[1],1]]
+                        else:
+                            p=[[pval[0],0,0],[0,pval[1],0],[0,0,pval[2]]]
+                p=np.array(p,'f')
+                #take care of negative hkl-values
+                if ptype == 'c':
+                    for i in range(3):
+                        if pval[i]<0:
+                            p[:,i]+=1
+
+                #generate planeVBO
+                vec=self.mol.get_vec()*self.mol.get_celldm()
+                UV = [[0,0],[0,1],[1,0],[1,1]]
+                self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i] for i in range(len(p))],'f'))
+
+                if self.showPlane:
+                    self.updateGL()
+                return
 
         ################################################
         # CALLED UPON WINDOW RESIZE
@@ -452,14 +495,12 @@ class ViewPort(QGLWidget):
                 #clear depth and color buffer:
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-                if not hasattr(self,'atoms'): return
+                if not hasattr(self,'atomsVBO'): return
 
                 #construct viewMatrix
-                self.mMatrix = QMatrix4x4()
                 self.vMatrix = QMatrix4x4()
                 self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
                 self.vMatrix.translate(self.xsh,self.ysh,0)
-                self.vMatrix*=self.rMatrix
 
                 #TODO: orthogonal zooming needs fix
                 #check for projection:
@@ -478,71 +519,136 @@ class ViewPort(QGLWidget):
                                 self.drawBonds()
                         if self.showCell:
                                 self.drawCell()
-                        if self.selection:
-                            self.drawSelection()
+                        if hasattr(self,'selVBO'):
+                                self.drawSelection()
+                        if self.showPlane and hasattr(self,'planeVBO'):
+                                self.drawPlane()
+                        if self.showSurf and hasattr(self,'surfVBO'):
+                            self.drawSurf()
 
         def drawAtoms(self):
                 #bind shaders:
                 self.sphereShader.bind()
 
                 #send vertices
-                self.sphereShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
-                self.sphereShader.enableAttributeArray('vertex_modelspace')
-                #send normals for lighting
-                #equal coordinates for sphere
-                self.sphereShader.setAttributeArray('normals_modelspace',self.atom_modelspace)
-                self.sphereShader.enableAttributeArray('normals_modelspace')
+                self.sphereVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.sphereVBO.unbind()
 
-                #render loop
-                for atom in self.atoms:
-                        #load model matrix with coordinates
-                        self.mMatrix.setToIdentity()
-                        #move atoms to coord and recognize offset
-                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
-                        #scale atoms depending on species
-                        self.mMatrix.scale(atom[2])
-                        #bind transformation matrices
-                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.sphereShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.sphereShader.setUniformValue('MaterialDiffuseColor',atom[1])
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                # transformation matrices, model matrix needs not perform anything here
+                self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
+
+                for i in self.atomsVBO:
+                    self.sphereShader.setUniformValue('position_modelspace',*i[0:3])
+                    self.sphereShader.setUniformValue('scale_modelspace',i[3])
+                    self.sphereShader.setUniformValue('color_input',*i[4:])
+                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
+
                 #reset
-                self.sphereShader.disableAttributeArray('vertex_modelspace')
-                self.sphereShader.disableAttributeArray('normals_modelspace')
+                glDisableVertexAttribArray(0)
                 self.sphereShader.release()
+
+        def drawSurf(self):
+            self.surfShader.bind()
+
+            #send vertices
+            self.surfVBO.bind()
+            glEnableVertexAttribArray(0)
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,24,None)
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,24,self.surfVBO+12)
+            self.surfVBO.unbind()
+
+            self.surfShader.setUniformValue('volOff',*self.mol.get_vol_offset().tolist())
+            self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
+            self.surfShader.setUniformValue('rMatrix',self.rMatrix)
+
+            self.offVBO.bind()
+            glEnableVertexAttribArray(2)
+            glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
+            glVertexAttribDivisor(2,1)
+            self.offVBO.unbind()
+
+            #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
+            glDisable(GL_CULL_FACE)
+            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO),len(self.offVBO))
+            #glDrawArraysInstanced(GL_POINTS,0,np.prod(shape),len(self.offVBO))
+            glEnable(GL_CULL_FACE)
+            #glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
+
+            glDisableVertexAttribArray(0)
+            glDisableVertexAttribArray(1)
+            glDisableVertexAttribArray(2)
+            glVertexAttribDivisor(2,0)
+            self.surfShader.release()
+
+        def drawPlane(self):
+                self.planeShader.bind()
+
+                #send plane vertices
+                self.planeVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,20,None)
+                glEnableVertexAttribArray(1)
+                glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,20,self.planeVBO+12)
+                self.planeVBO.unbind()
+
+                #offset for instances
+                self.offVBO.bind()
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
+                glVertexAttribDivisor(2,1)
+                self.offVBO.unbind()
+
+                #transformation matrices
+                self.planeShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+
+                #send texture
+                ID = glGenTextures(1)
+                glActiveTexture(GL_TEXTURE0)
+                glBindTexture(GL_TEXTURE_2D,ID)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+                glTexImage2D(GL_TEXTURE_2D,0,GL_RED,self.planeTex.shape[1],self.planeTex.shape[0],0,GL_RED,GL_FLOAT,self.planeTex)
+                self.planeShader.setUniformValue('texSampler',0)
+
+                #render with disabled culling
+                glDisable(GL_CULL_FACE)
+                glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,len(self.planeVBO),len(self.offVBO))
+                glEnable(GL_CULL_FACE)
+
+                #reset
+                glDeleteTextures(1)
+                glDisableVertexAttribArray(0)
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glVertexAttribDivisor(2,0)
+                self.planeShader.release()
 
         def drawAtomsSelect(self):
                 #bind shaders:
                 self.selectShader.bind()
 
                 #send vertices
-                self.selectShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
-                self.selectShader.enableAttributeArray('vertex_modelspace')
+                self.sphereVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.sphereVBO.unbind()
 
-                #render loop
-                for i in range(len(self.atoms)):
-                        #color from atom number:
-                        r = (i & 0x000000FF) >> 0
-                        g = (i & 0x0000FF00) >> 8
-                        b = (i & 0x00FF0000) >> 16
-                        #load model matrix with coordinates
-                        self.mMatrix.setToIdentity()
-                        atom = self.atoms[i]
-                        #move atoms to coord and recognize offset
-                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
-                        #scale atoms depending on species
-                        self.mMatrix.scale(atom[2])
-                        #bind transformation matrix
-                        self.selectShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.selectShader.setUniformValue('MaterialDiffuseColor',QColor(r,g,b,255))
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                # transformation matrices
+                self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+
+                for j,i in enumerate(self.atomsVBO):
+                    self.selectShader.setUniformValue('position_modelspace',*i[0:3])
+                    self.selectShader.setUniformValue('scale_modelspace',i[3])
+                    self.selectShader.setUniformValue('InstanceID',j)
+                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
+
                 #reset
-                self.selectShader.disableAttributeArray('vertex_modelspace')
-                self.selectShader.disableAttributeArray('normals_modelspace')
+                glDisableVertexAttribArray(0)
                 self.selectShader.release()
 
         def drawSelection(self):
@@ -550,80 +656,63 @@ class ViewPort(QGLWidget):
                 self.sphereShader.bind()
 
                 #send vertices
-                self.sphereShader.setAttributeArray('vertex_modelspace',self.atom_modelspace)
-                self.sphereShader.enableAttributeArray('vertex_modelspace')
-                #send normals for lighting
-                #equal coordinates for sphere
-                self.sphereShader.setAttributeArray('normals_modelspace',self.atom_modelspace)
-                self.sphereShader.enableAttributeArray('normals_modelspace')
+                self.sphereVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.sphereVBO.unbind()
 
-                #render loop
-                for i in self.selection:
-                        #load model matrix with coordinates
-                        self.mMatrix.setToIdentity()
-                        #move atoms to coord and recognize offset
-                        atom = self.atoms[i]
-                        self.mMatrix.translate(atom[0][0],atom[0][1],atom[0][2])
-                        #scale atoms depending on species
-                        self.mMatrix.scale(atom[2]*1.3)
-                        #bind transformation matrices
-                        self.sphereShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.sphereShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.sphereShader.setUniformValue('MaterialDiffuseColor',QColor(120,120,150,200))
-                        #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.atom_modelspace))
+                # transformation matrices, model matrix needs not perform anything here
+                self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
+
+                for i in self.selVBO:
+                    self.sphereShader.setUniformValue('position_modelspace',*i[0:3])
+                    self.sphereShader.setUniformValue('scale_modelspace',i[3])
+                    self.sphereShader.setUniformValue('color_input',*i[4:])
+                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
+
                 #reset
-                self.sphereShader.disableAttributeArray('vertex_modelspace')
-                self.sphereShader.disableAttributeArray('normals_modelspace')
+                glDisableVertexAttribArray(0)
                 self.sphereShader.release()
 
         def drawBonds(self):
                 self.bondShader.bind()
 
                 #send vertices
-                self.bondShader.setAttributeArray('vertex_modelspace',self.bond_modelspace)
-                self.bondShader.enableAttributeArray('vertex_modelspace')
-                #send normals for lighting
-                self.bondShader.setAttributeArray('normals_modelspace',self.bo_normals_modelspace)
-                self.bondShader.enableAttributeArray('normals_modelspace')
+                self.torusVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.torusVBO.unbind()
 
-                #render loop
-                for bond in self.bonds:
-                        #load model Matrix with coordinates relative to offset
-                        self.mMatrix.setToIdentity()
-                        self.mMatrix.translate(bond[0][0],bond[0][1],bond[0][2])
-                        #rotate to fit bond vector
-                        self.mMatrix.rotate(bond[1],bond[2][0],bond[2][1],bond[2][2])
-                        # bind transformation matrices
-                        self.bondShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        self.bondShader.setUniformValue('mvMatrix',self.vMatrix*self.mMatrix)
-                        #color vertices
-                        self.bondShader.setUniformValue('Side1DiffuseColor',bond[3])
-                        self.bondShader.setUniformValue('Side2DiffuseColor',bond[4])
-                        #draw
-                        glDrawArrays(GL_TRIANGLES,0,len(self.bond_modelspace))
+                # bind transformation matrices
+                self.bondShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.bondShader.setUniformValue('rMatrix',self.rMatrix)
+                #draw
+                for i in self.bondPosVBO:
+                    self.bondShader.setUniformValue('mMatrix',QMatrix4x4(i[:16]).transposed())
+                    self.bondShader.setUniformValue('s1Color',*i[16:20])
+                    self.bondShader.setUniformValue('s2Color',*i[20:])
+                    glDrawArrays(GL_TRIANGLES,0,len(self.torusVBO.data))
+
                 #reset
-                self.bondShader.disableAttributeArray('vertex_modelspace')
-                self.bondShader.disableAttributeArray('normals_modelspace')
+                glDisableVertexAttribArray(0)
                 self.bondShader.release()
 
         def drawCell(self):
-                #bind shaders:
                 self.lineShader.bind()
-                self.lineShader.setAttributeArray('vertex_modelspace',self.cell_modelspace)
-                self.lineShader.enableAttributeArray('vertex_modelspace')
-                self.lineShader.setUniformValue('color',QColor(0,0,0))
-                for i in self.cells:
-                        self.mMatrix.setToIdentity()
-                        #move viewpoint to center
-                        self.mMatrix.translate(i[0],i[1],i[2])
-                        self.lineShader.setUniformValue('mvpMatrix',self.proj*self.vMatrix*self.mMatrix)
-                        glDrawArrays(GL_LINES,0,len(self.cell_modelspace))
-                self.lineShader.disableAttributeArray('vertex_modelspace')
-                self.lineShader.release()
 
+                self.cellVBO.bind()
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+                self.cellVBO.unbind()
+
+                self.lineShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+                self.lineShader.setUniformValue('color',QColor(0,0,0))
+
+                glDrawArrays(GL_LINES,0,len(self.cellVBO))
+
+                glDisableVertexAttribArray(0)
+                self.lineShader.release()
 
         ###############################################
         # INPUT HANDLING
@@ -676,12 +765,8 @@ class ViewPort(QGLWidget):
         def mouseReleaseEvent(self,e):
                 if not self.mouseSelect:return
                 if(e.button() & 2):
-                    self.sel=[]
-                    self.selection=[]
-                elif(e.button()&4) and self.sel:
-                    self.sel.pop()
-                    self.selection.pop()
-                elif(e.button()&1) and len(self.sel)<4:
+                    self.mol.del_selection()
+                elif e.button()&1:
                     #render with selectionmode
                     self.paintGL(True)
 
@@ -698,19 +783,17 @@ class ViewPort(QGLWidget):
                     if color[3] == 0:
                         return
                     mult=self.mult[0]*self.mult[1]*self.mult[2]
-                    nat=self.mol.get_nat()
-                    id = color[0] + 256*color[1] + 65536*color[2]
-                    if id<len(self.atoms):
-                        if id in [a[0] for a in self.sel]:
-                            return
-                        else:
-                            at = self.mol.get_atom(id%nat)
-                            self.sel.append([id,id%nat,at[0],self.atoms[id][0]])
-                            self.selection.append(id)
+                    idx = color[0] + 256*color[1] + 65536*color[2]
+                    if idx<len(self.atomsVBO):
+                        realid = idx/mult
+                        off = idx%mult
+                        zoff = off%self.mult[2]
+                        yoff = (off/self.mult[2])%self.mult[1]
+                        xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
+                        self.mol.add_selection(realid,[xoff,yoff,zoff])
                     else:
                         return
-                self.parent.edit.pickHandler(self.sel)
-                self.updateGL()
+                self.parent.updateMolStep()
 
         def wheelEvent(self,e):
                 delta = e.delta()
