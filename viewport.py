@@ -558,7 +558,7 @@ class ViewPort(QGLWidget):
                 glVertexAttribDivisor(3,1)
                 self.atomsVBO.unbind()
                 # draw instances
-                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.atomsVBO))
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO)/3,len(self.atomsVBO))
 
                 #reset
                 glDisableVertexAttribArray(0)
@@ -594,8 +594,7 @@ class ViewPort(QGLWidget):
 
             #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
             glDisable(GL_CULL_FACE)
-            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO),len(self.offVBO))
-            #glDrawArraysInstanced(GL_POINTS,0,np.prod(shape),len(self.offVBO))
+            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO)/6,len(self.offVBO))
             glEnable(GL_CULL_FACE)
             #glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
 
@@ -674,7 +673,7 @@ class ViewPort(QGLWidget):
                 glVertexAttribDivisor(2,1)
                 self.atomsVBO.unbind()
                 # draw instances
-                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.atomsVBO))
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO)/3,len(self.atomsVBO))
 
                 #reset
                 glDisableVertexAttribArray(0)
@@ -714,7 +713,7 @@ class ViewPort(QGLWidget):
                 glVertexAttribDivisor(3,1)
                 self.selVBO.unbind()
                 # draw instances
-                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO),len(self.selVBO))
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO)/3,len(self.selVBO))
 
                 #reset
                 glDisableVertexAttribArray(0)
@@ -750,7 +749,7 @@ class ViewPort(QGLWidget):
                 self.bondShader.setUniformValue('Side1DiffuseColor',self.pse['C'][2])
                 self.bondShader.setUniformValue('Side2DiffuseColor',self.pse['C'][2])
                 #draw
-                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.torusVBO.data),len(self.bondPosVBO)/24)
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.torusVBO.data)/3,len(self.bondPosVBO)/24)
 
                 #reset
                 for i in range(1,7):
