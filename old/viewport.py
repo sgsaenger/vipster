@@ -544,7 +544,7 @@ class ViewPort(QGLWidget):
                     self.sphereShader.setUniformValue('position_modelspace',*i[0:3])
                     self.sphereShader.setUniformValue('scale_modelspace',i[3])
                     self.sphereShader.setUniformValue('color_input',*i[4:])
-                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
+                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO)/3)
 
                 #reset
                 glDisableVertexAttribArray(0)
@@ -570,14 +570,13 @@ class ViewPort(QGLWidget):
 
             for i in self.offVBO:
                 self.surfShader.setUniformValue('offset',*i)
-                glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO))
+                glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO)/6)
 
             glEnable(GL_CULL_FACE)
 
             glDisableVertexAttribArray(0)
             glDisableVertexAttribArray(1)
             glDisableVertexAttribArray(2)
-            glVertexAttribDivisor(2,0)
             self.surfShader.release()
 
         def drawPlane(self):
@@ -608,7 +607,6 @@ class ViewPort(QGLWidget):
                 for i in self.offVBO:
                     self.planeShader.setUniformValue('offset',*i)
                     glDrawArrays(GL_TRIANGLE_STRIP,0,len(self.planeVBO))
-                glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,len(self.planeVBO),len(self.offVBO))
                 glEnable(GL_CULL_FACE)
 
                 #reset
@@ -616,7 +614,6 @@ class ViewPort(QGLWidget):
                 glDisableVertexAttribArray(0)
                 glDisableVertexAttribArray(1)
                 glDisableVertexAttribArray(2)
-                glVertexAttribDivisor(2,0)
                 self.planeShader.release()
 
         def drawAtomsSelect(self):
@@ -636,7 +633,7 @@ class ViewPort(QGLWidget):
                     self.selectShader.setUniformValue('position_modelspace',*i[0:3])
                     self.selectShader.setUniformValue('scale_modelspace',i[3])
                     self.selectShader.setUniformValue('in_color',(j&0xFF)/255.,((j&0xFF00)>>8)/255.,((j&0xFF0000)>>16)/255.,1)
-                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
+                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO)/3)
 
                 #reset
                 glDisableVertexAttribArray(0)
@@ -660,7 +657,7 @@ class ViewPort(QGLWidget):
                     self.sphereShader.setUniformValue('position_modelspace',*i[0:3])
                     self.sphereShader.setUniformValue('scale_modelspace',i[3])
                     self.sphereShader.setUniformValue('color_input',*i[4:])
-                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO))
+                    glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO)/3)
 
                 #reset
                 glDisableVertexAttribArray(0)
@@ -683,7 +680,7 @@ class ViewPort(QGLWidget):
                     self.bondShader.setUniformValue('mMatrix',QMatrix4x4(i[:16]).transposed())
                     self.bondShader.setUniformValue('s1Color',*i[16:20])
                     self.bondShader.setUniformValue('s2Color',*i[20:])
-                    glDrawArrays(GL_TRIANGLES,0,len(self.torusVBO.data))
+                    glDrawArrays(GL_TRIANGLES,0,len(self.torusVBO.data)/3)
 
                 #reset
                 glDisableVertexAttribArray(0)
