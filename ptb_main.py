@@ -27,7 +27,7 @@ def main():
         print_help(backend,1)
 
     app = QApplication([])
-    gui = MainView(backend,False)
+    gui = MainView(backend)
     app.aboutToQuit.connect(gui.deleteLater)
     gui.loadView()
     exit(app.exec_())

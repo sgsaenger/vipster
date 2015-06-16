@@ -9,13 +9,14 @@ from os import getcwd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import QTimer
 
+from viewport import ViewPort
 from moltab import MolTab
 from pwtab import PWTab
 from toolarea import ToolArea
 
 class MainView(QWidget):
 
-        def __init__(self,controller,old):
+        def __init__(self,controller):
             super(MainView,self).__init__()
             self.parent = QMainWindow()
             self.controller = controller
@@ -24,10 +25,6 @@ class MainView(QWidget):
 
         #Central Column:
             #OpenGL Viewport:
-            if old:
-                from old.viewport import ViewPort
-            else:
-                from viewport import ViewPort
             self.visual = ViewPort(self)
 
             #Control visual:

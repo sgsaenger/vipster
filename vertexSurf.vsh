@@ -1,13 +1,15 @@
-#version 330
-
 uniform mat4 vpMatrix;
 uniform mat4 rMatrix;
 uniform mat3 cellVec;
 uniform vec3 volOff;
 
-layout(location=0) in vec3 vertex_cellspace;
-layout(location=1) in vec3 normal_cellspace;
-layout(location=2) in vec3 offset;
+in vec3 vertex_cellspace;
+in vec3 normal_cellspace;
+#if __VERSION__ < 330
+uniform vec3 offset;
+#else
+in vec3 offset;
+#endif
 
 out vec4 MaterialDiffuseColor;
 out vec3 normals_cameraspace;

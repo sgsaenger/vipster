@@ -1,11 +1,13 @@
-#version 330
-
-layout(location=0) in vec3 vertex_modelspace;
-//normals are vertex.yz
-//matrix uses locations 1 to 4
-layout(location=1) in mat4 mMatrix;
-layout(location=5) in vec4 s1Color;
-layout(location=6) in vec4 s2Color;
+in vec3 vertex_modelspace;
+#if __VERSION__ < 330
+uniform mat4 mMatrix;
+uniform vec4 s1Color;
+uniform vec4 s2Color;
+#else
+in mat4 mMatrix;
+in vec4 s1Color;
+in vec4 s2Color;
+#endif
 
 uniform mat4 vpMatrix;
 uniform mat4 rMatrix;

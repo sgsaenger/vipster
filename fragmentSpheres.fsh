@@ -1,5 +1,3 @@
-#version 330
-
 in vec4 MaterialDiffuseColor;
 
 out vec4 fragColor;

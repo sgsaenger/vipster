@@ -1,10 +1,13 @@
-#version 330
-
-layout(location=0) in vec3 vertex_modelspace;
-layout(location=1) in vec3 position_modelspace;
-layout(location=2) in float scale_modelspace;
-layout(location=3) in vec4 color_input;
-//normals == vertices
+in vec3 vertex_modelspace;
+#if __VERSION__ < 330
+uniform vec3 position_modelspace;
+uniform float scale_modelspace;
+uniform vec4 color_input;
+#else
+in vec3 position_modelspace;
+in float scale_modelspace;
+in vec4 color_input;
+#endif
 
 uniform mat4 vpMatrix;
 uniform mat4 rMatrix;
