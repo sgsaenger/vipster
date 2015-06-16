@@ -1,9 +1,11 @@
-#version 330
-
 uniform mat4 vpMatrix;
-layout(location=0) in vec3 vertex_modelspace;
-layout(location=1) in vec2 vertex_UV;
+in vec3 vertex_modelspace;
+in vec2 vertex_UV;
+#if __VERSION__ < 330
 uniform vec3 offset;
+#else
+in vec3 offset;
+#endif
 
 out vec2 UV;
 

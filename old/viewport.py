@@ -20,7 +20,6 @@ class ViewPort(QGLWidget):
         def __init__(self,parent):
                 #init with antialiasing, transparency and OGLv3.3 core profile
                 form=QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel)
-                form.setVersion(3,3)
                 form.setProfile(QGLFormat.CoreProfile)
                 super(ViewPort,self).__init__(form)
                 self.parent = parent
@@ -176,29 +175,21 @@ class ViewPort(QGLWidget):
                 #set background color
                 self.qglClearColor(QColor(255,255,255,0))
 
+                #find supported version and modify shaders accordingly
+                glVersion=float(glGetString(GL_VERSION)[0:3])
+                self.instanced = glVersion>=3.3
+                if self.instanced:
+                    self.glslv='#version 330\n'
+                else:
+                    self.glslv='#version 130\n'
+
                 #add shaders:
-                self.sphereShader = QGLShaderProgram()
-                self.sphereShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSpheres.vsh')
-                self.sphereShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
-
-                self.bondShader = QGLShaderProgram()
-                self.bondShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexBonds.vsh')
-                self.bondShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentBonds.fsh')
-
-                self.lineShader = QGLShaderProgram()
-                self.lineShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexLines.vsh')
-                self.lineShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentLines.fsh')
-
-                self.selectShader = QGLShaderProgram()
-                self.selectShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSelect.vsh')
-                self.selectShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSelect.fsh')
-
-                self.planeShader = QGLShaderProgram()
-                self.planeShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexPlane.vsh')
-                self.planeShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentPlane.fsh')
-                self.surfShader = QGLShaderProgram()
-                self.surfShader.addShaderFromSourceFile(QGLShader.Vertex,dirname(__file__)+'/vertexSurf.vsh')
-                self.surfShader.addShaderFromSourceFile(QGLShader.Fragment,dirname(__file__)+'/fragmentSpheres.fsh')
+                self.sphereShader=self.makeShader('vertexSpheres.vsh','fragmentSpheres.fsh')
+                self.bondShader=self.makeShader('vertexBonds.vsh','fragmentBonds.fsh')
+                self.lineShader=self.makeShader('vertexLines.vsh','fragmentLines.fsh')
+                self.selectShader=self.makeShader('vertexSelect.vsh','fragmentSelect.fsh')
+                self.planeShader=self.makeShader('vertexPlane.vsh','fragmentPlane.fsh')
+                self.surfShader=self.makeShader('vertexSurf.vsh','fragmentSpheres.fsh')
 
                 # load sphere
                 sf=open(dirname(__file__)+'/sphere_model','r')
@@ -208,6 +199,16 @@ class ViewPort(QGLWidget):
                 tf=open(dirname(__file__)+'/bond_model','r')
                 self.torusVBO=VBO(np.array(tf.readline().split(),'f'))
                 tf.close()
+
+        def makeShader(self,vf,ff):
+            s = QGLShaderProgram()
+            with open(dirname(__file__)+'/'+vf) as f:
+                v=self.glslv+f.read()
+                s.addShaderFromSourceCode(QGLShader.Vertex,v)
+            with open(dirname(__file__)+'/'+ff) as f:
+                f=self.glslv+f.read()
+                s.addShaderFromSourceCode(QGLShader.Fragment,f)
+            return s
 
         ##########################################
         # Modify state of Visualization
@@ -317,7 +318,7 @@ class ViewPort(QGLWidget):
                                 for k in range(1,mult[2]+1)]
 
                 #prepare bond VBOs
-                tempbonds=[]
+                self.bondPosVBO=[]
                 #binary representation of enabled pbc directions (b'zyx')
                 mult=np.sign(mult[0]-1)+np.sign(mult[1]-1)*2+np.sign(mult[2]-1)*4
                 for j in [0,1,2,3,4,5,6,7]:
@@ -352,16 +353,19 @@ class ViewPort(QGLWidget):
                                 for idx,k in enumerate(off):
                                         if j>0 and edge[idx]&j!=0:
                                                 continue
-                                        tempbonds.append([ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1],0.,
+                                        self.bondPosVBO.append([ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1],0.,
                                                     ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0],0.,
                                                     ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c,0.,
                                                     pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],1.,
                                                     c1.redF(),c1.greenF(),c1.blueF(),c1.alphaF(),
                                                     c2.redF(),c2.greenF(),c2.blueF(),c2.alphaF()])
-                self.bondPosVBO=tempbonds
+                if self.instanced:
+                    self.bondPosVBO=VBO(np.array(self.bondPosVBO,'f'))
 
                 #save atoms in VBOs
                 self.atomsVBO=[(at[1]+j).tolist()+[self.pse[at[0]][1],self.pse[at[0]][2].redF(),self.pse[at[0]][2].greenF(),self.pse[at[0]][2].blueF(),self.pse[at[0]][2].alphaF()] for at in atoms for j in off]
+                if self.instanced:
+                    self.atomsVBO=VBO(np.array(self.atomsVBO,'f'))
                 #check for selected atoms inside mult-range
                 if sel:
                     self.selVBO=[]
@@ -370,6 +374,8 @@ class ViewPort(QGLWidget):
                             at=atoms[i[0]]
                             pos = (at[1]+np.dot(i[1],vec)+off[0]).tolist()
                             self.selVBO.append(pos+[self.pse[at[0]][1]*1.5,0.4,0.4,0.5,0.5])
+                    if self.selVBO and self.instanced:
+                        self.selVBO=VBO(np.array(self.selVBO,'f'))
                 #make cell:
                 null=np.zeros(3)
                 celltmp=[null,vec[0],null,vec[1],null,vec[2],
@@ -382,7 +388,10 @@ class ViewPort(QGLWidget):
                 self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
 
                 # save offset for plane and volume
-                self.offVBO=off
+                if self.instanced:
+                    self.offVBO=VBO(np.array(off,'f'))
+                else:
+                    self.offVBO=off
 
                 self.updateGL()
 
@@ -527,28 +536,45 @@ class ViewPort(QGLWidget):
                             self.drawSurf()
 
         def drawAtoms(self):
-                #bind shaders:
-                self.sphereShader.bind()
+            self.sphereShader.bind()
 
-                #send vertices
-                self.sphereVBO.bind()
-                glEnableVertexAttribArray(0)
-                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
-                self.sphereVBO.unbind()
+            self.sphereVBO.bind()
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+            self.sphereVBO.unbind()
 
-                # transformation matrices, model matrix needs not perform anything here
-                self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-                self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
+            self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
 
+            if self.instanced:
+                self.atomsVBO.bind()
+                glEnableVertexAttribArray(1)
+                glEnableVertexAttribArray(2)
+                glEnableVertexAttribArray(3)
+                glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,None)
+                glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,self.atomsVBO+12)
+                glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,32,self.atomsVBO+16)
+                glVertexAttribDivisor(1,1)
+                glVertexAttribDivisor(2,1)
+                glVertexAttribDivisor(3,1)
+                self.atomsVBO.unbind()
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO)/3,len(self.atomsVBO))
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glDisableVertexAttribArray(3)
+                glVertexAttribDivisor(1,0)
+                glVertexAttribDivisor(2,0)
+                glVertexAttribDivisor(3,0)
+            else:
                 for i in self.atomsVBO:
                     self.sphereShader.setUniformValue('position_modelspace',*i[0:3])
                     self.sphereShader.setUniformValue('scale_modelspace',i[3])
                     self.sphereShader.setUniformValue('color_input',*i[4:])
                     glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO)/3)
 
-                #reset
-                glDisableVertexAttribArray(0)
-                self.sphereShader.release()
+            #reset
+            glDisableVertexAttribArray(0)
+            self.sphereShader.release()
 
         def drawSurf(self):
             self.surfShader.bind()
@@ -568,123 +594,173 @@ class ViewPort(QGLWidget):
 
             glDisable(GL_CULL_FACE)
 
-            for i in self.offVBO:
-                self.surfShader.setUniformValue('offset',*i)
-                glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO)/6)
+            if self.instanced:
+                self.offVBO.bind()
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
+                glVertexAttribDivisor(2,1)
+                self.offVBO.unbind()
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO)/6,len(self.offVBO))
+                glVertexAttribDivisor(2,0)
+                glDisableVertexAttribArray(2)
+            else:
+                for i in self.offVBO:
+                    self.surfShader.setUniformValue('offset',*i)
+                    glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO)/6)
 
             glEnable(GL_CULL_FACE)
-
             glDisableVertexAttribArray(0)
             glDisableVertexAttribArray(1)
-            glDisableVertexAttribArray(2)
             self.surfShader.release()
 
         def drawPlane(self):
-                self.planeShader.bind()
+            self.planeShader.bind()
 
-                #send plane vertices
-                self.planeVBO.bind()
-                glEnableVertexAttribArray(0)
-                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,20,None)
-                glEnableVertexAttribArray(1)
-                glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,20,self.planeVBO+12)
-                self.planeVBO.unbind()
+            self.planeVBO.bind()
+            glEnableVertexAttribArray(0)
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,20,None)
+            glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,20,self.planeVBO+12)
+            self.planeVBO.unbind()
 
-                #transformation matrices
-                self.planeShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.planeShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
 
-                #send texture
-                ID = glGenTextures(1)
-                glActiveTexture(GL_TEXTURE0)
-                glBindTexture(GL_TEXTURE_2D,ID)
-                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
-                glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
-                glTexImage2D(GL_TEXTURE_2D,0,GL_RED,self.planeTex.shape[1],self.planeTex.shape[0],0,GL_RED,GL_FLOAT,self.planeTex)
-                self.planeShader.setUniformValue('texSampler',0)
+            #send texture
+            ID = glGenTextures(1)
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(GL_TEXTURE_2D,ID)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
+            glTexImage2D(GL_TEXTURE_2D,0,GL_RED,self.planeTex.shape[1],self.planeTex.shape[0],0,GL_RED,GL_FLOAT,self.planeTex)
+            self.planeShader.setUniformValue('texSampler',0)
 
-                #render with disabled culling
-                glDisable(GL_CULL_FACE)
+            glDisable(GL_CULL_FACE)
+
+            if self.instanced:
+                self.offVBO.bind()
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
+                glVertexAttribDivisor(2,1)
+                self.offVBO.unbind()
+                glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,len(self.planeVBO),len(self.offVBO))
+                glVertexAttribDivisor(2,0)
+                glDisableVertexAttribArray(2)
+            else:
                 for i in self.offVBO:
                     self.planeShader.setUniformValue('offset',*i)
                     glDrawArrays(GL_TRIANGLE_STRIP,0,len(self.planeVBO))
-                glEnable(GL_CULL_FACE)
 
-                #reset
-                glDeleteTextures(1)
-                glDisableVertexAttribArray(0)
-                glDisableVertexAttribArray(1)
-                glDisableVertexAttribArray(2)
-                self.planeShader.release()
+            glEnable(GL_CULL_FACE)
+            glDeleteTextures(1)
+            glDisableVertexAttribArray(0)
+            glDisableVertexAttribArray(1)
+            self.planeShader.release()
 
         def drawAtomsSelect(self):
-                #bind shaders:
-                self.selectShader.bind()
+            self.selectShader.bind()
 
-                #send vertices
-                self.sphereVBO.bind()
-                glEnableVertexAttribArray(0)
-                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
-                self.sphereVBO.unbind()
+            self.sphereVBO.bind()
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+            self.sphereVBO.unbind()
 
-                # transformation matrices
-                self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
 
+            if self.instanced:
+                self.atomsVBO.bind()
+                glEnableVertexAttribArray(1)
+                glEnableVertexAttribArray(2)
+                glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,None)
+                glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,self.atomsVBO+12)
+                glVertexAttribDivisor(1,1)
+                glVertexAttribDivisor(2,1)
+                self.atomsVBO.unbind()
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO)/3,len(self.atomsVBO))
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glVertexAttribDivisor(1,0)
+                glVertexAttribDivisor(2,0)
+            else:
                 for j,i in enumerate(self.atomsVBO):
                     self.selectShader.setUniformValue('position_modelspace',*i[0:3])
                     self.selectShader.setUniformValue('scale_modelspace',i[3])
                     self.selectShader.setUniformValue('in_color',(j&0xFF)/255.,((j&0xFF00)>>8)/255.,((j&0xFF0000)>>16)/255.,1)
                     glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO)/3)
 
-                #reset
-                glDisableVertexAttribArray(0)
-                self.selectShader.release()
+            glDisableVertexAttribArray(0)
+            self.selectShader.release()
 
         def drawSelection(self):
-                #bind shaders:
-                self.sphereShader.bind()
+            self.sphereShader.bind()
 
-                #send vertices
-                self.sphereVBO.bind()
-                glEnableVertexAttribArray(0)
-                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
-                self.sphereVBO.unbind()
+            self.sphereVBO.bind()
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+            self.sphereVBO.unbind()
 
-                # transformation matrices, model matrix needs not perform anything here
-                self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-                self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
+            self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
 
+            if self.instanced:
+                self.selVBO.bind()
+                glEnableVertexAttribArray(1)
+                glEnableVertexAttribArray(2)
+                glEnableVertexAttribArray(3)
+                glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,None)
+                glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,self.selVBO+12)
+                glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,32,self.selVBO+16)
+                glVertexAttribDivisor(1,1)
+                glVertexAttribDivisor(2,1)
+                glVertexAttribDivisor(3,1)
+                self.selVBO.unbind()
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.sphereVBO)/3,len(self.selVBO))
+                glDisableVertexAttribArray(1)
+                glDisableVertexAttribArray(2)
+                glDisableVertexAttribArray(3)
+                glVertexAttribDivisor(1,0)
+                glVertexAttribDivisor(2,0)
+                glVertexAttribDivisor(3,0)
+            else:
                 for i in self.selVBO:
                     self.sphereShader.setUniformValue('position_modelspace',*i[0:3])
                     self.sphereShader.setUniformValue('scale_modelspace',i[3])
                     self.sphereShader.setUniformValue('color_input',*i[4:])
                     glDrawArrays(GL_TRIANGLES,0,len(self.sphereVBO)/3)
 
-                #reset
-                glDisableVertexAttribArray(0)
-                self.sphereShader.release()
+            glDisableVertexAttribArray(0)
+            self.sphereShader.release()
 
         def drawBonds(self):
-                self.bondShader.bind()
+            self.bondShader.bind()
 
-                #send vertices
-                self.torusVBO.bind()
-                glEnableVertexAttribArray(0)
-                glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
-                self.torusVBO.unbind()
+            self.torusVBO.bind()
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,None)
+            self.torusVBO.unbind()
 
-                # bind transformation matrices
-                self.bondShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-                self.bondShader.setUniformValue('rMatrix',self.rMatrix)
-                #draw
+            self.bondShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
+            self.bondShader.setUniformValue('rMatrix',self.rMatrix)
+
+            if self.instanced:
+                self.bondPosVBO.bind()
+                for i in range(1,7):
+                    glEnableVertexAttribArray(i)
+                    glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,96,self.bondPosVBO+(i-1)*16)
+                    glVertexAttribDivisor(i,1)
+                self.bondPosVBO.unbind()
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.torusVBO)/3,len(self.bondPosVBO))
+                for i in range(1,7):
+                    glDisableVertexAttribArray(i)
+                    glVertexAttribDivisor(i,0)
+            else:
                 for i in self.bondPosVBO:
                     self.bondShader.setUniformValue('mMatrix',QMatrix4x4(i[:16]).transposed())
                     self.bondShader.setUniformValue('s1Color',*i[16:20])
                     self.bondShader.setUniformValue('s2Color',*i[20:])
-                    glDrawArrays(GL_TRIANGLES,0,len(self.torusVBO.data)/3)
+                    glDrawArrays(GL_TRIANGLES,0,len(self.torusVBO)/3)
 
-                #reset
-                glDisableVertexAttribArray(0)
-                self.bondShader.release()
+            glDisableVertexAttribArray(0)
+            self.bondShader.release()
 
         def drawCell(self):
                 self.lineShader.bind()

@@ -1,5 +1,3 @@
-#version 330
-
 out vec4 planeColor;
 in vec2 UV;
 uniform sampler2D texSampler;
