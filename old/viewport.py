@@ -382,7 +382,7 @@ class ViewPort(QGLWidget):
                 self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
 
                 # save offset for plane and volume
-                self.offVBO=VBO(np.array(off,'f'))
+                self.offVBO=off
 
                 self.updateGL()
 
@@ -566,18 +566,13 @@ class ViewPort(QGLWidget):
             self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
             self.surfShader.setUniformValue('rMatrix',self.rMatrix)
 
-            self.offVBO.bind()
-            glEnableVertexAttribArray(2)
-            glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
-            glVertexAttribDivisor(2,1)
-            self.offVBO.unbind()
-
-            #glPolygonMode(GL_FRONT_AND_BACK,GL_LINE)
             glDisable(GL_CULL_FACE)
-            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO),len(self.offVBO))
-            #glDrawArraysInstanced(GL_POINTS,0,np.prod(shape),len(self.offVBO))
+
+            for i in self.offVBO:
+                self.surfShader.setUniformValue('offset',*i)
+                glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO))
+
             glEnable(GL_CULL_FACE)
-            #glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
 
             glDisableVertexAttribArray(0)
             glDisableVertexAttribArray(1)
@@ -596,13 +591,6 @@ class ViewPort(QGLWidget):
                 glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,20,self.planeVBO+12)
                 self.planeVBO.unbind()
 
-                #offset for instances
-                self.offVBO.bind()
-                glEnableVertexAttribArray(2)
-                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
-                glVertexAttribDivisor(2,1)
-                self.offVBO.unbind()
-
                 #transformation matrices
                 self.planeShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
 
@@ -617,6 +605,9 @@ class ViewPort(QGLWidget):
 
                 #render with disabled culling
                 glDisable(GL_CULL_FACE)
+                for i in self.offVBO:
+                    self.planeShader.setUniformValue('offset',*i)
+                    glDrawArrays(GL_TRIANGLE_STRIP,0,len(self.planeVBO))
                 glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,len(self.planeVBO),len(self.offVBO))
                 glEnable(GL_CULL_FACE)
 

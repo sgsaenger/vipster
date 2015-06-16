@@ -7,7 +7,7 @@ uniform vec3 volOff;
 
 layout(location=0) in vec3 vertex_cellspace;
 layout(location=1) in vec3 normal_cellspace;
-layout(location=2) in vec3 offset;
+uniform vec3 offset;
 
 out vec4 MaterialDiffuseColor;
 out vec3 normals_cameraspace;
