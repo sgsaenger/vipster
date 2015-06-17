@@ -11,6 +11,7 @@ in vec4 color_input;
 
 uniform mat4 vpMatrix;
 uniform mat4 rMatrix;
+uniform float atom_fac;
 
 out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -21,7 +22,7 @@ out vec4 MaterialDiffuseColor;
 void main(void)
 {
     //standard vertex positioning:
-    gl_Position = vpMatrix * vec4(vertex_modelspace*scale_modelspace+position_modelspace,1);
+    gl_Position = vpMatrix * vec4(vertex_modelspace*scale_modelspace*atom_fac+position_modelspace,1);
 
     //transformations for calculation of lighting:
     vec3 vertex_cameraspace=(rMatrix*vec4(vertex_modelspace,1)).xyz;

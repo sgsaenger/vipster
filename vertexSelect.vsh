@@ -9,13 +9,14 @@ in float scale_modelspace;
 #endif
 
 uniform mat4 vpMatrix;
+uniform float atom_fac;
 
 out vec4 MaterialDiffuseColor;
 
 void main(void)
 {
     //standard vertex positioning:
-    gl_Position = vpMatrix * vec4(vertex_modelspace*scale_modelspace+position_modelspace,1);
+    gl_Position = vpMatrix * vec4(vertex_modelspace*scale_modelspace*atom_fac+position_modelspace,1);
 
 #if __VERSION__ < 330
     MaterialDiffuseColor = in_color;

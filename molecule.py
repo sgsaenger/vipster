@@ -20,7 +20,9 @@ class Molecule:
     K-Point settings (_kpoints)
     """
 
-    def __init__(self):
+    def __init__(self,controller):
+        self.pse=self._pse(controller.pse)
+        self._config=controller._config
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
@@ -160,6 +162,35 @@ class Molecule:
             return coord/self._celldm
 
     ######################################################
+    # LOCAL PSE-DICT
+    # overlay for global dict
+    ######################################################
+
+    class _pse(dict):
+        """Special dictionary
+
+        Upon requesting information for an atom-type,
+        determines likely referenced type and makes
+        local copy
+        """
+        def __init__(self,cpse):
+            super(Molecule._pse,self).__init__()
+            self.cpse=cpse
+
+        def __getitem__(self,key):
+            if not key in self:
+                if key in self.cpse:
+                    self[key]=self.cpse[key]
+                else:
+                    for i in range(len(key),0,-1):
+                        if key[:i] in self.cpse:
+                            self[key] = self.cpse[key[:i]]
+                            break
+                    if not key in self:
+                        self[key]=self.cpse['X']
+            return super(Molecule._pse,self).__getitem__(key)
+
+    ######################################################
     # RETURN FUNCTIONS
     ######################################################
 
@@ -210,7 +241,10 @@ class Molecule:
 
     def get_center(self):
         """Return center-coordinates of cell"""
-        return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
+        if self._config['Rotate-COM']:
+            return (np.max(self._atom_coord,axis=0)+np.min(self._atom_coord,axis=0))/2
+        else:
+            return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
 
     def get_kpoints(self,mode):
         """Return active k-points or k-point-settings"""
@@ -280,10 +314,7 @@ class Molecule:
         if len(self._atom_coord)<2:
             return
         at_c = self._atom_coord
-        cutoff=np.array([3.5]*len(at_c),'f')
-        for i in range(len(at_c)):
-            if self._atom_name[i] == 'H':
-                cutoff[i]=2.27
+        cutoff=np.array([self.pse[i][3] for i in self._atom_name])
         n=np.zeros(3)
         v = self.get_vec()*self.get_celldm()
         off = [[(n,n)],                             #orig
@@ -296,7 +327,7 @@ class Molecule:
                 [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
         for k,os in enumerate(off):
             for i in os:
-                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,i)
+                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,self._config['Bond-Cut-Fac'],i)
                 self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
 
     #####################################################
