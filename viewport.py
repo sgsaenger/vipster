@@ -255,7 +255,7 @@ class ViewPort(QGLWidget):
                     self.bondPosVBO=VBO(np.array(self.bondPosVBO,'f'))
 
                 #save atoms in VBOs
-                self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[pse[at[0]][3+self.config['Atom-Radius-VdW']],pse[at[0]][5],pse[at[0]][6],pse[at[0]][7],pse[at[0]][8]] for at in atoms for j in off],'f'))
+                self.atomsVBO=[(at[1]+j).tolist()+[pse[at[0]][3+self.config['Atom-Radius-VdW']],pse[at[0]][5],pse[at[0]][6],pse[at[0]][7],pse[at[0]][8]] for at in atoms for j in off]
                 if self.instanced:
                     self.atomsVBO=VBO(np.array(self.atomsVBO,'f'))
                 #check for selected atoms inside mult-range
