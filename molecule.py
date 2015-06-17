@@ -241,7 +241,7 @@ class Molecule:
 
     def get_center(self):
         """Return center-coordinates of cell"""
-        if int(self._config['Rotate-COM']):
+        if self._config['Rotate-COM']:
             return (np.max(self._atom_coord,axis=0)+np.min(self._atom_coord,axis=0))/2
         else:
             return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
@@ -314,7 +314,7 @@ class Molecule:
         if len(self._atom_coord)<2:
             return
         at_c = self._atom_coord
-        cutoff=np.array([float(self.pse[i][3]) for i in self._atom_name])
+        cutoff=np.array([self.pse[i][3] for i in self._atom_name])
         n=np.zeros(3)
         v = self.get_vec()*self.get_celldm()
         off = [[(n,n)],                             #orig

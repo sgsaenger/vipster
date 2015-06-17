@@ -25,7 +25,7 @@ class ViewPort(QGLWidget):
                 super(ViewPort,self).__init__(form)
                 self.parent = parent
                 self.config=self.parent.controller._config
-                self.perspective=bool(int(self.config['Proj-Perspective']))
+                self.perspective=self.config['Proj-Perspective']
                 self.showBonds = True
                 self.showCell = True
                 self.showPlane = False
@@ -243,7 +243,7 @@ class ViewPort(QGLWidget):
                 self.bondPosVBO=VBO(np.array(tempbonds,'f'))
 
                 #save atoms in VBOs
-                self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[pse[at[0]][3+int(self.config['Atom-Radius-VdW'])],pse[at[0]][5],pse[at[0]][6],pse[at[0]][7],pse[at[0]][8]] for at in atoms for j in off],'f'))
+                self.atomsVBO=VBO(np.array([(at[1]+j).tolist()+[pse[at[0]][3+self.config['Atom-Radius-VdW']],pse[at[0]][5],pse[at[0]][6],pse[at[0]][7],pse[at[0]][8]] for at in atoms for j in off],'f'))
                 #check for selected atoms inside mult-range
                 if sel:
                     selList=[]
@@ -251,7 +251,7 @@ class ViewPort(QGLWidget):
                         if all(i[1]<np.array(self.mult)):
                             at=atoms[i[0]]
                             pos = (at[1]+np.dot(vec,i[1])+off[0]).tolist()
-                            selList.append(pos+[pse[at[0]][3+int(self.config['Atom-Radius-VdW'])]*1.5,0.4,0.4,0.5,0.5])
+                            selList.append(pos+[pse[at[0]][3+self.config['Atom-Radius-VdW']]*1.5,0.4,0.4,0.5,0.5])
                     if selList:
                         self.selVBO=VBO(np.array(selList,'f'))
                 #make cell:
@@ -423,7 +423,7 @@ class ViewPort(QGLWidget):
                 # transformation matrices, model matrix needs not perform anything here
                 self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
                 self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-                self.sphereShader.setUniformValue('atom_fac',float(self.mol._config['Atom-Factor']))
+                self.sphereShader.setUniformValue('atom_fac',self.mol._config['Atom-Factor'])
 
                 #interleaved VBO
                 self.atomsVBO.bind()
@@ -543,7 +543,7 @@ class ViewPort(QGLWidget):
 
                 # transformation matrices
                 self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-                self.selectShader.setUniformValue('atom_fac',float(self.mol._config['Atom-Factor']))
+                self.selectShader.setUniformValue('atom_fac',self.mol._config['Atom-Factor'])
 
                 #interleaved VBO
                 self.atomsVBO.bind()
@@ -581,7 +581,7 @@ class ViewPort(QGLWidget):
                 # transformation matrices, model matrix needs not perform anything here
                 self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
                 self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-                self.sphereShader.setUniformValue('atom_fac',float(self.mol._config['Atom-Factor']))
+                self.sphereShader.setUniformValue('atom_fac',self.mol._config['Atom-Factor'])
 
                 #interleaved VBO
                 self.selVBO.bind()

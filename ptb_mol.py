@@ -5,7 +5,8 @@ import sys
 import copy
 from math import sqrt
 from collections import OrderedDict
-from os.path import dirname,isfile,expanduser
+from os.path import dirname,expanduser
+from json import JSONDecoder
 
 from molecule import Molecule
 
@@ -44,11 +45,7 @@ class TBController():
                            ('Empire xyz',self._writeEmpire),
                            ('Gaussian Cube File',self._writeCube),
                            ('Lammps Data File',self._writeLmp)])
-            #search for user-defined config, else take default.conf
-            if isfile(expanduser('~/.toolbox.conf')):
-                self.readConfig(expanduser('~/.toolbox.conf'))
-            else:
-                self.readConfig(dirname(__file__)+'/default.conf')
+            self.readConfig()
 
 #####################################################################
 # GET FUNCTIONS
@@ -86,27 +83,16 @@ class TBController():
 # READ FUNCTIONS
 #####################################################################
 
-    def readConfig(self,filename):
-        """Read config"""
-        with open(filename,'r') as f:
-            fl=f.readlines()
-            for i in range(len(fl)):
-                if fl[i][0]=='!':
-                    continue
-                if fl[i].strip()=='PSE:':
-                    j=i+1
-                    while fl[j][0]!='/':
-                        pl = fl[j].split()
-                        self.pse[pl[0]]=[pl[1]]+map(float,pl[2:])
-                        j+=1
-                    i=j+1
-                elif fl[i].strip()=='General:':
-                    j=i+1
-                    while fl[j][0]!='/':
-                        pl=fl[j].split(':',1)
-                        self._config[pl[0]]=pl[1]
-                        j+=1
-                    i=j+1
+    def readConfig(self):
+        """Read config and PSE from json-file"""
+        try:
+            with open(expanduser('~/.toolbox.json')) as f:
+                conf = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
+        except:
+            with open(dirname(__file__)+'/default.json') as f:
+                conf = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
+        self.pse=conf['PSE']
+        self._config=conf['General']
 
     def readFile(self,fmt,filename,mode='gui'):
         """
@@ -582,7 +568,6 @@ class TBController():
         final = False
         while i<len(data):
             line = data[i].split()
-            #print line
             if not line:
                 pass
             elif line[0:3] == ['number', 'of', 'atoms/cell']:
