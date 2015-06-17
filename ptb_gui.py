@@ -23,21 +23,33 @@ class MainView(QWidget):
             self.initMenu()
             self.mult =[1,1,1]
 
+        #Right column:
+            #Molecule edit area:
+            self.coord = MolTab(self)
+            #PWParameter edit area:
+            self.pw = PWTab()
+            #nest edit areas in tabwidget
+            rcol = QTabWidget()
+            rcol.addTab(self.coord,'Molecule coordinates')
+            rcol.addTab(self.pw,'PW Parameters')
+            rcol.setFixedWidth(467)
+            #connect to toggle button
+            rcol.hide()
+
         #Central Column:
             #OpenGL Viewport:
             self.visual = ViewPort(self)
-
-            #Control visual:
             #Cell multiplication
             self.xspin = QSpinBox()
             self.yspin = QSpinBox()
             self.zspin = QSpinBox()
             for i in [self.xspin,self.yspin,self.zspin]:
                     i.setMinimum(1)
-            #Toggle edit column:
+            #Toggle right column:
             editBut = QPushButton()
             editBut.setText('Edit')
             editBut.setCheckable(True)
+            editBut.clicked.connect(rcol.setVisible)
             #create Timers
             self.animTimer = QTimer()
             self.animTimer.setInterval(50)
@@ -45,10 +57,13 @@ class MainView(QWidget):
             #camera-buttons
             xcam = QPushButton('x')
             xcam.clicked.connect(self.visual.alignView)
+            xcam.setFixedWidth(30)
             ycam = QPushButton('y')
             ycam.clicked.connect(self.visual.alignView)
+            ycam.setFixedWidth(30)
             zcam = QPushButton('z')
             zcam.clicked.connect(self.visual.alignView)
+            zcam.setFixedWidth(30)
             #Choose step, animate
             incBut = QPushButton()
             incBut.clicked.connect(self.incStep)
@@ -80,23 +95,23 @@ class MainView(QWidget):
             self.yspin.valueChanged.connect(self.updateMult)
             self.zspin.valueChanged.connect(self.updateMult)
             #Control Layout:
-            cam = QHBoxLayout()
-            cam.addWidget(QLabel('Align camera:'))
-            cam.addStretch()
-            cam.addWidget(xcam)
-            cam.addStretch()
-            cam.addWidget(ycam)
-            cam.addStretch()
-            cam.addWidget(zcam)
             mult = QHBoxLayout()
+            mult.addWidget(QLabel('Align camera:'))
+            mult.addStretch(1)
+            mult.addWidget(xcam)
+            mult.addStretch(1)
+            mult.addWidget(ycam)
+            mult.addStretch(1)
+            mult.addWidget(zcam)
+            mult.addStretch(100)
             mult.addWidget(QLabel('Cell multiply:'))
-            mult.addStretch()
+            mult.addStretch(1)
             mult.addWidget(QLabel('x:'))
             mult.addWidget(self.xspin)
-            mult.addStretch()
+            mult.addStretch(1)
             mult.addWidget(QLabel('y:'))
             mult.addWidget(self.yspin)
-            mult.addStretch()
+            mult.addStretch(1)
             mult.addWidget(QLabel('z:'))
             mult.addWidget(self.zspin)
             steps = QHBoxLayout()
@@ -110,14 +125,11 @@ class MainView(QWidget):
             steps.addWidget(incBut)
             steps.addWidget(lastBut)
             steps.addWidget(editBut)
-
             #Layout:
             viewlay = QVBoxLayout()
             viewlay.addWidget(self.visual)
-            viewlay.addLayout(cam)
             viewlay.addLayout(mult)
             viewlay.addLayout(steps)
-
             #Frame it:
             mcol = QFrame()
             mcol.setLayout(viewlay)
@@ -127,55 +139,24 @@ class MainView(QWidget):
             #Molecule list:
             self.mlist = QListWidget()
             self.mlist.currentRowChanged.connect(self.selectMolecule)
-            #splitter-container
-            mlist=QWidget()
-            mlayout=QVBoxLayout()
-            mlabel=QLabel('Loaded Molecules:')
-            mlayout.addWidget(mlabel)
-            mlayout.addWidget(self.mlist)
-            mlist.setLayout(mlayout)
-
             #PWParameter list:
             self.pwlist = QListWidget()
             self.pwlist.currentRowChanged.connect(self.selectPWParam)
-            #splitter-container
-            pwlist=QWidget()
-            pwlayout=QVBoxLayout()
-            pwlabel=QLabel('PW Parameter sets:')
-            pwlayout.addWidget(pwlabel)
-            pwlayout.addWidget(self.pwlist)
-            pwlist.setLayout(pwlayout)
-
-
             #Edit stuff
             self.edit = ToolArea(self)
-
-            #encapsulate in splitter:
-            lcol = QSplitter()
-            lcol.addWidget(mlist)
-            lcol.addWidget(pwlist)
-            lcol.addWidget(self.edit)
-            lcol.setOrientation(0)
-            lcol.setChildrenCollapsible(False)
+            self.edit.setMinimumHeight(400)
+            #Layout and frame
+            lcol = QFrame()
             lcol.setFrameStyle(38)
-            lcol.setMaximumWidth(300)
-
-
-        #Right column:
-            #Molecule edit area:
-            self.coord = MolTab(self)
-
-            #PWParameter edit area:
-            self.pw = PWTab()
-
-            #nest edit areas in tabwidget
-            rcol = QTabWidget()
-            rcol.addTab(self.coord,'Molecule coordinates')
-            rcol.addTab(self.pw,'PW Parameters')
-            rcol.setFixedWidth(467)
-            #connect to toggle button
-            rcol.hide()
-            editBut.clicked.connect(rcol.setVisible)
+            lcol.setFixedWidth(340)
+            llay = QVBoxLayout()
+            llay.addWidget(QLabel('Loaded Molecules:'))
+            llay.addWidget(self.mlist)
+            llay.addWidget(QLabel('PW Parameter sets:'))
+            llay.addWidget(self.pwlist)
+            llay.addWidget(self.edit)
+            llay.setStretchFactor(self.edit,10)
+            lcol.setLayout(llay)
 
         #Lay out columns:
             hbox = QHBoxLayout()
