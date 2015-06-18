@@ -620,6 +620,10 @@ class Molecule:
                         #position of atom
                         else:
                             arg=np.array(self._atom_coord[int(arg)])
+                    #implicit negative vector
+                    elif arglist[0]=='-':
+                        arg,arglist = getArg(arglist)
+                        arg=np.array(-self._atom_coord[int(arg[1:])])
                     #fail when not a vector and vector needed
                     elif t=='v':
                         raise ValueError('Not a valid vector: '+str(arg))
