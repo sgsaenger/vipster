@@ -59,6 +59,8 @@ Interface for more complex actions:
 - **shi**ft (list) (vec): shift the given list of atoms along a given direction
 - **rot**ate (list) angle (vec) (shift): rotates around vector vec with offset shift
 - **mir**ror (list) (vec1) (vec2) (shift): mirrors at a plane given by the vectors 1 and 2, offset by shift
+- **par**allelize (list1) (list2) (list3): list2 defines plane in list1, rotate list1 so that planes defined by l2 and l3 are parallel
+- **psh**ift (list1) (vec) (list2) (list3): shift list1 according to vec over surface/plane list3
 
 Arguments can be given as follows:
 

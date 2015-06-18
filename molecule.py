@@ -708,34 +708,22 @@ class Molecule:
         axis=np.cross(n1,n2)
         self._rotate(atoms,angle,axis,p1[1])
 
-    def _pshift(self,atoms,vec,p1,p2):
+    def _pshift(self,atoms,vec,plane):
         """Shift planes relatively
 
         atoms -> list of atoms
         vec -> shift vector
               x/y parallel to static plane
               y perpendicular
-        p1 -> plane in molecule/mobile target
-        p2 -> plane on surface/static target
-              p2[0]-p2[1] give x-coordinate
+        pl -> plane on surface/static target
+              pl[0]-pl[1] give x-coordinate
         """
-        if len(p1)!=3:
-            raise ValueError('Mobile plane not valid')
-        if len(p2)!=3:
+        if len(pl)!=3:
             raise ValueError('Static plane not valid')
-        p1=[self._atom_coord[i] for i in p1]
-        p2=[self._atom_coord[i] for i in p2]
-        d11=p1[0]-p1[1]
-        d12=p1[2]-p1[1]
-        n1=np.cross(d11,d12)
-        n1=n1/np.linalg.norm(n1)
-        d21=p2[0]-p2[1]
-        d22=p2[2]-p2[1]
-        n2=np.cross(d21,d22)
-        n2=n2/np.linalg.norm(n2)
-        angle=np.degrees(np.arccos(np.dot(n2,n1)))
-        if not np.isclose(angle,0,atol=1.e-6)\
-                and not np.isclose(angle,180,atol=1.e-6):
-            raise ValueError('Planes are not parallel')
-        shift=np.dot(vec,[d11,np.cross(d11,n2),n2])
+        pl=[self._atom_coord[i] for i in p2]
+        x=pl[0]-pl[1]
+        t=p2[2]-p2[1]
+        z=np.cross(x,t)
+        z=z/np.linalg.norm(z)
+        shift=np.dot(vec,[x,np.cross(x,z),z])
         self._shift(atoms,shift)
