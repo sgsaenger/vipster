@@ -500,6 +500,7 @@ class Molecule:
                 'def':self._evalArgs('define','ls'),
                 'mir':self._evalArgs(self._mirror,'lvvo'),
                 'rep':self._evalArgs('repeat','i'),
+                'psh':self._evalArgs(self._pshift,'lill'),
                 'pro':self._evalArgs(self._protate,'lall')}
         stack=[]
         #check for errors, parse and prepare
@@ -524,9 +525,13 @@ class Molecule:
         # delete previous definitions
         self._script_group={}
         #if everything went well, execute operations
-        for op in stack:
-            op[0](*op[1:])
-        return 'Success!'
+        try:
+            for op in stack:
+                op[0](*op[1:])
+        except StandardError as e:
+            return e.message
+        else:
+            return 'Success!'
 
     def _evalArgs(self,op,args):
         """Evaluate script-op-arguments
@@ -677,18 +682,18 @@ class Molecule:
             self._atom_coord[i]=pos-2*proj
 
     def _protate(self,atoms,angle,p1,p2):
-        """Rotate relative planes
+        """Rotate planes relatively
 
         atoms -> list of atoms
         angle -> target angle between planes
-        p1 -> plane in molecule/movable target
+        p1 -> plane in molecule/mobile target
               second element is static point of reference
         p2 -> plane on surface/static target
         """
         if len(p1)!=3:
-            raise ValueError()
+            raise ValueError('Mobile plane not valid')
         if len(p2)!=3:
-            raise ValueError()
+            raise ValueError('Static plane not valid')
         p1=[self._atom_coord[i] for i in p1]
         p2=[self._atom_coord[i] for i in p2]
         d11=p1[0]-p1[1]
@@ -704,3 +709,34 @@ class Molecule:
             return
         axis=np.cross(n1,n2)
         self._rotate(atoms,angle,axis,p1[1])
+
+    def _pshift(self,atoms,dist,p1,p2):
+        """Shift planes relatively
+
+        atoms -> list of atoms
+        dist -> target distance between planes
+        p1 -> plane in molecule/mobile target
+        p2 -> plane on surface/static target
+        """
+        if len(p1)!=3:
+            raise ValueError('Mobile plane not valid')
+        if len(p2)!=3:
+            raise ValueError('Static plane not valid')
+        p1=[self._atom_coord[i] for i in p1]
+        p2=[self._atom_coord[i] for i in p2]
+        d11=p1[0]-p1[1]
+        d12=p1[2]-p1[1]
+        n1=np.cross(d11,d12)
+        n1=n1/np.linalg.norm(n1)
+        d21=p2[0]-p2[1]
+        d22=p2[2]-p2[1]
+        n2=np.cross(d21,d22)
+        n2=n2/np.linalg.norm(n2)
+        angle=np.degrees(np.arccos(np.dot(n2,n1)))
+        if not np.isclose(angle,0,atol=1.e-6):
+            raise ValueError('Planes are not parallel')
+        dist1=np.dot(p1[0],n1)
+        dist2=np.dot(p2[0],n2)
+        dist=dist-dist1+dist2
+        print 'shift distance:',dist
+        self._shift(atoms,dist*n1)
