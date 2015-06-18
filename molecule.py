@@ -501,7 +501,7 @@ class Molecule:
                 'mir':self._evalArgs(self._mirror,'lvvo'),
                 'rep':self._evalArgs('repeat','i'),
                 'psh':self._evalArgs(self._pshift,'lill'),
-                'pro':self._evalArgs(self._protate,'lall')}
+                'par':self._evalArgs(self._parallelize,'lll')}
         stack=[]
         #check for errors, parse and prepare
         while script:
@@ -651,6 +651,8 @@ class Molecule:
         c=np.float(np.cos(angle))
         s=np.float(-np.sin(angle))
         ic=np.float(1.-c)
+        if np.isclose(np.linalg.norm(ax),0,atol=1.e-6):
+            raise ValueError("0 Vector can't be rotation axis")
         ax=ax/np.linalg.norm(ax)
         mat=np.array([[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1]],
                       [ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0]],
@@ -681,11 +683,10 @@ class Molecule:
             proj = np.dot(pos-shift,normal)*normal
             self._atom_coord[i]=pos-2*proj
 
-    def _protate(self,atoms,angle,p1,p2):
-        """Rotate planes relatively
+    def _parallelize(self,atoms,p1,p2):
+        """Parallelize planes
 
         atoms -> list of atoms
-        angle -> target angle between planes
         p1 -> plane in molecule/mobile target
               second element is static point of reference
         p2 -> plane on surface/static target
@@ -704,9 +705,7 @@ class Molecule:
         d22=p2[2]-p2[1]
         n2=np.cross(d21,d22)
         n2=n2/np.linalg.norm(n2)
-        angle=angle-np.degrees(np.arccos(np.dot(n2,n1)))
-        if np.isclose(angle,0,atol=1.e-6):
-            return
+        angle=np.degrees(np.arccos(np.dot(n2,n1)))
         axis=np.cross(n1,n2)
         self._rotate(atoms,angle,axis,p1[1])
 
@@ -738,5 +737,4 @@ class Molecule:
         dist1=np.dot(p1[0],n1)
         dist2=np.dot(p2[0],n2)
         dist=dist-dist1+dist2
-        print 'shift distance:',dist
         self._shift(atoms,dist*n1)
