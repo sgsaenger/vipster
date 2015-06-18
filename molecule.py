@@ -499,7 +499,8 @@ class Molecule:
                 'shi':self._evalArgs(self._shift,'lv'),
                 'def':self._evalArgs('define','ls'),
                 'mir':self._evalArgs(self._mirror,'lvvo'),
-                'rep':self._evalArgs('repeat','i')}
+                'rep':self._evalArgs('repeat','i'),
+                'pro':self._evalArgs(self._protate,'lall')}
         stack=[]
         #check for errors, parse and prepare
         while script:
@@ -660,7 +661,7 @@ class Molecule:
     def _mirror(self,atoms,v1,v2,shift=np.zeros(3)):
         """Mirror group of atoms
 
-        atoms -> group of atoms
+        atoms -> list of atoms
         v1,v2 -> vectors defining the plane
         shift -> optional vector shifting the mirror-plane
         """
@@ -671,3 +672,31 @@ class Molecule:
             proj = np.dot(pos-shift,normal)*normal
             self._atom_coord[i]=pos-2*proj
 
+    def _protate(self,atoms,angle,p1,p2):
+        """Rotate relative planes
+
+        atoms -> list of atoms
+        angle -> target angle between planes
+        p1 -> plane in molecule/movable target
+              second element is static point of reference
+        p2 -> plane on surface/static target
+        """
+        if len(p1)!=3:
+            raise ValueError()
+        if len(p2)!=3:
+            raise ValueError()
+        p1=[self._atom_coord[i] for i in p1]
+        p2=[self._atom_coord[i] for i in p2]
+        d11=p1[0]-p1[1]
+        d12=p1[2]-p1[1]
+        n1=np.cross(d11,d12)
+        n1=n1/np.linalg.norm(n1)
+        d21=p2[0]-p2[1]
+        d22=p2[2]-p2[1]
+        n2=np.cross(d21,d22)
+        n2=n2/np.linalg.norm(n2)
+        angle=angle-np.degrees(np.arccos(np.dot(n2,n1)))
+        if np.isclose(angle,0,atol=1.e-6):
+            return
+        axis=np.cross(n1,n2)
+        self._rotate(atoms,angle,axis,p1[1])
