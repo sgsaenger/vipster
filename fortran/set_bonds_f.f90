@@ -24,7 +24,7 @@ DO i=0,nat-1
                 IF((0.57<dist_n).AND.(dist_n<effcut**2))THEN
                         at1(k)=i
                         at2(k)=j
-                        dist(k)=dist_n
+                        dist(k)=sqrt(dist_n)
                         k=k+1
                 END IF
         END DO

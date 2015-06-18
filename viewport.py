@@ -213,6 +213,7 @@ class ViewPort(QGLWidget):
                 self.bondPosVBO=[]
                 #binary representation of enabled pbc directions (b'zyx')
                 mult=np.sign(mult[0]-1)+np.sign(mult[1]-1)*2+np.sign(mult[2]-1)*4
+                r=self.config['Bond-Radius']
                 for j in [0,1,2,3,4,5,6,7]:
                         #check if pbc part is necessary
                         if mult&j!=j: continue
@@ -223,6 +224,8 @@ class ViewPort(QGLWidget):
                                 #save colors
                                 c1 = pse[atoms[i[0]][0]][5:]
                                 c2 = pse[atoms[i[1]][0]][5:]
+                                #length-scaling-factor:
+                                l = i[3]
                                 #position of bond
                                 pos= (a+b)/2
                                 #rotate bond from x-axis d to bond-axis c
@@ -245,9 +248,9 @@ class ViewPort(QGLWidget):
                                 for idx,k in enumerate(off):
                                         if j>0 and edge[idx]&j!=0:
                                                 continue
-                                        self.bondPosVBO.append([ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1],0.,
-                                                    ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0],0.,
-                                                    ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c,0.,
+                                        self.bondPosVBO.append([l*(ic*ax[0]*ax[0]+c),l*(ic*ax[0]*ax[1]-s*ax[2]),l*(ic*ax[0]*ax[2]+s*ax[1]),0.,
+                                                    r*(ic*ax[0]*ax[1]+s*ax[2]),r*(ic*ax[1]*ax[1]+c),r*(ic*ax[1]*ax[2]-s*ax[0]),0.,
+                                                    r*(ic*ax[0]*ax[2]-s*ax[1]),r*(ic*ax[1]*ax[2]+s*ax[0]),r*(ic*ax[2]*ax[2]+c),0.,
                                                     pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],1.,
                                                     c1[0],c1[1],c1[2],c1[3],
                                                     c2[0],c2[1],c2[2],c2[3]])

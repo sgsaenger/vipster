@@ -125,7 +125,7 @@
 {
 "Atom-Radius-VdW":    false,
 "Atom-Factor":        0.52917721092,
-"Bond-Radius":        1.0,
+"Bond-Radius":        0.52917721092,
 "Bond-Cut-Fac":       1.10,
 "Rotate-COM":         false,
 "Proj-Perspective":   false
