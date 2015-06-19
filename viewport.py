@@ -29,7 +29,6 @@ class ViewPort(QGLWidget):
                 self.showCell = True
                 self.showPlane = False
                 self.showSurf = False
-                self.planeVal = 0
                 self.mouseMode = "Camera"
                 self.AA = True
                 self.xsh = 0
@@ -682,7 +681,7 @@ class ViewPort(QGLWidget):
                 self.mousePos = e.pos()
                 if e.buttons()&1 and self.mouseMode =='Modify':
                     #identify atom under cursor for rotation center
-                    pass
+                    self.dndData = [self.pickAtom(e),np.linalg.inv(self.proj),np.linalg.inv(self.vMatrix)]
                 if e.buttons()&2:
                     if self.mouseMode =='Camera':
                         self.rMatrix.setToIdentity()
@@ -721,7 +720,13 @@ class ViewPort(QGLWidget):
                 self.mousePos = e.pos()
 
         def mouseReleaseEvent(self,e):
-            if self.mouseMode!='Select' and not e.button()&2: return
+            if self.mouseMode!='Select' or not e.button()&1: return
+            pick = self.pickAtom(e)
+            if pick:
+                self.mol.add_selection(pick[1],pick[2])
+                self.parent.updateMolStep()
+
+        def pickAtom(self,coord):
             #render with selectionmode
             self.paintGL(True)
 
@@ -732,8 +737,8 @@ class ViewPort(QGLWidget):
 
             #Read pixel from GPU
             color = (GLubyte*4)(0)
-            x = e.x()
-            y = self.height() - e.y()
+            x = coord.x()
+            y = self.height() - coord.y()
             glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,color)
             if color[3] == 0:
                 return
@@ -745,10 +750,10 @@ class ViewPort(QGLWidget):
                 zoff = off%self.mult[2]
                 yoff = (off/self.mult[2])%self.mult[1]
                 xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
-                self.mol.add_selection(realid,[xoff,yoff,zoff])
+                return [idx,realid,[xoff,yoff,zoff]]
             else:
-                return
-            self.parent.updateMolStep()
+                return None
+            return idx
 
         def wheelEvent(self,e):
                 delta = e.delta()
