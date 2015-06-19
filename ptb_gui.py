@@ -39,6 +39,22 @@ class MainView(QWidget):
         #Central Column:
             #OpenGL Viewport:
             self.visual = ViewPort(self)
+            #mouse mode selection
+            self.mouse = QButtonGroup()
+            mouse = QHBoxLayout()
+            camBut = QPushButton('Camera')
+            camBut.setShortcut('r')
+            selBut = QPushButton('Select')
+            selBut.setShortcut('s')
+            modBut = QPushButton('Modify')
+            modBut.setShortcut('m')
+            for i in [camBut,selBut,modBut]:
+                mouse.addWidget(i)
+                self.mouse.addButton(i)
+                i.setCheckable(True)
+            self.mouse.buttonClicked.connect(self.visual.setMouseMode)
+            self.mouse.setExclusive(True)
+            camBut.setChecked(True)
             #Cell multiplication
             self.xspin = QSpinBox()
             self.yspin = QSpinBox()
@@ -127,6 +143,7 @@ class MainView(QWidget):
             steps.addWidget(editBut)
             #Layout:
             viewlay = QVBoxLayout()
+            viewlay.addLayout(mouse)
             viewlay.addWidget(self.visual)
             viewlay.addLayout(mult)
             viewlay.addLayout(steps)

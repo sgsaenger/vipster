@@ -30,7 +30,7 @@ class ViewPort(QGLWidget):
                 self.showPlane = False
                 self.showSurf = False
                 self.planeVal = 0
-                self.mouseSelect = False
+                self.mouseMode = "Camera"
                 self.AA = True
                 self.xsh = 0
                 self.ysh = 0
@@ -45,12 +45,6 @@ class ViewPort(QGLWidget):
                 toggleCell = QAction('Toggle &Cell',self)
                 toggleCell.setShortcut('c')
                 toggleCell.triggered.connect(self.changeState)
-                mouseRotate = QAction('&Rotate',self)
-                mouseRotate.setShortcut('r')
-                mouseRotate.triggered.connect(self.changeState)
-                mouseSelect = QAction('&Select',self)
-                mouseSelect.setShortcut('s')
-                mouseSelect.triggered.connect(self.changeState)
                 antiAlias = QAction('Toggle &Antialiasing',self)
                 antiAlias.setShortcut('a')
                 antiAlias.triggered.connect(self.changeState)
@@ -62,9 +56,6 @@ class ViewPort(QGLWidget):
                 vMenu.addAction(toggleCell)
                 vMenu.addAction(toggleBonds)
                 vMenu.addAction(antiAlias)
-                vMenu.addSeparator()
-                vMenu.addAction(mouseRotate)
-                vMenu.addAction(mouseSelect)
 
         def initializeGL(self):
                 #Bind VAO (necessary for modern OpenGL)
@@ -134,10 +125,6 @@ class ViewPort(QGLWidget):
                 elif reason=='Toggle &Bonds':
                     self.showBonds = not self.showBonds
                     self.updateGL()
-                elif reason=='&Rotate':
-                    self.mouseSelect=False
-                elif reason=='&Select':
-                    self.mouseSelect=True
                 elif reason=='Toggle &Antialiasing':
                     if self.AA:
                             glDisable(GL_MULTISAMPLE)
@@ -154,6 +141,16 @@ class ViewPort(QGLWidget):
             elif self.sender().text()=='z':
                 self.rMatrix.setToIdentity()
             self.updateGL()
+
+        def setMouseMode(self,but):
+            t=but.text()
+            self.mouseMode = t
+            if t == "Camera":
+                self.setCursor(Qt.ArrowCursor)
+            elif t == "Select":
+                self.setCursor(Qt.CrossCursor)
+            elif t == "Modify":
+                self.setCursor(Qt.OpenHandCursor)
 
         #########################
         # Update stuff that's going to be drawn
@@ -682,80 +679,76 @@ class ViewPort(QGLWidget):
 
         def mousePressEvent(self,e):
                 self.setFocus()
-                if self.mouseSelect:return
-                if (e.buttons() & 1):
-                        self.oldX = self.newX = e.x()
-                        self.oldY = self.newY = e.y()
-                elif (e.buttons() & 2):
-                        self.rMatrix.setToIdentity()
-                self.updateGL()
-                #store initial position
                 self.mousePos = e.pos()
-                #stop event from getting pushed to parent
-                e.accept()
+                if e.buttons()&1 and self.mouseMode =='Modify':
+                    #identify atom under cursor for rotation center
+                    pass
+                if e.buttons()&2:
+                    if self.mouseMode =='Camera':
+                        self.rMatrix.setToIdentity()
+                    elif self.mouseMode == 'Select':
+                        self.mol.del_selection()
+                    self.updateGL()
 
         def mouseMoveEvent(self,e):
-                if self.mouseSelect:return
-                #calculate deviation from initial position
-                deltaX = e.x() - self.mousePos.x()
-                deltaY = e.y() - self.mousePos.y()
-
-                #left click: rotate molecule
+                delta=e.pos()-self.mousePos
                 if (e.buttons() & 1):
-                        #get new position
-                        self.newX = e.x()
-                        self.newY = e.y()
-                        #apply rotation and store it (important!)
+                    if self.mouseMode == 'Camera':
+                        #rotate camera
                         tmp = QMatrix4x4()
-                        deltaX = self.newX-self.oldX
-                        deltaY = self.newY - self.oldY
-                        tmp.rotate(deltaX,0,1,0)
-                        tmp.rotate(deltaY,1,0,0)
+                        tmp.rotate(delta.x(),0,1,0)
+                        tmp.rotate(delta.y(),1,0,0)
                         self.rMatrix = tmp*self.rMatrix
-                        #save as old positions for next step
-                        self.oldX = e.x()
-                        self.oldY = e.y()
                         self.updateGL()
+                    elif self.mouseMode=='Select':
+                        #draw rectangle (if over threshold?)
+                        pass
+                    elif self.mouseMode=='Modify':
+                        #rotate selected atoms around center
+                        pass
+                elif e.buttons()&2 and self.mouseMode=='Modify':
+                    #shift selection in z-direction (cam space)
+                    pass
                 elif (e.buttons() & 4):
-                        self.xsh += deltaX/10.
-                        self.ysh -= deltaY/10.
+                    if self.mouseMode=='Camera':
+                        #shift camera
+                        self.xsh += delta.x()/10.
+                        self.ysh -= delta.y()/10.
                         self.updateGL()
-
+                    elif self.mouseMode=='Modify':
+                        #shift selection in camera-plane
+                        pass
                 self.mousePos = e.pos()
-                e.accept()
 
         def mouseReleaseEvent(self,e):
-                if not self.mouseSelect:return
-                if(e.button() & 2):
-                    self.mol.del_selection()
-                elif e.button()&1:
-                    #render with selectionmode
-                    self.paintGL(True)
+            if self.mouseMode!='Select' and not e.button()&2: return
+            #render with selectionmode
+            self.paintGL(True)
 
-                    #Wait for everything to render,configure memory alignment
-                    glFlush()
-                    glFinish()
-                    glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+            #Wait for everything to render,configure memory alignment
+            glFlush()
+            glFinish()
+            glPixelStorei(GL_UNPACK_ALIGNMENT,1)
 
-                    #Read pixel from GPU
-                    color = (GLubyte*4)(0)
-                    x = e.x()
-                    y = self.height() - e.y()
-                    glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,color)
-                    if color[3] == 0:
-                        return
-                    mult=self.mult[0]*self.mult[1]*self.mult[2]
-                    idx = color[0] + 256*color[1] + 65536*color[2]
-                    if idx<len(self.atomsVBO):
-                        realid = idx/mult
-                        off = idx%mult
-                        zoff = off%self.mult[2]
-                        yoff = (off/self.mult[2])%self.mult[1]
-                        xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
-                        self.mol.add_selection(realid,[xoff,yoff,zoff])
-                    else:
-                        return
-                self.parent.updateMolStep()
+            #Read pixel from GPU
+            color = (GLubyte*4)(0)
+            x = e.x()
+            y = self.height() - e.y()
+            glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,color)
+            if color[3] == 0:
+                return
+            mult=self.mult[0]*self.mult[1]*self.mult[2]
+            idx = color[0] + 256*color[1] + 65536*color[2]
+            if idx<len(self.atomsVBO):
+                realid = idx/mult
+                off = idx%mult
+                zoff = off%self.mult[2]
+                yoff = (off/self.mult[2])%self.mult[1]
+                xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
+                self.mol.add_selection(realid,[xoff,yoff,zoff])
+            else:
+                return
+            self.parent.updateMolStep()
 
         def wheelEvent(self,e):
                 delta = e.delta()
