@@ -15,7 +15,7 @@ Update PyOpenGl to >V3.1.0:
 wget https://pypi.python.org/packages/source/P/PyOpenGL/PyOpenGL-3.1.1a1.tar.gz
 tar -xf PyOpenGL-3.1.1a1.tar.gz
 cd PyOpenGL-3.1.1a1
-python setup.py --user
+python setup.py install --user
 ```
 
 ##Usage:
@@ -39,8 +39,7 @@ Middle-click: Move
 Right-click: Set back view
 
 **Select mode** (S):
-Left-click: Add atom to selection
-Middle-click: Remove last atom from selection
+Left-click: Add/Remove atom to selection
 Right-click: Empty selection
 
 ###Tools:
@@ -73,7 +72,7 @@ Arguments can be given as follows:
 - explicit list: [i1,i2,i3,i4-i5]
 
 mandatory vector (vec) or optional vector (shift) can be one of:
-- position vector of atom: idx
+- position vector of atom: (-)idx
 - path between atoms: i1-i2
 - explicit vector in bohr: (x,y,z)
 - explicit vector in other formats: (x,y,z,'format')

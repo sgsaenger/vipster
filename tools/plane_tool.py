@@ -88,6 +88,7 @@ class Plane(QWidget):
         vbox.addLayout(hbox3)
         vbox.addWidget(self.volBut)
         vbox.addStretch()
+        vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
 
     def setMol(self,mol):

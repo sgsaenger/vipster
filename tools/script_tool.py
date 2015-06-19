@@ -28,6 +28,7 @@ class Script(QWidget):
         vbox.addWidget(self.scriptArea)
         vbox.addWidget(self.scriptResult)
         vbox.addLayout(hbox)
+        vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
 
     def setMol(self,mol):

@@ -89,6 +89,7 @@ class CellMod(QWidget):
         vbox.addLayout(abox)
         vbox.addWidget(alignBut)
         vbox.addStretch()
+        vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
 
     def setMol(self,mol):

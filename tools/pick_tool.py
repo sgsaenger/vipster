@@ -9,18 +9,19 @@ from numpy import degrees,arccos,dot,cross
 # Selected Atoms
 ####################################
 
-class Picker(QWidget):
+class Picker(QTextEdit):
 
     def __init__(self,parent):
         super(Picker,self).__init__()
 
-        tooltip = QLabel('Pick up to 4 atoms:')
-        self.pickArea = QTextEdit()
-        self.pickArea.setReadOnly(True)
-        vbox = QVBoxLayout()
-        vbox.addWidget(tooltip)
-        vbox.addWidget(self.pickArea)
-        self.setLayout(vbox)
+        self.setReadOnly(True)
+        #tooltip = QLabel('Pick up to 4 atoms:')
+        #self.pickArea = QTextEdit()
+        #self.pickArea.setReadOnly(True)
+        #vbox = QVBoxLayout()
+        #vbox.addWidget(tooltip)
+        #vbox.addWidget(self.pickArea)
+        #self.setLayout(vbox)
 
     def setMol(self,mol):
         sel = mol.get_selection()
@@ -61,6 +62,8 @@ class Picker(QWidget):
                 else:
                     d0123 = degrees(arccos(dot(c012,c123)/(norm(c012)*norm(c123))))
                     output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
-            self.pickArea.setPlainText(output)
+            #self.pickArea.setPlainText(output)
+            self.setPlainText(output)
         else:
-            self.pickArea.setPlainText('')
+            #self.pickArea.setPlainText('')
+            self.setPlainText('')
