@@ -679,14 +679,44 @@ class ViewPort(QGLWidget):
         def mousePressEvent(self,e):
                 self.setFocus()
                 self.mousePos = e.pos()
-                if e.buttons()&1 and self.mouseMode =='Modify':
-                    #identify atom under cursor for rotation center
-                    self.dndData = [self.pickAtom(e),np.linalg.inv(self.proj),np.linalg.inv(self.vMatrix)]
-                if e.buttons()&2:
+                if self.mouseMode=='Modify':
+                    #determine which atoms to modify
+                    sel = self.mol.get_selection()
+                    if sel:
+                        self.modData=[set(i[0] for i in sel)]
+                    else:
+                        self.modData = [range(self.mol.get_nat())]
+                    #axes in cellspace
+                    mat = self.rMatrix.inverted()[0]
+                    x = mat*QVector4D(1,0,0,0)
+                    x = np.array([x.x(),x.y(),x.z()])
+                    y = mat*QVector4D(0,-1,0,0)
+                    y = np.array([y.x(),y.y(),y.z()])
+                    z = mat*QVector4D(0,0,1,0)
+                    z = np.array([z.x(),z.y(),z.z()])
+                    self.modData+=[[x,y,z]]
+                    #for rotation, center is needed
+                    if e.buttons()&1:
+                        vec = self.mol.get_vec()*self.mol.get_celldm()
+                        def selToCoord(sel):
+                            return self.mol.get_atom(sel[0])[1]+np.dot(sel[1],vec)
+                        pick = self.pickAtom(e)
+                        #picked atom
+                        if pick:
+                            self.modData+= [selToCoord(pick[1:])]
+                        #com of selection
+                        elif sel:
+                            coords=[selToCoord(i) for i in sel]
+                            self.modData+=[(np.max(coords,axis=0)+np.min(coords,axis=0))/2]
+                        #com of whole cell
+                        else:
+                            self.modData+= [self.mol.get_center(True)]
+                elif e.buttons()&2:
                     if self.mouseMode =='Camera':
                         self.rMatrix.setToIdentity()
                     elif self.mouseMode == 'Select':
                         self.mol.del_selection()
+                        self.parent.updateMolStep()
                     self.updateGL()
 
         def mouseMoveEvent(self,e):
@@ -704,10 +734,18 @@ class ViewPort(QGLWidget):
                         pass
                     elif self.mouseMode=='Modify':
                         #rotate selected atoms around center
-                        pass
+                        atoms=self.modData[0]
+                        angle= abs(delta.x()) + abs(delta.y())
+                        axis = delta.y()*self.modData[1][0]-delta.x()*self.modData[1][1]
+                        shift=self.modData[2]
+                        self.mol._rotate(atoms,angle,axis,shift)
+                        self.parent.updateMolStep()
                 elif e.buttons()&2 and self.mouseMode=='Modify':
                     #shift selection in z-direction (cam space)
-                    pass
+                    atoms=self.modData[0]
+                    vec = self.modData[1][2]*(delta.x()+delta.y())
+                    self.mol._shift(atoms,vec*0.1)
+                    self.parent.updateMolStep()
                 elif (e.buttons() & 4):
                     if self.mouseMode=='Camera':
                         #shift camera
@@ -716,14 +754,17 @@ class ViewPort(QGLWidget):
                         self.updateGL()
                     elif self.mouseMode=='Modify':
                         #shift selection in camera-plane
-                        pass
+                        atoms=self.modData[0]
+                        vec = self.modData[1][0]*delta.x()+self.modData[1][1]*delta.y()
+                        self.mol._shift(atoms,vec*0.1)
+                        self.parent.updateMolStep()
                 self.mousePos = e.pos()
 
         def mouseReleaseEvent(self,e):
             if self.mouseMode!='Select' or not e.button()&1: return
             pick = self.pickAtom(e)
             if pick:
-                self.mol.add_selection(pick[1],pick[2])
+                self.mol.add_selection(pick[1:])
                 self.parent.updateMolStep()
 
         def pickAtom(self,coord):

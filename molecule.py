@@ -260,29 +260,19 @@ class Molecule:
     # SELECTION FUNCTIONS
     ######################################################
 
-    def add_selection(self,idx,offset):
+    def add_selection(self,item):
         """Add an item to selection
 
-        idx -> index of atom
-        offset -> offset in multiples of vec
+        item -> [index,offset in multiples of vec]
         """
-        item = [idx,offset]
         if item in self._selection:
             self._selection.remove(item)
         else:
             self._selection.append(item)
 
-    def del_selection(self,idx=None,offset=None):
-        """Delete one or all atoms from selection
-
-        If both idx and offset are given, specific
-        periodic image of atom will be deleted,
-        else the whole selection will be cleared.
-        """
-        if idx and offset:
-            self._selection.remove([idx,offset])
-        elif not idx and not offset:
-            self._selection = []
+    def del_selection(self):
+        """Clear selection"""
+        self._selection = []
 
     def get_selection(self):
         """Return the selection"""
@@ -302,7 +292,9 @@ class Molecule:
         """
         if not hasattr(self,'_bonds'):
             self.set_bonds(cutfac)
-        if self._bondsettings != [len(self._atom_coord),cutfac]:
+        elif self._bonds_outdated:
+            self.set_bonds(cutfac)
+        elif self._bondsettings != [len(self._atom_coord),cutfac]:
             self.set_bonds(cutfac)
         return self._bonds
 
@@ -335,6 +327,7 @@ class Molecule:
                 nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,cutfac,i)
                 self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
         self._bondsettings=[len(self._atom_coord),cutfac]
+        self._bonds_outdated=False
 
     #####################################################
     # EDIT FUNCTIONS
@@ -661,6 +654,7 @@ class Molecule:
                       [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
         for i in atoms:
             self._atom_coord[i]=np.dot(self._atom_coord[i]-shift,mat)+shift
+        self._bonds_outdated=True
 
     def _shift(self,atoms,vector):
         """Shift group of atoms
@@ -670,6 +664,7 @@ class Molecule:
         """
         for i in atoms:
             self._atom_coord[i]+=np.array(vector,'f')
+        self._bonds_outdated=True
 
     def _mirror(self,atoms,v1,v2,shift=np.zeros(3)):
         """Mirror group of atoms
@@ -684,6 +679,7 @@ class Molecule:
             pos=self._atom_coord[i]
             proj = np.dot(pos-shift,normal)*normal
             self._atom_coord[i]=pos-2*proj
+        self._bonds_outdated=True
 
     def _parallelize(self,atoms,p1,p2):
         """Parallelize planes
