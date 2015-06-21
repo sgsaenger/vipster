@@ -22,11 +22,10 @@ class Molecule:
 
     def __init__(self,controller):
         self.pse=self._pse(controller.pse)
-        self._config=controller._config
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
-        self._bond_cutoff=[]
+        self._bondsettings=[]
         self._script_group=dict()
         self._selection=[]
         self._celldm = 1.0
@@ -239,9 +238,13 @@ class Molecule:
         """Return number of types of atoms"""
         return len(self.get_types())
 
-    def get_center(self):
-        """Return center-coordinates of cell"""
-        if self._config['Rotate-COM']:
+    def get_center(self,com=False):
+        """Return center-coordinates of molecule
+
+        if com is True: return center of mass
+        else returns center of cell
+        """
+        if com:
             return (np.max(self._atom_coord,axis=0)+np.min(self._atom_coord,axis=0))/2
         else:
             return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
@@ -289,7 +292,7 @@ class Molecule:
     # BOND FUNCTIONS
     ######################################################
 
-    def get_bonds(self):
+    def get_bonds(self,cutfac):
         """Return bonds
 
         Sets bonds if not present.
@@ -297,15 +300,17 @@ class Molecule:
         First entry: Bonds inside of cell
         Other entries: Periodic bonds (see set_bonds)
         """
-        if not hasattr(self,'_bonds'): self.set_bonds()
+        if not hasattr(self,'_bonds'):
+            self.set_bonds(cutfac)
+        if self._bondsettings != [len(self._atom_coord),cutfac]:
+            self.set_bonds(cutfac)
         return self._bonds
 
-    def set_bonds(self):
+    def set_bonds(self,cutfac):
         """Set bonds
 
-        Cutoff criteria:
-        Maximum bondlength: 1.85 Å
-        Bondlength for hydrogen: 1.2 Å
+        Cutoff criterium:
+        Sum of covalent radii times cutfac
         Generates list of lists, each lists contains:
         [idx_at1,idx_at2,offset_at1,offset_at2,distance]
         Actual setting performed by fortran-routine set_bonds_f
@@ -327,8 +332,9 @@ class Molecule:
                 [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
         for k,os in enumerate(off):
             for i in os:
-                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,self._config['Bond-Cut-Fac'],i)
+                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,cutfac,i)
                 self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
+        self._bondsettings=[len(self._atom_coord),cutfac]
 
     #####################################################
     # EDIT FUNCTIONS
