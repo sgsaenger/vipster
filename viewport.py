@@ -183,8 +183,8 @@ class ViewPort(QGLWidget):
                 atoms = mol.get_all_atoms()
                 pse = mol.pse
                 vec = mol.get_vec()*mol.get_celldm()
-                center = mol.get_center()
-                bonds = mol.get_bonds()
+                center = mol.get_center(self.config['Rotate-COM'])
+                bonds = mol.get_bonds(self.config['Bond-Cut-Fac'])
                 sel = mol.get_selection()
 
                 #get bonds and calculate offsets
@@ -440,7 +440,7 @@ class ViewPort(QGLWidget):
 
             self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
             self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-            self.sphereShader.setUniformValue('atom_fac',self.mol._config['Atom-Factor'])
+            self.sphereShader.setUniformValue('atom_fac',self.config['Atom-Factor'])
 
             if self.instanced:
                 self.atomsVBO.bind()
@@ -561,7 +561,7 @@ class ViewPort(QGLWidget):
             self.sphereVBO.unbind()
 
             self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-            self.selectShader.setUniformValue('atom_fac',self.mol._config['Atom-Factor'])
+            self.selectShader.setUniformValue('atom_fac',self.config['Atom-Factor'])
 
             if self.instanced:
                 self.atomsVBO.bind()
@@ -597,7 +597,7 @@ class ViewPort(QGLWidget):
 
             self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
             self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-            self.sphereShader.setUniformValue('atom_fac',self.mol._config['Atom-Factor'])
+            self.sphereShader.setUniformValue('atom_fac',self.config['Atom-Factor'])
 
             if self.instanced:
                 self.selVBO.bind()

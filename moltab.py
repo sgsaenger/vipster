@@ -48,7 +48,6 @@ class MolTab(QWidget):
                 coord[j]=float(self.table.item(row,j+1).text())
                 fix[j]=int(not self.table.item(row,j+1).checkState()/2)
             self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
-            self.mol.set_bonds()
             self.parent.updateMolStep()
 
         self.table = QTableWidget()
@@ -78,7 +77,6 @@ class MolTab(QWidget):
             pos = self.table.currentRow()+1
             for at in reversed(self.sel):
                 self.mol.insert_atom(pos,at)
-            self.mol.set_bonds()
             #update Main Widget
             self.parent.updateMolStep()
 
@@ -92,7 +90,6 @@ class MolTab(QWidget):
 
         def newAtom():
             self.mol.create_atom()
-            self.mol.set_bonds()
             #update Main Widget
             self.parent.updateMolStep()
 
@@ -111,7 +108,6 @@ class MolTab(QWidget):
                     delrange.add(j)
             for i in sorted(delrange,reverse=True):
                 self.mol.del_atom(i)
-            self.mol.set_bonds()
             #update Main Widget
             self.parent.updateMolStep()
 
@@ -146,7 +142,6 @@ class MolTab(QWidget):
                 mols=[self.mol]
             for m in mols:
                 m.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
-                m.set_bonds()
             self.parent.updateMolStep()
 
         self.cellDm = QLineEdit()
@@ -167,7 +162,6 @@ class MolTab(QWidget):
                 mols=[self.mol]
             for m in mols:
                 m.set_vec(vec,self.scale.isChecked())
-                m.set_bonds()
             self.parent.updateMolStep()
 
         self.vtable = QTableWidget()
