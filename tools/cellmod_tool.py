@@ -31,7 +31,6 @@ class CellMod(QWidget):
                 self.mol.crop()
             elif reason=='Align cell':
                 self.mol.align(self.alignVec.currentText(),self.alignDir.currentText())
-            self.mol.set_bonds()
             self.parent.updateMolStep()
 
         wrapBut = QPushButton('Wrap atoms')
