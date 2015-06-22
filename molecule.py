@@ -18,6 +18,7 @@ class Molecule:
     Cube-style volume data (_vol)
     Cell geometry (_celldm/_vec)
     K-Point settings (_kpoints)
+    PSE-Overlay over central settings (pse)
     """
 
     def __init__(self,controller):
@@ -26,6 +27,7 @@ class Molecule:
         self._atom_coord=[]
         self._atom_fix=[]
         self._bondsettings=[]
+        self._bonds_outdated=True
         self._script_group=dict()
         self._selection=[]
         self._celldm = 1.0
@@ -290,9 +292,7 @@ class Molecule:
         First entry: Bonds inside of cell
         Other entries: Periodic bonds (see set_bonds)
         """
-        if not hasattr(self,'_bonds'):
-            self.set_bonds(cutfac)
-        elif self._bonds_outdated:
+        if self._bonds_outdated:
             self.set_bonds(cutfac)
         elif self._bondsettings != [len(self._atom_coord),cutfac]:
             self.set_bonds(cutfac)
