@@ -14,7 +14,6 @@ class Script(QWidget):
 
         def scriptHandler():
             self.scriptResult.setText(self.mol.evalScript(str(self.scriptArea.toPlainText())))
-            self.mol.set_bonds()
             self.parent.updateMolStep()
 
         self.scriptArea = QTextEdit()
