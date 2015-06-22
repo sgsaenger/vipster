@@ -50,11 +50,16 @@ class ViewPort(QGLWidget):
                 toggleBonds = QAction('Toggle &Bonds',self)
                 toggleBonds.setShortcut('b')
                 toggleBonds.triggered.connect(self.changeState)
+                self.undoAction = QAction('Undo',self)
+                self.undoAction.setShortcut('Ctrl+Z')
+                self.undoAction.triggered.connect(self.undo)
                 vMenu = self.parent.parent.menuBar().addMenu('&View')
                 vMenu.addAction(changeProj)
                 vMenu.addAction(toggleCell)
                 vMenu.addAction(toggleBonds)
                 vMenu.addAction(antiAlias)
+                vMenu.addSeparator()
+                vMenu.addAction(self.undoAction)
 
         def initializeGL(self):
                 #Bind VAO (necessary for modern OpenGL)
@@ -167,6 +172,15 @@ class ViewPort(QGLWidget):
                         del self.planeVBO
                     if hasattr(self,'surfVBO'):
                         del self.surfVBO
+
+                #check if molecule has undo-stack:
+                undo = mol.get_undo()
+                if undo:
+                    self.undoAction.setText('Undo '+undo)
+                    self.undoAction.setEnabled(True)
+                else:
+                    self.undoAction.setText('Undo')
+                    self.undoAction.setDisabled(True)
 
                 #clear old selection if present:
                 if hasattr(self,'selVBO'):
@@ -680,6 +694,8 @@ class ViewPort(QGLWidget):
                 self.setFocus()
                 self.mousePos = e.pos()
                 if self.mouseMode=='Modify':
+                    #initiate undo
+                    self.mol.init_undo()
                     #determine which atoms to modify
                     sel = self.mol.get_selection()
                     if sel:
@@ -740,12 +756,14 @@ class ViewPort(QGLWidget):
                         shift=self.modData[2]
                         self.mol._rotate(atoms,angle,axis,shift)
                         self.parent.updateMolStep()
+                        self.modMode='rotate'
                 elif e.buttons()&2 and self.mouseMode=='Modify':
                     #shift selection in z-direction (cam space)
                     atoms=self.modData[0]
                     vec = self.modData[1][2]*(delta.x()+delta.y())
                     self.mol._shift(atoms,vec*0.1)
                     self.parent.updateMolStep()
+                    self.modMode='shift'
                 elif (e.buttons() & 4):
                     if self.mouseMode=='Camera':
                         #shift camera
@@ -758,14 +776,23 @@ class ViewPort(QGLWidget):
                         vec = self.modData[1][0]*delta.x()+self.modData[1][1]*delta.y()
                         self.mol._shift(atoms,vec*0.1)
                         self.parent.updateMolStep()
+                        self.modMode='shift'
                 self.mousePos = e.pos()
 
         def mouseReleaseEvent(self,e):
-            if self.mouseMode!='Select' or not e.button()&1: return
-            pick = self.pickAtom(e)
-            if pick:
-                self.mol.add_selection(pick[1:])
+            if self.mouseMode=='Modify' and self.modMode:
+                self.mol.save_undo(self.modMode)
+                self.modMode=''
                 self.parent.updateMolStep()
+            elif self.mouseMode=='Select' and e.button()&1:
+                pick = self.pickAtom(e)
+                if pick:
+                    self.mol.add_selection(pick[1:])
+                    self.parent.updateMolStep()
+
+        def undo(self):
+            self.mol.undo()
+            self.parent.updateMult()
 
         def pickAtom(self,coord):
             #render with selectionmode

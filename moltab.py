@@ -35,6 +35,7 @@ class MolTab(QWidget):
         # coordinate table
         def cellHandler(row,col):
             if self.updatedisable: return
+            self.mol.init_undo()
             name = str(self.table.item(row,0).text())
             coord = [0,0,0]
             fix = [0,0,0]
@@ -42,6 +43,7 @@ class MolTab(QWidget):
                 coord[j]=float(self.table.item(row,j+1).text())
                 fix[j]=int(not self.table.item(row,j+1).checkState()/2)
             self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
+            self.mol.save_undo('set coordinates')
             self.parent.updateMolStep()
 
         self.table = QTableWidget()
@@ -69,10 +71,11 @@ class MolTab(QWidget):
 
         def pasteAt():
             if not hasattr(self,'sel'):return
+            self.mol.init_undo()
             pos = self.table.currentRow()+1
             for at in reversed(self.sel):
                 self.mol.insert_atom(pos,at)
-            #update Main Widget
+            self.mol.save_undo('paste atom')
             self.parent.updateMolStep()
 
         pasteB = QPushButton('Paste Atom(s)')
@@ -84,8 +87,9 @@ class MolTab(QWidget):
         self.table.addAction(pasteA)
 
         def newAtom():
+            self.mol.init_undo()
             self.mol.create_atom()
-            #update Main Widget
+            self.mol.save_undo('create atom')
             self.parent.updateMolStep()
 
         newB = QPushButton('New Atom')
@@ -97,13 +101,14 @@ class MolTab(QWidget):
         self.table.addAction(newA)
 
         def delAt():
+            self.mol.init_undo()
             delrange = set()
             for i in self.table.selectedRanges():
                 for j in range(i.topRow(),i.bottomRow()+1):
                     delrange.add(j)
             for i in sorted(delrange,reverse=True):
                 self.mol.del_atom(i)
-            #update Main Widget
+            self.mol.save_undo('delete atom')
             self.parent.updateMolStep()
 
         delB = QPushButton('Delete Atom(s)')

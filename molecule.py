@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from copy import deepcopy
 from mol_f import set_bonds_f,make_vol_gradient
 
 class Molecule:
@@ -35,6 +36,8 @@ class Molecule:
         self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._comment = ''
         self._kpoints={'active':'gamma'}
+        self._undo_stack=[]
+        self._undo_temp=[]
 
     def create_atom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
         """Make new atom
@@ -51,7 +54,7 @@ class Molecule:
         """Insert copy of an atom
 
         pos -> id of new atom
-        addat -> id of old atom
+        addat -> new atom
         """
         self._atom_name.insert(pos,addat[0])
         self._atom_coord.insert(pos,self._coord_to_bohr(addat[1],addat[2]))
@@ -257,6 +260,43 @@ class Molecule:
             return self._kpoints['disc']
         else:
             return self._kpoints[mode]
+
+    ######################################################
+    # UNDO FUNCTIONS
+    ######################################################
+
+    def init_undo(self):
+        """Save atoms temporarily
+
+        Will be passed to undo-stack if needed
+        """
+        self._undo_temp=[\
+                deepcopy(self._atom_name),\
+                deepcopy(self._atom_coord),\
+                deepcopy(self._atom_fix)]
+
+    def save_undo(self,name):
+        """Put temp-save on stack
+
+        name -> name of action to reverse
+        """
+        self._undo_stack.append([name]+self._undo_temp)
+
+    def get_undo(self):
+        """Return name of last undo, None otherwise"""
+        if self._undo_stack:
+            return self._undo_stack[-1][0]
+        else:
+            return None
+
+    def undo(self):
+        """Undo last action
+
+        Pop atom infos from stack if present
+        """
+        if not self._undo_stack: return
+        _,self._atom_name,self._atom_coord,self._atom_fix=self._undo_stack.pop()
+        self._bonds_outdated=True
 
     ######################################################
     # SELECTION FUNCTIONS
@@ -498,6 +538,7 @@ class Molecule:
                 'psh':self._evalArgs(self._pshift,'lvll'),
                 'par':self._evalArgs(self._parallelize,'lll')}
         stack=[]
+        self.init_undo()
         #check for errors, parse and prepare
         while script:
             try:
@@ -526,6 +567,7 @@ class Molecule:
         except StandardError as e:
             return e.message
         else:
+            self.save_undo('script')
             return 'Success!'
 
     def _evalArgs(self,op,args):
