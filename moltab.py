@@ -3,7 +3,7 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
-from copy import deepcopy
+from collapsiblewidget import collapsibleWidget
 
 class MolTab(QWidget):
 
@@ -13,16 +13,10 @@ class MolTab(QWidget):
         coordCollapse = self.initCoord()
         cellCollapse = self.initCell()
         kCollapse = self.initKpoints()
-        sep1 = QFrame()
-        sep1.setFrameShape(QFrame.HLine)
-        sep2 = QFrame()
-        sep2.setFrameShape(QFrame.HLine)
         vbox = QVBoxLayout()
         vbox.addWidget(coordCollapse)
         vbox.setStretchFactor(coordCollapse,1)
-        vbox.addWidget(sep1)
         vbox.addWidget(cellCollapse)
-        vbox.addWidget(sep2)
         vbox.addWidget(kCollapse)
         self.setLayout(vbox)
 
@@ -74,6 +68,7 @@ class MolTab(QWidget):
         self.table.addAction(copyA)
 
         def pasteAt():
+            if not hasattr(self,'sel'):return
             pos = self.table.currentRow()+1
             for at in reversed(self.sel):
                 self.mol.insert_atom(pos,at)
@@ -128,7 +123,7 @@ class MolTab(QWidget):
         coordLay.setContentsMargins(0,0,0,0)
         coordLay.setStretchFactor(self.table,0)
         coordWidget.setLayout(coordLay)
-        return collapsibleWidget('Coordinates',coordWidget)
+        return coordWidget
 
     def initCell(self):
         # show celldm
@@ -349,28 +344,3 @@ class MolTab(QWidget):
         self.kp.fmt.setCurrentIndex(self.kp.fmts.index(self.mol.get_kpoints('active')))
         #reenable handling
         self.updatedisable = False
-
-##############################################################
-# Combo-widget with titlebutton and collapsible main-widget
-#############################################################
-
-class collapsibleWidget(QWidget):
-    def __init__(self,title,widget,show=True):
-        super(collapsibleWidget,self).__init__()
-        button = QPushButton(title)
-        button.clicked.connect(self.toggle)
-        button.setFlat(True)
-        self.widget = widget
-        vlist = QVBoxLayout()
-        vlist.addWidget(button)
-        vlist.addWidget(self.widget)
-        vlist.setContentsMargins(0,0,0,0)
-        self.setLayout(vlist)
-        if not show:
-            self.widget.hide()
-
-    def toggle(self):
-        if self.widget.isVisible():
-            self.widget.hide()
-        else:
-            self.widget.show()

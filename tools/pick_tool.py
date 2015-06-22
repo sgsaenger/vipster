@@ -15,13 +15,6 @@ class Picker(QTextEdit):
         super(Picker,self).__init__()
 
         self.setReadOnly(True)
-        #tooltip = QLabel('Pick up to 4 atoms:')
-        #self.pickArea = QTextEdit()
-        #self.pickArea.setReadOnly(True)
-        #vbox = QVBoxLayout()
-        #vbox.addWidget(tooltip)
-        #vbox.addWidget(self.pickArea)
-        #self.setLayout(vbox)
 
     def setMol(self,mol):
         sel = mol.get_selection()

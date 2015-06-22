@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import copy
 from math import sqrt
 from collections import OrderedDict
 from os.path import dirname,expanduser

@@ -12,7 +12,9 @@ from PyQt4.QtCore import QTimer
 from viewport import ViewPort
 from moltab import MolTab
 from pwtab import PWTab
-from toolarea import ToolArea
+#from toolarea import ToolArea
+from tools import tools
+from collapsiblewidget import collapsibleWidget
 
 class MainView(QWidget):
 
@@ -159,9 +161,6 @@ class MainView(QWidget):
             #PWParameter list:
             self.pwlist = QListWidget()
             self.pwlist.currentRowChanged.connect(self.selectPWParam)
-            #Edit stuff
-            self.edit = ToolArea(self)
-            self.edit.setMinimumHeight(400)
             #Layout and frame
             lcol = QFrame()
             lcol.setFrameStyle(38)
@@ -169,10 +168,11 @@ class MainView(QWidget):
             llay = QVBoxLayout()
             llay.addWidget(QLabel('Loaded Molecules:'))
             llay.addWidget(self.mlist)
-            llay.addWidget(QLabel('PW Parameter sets:'))
-            llay.addWidget(self.pwlist)
-            llay.addWidget(self.edit)
-            llay.setStretchFactor(self.edit,10)
+            llay.addWidget(collapsibleWidget('PW Parameter sets:',self.pwlist,show=False))
+            self.edit=[]
+            for i in tools.items():
+                self.edit.append(i[1](self))
+                llay.addWidget(collapsibleWidget(i[0],self.edit[-1],show=False))
             lcol.setLayout(llay)
 
         #Lay out columns:
@@ -280,7 +280,9 @@ class MainView(QWidget):
                 mol = self.controller.get_mol(sel,step)
                 #Send Molecule to Visualisation and Editor
                 self.coord.setMol(mol)
-                self.edit.setMol(mol)
+                for i in self.edit:
+                    i.setMol(mol)
+                #self.edit.setMol(mol)
                 self.visual.setMol(mol,self.mult)
 
         def updateMult(self):
