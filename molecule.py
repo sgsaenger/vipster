@@ -27,7 +27,7 @@ class Molecule:
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
-        self._bondsettings=[]
+        self._bond_cutfac=1.0
         self._bonds_outdated=True
         self._script_group=dict()
         self._selection=[]
@@ -49,6 +49,8 @@ class Molecule:
         self._atom_name.append(name)
         self._atom_coord.append(self._coord_to_bohr(coord,fmt))
         self._atom_fix.append(fix)
+        self._selection=[]
+        self._bonds_outdated=True
 
     def insert_atom(self,pos,addat):
         """Insert copy of an atom
@@ -59,12 +61,16 @@ class Molecule:
         self._atom_name.insert(pos,addat[0])
         self._atom_coord.insert(pos,self._coord_to_bohr(addat[1],addat[2]))
         self._atom_fix.insert(pos,addat[3])
+        self._selection=[]
+        self._bonds_outdated=True
 
     def del_atom(self,index):
         """Remove atom"""
         del self._atom_name[index]
         del self._atom_coord[index]
         del self._atom_fix[index]
+        self._selection=[]
+        self._bonds_outdated=True
 
     ######################################################
     # SET FUNCTIONS
@@ -337,7 +343,7 @@ class Molecule:
         """
         if self._bonds_outdated:
             self.set_bonds(cutfac)
-        elif self._bondsettings != [len(self._atom_coord),cutfac]:
+        elif self._bond_cutfac != cutfac:
             self.set_bonds(cutfac)
         return self._bonds
 
@@ -369,7 +375,7 @@ class Molecule:
             for i in os:
                 nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,cutfac,i)
                 self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
-        self._bondsettings=[len(self._atom_coord),cutfac]
+        self._bond_cutfac=cutfac
         self._bonds_outdated=False
 
     #####################################################
