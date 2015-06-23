@@ -208,9 +208,9 @@ class MolTab(QWidget):
         #Automatic: x,y,z, offset(x,y,z)
         def saveAutoK():
             if kp.updatedisable:return
-            auto=[kp.auto.widg[i].text() for i in [0,1,2]]
-            auto+=[str(int(kp.auto.widg[i].isChecked()) for i in [3,4,5])]
-            self.mol.set_kpoints('auto',auto)
+            auto=[str(kp.auto.widg[i].text()) for i in [0,1,2]]
+            auto+=[str(int(kp.auto.widg[i].isChecked())) for i in [3,4,5]]
+            self.mol.set_kpoints('automatic',auto)
         kp.auto = QWidget()
         kp.auto.widg = []
         for i in [0,1,2]:
@@ -245,7 +245,7 @@ class MolTab(QWidget):
             if kp.updatedisable: return
             disc = []
             for i in range(kp.disc.rowCount()):
-                disc.append([kp.disc.item(i,j).text() for j in [0,1,2,3]])
+                disc.append([str(kp.disc.item(i,j).text()) for j in range(3)])
             self.mol.set_kpoints('disc',disc)
         kp.disc = QTableWidget()
         kp.disc.setColumnCount(4)
@@ -269,36 +269,13 @@ class MolTab(QWidget):
         delKp = QAction('Delete k-point',kp.disc)
         delKp.triggered.connect(delKpoint)
         kp.disc.addAction(delKp)
-
         #stacked display of various formats
-        def changeKpoint(index):
-            kp.updatedisable=True
-            kp.disp.setCurrentIndex(min(index,2))
-            fmt=kp.fmts[index]
-            self.mol.set_kpoints('active',fmt)
-            if fmt=='automatic':
-                try:
-                    auto=self.mol.get_kpoints(fmt)
-                except:
-                    auto=['1','1','1','0','0','0']
-                for i in range(6):
-                    kp.auto.widg[i].setText(auto[i])
-            elif fmt in kp.fmts[2:]:
-                try:
-                    disc=self.mol.get_kpoints(fmt)
-                except:
-                    disc=[]
-                kp.disc.setRowCount(len(disc))
-                for i in range(len(disc)):
-                    for j in range(4):
-                        kp.disc.setItem(i,j,QTableWidgetItem(disc[i][j]))
-            kp.updatedisable=False
         kp.disp = QStackedWidget()
         kp.disp.addWidget(QLabel('Gamma point only'))
         kp.disp.addWidget(kp.auto)
         kp.disp.addWidget(kp.disc)
         kp.disp.setFixedHeight(120)
-        kp.fmt.currentIndexChanged.connect(changeKpoint)
+        kp.fmt.currentIndexChanged.connect(self.changeKpoint)
 
         #layout
         hbox = QHBoxLayout()
@@ -309,6 +286,30 @@ class MolTab(QWidget):
         vbox.addWidget(kp.disp)
         kp.setLayout(vbox)
         return collapsibleWidget('K-Points',kp,show=False)
+
+    def changeKpoint(self,index):
+        kp=self.kp
+        kp.updatedisable=True
+        kp.disp.setCurrentIndex(min(index,2))
+        fmt=kp.fmts[index]
+        self.mol.set_kpoints('active',fmt)
+        if fmt=='automatic':
+            try:
+                auto=self.mol.get_kpoints(fmt)
+            except:
+                auto=['1','1','1','0','0','0']
+            for i in range(6):
+                kp.auto.widg[i].setText(auto[i])
+        elif fmt in kp.fmts[2:]:
+            try:
+                disc=self.mol.get_kpoints(fmt)
+            except:
+                disc=[]
+            kp.disc.setRowCount(len(disc))
+            for i in range(len(disc)):
+                for j in range(4):
+                    kp.disc.setItem(i,j,QTableWidgetItem(disc[i][j]))
+        kp.updatedisable=False
 
     def setMol(self,mol):
         #connect molecule
@@ -344,8 +345,8 @@ class MolTab(QWidget):
         for i in [0,1,2]:
             for j in [0,1,2]:
                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
-        #show active k-point
-        #update handled by k-point-widget
+        #update k-point widgets
         self.kp.fmt.setCurrentIndex(self.kp.fmts.index(self.mol.get_kpoints('active')))
+        self.changeKpoint(self.kp.fmts.index(self.mol.get_kpoints('active')))
         #reenable handling
         self.updatedisable = False
