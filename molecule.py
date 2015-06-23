@@ -381,6 +381,7 @@ class Molecule:
 
         x,y,z -> Integer multipliers along corresponding vector
         """
+        self.init_undo()
         vec = self._vec*self._celldm
         mult = [x,y,z]
         for k in range(3):
@@ -393,9 +394,11 @@ class Molecule:
                     self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
         self.set_vec(self._vec*[[x],[y],[z]])
         self._bonds_outdated=True
+        self.save_undo('multiply cell')
 
     def crop(self):
         """Crop all atoms outside of cell"""
+        self.init_undo()
         nat=self.get_nat()
         dellist = []
         for i in range(nat):
@@ -406,14 +409,17 @@ class Molecule:
         for i in dellist:
             self.del_atom(i)
         self._bonds_outdated=True
+        self.save_undo('crop atoms')
 
     def wrap(self):
         """Wrap all atoms outside of cell to the inside"""
+        self.init_undo()
         nat = self.get_nat()
         for i in range(nat):
             at=self.get_atom(i,'crystal')
             self.set_atom(i,at[0],at[1]%1,'crystal')
         self._bonds_outdated=True
+        self.save_undo('wrap atoms')
 
     def reshape(self,newvec):
         """Reshape cell
@@ -460,6 +466,7 @@ class Molecule:
         if np.all(np.equal(abs(v),d)):
             return
 
+        self.init_undo()
         ax = np.cross(v,d)
         ax = ax/np.linalg.norm(ax)
         c = np.float(np.dot(v,d))
@@ -472,6 +479,7 @@ class Molecule:
         mat = np.array([np.dot(i,mat) for i in self.get_vec()])
         self.set_vec(mat,scale=True)
         self._bonds_outdated=True
+        self.save_undo('align cell')
 
     #####################################################
     # VOLUME DATA FUNCTIONS
