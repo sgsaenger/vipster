@@ -3,6 +3,7 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
+from collections import OrderedDict
 
 class PWTab(QTreeWidget):
     def __init__(self):
@@ -14,12 +15,14 @@ class PWTab(QTreeWidget):
         self.itemChanged.connect(self.itemHandler)
 
         # Actions:
-        newNl = QAction('New Namelist',self)
-        newNl.setShortcut('Ctrl+N')
-        newNl.triggered.connect(self.createNamelist)
-        self.addAction(newNl)
+        self.addIons = QAction('Add Ions namelist',self)
+        self.addIons.triggered.connect(self.createNamelist)
+        self.addCell = QAction('Add Cell namelist',self)
+        self.addCell.triggered.connect(self.createNamelist)
+        self.addAction(self.addIons)
+        self.addAction(self.addCell)
         newPar = QAction('New Parameter',self)
-        newPar.setShortcut('Ctrl+P')
+        newPar.setShortcut('Ctrl+N')
         newPar.triggered.connect(self.createParameter)
         self.addAction(newPar)
         delItem = QAction('Delete Item',self)
@@ -30,12 +33,17 @@ class PWTab(QTreeWidget):
     def mouseDoubleClickEvent(self,e):
         #on double left click, edit selected item
         if (e.buttons() & 1):
-            self.editItem(self.currentItem(),self.currentColumn())
+            if self.currentItem().flags() & Qt.ItemIsEditable:
+                self.editItem(self.currentItem(),self.currentColumn())
 
     def createNamelist(self):
         new = QTreeWidgetItem(self)
-        new.setText(0,'&')
-        new.setFlags(new.flags()|Qt.ItemIsEditable)
+        if self.sender() is self.addIons:
+            new.setText(0,'&ions')
+            self.addIons.setDisabled(True)
+        elif self.sender() is self.addCell:
+            new.setText(0,'&cell')
+            self.addCell.setDisabled(True)
 
     def createParameter(self):
         #new = QTreeWidgetItem(self)
@@ -47,8 +55,10 @@ class PWTab(QTreeWidget):
 
     def deleteItem(self):
         if self.currentItem().parent():
+            del self.pw[str(self.currentItem().parent().text(0))][str(self.currentItem().text(0))]
             self.currentItem().parent().removeChild(self.currentItem())
-        else:
+        elif self.currentItem().text(0) in ['&ions','&cell']:
+            del self.pw[str(self.currentItem().text(0))]
             self.invisibleRootItem().removeChild(self.currentItem())
 
     def setPW(self,pw):
@@ -66,17 +76,16 @@ class PWTab(QTreeWidget):
         for i in ['&control','&system','&electrons']:
             new = QTreeWidgetItem(self)
             new.setText(0,i)
-            new.setFlags(new.flags()|Qt.ItemIsEditable)
 
         #show optional namelists only if existing
         if '&ions' in self.pw:
             new = QTreeWidgetItem(self)
             new.setText(0,'&ions')
-            new.setFlags(new.flags()|Qt.ItemIsEditable)
+            self.addIons.setDisabled(True)
         if '&cell' in self.pw:
             new = QTreeWidgetItem(self)
             new.setText(0,'&cell')
-            new.setFlags(new.flags()|Qt.ItemIsEditable)
+            self.addCell.setDisabled(True)
 
         #show child entries
         for i in range(root.childCount()):
@@ -88,11 +97,15 @@ class PWTab(QTreeWidget):
         self.expandAll()
         self.resizeColumnToContents(0)
 
-    def itemHandler(self,item):
+    def itemHandler(self,item,column):
         if self.updatedisable:return
-        if item.parent() == None:
-            self.pw[str(item.text(0))]={}
-            for i in range(item.childCount()):
-                self.pw[str(item.text(0))][str(item.child(i).text(0))]=str(item.child(i).text(1))
-        else:
+        if column:
             self.pw[str(item.parent().text(0))][str(item.text(0))]=str(item.text(1))
+        else:
+            old=self.pw[str(item.parent().text(0))].keys()
+            for i in range(item.parent().childCount()):
+                if str(item.parent().child(i).text(0)) in old:
+                    old.remove(str(item.parent().child(i).text(0)))
+            self.pw[str(item.parent().text(0))]=\
+                    OrderedDict([(str(item.text(0)),v) if k == old[0]\
+                    else (k,v) for k,v in self.pw[str(item.parent().text(0))].items()])
