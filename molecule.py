@@ -79,6 +79,7 @@ class Molecule:
         self._atom_name[index]=name
         self._atom_coord[index]=self._coord_to_bohr(coord,fmt)
         self._atom_fix[index]=fix
+        self._bonds_outdated=True
 
     def set_comment(self,comment):
         """Specify xyz comment line"""
@@ -98,6 +99,7 @@ class Molecule:
             for i in range(len(self._atom_coord)):
                 self._atom_coord[i] = self._atom_coord[i]*ratio
         self._celldm = float(cdm)
+        self._bonds_outdated=True
 
     def set_vec(self,vec,scale=False):
         """Set new cell-vectors
@@ -112,6 +114,7 @@ class Molecule:
                 self._atom_coord[i] = np.dot(np.dot(self._atom_coord[i],inv),vec)
         self._vec = vec
         self._vecinv = np.linalg.inv(self._vec)
+        self._bonds_outdated=True
 
     def set_kpoints(self,mode,kpoints):
         """Set and modify active k-points
@@ -389,6 +392,7 @@ class Molecule:
                 for j in range(i*nat,(i+1)*nat):
                     self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
         self.set_vec(self._vec*[[x],[y],[z]])
+        self._bonds_outdated=True
 
     def crop(self):
         """Crop all atoms outside of cell"""
@@ -401,6 +405,7 @@ class Molecule:
         dellist.reverse()
         for i in dellist:
             self.del_atom(i)
+        self._bonds_outdated=True
 
     def wrap(self):
         """Wrap all atoms outside of cell to the inside"""
@@ -408,6 +413,7 @@ class Molecule:
         for i in range(nat):
             at=self.get_atom(i,'crystal')
             self.set_atom(i,at[0],at[1]%1,'crystal')
+        self._bonds_outdated=True
 
     def reshape(self,newvec):
         """Reshape cell
@@ -465,6 +471,7 @@ class Molecule:
                       [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
         mat = np.array([np.dot(i,mat) for i in self.get_vec()])
         self.set_vec(mat,scale=True)
+        self._bonds_outdated=True
 
     #####################################################
     # VOLUME DATA FUNCTIONS
