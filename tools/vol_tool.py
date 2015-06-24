@@ -14,9 +14,12 @@ class Volume(QWidget):
 
         def volSHandler():
             if hasattr(self,'vol'):
-                curVal = self.volSel.value()/1000. * (self.vol.max()-self.vol.min()) + self.vol.min()
+                if self.both.isChecked():
+                    curVal = self.volSel.value()/1000. * abs(max(self.vol.max(),self.vol.min(),key=abs))
+                else:
+                    curVal = self.volSel.value()/1000. * (self.vol.max()-self.vol.min()) + self.vol.min()
                 self.volCur.setText(str(curVal))
-                parent.visual.setSurf(curVal)
+                parent.visual.setSurf(curVal,self.both.isChecked())
             else:
                 self.volCur.setText('0')
 
@@ -39,6 +42,9 @@ class Volume(QWidget):
         self.volBut.clicked.connect(volBHandler)
         self.volBut.setDisabled(True)
         self.volMax = QLabel('0')
+        self.both = QCheckBox()
+        self.both.setText(u'+/-±')
+        self.both.stateChanged.connect(self.setRange)
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel('Range:'))
@@ -46,6 +52,7 @@ class Volume(QWidget):
         hbox.addWidget(QLabel(' to '))
         hbox.addWidget(self.volMax)
         vbox.addLayout(hbox)
+        vbox.addWidget(self.both)
         vbox.addWidget(self.volSel)
         vbox.addWidget(self.volCur)
         vbox.addWidget(self.volBut)
@@ -53,12 +60,19 @@ class Volume(QWidget):
         vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
 
+    def setRange(self):
+        if self.both.isChecked():
+            self.volMin.setText('0')
+            self.volMax.setText(str(abs(max(self.vol.max(),self.vol.min(),key=abs))))
+        else:
+            self.volMin.setText(str(self.vol.min()))
+            self.volMax.setText(str(self.vol.max()))
+
     def setMol(self,mol):
         if hasattr(mol,'_vol'):
             self.vol = mol.get_vol()
-            self.volMin.setText(str(self.vol.min()))
+            self.setRange()
             self.volSel.setMaximum(1000)
-            self.volMax.setText(str(self.vol.max()))
             self.volSel.setEnabled(True)
             self.volBut.setEnabled(True)
         else:
