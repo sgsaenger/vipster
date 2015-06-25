@@ -9,7 +9,7 @@ REAL,INTENT(IN),DIMENSION(x,y,z)::volume
 REAL,INTENT(IN),DIMENSION(3,x,y,z)::gradient
 
 INTEGER,INTENT(OUT)::nv
-REAL,INTENT(OUT),DIMENSION(3,6,x*y*z*4)::vertices
+REAL,INTENT(OUT),DIMENSION(3,9,x*y*z*4)::vertices
 
 INTEGER::i,i2,j,j2,k,k2,l,vsum
 REAL::ratio
@@ -118,16 +118,22 @@ DO i=1,x
                 !create triangles
                 DO l=1,nv_lut(vsum)
                     vertices(:,1,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(1,l,vsum)))/(/x,y,z/)
-                    vertices(:,3,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(2,l,vsum)))/(/x,y,z/)
-                    vertices(:,5,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(3,l,vsum)))/(/x,y,z/)
+                    vertices(:,4,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(2,l,vsum)))/(/x,y,z/)
+                    vertices(:,7,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(3,l,vsum)))/(/x,y,z/)
                     IF(THRESH>0)THEN
                         vertices(:,2,nv)=tempnorm(:,tri_lut(1,l,vsum))
-                        vertices(:,4,nv)=tempnorm(:,tri_lut(2,l,vsum))
-                        vertices(:,6,nv)=tempnorm(:,tri_lut(3,l,vsum))
+                        vertices(:,3,nv)=(/0.8,0.1,0.1/)
+                        vertices(:,5,nv)=tempnorm(:,tri_lut(2,l,vsum))
+                        vertices(:,6,nv)=(/0.8,0.1,0.1/)
+                        vertices(:,8,nv)=tempnorm(:,tri_lut(3,l,vsum))
+                        vertices(:,9,nv)=(/0.8,0.1,0.1/)
                     ELSE
                         vertices(:,2,nv)=-tempnorm(:,tri_lut(1,l,vsum))
-                        vertices(:,4,nv)=-tempnorm(:,tri_lut(2,l,vsum))
-                        vertices(:,6,nv)=-tempnorm(:,tri_lut(3,l,vsum))
+                        vertices(:,3,nv)=(/0.1,0.1,0.8/)
+                        vertices(:,5,nv)=-tempnorm(:,tri_lut(2,l,vsum))
+                        vertices(:,6,nv)=(/0.1,0.1,0.8/)
+                        vertices(:,8,nv)=-tempnorm(:,tri_lut(3,l,vsum))
+                        vertices(:,9,nv)=(/0.1,0.1,0.8/)
                     END IF
                     nv=nv+1
                 END DO

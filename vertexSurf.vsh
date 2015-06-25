@@ -5,6 +5,7 @@ uniform vec3 volOff;
 
 in vec3 vertex_cellspace;
 in vec3 normal_cellspace;
+in vec3 color;
 #if __VERSION__ < 330
 uniform vec3 offset;
 #else
@@ -21,7 +22,7 @@ void main(void)
     //standard vertex positioning:
     gl_Position = vpMatrix * vec4(vertex_cellspace*cellVec+offset+volOff,1);
     //fixed color for now
-    MaterialDiffuseColor = vec4(0.8,0.1,0.1,1);
+    MaterialDiffuseColor = vec4(color,1);
 
     //prepare normals:
     vec3 vertex_cameraspace=(rMatrix*vec4(vertex_cellspace*cellVec,1)).xyz;

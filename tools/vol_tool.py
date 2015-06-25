@@ -43,7 +43,7 @@ class Volume(QWidget):
         self.volBut.setDisabled(True)
         self.volMax = QLabel('0')
         self.both = QCheckBox()
-        self.both.setText(u'+/-±')
+        self.both.setText('+/-')
         self.both.stateChanged.connect(self.setRange)
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()

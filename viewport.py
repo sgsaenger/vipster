@@ -495,8 +495,10 @@ class ViewPort(QGLWidget):
             self.surfVBO.bind()
             glEnableVertexAttribArray(0)
             glEnableVertexAttribArray(1)
-            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,24,None)
-            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,24,self.surfVBO+12)
+            glEnableVertexAttribArray(2)
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,36,None)
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,36,self.surfVBO+12)
+            glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,36,self.surfVBO+24)
             self.surfVBO.unbind()
 
             self.surfShader.setUniformValue('volOff',*self.mol.get_vol_offset().tolist())
@@ -508,21 +510,22 @@ class ViewPort(QGLWidget):
 
             if self.instanced:
                 self.offVBO.bind()
-                glEnableVertexAttribArray(2)
-                glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
-                glVertexAttribDivisor(2,1)
+                glEnableVertexAttribArray(3)
+                glVertexAttribPointer(3,3,GL_FLOAT,GL_FALSE,0,None)
+                glVertexAttribDivisor(3,1)
                 self.offVBO.unbind()
-                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO)/6,len(self.offVBO))
-                glVertexAttribDivisor(2,0)
-                glDisableVertexAttribArray(2)
+                glDrawArraysInstanced(GL_TRIANGLES,0,len(self.surfVBO)/9,len(self.offVBO))
+                glVertexAttribDivisor(3,0)
+                glDisableVertexAttribArray(3)
             else:
                 for i in self.offVBO:
                     self.surfShader.setUniformValue('offset',*i)
-                    glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO)/6)
+                    glDrawArrays(GL_TRIANGLES,0,len(self.surfVBO)/9)
 
             glEnable(GL_CULL_FACE)
             glDisableVertexAttribArray(0)
             glDisableVertexAttribArray(1)
+            glDisableVertexAttribArray(2)
             self.surfShader.release()
 
         def drawPlane(self):
