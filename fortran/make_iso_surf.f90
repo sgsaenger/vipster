@@ -118,11 +118,17 @@ DO i=1,x
                 !create triangles
                 DO l=1,nv_lut(vsum)
                     vertices(:,1,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(1,l,vsum)))/(/x,y,z/)
-                    vertices(:,2,nv)=tempnorm(:,tri_lut(1,l,vsum))
                     vertices(:,3,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(2,l,vsum)))/(/x,y,z/)
-                    vertices(:,4,nv)=tempnorm(:,tri_lut(2,l,vsum))
                     vertices(:,5,nv)=((/i-1,j-1,k-1/)+tempvert(:,tri_lut(3,l,vsum)))/(/x,y,z/)
-                    vertices(:,6,nv)=tempnorm(:,tri_lut(3,l,vsum))
+                    IF(THRESH>0)THEN
+                        vertices(:,2,nv)=tempnorm(:,tri_lut(1,l,vsum))
+                        vertices(:,4,nv)=tempnorm(:,tri_lut(2,l,vsum))
+                        vertices(:,6,nv)=tempnorm(:,tri_lut(3,l,vsum))
+                    ELSE
+                        vertices(:,2,nv)=-tempnorm(:,tri_lut(1,l,vsum))
+                        vertices(:,4,nv)=-tempnorm(:,tri_lut(2,l,vsum))
+                        vertices(:,6,nv)=-tempnorm(:,tri_lut(3,l,vsum))
+                    END IF
                     nv=nv+1
                 END DO
             END IF
