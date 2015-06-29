@@ -280,10 +280,9 @@ class MainView(QWidget):
                 mol = self.controller.get_mol(sel,step)
                 #Send Molecule to Visualisation and Editor
                 self.coord.setMol(mol)
+                self.visual.setMol(mol,self.mult)
                 for i in self.edit:
                     i.setMol(mol)
-                #self.edit.setMol(mol)
-                self.visual.setMol(mol,self.mult)
 
         def updateMult(self):
                 self.mult=[self.xspin.value(),self.yspin.value(),self.zspin.value()]

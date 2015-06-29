@@ -145,6 +145,7 @@ class MolTab(QWidget):
             self.parent.updateMolStep()
 
         self.cellDm = QLineEdit()
+        self.cellDm.setValidator(QDoubleValidator())
         self.cellDm.editingFinished.connect(cdmHandler)
 
         # show cell vectors in table
