@@ -258,7 +258,7 @@ class Molecule:
         if com is True: return center of mass
         else returns center of cell
         """
-        if com:
+        if com and len(self._atom_coord):
             return (np.max(self._atom_coord,axis=0)+np.min(self._atom_coord,axis=0))/2
         else:
             return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
