@@ -32,29 +32,32 @@ class Picker(QTextEdit):
                     output+='\n'
             ids = [a[0] for a in sel]
             if len(sel)>1:
-                #diff01 = sel[0][3]-sel[1][3]
                 diff01 = at[0][1]+dot(vec,sel[0][1])-at[1][1]-dot(vec,sel[1][1])
                 output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff01)*br,*ids[:2])
             if len(sel)>2:
-                #3diff12 = sel[2][3]-sel[1][3]
                 diff12 = at[1][1]+dot(vec,sel[1][1])-at[2][1]-dot(vec,sel[2][1])
                 output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff12)*br,*ids[1:3])
                 if len(sel)>3:
-                    #diff23 = sel[2][3]-sel[3][3]
                     diff23 = at[2][1]+dot(vec,sel[2][1])-at[3][1]-dot(vec,sel[3][1])
                     output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff23)*br,*ids[2:])
-                a012 = degrees(arccos(dot(diff01,-diff12)/(norm(diff01)*norm(diff12))))
-                output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a012,*ids[:3])
+                if norm(diff01)>0 and norm(diff12)>0:
+                    a012 = degrees(arccos(dot(diff01,-diff12)/(norm(diff01)*norm(diff12))))
+                    output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a012,*ids[:3])
+                else:
+                    output+=u'Angle {1}-{2}-{3}: {0}°\n'.format('not defined',*ids[:3])
             if len(sel)>3:
-                a123 = degrees(arccos(dot(diff12,-diff23)/(norm(diff12)*norm(diff23))))
-                output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a123,*ids[1:])
+                if norm(diff12)>0 and norm(diff23)>0:
+                    a123 = degrees(arccos(dot(diff12,-diff23)/(norm(diff12)*norm(diff23))))
+                    output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a123,*ids[1:])
+                else:
+                    output+=u'Angle {1}-{2}-{3}: {0}°\n'.format('not defined',*ids[1:])
                 c012 = cross(diff01,diff12)
                 c123 = cross(diff12,diff23)
-                if norm(c012)==0 or norm(c123)==0:
-                    output+=u'Dihedral {1}-{2}-{3}-{4}: {0}\n'.format('not defined',*ids)
-                else:
+                if norm(c012)>0 or norm(c123)>0:
                     d0123 = degrees(arccos(dot(c012,c123)/(norm(c012)*norm(c123))))
                     output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
+                else:
+                    output+=u'Dihedral {1}-{2}-{3}-{4}: {0}\n'.format('not defined',*ids)
             #self.pickArea.setPlainText(output)
             self.setPlainText(output)
         else:
