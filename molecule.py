@@ -52,15 +52,14 @@ class Molecule:
         self._selection=[]
         self._bonds_outdated=True
 
-    def insert_atom(self,pos,addat):
-        """Insert copy of an atom
+    def append_atom(self,addat):
+        """Append copy of an atom
 
-        pos -> id of new atom
         addat -> new atom
         """
-        self._atom_name.insert(pos,addat[0])
-        self._atom_coord.insert(pos,self._coord_to_bohr(addat[1],addat[2]))
-        self._atom_fix.insert(pos,addat[3])
+        self._atom_name.append(addat[0])
+        self._atom_coord.append(self._coord_to_bohr(addat[1],addat[2]))
+        self._atom_fix.append(addat[3])
         self._selection=[]
         self._bonds_outdated=True
 
@@ -305,6 +304,7 @@ class Molecule:
         """
         if not self._undo_stack: return
         _,self._atom_name,self._atom_coord,self._atom_fix=self._undo_stack.pop()
+        self._selection=[]
         self._bonds_outdated=True
 
     ######################################################

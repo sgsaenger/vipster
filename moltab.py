@@ -33,6 +33,9 @@ class MolTab(QWidget):
         hbox.addWidget(self.fmt)
 
         # coordinate table
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
         def cellHandler(row,col):
             if self.updatedisable: return
             self.mol.init_undo()
@@ -45,86 +48,20 @@ class MolTab(QWidget):
             self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
             self.mol.save_undo('set coordinates')
             self.parent.updateMolStep()
-
-        self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
         self.table.cellChanged.connect(cellHandler)
-        self.table.setContextMenuPolicy(Qt.ActionsContextMenu)
+        def selHandler():
+            if self.table.selectionMode()!=QAbstractItemView.MultiSelection:
+                self.mol.del_selection()
+                for i in self.table.selectedRanges():
+                    for j in range(i.topRow(),i.bottomRow()+1):
+                        self.mol.add_selection([j,(0,0,0)])
+                self.parent.updateMolStep()
+        self.table.itemSelectionChanged.connect(selHandler)
 
-        #Buttons and right-click Actions:
-        btns = QHBoxLayout()
-
-        def copyAt():
-            self.sel = []
-            for i in self.table.selectedRanges():
-                for j in range(i.topRow(),i.bottomRow()+1):
-                    self.sel.append(self.mol.get_atom(j))
-
-        copyB = QPushButton('Copy Atom(s)')
-        copyB.clicked.connect(copyAt)
-        btns.addWidget(copyB)
-        copyA = QAction('Copy Atom(s)',self)
-        copyA.setShortcut('Ctrl+C')
-        copyA.triggered.connect(copyAt)
-        self.table.addAction(copyA)
-
-        def pasteAt():
-            if not hasattr(self,'sel'):return
-            self.mol.init_undo()
-            pos = self.table.currentRow()+1
-            for at in reversed(self.sel):
-                self.mol.insert_atom(pos,at)
-            self.mol.save_undo('paste atom')
-            self.parent.updateMolStep()
-
-        pasteB = QPushButton('Paste Atom(s)')
-        pasteB.clicked.connect(pasteAt)
-        btns.addWidget(pasteB)
-        pasteA = QAction('Paste Atom(s)',self)
-        pasteA.setShortcut('Ctrl+V')
-        pasteA.triggered.connect(pasteAt)
-        self.table.addAction(pasteA)
-
-        def newAtom():
-            self.mol.init_undo()
-            self.mol.create_atom()
-            self.mol.save_undo('create atom')
-            self.parent.updateMolStep()
-
-        newB = QPushButton('New Atom')
-        newB.clicked.connect(newAtom)
-        btns.addWidget(newB)
-        newA = QAction('New Atom',self)
-        newA.setShortcut('N')
-        newA.triggered.connect(newAtom)
-        self.table.addAction(newA)
-
-        def delAt():
-            self.mol.init_undo()
-            delrange = set()
-            for i in self.table.selectedRanges():
-                for j in range(i.topRow(),i.bottomRow()+1):
-                    delrange.add(j)
-            for i in sorted(delrange,reverse=True):
-                self.mol.del_atom(i)
-            self.mol.save_undo('delete atom')
-            self.parent.updateMolStep()
-
-        delB = QPushButton('Delete Atom(s)')
-        delB.clicked.connect(delAt)
-        btns.addWidget(delB)
-        delA = QAction('Delete Atom(s)',self)
-        delA.setShortcut('Del')
-        delA.triggered.connect(delAt)
-        self.table.addAction(delA)
-
-        # nest widgets in collapsible widget
         coordWidget=QWidget()
         coordLay=QVBoxLayout()
         coordLay.addLayout(hbox)
         coordLay.addWidget(self.table)
-        coordLay.addLayout(btns)
         coordLay.setContentsMargins(0,0,0,0)
         coordLay.setStretchFactor(self.table,0)
         coordWidget.setLayout(coordLay)
@@ -340,6 +277,12 @@ class MolTab(QWidget):
                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
                 self.table.item(i,j+1).setFlags(Qt.ItemFlag(51))
                 self.table.item(i,j+1).setCheckState(int(not at[3][j])*2)
+        #update selection
+        self.table.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.table.clearSelection()
+        for j in set(i[0] for i in self.mol.get_selection()):
+            self.table.selectRow(j)
+        self.table.setSelectionMode(QAbstractItemView.ExtendedSelection)
         #fill cell geometry widget
         self.cellDm.setText(str(self.mol.get_celldm(fmt)))
         vec = self.mol.get_vec()
