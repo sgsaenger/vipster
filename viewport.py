@@ -5,7 +5,7 @@ from os.path import dirname
 from mol_f import make_iso_surf
 import numpy as np
 
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt,QRectF
 from PyQt4.QtGui import *
 from PyQt4.QtOpenGL import *
 from OpenGL.GL import *
@@ -30,24 +30,26 @@ class ViewPort(QGLWidget):
         self.showPlane = False
         self.showSurf = False
         self.mouseMode = "Camera"
+        self.mousePos = None
+        self.rectPos = None
         self.AA = True
         self.xsh = 0
         self.ysh = 0
         self.rMatrix = QMatrix4x4()
         self.distance = 25
-        self.initIOActions()
-        self.initRSActions()
+        self.initEditMenu()
+        self.initViewMenu()
 
     ###############################################
     # INPUT HANDLING
     ###############################################
 
-    def initIOActions(self):
+    def initEditMenu(self):
         def newFun():
             self.mol.init_undo()
             self.mol.create_atom()
             self.mol.save_undo('create atom')
-            self.parent.updateMult()
+            self.parent.updateMolStep()
         newAction = QAction('&New Atom',self)
         newAction.setShortcut('n')
         newAction.triggered.connect(newFun)
@@ -58,7 +60,7 @@ class ViewPort(QGLWidget):
             for i in sorted(sel,reverse=True):
                 self.mol.del_atom(i)
             self.mol.save_undo('delete atom(s)')
-            self.parent.updateMult()
+            self.parent.updateMolStep()
         delAction = QAction('&Delete Atom(s)',self)
         delAction.setShortcut(QKeySequence.Delete)
         delAction.triggered.connect(delFun)
@@ -70,13 +72,13 @@ class ViewPort(QGLWidget):
                 at=self.mol.get_atom(i)
                 self.mol.append_atom(at)
             self.mol.save_undo('copy atom(s)')
-            self.parent.updateMult()
+            self.parent.updateMolStep()
         copyAction = QAction('&Copy Atom(s)',self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.triggered.connect(copyFun)
         def undoFun():
             self.mol.undo()
-            self.parent.updateMult()
+            self.parent.updateMolStep()
         self.undoAction = QAction('Undo',self)
         self.undoAction.setShortcut('Ctrl+Z')
         self.undoAction.triggered.connect(undoFun)
@@ -92,22 +94,22 @@ class ViewPort(QGLWidget):
                 tmp = QMatrix4x4()
                 tmp.rotate(-10,1,0,0)
                 self.rMatrix = tmp*self.rMatrix
-                self.updateGL()
+                self.update()
         if e.key() == Qt.Key_Down:
                 tmp = QMatrix4x4()
                 tmp.rotate(10,1,0,0)
                 self.rMatrix = tmp*self.rMatrix
-                self.updateGL()
+                self.update()
         if e.key() == Qt.Key_Left:
                 tmp = QMatrix4x4()
                 tmp.rotate(-10,0,1,0)
                 self.rMatrix = tmp*self.rMatrix
-                self.updateGL()
+                self.update()
         if e.key() == Qt.Key_Right:
                 tmp = QMatrix4x4()
                 tmp.rotate(10,0,1,0)
                 self.rMatrix = tmp*self.rMatrix
-                self.updateGL()
+                self.update()
 
     def setMouseMode(self,but):
         t=but.text()
@@ -125,6 +127,7 @@ class ViewPort(QGLWidget):
         if self.mouseMode=='Modify':
             #initiate undo
             self.mol.init_undo()
+            self.modMode=''
             #determine which atoms to modify
             sel = self.mol.get_selection()
             if sel:
@@ -162,7 +165,7 @@ class ViewPort(QGLWidget):
             elif self.mouseMode == 'Select':
                 self.mol.del_selection()
                 self.parent.updateMolStep()
-            self.updateGL()
+            self.update()
 
     def mouseMoveEvent(self,e):
         delta=e.pos()-self.mousePos
@@ -173,10 +176,14 @@ class ViewPort(QGLWidget):
                 tmp.rotate(delta.x(),0,1,0)
                 tmp.rotate(delta.y(),1,0,0)
                 self.rMatrix = tmp*self.rMatrix
-                self.updateGL()
+                self.update()
             elif self.mouseMode=='Select':
-                #draw rectangle (if over threshold?)
-                pass
+                #draw rectangle if over threshold
+                if delta.manhattanLength()>5:
+                    self.rectPos=e.pos()
+                    self.update()
+                #retain original mousePos
+                return
             elif self.mouseMode=='Modify':
                 #rotate selected atoms around center
                 atoms=self.modData[0]
@@ -198,7 +205,7 @@ class ViewPort(QGLWidget):
                 #shift camera
                 self.xsh += delta.x()/10.
                 self.ysh -= delta.y()/10.
-                self.updateGL()
+                self.update()
             elif self.mouseMode=='Modify':
                 #shift selection in camera-plane
                 atoms=self.modData[0]
@@ -214,37 +221,62 @@ class ViewPort(QGLWidget):
             self.modMode=''
             self.parent.updateMolStep()
         elif self.mouseMode=='Select' and e.button()&1:
-            pick = self.pickAtom(e)
-            if pick:
-                self.mol.add_selection(pick[1:])
+            if self.rectPos:
+                for i in self.pickAtom(self.mousePos,self.rectPos):
+                    self.mol.add_selection(i[1:])
+                self.rectPos = None
                 self.parent.updateMolStep()
+            else:
+                pick = self.pickAtom(e)
+                if pick:
+                    self.mol.add_selection(pick[1:])
+                    self.parent.updateMolStep()
 
-    def pickAtom(self,coord):
+    def pickAtom(self,c1,c2=None):
         #render with selectionmode
-        self.paintGL(True)
+        self.paintStuff(True)
         #Wait for everything to render,configure memory alignment
         glFlush()
         glFinish()
         glPixelStorei(GL_UNPACK_ALIGNMENT,1)
-        #Read pixel from GPU
-        color = (GLubyte*4)(0)
-        x = coord.x()
-        y = self.height() - coord.y()
-        glReadPixels(x,y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,color)
-        if color[3] == 0:
-            return
-        mult=self.mult[0]*self.mult[1]*self.mult[2]
-        idx = color[0] + 256*color[1] + 65536*color[2]
-        if idx<len(self.atomsVBO):
-            realid = idx/mult
-            off = idx%mult
-            zoff = off%self.mult[2]
-            yoff = (off/self.mult[2])%self.mult[1]
-            xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
-            return [idx,realid,(xoff,yoff,zoff)]
+        #determine size of picked area
+        if c2:
+            x = min(c1.x(),c2.x())
+            y = self.height()-1-max(c1.y(),c2.y())
+            w = abs(c1.x()-c2.x())
+            h = abs(c1.y()-c2.y())
+            color = (GLubyte*(4*w*h))(0)
         else:
-            return None
-        return idx
+            x = c1.x()
+            y = self.height()-1-c1.y()
+            w = 1
+            h = 1
+            color = (GLubyte*4)(0)
+        #Read pixel(s) from GPU
+        glReadPixels(x,y,w,h,GL_RGBA,GL_UNSIGNED_BYTE,color)
+        #determine unique colors
+        cset=set()
+        for i in range(0,len(color),4):
+            cset.add(tuple(color[i:i+4]))
+        #ignore background
+        cset.discard((255,255,255,0))
+        #identify atoms
+        atoms=[]
+        if cset:
+            mult=self.mult[0]*self.mult[1]*self.mult[2]
+            for i in cset:
+                idx = i[0] + 256*i[1] + 65536*i[2]
+                if idx<len(self.atomsVBO):
+                    realid = idx/mult
+                    off = idx%mult
+                    zoff = off%self.mult[2]
+                    yoff = (off/self.mult[2])%self.mult[1]
+                    xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
+                    atoms.append([idx,realid,(xoff,yoff,zoff)])
+        if len(atoms)==1:
+            return atoms[0]
+        else:
+            return atoms
 
     def wheelEvent(self,e):
         delta = e.delta()
@@ -254,14 +286,14 @@ class ViewPort(QGLWidget):
                         self.distance *= 1.1
                 elif delta > 0:
                         self.distance *= 0.9
-                self.updateGL()
+                self.update()
         e.accept()
 
     ##########################################
     # MODIFY RENDER-STATE
     ##########################################
 
-    def initRSActions(self):
+    def initViewMenu(self):
         changeProj = QAction('Change &Projection',self)
         changeProj.setShortcut('p')
         changeProj.triggered.connect(self.changeState)
@@ -285,20 +317,17 @@ class ViewPort(QGLWidget):
         reason = self.sender().text()
         if reason=='Change &Projection':
             self.perspective = not self.perspective
-            self.updateGL()
         elif reason=='Toggle &Cell':
             self.showCell = not self.showCell
-            self.updateGL()
         elif reason=='Toggle &Bonds':
             self.showBonds = not self.showBonds
-            self.updateGL()
         elif reason=='Toggle &Antialiasing':
             if self.AA:
                     glDisable(GL_MULTISAMPLE)
             elif not self.AA:
                     glEnable(GL_MULTISAMPLE)
             self.AA = not self.AA
-            self.updateGL()
+        self.update()
 
     def alignView(self):
         if self.sender().text()=='x':
@@ -307,7 +336,7 @@ class ViewPort(QGLWidget):
             self.rMatrix = QMatrix4x4([1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1])
         elif self.sender().text()=='z':
             self.rMatrix.setToIdentity()
-        self.updateGL()
+        self.update()
 
     ##########################################
     # UPDATE RENDER-DATA
@@ -451,11 +480,11 @@ class ViewPort(QGLWidget):
         else:
             self.offVBO=off
 
-        self.updateGL()
+        self.update()
 
     def toggleSurf(self):
         self.showSurf = not self.showSurf
-        self.updateGL()
+        self.update()
 
     def setSurf(self,sval,both=False):
         if sval==0:
@@ -467,11 +496,11 @@ class ViewPort(QGLWidget):
         else:
             self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
         if self.showSurf:
-            self.updateGL()
+            self.update()
 
     def togglePlane(self):
         self.showPlane = not self.showPlane
-        self.updateGL()
+        self.update()
 
     def setPlane(self,ptype,pval):
         #volume data:
@@ -502,7 +531,7 @@ class ViewPort(QGLWidget):
             if pval.count(0) == 3:
                 if hasattr(self,'planeVBO'):
                     del self.planeVBO
-                self.updateGL()
+                self.update()
                 return
             elif pval[0] == 0:
                 if pval[1] == 0:
@@ -534,7 +563,7 @@ class ViewPort(QGLWidget):
         self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i] for i in range(len(p))],'f'))
 
         if self.showPlane:
-            self.updateGL()
+            self.update()
         return
 
     ###################################################
@@ -542,22 +571,12 @@ class ViewPort(QGLWidget):
     ###################################################
 
     def initializeGL(self):
-        #Bind VAO (necessary for modern OpenGL)
-        glBindVertexArray(glGenVertexArrays(1))
-        #render only visible vertices
-        glEnable(GL_DEPTH_TEST)
-        #backface culling: render only front of vertex
-        glEnable(GL_CULL_FACE)
-        #enable transparency for selection
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+        #prepare VAO
+        self.VAO = glGenVertexArrays(1)
 
         #set line width for cell
         glLineWidth(2)
         glPointSize(2)
-
-        #set background color
-        self.qglClearColor(QColor(255,255,255,0))
 
         #find supported version and modify shaders accordingly
         glVersion=float(glGetString(GL_VERSION)[0:3])
@@ -611,10 +630,39 @@ class ViewPort(QGLWidget):
         #set viewport
         glViewport(0,0,width,height)
 
+    def paintEvent(self,e):
+        if self.rectPos:
+            p = QPainter(self)
+            if self.AA:
+                p.setRenderHint(QPainter.Antialiasing,True)
+            self.paintStuff()
+            #push transparent area in front
+            glDisable(GL_DEPTH_TEST)
+            glDisable(GL_CULL_FACE)
+            #draw rect
+            pen = QPen()
+            pen.setWidth(2)
+            p.setPen(pen)
+            b = QBrush()
+            b.setColor(QColor(180,180,180,40))
+            b.setStyle(Qt.SolidPattern)
+            p.setBrush(b)
+            p.drawRect(QRectF(self.mousePos,self.rectPos))
+            p.end()
+        else:
+            self.paintStuff()
+            self.updateGL()
 
-    def paintGL(self,select=False):
+    def paintStuff(self,select=False):
+        glBindVertexArray(self.VAO)
         #clear depth and color buffer:
+        self.qglClearColor(QColor(255,255,255,0))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        #set global GL settings
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_CULL_FACE)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
 
         if not hasattr(self,'atomsVBO'): return
 
@@ -633,7 +681,9 @@ class ViewPort(QGLWidget):
             self.vMatrix.scale(10./self.distance)
         #rendering:
         if select:
+            glDisable(GL_MULTISAMPLE)
             self.drawAtomsSelect()
+            glEnable(GL_MULTISAMPLE)
         else:
             self.drawAtoms()
             if self.showBonds:
@@ -646,6 +696,7 @@ class ViewPort(QGLWidget):
                 self.drawPlane()
             if self.showSurf and hasattr(self,'surfVBO'):
                 self.drawSurf()
+        glBindVertexArray(0)
 
     def drawAtoms(self):
         self.sphereShader.bind()
