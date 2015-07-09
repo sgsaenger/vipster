@@ -33,14 +33,19 @@ The GUI should be pretty self-explanatory (or will be at some point...)
 
 ###Mouse:
 
-**Normal mode** (R):
-Left-click: Rotate
-Middle-click: Move
-Right-click: Set back view
+**Camera mode** (R):
+Left-click: Rotate rotate
+Middle-click: Move camera
+Right-click: Align camera to z-axis
 
 **Select mode** (S):
 Left-click: Add/Remove atom to selection
-Right-click: Empty selection
+Right-click: Clear selection
+
+**Modify mode** (M):
+Left-click: Rotate atoms around center of selection/center of molecule/clicked atom
+Middle-click: Shift atoms in xy-plane (camera)
+Right-click: Shift atoms along z-axis (camera)
 
 ###Tools:
 

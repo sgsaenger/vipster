@@ -46,10 +46,13 @@ class MainView(QWidget):
             mouse = QHBoxLayout()
             camBut = QPushButton('Camera')
             camBut.setShortcut('r')
+            camBut.setToolTip('Move camera\n\nLMB: Rotate camera\nMMB: Drag camera\nRMB: Align camera to z-axis')
             selBut = QPushButton('Select')
             selBut.setShortcut('s')
+            selBut.setToolTip('Select atoms\n\nLMB: Select atoms\nRMB: Clear selection')
             modBut = QPushButton('Modify')
             modBut.setShortcut('m')
+            modBut.setToolTip('Modify geometry\n\nLMB: Rotate atoms (around Center of Mass or selected Atom)\nMMB: Move atoms in xy-plane (camera)\nRMB: Move atoms along z-axis (camera)')
             for i in [camBut,selBut,modBut]:
                 mouse.addWidget(i)
                 self.mouse.addButton(i)
