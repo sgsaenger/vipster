@@ -243,8 +243,8 @@ class ViewPort(QGLWidget):
         if c2:
             x = min(c1.x(),c2.x())
             y = self.height()-1-max(c1.y(),c2.y())
-            w = abs(c1.x()-c2.x())
-            h = abs(c1.y()-c2.y())
+            w = max(1,abs(c1.x()-c2.x()))
+            h = max(1,abs(c1.y()-c2.y()))
             color = (GLubyte*(4*w*h))(0)
         else:
             x = c1.x()
@@ -273,10 +273,12 @@ class ViewPort(QGLWidget):
                     yoff = (off/self.mult[2])%self.mult[1]
                     xoff = ((off/self.mult[2])/self.mult[1])%self.mult[0]
                     atoms.append([idx,realid,(xoff,yoff,zoff)])
-        if len(atoms)==1:
+        if c2:
+            return atoms
+        elif atoms:
             return atoms[0]
         else:
-            return atoms
+            return None
 
     def wheelEvent(self,e):
         delta = e.delta()
