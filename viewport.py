@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from os.path import dirname
+from copy import deepcopy
 from mol_f import make_iso_surf
 import numpy as np
 
@@ -39,6 +40,7 @@ class ViewPort(QGLWidget):
         self.distance = 25
         self.initEditMenu()
         self.initViewMenu()
+        self.copyBuf=[]
 
     ###############################################
     # INPUT HANDLING
@@ -50,7 +52,7 @@ class ViewPort(QGLWidget):
             self.mol.create_atom()
             self.mol.save_undo('create atom')
             self.parent.updateMolStep()
-        newAction = QAction('&New Atom',self)
+        newAction = QAction('&New atom',self)
         newAction.setShortcut('n')
         newAction.triggered.connect(newFun)
         def delFun():
@@ -61,21 +63,27 @@ class ViewPort(QGLWidget):
                 self.mol.del_atom(i)
             self.mol.save_undo('delete atom(s)')
             self.parent.updateMolStep()
-        delAction = QAction('&Delete Atom(s)',self)
+        delAction = QAction('&Delete atom(s)',self)
         delAction.setShortcut(QKeySequence.Delete)
         delAction.triggered.connect(delFun)
         def copyFun():
             sel = set(i[0] for i in self.mol.get_selection())
-            if not sel: return
-            self.mol.init_undo()
+            self.copyBuf = []
             for i in sel:
-                at=self.mol.get_atom(i)
-                self.mol.append_atom(at)
-            self.mol.save_undo('copy atom(s)')
-            self.parent.updateMolStep()
-        copyAction = QAction('&Copy Atom(s)',self)
+                self.copyBuf.append(deepcopy(self.mol.get_atom(i)))
+        copyAction = QAction('&Copy atom(s)',self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.triggered.connect(copyFun)
+        def pasteFun():
+            if not self.copyBuf: return
+            self.mol.init_undo()
+            for i in self.copyBuf:
+                self.mol.append_atom(i)
+            self.mol.save_undo('copy atom(s)')
+            self.parent.updateMolStep()
+        pasteAction = QAction('&Paste atom(s)',self)
+        pasteAction.setShortcut('Ctrl+V')
+        pasteAction.triggered.connect(pasteFun)
         def undoFun():
             self.mol.undo()
             self.parent.updateMolStep()
@@ -85,6 +93,7 @@ class ViewPort(QGLWidget):
         eMenu = self.parent.parent.menuBar().addMenu('&Edit')
         eMenu.addAction(newAction)
         eMenu.addAction(copyAction)
+        eMenu.addAction(pasteAction)
         eMenu.addAction(delAction)
         eMenu.addSeparator()
         eMenu.addAction(self.undoAction)
