@@ -50,12 +50,12 @@ class MolTab(QWidget):
             self.parent.updateMolStep()
         self.table.cellChanged.connect(cellHandler)
         def selHandler():
-            if self.table.selectionMode()!=QAbstractItemView.MultiSelection:
-                self.mol.del_selection()
-                for i in self.table.selectedRanges():
-                    for j in range(i.topRow(),i.bottomRow()+1):
-                        self.mol.add_selection([j,(0,0,0)])
-                self.parent.updateMolStep()
+            if self.updatedisable: return
+            self.mol.del_selection()
+            for i in self.table.selectedRanges():
+                for j in range(i.topRow(),i.bottomRow()+1):
+                    self.mol.add_selection([j,(0,0,0)])
+            self.parent.updateMolStep()
         self.table.itemSelectionChanged.connect(selHandler)
 
         coordWidget=QWidget()
