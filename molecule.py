@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from mol_f import set_bonds_f,make_vol_gradient
 
-class Molecule:
+class Molecule(object):
     """
     Main Class for Molecule/Cell data
 
@@ -792,3 +792,13 @@ class Molecule:
         z=z/np.linalg.norm(z)
         shift=np.dot(vec,[x,np.cross(x,z),z])
         self._shift(atoms,shift)
+
+class Trajectory(Molecule):
+    """
+    Overlay for Molecule-class 
+    
+    in order to decrease computational demand 
+    for trajectories by reusing information as much as possible
+    """
+    def __init__(self,controller):
+        super(Trajectory,self).__init__(controller)

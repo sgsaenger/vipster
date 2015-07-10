@@ -12,7 +12,7 @@ from molecule import Molecule
 ######################################################################
 # MAIN CONTROLLER CLASS
 ######################################################################
-class TBController():
+class TBController(object):
     """
     I/O routines and handling of molecules/trajectories
 
