@@ -233,10 +233,7 @@ class MainView(QWidget):
             ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
             ftype = str(ftype[0])
             try:
-                try:
-                    mol = self.getMolecule()
-                except:
-                    raise IndexError('No Molecule')
+                mol = self.getMolecule()
                 if ftype=='PWScf Input':
                     try:
                         param = self.getParam()

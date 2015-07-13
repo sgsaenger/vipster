@@ -15,7 +15,6 @@ class CellMod(QWidget):
         vbox = QVBoxLayout()
         
         def modHandler():
-            if not hasattr(self,'mol'): return
             reason=self.sender().text()
             if reason=='Multiply cell':
                 self.mol.mult(int(self.xmult.text()),int(self.ymult.text()),int(self.zmult.text()))

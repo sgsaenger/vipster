@@ -232,17 +232,11 @@ class MolTab(QWidget):
         fmt=kp.fmts[index]
         self.mol.set_kpoints('active',fmt)
         if fmt=='automatic':
-            try:
-                auto=self.mol.get_kpoints(fmt)
-            except:
-                auto=['1','1','1','0','0','0']
+            auto=self.mol.get_kpoints(fmt)
             for i in range(6):
                 kp.auto.widg[i].setText(auto[i])
         elif fmt in kp.fmts[2:]:
-            try:
-                disc=self.mol.get_kpoints(fmt)
-            except:
-                disc=[]
+            disc=self.mol.get_kpoints(fmt)
             kp.disc.setRowCount(len(disc))
             for i in range(len(disc)):
                 for j in range(4):

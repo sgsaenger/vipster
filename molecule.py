@@ -22,8 +22,9 @@ class Molecule(object):
     PSE-Overlay over central settings (pse)
     """
 
-    def __init__(self,controller):
-        self.pse=self._pse(controller.pse)
+    def __init__(self,controller=None):
+        if controller:
+            self.pse=self._pse(controller.pse)
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
@@ -35,9 +36,15 @@ class Molecule(object):
         self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._comment = ''
-        self._kpoints={'active':'gamma'}
+        self._kpoints={'active':'gamma',\
+                'automatic':['1','1','1','0','0','0'],\
+                'disc':[]}
         self._undo_stack=[]
         self._undo_temp=[]
+
+    def __len__(self):
+        """len is always one"""
+        return 1
 
     def create_atom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
         """Make new atom
@@ -242,14 +249,11 @@ class Molecule(object):
 
     def get_types(self):
         """Return types of atoms"""
-        types = set()
-        for i in self._atom_name:
-            types.add(i)
-        return types
+        return set(self._atom_name)
 
     def get_ntyp(self):
         """Return number of types of atoms"""
-        return len(self.get_types())
+        return len(set(self._atom_name))
 
     def get_center(self,com=False):
         """Return center-coordinates of molecule
@@ -515,23 +519,21 @@ class Molecule(object):
                         j=0
                         i+=1
                         line=vol[i].split()
+        self._vol_grad = make_vol_gradient(self._vol)
 
     def get_vol(self):
-        """Return volume data"""
-        return self._vol
+        """Return volume data if present"""
+        if hasattr(self,'_vol'):
+            return self._vol
+        else:
+            return None
 
     def get_vol_offset(self):
         """Return offset of volume data"""
         return self._vol_off
 
-    def set_vol_gradient(self):
-        """Calculate the gradient of volume data"""
-        self._vol_grad = make_vol_gradient(self._vol)
-
     def get_vol_gradient(self):
         """Return volume gradient"""
-        if not hasattr(self,'_vol_grad'):
-            self.set_vol_gradient()
         return self._vol_grad
 
     #####################################################
@@ -793,12 +795,39 @@ class Molecule(object):
         shift=np.dot(vec,[x,np.cross(x,z),z])
         self._shift(atoms,shift)
 
-class Trajectory(Molecule):
+class Trajectory(object):
     """
-    Overlay for Molecule-class 
-    
-    in order to decrease computational demand 
-    for trajectories by reusing information as much as possible
+    Overlay for Molecule-class
+
+    consistent interface for single molecules
+    and trajectories
     """
-    def __init__(self,controller):
-        super(Trajectory,self).__init__(controller)
+    def __init__(self,controller=None):
+        self._controller=controller
+        self._dataStack=[Molecule(controller)]
+        self._dataPointer=0
+
+    def __len__(self):
+        """
+        len() returns number of steps in trajectory
+        """
+        return len(self._dataStack)
+
+    def new_mol(self):
+        """
+        Create new step
+        """
+        self._dataStack.append(Molecule(self._controller))
+        self._dataPointer=len(self._dataStack)-1
+
+    def change_mol(self,num):
+        """
+        Select step 'num'
+        """
+        self._dataPointer=num
+
+    def __getattr__(self,attr):
+        """
+        Pass-through for methods and properties of active molecule
+        """
+        return self._dataStack[self._dataPointer].__getattribute__(attr)
