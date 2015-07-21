@@ -156,7 +156,7 @@ class ViewPort(QGLWidget):
             if e.buttons()&1:
                 vec = self.mol.get_vec()*self.mol.get_celldm()
                 def selToCoord(sel):
-                    return self.mol.get_atom(sel[0])[1]+np.dot(sel[1],vec)
+                    return self.mol.get_atom(sel[0])[1]
                 pick = self.pickAtom(e)
                 #picked atom
                 if pick:
