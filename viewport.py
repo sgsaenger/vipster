@@ -154,13 +154,12 @@ class ViewPort(QGLWidget):
             self.modData+=[[x,y,z]]
             #for rotation, center is needed
             if e.buttons()&1:
-                vec = self.mol.get_vec()*self.mol.get_celldm()
                 def selToCoord(sel):
                     return self.mol.get_atom(sel[0])[1]
                 pick = self.pickAtom(e)
                 #picked atom
                 if pick:
-                    self.modData+= [selToCoord(pick[1:])]
+                    self.modData+=[self.mol.get_atom(pick[1])[1]]
                 #com of selection
                 elif sel:
                     coords=[selToCoord(i) for i in sel]
