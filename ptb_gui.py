@@ -12,7 +12,6 @@ from PyQt4.QtCore import QTimer
 from viewport import ViewPort
 from moltab import MolTab
 from pwtab import PWTab
-#from toolarea import ToolArea
 from tools import tools
 from collapsiblewidget import collapsibleWidget
 
@@ -222,7 +221,7 @@ class MainView(QWidget):
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.indict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.gui_indict.keys(),0,False)
             ftype = str(ftype[0])
             self.controller.readFile(ftype,fname)
             self.loadView()
@@ -230,7 +229,7 @@ class MainView(QWidget):
         def saveHandler(self):
             fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.outdict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.gui_outdict.keys(),0,False)
             ftype = str(ftype[0])
             try:
                 mol = self.getMolecule()
@@ -251,11 +250,11 @@ class MainView(QWidget):
         ########################################################
         def loadView(self):
                 count = self.mlist.count()
-                for i in range(count,self.controller.get_nmol()):
+                for i in range(count,self.controller.getNMol()):
                         self.mlist.addItem("Mol "+str(i+1))
                 self.mlist.setCurrentRow(self.mlist.count()-1)
                 count = self.pwlist.count()
-                for i in range(count,self.controller.get_npw()):
+                for i in range(count,self.controller.getNPw()):
                         self.pwlist.addItem("Param "+str(i+1))
                 self.pwlist.setCurrentRow(self.pwlist.count()-1)
 
@@ -263,39 +262,39 @@ class MainView(QWidget):
         #get data from controller
         ########################################################
         def selectMolecule(self,sel):
-                steps = self.controller.get_lmol(sel)
-                self.maxStep.setText(str(steps))
-                self.Step.setMaximum(steps)
-                self.Step.setValue(steps)
-                self.updateMolStep()
+            self.mol = self.controller.getMol(sel)
+            steps=len(self.mol)
+            self.maxStep.setText(str(steps))
+            self.Step.setMaximum(steps)
+            self.Step.setValue(steps)
+            self.updateMolStep()
 
         def selectPWParam(self,sel):
-                self.pw.setPW(self.controller.get_pw(sel))
+            self.pw.setPW(self.controller.getPw(sel))
 
         def updateMolStep(self):
-                #get current Molecule from MolList
-                sel = self.mlist.currentRow()
-                step = self.Step.value()-1
-                self.curStep.setText(str(step+1))
-                mol = self.controller.get_mol(sel,step)
-                #Send Molecule to Visualisation and Editor
-                self.coord.setMol(mol)
-                self.visual.setMol(mol,self.mult)
-                for i in self.edit:
-                    i.setMol(mol)
+            #change step of trajectory when needed
+            step = self.Step.value()-1
+            self.curStep.setText(str(step+1))
+            self.mol.changeMol(step)
+            #Send Molecule to Visualisation and Editor
+            self.coord.setMol(self.mol)
+            self.visual.setMol(self.mol,self.mult)
+            for i in self.edit:
+                i.setMol(self.mol)
 
         def updateMult(self):
-                self.mult=[self.xspin.value(),self.yspin.value(),self.zspin.value()]
-                self.updateMolStep()
+            self.mult=[self.xspin.value(),self.yspin.value(),self.zspin.value()]
+            self.updateMolStep()
 
         ########################################################
         #to controller
         ########################################################
         def getMolecule(self):
-                return self.controller.get_mol(self.mlist.currentRow(),self.Step.value()-1)
+                return self.controller.getMol(self.mlist.currentRow())
 
         def getParam(self):
-                return self.controller.get_pw(self.pwlist.currentRow())
+                return self.controller.getPw(self.pwlist.currentRow())
 
 
         ########################################################

@@ -42,10 +42,6 @@ class Molecule(object):
         self._undo_stack=[]
         self._undo_temp=[]
 
-    def __len__(self):
-        """len is always one"""
-        return 1
-
     def create_atom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
         """Make new atom
         name -> element symbol
@@ -802,9 +798,9 @@ class Trajectory(object):
     consistent interface for single molecules
     and trajectories
     """
-    def __init__(self,controller=None):
+    def __init__(self,controller=None,steps=1):
         self._controller=controller
-        self._dataStack=[Molecule(controller)]
+        self._dataStack=[Molecule(controller) for i in range(steps)]
         self._dataPointer=0
 
     def __len__(self):
@@ -813,14 +809,14 @@ class Trajectory(object):
         """
         return len(self._dataStack)
 
-    def new_mol(self):
+    def newMol(self):
         """
         Create new step
         """
         self._dataStack.append(Molecule(self._controller))
         self._dataPointer=len(self._dataStack)-1
 
-    def change_mol(self,num):
+    def changeMol(self,num):
         """
         Select step 'num'
         """
