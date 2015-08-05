@@ -73,6 +73,7 @@ class MolTab(QWidget):
             if self.updatedisable: return
             if float(self.cellDm.text()) == self.mol.get_celldm(self.fmt.currentText()):return
             par= self.parent
+            #TODO: FIX THIS
             if self.appAll.isChecked():
                 mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
             else:
@@ -94,6 +95,7 @@ class MolTab(QWidget):
                     vec[i][j]=float(self.vtable.item(i,j).text())
             if vec == self.mol.get_vec().tolist(): return
             par = self.parent
+            #TODO: FIX THIS
             if self.appAll.isChecked():
                 mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
             else:

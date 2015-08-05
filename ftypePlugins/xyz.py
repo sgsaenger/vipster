@@ -2,8 +2,6 @@ name = 'xyz'
 extension = 'xyz'
 argument = '-xyz'
 
-writer = None
-
 def parser(controller,data):
     """ Parse xyz files (angstrom) """
     # create list of mol, trajectory support
@@ -24,3 +22,15 @@ def parser(controller,data):
                     line = data[j].split()
                     tmol.create_atom(line[0],map(float,line[1:4]),'angstrom')
             i+=nat+2
+
+def writer(mol,f,param,coordfmt):
+    """ Save xyz in angstrom """
+    # fixed format nat and comment
+    f.write(str(mol.get_nat())+'\n')
+    f.write(mol.get_comment()+'\n')
+    # write coordinates
+    for cntat in range(0,mol.get_nat()):
+            atom=mol.get_atom(cntat,'angstrom')
+            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+                         atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
+    f.close()

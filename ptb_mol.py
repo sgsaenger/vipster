@@ -58,10 +58,6 @@ class TBController(object):
         """ Return a given step of a given molecule """
         return self._mol[index]
 
-    def getLMol(self,index):
-        """ Return the length of a given trajectory """
-        return len(self._mol[index])
-
     def getNMol(self):
         """ Return the number of loaded molecules/trajectories """
         return len(self._mol)
@@ -79,7 +75,7 @@ class TBController(object):
 #####################################################################
 
     def newMol(self):
-        """ Create a new (empty) Molecule """
+        """ Create a new Trajectory with one empty Molecule """
         self._mol.append(Trajectory(self,1))
 
     def newTrajectory(self):
