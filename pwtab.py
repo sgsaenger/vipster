@@ -39,14 +39,15 @@ class PWTab(QTreeWidget):
     def createNamelist(self):
         new = QTreeWidgetItem(self)
         if self.sender() is self.addIons:
+            self.pw['&ions']=OrderedDict()
             new.setText(0,'&ions')
             self.addIons.setDisabled(True)
         elif self.sender() is self.addCell:
+            self.pw['&cell']=OrderedDict()
             new.setText(0,'&cell')
             self.addCell.setDisabled(True)
 
     def createParameter(self):
-        #new = QTreeWidgetItem(self)
         if self.currentItem().parent():
             new = QTreeWidgetItem(self.currentItem().parent())
         else:
@@ -57,17 +58,21 @@ class PWTab(QTreeWidget):
         if self.currentItem().parent():
             del self.pw[str(self.currentItem().parent().text(0))][str(self.currentItem().text(0))]
             self.currentItem().parent().removeChild(self.currentItem())
-        elif self.currentItem().text(0) in ['&ions','&cell']:
-            del self.pw[str(self.currentItem().text(0))]
+        elif self.currentItem().text(0) == '&ions':
+            self.addIons.setEnabled(True)
+            del self.pw['&ions']
+            self.invisibleRootItem().removeChild(self.currentItem())
+        elif self.currentItem().text(0) == '&cell':
+            self.addCell.setEnabled(True)
+            del self.pw['&cell']
             self.invisibleRootItem().removeChild(self.currentItem())
 
     def setPW(self,pw):
-        self.updatedisable=True
         self.pw=pw
         self.fillTree()
-        self.updatedisable=False
 
     def fillTree(self):
+        self.updatedisable=True
         root = self.invisibleRootItem()
         #delete previous entries
         for i in range(root.childCount()):
@@ -76,7 +81,6 @@ class PWTab(QTreeWidget):
         for i in ['&control','&system','&electrons']:
             new = QTreeWidgetItem(self)
             new.setText(0,i)
-
         #show optional namelists only if existing
         if '&ions' in self.pw:
             new = QTreeWidgetItem(self)
@@ -86,7 +90,6 @@ class PWTab(QTreeWidget):
             new = QTreeWidgetItem(self)
             new.setText(0,'&cell')
             self.addCell.setDisabled(True)
-
         #show child entries
         for i in range(root.childCount()):
             for j in self.pw[str(root.child(i).text(0))].items():
@@ -96,12 +99,13 @@ class PWTab(QTreeWidget):
                 new.setFlags(new.flags()|Qt.ItemIsEditable)
         self.expandAll()
         self.resizeColumnToContents(0)
+        self.updatedisable=False
 
     def itemHandler(self,item,column):
         if self.updatedisable:return
         if column:
             self.pw[str(item.parent().text(0))][str(item.text(0))]=str(item.text(1))
-        else:
+        elif item.parent():
             old=self.pw[str(item.parent().text(0))].keys()
             for i in range(item.parent().childCount()):
                 if str(item.parent().child(i).text(0)) in old:
