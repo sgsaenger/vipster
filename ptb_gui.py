@@ -243,7 +243,7 @@ class MainView(QWidget):
                 coordfmt = self.coord.fmt.currentText()
                 self.controller.writeFile(ftype,mol,fname,param,coordfmt)
             except StandardError as e:
-                QMessageBox(QMessageBox.Critical,'Error',e.message,QMessageBox.Ok,self).exec_()
+                QMessageBox(QMessageBox.Critical,'Error',type(e).__name__+': '+e.message,QMessageBox.Ok,self).exec_()
 
         ########################################################
         #insert loaded molecules
