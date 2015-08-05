@@ -581,9 +581,6 @@ class ViewPort(QGLWidget):
     ###################################################
 
     def initializeGL(self):
-        #prepare VAO
-        self.VAO = glGenVertexArrays(1)
-
         #set line width for cell
         glLineWidth(2)
         glPointSize(2)
@@ -593,6 +590,8 @@ class ViewPort(QGLWidget):
         self.instanced = glVersion>=3.3
         if self.instanced:
             self.glslv='#version 330\n'
+            #prepare VAO
+            self.VAO = glGenVertexArrays(1)
         else:
             self.glslv='#version 130\n'
 
@@ -664,7 +663,7 @@ class ViewPort(QGLWidget):
             self.updateGL()
 
     def paintStuff(self,select=False):
-        glBindVertexArray(self.VAO)
+        if self.instanced: glBindVertexArray(self.VAO)
         #clear depth and color buffer:
         self.qglClearColor(QColor(255,255,255,0))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -706,7 +705,7 @@ class ViewPort(QGLWidget):
                 self.drawPlane()
             if self.showSurf and hasattr(self,'surfVBO'):
                 self.drawSurf()
-        glBindVertexArray(0)
+        if self.instanced: glBindVertexArray(0)
 
     def drawAtoms(self):
         self.sphereShader.bind()
