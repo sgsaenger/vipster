@@ -48,11 +48,14 @@ class PWTab(QTreeWidget):
             self.addCell.setDisabled(True)
 
     def createParameter(self):
-        if self.currentItem().parent():
-            new = QTreeWidgetItem(self.currentItem().parent())
-        else:
-            new = QTreeWidgetItem(self.currentItem())
+        self.updatedisable=True
+        parent = self.currentItem().parent() if self.currentItem().parent() else self.currentItem()
+        if 'New' in self.pw[str(parent.text(0))]:return
+        self.pw[str(parent.text(0))]['New']=''
+        new = QTreeWidgetItem(parent)
+        new.setText(0,'New')
         new.setFlags(new.flags()|Qt.ItemIsEditable)
+        self.updatedisable=False
 
     def deleteItem(self):
         if self.currentItem().parent():
@@ -103,8 +106,10 @@ class PWTab(QTreeWidget):
 
     def itemHandler(self,item,column):
         if self.updatedisable:return
+        #parameter value
         if column:
             self.pw[str(item.parent().text(0))][str(item.text(0))]=str(item.text(1))
+        #parameter
         elif item.parent():
             old=self.pw[str(item.parent().text(0))].keys()
             for i in range(item.parent().childCount()):
