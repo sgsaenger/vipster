@@ -185,7 +185,7 @@ class MolTab(QWidget):
             if kp.updatedisable: return
             disc = []
             for i in range(kp.disc.rowCount()):
-                disc.append([str(kp.disc.item(i,j).text()) for j in range(3)])
+                disc.append([str(kp.disc.item(i,j).text()) for j in range(4)])
             self.mol.set_kpoints('disc',disc)
         kp.disc = QTableWidget()
         kp.disc.setColumnCount(4)
