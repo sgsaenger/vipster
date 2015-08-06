@@ -73,7 +73,6 @@ class MolTab(QWidget):
             if self.updatedisable: return
             if float(self.cellDm.text()) == self.mol.get_celldm(self.fmt.currentText()):return
             par= self.parent
-            #TODO: FIX THIS
             if self.appAll.isChecked():
                 self.mol.set_all_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             else:
@@ -94,7 +93,7 @@ class MolTab(QWidget):
             if vec == self.mol.get_vec().tolist(): return
             par = self.parent
             if self.appAll.isChecked():
-                self.mol.set_allvec(vec,self.scale.isChecked())
+                self.mol.set_all_vec(vec,self.scale.isChecked())
             else:
                 self.mol.set_vec(vec,self.scale.isChecked())
             self.parent.updateMolStep()
