@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from mol_f import set_bonds_f,make_vol_gradient
 
-class Molecule:
+class Molecule(object):
     """
     Main Class for Molecule/Cell data
 
@@ -22,8 +22,9 @@ class Molecule:
     PSE-Overlay over central settings (pse)
     """
 
-    def __init__(self,controller):
-        self.pse=self._pse(controller.pse)
+    def __init__(self,controller=None):
+        if controller:
+            self.pse=self._pse(controller.pse)
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
@@ -35,7 +36,9 @@ class Molecule:
         self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._comment = ''
-        self._kpoints={'active':'gamma'}
+        self._kpoints={'active':'gamma',\
+                'automatic':['1','1','1','0','0','0'],\
+                'disc':[]}
         self._undo_stack=[]
         self._undo_temp=[]
 
@@ -242,14 +245,11 @@ class Molecule:
 
     def get_types(self):
         """Return types of atoms"""
-        types = set()
-        for i in self._atom_name:
-            types.add(i)
-        return types
+        return set(self._atom_name)
 
     def get_ntyp(self):
         """Return number of types of atoms"""
-        return len(self.get_types())
+        return len(set(self._atom_name))
 
     def get_center(self,com=False):
         """Return center-coordinates of molecule
@@ -515,23 +515,21 @@ class Molecule:
                         j=0
                         i+=1
                         line=vol[i].split()
+        self._vol_grad = make_vol_gradient(self._vol)
 
     def get_vol(self):
-        """Return volume data"""
-        return self._vol
+        """Return volume data if present"""
+        if hasattr(self,'_vol'):
+            return self._vol
+        else:
+            return None
 
     def get_vol_offset(self):
         """Return offset of volume data"""
         return self._vol_off
 
-    def set_vol_gradient(self):
-        """Calculate the gradient of volume data"""
-        self._vol_grad = make_vol_gradient(self._vol)
-
     def get_vol_gradient(self):
         """Return volume gradient"""
-        if not hasattr(self,'_vol_grad'):
-            self.set_vol_gradient()
         return self._vol_grad
 
     #####################################################
@@ -792,3 +790,69 @@ class Molecule:
         z=z/np.linalg.norm(z)
         shift=np.dot(vec,[x,np.cross(x,z),z])
         self._shift(atoms,shift)
+
+class Trajectory(object):
+    """
+    Overlay for Molecule-class
+
+    consistent interface for single molecules
+    and trajectories
+    """
+    def __init__(self,controller=None,steps=1):
+        self._controller=controller
+        self._dataStack=[Molecule(controller) for i in range(steps)]
+        self._dataPointer=0
+
+    def __len__(self):
+        """
+        len() returns number of steps in trajectory
+        """
+        return len(self._dataStack)
+
+    def newMol(self):
+        """
+        Create new step
+        """
+        self._dataStack.append(Molecule(self._controller))
+        self._dataPointer=len(self._dataStack)-1
+
+    def changeMol(self,num):
+        """
+        Select step 'num'
+        """
+        self._dataPointer=num
+
+    def __getattr__(self,attr):
+        """
+        Pass-through for methods and properties of active molecule
+        """
+        return self._dataStack[self._dataPointer].__getattribute__(attr)
+
+    def set_all_vec(self,vec,scale=False):
+        """
+        Set new cell-vectors for all included molecules
+        """
+        if scale:
+            for mol in self._dataStack:
+                mol.set_vec(vec,scale)
+        else:
+            vec = np.array(vec,'f')
+            vecinv = np.linalg.inv(self._vec)
+            for mol in self._dataStack:
+                mol._vec = vec
+                mol._vecinv = vecinv
+                mol._bonds_outdated=True
+
+    def set_all_celldm(self,cdm,scale=False,fmt='bohr'):
+        """
+        Set new cell-dimension for all included molecules
+        """
+        if scale:
+            for mol in self._dataStack:
+                mol.set_celldm(cdm,scale,fmt)
+        else:
+            if fmt=='angstrom':
+                cdm=cdm*1.889726125
+            for mol in self._dataStack:
+                mol._celldm = float(cdm)
+                mol._bonds_outdated=True

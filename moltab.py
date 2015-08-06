@@ -73,12 +73,11 @@ class MolTab(QWidget):
             if self.updatedisable: return
             if float(self.cellDm.text()) == self.mol.get_celldm(self.fmt.currentText()):return
             par= self.parent
+            #TODO: FIX THIS
             if self.appAll.isChecked():
-                mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
+                self.mol.set_all_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             else:
-                mols=[self.mol]
-            for m in mols:
-                m.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
+                self.mol.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             self.parent.updateMolStep()
 
         self.cellDm = QLineEdit()
@@ -95,11 +94,9 @@ class MolTab(QWidget):
             if vec == self.mol.get_vec().tolist(): return
             par = self.parent
             if self.appAll.isChecked():
-                mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
+                self.mol.set_allvec(vec,self.scale.isChecked())
             else:
-                mols=[self.mol]
-            for m in mols:
-                m.set_vec(vec,self.scale.isChecked())
+                self.mol.set_vec(vec,self.scale.isChecked())
             self.parent.updateMolStep()
 
         self.vtable = QTableWidget()
@@ -183,7 +180,7 @@ class MolTab(QWidget):
             if kp.updatedisable: return
             disc = []
             for i in range(kp.disc.rowCount()):
-                disc.append([str(kp.disc.item(i,j).text()) for j in range(3)])
+                disc.append([str(kp.disc.item(i,j).text()) for j in range(4)])
             self.mol.set_kpoints('disc',disc)
         kp.disc = QTableWidget()
         kp.disc.setColumnCount(4)
@@ -232,17 +229,11 @@ class MolTab(QWidget):
         fmt=kp.fmts[index]
         self.mol.set_kpoints('active',fmt)
         if fmt=='automatic':
-            try:
-                auto=self.mol.get_kpoints(fmt)
-            except:
-                auto=['1','1','1','0','0','0']
+            auto=self.mol.get_kpoints(fmt)
             for i in range(6):
                 kp.auto.widg[i].setText(auto[i])
         elif fmt in kp.fmts[2:]:
-            try:
-                disc=self.mol.get_kpoints(fmt)
-            except:
-                disc=[]
+            disc=self.mol.get_kpoints(fmt)
             kp.disc.setRowCount(len(disc))
             for i in range(len(disc)):
                 for j in range(4):

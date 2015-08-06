@@ -60,8 +60,8 @@ class Volume(QWidget):
         self.setLayout(vbox)
 
     def setMol(self,mol):
-        if hasattr(mol,'_vol'):
-            vol=mol.get_vol()
+        vol=mol.get_vol()
+        if vol is not None:
             self.valRange.setBottom(vol.min())
             self.valRange.setTop(vol.max())
             self.volMin.setText(str(vol.min()))

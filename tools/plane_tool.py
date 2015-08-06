@@ -92,8 +92,9 @@ class Plane(QWidget):
         self.setLayout(vbox)
 
     def setMol(self,mol):
-        if hasattr(mol,'_vol'):
-            self.shape = mol.get_vol().shape
+        vol = mol.get_vol()
+        if vol is not None:
+            self.shape = vol.shape
             lim=self.shape[self.volDir.currentIndex()]
             self.volSel.setMaximum(lim)
             self.volSel.setTickInterval(lim/10)
