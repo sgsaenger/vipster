@@ -194,10 +194,6 @@ def parser(controller,data):
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']
     del tparam['&system']['celldm(1)']
-    #for i in range(1,7):
-    #    test='celldm('+str(i)+')'
-    #    if test in tparam['&system']:
-    #        del tparam['&system'][test]
 
 def writer(mol,f,param,coordfmt):
     """
@@ -256,7 +252,7 @@ def writer(mol,f,param,coordfmt):
     #x y z offset
     elif mol.get_kpoints('active') == 'automatic':
         auto = mol.get_kpoints('automatic')
-        f.write('{:4s}{:4s}{:4s}{:4s}{:4s}{:4s}'.format(
+        f.write('{:4s} {:4s} {:4s} {:4s} {:4s} {:4s}'.format(
                 auto[0],auto[1],auto[2],auto[3],auto[4],auto[5])+'\n')
     #number of kpoints
     #x y z weight
@@ -264,7 +260,7 @@ def writer(mol,f,param,coordfmt):
         disc=mol.get_kpoints('disc')
         f.write(str(len(disc))+'\n')
         for i in range(len(disc)):
-            f.write('{:4s}{:4s}{:4s}{:4s}'.format(
+            f.write('{:4s} {:4s} {:4s} {:4s}'.format(
                     disc[i][0],disc[i][1],disc[i][2],disc[i][3])+'\n')
     f.write('\n')
     #Cell parameters
