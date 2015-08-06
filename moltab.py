@@ -75,11 +75,9 @@ class MolTab(QWidget):
             par= self.parent
             #TODO: FIX THIS
             if self.appAll.isChecked():
-                mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
+                self.mol.set_all_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             else:
-                mols=[self.mol]
-            for m in mols:
-                m.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
+                self.mol.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             self.parent.updateMolStep()
 
         self.cellDm = QLineEdit()
@@ -95,13 +93,10 @@ class MolTab(QWidget):
                     vec[i][j]=float(self.vtable.item(i,j).text())
             if vec == self.mol.get_vec().tolist(): return
             par = self.parent
-            #TODO: FIX THIS
             if self.appAll.isChecked():
-                mols=[par.controller.get_mol(par.mlist.currentRow(),i) for i in range(par.Step.maximum())]
+                self.mol.set_allvec(vec,self.scale.isChecked())
             else:
-                mols=[self.mol]
-            for m in mols:
-                m.set_vec(vec,self.scale.isChecked())
+                self.mol.set_vec(vec,self.scale.isChecked())
             self.parent.updateMolStep()
 
         self.vtable = QTableWidget()

@@ -827,3 +827,32 @@ class Trajectory(object):
         Pass-through for methods and properties of active molecule
         """
         return self._dataStack[self._dataPointer].__getattribute__(attr)
+
+    def set_all_vec(self,vec,scale=False):
+        """
+        Set new cell-vectors for all included molecules
+        """
+        if scale:
+            for mol in self._dataStack:
+                mol.set_vec(vec,scale)
+        else:
+            vec = np.array(vec,'f')
+            vecinv = np.linalg.inv(self._vec)
+            for mol in self._dataStack:
+                mol._vec = vec
+                mol._vecinv = vecinv
+                mol._bonds_outdated=True
+
+    def set_all_celldm(self,cdm,scale=False,fmt='bohr'):
+        """
+        Set new cell-dimension for all included molecules
+        """
+        if scale:
+            for mol in self._dataStack:
+                mol.set_celldm(cdm,scale,fmt)
+        else:
+            if fmt=='angstrom':
+                cdm=cdm*1.889726125
+            for mol in self._dataStack:
+                mol._celldm = float(cdm)
+                mol._bonds_outdated=True
