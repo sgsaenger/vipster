@@ -522,21 +522,22 @@ class ViewPort(QGLWidget):
             if ptype=='x':
                 pdat=v[pval,:,:]
                 pval = pval/v.shape[0]
-                p=[[pval,0,0],[pval,1,0],[pval,0,1],[pval,1,1]]
+                p=[[pval,0,0],[pval,1,0],[pval,0,1],[pval,1,0],[pval,0,1],[pval,1,1]]
             elif ptype=='y':
                 pdat=v[:,pval,:]
                 pval = pval/v.shape[1]
-                p=[[0,pval,0],[1,pval,0],[0,pval,1],[1,pval,1]]
+                p=[[0,pval,0],[1,pval,0],[0,pval,1],[1,pval,0],[0,pval,1],[1,pval,1]]
             elif ptype=='z':
                 pdat=v[:,:,pval]
                 pval = pval/v.shape[2]
-                p=[[0,0,pval],[1,0,pval],[0,1,pval],[1,1,pval]]
+                p=[[0,0,pval],[1,0,pval],[0,1,pval],[1,0,pval],[0,1,pval],[1,1,pval]]
             self.planeTex=np.array(map(lambda x:(x-vmin)/vdiff,pdat),'f')
 
         #crystal data:
         #'c',[tuple]
         elif ptype == 'c':
             self.planeTex=np.array([[1.]],'f')
+            p=[]
             #catch undefined case
             if pval.count(0) == 3:
                 if hasattr(self,'planeVBO'):
@@ -545,21 +546,34 @@ class ViewPort(QGLWidget):
                 return
             elif pval[0] == 0:
                 if pval[1] == 0:
-                    p=[[0,0,pval[2]],[1,0,pval[2]],[0,1,pval[2]],[1,1,pval[2]]]
+                    for l in range(abs(pval[2])):
+                        p+=[[0,0,(l+1.)/pval[2]],[1,0,(l+1.)/pval[2]],[0,1,(l+1.)/pval[2]],[1,0,(l+1.)/pval[2]],[0,1,(l+1.)/pval[2]],[1,1,(l+1.)/pval[2]]]
                 elif pval[2] == 0:
-                    p=[[0,pval[1],0],[1,pval[1],0],[0,pval[1],1],[1,pval[1],1]]
+                    for k in range(abs(pval[1])):
+                        p+=[[0,(k+1.)/pval[1],0],[1,(k+1.)/pval[1],0],[0,(k+1.)/pval[1],1],[1,(k+1.)/pval[1],0],[0,(k+1.)/pval[1],1],[1,(k+1.)/pval[1],1]]
                 else:
-                    p=[[0,0,pval[2]],[0,pval[1],0],[1,0,pval[2]],[1,pval[1],0]]
+                    for k in range(abs(pval[1])):
+                        for l in range(abs(pval[2])):
+                            p+=[[0,float(k)/pval[1],(l+1.)/pval[2]],[0,(k+1.)/pval[1],float(l)/pval[2]],[1,float(k)/pval[1],(l+1.)/pval[2]],[0,(k+1.)/pval[1],float(l)/pval[2]],[1,float(k)/pval[1],(l+1.)/pval[2]],[1,(k+1.)/pval[1],float(l)/pval[2]]]
+                    print p
             else:
                 if pval[1] == 0:
                     if pval[2]==0:
-                        p=[[pval[0],0,0],[pval[0],1,0],[pval[0],0,1],[pval[0],1,1]]
+                        for h in range(abs(pval[0])):
+                            p+=[[(h+1.)/pval[0],0,0],[(h+1.)/pval[0],1,0],[(h+1.)/pval[0],0,1],[(h+1.)/pval[0],1,0],[(h+1.)/pval[0],0,1],[(h+1.)/pval[0],1,1]]
                     else:
-                        p=[[pval[0],0,0],[pval[0],1,0],[0,0,pval[2]],[0,1,pval[2]]]
+                        for h in range(abs(pval[0])):
+                            for l in range(abs(pval[2])):
+                                p+=[[(h+1.)/pval[0],0,float(l)/pval[2]],[(h+1.)/pval[0],1,float(l)/pval[2]],[float(h)/pval[0],0,(l+1.)/pval[2]],[(h+1.)/pval[0],1,float(l)/pval[2]],[float(h)/pval[0],0,(l+1.)/pval[2]],[float(h)/pval[0],1,(l+1.)/pval[2]]]
                 elif pval[2] == 0:
-                    p=[[pval[0],0,0],[pval[0],0,1],[0,pval[1],0],[0,pval[1],1]]
+                    for h in range(abs(pval[0])):
+                        for k in range(abs(pval[1])):
+                            p+=[[(h+1.)/pval[0],float(k)/pval[1],0],[(h+1.)/pval[0],float(k)/pval[1],1],[float(h)/pval[0],(k+1.)/pval[1],0],[(h+1.)/pval[0],float(k)/pval[1],1],[float(h)/pval[0],(k+1.)/pval[1],0],[float(h)/pval[0],(k+1.)/pval[1],1]]
                 else:
-                    p=[[pval[0],0,0],[0,pval[1],0],[0,0,pval[2]]]
+                    for h in range(abs(pval[0])):
+                        for k in range(abs(pval[1])):
+                            for l in range(abs(pval[2])):
+                                p+=[[(h+1.)/pval[0],float(k)/pval[1],float(l)/pval[2]],[float(h)/pval[0],(k+1.)/pval[1],float(l)/pval[2]],[float(h)/pval[0],float(k)/pval[1],(l+1.)/pval[2]],[(h+1.)/pval[0],(k+1.)/pval[1],float(l)/pval[2]],[(h+1.)/pval[0],float(k)/pval[1],(l+1.)/pval[2]],[float(h)/pval[0],(k+1.)/pval[1],(l+1.)/pval[2]]]
         p=np.array(p,'f')
         #take care of negative hkl-values
         if ptype == 'c':
@@ -569,8 +583,8 @@ class ViewPort(QGLWidget):
 
         #generate planeVBO
         vec=self.mol.get_vec()*self.mol.get_celldm()
-        UV = [[0,0],[0,1],[1,0],[1,1]]
-        self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i] for i in range(len(p))],'f'))
+        UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
+        self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
 
         if self.showPlane:
             self.update()
@@ -701,10 +715,10 @@ class ViewPort(QGLWidget):
                 self.drawCell()
             if hasattr(self,'selVBO'):
                 self.drawSelection()
-            if self.showPlane and hasattr(self,'planeVBO'):
-                self.drawPlane()
             if self.showSurf and hasattr(self,'surfVBO'):
                 self.drawSurf()
+            if self.showPlane and hasattr(self,'planeVBO'):
+                self.drawPlane()
         if self.instanced: glBindVertexArray(0)
 
     def drawAtoms(self):
@@ -818,13 +832,15 @@ class ViewPort(QGLWidget):
             glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
             glVertexAttribDivisor(2,1)
             self.offVBO.unbind()
-            glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,len(self.planeVBO),len(self.offVBO))
+            #glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,len(self.planeVBO),len(self.offVBO))
+            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.planeVBO),len(self.offVBO))
             glVertexAttribDivisor(2,0)
             glDisableVertexAttribArray(2)
         else:
             for i in self.offVBO:
                 self.planeShader.setUniformValue('offset',*i)
-                glDrawArrays(GL_TRIANGLE_STRIP,0,len(self.planeVBO))
+                #glDrawArrays(GL_TRIANGLE_STRIP,0,len(self.planeVBO))
+                glDrawArrays(GL_TRIANGLES,0,len(self.planeVBO))
 
         glEnable(GL_CULL_FACE)
         glDeleteTextures(1)

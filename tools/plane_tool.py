@@ -13,10 +13,7 @@ class Plane(QWidget):
         super(Plane,self).__init__()
 
         def crysSelect():
-            parent.visual.setPlane('c',[
-                1./ph.value() if ph.value() else 0,
-                1./pk.value() if pk.value() else 0,
-                1./pl.value() if pl.value() else 0])
+            parent.visual.setPlane('c',[ph.value(),pk.value(),pl.value()])
 
         def crysButton():
             crysSelect()
