@@ -9,7 +9,7 @@ def parser(controller,data):
     #parse data
     i=0
     #two lines of comments, combine
-    tmol._comment=data[0]+";"+data[1]
+    tmol.set_comment(data[0]+";"+data[1])
     #nat, origin[3]
     nat=int(data[2].split()[0])
     origin=[float(data[2].split()[i]) for i in [1,2,3]]

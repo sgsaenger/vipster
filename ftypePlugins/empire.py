@@ -4,7 +4,18 @@ argument = '-emp'
 
 def parser(controller,data):
     """ Parse Empire specific xyz file """
-    pass
+    controller.newMol()
+    tmol = controller.getMol(-1)
+    nat=int(data[0])
+    tmol.set_comment(data[1].strip())
+    for j in range(2,nat+2):
+        line=data[j].split()
+        tmol.create_atom(line[0],map(float,line[1:4]),'angstrom')
+    vec=[0,0,0]
+    for i in range(3):
+        vec[i]=[float(x)for x in data[nat+3+i].split()]
+    tmol.set_vec(vec)
+    tmol.set_celldm(1,fmt='angstrom')
 
 def writer(mol,f,param,coordfmt):
     """

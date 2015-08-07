@@ -16,7 +16,7 @@ def parser(controller,data):
             #fixed format nat and comment
             tmol.newMol()
             nat = int(data[i])
-            tmol._comment = data[i+1].strip()
+            tmol.set_comment(data[i+1].strip())
             #read coordinates and types
             for j in range(i+2,i+nat+2):
                     line = data[j].split()

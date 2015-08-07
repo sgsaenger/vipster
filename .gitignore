@@ -59,6 +59,7 @@ docs/_build/
 *.png
 *.cub
 *.cpi
+*.emp
 
 # vim swap files
 *.swp
