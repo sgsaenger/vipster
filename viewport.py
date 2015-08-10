@@ -610,28 +610,28 @@ class ViewPort(QGLWidget):
             self.glslv='#version 130\n'
 
         #add shaders:
-        self.sphereShader=self.makeShader('vertexSpheres.vsh','fragmentSpheres.fsh')
-        self.bondShader=self.makeShader('vertexBonds.vsh','fragmentBonds.fsh')
-        self.lineShader=self.makeShader('vertexLines.vsh','fragmentLines.fsh')
-        self.selectShader=self.makeShader('vertexSelect.vsh','fragmentSelect.fsh')
-        self.planeShader=self.makeShader('vertexPlane.vsh','fragmentPlane.fsh')
-        self.surfShader=self.makeShader('vertexSurf.vsh','fragmentSpheres.fsh')
+        self.sphereShader=self.makeShader('vertexSpheres.vert','fragmentSpheres.frag')
+        self.bondShader=self.makeShader('vertexBonds.vert','fragmentBonds.frag')
+        self.lineShader=self.makeShader('vertexLines.vert','fragmentLines.frag')
+        self.selectShader=self.makeShader('vertexSelect.vert','fragmentSelect.frag')
+        self.planeShader=self.makeShader('vertexPlane.vert','fragmentPlane.frag')
+        self.surfShader=self.makeShader('vertexSurf.vert','fragmentSpheres.frag')
 
         # load sphere
-        sf=open(dirname(__file__)+'/sphere_model','r')
+        sf=open(dirname(__file__)+'/opengl/sphere_model','r')
         self.sphereVBO = VBO(np.array(sf.readline().split(),'f'))
         sf.close()
         # load torus
-        tf=open(dirname(__file__)+'/bond_model','r')
+        tf=open(dirname(__file__)+'/opengl/bond_model','r')
         self.torusVBO=VBO(np.array(tf.readline().split(),'f'))
         tf.close()
 
     def makeShader(self,vf,ff):
         s = QGLShaderProgram()
-        with open(dirname(__file__)+'/'+vf) as f:
+        with open(dirname(__file__)+'/opengl/'+vf) as f:
             v=self.glslv+f.read()
             s.addShaderFromSourceCode(QGLShader.Vertex,v)
-        with open(dirname(__file__)+'/'+ff) as f:
+        with open(dirname(__file__)+'/opengl/'+ff) as f:
             f=self.glslv+f.read()
             s.addShaderFromSourceCode(QGLShader.Fragment,f)
         return s
