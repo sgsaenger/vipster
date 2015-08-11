@@ -32,7 +32,7 @@ def writer(mol,f,param,coordfmt):
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                          atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
     f.write('\n')
-    vec = mol.get_vec()*mol.get_celldm()*0.52917721092
+    vec = mol.get_vec()*mol.get_celldm('angstrom')
     f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[0]))
     f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[1]))
     f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[2]))

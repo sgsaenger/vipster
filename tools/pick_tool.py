@@ -19,12 +19,11 @@ class Picker(QTextEdit):
     def setMol(self,mol):
         sel = mol.get_selection()
         if sel:
-            br=0.52917721092
             at=[]
-            vec = mol.get_vec()*mol.get_celldm()
+            vec = mol.get_vec()*mol.get_celldm('angstrom')
             output =u'Atoms: '
             for j,i in enumerate(sel):
-                at.append(mol.get_atom(i[0]))
+                at.append(mol.get_atom(i[0],'angstrom'))
                 output+=str(i[0])+'('+at[j][0]+')'
                 if j<len(sel)-1:
                     output+=', '
@@ -32,14 +31,14 @@ class Picker(QTextEdit):
                     output+='\n'
             ids = [a[0] for a in sel]
             if len(sel)>1:
-                diff01 = at[0][1]+dot(vec,sel[0][1])-at[1][1]-dot(vec,sel[1][1])
-                output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff01)*br,*ids[:2])
+                diff01 = at[0][1]+dot(sel[0][1],vec)-at[1][1]-dot(sel[1][1],vec)
+                output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff01),*ids[:2])
             if len(sel)>2:
-                diff12 = at[1][1]+dot(vec,sel[1][1])-at[2][1]-dot(vec,sel[2][1])
-                output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff12)*br,*ids[1:3])
+                diff12 = at[1][1]+dot(sel[1][1],vec)-at[2][1]-dot(sel[2][1],vec)
+                output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff12),*ids[1:3])
                 if len(sel)>3:
-                    diff23 = at[2][1]+dot(vec,sel[2][1])-at[3][1]-dot(vec,sel[3][1])
-                    output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff23)*br,*ids[2:])
+                    diff23 = at[2][1]+dot(sel[2][1],vec)-at[3][1]-dot(sel[3][1],vec)
+                    output+=u'Dist {1}-{2}: {0:3.3f} Å\n'.format(norm(diff23),*ids[2:])
                 if norm(diff01)>0 and norm(diff12)>0:
                     a012 = degrees(arccos(dot(diff01,-diff12)/(norm(diff01)*norm(diff12))))
                     output+=u'Angle {1}-{2}-{3}: {0:3.3f}°\n'.format(a012,*ids[:3])
