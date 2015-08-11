@@ -195,14 +195,14 @@ class Molecule(object):
         def __getitem__(self,key):
             if not key in self:
                 if key in self.cpse:
-                    self[key]=self.cpse[key]
+                    self[key]=deepcopy(self.cpse[key])
                 else:
                     for i in range(len(key),0,-1):
                         if key[:i] in self.cpse:
-                            self[key] = self.cpse[key[:i]]
+                            self[key] = deepcopy(self.cpse[key[:i]])
                             break
                     if not key in self:
-                        self[key]=self.cpse['X']
+                        self[key]=deepcopy(self.cpse['X'])
             return super(Molecule._pse,self).__getitem__(key)
 
     ######################################################

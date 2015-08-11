@@ -73,12 +73,13 @@ class TBController(object):
 
     def readConfig(self):
         """Read config and PSE from json-file"""
+        with open(dirname(__file__)+'/default.json') as f:
+            default = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
         try:
             with open(expanduser('~/.toolbox.json')) as f:
                 conf = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
         except:
-            with open(dirname(__file__)+'/default.json') as f:
-                conf = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
+            conf = default
         self.pse=conf['PSE']
         self._config=conf['General']
 

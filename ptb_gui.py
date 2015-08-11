@@ -12,6 +12,7 @@ from PyQt4.QtCore import QTimer
 from viewport import ViewPort
 from moltab import MolTab
 from pwtab import PWTab
+from conftab import ConfTab
 from tools import tools
 from collapsiblewidget import collapsibleWidget
 
@@ -29,10 +30,13 @@ class MainView(QWidget):
             self.coord = MolTab(self)
             #PWParameter edit area:
             self.pw = PWTab()
+            #Settings:
+            self.settings = ConfTab(self)
             #nest edit areas in tabwidget
             rcol = QTabWidget()
             rcol.addTab(self.coord,'Molecule coordinates')
             rcol.addTab(self.pw,'PW Parameters')
+            rcol.addTab(self.settings,'Settings')
             rcol.setFixedWidth(467)
             #connect to toggle button
             rcol.hide()
@@ -280,6 +284,7 @@ class MainView(QWidget):
             #Send Molecule to Visualisation and Editor
             self.coord.setMol(self.mol)
             self.visual.setMol(self.mol,self.mult)
+            self.settings.setMol(self.mol)
             for i in self.edit:
                 i.setMol(self.mol)
 

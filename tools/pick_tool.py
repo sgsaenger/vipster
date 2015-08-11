@@ -57,8 +57,6 @@ class Picker(QTextEdit):
                     output+=u'Dihedral {1}-{2}-{3}-{4}: {0:3.3f}°\n'.format(d0123,*ids)
                 else:
                     output+=u'Dihedral {1}-{2}-{3}-{4}: {0}\n'.format('not defined',*ids)
-            #self.pickArea.setPlainText(output)
             self.setPlainText(output)
         else:
-            #self.pickArea.setPlainText('')
             self.setPlainText('')
