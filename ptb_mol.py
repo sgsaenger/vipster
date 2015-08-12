@@ -5,7 +5,7 @@ import sys
 from math import sqrt
 from collections import OrderedDict
 from os.path import dirname,expanduser
-from json import JSONDecoder
+from json import load, dump
 
 from molecule import Molecule,Trajectory
 from ftypePlugins import cli_indict,gui_indict,gui_outdict
@@ -24,7 +24,7 @@ class TBController(object):
     def __init__(self):
             self._mol = []
             self._pwdata = []
-            self._config = dict()
+            self.config = dict()
             self.pse = OrderedDict()
             self.cli_indict = cli_indict
             self.gui_indict = gui_indict
@@ -74,14 +74,14 @@ class TBController(object):
     def readConfig(self):
         """Read config and PSE from json-file"""
         with open(dirname(__file__)+'/default.json') as f:
-            default = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
+            self.default = load(f,object_pairs_hook=OrderedDict)
         try:
             with open(expanduser('~/.toolbox.json')) as f:
-                conf = JSONDecoder(object_pairs_hook=OrderedDict).decode(f.read())
+                conf = load(f,object_pairs_hook=OrderedDict)
         except:
-            conf = default
+            conf = self.default
         self.pse=conf['PSE']
-        self._config=conf['General']
+        self.config=conf['General']
 
     def readFile(self,fmt,filename,mode='gui'):
         """
@@ -116,3 +116,8 @@ class TBController(object):
         """
         with open(filename,'w') as f:
             self.gui_outdict[ftype](mol,f,param,coordfmt)
+
+    def saveConfig(self):
+        """Write config and PSE to json-file"""
+        with open(expanduser('~/.toolbox.json'),'w') as f:
+            dump(OrderedDict([('PSE',self.pse),('General',self.config)]),f,indent=2)
