@@ -222,6 +222,7 @@ class MainView(QWidget):
             fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
             if not fname: return
             ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.gui_indict.keys(),0,False)
+            if not ftype[1]: return
             ftype = str(ftype[0])
             self.controller.readFile(ftype,fname)
             self.loadView()
@@ -230,6 +231,7 @@ class MainView(QWidget):
             fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
             if not fname: return
             ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.gui_outdict.keys(),0,False)
+            if not ftype[1]: return
             ftype = str(ftype[0])
             try:
                 mol = self.getMolecule()
