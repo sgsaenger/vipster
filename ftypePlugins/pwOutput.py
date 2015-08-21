@@ -10,6 +10,7 @@ def parser(controller,data):
     tmol=controller.getMol(-1)
     i=0
     vec=[[0,0,0],[0,0,0],[0,0,0]]
+    need_kpoints=True
     while i<len(data):
         line = data[i].split()
         #ignore empty lines
@@ -36,7 +37,10 @@ def parser(controller,data):
                 tmol.create_atom(atom[1],map(float,atom[6:9]),'alat')
             i+=nat
         #read k-points:
-        elif line[0:3] == ['number','of','k']:
+        elif line[0] == 'gamma-point':
+            tmol.set_kpoints('active','gamma')
+            need_kpoints=False
+        elif line[0:3] == ['number','of','k'] and need_kpoints:
             nk = int(line[4])
             kpoints=[]
             for j in range(i+2,i+nk+2):

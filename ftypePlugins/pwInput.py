@@ -214,17 +214,21 @@ def writer(mol,f,param,coordfmt):
             f.write(' '+param[i].keys()[j]+'='+param[i].values()[j]+'\n')
         f.write('/\n\n')
     #&ions only when needed
-    if param['&control']['calculation'] in ["'relax'","'vc-relax'","'md'","'vc-md'"]:
+    if '&ions' in param:
         f.write('&ions'+'\n')
         for j in range(len(param['&ions'])):
             f.write(' '+param['&ions'].keys()[j]+'='+param['&ions'].values()[j]+'\n')
         f.write('/\n\n')
+    elif param['&control']['calculation'] in ["'relax'","'vc-relax'","'md'","'vc-md'"]:
+        raise KeyError('&ions namelist required, but not present')
     #&cell only when needed
-    if param['&control']['calculation'] in ["'vc-relax'","'vc-md'"]:
+    if '&cell' in param:
         f.write('&cell'+'\n')
         for j in range(len(param['&cell'])):
             f.write(' '+param['&cell'].keys()[j]+'='+param['&cell'].values()[j]+'\n')
         f.write('/\n\n')
+    elif param['&control']['calculation'] in ["'vc-relax'","'vc-md'"]:
+        raise KeyError('&cell namelist required, but not present')
     #ATOMIC_SPECIES card:
     f.write('ATOMIC_SPECIES'+'\n')
     types = list(mol.get_types())
