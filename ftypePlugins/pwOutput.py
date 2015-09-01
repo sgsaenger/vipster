@@ -38,7 +38,7 @@ def parser(controller,data):
             i+=nat
         #read k-points:
         elif line[0] == 'gamma-point':
-            tmol.set_kpoints('active','gamma')
+            #tmol.set_kpoints('active','gamma')
             need_kpoints=False
         elif line[0:3] == ['number','of','k'] and need_kpoints:
             nk = int(line[4])
