@@ -38,9 +38,8 @@ def parser(controller,data):
             i+=nat
         #read k-points:
         elif line[0] == 'gamma-point':
-            #tmol.set_kpoints('active','gamma')
-            need_kpoints=False
-        elif line[0:3] == ['number','of','k'] and need_kpoints:
+            gamma=True
+        elif line[0:3] == ['number','of','k'] and not gamma:
             nk = int(line[4])
             kpoints=[]
             for j in range(i+2,i+nk+2):
@@ -65,8 +64,9 @@ def parser(controller,data):
                     tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'),map(int,atom[4:]))
                 else:
                     tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'))
-            tmol.set_kpoints('tpiba',kpoints)
-            tmol.set_kpoints('active','tpiba')
+            if not gamma:
+                tmol.set_kpoints('tpiba',kpoints)
+                tmol.set_kpoints('active','tpiba')
             i+=nat
         #break on reaching final coordinates (duplicate)
         elif line[0] == 'Begin':
