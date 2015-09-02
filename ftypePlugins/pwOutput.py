@@ -10,7 +10,7 @@ def parser(controller,data):
     tmol=controller.getMol(-1)
     i=0
     vec=[[0,0,0],[0,0,0],[0,0,0]]
-    need_kpoints=True
+    gamma=False
     while i<len(data):
         line = data[i].split()
         #ignore empty lines
