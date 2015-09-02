@@ -342,10 +342,16 @@ class ViewPort(QGLWidget):
     def alignView(self):
         if self.sender().text()=='x':
             self.rMatrix = QMatrix4x4([0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,1])
+        elif self.sender().text()=='-x':
+            self.rMatrix = QMatrix4x4([0,-1,0,0,0,0,1,0,-1,0,0,0,0,0,0,1])
         elif self.sender().text()=='y':
+            self.rMatrix = QMatrix4x4([-1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1])
+        elif self.sender().text()=='-y':
             self.rMatrix = QMatrix4x4([1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1])
         elif self.sender().text()=='z':
             self.rMatrix.setToIdentity()
+        elif self.sender().text()=='-z':
+            self.rMatrix = QMatrix4x4([-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1])
         self.update()
 
     ##########################################
