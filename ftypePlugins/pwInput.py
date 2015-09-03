@@ -185,11 +185,7 @@ def parser(controller,data):
                 [ca*cb,ca*(cal-cb*cg)/sqrt(1-cg),ca*sqrt(1+2*cal*cb*cg-cal*cal-cb*cb-cg*cg)/sqrt(1-cg)]])
     #create atoms after creating cell:
     for i in range(len(tcoord)):
-        if len(tcoord[i])>4:
-            tmol.create_atom(tcoord[i][0],map(float,tcoord[i][1:4]),fmt,
-                    map(int,tcoord[i][4:]))
-        else:
-            tmol.create_atom(tcoord[i][0],map(float,tcoord[i][1:4]),fmt)
+        tmol.create_atom(tcoord[i][0],map(float,tcoord[i][1:4]),fmt, map(int,tcoord[i][4:]))
     #delete nat, ntype and celldm before returning to controller
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']

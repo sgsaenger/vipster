@@ -51,6 +51,8 @@ class Molecule(object):
         """
         self._atom_name.append(name)
         self._atom_coord.append(self._coord_to_bohr(coord,fmt))
+        while len(fix)<3:
+            fix+=[1]
         self._atom_fix.append(fix)
         self._selection=[]
         self._bonds_outdated=True

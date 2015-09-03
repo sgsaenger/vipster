@@ -60,10 +60,7 @@ def parser(controller,data):
             tmol.set_vec(vec)
             for j in range(i+1,i+nat+1):
                 atom = data[j].split()
-                if len(atom)>4:
-                    tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'),map(int,atom[4:]))
-                else:
-                    tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'))
+                tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'),map(int,atom[4:]))
             if not gamma:
                 tmol.set_kpoints('tpiba',kpoints)
                 tmol.set_kpoints('active','tpiba')
