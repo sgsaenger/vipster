@@ -227,7 +227,7 @@ class Molecule(object):
 
     def get_all_atoms(self):
         """Return names and coordinates (bohr) for all atoms"""
-        return zip(self._atom_name,self._atom_coord)
+        return list(zip(self._atom_name,self._atom_coord))
 
     def get_atom(self,index,fmt='bohr'):
         """Return one atom
