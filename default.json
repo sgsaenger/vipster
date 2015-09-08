@@ -123,11 +123,12 @@
 },
 "General":
 {
-"Atom-Radius-VdW":    false,
-"Atom-Factor":        0.52917721092,
-"Bond-Radius":        0.52917721092,
-"Bond-Cut-Fac":       1.10,
-"Rotate-COM":         false,
-"Proj-Perspective":   false
+"Atom radius VdW":                      false,
+"Atom radius factor":                   0.52917721092,
+"Bond radius":                          0.52917721092,
+"Bond cutoff factor":                   1.10,
+"Rotate around COM":                    false,
+"Start with perspective projection":    false,
+"Default pwscf PP-suffix":              ".uspp736.pbe.UPF"
 }
 }
