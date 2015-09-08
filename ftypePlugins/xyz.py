@@ -20,7 +20,7 @@ def parser(controller,data):
             #read coordinates and types
             for j in range(i+2,i+nat+2):
                     line = data[j].split()
-                    tmol.create_atom(line[0],map(float,line[1:4]),'angstrom')
+                    tmol.create_atom(line[0],line[1:4],'angstrom')
             i+=nat+2
 
 def writer(mol,f,param,coordfmt):

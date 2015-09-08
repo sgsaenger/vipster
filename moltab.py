@@ -259,7 +259,7 @@ class MolTab(QWidget):
         #fill atom coordinate widget
         self.table.setRowCount(self.mol.get_nat())
         #make table count from zero
-        self.table.setVerticalHeaderLabels(map(str,range(self.mol.get_nat())))
+        self.table.setVerticalHeaderLabels([str(x) for x in range(self.mol.get_nat())])
         for i in range(self.mol.get_nat()):
             at = self.mol.get_atom(i,fmt)
             self.table.setItem(i,0,QTableWidgetItem(at[0]))

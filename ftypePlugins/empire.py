@@ -10,7 +10,7 @@ def parser(controller,data):
     tmol.set_comment(data[1].strip())
     for j in range(2,nat+2):
         line=data[j].split()
-        tmol.create_atom(line[0],map(float,line[1:4]),'angstrom')
+        tmol.create_atom(line[0],line[1:4],'angstrom')
     vec=[0,0,0]
     for i in range(3):
         vec[i]=[float(x)for x in data[nat+3+i].split()]
