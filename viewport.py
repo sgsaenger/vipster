@@ -537,7 +537,7 @@ class ViewPort(QGLWidget):
                 pdat=v[:,:,pval]
                 pval = pval/v.shape[2]
                 p=[[0,0,pval],[1,0,pval],[0,1,pval],[1,0,pval],[0,1,pval],[1,1,pval]]
-            self.planeTex=np.array(map(lambda x:(x-vmin)/vdiff,pdat),'f')
+            self.planeTex=np.array([(x-vmin)/vdiff for x in pdat],'f')
 
         #crystal data:
         #'c',[tuple]
