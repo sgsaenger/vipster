@@ -93,7 +93,7 @@ class ConfTab(QWidget):
             self.pseLoadBut.hide()
             self.pseSavBut.hide()
             self.list.clear()
-            self.list.addItems(self.settings.keys())
+            self.list.addItems(list(self.settings.keys()))
             self.list.currentTextChanged.disconnect()
             self.list.currentTextChanged.connect(self.setSetting)
         elif sel == 'PSE':
@@ -106,7 +106,7 @@ class ConfTab(QWidget):
             self.pseSavBut.hide()
             self.list.clear()
             self.pse = self.parent.controller.pse
-            self.list.addItems(self.pse.keys())
+            self.list.addItems(list(self.pse.keys()))
             self.list.currentTextChanged.disconnect()
             self.list.currentTextChanged.connect(self.setElement)
         elif sel == 'PSE (Mol)':
@@ -119,7 +119,7 @@ class ConfTab(QWidget):
             self.pseSavBut.show()
             self.list.clear()
             self.pse = self.mol.pse
-            self.list.addItems(self.pse.keys())
+            self.list.addItems(list(self.pse.keys()))
             self.list.currentTextChanged.disconnect()
             self.list.currentTextChanged.connect(self.setElement)
         self.list.setCurrentRow(0)
