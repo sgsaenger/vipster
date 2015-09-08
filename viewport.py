@@ -561,7 +561,6 @@ class ViewPort(QGLWidget):
                     for k in range(abs(pval[1])):
                         for l in range(abs(pval[2])):
                             p+=[[0,float(k)/pval[1],(l+1.)/pval[2]],[0,(k+1.)/pval[1],float(l)/pval[2]],[1,float(k)/pval[1],(l+1.)/pval[2]],[0,(k+1.)/pval[1],float(l)/pval[2]],[1,float(k)/pval[1],(l+1.)/pval[2]],[1,(k+1.)/pval[1],float(l)/pval[2]]]
-                    print p
             else:
                 if pval[1] == 0:
                     if pval[2]==0:

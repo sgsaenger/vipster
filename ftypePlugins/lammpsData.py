@@ -38,7 +38,7 @@ def parser(controller,data):
         elif 'Atoms' in line:
             for j in range(i+2,i+2+nat):
                 at = data[j].strip().split()
-                tmol.create_atom(types[int(at[1])-1],map(float,at[-3:]),'angstrom')
+                tmol.create_atom(types[int(at[1])-1],at[-3:],'angstrom')
         i+=1
 
 def writer(mol,f,param,coordfmt):

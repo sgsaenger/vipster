@@ -34,7 +34,7 @@ def parser(controller,data):
             tmol.set_vec(vec)
             for j in range(i+1,i+nat+1):
                 atom = data[j].split()
-                tmol.create_atom(atom[1],map(float,atom[6:9]),'alat')
+                tmol.create_atom(atom[1],atom[6:9],'alat')
             i+=nat
         #read k-points:
         elif line[0] == 'gamma-point':
@@ -60,7 +60,7 @@ def parser(controller,data):
             tmol.set_vec(vec)
             for j in range(i+1,i+nat+1):
                 atom = data[j].split()
-                tmol.create_atom(atom[0],map(float,atom[1:4]),line[1].strip('()'),map(int,atom[4:]))
+                tmol.create_atom(atom[0],atom[1:4],line[1].strip('()'),[int(x) for x in atom[4:]])
             if not gamma:
                 tmol.set_kpoints('tpiba',kpoints)
                 tmol.set_kpoints('active','tpiba')

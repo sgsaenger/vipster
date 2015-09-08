@@ -25,7 +25,7 @@ def parser(controller,data):
     for i in range(nat):
         # line = Z, charge(ignored), coord(x,y,z)
         line=data[i+6].split()
-        tmol.create_atom(controller.pse.keys()[int(line[0])],map(float,line[2:5]),'bohr')
+        tmol.create_atom(controller.pse.keys()[int(line[0])],line[2:5],'bohr')
     #rest of file has datagrid, x is outer loop, z inner
     tmol.set_vol(nvol,data[6+nat:],origin)
 

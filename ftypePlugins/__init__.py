@@ -1,12 +1,12 @@
 from collections import OrderedDict
 
-import xyz
-import pwInput
-import pwOutput
-import lammpsData
-import lammpsCustom
-import cube
-import empire
+from . import xyz
+from . import pwInput
+from . import pwOutput
+from . import lammpsData
+from . import lammpsCustom
+from . import cube
+from . import empire
 
 formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire]
 cli_indict=OrderedDict([(i.argument,i.parser) for i in formats])
