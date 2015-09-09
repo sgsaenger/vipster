@@ -29,6 +29,7 @@ class Script(QWidget):
         vbox.addLayout(hbox)
         vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
+        self.setMinimumHeight(150)
 
     def setMol(self,mol):
         self.mol = mol

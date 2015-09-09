@@ -15,6 +15,7 @@ class Picker(QTextEdit):
         super(Picker,self).__init__()
 
         self.setReadOnly(True)
+        self.setMinimumHeight(150)
 
     def setMol(self,mol):
         sel = mol.get_selection()

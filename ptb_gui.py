@@ -7,7 +7,7 @@ from os.path import splitext
 from os import getcwd
 
 from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer
+from PyQt4.QtCore import QTimer,Qt
 
 from viewport import ViewPort
 from moltab import MolTab
@@ -179,11 +179,13 @@ class MainView(QWidget):
             #Molecule list:
             self.mlist = QListWidget()
             self.mlist.currentRowChanged.connect(self.selectMolecule)
+            self.mlist.setMinimumHeight(150)
             #PWParameter list:
             self.pwlist = QListWidget()
             self.pwlist.currentRowChanged.connect(self.selectPWParam)
+            self.pwlist.setMinimumHeight(150)
             #Layout and frame
-            lcol = QFrame()
+            lcol = QScrollArea()
             lcol.setFrameStyle(38)
             lcol.setFixedWidth(340)
             llay = QVBoxLayout()
@@ -194,7 +196,12 @@ class MainView(QWidget):
             for i in tools.items():
                 self.edit.append(i[1](self))
                 llay.addWidget(collapsibleWidget(i[0],self.edit[-1],show=False))
-            lcol.setLayout(llay)
+            lcolarea= QWidget()
+            lcolarea.setLayout(llay)
+            lcolarea.setFixedWidth(320)
+            lcol.setWidget(lcolarea)
+            lcol.setWidgetResizable(True)
+            lcol.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         #Lay out columns:
             hbox = QHBoxLayout()
