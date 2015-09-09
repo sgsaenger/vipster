@@ -61,9 +61,6 @@ def parser(controller,data):
             for j in range(i+1,i+nat+1):
                 atom = data[j].split()
                 tmol.create_atom(atom[0],atom[1:4],line[1].strip('()'),[int(x) for x in atom[4:]])
-            if not gamma:
-                tmol.set_kpoints('tpiba',kpoints)
-                tmol.set_kpoints('active','tpiba')
             i+=nat
         #break on reaching final coordinates (duplicate)
         elif line[0] == 'Begin':
