@@ -18,13 +18,10 @@ class Molecule(object):
     XYZ comment line (_comment)
     Cube-style volume data (_vol)
     Cell geometry (_celldm/_vec)
-    K-Point settings (_kpoints)
-    PSE-Overlay over central settings (pse)
     """
 
-    def __init__(self,controller=None):
-        if controller:
-            self.pse=self._pse(controller.pse)
+    def __init__(self,pse=None):
+        self.pse=pse
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
@@ -36,9 +33,6 @@ class Molecule(object):
         self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
         self._comment = ''
-        self._kpoints={'active':'gamma',\
-                'automatic':['1','1','1','0','0','0'],\
-                'disc':[]}
         self._undo_stack=[]
         self._undo_temp=[]
 
@@ -126,20 +120,6 @@ class Molecule(object):
         self._vecinv = np.linalg.inv(self._vec)
         self._bonds_outdated=True
 
-    def set_kpoints(self,mode,kpoints):
-        """Set and modify active k-points
-
-        mode -> str in [active,automatic,disc]
-        kpoints -> corresponding argument
-        self._kpoints['active'] in [gamma,automatic,disc]
-        self._kpoints['automatic'] = [x,y,z,xoff,yoff,zoff]
-        self._kpoints['tpiba|crystal|tpiba_b|crystal_b'] = [[x,y,z,weight]]*nk
-        """
-        if mode in ['tpiba','crystal','tpiba_b','crystal_b']:
-            self._kpoints['disc']=kpoints
-        else:
-            self._kpoints[mode]=kpoints
-
     #######################################################
     # COORD FMT FUNCTIONS
     # to be called only by atom set/get
@@ -177,35 +157,6 @@ class Molecule(object):
             return np.dot(coord,self._vecinv)/self._celldm
         elif fmt == 'alat':
             return coord/self._celldm
-
-    ######################################################
-    # LOCAL PSE-DICT
-    # overlay for global dict
-    ######################################################
-
-    class _pse(dict):
-        """Special dictionary
-
-        Upon requesting information for an atom-type,
-        determines likely referenced type and makes
-        local copy
-        """
-        def __init__(self,cpse):
-            super(Molecule._pse,self).__init__()
-            self.cpse=cpse
-
-        def __getitem__(self,key):
-            if not key in self:
-                if key in self.cpse:
-                    self[key]=deepcopy(self.cpse[key])
-                else:
-                    for i in range(len(key),0,-1):
-                        if key[:i] in self.cpse:
-                            self[key] = deepcopy(self.cpse[key[:i]])
-                            break
-                    if not key in self:
-                        self[key]=deepcopy(self.cpse['X'])
-            return super(Molecule._pse,self).__getitem__(key)
 
     ######################################################
     # RETURN FUNCTIONS
@@ -263,13 +214,6 @@ class Molecule(object):
             return (np.max(self._atom_coord,axis=0)+np.min(self._atom_coord,axis=0))/2
         else:
             return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
-
-    def get_kpoints(self,mode):
-        """Return active k-points or k-point-settings"""
-        if mode in ['crystal','tpiba','crystal_b','tpiba_b']:
-            return self._kpoints['disc']
-        else:
-            return self._kpoints[mode]
 
     ######################################################
     # UNDO FUNCTIONS
@@ -799,11 +743,22 @@ class Trajectory(object):
 
     consistent interface for single molecules
     and trajectories
+
+    Includes:
+    Interface to modify all cells at once
+    K-Point settings (_kpoints)
+    PSE-Overlay over central settings (pse)
     """
     def __init__(self,controller=None,steps=1):
-        self._controller=controller
-        self._dataStack=[Molecule(controller) for i in range(steps)]
+        if controller:
+            self.pse=self._pse(controller.pse)
+        else:
+            self.pse=None
+        self._dataStack=[Molecule(self.pse) for i in range(steps)]
         self._dataPointer=0
+        self._kpoints={'active':'gamma',\
+                'automatic':['1','1','1','0','0','0'],\
+                'disc':[]}
 
     def __len__(self):
         """
@@ -815,7 +770,7 @@ class Trajectory(object):
         """
         Create new step
         """
-        self._dataStack.append(Molecule(self._controller))
+        self._dataStack.append(Molecule(self.pse))
         self._dataPointer=len(self._dataStack)-1
 
     def changeMol(self,num):
@@ -858,3 +813,54 @@ class Trajectory(object):
             for mol in self._dataStack:
                 mol._celldm = float(cdm)
                 mol._bonds_outdated=True
+
+    def set_kpoints(self,mode,kpoints):
+        """Set and modify active k-points
+
+        mode -> str in [active,automatic,disc]
+        kpoints -> corresponding argument
+        self._kpoints['active'] in [gamma,automatic,disc]
+        self._kpoints['automatic'] = [x,y,z,xoff,yoff,zoff]
+        self._kpoints['tpiba|crystal|tpiba_b|crystal_b'] = [[x,y,z,weight]]*nk
+        """
+        if mode in ['tpiba','crystal','tpiba_b','crystal_b']:
+            self._kpoints['disc']=kpoints
+        else:
+            self._kpoints[mode]=kpoints
+
+    def get_kpoints(self,mode):
+        """Return active k-points or k-point-settings"""
+        if mode in ['crystal','tpiba','crystal_b','tpiba_b']:
+            return self._kpoints['disc']
+        else:
+            return self._kpoints[mode]
+
+    ######################################################
+    # LOCAL PSE-DICT
+    # overlay for global dict
+    ######################################################
+
+    class _pse(dict):
+        """Special dictionary
+
+        Upon requesting information for an atom-type,
+        determines likely referenced type and makes
+        local copy
+        """
+        def __init__(self,cpse):
+            super(Trajectory._pse,self).__init__()
+            self.cpse=cpse
+
+        def __getitem__(self,key):
+            if not key in self:
+                if key in self.cpse:
+                    self[key]=deepcopy(self.cpse[key])
+                else:
+                    for i in range(len(key),0,-1):
+                        if key[:i] in self.cpse:
+                            self[key] = deepcopy(self.cpse[key[:i]])
+                            break
+                    if not key in self:
+                        self[key]=deepcopy(self.cpse['X'])
+            return super(Trajectory._pse,self).__getitem__(key)
+
