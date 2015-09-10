@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4.QtGui import *
+from copy import copy
 
 class ConfTab(QWidget):
     def __init__(self,parent):
@@ -215,11 +216,12 @@ class ConfTab(QWidget):
         self.parent.controller.saveConfig()
 
     def settingFromDefault(self):
-        self.settings[self.setting] = self.parent.controller.default['General'][self.setting]
+        self.settings[self.setting] = copy(self.parent.controller.default['General'][self.setting])
         self.setSetting(self.setting)
 
     def pseFromDefault(self):
-        self.pse[self.element] = self.parent.controller.default['PSE'][self.element]
+        self.pse[self.element] = copy(self.parent.controller.default['PSE'][self.element])
+        self.valHandler()
         self.setElement(self.element)
 
     def pseFromInstance(self):
@@ -229,4 +231,4 @@ class ConfTab(QWidget):
             self.parent.updateMolStep()
 
     def pseToInstance(self):
-        self.parent.controller.pse[self.element] = self.pse[self.element]
+        self.parent.controller.pse[self.element] = copy(self.pse[self.element])

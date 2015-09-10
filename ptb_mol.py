@@ -79,7 +79,8 @@ class TBController(object):
             with open(expanduser('~/.toolbox.json')) as f:
                 conf = load(f,object_pairs_hook=OrderedDict)
         except:
-            conf = self.default
+            from copy import deepcopy
+            conf = deepcopy(self.default)
         self.pse=conf['PSE']
         self.config=conf['General']
 
