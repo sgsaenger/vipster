@@ -51,10 +51,18 @@ class MolTab(QWidget):
         self.table.cellChanged.connect(cellHandler)
         def selHandler():
             if self.updatedisable: return
-            self.mol.del_selection()
+            sel = self.mol.get_selection()
+            keep = []
             for i in self.table.selectedRanges():
                 for j in range(i.topRow(),i.bottomRow()+1):
-                    self.mol.add_selection([j,(0,0,0)])
+                    l = [k for k in sel if k[0] == j]
+                    if l:
+                        keep.extend(l)
+                    else:
+                        keep.append([j,(0,0,0)])
+            self.mol.del_selection()
+            for i in keep:
+                self.mol.add_selection(i)
             self.parent.updateMolStep()
         self.table.itemSelectionChanged.connect(selHandler)
 
