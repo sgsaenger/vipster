@@ -718,12 +718,12 @@ class ViewPort(QGLWidget):
                 self.drawBonds()
             if self.showCell:
                 self.drawCell()
-            if hasattr(self,'selVBO'):
-                self.drawSelection()
             if self.showSurf and hasattr(self,'surfVBO'):
                 self.drawSurf()
             if self.showPlane and hasattr(self,'planeVBO'):
                 self.drawPlane()
+            if hasattr(self,'selVBO'):
+                self.drawSelection()
         if self.instanced: glBindVertexArray(0)
 
     def drawAtoms(self):
