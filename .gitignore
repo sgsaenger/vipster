@@ -60,6 +60,7 @@ docs/_build/
 *.cub
 *.cpi
 *.emp
+*.sum
 
 # vim swap files
 *.swp
