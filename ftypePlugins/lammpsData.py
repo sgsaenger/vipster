@@ -66,7 +66,7 @@ def writer(mol,f,param,coordfmt):
     f.write('Masses\n\n')
     t=list(mol.get_types())
     for i,j in enumerate(t):
-        f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,mol.pse[j][2],j))
+        f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,mol.pse[j]['m'],j))
     f.write('\nAtoms\n\n')
     for i in range(mol.get_nat()):
         at=mol.get_atom(i,'angstrom')

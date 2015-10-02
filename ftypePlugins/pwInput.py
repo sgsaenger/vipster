@@ -49,8 +49,8 @@ def parser(controller,data):
             if header[0] == 'ATOMIC_SPECIES':
                 for i in range(int(tparam['&system']['ntyp'])):
                     line = data.pop(0).strip().split()
-                    tmol.pse[line[0]][2] = float(line[1])
-                    tmol.pse[line[0]][0] = line[2]
+                    tmol.pse[line[0]]['m'] = float(line[1])
+                    tmol.pse[line[0]]['PPfile'] = line[2]
             #ATOMIC_POSITIONS fmt
             #Name   x   y   z
             elif header[0] == 'ATOMIC_POSITIONS':
@@ -230,7 +230,7 @@ def writer(mol,f,param,coordfmt):
     types = list(mol.get_types())
     for i in range(len(mol.get_types())):
         atom = types[i]
-        f.write(atom+'    '+str(mol.pse[atom][2])+'   '+str(mol.pse[atom][0])+'\n')
+        f.write(atom+'    '+str(mol.pse[atom]['m'])+'   '+str(mol.pse[atom]['PPfile'])+'\n')
     f.write('\n')
     #ATOMIC_POSITIONS
     f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')

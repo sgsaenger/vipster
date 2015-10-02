@@ -14,9 +14,11 @@ REAL :: effcut,dist_n
 !add one in order to use it as an index in fortran
 k=1
 DO i=0,nat-1
+        IF (cut(i)==0) CYCLE
         DO j=0,nat-1
                 IF ((j<i).AND.ALL(off==0.)) CYCLE
                 IF (i==j) CYCLE
+                IF (cut(j)==0) CYCLE
                 dist_v = coord(i,:)+off(1,:)-coord(j,:)-off(2,:)
                 effcut=(cut(i)+cut(j))*cut_fac
                 IF(ANY(dist_v>effcut))CYCLE
