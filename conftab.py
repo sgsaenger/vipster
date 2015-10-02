@@ -138,10 +138,7 @@ class ConfTab(QWidget):
                 self.names.append(i[0])
                 vbox.addWidget(QLabel(i[0]+':'))
                 self.types.append(type(i[1]))
-                if isinstance(i[1],basestring):
-                    self.widgets.append(QLineEdit())
-                    self.widgets[-1].editingFinished.connect(self.changeHandler)
-                elif isinstance(i[1],bool):
+                if isinstance(i[1],bool):
                     self.widgets.append(QCheckBox())
                     self.widgets[-1].stateChanged.connect(self.changeHandler)
                 elif isinstance(i[1],int):
@@ -155,6 +152,9 @@ class ConfTab(QWidget):
                 elif isinstance(i[1],list):
                     self.widgets.append(QPushButton())
                     self.widgets[-1].clicked.connect(self.changeHandler)
+                else:
+                    self.widgets.append(QLineEdit())
+                    self.widgets[-1].editingFinished.connect(self.changeHandler)
                 vbox.addWidget(self.widgets[-1])
             vbox.addStretch()
             self.setLayout(vbox)
