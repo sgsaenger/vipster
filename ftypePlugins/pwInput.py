@@ -54,7 +54,7 @@ def parser(controller,data):
             #ATOMIC_POSITIONS fmt
             #Name   x   y   z
             elif header[0] == 'ATOMIC_POSITIONS':
-                fmt = header[1].strip('()')
+                fmt = header[1].strip('{()}')
                 for i in range(int(tparam['&system']['nat'])):
                     #support empty lines
                     temp = data.pop(0).strip().split()
@@ -64,11 +64,11 @@ def parser(controller,data):
             #K_POINTS fmt
             elif header[0] == 'K_POINTS':
                 #Gamma point only
-                if header[1] == 'gamma':
+                if header[1].strip('{()}') == 'gamma':
                     tmol.set_kpoints('active','gamma')
                 #Monkhorst Pack Grid:
                 #x y z offset
-                elif header[1] == 'automatic':
+                elif header[1].strip('{()}') == 'automatic':
                     line = data.pop(0).strip().split()
                     tmol.set_kpoints('automatic',line)
                     tmol.set_kpoints('active','automatic')
