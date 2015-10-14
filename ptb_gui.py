@@ -1,8 +1,6 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-import sys
-
 from os.path import splitext
 from os import getcwd
 

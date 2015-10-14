@@ -1,14 +1,13 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-import sys
 from math import sqrt
 from collections import OrderedDict
 from os.path import dirname,expanduser
 from json import load, dump
 
 from molecule import Molecule,Trajectory
-from ftypePlugins import cli_indict,gui_indict,gui_outdict
+from ftypeplugins import cli_indict,gui_indict,gui_outdict
 
 ######################################################################
 # MAIN CONTROLLER CLASS

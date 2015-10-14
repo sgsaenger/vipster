@@ -305,7 +305,7 @@ class Molecule(object):
         self._bonds=[[],[],[],[],[],[],[],[]]
         if len(self._atom_coord)<2:
             return
-        at_c = self._atom_coord
+        at_c = np.array(self._atom_coord)
         cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name])
         n=np.zeros(3)
         v = self.get_vec()*self.get_celldm()

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from sys import exit,argv,stdout
+from sys import exit,argv
 import cProfile
 from ptb_mol import TBController
 from ptb_gui import MainView
@@ -33,14 +33,13 @@ def main():
     exit(app.exec_())
 
 def print_help(backend,err):
-    f = stdout
-    f.write('PWToolBox usage:\n')
-    f.write('ptb_main [OPTIONS]\n\n')
-    f.write('No option given: start GUI\n\n')
-    f.write('Options:\n')
-    f.write('-h: print this help\n')
+    print('PWToolBox usage:')
+    print('ptb_main [OPTIONS]\n')
+    print('No option given: start GUI\n')
+    print('Options:')
+    print('-h: print this help')
     for i in backend.cli_indict.items():
-        f.write(i[0]+' [FILES]: '+i[1].__doc__.split('\n')[0]+'\n')
+        print(i[0]+' [FILES]: '+i[1].__doc__.split('\n')[0])
     exit(err)
 
 if __name__ == '__main__':
