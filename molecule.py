@@ -4,6 +4,7 @@
 import numpy as np
 from copy import deepcopy
 from mol_f import set_bonds_f,make_vol_gradient
+from bonds import set_bonds_c
 
 class Molecule(object):
     """
@@ -306,8 +307,8 @@ class Molecule(object):
         if len(self._atom_coord)<2:
             return
         at_c = np.array(self._atom_coord)
-        cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name])
-        n=np.zeros(3)
+        cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
+        n=np.zeros(3,'f')
         v = self.get_vec()*self.get_celldm()
         off = [[(n,n)],                             #orig
                 [(v[0],n)],                         #x
@@ -319,6 +320,7 @@ class Molecule(object):
                 [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
         for k,os in enumerate(off):
             for i in os:
+                set_bonds_c(at_c,cutoff,cutfac,i)
                 nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,cutfac,i)
                 self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
         self._bond_cutfac=cutfac
