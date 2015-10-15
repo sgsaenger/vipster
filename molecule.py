@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from mem_top import mem_top
 from copy import deepcopy
 from mol_f import set_bonds_f,make_vol_gradient
 from bonds import set_bonds_c
@@ -311,19 +312,16 @@ class Molecule(object):
         n=np.zeros(3,'f')
         v = self.get_vec()*self.get_celldm()
         off = [[(n,n)],                             #orig
-                [(v[0],n)],                         #x
-                [(v[1],n)],                         #y
-                [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
-                [(v[2],n)],                         #z
-                [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
-                [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
-                [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
-        for k,os in enumerate(off):
-            for i in os:
-                set_bonds_c(at_c,cutoff,cutfac,i)
-                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,cutfac,i)
-                self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
+               [(v[0],n)],                         #x
+               [(v[1],n)],                         #y
+               [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
+               [(v[2],n)],                         #z
+               [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
+               [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
+               [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
+        self._bonds = set_bonds_c(at_c,cutoff,cutfac,off)
         self._bond_cutfac=cutfac
+        print(mem_top())
         self._bonds_outdated=False
 
     #####################################################
