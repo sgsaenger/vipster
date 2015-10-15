@@ -1,7 +1,6 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include "/usr/lib64/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h"
-//#include <numpy/arrayobject.h>
+#include <numpy/arrayobject.h>
 #include <math.h>
 
 static PyObject* set_bonds(PyObject *self, PyObject *args)
@@ -21,23 +20,18 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
     PyObject *bonds;
 
     if (!PyArg_ParseTuple(args, "OOfO", &coord_py, &cutoff_py, &cutfac, &off_py)) return NULL;
-    /*TODO: check PyArrays for dimension and type*/
-    if (!PyArray_Check(coord_py)) return NULL;
-    if (!PyArray_Check(cutoff_py)) return NULL;
-    if (!PyList_Check(off_py)) return NULL;
+    if (!(PyArray_Check(coord_py)|PyArray_ISFLOAT(coord_py))) return NULL;
+    if (!(PyArray_Check(cutoff_py)|PyArray_ISFLOAT(cutoff_py))) return NULL;
+    if (!(PyList_Check(off_py)|(PyList_Size(off_py)==8))) return NULL;
 
     nat = PyArray_DIMS((PyArrayObject*) cutoff_py)[0];
     cutoff = (float*)PyArray_GETPTR1((PyArrayObject*) cutoff_py,0);
     coord = (float*)PyArray_GETPTR2((PyArrayObject*) coord_py,0,0);
     bonds = PyList_New(8);
-    for (Py_ssize_t i=0;i<8;i++) {
-        PyList_SetItem(bonds,i,PyList_New(0));
-    }
-
 
     for (Py_ssize_t dir_i=0;dir_i<3;dir_i++) {
         PyObject *dir_py = PyList_GetItem(off_py,dir_i);
-        PyObject *bond_off = PyList_GetItem(bonds,dir_i);
+        PyObject *bond_off = PyList_New(0);
 
         for (Py_ssize_t off_i=0; off_i<PyList_Size(dir_py); off_i++) {
             PyObject *offset_py = PyList_GetItem(dir_py,off_i);
@@ -64,14 +58,14 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
                         PyObject* bond = Py_BuildValue("iiOf",i,j,offset_py,sqrt(dist_n));
                         PyList_Append(bond_off,bond);
                         Py_DECREF(bond);
-                        //PyList_Append(bond_off,Py_BuildValue("iiOf",i,j,offset_py,sqrt(dist_n)));
                     }
                 }
             }
         }
+        PyList_SetItem(bonds,dir_i,bond_off);
     }
 
-    return Py_BuildValue("O",bonds);
+    return bonds;
 }
 
 static PyMethodDef BondsMethods[] = {

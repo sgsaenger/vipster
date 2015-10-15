@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from mem_top import mem_top
 from copy import deepcopy
-from mol_f import set_bonds_f,make_vol_gradient
+from mol_f import make_vol_gradient
 from bonds import set_bonds_c
 
 class Molecule(object):
@@ -302,7 +301,7 @@ class Molecule(object):
         Sum of covalent radii times cutfac
         Generates list of lists, each lists contains:
         [idx_at1,idx_at2,offset_at1,offset_at2,distance]
-        Actual setting performed by fortran-routine set_bonds_f
+        Actual setting performed by C-routine set_bonds_c
         """
         self._bonds=[[],[],[],[],[],[],[],[]]
         if len(self._atom_coord)<2:
@@ -321,7 +320,6 @@ class Molecule(object):
                [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
         self._bonds = set_bonds_c(at_c,cutoff,cutfac,off)
         self._bond_cutfac=cutfac
-        print(mem_top())
         self._bonds_outdated=False
 
     #####################################################
