@@ -120,8 +120,26 @@ static PyMethodDef MolMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+#if PY_MAJOR_VERSION >=3
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "mol_c",
+    NULL,
+    -1,
+    MolMethods
+};
+
+PyObject * PyInit_mol_c(void)
+#else
 PyMODINIT_FUNC initmol_c(void)
+#endif
 {
     import_array();
+#if PY_MAJOR_VERSION >=3
+    PyObject *module = PyModule_Create(&moduledef);
+    if (module == NULL) return NULL;
+    return module;
+#else
     Py_InitModule("mol_c", MolMethods);
+#endif
 }

@@ -3,7 +3,6 @@
 
 import numpy as np
 from copy import deepcopy
-#from mol_f import make_vol_gradient
 from mol_c import set_bonds_c,make_vol_gradient
 
 class Molecule(object):
