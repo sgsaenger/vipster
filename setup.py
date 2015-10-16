@@ -5,6 +5,7 @@ from distutils.core import setup, Extension
 import numpy as np
 
 mol_c = Extension(name="mol_c",sources=["C/mol_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
+gui_c = Extension(name="gui_c",sources=["C/gui_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
 
 setup(
         name="pwtoolbox",
@@ -19,5 +20,5 @@ setup(
             'ptb_mol','molecule',
             'collapsiblewidget','conftab','moltab','pwtab','viewport','ptb_gui'],
         packages=['tools','ftypeplugins'],
-        ext_modules=[mol_c]
+        ext_modules=[mol_c,gui_c]
 )

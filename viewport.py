@@ -3,7 +3,8 @@
 
 from os.path import dirname
 from copy import deepcopy
-from mol_f import make_iso_surf
+#from mol_f import make_iso_surf
+from gui_c import make_iso_surf
 import numpy as np
 
 from PyQt4.QtCore import Qt,QRectF
@@ -508,12 +509,17 @@ class ViewPort(QGLWidget):
     def setSurf(self,sval,both=False):
         if sval==0:
             return
-        vertices,nv = make_iso_surf(self.mol.get_vol(),sval,self.mol.get_vol_gradient())
-        if both:
-            vertices2,nv2=make_iso_surf(self.mol.get_vol(),-sval,self.mol.get_vol_gradient())
-            self.surfVBO = VBO(np.concatenate((vertices[:,:,:nv].flatten('F'),vertices2[:,:,:nv2].flatten('F')),axis=0))
-        else:
-            self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
+        #vertices,nv = make_iso_surf(self.mol.get_vol(),sval,self.mol.get_vol_gradient())
+        #if both:
+        #    vertices2,nv2=make_iso_surf(self.mol.get_vol(),-sval,self.mol.get_vol_gradient())
+        #    self.surfVBO = VBO(np.concatenate((vertices[:,:,:nv].flatten('F'),vertices2[:,:,:nv2].flatten('F')),axis=0))
+        #else:
+        #    self.surfVBO = VBO(vertices[:,:,:nv].flatten('F'))
+        #self.surfVBO = VBO(vertices.flatten('F'))
+        surface = make_iso_surf(self.mol.get_vol(),sval,self.mol.get_vol_gradient())
+        print("success!")
+        return
+        self.surfVBO = VBO(surface)
         if self.showSurf:
             self.update()
 
