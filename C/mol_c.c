@@ -5,8 +5,8 @@
 
 static PyObject* set_bonds(PyObject *self, PyObject *args)
 {
-    PyObject *coord_py;
-    PyObject *cutoff_py;
+    PyArrayObject *coord_py;
+    PyArrayObject *cutoff_py;
     float *coord, *cutoff;
     int nat;
 
@@ -24,9 +24,9 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
     if (!(PyArray_Check(cutoff_py)|PyArray_ISFLOAT(cutoff_py))) return NULL;
     if (!(PyList_Check(off_py)|(PyList_Size(off_py)==8))) return NULL;
 
-    nat = PyArray_DIMS((PyArrayObject*) cutoff_py)[0];
-    cutoff = (float*)PyArray_GETPTR1((PyArrayObject*) cutoff_py,0);
-    coord = (float*)PyArray_GETPTR2((PyArrayObject*) coord_py,0,0);
+    nat = PyArray_DIM(cutoff_py,0);
+    cutoff = (float*)PyArray_GETPTR1(cutoff_py,0);
+    coord = (float*)PyArray_GETPTR2(coord_py,0,0);
     bonds = PyList_New(8);
 
     for (Py_ssize_t dir_i=0;dir_i<3;dir_i++) {
@@ -68,13 +68,60 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
     return bonds;
 }
 
-static PyMethodDef BondsMethods[] = {
-    {"set_bonds_c", set_bonds, METH_VARARGS,"Execute a shell command."},
+static PyObject* make_vol_gradient(PyObject *self, PyObject *args)
+{
+    PyArrayObject *volume_py;
+    if (!PyArg_ParseTuple(args,"O",&volume_py)) return NULL;
+    if (!PyArray_Check(volume_py)) return NULL;
+    int x = PyArray_DIM(volume_py,0);
+    int y = PyArray_DIM(volume_py,1);
+    int z = PyArray_DIM(volume_py,2);
+    npy_intp d[] = {3,x,y,z};
+    int il,ih,jl,jh,kl,kh;
+    PyArrayObject *gradient_py = (PyArrayObject*)PyArray_SimpleNew(4,d,PyArray_TYPE(volume_py));
+    float *gradient = PyArray_GETPTR4(gradient_py,0,0,0,0);
+    float *volume = PyArray_GETPTR3(volume_py,0,0,0);
+    for (int i=0;i<x;i++) {
+        if(i==0){
+            il=x-1;ih=1;
+        }else if(i==x-1){
+            il=x-2;ih=0;
+        }else{
+            il=i-1;ih=i+1;
+        }
+        for (int j=0;j<y;j++) {
+            if(j==0){
+                jl=x-1;jh=1;
+            }else if(j==x-1){
+                jl=x-2;jh=0;
+            }else{
+                jl=j-1;jh=j+1;
+            }
+            for (int k=0;k<z;k++) {
+                if(k==0){
+                    kl=x-1;kh=1;
+                }else if(k==x-1){
+                    kl=x-2;kh=0;
+                }else{
+                    kl=k-1;kh=k+1;
+                }
+                gradient[0*x*y*z+i*y*z+j*z+k]=volume[il*y*z+j*z+k]-volume[ih*y*z+j*z+k];
+                gradient[1*x*y*z+i*y*z+j*z+k]=volume[i*y*z+jl*z+k]-volume[i*y*z+jh*z+k];
+                gradient[2*x*y*z+i*y*z+j*z+k]=volume[i*y*z+j*z+kl]-volume[i*y*z+j*z+kh];
+            }
+        }
+    }
+    return (PyObject*)gradient_py;
+}
+
+static PyMethodDef MolMethods[] = {
+    {"set_bonds_c", set_bonds, METH_VARARGS,"Calculate bonds inside the cell"},
+    {"make_vol_gradient", make_vol_gradient, METH_VARARGS,"Calculate gradient of grid-data"},
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initbonds(void)
+PyMODINIT_FUNC initmol_c(void)
 {
     import_array();
-    Py_InitModule("bonds", BondsMethods);
+    Py_InitModule("mol_c", MolMethods);
 }

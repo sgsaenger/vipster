@@ -4,7 +4,7 @@
 from distutils.core import setup, Extension
 import numpy as np
 
-bonds = Extension(name="bonds",sources=["C/set_bonds_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
+mol_c = Extension(name="mol_c",sources=["C/mol_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
 
 setup(
         name="pwtoolbox",
@@ -19,5 +19,5 @@ setup(
             'ptb_mol','molecule',
             'collapsiblewidget','conftab','moltab','pwtab','viewport','ptb_gui'],
         packages=['tools','ftypeplugins'],
-        ext_modules=[bonds]
+        ext_modules=[mol_c]
 )
