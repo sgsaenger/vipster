@@ -28,10 +28,13 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
     cutoff = (float*)PyArray_GETPTR1(cutoff_py,0);
     coord = (float*)PyArray_GETPTR2(coord_py,0,0);
     bonds = PyList_New(8);
+    for (Py_ssize_t i=0;i<8;i++){
+        PyList_SetItem(bonds,i,PyList_New(0));
+    }
 
     for (Py_ssize_t dir_i=0;dir_i<3;dir_i++) {
         PyObject *dir_py = PyList_GetItem(off_py,dir_i);
-        PyObject *bond_off = PyList_New(0);
+        PyObject *bond_off = PyList_GetItem(bonds,dir_i);
 
         for (Py_ssize_t off_i=0; off_i<PyList_Size(dir_py); off_i++) {
             PyObject *offset_py = PyList_GetItem(dir_py,off_i);
@@ -62,7 +65,6 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
                 }
             }
         }
-        PyList_SetItem(bonds,dir_i,bond_off);
     }
 
     return bonds;
