@@ -1,7 +1,6 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include "/usr/lib64/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h"
-//#include <numpy/arrayobject.h>
+#include <numpy/arrayobject.h>
 
 static float vert_off[8][3]={
     {0.0, 0.0, 0.0,},
@@ -339,28 +338,26 @@ static int tri_lut[256][4][3]={
 	{{0, 3, 7},{ 0, 0, 0},{ 0, 0, 0},{ 0, 0, 0}},
 	{{0, 0, 0},{ 0, 0, 0},{ 0, 0, 0},{ 0, 0, 0}}};
 
-
-#define interpol(n_edge,n_edge2,n_edge3,i_1,j_1,k_1,i_2,j_2,k_2)\
-ratio=(isoval-volume[i_1*y*z+j_1*z+k_1])/(volume[i_2*y*z+j_2*z+k_2]-volume[i_1*y*z+j_1*z+k_1]);\
-printf("%f\n",ratio);\
-tempvert[n_edge][0]=vert_off[n_edge2][0]+ratio*(vert_off[n_edge3][0]-vert_off[n_edge2][0]);\
-tempvert[n_edge][1]=vert_off[n_edge2][1]+ratio*(vert_off[n_edge3][1]-vert_off[n_edge2][1]);\
-tempvert[n_edge][2]=vert_off[n_edge2][2]+ratio*(vert_off[n_edge3][2]-vert_off[n_edge2][2]);\
-tempnorm[n_edge][0]=gradient[n_edge*x*y*z+i_1*y*z+j_1*z+k_1]+ratio*\
-                        (gradient[n_edge*x*y*z+i_2*y*z+j_2*z+k_2]-gradient[n_edge*x*y*z+i_1*y*z+j_1*z+k_1]);\
-tempnorm[n_edge][1]=gradient[n_edge*x*y*z+i_1*y*z+j_1*z+k_1]+ratio\
-                        *(gradient[n_edge*x*y*z+i_2*y*z+j_2*z+k_2]-gradient[n_edge*x*y*z+i_1*y*z+j_1*z+k_1]);\
-tempnorm[n_edge][2]=gradient[n_edge*x*y*z+i_1*y*z+j_1*z+k_1]+ratio\
-                        *(gradient[n_edge*x*y*z+i_2*y*z+j_2*z+k_2]-gradient[n_edge*x*y*z+i_1*y*z+j_1*z+k_1])
-
 static PyObject* make_iso_surf(PyObject *self, PyObject *args)
 {
     PyArrayObject *volume_py, *gradient_py;
     float isoval;
-    int i2,j2,k2,vert_sum;
+
+    if (!PyArg_ParseTuple(args,"OfO",&volume_py,&isoval,&gradient_py)) return NULL;
+    if (!PyArray_Check(volume_py)) return NULL;
+    if (!PyArray_Check(gradient_py)) return NULL;
+
+    int i2,j2,k2,vert_sum,nvert=0;
     float ratio;
-    float tempvert[12][3],tempnorm[12][3];
-    typedef struct {
+    float tempvert[12][3];
+    float tempnorm[12][3];
+
+    int x = PyArray_DIM(volume_py,0);
+    int y = PyArray_DIM(volume_py,1);
+    int z = PyArray_DIM(volume_py,2);
+    float (*volume)[y][z] = PyArray_GETPTR3(volume_py,0,0,0);
+    float (*gradient)[x][y][z] = PyArray_GETPTR4(gradient_py,0,0,0,0);
+    typedef struct{
         float v1[3];
         float n1[3];
         float c1[3];
@@ -371,20 +368,7 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
         float n3[3];
         float c3[3];
     }face;
-    face *faces;
-
-    if (!PyArg_ParseTuple(args,"OfO",&volume_py,&isoval,&gradient_py)) return NULL;
-    if (!PyArray_Check(volume_py)) return NULL;
-    if (!PyArray_Check(gradient_py)) return NULL;
-
-    int x = PyArray_DIM(volume_py,0);
-    int y = PyArray_DIM(volume_py,1);
-    int z = PyArray_DIM(volume_py,2);
-    faces = malloc(4*x*y*z*sizeof(face));
-    if(faces==NULL) return NULL;
-    int nvert = 0;
-    float *volume = (float*)PyArray_GETPTR3(volume_py,0,0,0);
-    float *gradient = (float*)PyArray_GETPTR4(volume_py,0,0,0,0);
+    face *faces = malloc(4*x*y*z*sizeof(face));
 
     for (int i=0;i<x;i++) {
         if(i==x-1){i2=0;}else{i2=i+1;}
@@ -395,23 +379,28 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
 
                 /*determine the cube-vertices inside of volume*/
                 vert_sum=0;
-                if (volume[i *y*z+j *z+k ]<isoval) vert_sum|=0x01;
-                if (volume[i *y*z+j *z+k2]<isoval) vert_sum|=0x02;
-                if (volume[i *y*z+j2*z+k ]<isoval) vert_sum|=0x04;
-                if (volume[i *y*z+j2*z+k2]<isoval) vert_sum|=0x08;
-                if (volume[i2*y*z+j *z+k ]<isoval) vert_sum|=0x10;
-                if (volume[i2*y*z+j *z+k2]<isoval) vert_sum|=0x20;
-                if (volume[i2*y*z+j2*z+k ]<isoval) vert_sum|=0x40;
-                if (volume[i2*y*z+j2*z+k2]<isoval) vert_sum|=0x80;
+                if (volume[i ][j ][k ]<isoval) vert_sum|=0x01;
+                if (volume[i ][j ][k2]<isoval) vert_sum|=0x02;
+                if (volume[i ][j2][k ]<isoval) vert_sum|=0x04;
+                if (volume[i ][j2][k2]<isoval) vert_sum|=0x08;
+                if (volume[i2][j ][k ]<isoval) vert_sum|=0x10;
+                if (volume[i2][j ][k2]<isoval) vert_sum|=0x20;
+                if (volume[i2][j2][k ]<isoval) vert_sum|=0x40;
+                if (volume[i2][j2][k2]<isoval) vert_sum|=0x80;
 
                 if (0<vert_sum&&vert_sum<255){
-                    for(int ci=0;ci<3;ci++){
-                        for(int ni=0;ni<11;ni++){
-                            tempvert[ci][ni]=0;
-                            tempnorm[ci][ni]=0;
-                        }
-                    }
                     /* determine interpolated edge intersections and normals */
+#define interpol(n_edge,n_edge2,n_edge3,i_1,j_1,k_1,i_2,j_2,k_2)\
+ratio=(isoval-volume[i_1][j_1][k_1])/(volume[i_2][j_2][k_2]-volume[i_1][j_1][k_1]);\
+tempvert[n_edge][0]=vert_off[n_edge2][0]+ratio*(vert_off[n_edge3][0]-vert_off[n_edge2][0]);\
+tempvert[n_edge][1]=vert_off[n_edge2][1]+ratio*(vert_off[n_edge3][1]-vert_off[n_edge2][1]);\
+tempvert[n_edge][2]=vert_off[n_edge2][2]+ratio*(vert_off[n_edge3][2]-vert_off[n_edge2][2]);\
+tempnorm[n_edge][0]=gradient[0][i_1][j_1][k_1]+ratio*\
+                        (gradient[0][i_2][j_2][k_2]-gradient[0][i_1][j_1][k_1]);\
+tempnorm[n_edge][1]=gradient[1][i_1][j_1][k_1]+ratio*\
+                        (gradient[1][i_2][j_2][k_2]-gradient[1][i_1][j_1][k_1]);\
+tempnorm[n_edge][2]=gradient[2][i_1][j_1][k_1]+ratio*\
+                        (gradient[2][i_2][j_2][k_2]-gradient[2][i_1][j_1][k_1]);
                     if (edge_lut[vert_sum]&&0x001) interpol( 0, 0, 1,i ,j ,k ,i ,j ,k2);
                     if (edge_lut[vert_sum]&&0x002) interpol( 1, 1, 5,i ,j ,k2,i2,j ,k2);
                     if (edge_lut[vert_sum]&&0x004) interpol( 2, 5, 4,i2,j ,k2,i2,j ,k );
@@ -425,14 +414,6 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
                     if (edge_lut[vert_sum]&&0x400) interpol(10, 6, 7,i2,j2,k ,i2,j2,k2);
                     if (edge_lut[vert_sum]&&0x800) interpol(11, 2, 6,i ,j2,k ,i2,j2,k );
 
-                    //printf("\nx: %i, y: %i, z: %i\n",i,j,k);
-                    //for(int l=0;l<12;l++){
-                    //    printf("\n");
-                    //    for(int m=0;m<3;m++){
-                    //        printf("%02i-%i: %f\n",l,m,tempvert[l][m]);
-                    //        //printf("%f\n",tempnorm[l][m]);
-                    //    }
-                    //}
                     for(int l=0;l<nvert_lut[vert_sum];l++){
                         faces[nvert].v1[0]=(i+tempvert[tri_lut[vert_sum][l][0]][0])/x;
                         faces[nvert].v1[1]=(j+tempvert[tri_lut[vert_sum][l][0]][1])/y;
@@ -444,46 +425,40 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
                         faces[nvert].v3[1]=(j+tempvert[tri_lut[vert_sum][l][2]][1])/y;
                         faces[nvert].v3[2]=(k+tempvert[tri_lut[vert_sum][l][2]][2])/z;
                         if(isoval>0){
-                            //printf("face-type: %i face-num: %i vert-num: %i\n",vert_sum,l,0);
-                            //printf("vertex:%i\n",tri_lut[vert_sum][l][0]);
-                            //printf("x: %f\n",tempvert[tri_lut[vert_sum][l][0]][0]);
-                            //printf("x: %f\n",tempnorm[tri_lut[vert_sum][l][0]][0]);
-                            //printf("y: %f\n",tempnorm[tri_lut[vert_sum][l][0]][1]);
-                            //printf("z: %f\n",tempnorm[tri_lut[vert_sum][l][0]][2]);
-                        //    faces[nvert].n1[0]=tempnorm[tri_lut[vert_sum][l][0]][0];
-                        //    faces[nvert].n1[1]=tempnorm[tri_lut[vert_sum][l][0]][1];
-                        //    faces[nvert].n1[2]=tempnorm[tri_lut[vert_sum][l][0]][2];
+                            faces[nvert].n1[0]=tempnorm[tri_lut[vert_sum][l][0]][0];
+                            faces[nvert].n1[1]=tempnorm[tri_lut[vert_sum][l][0]][1];
+                            faces[nvert].n1[2]=tempnorm[tri_lut[vert_sum][l][0]][2];
                             faces[nvert].c1[0]=0.8;
                             faces[nvert].c1[1]=0.1;
                             faces[nvert].c1[2]=0.1;
-                        //    faces[nvert].n2[0]=tempnorm[tri_lut[vert_sum][l][1]][0];
-                        //    faces[nvert].n2[1]=tempnorm[tri_lut[vert_sum][l][1]][1];
-                        //    faces[nvert].n2[2]=tempnorm[tri_lut[vert_sum][l][1]][2];
+                            faces[nvert].n2[0]=tempnorm[tri_lut[vert_sum][l][1]][0];
+                            faces[nvert].n2[1]=tempnorm[tri_lut[vert_sum][l][1]][1];
+                            faces[nvert].n2[2]=tempnorm[tri_lut[vert_sum][l][1]][2];
                             faces[nvert].c2[0]=0.8;
                             faces[nvert].c2[1]=0.1;
                             faces[nvert].c2[2]=0.1;
-                        //    faces[nvert].n3[0]=tempnorm[tri_lut[vert_sum][l][2]][0];
-                        //    faces[nvert].n3[1]=tempnorm[tri_lut[vert_sum][l][2]][1];
-                        //    faces[nvert].n3[2]=tempnorm[tri_lut[vert_sum][l][2]][2];
+                            faces[nvert].n3[0]=tempnorm[tri_lut[vert_sum][l][2]][0];
+                            faces[nvert].n3[1]=tempnorm[tri_lut[vert_sum][l][2]][1];
+                            faces[nvert].n3[2]=tempnorm[tri_lut[vert_sum][l][2]][2];
                             faces[nvert].c3[0]=0.8;
                             faces[nvert].c3[1]=0.1;
                             faces[nvert].c3[2]=0.1;
                         }else{
-                        //    faces[nvert].n1[0]=-tempnorm[tri_lut[vert_sum][l][0]][0];
-                        //    faces[nvert].n1[1]=-tempnorm[tri_lut[vert_sum][l][0]][1];
-                        //    faces[nvert].n1[2]=-tempnorm[tri_lut[vert_sum][l][0]][2];
+                            faces[nvert].n1[0]=-tempnorm[tri_lut[vert_sum][l][0]][0];
+                            faces[nvert].n1[1]=-tempnorm[tri_lut[vert_sum][l][0]][1];
+                            faces[nvert].n1[2]=-tempnorm[tri_lut[vert_sum][l][0]][2];
                             faces[nvert].c1[0]=0.1;
                             faces[nvert].c1[1]=0.1;
                             faces[nvert].c1[2]=0.8;
-                        //    faces[nvert].n2[0]=-tempnorm[tri_lut[vert_sum][l][1]][0];
-                        //    faces[nvert].n2[1]=-tempnorm[tri_lut[vert_sum][l][1]][1];
-                        //    faces[nvert].n2[2]=-tempnorm[tri_lut[vert_sum][l][1]][2];
+                            faces[nvert].n2[0]=-tempnorm[tri_lut[vert_sum][l][1]][0];
+                            faces[nvert].n2[1]=-tempnorm[tri_lut[vert_sum][l][1]][1];
+                            faces[nvert].n2[2]=-tempnorm[tri_lut[vert_sum][l][1]][2];
                             faces[nvert].c2[0]=0.1;
                             faces[nvert].c2[1]=0.1;
                             faces[nvert].c2[2]=0.8;
-                        //    faces[nvert].n3[0]=-tempnorm[tri_lut[vert_sum][l][2]][0];
-                        //    faces[nvert].n3[1]=-tempnorm[tri_lut[vert_sum][l][2]][1];
-                        //    faces[nvert].n3[2]=-tempnorm[tri_lut[vert_sum][l][2]][2];
+                            faces[nvert].n3[0]=-tempnorm[tri_lut[vert_sum][l][2]][0];
+                            faces[nvert].n3[1]=-tempnorm[tri_lut[vert_sum][l][2]][1];
+                            faces[nvert].n3[2]=-tempnorm[tri_lut[vert_sum][l][2]][2];
                             faces[nvert].c3[0]=0.1;
                             faces[nvert].c3[1]=0.1;
                             faces[nvert].c3[2]=0.8;
@@ -494,10 +469,11 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
             }
         }
     }
-    free(faces);
-    //npy_intp dims[]={nvert,9,3};
-    //PyObject *vertices = PyArray_SimpleNewFromData(3,dims,NPY_FLOAT,vertex);
-    return Py_BuildValue("i",0);
+    if (!realloc(faces,nvert*sizeof(face))) return NULL;
+    npy_intp dims[]={nvert*27};
+    PyObject *faces_py = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT,faces);
+    PyArray_ENABLEFLAGS((PyArrayObject*)faces_py,NPY_ARRAY_OWNDATA);
+    return faces_py;
 }
 
 static PyMethodDef GuiMethods[] = {
