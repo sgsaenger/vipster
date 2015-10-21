@@ -487,7 +487,7 @@ static struct PyModuleDef moduledef = {
     "gui_c",
     NULL,
     -1,
-    MolMethods
+    GuiMethods
 };
 
 PyObject* PyInit_gui_c(void)
