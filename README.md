@@ -1,32 +1,42 @@
 #PW Toolbox
 
-Visualization of PWScf, Cube, Lammps and xyz files.
+Visualization of various molecular structure files.
 
-Depends on Python2.7, Numpy, f2py, gfortran, PyQT4 and the Python OpenGL bindings.
+Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.
+
+##Supported file types:
+
+- standard xyz
+- Empire-xyz
+- PWScf input/output
+- Lammps data/custom-dump
+- Gaussian cube
+- AIMALL output
 
 ##Installation:
 
-Compile the fortran part:
+Install globally (requires root):
 ```
-make
+python setup.py install
 ```
-Update PyOpenGl to >V3.1.0:
+Install only for yourself:
 ```
-wget https://pypi.python.org/packages/source/P/PyOpenGL/PyOpenGL-3.1.1a1.tar.gz
-tar -xf PyOpenGL-3.1.1a1.tar.gz
-cd PyOpenGL-3.1.1a1
 python setup.py install --user
+```
+Don't install, just prepare to work in directory:
+```
+python setup.py build_ext -i
 ```
 
 ##Usage:
 
-For startup:
+Start without loading:
 ```
-./ptb_main.py -h
+ptb
 ```
-or, on computers with GLSL<3.3
+Supported cli-options:
 ```
-./ptb_old.py -h
+ptb -h
 ```
 
 The GUI should be pretty self-explanatory (or will be at some point...)
