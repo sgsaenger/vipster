@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = "Lammps Custom Dump"
 argument = '-dmp'
 extension = 'dmp'

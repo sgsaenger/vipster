@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = 'xyz'
 extension = 'xyz'
 argument = '-xyz'

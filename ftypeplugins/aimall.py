@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = 'AIMALL'
 extension = 'sum'
 argument = '-aim'

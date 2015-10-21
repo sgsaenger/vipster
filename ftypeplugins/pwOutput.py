@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = 'PWScf Output'
 extension = 'pwo'
 argument = '-pwo'

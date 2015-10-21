@@ -1,9 +1,7 @@
-#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 from os.path import dirname
 from copy import deepcopy
-from gui_c import make_iso_surf
 import numpy as np
 
 from PyQt4.QtCore import Qt,QRectF
@@ -12,6 +10,8 @@ from PyQt4.QtOpenGL import *
 from OpenGL.GL import *
 from OpenGL.GL.shaders import *
 from OpenGL.arrays.vbo import *
+
+from .gui_c import make_iso_surf
 
 class ViewPort(QGLWidget):
 

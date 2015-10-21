@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = "Lammps Data file"
 extension = 'lmp'
 argument = '-lmp'

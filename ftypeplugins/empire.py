@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = 'Empire XYZ'
 extension = 'xyz'
 argument = '-emp'

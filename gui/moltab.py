@@ -1,9 +1,9 @@
-#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
-from collapsiblewidget import collapsibleWidget
+
+from .collapsiblewidget import collapsibleWidget
 
 class MolTab(QWidget):
 

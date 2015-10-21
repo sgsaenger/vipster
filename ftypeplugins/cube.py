@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 name = 'Gaussian Cube file'
 extension = 'cub'
 argument = '-cube'

@@ -1,4 +1,3 @@
-#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 from os.path import splitext
@@ -7,12 +6,12 @@ from os import getcwd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import QTimer,Qt
 
-from viewport import ViewPort
-from moltab import MolTab
-from pwtab import PWTab
-from conftab import ConfTab
-from tools import tools
-from collapsiblewidget import collapsibleWidget
+from .viewport import ViewPort
+from .moltab import MolTab
+from .pwtab import PWTab
+from .conftab import ConfTab
+from .tools import tools
+from .collapsiblewidget import collapsibleWidget
 
 class MainView(QWidget):
 
