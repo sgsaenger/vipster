@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from ptb.molecule import Trajectory
+
 name = 'xyz'
 extension = 'xyz'
-argument = '-xyz'
+argument = 'xyz'
 
-def parser(controller,data):
+def parser(data):
     """ Parse xyz files (angstrom) """
     # create list of mol, trajectory support
-    controller.newTrajectory()
-    tmol = controller.getMol(-1)
+    tmol = Trajectory()
     i=0
     while i < len(data):
             # handle empty lines at eof or between molecules
@@ -23,6 +24,7 @@ def parser(controller,data):
                     line = data[j].split()
                     tmol.create_atom(line[0],line[1:4],'angstrom')
             i+=nat+2
+    return tmol,None
 
 def writer(mol,f,param,coordfmt):
     """ Save xyz in angstrom """

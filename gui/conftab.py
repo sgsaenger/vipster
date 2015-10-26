@@ -4,6 +4,8 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 from copy import copy
 
+import ptb
+
 class ConfTab(QWidget):
     def __init__(self,parent):
         super(ConfTab,self).__init__()
@@ -14,13 +16,13 @@ class ConfTab(QWidget):
             self.selection.addItem(i)
         self.selection.currentIndexChanged.connect(self.fillTab)
 
-        self.setWidget = ConfTab.ConfWidget(parent,parent.controller.config)
-        self.setWidget.setData(parent.controller.config)
+        self.setWidget = ConfTab.ConfWidget(parent,ptb.config)
+        self.setWidget.setData(ptb.config)
         self.setWidget.hide()
 
         self.pseList = QListWidget()
         self.pseList.currentTextChanged.connect(self.fillPse)
-        self.pseArea = ConfTab.ConfWidget(parent,parent.controller.pse['X'])
+        self.pseArea = ConfTab.ConfWidget(parent,ptb.pse['X'])
         psebox = QHBoxLayout()
         psebox.addWidget(self.pseList)
         psebox.addWidget(self.pseArea)
@@ -55,16 +57,16 @@ class ConfTab(QWidget):
         self.setLayout(vbox)
 
     def saveFile(self):
-        self.parent.controller.saveConfig()
+        ptb.saveConfig()
 
     def configFromDefault(self):
-        self.parent.controller.config = copy(self.parent.controller.default['General'])
-        self.setWidget.setData(self.parent.controller.config)
+        ptb.config = copy(ptb.default['General'])
+        self.setWidget.setData(ptb.config)
         self.parent.updateMolStep()
 
     def elementFromDefault(self):
         element = str(self.pseList.currentItem().text())
-        self.parent.controller.pse[element] = copy(self.parent.controller.default['PSE'][element])
+        ptb.pse[element] = copy(ptb.default['PSE'][element])
         self.fillPse(element)
 
     def elementFromGlobal(self):
@@ -77,7 +79,7 @@ class ConfTab(QWidget):
     def elementToGlobal(self):
         if not self.pseList.currentItem(): return
         element = str(self.pseList.currentItem().text())
-        self.parent.controller.pse[element] = copy(self.pse[element])
+        ptb.pse[element] = copy(self.pse[element])
 
     def fillTab(self):
         sel = self.selection.currentText()
@@ -91,7 +93,7 @@ class ConfTab(QWidget):
             self.pseLoadBut.hide()
             self.pseSaveBut.hide()
         elif sel == 'PSE':
-            self.pse = self.parent.controller.pse
+            self.pse = ptb.pse
             self.setWidget.hide()
             self.pseWidget.show()
             self.setDefaultBut.hide()

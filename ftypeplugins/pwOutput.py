@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+from ptb.molecule import Trajectory
+
 name = 'PWScf Output'
 extension = 'pwo'
-argument = '-pwo'
+argument = 'pwo'
 
 writer = None
 
-def parser(controller,data):
+def parser(data):
     """ Parse PWScf output to trajectory """
-    controller.newTrajectory()
-    tmol=controller.getMol(-1)
+    tmol = Trajectory()
     i=0
     vec=[[0,0,0],[0,0,0],[0,0,0]]
     gamma=False
@@ -70,3 +71,4 @@ def parser(controller,data):
         else:
             pass
         i+=1
+    return tmol,None

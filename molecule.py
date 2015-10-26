@@ -4,6 +4,8 @@ import numpy as np
 from copy import deepcopy
 from mol_c import set_bonds_c,make_vol_gradient
 
+from ptb import pse
+
 class Molecule(object):
     """
     Main Class for Molecule/Cell data
@@ -745,13 +747,13 @@ class Trajectory(object):
     K-Point settings (_kpoints)
     PSE-Overlay over central settings (pse)
     """
-    def __init__(self,controller=None,steps=1):
-        if controller:
-            self.pse=self._pse(controller.pse)
-        else:
-            self.pse=None
+    def __init__(self,steps=0):
+        self.pse=self._pse(pse)
         self._dataStack=[Molecule(self.pse) for i in range(steps)]
-        self._dataPointer=0
+        if self._dataStack:
+            self._dataPointer=0
+        else:
+            self._dataPointer=None
         self._kpoints={'active':'gamma',\
                 'automatic':['1','1','1','0','0','0'],\
                 'disc':[]}

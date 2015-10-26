@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from ptb.molecule import Trajectory
+
 name = 'Empire XYZ'
 extension = 'xyz'
-argument = '-emp'
+argument = 'emp'
 
-def parser(controller,data):
+def parser(data):
     """ Parse Empire specific xyz file """
-    controller.newMol()
-    tmol = controller.getMol(-1)
+    tmol = Trajectory(steps=1)
     nat=int(data[0])
     tmol.set_comment(data[1].strip())
     for j in range(2,nat+2):
@@ -17,6 +18,7 @@ def parser(controller,data):
         vec[i]=[float(x)for x in data[nat+3+i].split()]
     tmol.set_vec(vec)
     tmol.set_celldm(1,fmt='angstrom')
+    return tmol,None
 
 def writer(mol,f,param,coordfmt):
     """

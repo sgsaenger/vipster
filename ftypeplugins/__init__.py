@@ -12,5 +12,7 @@ from . import aimall
 
 formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall]
 cli_indict=OrderedDict([(i.argument,i.parser) for i in formats])
+cli_outdict=OrderedDict([(i.argument,i.parser) for i in formats if i.writer])
 gui_indict=OrderedDict([(i.name,i.parser) for i in formats])
 gui_outdict=OrderedDict([(i.name,i.writer) for i in formats if i.writer])
+del i

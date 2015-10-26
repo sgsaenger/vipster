@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+from ptb.molecule import Trajectory
+
 from collections import OrderedDict
 from math import sqrt
+from re import split as regex
 
 name = 'PWScf Input'
 extension = 'pwi'
-argument = '-pwi'
+argument = 'pwi'
 
-def parser(controller,data):
+def parser(data):
     """ Parse PWScf input files
 
     Namelists will be parsed and saved in PW parameter set
@@ -20,10 +23,8 @@ def parser(controller,data):
     - OCCUPATIONS
     - ATOMIC_FORCES (PWSCFv5)
     """
-    controller.newMol()
-    tmol = controller.getMol(-1)
-    controller.newPw()
-    tparam = controller.getPw(-1)
+    tmol = Trajectory(steps=1)
+    tparam = OrderedDict()
     tcoord = []
     tvec = [[0,0,0],[0,0,0],[0,0,0]]
     #parse data and create tparam
@@ -36,12 +37,12 @@ def parser(controller,data):
         elif header[0][0] == '&':
             tnl = OrderedDict()
             # parse entries
-            line = data.pop(0).strip().split(',')
+            line = regex(',\s*(?![^()]*\))',data.pop(0).strip())
             while line[0] != '/':
                 for j in range(len(line)):
                     if line[j]:
                         tnl[line[j].split('=')[0].strip()]=line[j].split('=')[1].strip()
-                line = data.pop(0).strip().split(',')
+                line = regex(',\s*(?![^()]*\))',data.pop(0).strip())
             tparam[header[0].lower()]=tnl
         # parse card
         elif header[0][0].isupper():
@@ -187,10 +188,11 @@ def parser(controller,data):
     #create atoms after creating cell:
     for i in range(len(tcoord)):
         tmol.create_atom(tcoord[i][0],tcoord[i][1:4],fmt, [int(x) for x in tcoord[i][4:]])
-    #delete nat, ntype and celldm before returning to controller
+    #delete nat, ntype and celldm before returning
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']
     del tparam['&system']['celldm(1)']
+    return tmol,tparam
 
 def writer(mol,f,param,coordfmt):
     """

@@ -13,12 +13,16 @@ from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
 
-class MainView(QWidget):
+import ptb
+from ptb.molecule import Trajectory
 
-        def __init__(self,controller):
-            super(MainView,self).__init__()
+class MainWidget(QWidget):
+
+        def __init__(self,m=[],p=[]):
+            super(MainWidget,self).__init__()
             self.parent = QMainWindow()
-            self.controller = controller
+            self.molecules=m
+            self.parameters=p
             self.initMenu()
             self.mult =[1,1,1]
 
@@ -238,35 +242,38 @@ class MainView(QWidget):
             fMenu.addAction(exitAction)
 
         def newHandler(self):
-            self.controller.newMol()
+            self.molecules.append(Trajectory(steps=1))
             self.loadView()
 
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,'Choose file type','File type:',self.controller.gui_indict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,'Choose file type','File type:',ptb.gui_indict.keys(),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
-            self.controller.readFile(ftype,fname)
+            m,p = ptb.readFile(fname,ftype,mode="gui")
+            self.molecules.append(m)
+            if p:
+                self.parameters.append(p)
             self.loadView()
 
         def saveHandler(self):
             fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,'Choose File type','File type:',self.controller.gui_outdict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,'Choose File type','File type:',ptb.gui_outdict.keys(),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
             try:
-                mol = self.getMolecule()
+                mol = self.curMol
                 if ftype=='PWScf Input':
                     try:
-                        param = self.getParam()
+                        param = self.parameters[self.pwlist.currentRow()]
                     except:
                         raise IndexError('No PW Parameter set')
                 else:
                         param = False
                 coordfmt = self.coord.fmt.currentText()
-                self.controller.writeFile(ftype,mol,fname,param,coordfmt)
+                ptb.writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
             except StandardError as e:
                 QMessageBox(QMessageBox.Critical,'Error',type(e).__name__+': '+e.message,QMessageBox.Ok,self).exec_()
 
@@ -275,53 +282,43 @@ class MainView(QWidget):
         ########################################################
         def loadView(self):
                 count = self.mlist.count()
-                for i in range(count,self.controller.getNMol()):
+                for i in range(count,len(self.molecules)):
                         self.mlist.addItem("Mol "+str(i+1))
                 self.mlist.setCurrentRow(self.mlist.count()-1)
                 count = self.pwlist.count()
-                for i in range(count,self.controller.getNPw()):
+                for i in range(count,len(self.parameters)):
                         self.pwlist.addItem("Param "+str(i+1))
                 self.pwlist.setCurrentRow(self.pwlist.count()-1)
 
         ########################################################
-        #get data from controller
+        #update view upon selections
         ########################################################
         def selectMolecule(self,sel):
-            self.mol = self.controller.getMol(sel)
-            steps=len(self.mol)
+            self.curMol = self.molecules[sel]
+            steps=len(self.curMol)
             self.maxStep.setText(str(steps))
             self.Step.setMaximum(steps)
             self.Step.setValue(steps)
             self.updateMolStep()
 
         def selectPWParam(self,sel):
-            self.pw.setPW(self.controller.getPw(sel))
+            self.pw.setPW(self.parameters[sel])
 
         def updateMolStep(self):
             #change step of trajectory when needed
             step = self.Step.value()-1
             self.curStep.setText(str(step+1))
-            self.mol.changeMol(step)
+            self.curMol.changeMol(step)
             #Send Molecule to Visualisation and Editor
-            self.coord.setMol(self.mol)
-            self.visual.setMol(self.mol,self.mult)
-            self.settings.setMol(self.mol)
+            self.coord.setMol(self.curMol)
+            self.visual.setMol(self.curMol,self.mult)
+            self.settings.setMol(self.curMol)
             for i in self.edit:
-                i.setMol(self.mol)
+                i.setMol(self.curMol)
 
         def updateMult(self):
             self.mult=[self.xspin.value(),self.yspin.value(),self.zspin.value()]
             self.updateMolStep()
-
-        ########################################################
-        #to controller
-        ########################################################
-        def getMolecule(self):
-                return self.controller.getMol(self.mlist.currentRow())
-
-        def getParam(self):
-                return self.controller.getPw(self.pwlist.currentRow())
-
 
         ########################################################
         #screenshot test

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from ptb.molecule import Trajectory
+
 name = "Lammps Data file"
 extension = 'lmp'
-argument = '-lmp'
+argument = 'lmp'
 
-def parser(controller,data):
+def parser(data):
     """ Parse Lammps data file
 
     Preliminary implementation!
@@ -11,8 +13,7 @@ def parser(controller,data):
     Only orthogonal cells supported
     Assumes angstrom
     """
-    controller.newMol()
-    tmol=controller.getMol(-1)
+    tmol = Trajectory(steps=1)
     i=0
     tvec=[[0,0,0],[0,0,0],[0,0,0]]
     while i< len(data):
@@ -41,6 +42,7 @@ def parser(controller,data):
                 at = data[j].strip().split()
                 tmol.create_atom(types[int(at[1])-1],at[-3:],'angstrom')
         i+=1
+    return tmol,None
 
 def writer(mol,f,param,coordfmt):
     """

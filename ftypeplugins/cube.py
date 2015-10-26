@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
+import ptb
+from ptb.molecule import Trajectory
+
 name = 'Gaussian Cube file'
 extension = 'cub'
-argument = '-cube'
+argument = 'cube'
 
-def parser(controller,data):
+def parser(data):
     """ Parse Gaussian Cube file """
-    controller.newMol()
-    tmol = controller.getMol(-1)
+    tmol = Trajectory(steps=1)
     #parse data
     i=0
     #two lines of comments, combine
@@ -23,13 +25,14 @@ def parser(controller,data):
         tvec[i]=[float(line[j])*nvol[i] for j in [1,2,3]]
     tmol.set_vec(tvec)
     tmol.nvol=nvol
-    pse = list(controller.pse.keys())
+    pse = list(ptb.pse.keys())
     for i in range(nat):
         # line = Z, charge(ignored), coord(x,y,z)
         line=data[i+6].split()
         tmol.create_atom(pse[int(line[0])],line[2:5],'bohr')
     #rest of file has datagrid, x is outer loop, z inner
     tmol.set_vol(nvol,data[6+nat:],origin)
+    return tmol,None
 
 writer = None
 #def writer(mol,f,param,coordfmt):

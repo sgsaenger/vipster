@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from ptb.molecule import Trajectory
+
 name = "Lammps Custom Dump"
-argument = '-dmp'
+argument = 'dmp'
 extension = 'dmp'
 
 writer = None
 
-def parser(controller,data):
+def parser(data):
     """ Parse Lammps custom dump files
 
     Preliminary implementation!
@@ -16,8 +18,7 @@ def parser(controller,data):
     Only orthogonal cells for now
     Assumes angstrom
     """
-    controller.newTrajectory()
-    tmol = controller.getMol(-1)
+    tmol = Trajectory(steps=1)
     i=0
     while i<len(data):
         line = data[i]
@@ -49,3 +50,4 @@ def parser(controller,data):
                 i+=nat+1
         else:
             i+=1
+    return tmol,None
