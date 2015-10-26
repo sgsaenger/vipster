@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from math import sqrt
+from re import split as regex
 
 name = 'PWScf Input'
 extension = 'pwi'
@@ -35,12 +36,12 @@ def parser(controller,data):
         elif header[0][0] == '&':
             tnl = OrderedDict()
             # parse entries
-            line = data.pop(0).strip().split(',')
+            line = regex(',\s*(?![^()]*\))',data.pop(0).strip())
             while line[0] != '/':
                 for j in range(len(line)):
                     if line[j]:
                         tnl[line[j].split('=')[0].strip()]=line[j].split('=')[1].strip()
-                line = data.pop(0).strip().split(',')
+                line = regex(',\s*(?![^()]*\))',data.pop(0).strip())
             tparam[header[0].lower()]=tnl
         # parse card
         elif header[0][0].isupper():
