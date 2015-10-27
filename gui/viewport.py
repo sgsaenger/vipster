@@ -506,10 +506,10 @@ class ViewPort(QGLWidget):
         self.showSurf = not self.showSurf
         self.update()
 
-    def setSurf(self,sval,both=False):
+    def setSurf(self,sval,plusminus=False):
         if sval==0:
             return
-        surface = make_iso_surf(self.mol.get_vol(),sval,self.mol.get_vol_gradient())
+        surface = make_iso_surf(self.mol.get_vol(),self.mol.get_vol_gradient(),sval,plusminus)
         self.surfVBO = VBO(surface)
         if self.showSurf:
             self.update()
