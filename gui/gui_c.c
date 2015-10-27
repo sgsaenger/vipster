@@ -1,6 +1,7 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+#include <stdio.h>
 
 static float vert_off[8][3]={
     {0.0, 0.0, 0.0,},
@@ -475,11 +476,17 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
             }
         }
     }
-    if (!realloc(faces,nvert*sizeof(face))) return NULL;
-    npy_intp dims[]={nvert*27};
-    PyObject *faces_py = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT,faces);
-    PyArray_ENABLEFLAGS((PyArrayObject*)faces_py,NPY_ARRAY_OWNDATA);
-    return faces_py;
+    if(nvert){
+        if (!realloc(faces,nvert*sizeof(face))) return NULL;
+        npy_intp dims[]={nvert*27};
+        PyObject *faces_py = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT,faces);
+        PyArray_ENABLEFLAGS((PyArrayObject*)faces_py,NPY_ARRAY_OWNDATA);
+        return faces_py;
+    }else{
+        npy_intp dims[]={0};
+        PyObject *faces_py = PyArray_EMPTY(1,dims,NPY_FLOAT,0);
+        return faces_py;
+    }
 }
 
 static PyMethodDef GuiMethods[] = {
