@@ -18,7 +18,7 @@ def parser(data):
     Only orthogonal cells for now
     Assumes angstrom
     """
-    tmol = Trajectory(steps=1)
+    tmol = Trajectory()
     i=0
     while i<len(data):
         line = data[i]

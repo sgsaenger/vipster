@@ -421,7 +421,9 @@ class ViewPort(QGLWidget):
         self.bondPosVBO=[]
         #binary representation of enabled pbc directions (b'zyx')
         mult=np.sign(mult[0]-1)+np.sign(mult[1]-1)*2+np.sign(mult[2]-1)*4
-        r=ptb.config['Bond radius']
+        r=np.float32(ptb.config['Bond radius'])
+        n=np.float32(0)
+        one=np.float32(1)
         for j in [0,1,2,3,4,5,6,7]:
             #check if pbc part is necessary
             if mult&j!=j: continue
@@ -430,8 +432,8 @@ class ViewPort(QGLWidget):
                 a = atoms[i[0]][1]+i[2][0]
                 b = atoms[i[1]][1]+i[2][1]
                 #save colors
-                c1 = pse[atoms[i[0]][0]]['col']
-                c2 = pse[atoms[i[1]][0]]['col']
+                c1 = map(np.float32,pse[atoms[i[0]][0]]['col'])
+                c2 = map(np.float32,pse[atoms[i[1]][0]]['col'])
                 #length-scaling-factor:
                 l = i[3]
                 #position of bond
@@ -450,16 +452,16 @@ class ViewPort(QGLWidget):
                     ax = -np.cross(c,d)
                     ax=ax/np.linalg.norm(ax)
                     #construct rotation matrix
-                    c=np.float(np.cos(theta))
-                    s=np.float(-np.sin(theta))
-                    ic=np.float(1.-c)
+                    c=np.float32(np.cos(theta))
+                    s=np.float32(-np.sin(theta))
+                    ic=np.float32(1.-c)
                 for idx,k in enumerate(off):
                     if j>0 and edge[idx]&j!=0:
                         continue
-                    self.bondPosVBO.append([l*(ic*ax[0]*ax[0]+c),l*(ic*ax[0]*ax[1]-s*ax[2]),l*(ic*ax[0]*ax[2]+s*ax[1]),0.,
-                                r*(ic*ax[0]*ax[1]+s*ax[2]),r*(ic*ax[1]*ax[1]+c),r*(ic*ax[1]*ax[2]-s*ax[0]),0.,
-                                r*(ic*ax[0]*ax[2]-s*ax[1]),r*(ic*ax[1]*ax[2]+s*ax[0]),r*(ic*ax[2]*ax[2]+c),0.,
-                                pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],1.,
+                    self.bondPosVBO.append([l*(ic*ax[0]*ax[0]+c),l*(ic*ax[0]*ax[1]-s*ax[2]),l*(ic*ax[0]*ax[2]+s*ax[1]),n,
+                                r*(ic*ax[0]*ax[1]+s*ax[2]),r*(ic*ax[1]*ax[1]+c),r*(ic*ax[1]*ax[2]-s*ax[0]),n,
+                                r*(ic*ax[0]*ax[2]-s*ax[1]),r*(ic*ax[1]*ax[2]+s*ax[0]),r*(ic*ax[2]*ax[2]+c),n,
+                                pos[0]+k[0],pos[1]+k[1],pos[2]+k[2],one,
                                 c1[0],c1[1],c1[2],c1[3],
                                 c2[0],c2[1],c2[2],c2[3]])
         if self.instanced:

@@ -14,6 +14,7 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
     PyObject *off_py;
 
     float dist_n,dist_v[3];
+    PyArray_Descr *float32 = PyArray_DescrFromType(NPY_FLOAT32);
     float effcut;
 
     PyObject *bonds;
@@ -31,7 +32,7 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
         PyList_SetItem(bonds,i,PyList_New(0));
     }
 
-    for (Py_ssize_t dir_i=0;dir_i<3;dir_i++) {
+    for (Py_ssize_t dir_i=0;dir_i<8;dir_i++) {
         PyObject *dir_py = PyList_GetItem(off_py,dir_i);
         PyObject *bond_off = PyList_GetItem(bonds,dir_i);
 
@@ -44,7 +45,7 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
                 if (cutoff[i] == 0) continue;
 
                 for (int j=0;j<nat;j++) {
-                    if ((j<i)&&(memcmp(off1,off2,3*sizeof(float)))) continue;
+                    if ((j<i)&&(!memcmp(off1,off2,3*sizeof(float)))) continue;
                     if (i==j) continue;
                     if (cutoff[j]==0) continue;
                     effcut=(cutoff[i]+cutoff[j])*cutfac;
@@ -57,7 +58,9 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
                     if (dist_v[2]>effcut) continue;
                     dist_n=dist_v[0]*dist_v[0]+dist_v[1]*dist_v[1]+dist_v[2]*dist_v[2];
                     if((0.57<dist_n)&&(dist_n<effcut*effcut)){
-                        PyObject* bond = Py_BuildValue("iiOf",i,j,offset_py,sqrt(dist_n));
+                        dist_n=sqrtf(dist_n);
+                        PyObject* distance = PyArray_Scalar(&dist_n,float32,NULL);
+                        PyObject* bond = Py_BuildValue("iiOO",i,j,offset_py,distance);
                         PyList_Append(bond_off,bond);
                         Py_DECREF(bond);
                     }
