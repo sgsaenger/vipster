@@ -261,7 +261,7 @@ class Molecule(object):
     def add_selection(self,item):
         """Add an item to selection
 
-        item -> [index,offset in multiples of vec]
+        item -> [index,(offset in multiples of vec)]
         """
         if item in self._selection:
             self._selection.remove(item)
@@ -280,7 +280,7 @@ class Molecule(object):
     # BOND FUNCTIONS
     ######################################################
 
-    def get_bonds(self,cutfac):
+    def get_bonds(self,cutfac=None):
         """Return bonds
 
         Sets bonds if not present.
@@ -288,6 +288,8 @@ class Molecule(object):
         First entry: Bonds inside of cell
         Other entries: Periodic bonds (see set_bonds)
         """
+        if not cutfac:
+            cutfac = self._bond_cutfac
         if self._bonds_outdated:
             self.set_bonds(cutfac)
         elif self._bond_cutfac != cutfac:
@@ -310,7 +312,7 @@ class Molecule(object):
         cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
         n=np.zeros(3,'f')
         v = self.get_vec()*self.get_celldm()
-        off = [[(n,n)],                             #orig
+        off = [[(n,n)],                            #orig
                [(v[0],n)],                         #x
                [(v[1],n)],                         #y
                [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
@@ -748,6 +750,11 @@ class Trajectory(object):
     PSE-Overlay over central settings (pse)
     """
     def __init__(self,steps=0):
+        """
+        Trajectory(steps=0)
+
+        Create container with `steps` empty molecules
+        """
         self.pse=self._pse(pse)
         self._dataStack=[Molecule(self.pse) for i in range(steps)]
         if self._dataStack:
@@ -757,11 +764,18 @@ class Trajectory(object):
         self._kpoints={'active':'gamma',\
                 'automatic':['1','1','1','0','0','0'],\
                 'disc':[]}
+        def molToTrajec(member):
+            def wrapper(*args,**kwargs):
+                if not self._dataStack: raise IndexError('No molecules created/loaded')
+                return member(self._dataStack[self._dataPointer],*args,**kwargs)
+            wrapper.__doc__=member.__doc__
+            return wrapper
+        #Copy members of Molecule to Trajectory
+        for i in dir(Molecule):
+            if i[:2]!='__':
+                self.__setattr__(i,molToTrajec(getattr(Molecule,i)))
 
     def __len__(self):
-        """
-        len() returns number of steps in trajectory
-        """
         return len(self._dataStack)
 
     def newMol(self):
@@ -776,12 +790,6 @@ class Trajectory(object):
         Select step 'num'
         """
         self._dataPointer=num
-
-    def __getattr__(self,attr):
-        """
-        Pass-through for methods and properties of active molecule
-        """
-        return self._dataStack[self._dataPointer].__getattribute__(attr)
 
     def set_all_vec(self,vec,scale=False):
         """
