@@ -1,9 +1,10 @@
-#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 import numpy as np
 from copy import deepcopy
-from mol_f import set_bonds_f,make_vol_gradient
+from mol_c import set_bonds_c,make_vol_gradient
+
+from ptb import pse
 
 class Molecule(object):
     """
@@ -300,27 +301,24 @@ class Molecule(object):
         Sum of covalent radii times cutfac
         Generates list of lists, each lists contains:
         [idx_at1,idx_at2,offset_at1,offset_at2,distance]
-        Actual setting performed by fortran-routine set_bonds_f
+        Actual setting performed by C-routine set_bonds_c
         """
         self._bonds=[[],[],[],[],[],[],[],[]]
         if len(self._atom_coord)<2:
             return
-        at_c = self._atom_coord
-        cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name])
-        n=np.zeros(3)
+        at_c = np.array(self._atom_coord)
+        cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
+        n=np.zeros(3,'f')
         v = self.get_vec()*self.get_celldm()
         off = [[(n,n)],                             #orig
-                [(v[0],n)],                         #x
-                [(v[1],n)],                         #y
-                [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
-                [(v[2],n)],                         #z
-                [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
-                [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
-                [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
-        for k,os in enumerate(off):
-            for i in os:
-                nbnds,at1,at2,dist = set_bonds_f(at_c,cutoff,cutfac,i)
-                self._bonds[k].extend(zip(at1[:nbnds],at2[:nbnds],[i]*nbnds,dist[:nbnds]))
+               [(v[0],n)],                         #x
+               [(v[1],n)],                         #y
+               [(v[0]+v[1],n),(v[0],v[1])],        #xy,x-y
+               [(v[2],n)],                         #z
+               [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
+               [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
+               [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
+        self._bonds = set_bonds_c(at_c,cutoff,cutfac,off)
         self._bond_cutfac=cutfac
         self._bonds_outdated=False
 
@@ -749,13 +747,13 @@ class Trajectory(object):
     K-Point settings (_kpoints)
     PSE-Overlay over central settings (pse)
     """
-    def __init__(self,controller=None,steps=1):
-        if controller:
-            self.pse=self._pse(controller.pse)
-        else:
-            self.pse=None
+    def __init__(self,steps=0):
+        self.pse=self._pse(pse)
         self._dataStack=[Molecule(self.pse) for i in range(steps)]
-        self._dataPointer=0
+        if self._dataStack:
+            self._dataPointer=0
+        else:
+            self._dataPointer=None
         self._kpoints={'active':'gamma',\
                 'automatic':['1','1','1','0','0','0'],\
                 'disc':[]}

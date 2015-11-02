@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from sys import exit,argv
+import ptb
+from ptb.molecule import Trajectory
+from ptb.gui.mainwidget import MainWidget
+from PyQt4.QtGui import QApplication
+
+def main():
+    """Main function
+
+    Parses molecules if present, then starts gui
+    """
+    if len(argv)==1:
+        m=[Trajectory(steps=1)]
+        p=[]
+    elif argv[1] == '-h':
+        print_help(0)
+    elif argv[1].strip('-') in ptb.cli_indict:
+        m=[];p=[]
+        for i in argv[2:]:
+            a,b=ptb.readFile(i,argv[1].strip('-'),'cli')
+            m.append(a)
+            if b:
+                p.append(b)
+    else:
+        print_help(2)
+
+    app = QApplication([])
+    gui = MainWidget(m,p)
+    app.aboutToQuit.connect(gui.deleteLater)
+    gui.loadView()
+    exit(app.exec_())
+
+def print_help(err):
+    print('PWToolBox usage:')
+    print('ptb_main [OPTIONS]\n')
+    print('No option given: start GUI\n')
+    print('Options:')
+    print('-h: print this help')
+    for i in ptb.cli_indict.items():
+        print('-'+i[0]+' [FILES]: '+i[1].__doc__.split('\n')[0])
+    exit(err)
+
+if __name__ == '__main__':
+        main()
