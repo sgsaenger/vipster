@@ -58,6 +58,6 @@ def writeFile(traj,fmt,filename,param="",coordfmt="",mode="gui"):
     """
     with open(filename,'w') as f:
         if mode=="gui":
-            gui_outdict[ftype](mol,f,param,coordfmt)
+            gui_outdict[fmt](traj,f,param,coordfmt)
         else:
-            cli_outdict[ftype](mol,f,param,coordfmt)
+            cli_outdict[fmt](traj,f,param,coordfmt)
