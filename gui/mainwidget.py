@@ -35,9 +35,9 @@ class MainWidget(QWidget):
             self.settings = ConfTab(self)
             #nest edit areas in tabwidget
             rcol = QTabWidget()
-            rcol.addTab(self.coord,'Molecule coordinates')
-            rcol.addTab(self.pw,'PW Parameters')
-            rcol.addTab(self.settings,'Settings')
+            rcol.addTab(self.coord,"Molecule coordinates")
+            rcol.addTab(self.pw,"PW Parameters")
+            rcol.addTab(self.settings,"Settings")
             rcol.setFixedWidth(467)
             #connect to toggle button
             rcol.hide()
@@ -48,15 +48,15 @@ class MainWidget(QWidget):
             #mouse mode selection
             self.mouse = QButtonGroup()
             mouse = QHBoxLayout()
-            camBut = QPushButton('Camera')
-            camBut.setShortcut('r')
-            camBut.setToolTip('Move camera\n\nLMB: Rotate camera\nMMB: Drag camera\nRMB: Align camera to z-axis')
-            selBut = QPushButton('Select')
-            selBut.setShortcut('s')
-            selBut.setToolTip('Select atoms\n\nLMB: Select atoms\nRMB: Clear selection')
-            modBut = QPushButton('Modify')
-            modBut.setShortcut('m')
-            modBut.setToolTip('Modify geometry\n\nLMB: Rotate atoms (around Center of Mass or selected Atom)\nMMB: Move atoms in xy-plane (camera)\nRMB: Move atoms along z-axis (camera)')
+            camBut = QPushButton("Camera")
+            camBut.setShortcut("r")
+            camBut.setToolTip("Move camera\n\nLMB: Rotate camera\nMMB: Drag camera\nRMB: Align camera to z-axis")
+            selBut = QPushButton("Select")
+            selBut.setShortcut("s")
+            selBut.setToolTip("Select atoms\n\nLMB: Select atoms\nRMB: Clear selection")
+            modBut = QPushButton("Modify")
+            modBut.setShortcut("m")
+            modBut.setToolTip("Modify geometry\n\nLMB: Rotate atoms (around Center of Mass or selected Atom)\nMMB: Move atoms in xy-plane (camera)\nRMB: Move atoms along z-axis (camera)")
             for i in [camBut,selBut,modBut]:
                 mouse.addWidget(i)
                 self.mouse.addButton(i)
@@ -72,7 +72,7 @@ class MainWidget(QWidget):
                     i.setMinimum(1)
             #Toggle right column:
             editBut = QPushButton()
-            editBut.setText('Edit')
+            editBut.setText("Edit")
             editBut.setCheckable(True)
             editBut.clicked.connect(rcol.setVisible)
             #create Timers
@@ -80,22 +80,22 @@ class MainWidget(QWidget):
             self.animTimer.setInterval(50)
             self.animTimer.timeout.connect(self.incStep)
             #camera-buttons
-            xcam = QPushButton('+x')
+            xcam = QPushButton("+x")
             xcam.clicked.connect(self.visual.alignView)
             xcam.setFixedWidth(30)
-            ycam = QPushButton('+y')
+            ycam = QPushButton("+y")
             ycam.clicked.connect(self.visual.alignView)
             ycam.setFixedWidth(30)
-            zcam = QPushButton('+z')
+            zcam = QPushButton("+z")
             zcam.clicked.connect(self.visual.alignView)
             zcam.setFixedWidth(30)
-            mxcam = QPushButton('-x')
+            mxcam = QPushButton("-x")
             mxcam.clicked.connect(self.visual.alignView)
             mxcam.setFixedWidth(30)
-            mycam = QPushButton('-y')
+            mycam = QPushButton("-y")
             mycam.clicked.connect(self.visual.alignView)
             mycam.setFixedWidth(30)
-            mzcam = QPushButton('-z')
+            mzcam = QPushButton("-z")
             mzcam.clicked.connect(self.visual.alignView)
             mzcam.setFixedWidth(30)
             #Choose step, animate
@@ -123,14 +123,14 @@ class MainWidget(QWidget):
             self.Step.setTickPosition(self.Step.TicksBelow)
             self.Step.setSingleStep(1)
             self.Step.valueChanged.connect(self.updateMolStep)
-            self.curStep = QLabel('1')
-            self.maxStep = QLabel('1')
+            self.curStep = QLabel("1")
+            self.maxStep = QLabel("1")
             self.xspin.valueChanged.connect(self.updateMult)
             self.yspin.valueChanged.connect(self.updateMult)
             self.zspin.valueChanged.connect(self.updateMult)
             #Control Layout:
             mult = QHBoxLayout()
-            mult.addWidget(QLabel('Align camera:'))
+            mult.addWidget(QLabel("Align camera:"))
             mult.addStretch(1)
             mult.addWidget(xcam)
             mult.addStretch(1)
@@ -144,22 +144,22 @@ class MainWidget(QWidget):
             mult.addStretch(1)
             mult.addWidget(mzcam)
             mult.addStretch(100)
-            mult.addWidget(QLabel('Cell multiply:'))
+            mult.addWidget(QLabel("Cell multiply:"))
             mult.addStretch(1)
-            mult.addWidget(QLabel('x:'))
+            mult.addWidget(QLabel("x:"))
             mult.addWidget(self.xspin)
             mult.addStretch(1)
-            mult.addWidget(QLabel('y:'))
+            mult.addWidget(QLabel("y:"))
             mult.addWidget(self.yspin)
             mult.addStretch(1)
-            mult.addWidget(QLabel('z:'))
+            mult.addWidget(QLabel("z:"))
             mult.addWidget(self.zspin)
             steps = QHBoxLayout()
             steps.addWidget(firstBut)
             steps.addWidget(decBut)
             steps.addWidget(self.Step)
             steps.addWidget(self.curStep)
-            steps.addWidget(QLabel('/'))
+            steps.addWidget(QLabel("/"))
             steps.addWidget(self.maxStep)
             steps.addWidget(playBut)
             steps.addWidget(incBut)
@@ -190,9 +190,9 @@ class MainWidget(QWidget):
             lcol.setFrameStyle(38)
             lcol.setFixedWidth(340)
             llay = QVBoxLayout()
-            llay.addWidget(QLabel('Loaded Molecules:'))
+            llay.addWidget(QLabel("Loaded Molecules:"))
             llay.addWidget(self.mlist)
-            llay.addWidget(collapsibleWidget('PW Parameter sets:',self.pwlist,show=False))
+            llay.addWidget(collapsibleWidget("PW Parameter sets:",self.pwlist,show=False))
             self.edit=[]
             for i in tools.items():
                 self.edit.append(i[1](self))
@@ -213,27 +213,27 @@ class MainWidget(QWidget):
 
         #Show window
             self.parent.setCentralWidget(self)
-            self.parent.setWindowTitle('PWToolBox')
+            self.parent.setWindowTitle("PWToolBox")
             self.parent.show()
 
         def initMenu(self):
-            newAction = QAction('&New Molecule',self)
-            newAction.setShortcut('Ctrl+N')
+            newAction = QAction("&New Molecule",self)
+            newAction.setShortcut("Ctrl+N")
             newAction.triggered.connect(self.newHandler)
-            loadAction = QAction('&Load Molecule(s)',self)
-            loadAction.setShortcut('Ctrl+O')
+            loadAction = QAction("&Load Molecule(s)",self)
+            loadAction.setShortcut("Ctrl+O")
             loadAction.triggered.connect(self.loadHandler)
-            saveAction = QAction('&Save Molecule',self)
-            saveAction.setShortcut('Ctrl+S')
+            saveAction = QAction("&Save Molecule",self)
+            saveAction.setShortcut("Ctrl+S")
             saveAction.triggered.connect(self.saveHandler)
-            scrotAction = QAction('Save Screensho&t',self)
-            scrotAction.setShortcut('Ctrl+P')
+            scrotAction = QAction("Save Screensho&t",self)
+            scrotAction.setShortcut("Ctrl+P")
             scrotAction.triggered.connect(self.makeScreen)
-            exitAction = QAction('&Exit',self)
-            exitAction.setShortcut('Ctrl+Q')
+            exitAction = QAction("&Exit",self)
+            exitAction.setShortcut("Ctrl+Q")
             exitAction.triggered.connect(qApp.quit)
 
-            fMenu = self.parent.menuBar().addMenu('&File')
+            fMenu = self.parent.menuBar().addMenu("&File")
             fMenu.addAction(newAction)
             fMenu.addAction(loadAction)
             fMenu.addAction(saveAction)
@@ -246,9 +246,9 @@ class MainWidget(QWidget):
             self.loadView()
 
         def loadHandler(self):
-            fname = QFileDialog.getOpenFileName(self,'Open File',getcwd())
+            fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,'Choose file type','File type:',ptb.gui_indict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,"Choose file type","File type:",ptb.gui_indict.keys(),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
             m,p = ptb.readFile(fname,ftype,mode="gui")
@@ -258,24 +258,26 @@ class MainWidget(QWidget):
             self.loadView()
 
         def saveHandler(self):
-            fname = QFileDialog.getSaveFileName(self,'Save File',getcwd())
+            fname = QFileDialog.getSaveFileName(self,"Save File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,'Choose File type','File type:',ptb.gui_outdict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,"Choose File type","File type:",ptb.gui_outdict.keys(),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
             try:
                 mol = self.curMol
-                if ftype=='PWScf Input':
+                if ftype=="PWScf Input":
                     try:
                         param = self.parameters[self.pwlist.currentRow()]
                     except:
-                        raise IndexError('No PW Parameter set')
+                        raise IndexError("No PW Parameter set")
+                elif ftype=="Lammps Data file":
+                    param = {"bonds":True,"angles":True,"atom_style":"molecular","dihedrals":True,"impropers":True,"dummies":True}
                 else:
-                        param = False
+                    param = False
                 coordfmt = self.coord.fmt.currentText()
                 ptb.writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
             except StandardError as e:
-                QMessageBox(QMessageBox.Critical,'Error',type(e).__name__+': '+e.message,QMessageBox.Ok,self).exec_()
+                QMessageBox(QMessageBox.Critical,"Error",type(e).__name__+": "+e.message,QMessageBox.Ok,self).exec_()
 
         ########################################################
         #insert loaded molecules
@@ -325,9 +327,9 @@ class MainWidget(QWidget):
         ########################################################
         def makeScreen(self):
                 img = self.visual.grabFrameBuffer(True)
-                fn = QFileDialog.getSaveFileName(self,'Save Screenshot',getcwd(),'Portable Network Graphics (*.png)')
+                fn = QFileDialog.getSaveFileName(self,"Save Screenshot",getcwd(),"Portable Network Graphics (*.png)")
                 if not fn: return
-                if splitext(str(fn))[1] == '': fn+='.png'
+                if splitext(str(fn))[1] == "": fn+=".png"
                 img.save(fn,None,0)
 
         ########################################################
