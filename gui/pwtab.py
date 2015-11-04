@@ -88,10 +88,14 @@ class PWTab(QTreeWidget):
             new = QTreeWidgetItem(self)
             new.setText(0,'&ions')
             self.addIons.setDisabled(True)
+        else:
+            self.addIons.setEnabled(True)
         if '&cell' in self.pw:
             new = QTreeWidgetItem(self)
             new.setText(0,'&cell')
             self.addCell.setDisabled(True)
+        else:
+            self.addCell.setEnabled(True)
         #show child entries
         for i in range(root.childCount()):
             for j in self.pw[str(root.child(i).text(0))].items():
