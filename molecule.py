@@ -512,7 +512,6 @@ class Molecule(object):
             except KeyError as e:
                 return 'Wrong Op: '+script[0]
             except StandardError as e:
-                print(e.message)
                 return e.message
             else:
                 if op[0]=='define':
@@ -749,12 +748,13 @@ class Trajectory(object):
     K-Point settings (_kpoints)
     PSE-Overlay over central settings (pse)
     """
-    def __init__(self,steps=0):
+    def __init__(self,name,steps=0):
         """
         Trajectory(steps=0)
 
         Create container with `steps` empty molecules
         """
+        self.name = name
         self.pse=self._pse(pse)
         self._dataStack=[Molecule(self.pse) for i in range(steps)]
         if self._dataStack:

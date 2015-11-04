@@ -1,19 +1,43 @@
 # -*- coding: utf-8 -*-
 from ptb.molecule import Trajectory
+from collections import OrderedDict
 
 name = "Lammps Data file"
 extension = 'lmp'
 argument = 'lmp'
+param={"default":{"type":"lammps",
+                  "name":"New LAMMPS",
+                  "atom_style":"atomic",
+                  "bonds":False,"angles":False,
+                  "dihedrals":False,"impropers":False}}
+lammps_atom_style=OrderedDict([
+                ("angle",     "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("atomic",    "{0:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("body",      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("bond",      "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("charge",    "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("dipole",    "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0\n"),
+                ("electron",  "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("ellipsoid", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("full",      "{0:d} {1:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("line",      "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("meso",      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("molecular", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("peri",      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("smd",       "{0:d} {2:d} {1:d} 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("sphere",    "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("template",  "{0:d} {1:d} 0 0 {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("tri",       "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("wavepacket","{0:d} {2:d} 0 0 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n")])
 
-def parser(data):
+def parser(name,data):
     """ Parse Lammps data file
 
-    Preliminary implementation!
     Element parsed via comment in 'Masses' part
     Only orthogonal cells supported
-    Assumes angstrom
+    Assumes angstrom and atom_style != dipole/hybrid
     """
-    tmol = Trajectory(steps=1)
+    tmol = Trajectory(name,steps=1)
     i=0
     tvec=[[0,0,0],[0,0,0],[0,0,0]]
     while i< len(data):
@@ -48,13 +72,14 @@ def writer(mol,f,param,coordfmt):
     """
     Save Lammps input data
 
-    Preliminary implementation!
     Cell parameters have to be in lower triangular form
     Non orthogonal cell not supported for now
-    Assumes angstrom until dialog is established
+    Assumes angstrom
     """
     #calculate necessary values:
-    if param["bonds"] or param["angles"] or param["dihedrals"] or param["impropers"]:
+    if param["bonds"] or param["angles"]\
+            or param["dihedrals"] or param["impropers"]\
+            or param["atom_style"] in ["angle","bond","full","line","molecular","smd","template","tri"]:
         bondlist=[]
         for i in mol.get_bonds():
             for j in i:
@@ -123,6 +148,7 @@ def writer(mol,f,param,coordfmt):
                 it.reverse()
             impropertypes.append(tuple(dt))
         impropertypelist=list(set(impropertypes))
+    moleculeid = [0]*mol.get_nat()
     if param["atom_style"] in ["angle","bond","full","line","molecular","smd","template","tri"]:
         molbondlist = [set(i) for i in bondlist]
         def groupsets(setlist):
@@ -136,8 +162,7 @@ def writer(mol,f,param,coordfmt):
                 if not matched:
                     tlist.append(i)
             return tlist
-        moleculeid = [0]*mol.get_nat()
-        moleculelist = groupsets(groupsets(molbondlist))
+        moleculelist = groupsets(molbondlist)
         for i,m in enumerate(moleculelist):
             for at in m:
                 moleculeid[at]=i
@@ -176,25 +201,7 @@ def writer(mol,f,param,coordfmt):
     #Atoms section: (always)
     f.write('\nAtoms\n\n')
     for i in range(mol.get_nat()):
-        string={"angle":     "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "atomic":    "{0:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "body":      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "bond":      "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "charge":    "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "dipole":    "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0",
-                "electron":  "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "ellipsoid": "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "full":      "{0:d} {1:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "line":      "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "meso":      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "molecular": "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "peri":      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "smd":       "{0:d} {2:d} {1:d} 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "sphere":    "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "template":  "{0:d} {1:d} 0 0 {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "tri":       "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                "wavepacket":"{0:d} {2:d} 0 0 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n",
-                }[param["atom_style"]]
+        string=lammps_atom_style[param["atom_style"]]
         at=mol.get_atom(i,'angstrom')
         f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,*at[1]))
     #Bonds section:

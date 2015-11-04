@@ -5,9 +5,10 @@ name = "Lammps Custom Dump"
 argument = 'dmp'
 extension = 'dmp'
 
+param = None
 writer = None
 
-def parser(data):
+def parser(name,data):
     """ Parse Lammps custom dump files
 
     Preliminary implementation!
@@ -18,7 +19,7 @@ def parser(data):
     Only orthogonal cells for now
     Assumes angstrom
     """
-    tmol = Trajectory()
+    tmol = Trajectory(name)
     i=0
     while i<len(data):
         line = data[i]

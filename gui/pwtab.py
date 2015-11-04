@@ -69,7 +69,7 @@ class PWTab(QTreeWidget):
             del self.pw['&cell']
             self.invisibleRootItem().removeChild(self.currentItem())
 
-    def setPW(self,pw):
+    def setParam(self,pw):
         self.pw=pw
         self.fillTree()
 

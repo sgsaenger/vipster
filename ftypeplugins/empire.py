@@ -5,9 +5,11 @@ name = 'Empire XYZ'
 extension = 'xyz'
 argument = 'emp'
 
-def parser(data):
+param = None
+
+def parser(name,data):
     """ Parse Empire specific xyz file """
-    tmol = Trajectory(steps=1)
+    tmol = Trajectory(name,steps=1)
     nat=int(data[0])
     tmol.set_comment(data[1].strip())
     for j in range(2,nat+2):

@@ -26,7 +26,7 @@ def saveConfig():
         _dump(_ODict([('PSE',self.pse),('General',self.config)]),f,indent=2)
 
 """plugins loaded after config because they might depend on PSE"""
-from .ftypeplugins import cli_indict,gui_indict,cli_outdict,gui_outdict
+from .ftypeplugins import cli_indict,gui_indict,cli_outdict,gui_outdict,param_dict
 
 def readFile(filename,fmt,mode="cli"):
     """
@@ -42,9 +42,9 @@ def readFile(filename,fmt,mode="cli"):
     with open(filename,'r') as data:
         data = data.readlines()
         if mode=="gui":
-            return gui_indict[fmt](data)
+            return gui_indict[fmt](filename,data)
         else:
-            return cli_indict[fmt](data)
+            return cli_indict[fmt](filename,data)
 
 def writeFile(traj,fmt,filename,param="",coordfmt="",mode="gui"):
     """
@@ -61,3 +61,12 @@ def writeFile(traj,fmt,filename,param="",coordfmt="",mode="gui"):
             gui_outdict[fmt](traj,f,param,coordfmt)
         else:
             cli_outdict[fmt](traj,f,param,coordfmt)
+
+def newParam(prog,var="default"):
+    """
+    Return a new parameter set for given program
+
+    prog   -> file format, needs to be in param_dict
+    preset -> variant of default set, if present
+    """
+    return param_dict[prog][var]

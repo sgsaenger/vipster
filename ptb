@@ -4,7 +4,7 @@
 from sys import exit,argv
 import ptb
 from ptb.molecule import Trajectory
-from ptb.gui.mainwidget import MainWidget
+from ptb.gui import launch
 from PyQt4.QtGui import QApplication
 
 def main():
@@ -27,11 +27,7 @@ def main():
     else:
         print_help(2)
 
-    app = QApplication([])
-    gui = MainWidget(m,p)
-    app.aboutToQuit.connect(gui.deleteLater)
-    gui.loadView()
-    exit(app.exec_())
+    launch(m,p)
 
 def print_help(err):
     print('PWToolBox usage:')

@@ -9,6 +9,7 @@ from PyQt4.QtCore import QTimer,Qt
 from .viewport import ViewPort
 from .moltab import MolTab
 from .pwtab import PWTab
+from .lammpstab import LammpsTab
 from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
@@ -18,7 +19,7 @@ from ptb.molecule import Trajectory
 
 class MainWidget(QWidget):
 
-        def __init__(self,m=[],p=[]):
+        def __init__(self,m,p):
             super(MainWidget,self).__init__()
             self.parent = QMainWindow()
             self.molecules=m
@@ -27,19 +28,29 @@ class MainWidget(QWidget):
             self.mult =[1,1,1]
 
         #Right column:
-            #Molecule edit area:
-            self.coord = MolTab(self)
-            #PWParameter edit area:
-            self.pw = PWTab()
-            #Settings:
-            self.settings = ConfTab(self)
-            #nest edit areas in tabwidget
             rcol = QTabWidget()
-            rcol.addTab(self.coord,"Molecule coordinates")
-            rcol.addTab(self.pw,"PW Parameters")
-            rcol.addTab(self.settings,"Settings")
-            rcol.setFixedWidth(467)
+            #Molecule edit area:
+            self.moltab = MolTab(self)
+            rcol.addTab(self.moltab,"Molecule coordinates")
+            #Parameter area
+            self.pwtab = PWTab()
+            self.lammpstab = LammpsTab()
+            self.noparam=QLabel("No Parameter set selected")
+            paramWidget=QWidget()
+            paramLayout=QVBoxLayout()
+            paramLayout.addWidget(self.noparam)
+            paramLayout.addWidget(self.pwtab,stretch=1)
+            paramLayout.addWidget(self.lammpstab,stretch=0)
+            paramLayout.addStretch(0)
+            self.pwtab.hide()
+            self.lammpstab.hide()
+            paramWidget.setLayout(paramLayout)
+            rcol.addTab(paramWidget,"Parameters")
+            #Settings:
+            self.conftab = ConfTab(self)
+            rcol.addTab(self.conftab,"Settings")
             #connect to toggle button
+            rcol.setFixedWidth(467)
             rcol.hide()
 
         #Central Column:
@@ -181,10 +192,14 @@ class MainWidget(QWidget):
             self.mlist = QListWidget()
             self.mlist.currentRowChanged.connect(self.selectMolecule)
             self.mlist.setMinimumHeight(150)
+            for i in self.molecules:
+                self.mlist.addItem(i.name)
             #PWParameter list:
-            self.pwlist = QListWidget()
-            self.pwlist.currentRowChanged.connect(self.selectPWParam)
-            self.pwlist.setMinimumHeight(150)
+            self.paramlist = QListWidget()
+            self.paramlist.currentRowChanged.connect(self.selectParam)
+            self.paramlist.setMinimumHeight(150)
+            for i in self.parameters:
+                self.paramlist.addItem(i["name"])
             #Layout and frame
             lcol = QScrollArea()
             lcol.setFrameStyle(38)
@@ -192,7 +207,7 @@ class MainWidget(QWidget):
             llay = QVBoxLayout()
             llay.addWidget(QLabel("Loaded Molecules:"))
             llay.addWidget(self.mlist)
-            llay.addWidget(collapsibleWidget("PW Parameter sets:",self.pwlist,show=False))
+            llay.addWidget(collapsibleWidget("Parameter sets:",self.paramlist,show=False))
             self.edit=[]
             for i in tools.items():
                 self.edit.append(i[1](self))
@@ -215,35 +230,56 @@ class MainWidget(QWidget):
             self.parent.setCentralWidget(self)
             self.parent.setWindowTitle("PWToolBox")
             self.parent.show()
+            self.mlist.setCurrentRow(self.mlist.count()-1)
+            self.paramlist.setCurrentRow(self.paramlist.count()-1)
 
         def initMenu(self):
+            fMenu = self.parent.menuBar().addMenu("&File")
             newAction = QAction("&New Molecule",self)
             newAction.setShortcut("Ctrl+N")
-            newAction.triggered.connect(self.newHandler)
+            newAction.triggered.connect(self.newMolHandler)
+            fMenu.addAction(newAction)
+            pMenu = fMenu.addMenu("New &Parameter set")
+            newPW = QAction("PWScf Parameter set",self)
+            newPW.triggered.connect(self.newPWHandler)
+            pMenu.addAction(newPW)
+            newLammps = QAction("LAMMPS Parameter set",self)
+            newLammps.triggered.connect(self.newLammpsHandler)
+            pMenu.addAction(newLammps)
             loadAction = QAction("&Load Molecule(s)",self)
             loadAction.setShortcut("Ctrl+O")
             loadAction.triggered.connect(self.loadHandler)
+            fMenu.addAction(loadAction)
             saveAction = QAction("&Save Molecule",self)
             saveAction.setShortcut("Ctrl+S")
             saveAction.triggered.connect(self.saveHandler)
+            fMenu.addAction(saveAction)
             scrotAction = QAction("Save Screensho&t",self)
             scrotAction.setShortcut("Ctrl+P")
             scrotAction.triggered.connect(self.makeScreen)
+            fMenu.addAction(scrotAction)
+            fMenu.addSeparator()
             exitAction = QAction("&Exit",self)
             exitAction.setShortcut("Ctrl+Q")
             exitAction.triggered.connect(qApp.quit)
-
-            fMenu = self.parent.menuBar().addMenu("&File")
-            fMenu.addAction(newAction)
-            fMenu.addAction(loadAction)
-            fMenu.addAction(saveAction)
-            fMenu.addAction(scrotAction)
-            fMenu.addSeparator()
             fMenu.addAction(exitAction)
 
-        def newHandler(self):
-            self.molecules.append(Trajectory(steps=1))
-            self.loadView()
+        def newMolHandler(self):
+            self.molecules.append(Trajectory("New Mol",steps=1))
+            self.mlist.addItem("New Mol")
+            self.mlist.setCurrentRow(self.mlist.count()-1)
+
+        def newPWHandler(self):
+            param = ptb.newParam("pwi")
+            self.parameters.append(param)
+            self.paramlist.addItem(param["name"])
+            self.paramlist.setCurrentRow(self.paramlist.count()-1)
+
+        def newLammpsHandler(self):
+            param = ptb.newParam("lmp")
+            self.parameters.append(param)
+            self.paramlist.addItem(param["name"])
+            self.paramlist.setCurrentRow(self.paramlist.count()-1)
 
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
@@ -253,9 +289,12 @@ class MainWidget(QWidget):
             ftype = str(ftype[0])
             m,p = ptb.readFile(fname,ftype,mode="gui")
             self.molecules.append(m)
+            self.mlist.addItem("Mol")
+            self.mlist.setCurrentRow(self.mlist.count()-1)
             if p:
                 self.parameters.append(p)
-            self.loadView()
+                self.paramlist.addItem(p["name"])
+                self.paramlist.setCurrentRow(self.paramlist.count()-1)
 
         def saveHandler(self):
             fname = QFileDialog.getSaveFileName(self,"Save File",getcwd())
@@ -267,30 +306,22 @@ class MainWidget(QWidget):
                 mol = self.curMol
                 if ftype=="PWScf Input":
                     try:
-                        param = self.parameters[self.pwlist.currentRow()]
+                        param = self.parameters[self.paramlist.currentRow()]
+                        if param["type"]!="pw":raise IndexError
                     except:
                         raise IndexError("No PW Parameter set")
                 elif ftype=="Lammps Data file":
-                    param = {"bonds":True,"angles":True,"atom_style":"molecular","dihedrals":True,"impropers":True,"dummies":True}
+                    try:
+                        param = self.parameters[self.paramlist.currentRow()]
+                        if param["type"]!="lammps":raise IndexError
+                    except:
+                        raise IndexError("No LAMMPS Parameter set")
                 else:
                     param = False
-                coordfmt = self.coord.fmt.currentText()
+                coordfmt = self.moltab.fmt.currentText()
                 ptb.writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
             except StandardError as e:
                 QMessageBox(QMessageBox.Critical,"Error",type(e).__name__+": "+e.message,QMessageBox.Ok,self).exec_()
-
-        ########################################################
-        #insert loaded molecules
-        ########################################################
-        def loadView(self):
-                count = self.mlist.count()
-                for i in range(count,len(self.molecules)):
-                        self.mlist.addItem("Mol "+str(i+1))
-                self.mlist.setCurrentRow(self.mlist.count()-1)
-                count = self.pwlist.count()
-                for i in range(count,len(self.parameters)):
-                        self.pwlist.addItem("Param "+str(i+1))
-                self.pwlist.setCurrentRow(self.pwlist.count()-1)
 
         ########################################################
         #update view upon selections
@@ -303,8 +334,18 @@ class MainWidget(QWidget):
             self.Step.setValue(steps)
             self.updateMolStep()
 
-        def selectPWParam(self,sel):
-            self.pw.setPW(self.parameters[sel])
+        def selectParam(self,sel):
+            param = self.parameters[sel]
+            if param["type"]=="pw":
+                self.noparam.hide()
+                self.lammpstab.hide()
+                self.pwtab.show()
+                self.pwtab.setParam(param)
+            elif param["type"]=="lammps":
+                self.noparam.hide()
+                self.pwtab.hide()
+                self.lammpstab.show()
+                self.lammpstab.setParam(param)
 
         def updateMolStep(self):
             #change step of trajectory when needed
@@ -312,9 +353,9 @@ class MainWidget(QWidget):
             self.curStep.setText(str(step+1))
             self.curMol.changeMol(step)
             #Send Molecule to Visualisation and Editor
-            self.coord.setMol(self.curMol)
+            self.moltab.setMol(self.curMol)
             self.visual.setMol(self.curMol,self.mult)
-            self.settings.setMol(self.curMol)
+            self.conftab.setMol(self.curMol)
             for i in self.edit:
                 i.setMol(self.curMol)
 

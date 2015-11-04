@@ -5,15 +5,16 @@ name = 'AIMALL'
 extension = 'sum'
 argument = 'aim'
 
+param = None
 writer = None
 
-def parser(data):
+def parser(name,data):
     """ Parse AIMALL output to molecule
 
     Creates atoms from NACPs
     Other critical points will be parsed directly
     """
-    tmol = Trajectory()
+    tmol = Trajectory(name)
     i=0
     while i<len(data):
         line = data[i].split()

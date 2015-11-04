@@ -4,11 +4,12 @@ from ptb.molecule import Trajectory
 name = 'xyz'
 extension = 'xyz'
 argument = 'xyz'
+param = None
 
-def parser(data):
+def parser(name,data):
     """ Parse xyz files (angstrom) """
     # create list of mol, trajectory support
-    tmol = Trajectory()
+    tmol = Trajectory(name)
     i=0
     while i < len(data):
             # handle empty lines at eof or between molecules

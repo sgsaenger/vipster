@@ -5,11 +5,12 @@ name = 'PWScf Output'
 extension = 'pwo'
 argument = 'pwo'
 
+param = None
 writer = None
 
-def parser(data):
+def parser(name,data):
     """ Parse PWScf output to trajectory """
-    tmol = Trajectory()
+    tmol = Trajectory(name)
     i=0
     vec=[[0,0,0],[0,0,0],[0,0,0]]
     gamma=False

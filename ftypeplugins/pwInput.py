@@ -9,7 +9,13 @@ name = 'PWScf Input'
 extension = 'pwi'
 argument = 'pwi'
 
-def parser(data):
+param={"default":{"type":"pw",
+                  "name":"New PW parameters",
+                  "&control":OrderedDict(),
+                  "&system":OrderedDict(),
+                  "&electrons":OrderedDict()}}
+
+def parser(name,data):
     """ Parse PWScf input files
 
     Namelists will be parsed and saved in PW parameter set
@@ -23,8 +29,8 @@ def parser(data):
     - OCCUPATIONS
     - ATOMIC_FORCES (PWSCFv5)
     """
-    tmol = Trajectory(steps=1)
-    tparam = OrderedDict()
+    tmol = Trajectory(name,steps=1)
+    tparam = {"type":"pw","name":name}
     tcoord = []
     tvec = [[0,0,0],[0,0,0],[0,0,0]]
     #parse data and create tparam

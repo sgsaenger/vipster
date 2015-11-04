@@ -24,8 +24,7 @@ class MolTab(QWidget):
         # coordinate format
         self.fmt = QComboBox()
         self.fmt.setToolTip('Select format of coordinates')
-        for i in ['angstrom','bohr','crystal','alat']:
-            self.fmt.addItem(i)
+        self.fmt.addItems(['angstrom','bohr','crystal','alat'])
         self.fmt.setCurrentIndex(2)
         self.fmt.currentIndexChanged.connect(self.fillTab)
         hbox = QHBoxLayout()

@@ -6,9 +6,11 @@ name = 'Gaussian Cube file'
 extension = 'cub'
 argument = 'cube'
 
-def parser(data):
+param = None
+
+def parser(name,data):
     """ Parse Gaussian Cube file """
-    tmol = Trajectory(steps=1)
+    tmol = Trajectory(name,steps=1)
     #parse data
     i=0
     #two lines of comments, combine
