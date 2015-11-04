@@ -748,7 +748,7 @@ class Trajectory(object):
     K-Point settings (_kpoints)
     PSE-Overlay over central settings (pse)
     """
-    def __init__(self,name,steps=0):
+    def __init__(self,name="New Mol",steps=0):
         """
         Trajectory(steps=0)
 

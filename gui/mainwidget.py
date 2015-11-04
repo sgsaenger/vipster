@@ -265,7 +265,7 @@ class MainWidget(QWidget):
             fMenu.addAction(exitAction)
 
         def newMolHandler(self):
-            self.molecules.append(Trajectory("New Mol",steps=1))
+            self.molecules.append(Trajectory(steps=1))
             self.mlist.addItem("New Mol")
             self.mlist.setCurrentRow(self.mlist.count()-1)
 
