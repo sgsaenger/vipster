@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .. import pse
+from .. import pse as glob_pse
 from ..molecule import Molecule
 
 name = 'Gaussian Cube file'
@@ -27,7 +27,7 @@ def parser(name,data):
         tvec[i]=[float(line[j])*nvol[i] for j in [1,2,3]]
     tmol.set_vec(tvec)
     tmol.nvol=nvol
-    pse = list(pse.keys())
+    pse = list(glob_pse.keys())
     for i in range(nat):
         # line = Z, charge(ignored), coord(x,y,z)
         line=data[i+6].split()

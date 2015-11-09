@@ -3,6 +3,7 @@
 
 from sys import exit,argv
 from vipster import *
+from vipster.ftypeplugins import _cli_indict as cli_indict
 from vipster.gui import *
 from PyQt4.QtGui import QApplication
 
@@ -16,10 +17,10 @@ def main():
         p=[]
     elif argv[1] == '-h':
         print_help(0)
-    elif argv[1].strip('-') in ptb.cli_indict:
+    elif argv[1].strip('-') in cli_indict:
         m=[];p=[]
         for i in argv[2:]:
-            a,b=ptb.readFile(i,argv[1].strip('-'),'cli')
+            a,b=readFile(i,argv[1].strip('-'),'cli')
             m.append(a)
             if b:
                 p.append(b)
