@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ptb.molecule import Trajectory
+from ..molecule import Molecule
 
 name = 'AIMALL'
 extension = 'sum'
@@ -14,7 +14,7 @@ def parser(name,data):
     Creates atoms from NACPs
     Other critical points will be parsed directly
     """
-    tmol = Trajectory(name)
+    tmol = Molecule(name)
     i=0
     while i<len(data):
         line = data[i].split()

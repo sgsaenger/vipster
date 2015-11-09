@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ptb.molecule import Trajectory
+from ..molecule import Molecule
 
 name = 'Empire XYZ'
 extension = 'xyz'
@@ -9,7 +9,7 @@ param = None
 
 def parser(name,data):
     """ Parse Empire specific xyz file """
-    tmol = Trajectory(name,steps=1)
+    tmol = Molecule(name)
     nat=int(data[0])
     tmol.set_comment(data[1].strip())
     for j in range(2,nat+2):

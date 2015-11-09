@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from sys import exit,argv
-import ptb
-from ptb.molecule import Trajectory
-from ptb.gui import launch
+from vipster import *
+from vipster.gui import *
 from PyQt4.QtGui import QApplication
 
 def main():
@@ -13,7 +12,7 @@ def main():
     Parses molecules if present, then starts gui
     """
     if len(argv)==1:
-        m=[Trajectory(steps=1)]
+        m=[Molecule(steps=1)]
         p=[]
     elif argv[1] == '-h':
         print_help(0)

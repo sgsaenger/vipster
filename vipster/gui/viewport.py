@@ -12,7 +12,7 @@ from OpenGL.GL.shaders import *
 from OpenGL.arrays.vbo import *
 
 from .gui_c import make_iso_surf
-import ptb
+from .. import config
 
 class ViewPort(QGLWidget):
 
@@ -25,7 +25,7 @@ class ViewPort(QGLWidget):
         form.setProfile(QGLFormat.CoreProfile)
         super(ViewPort,self).__init__(form)
         self.parent = parent
-        self.perspective=ptb.config['Start with perspective projection']
+        self.perspective=config['Start with perspective projection']
         self.showBonds = True
         self.showCell = True
         self.showPlane = False
@@ -391,8 +391,8 @@ class ViewPort(QGLWidget):
         atoms = mol.get_all_atoms()
         pse = mol.pse
         vec = mol.get_vec()*mol.get_celldm()
-        center = mol.get_center(ptb.config['Rotate around COM'])
-        bonds = mol.get_bonds(ptb.config['Bond cutoff factor'])
+        center = mol.get_center(config['Rotate around COM'])
+        bonds = mol.get_bonds(config['Bond cutoff factor'])
         sel = mol.get_selection()
 
         #get bonds and calculate offsets
@@ -421,7 +421,7 @@ class ViewPort(QGLWidget):
         self.bondPosVBO=[]
         #binary representation of enabled pbc directions (b'zyx')
         mult=np.sign(mult[0]-1)+np.sign(mult[1]-1)*2+np.sign(mult[2]-1)*4
-        r=np.float32(ptb.config['Bond radius'])
+        r=np.float32(config['Bond radius'])
         n=np.float32(0)
         one=np.float32(1)
         for j in [0,1,2,3,4,5,6,7]:
@@ -468,7 +468,7 @@ class ViewPort(QGLWidget):
             self.bondPosVBO=VBO(np.array(self.bondPosVBO,'f'))
 
         #save atoms in VBOs
-        if ptb.config['Atom radius VdW']:
+        if config['Atom radius VdW']:
             rad = 'vdwr'
         else:
             rad = 'covr'
@@ -738,7 +738,7 @@ class ViewPort(QGLWidget):
 
         self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
         self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-        self.sphereShader.setUniformValue('atom_fac',ptb.config['Atom radius factor'])
+        self.sphereShader.setUniformValue('atom_fac',config['Atom radius factor'])
 
         if self.instanced:
             self.atomsVBO.bind()
@@ -862,7 +862,7 @@ class ViewPort(QGLWidget):
         self.sphereVBO.unbind()
 
         self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-        self.selectShader.setUniformValue('atom_fac',ptb.config['Atom radius factor'])
+        self.selectShader.setUniformValue('atom_fac',config['Atom radius factor'])
 
         if self.instanced:
             self.atomsVBO.bind()
@@ -898,7 +898,7 @@ class ViewPort(QGLWidget):
 
         self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
         self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-        self.sphereShader.setUniformValue('atom_fac',ptb.config['Atom radius factor'])
+        self.sphereShader.setUniformValue('atom_fac',config['Atom radius factor'])
 
         if self.instanced:
             self.selVBO.bind()

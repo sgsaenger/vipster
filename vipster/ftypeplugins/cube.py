@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import ptb
-from ptb.molecule import Trajectory
+from .. import pse
+from ..molecule import Molecule
 
 name = 'Gaussian Cube file'
 extension = 'cub'
@@ -10,7 +10,7 @@ param = None
 
 def parser(name,data):
     """ Parse Gaussian Cube file """
-    tmol = Trajectory(name,steps=1)
+    tmol = Molecule(name)
     #parse data
     i=0
     #two lines of comments, combine
@@ -27,7 +27,7 @@ def parser(name,data):
         tvec[i]=[float(line[j])*nvol[i] for j in [1,2,3]]
     tmol.set_vec(tvec)
     tmol.nvol=nvol
-    pse = list(ptb.pse.keys())
+    pse = list(pse.keys())
     for i in range(nat):
         # line = Z, charge(ignored), coord(x,y,z)
         line=data[i+6].split()

@@ -14,8 +14,14 @@ from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
 
-import ptb
-from ptb.molecule import Trajectory
+from .. import *
+from ..ftypeplugins import _gui_indict,_gui_outdict
+
+def launch(m=[],p=[]):
+    app = QApplication([])
+    gui = MainWidget(m,p)
+    app.aboutToQuit.connect(gui.deleteLater)
+    app.exec_()
 
 class MainWidget(QWidget):
 
@@ -265,18 +271,18 @@ class MainWidget(QWidget):
             fMenu.addAction(exitAction)
 
         def newMolHandler(self):
-            self.molecules.append(Trajectory(steps=1))
+            self.molecules.append(Molecule())
             self.mlist.addItem("New Mol")
             self.mlist.setCurrentRow(self.mlist.count()-1)
 
         def newPWHandler(self):
-            param = ptb.newParam("pwi")
+            param = newParam("pwi")
             self.parameters.append(param)
             self.paramlist.addItem(param["name"])
             self.paramlist.setCurrentRow(self.paramlist.count()-1)
 
         def newLammpsHandler(self):
-            param = ptb.newParam("lmp")
+            param = newParam("lmp")
             self.parameters.append(param)
             self.paramlist.addItem(param["name"])
             self.paramlist.setCurrentRow(self.paramlist.count()-1)
@@ -284,10 +290,10 @@ class MainWidget(QWidget):
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose file type","File type:",ptb.gui_indict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,"Choose file type","File type:",_gui_indict.keys(),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
-            m,p = ptb.readFile(fname,ftype,mode="gui")
+            m,p = readFile(fname,ftype,mode="gui")
             self.molecules.append(m)
             self.mlist.addItem("Mol")
             self.mlist.setCurrentRow(self.mlist.count()-1)
@@ -299,7 +305,7 @@ class MainWidget(QWidget):
         def saveHandler(self):
             fname = QFileDialog.getSaveFileName(self,"Save File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose File type","File type:",ptb.gui_outdict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,"Choose File type","File type:",_gui_outdict.keys(),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
             try:
@@ -319,7 +325,7 @@ class MainWidget(QWidget):
                 else:
                     param = False
                 coordfmt = self.moltab.fmt.currentText()
-                ptb.writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
+                writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
             except StandardError as e:
                 QMessageBox(QMessageBox.Critical,"Error",type(e).__name__+": "+e.message,QMessageBox.Ok,self).exec_()
 

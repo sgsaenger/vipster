@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ptb.molecule import Trajectory
+from ..molecule import Molecule
 
 name = "Lammps Custom Dump"
 argument = 'dmp'
@@ -19,7 +19,7 @@ def parser(name,data):
     Only orthogonal cells for now
     Assumes angstrom
     """
-    tmol = Trajectory(name)
+    tmol = Molecule(name,steps=0)
     i=0
     while i<len(data):
         line = data[i]

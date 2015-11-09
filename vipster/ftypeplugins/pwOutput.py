@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ptb.molecule import Trajectory
+from ..molecule import Molecule
 
 name = 'PWScf Output'
 extension = 'pwo'
@@ -10,7 +10,7 @@ writer = None
 
 def parser(name,data):
     """ Parse PWScf output to trajectory """
-    tmol = Trajectory(name)
+    tmol = Molecule(name,steps=0)
     i=0
     vec=[[0,0,0],[0,0,0],[0,0,0]]
     gamma=False

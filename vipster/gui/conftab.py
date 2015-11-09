@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 from copy import copy
 
-import ptb
+from .. import pse,config,saveConfig
 
 class ConfTab(QWidget):
     def __init__(self,parent):
@@ -16,13 +16,13 @@ class ConfTab(QWidget):
             self.selection.addItem(i)
         self.selection.currentIndexChanged.connect(self.fillTab)
 
-        self.setWidget = ConfTab.ConfWidget(parent,ptb.config)
-        self.setWidget.setData(ptb.config)
+        self.setWidget = ConfTab.ConfWidget(parent,config)
+        self.setWidget.setData(config)
         self.setWidget.hide()
 
         self.pseList = QListWidget()
         self.pseList.currentTextChanged.connect(self.fillPse)
-        self.pseArea = ConfTab.ConfWidget(parent,ptb.pse['X'])
+        self.pseArea = ConfTab.ConfWidget(parent,pse['X'])
         psebox = QHBoxLayout()
         psebox.addWidget(self.pseList)
         psebox.addWidget(self.pseArea)
@@ -32,9 +32,9 @@ class ConfTab(QWidget):
         self.setDefaultBut = QPushButton('Load default settings')
         self.setDefaultBut.clicked.connect(self.configFromDefault)
         self.setFileBut = QPushButton('Save config')
-        self.setFileBut.clicked.connect(self.saveFile)
+        self.setFileBut.clicked.connect(saveConfig)
         self.pseFileBut = QPushButton('Save config')
-        self.pseFileBut.clicked.connect(self.saveFile)
+        self.pseFileBut.clicked.connect(saveConfig)
         self.pseDefaultBut = QPushButton('Load default element')
         self.pseDefaultBut.clicked.connect(self.elementFromDefault)
         self.pseLoadBut = QPushButton('Load global element')
@@ -56,17 +56,14 @@ class ConfTab(QWidget):
         vbox.addLayout(buttongrid)
         self.setLayout(vbox)
 
-    def saveFile(self):
-        ptb.saveConfig()
-
     def configFromDefault(self):
-        ptb.config = copy(ptb.default['General'])
-        self.setWidget.setData(ptb.config)
+        config = copy(default['General'])
+        self.setWidget.setData(config)
         self.parent.updateMolStep()
 
     def elementFromDefault(self):
         element = str(self.pseList.currentItem().text())
-        ptb.pse[element] = copy(ptb.default['PSE'][element])
+        pse[element] = copy(default['PSE'][element])
         self.fillPse(element)
 
     def elementFromGlobal(self):
@@ -79,7 +76,7 @@ class ConfTab(QWidget):
     def elementToGlobal(self):
         if not self.pseList.currentItem(): return
         element = str(self.pseList.currentItem().text())
-        ptb.pse[element] = copy(self.pse[element])
+        pse[element] = copy(self.pse[element])
 
     def fillTab(self):
         sel = self.selection.currentText()
@@ -93,7 +90,7 @@ class ConfTab(QWidget):
             self.pseLoadBut.hide()
             self.pseSaveBut.hide()
         elif sel == 'PSE':
-            self.pse = ptb.pse
+            self.pse = pse
             self.setWidget.hide()
             self.pseWidget.show()
             self.setDefaultBut.hide()

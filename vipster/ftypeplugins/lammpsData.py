@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ptb.molecule import Trajectory
+from ..molecule import Molecule
 from collections import OrderedDict
 
 name = "Lammps Data file"
@@ -37,7 +37,7 @@ def parser(name,data):
     Only orthogonal cells supported
     Assumes angstrom and atom_style != dipole/hybrid
     """
-    tmol = Trajectory(name,steps=1)
+    tmol = Molecule(name)
     i=0
     tvec=[[0,0,0],[0,0,0],[0,0,0]]
     while i< len(data):

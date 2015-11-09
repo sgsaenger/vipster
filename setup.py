@@ -4,8 +4,8 @@
 from distutils.core import setup, Extension
 import numpy as np
 
-mol_c = Extension(name="ptb.mol_c",sources=["mol_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
-gui_c = Extension(name="ptb.gui.gui_c",sources=["gui/gui_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
+mol_c = Extension(name="ptb.mol_c",sources=["vipster/mol_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
+gui_c = Extension(name="ptb.gui.gui_c",sources=["vipster/gui/gui_c.c"], include_dirs = [np.get_include()],extra_compile_args=['-std=c99'])
 
 setup(
         name="pwtoolbox",
@@ -16,7 +16,7 @@ setup(
         url="https://github.com/hein09/pwtoolbox",
         requires=["numpy","OpenGL (>3.1.0)","PyQt4"],
         scripts=["ptb"],
-        package_dir={"ptb":""},
+        package_dir={"ptb":"vipster"},
         packages=["ptb","ptb.ftypeplugins","ptb.gui","ptb.gui.tools"],
         package_data={"ptb":["default.json"],"ptb.gui":["opengl/*.vert","opengl/*.frag","opengl/bond_model","opengl/sphere_model"]},
         data_files=[("share/doc/pwtoolbox",["LICENSE","README.md"])],

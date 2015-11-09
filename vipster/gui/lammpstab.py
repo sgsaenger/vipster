@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4.QtGui import *
-from ptb.ftypeplugins.lammpsData import lammps_atom_style
+from ..ftypeplugins.lammpsData import lammps_atom_style
 
 class LammpsTab(QWidget):
     def __init__(self):
         super(LammpsTab,self).__init__()
         self.atom=QComboBox()
-        self.atom.addItems(lammps_atom_style.keys())
+        self.atom.addItems(list(lammps_atom_style.keys()))
         self.atom.currentIndexChanged.connect(self.updateParam)
         self.bond=QCheckBox()
         self.bond.stateChanged.connect(self.updateParam)

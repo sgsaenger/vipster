@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ptb.molecule import Trajectory
+from ..molecule import Molecule
 
 from collections import OrderedDict
 from math import sqrt
@@ -29,7 +29,7 @@ def parser(name,data):
     - OCCUPATIONS
     - ATOMIC_FORCES (PWSCFv5)
     """
-    tmol = Trajectory(name,steps=1)
+    tmol = Molecule(name)
     tparam = {"type":"pw","name":name}
     tcoord = []
     tvec = [[0,0,0],[0,0,0],[0,0,0]]

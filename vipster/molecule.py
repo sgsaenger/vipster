@@ -2,11 +2,11 @@
 
 import numpy as np
 from copy import deepcopy
-from mol_c import set_bonds_c,make_vol_gradient
 
-from ptb import pse
+from .mol_c import set_bonds_c,make_vol_gradient
+from . import pse
 
-class Molecule(object):
+class Step(object):
     """
     Main Class for Molecule/Cell data
 
@@ -736,7 +736,7 @@ class Molecule(object):
         shift=np.dot(vec,[x,np.cross(x,z),z])
         self._shift(atoms,shift)
 
-class Trajectory(object):
+class Molecule(object):
     """
     Overlay for Molecule-class
 
@@ -748,7 +748,7 @@ class Trajectory(object):
     K-Point settings (_kpoints)
     PSE-Overlay over central settings (pse)
     """
-    def __init__(self,name="New Mol",steps=0):
+    def __init__(self,name="New Mol",steps=1):
         """
         Trajectory(steps=0)
 
@@ -756,7 +756,7 @@ class Trajectory(object):
         """
         self.name = name
         self.pse=self._pse(pse)
-        self._dataStack=[Molecule(self.pse) for i in range(steps)]
+        self._dataStack=[Step(self.pse) for i in range(steps)]
         if self._dataStack:
             self._dataPointer=0
         else:
@@ -770,10 +770,10 @@ class Trajectory(object):
                 return member(self._dataStack[self._dataPointer],*args,**kwargs)
             wrapper.__doc__=member.__doc__
             return wrapper
-        #Copy members of Molecule to Trajectory
-        for i in dir(Molecule):
+        #Copy members of Step to Molecule
+        for i in dir(Step):
             if i[:2]!='__':
-                self.__setattr__(i,molToTrajec(getattr(Molecule,i)))
+                self.__setattr__(i,molToTrajec(getattr(Step,i)))
 
     def __len__(self):
         return len(self._dataStack)
@@ -782,7 +782,7 @@ class Trajectory(object):
         """
         Create new step
         """
-        self._dataStack.append(Molecule(self.pse))
+        self._dataStack.append(Step(self.pse))
         self._dataPointer=len(self._dataStack)-1
 
     def changeMol(self,num):
@@ -854,7 +854,7 @@ class Trajectory(object):
         local copy
         """
         def __init__(self,cpse):
-            super(Trajectory._pse,self).__init__()
+            super(Molecule._pse,self).__init__()
             self.cpse=cpse
 
         def __getitem__(self,key):
@@ -868,5 +868,5 @@ class Trajectory(object):
                             break
                     if not key in self:
                         self[key]=deepcopy(self.cpse['X'])
-            return super(Trajectory._pse,self).__getitem__(key)
+            return super(Molecule._pse,self).__getitem__(key)
 
