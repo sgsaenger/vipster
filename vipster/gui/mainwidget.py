@@ -17,7 +17,7 @@ from .collapsiblewidget import collapsibleWidget
 from .. import *
 from ..ftypeplugins import _gui_indict,_gui_outdict
 
-def launch(m=[],p=[]):
+def launch_vipster(m=[],p=[]):
     app = QApplication([])
     gui = MainWidget(m,p)
     app.aboutToQuit.connect(gui.deleteLater)
@@ -290,7 +290,7 @@ class MainWidget(QWidget):
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose file type","File type:",_gui_indict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,"Choose file type","File type:",list(_gui_indict.keys()),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
             m,p = readFile(fname,ftype,mode="gui")

@@ -4,7 +4,6 @@
 from sys import exit,argv
 from vipster import *
 from vipster.ftypeplugins import _cli_indict as cli_indict
-from vipster.gui import *
 from PyQt4.QtGui import QApplication
 
 def main():
@@ -27,7 +26,7 @@ def main():
     else:
         print_help(2)
 
-    launch(m,p)
+    launch_vipster(m,p)
 
 def print_help(err):
     print('PWToolBox usage:')

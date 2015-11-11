@@ -432,8 +432,8 @@ class ViewPort(QGLWidget):
                 a = atoms[i[0]][1]+i[2][0]
                 b = atoms[i[1]][1]+i[2][1]
                 #save colors
-                c1 = map(np.float32,pse[atoms[i[0]][0]]['col'])
-                c2 = map(np.float32,pse[atoms[i[1]][0]]['col'])
+                c1 = list(map(np.float32,pse[atoms[i[0]][0]]['col']))
+                c2 = list(map(np.float32,pse[atoms[i[1]][0]]['col']))
                 #length-scaling-factor:
                 l = i[3]
                 #position of bond
