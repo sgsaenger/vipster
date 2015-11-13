@@ -6,7 +6,7 @@ from copy import deepcopy
 from .mol_c import set_bonds_c,make_vol_gradient
 from . import pse
 
-class Step(object):
+class _step(object):
     """
     Main Class for Molecule/Cell data
 
@@ -736,7 +736,7 @@ class Step(object):
         shift=np.dot(vec,[x,np.cross(x,z),z])
         self._shift(atoms,shift)
 
-class Molecule(object):
+class Molecule(_step):
     """
     Overlay for Molecule-class
 
@@ -756,40 +756,42 @@ class Molecule(object):
         """
         self.name = name
         self.pse=self._pse(pse)
-        self._dataStack=[Step(self.pse) for i in range(steps)]
+        self._dataStack=[_step(self.pse) for i in range(steps)]
         if self._dataStack:
-            self._dataPointer=0
-        else:
-            self._dataPointer=None
+            self.changeStep(0)
         self._kpoints={'active':'gamma',\
                 'automatic':['1','1','1','0','0','0'],\
                 'disc':[]}
-        def molToTrajec(member):
-            def wrapper(*args,**kwargs):
-                if not self._dataStack: raise IndexError('No molecules created/loaded')
-                return member(self._dataStack[self._dataPointer],*args,**kwargs)
-            wrapper.__doc__=member.__doc__
-            return wrapper
-        #Copy members of Step to Molecule
-        for i in dir(Step):
-            if i[:2]!='__':
-                self.__setattr__(i,molToTrajec(getattr(Step,i)))
 
     def __len__(self):
         return len(self._dataStack)
 
-    def newMol(self):
+    def newStep(self):
         """
         Create new step
         """
-        self._dataStack.append(Step(self.pse))
-        self._dataPointer=len(self._dataStack)-1
+        self._dataStack.append(_step(self.pse))
+        self.changeStep(len(self._dataStack)-1)
 
-    def changeMol(self,num):
+    def changeStep(self,num):
         """
         Select step 'num'
         """
-        self._dataPointer=num
+        properties=['_atom_name',
+                    '_atom_coord',
+                    '_atom_fix',
+                    '_bond_cutfac',
+                    '_bonds_outdated',
+                    '_script_group',
+                    '_selection',
+                    '_celldm',
+                    '_vec',
+                    '_vecinv',
+                    '_comment',
+                    '_undo_stack',
+                    '_undo_temp',]
+        for i in properties:
+            self.__setattr__(i,self._dataStack[num].__getattribute__(i))
 
     def set_all_vec(self,vec,scale=False):
         """
