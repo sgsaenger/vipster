@@ -78,7 +78,7 @@ class ViewPort(QGLWidget):
             if not self.copyBuf: return
             self.mol.init_undo()
             for i in self.copyBuf:
-                self.mol.append_atom(i)
+                self.mol.create_atom(*i)
             self.mol.save_undo('copy atom(s)')
             self.parent.updateMolStep()
         pasteAction = QAction('&Paste atom(s)',self)

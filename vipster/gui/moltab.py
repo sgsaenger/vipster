@@ -120,7 +120,7 @@ class MolTab(QWidget):
         hbox.addWidget(self.cellDm)
 
         # Action modifiers
-        self.appAll = QCheckBox('Apply to all Molecules')
+        self.appAll = QCheckBox('Apply to all Steps')
         self.scale = QCheckBox('Scale coordinates with cell')
         hbox2 = QHBoxLayout()
         hbox2.addWidget(self.appAll)

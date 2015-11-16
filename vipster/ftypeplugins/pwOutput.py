@@ -32,7 +32,7 @@ def parser(name,data):
                 vec[j]=[float(x) for x in temp[3:6]]
         #read initial positions:
         elif line[0] == 'site':
-            tmol.newMol()
+            tmol.newStep()
             tmol.set_celldm(celldm)
             tmol.set_vec(vec)
             for j in range(i+1,i+nat+1):
@@ -58,7 +58,7 @@ def parser(name,data):
                 vec[j]=[float(x) for x in temp[0:3]]
         #read step-coordinates
         elif line[0] == 'ATOMIC_POSITIONS':
-            tmol.newMol()
+            tmol.newStep()
             tmol.set_celldm(celldm)
             tmol.set_vec(vec)
             for j in range(i+1,i+nat+1):

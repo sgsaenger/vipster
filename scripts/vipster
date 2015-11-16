@@ -15,7 +15,7 @@ def main():
         m=[Molecule(steps=1)]
         p=[]
     elif argv[1] == '-h':
-        print_help(0)
+        printHelp(0)
     elif argv[1].strip('-') in cli_indict:
         m=[];p=[]
         for i in argv[2:]:
@@ -24,11 +24,11 @@ def main():
             if b:
                 p.append(b)
     else:
-        print_help(2)
+        printHelp(2)
 
-    launch_vipster(m,p)
+    launchVipster(m,p)
 
-def print_help(err):
+def printHelp(err):
     print('PWToolBox usage:')
     print('ptb_main [OPTIONS]\n')
     print('No option given: start GUI\n')

@@ -8,9 +8,7 @@ from . import pse
 
 class _step(object):
     """
-    Main Class for Molecule/Cell data
-
-    Internal coordinates/sizes saved in bohr
+    Actual step data
 
     Includes:
     Atom symbols/coordinates (_atom_name/_atom_coord)
@@ -49,17 +47,6 @@ class _step(object):
         while len(fix)<3:
             fix+=[1]
         self._atom_fix.append(fix)
-        self._selection=[]
-        self._bonds_outdated=True
-
-    def append_atom(self,addat):
-        """Append copy of an atom
-
-        addat -> new atom
-        """
-        self._atom_name.append(addat[0])
-        self._atom_coord.append(self._coord_to_bohr(addat[1],addat[2]))
-        self._atom_fix.append(addat[3])
         self._selection=[]
         self._bonds_outdated=True
 
@@ -338,9 +325,9 @@ class _step(object):
         mult = [x,y,z]
         for k in range(3):
             nat = self.get_nat()
-            self._atom_name = mult[k]*self._atom_name
-            self._atom_fix = mult[k]*self._atom_fix
-            self._atom_coord = mult[k]*self._atom_coord
+            self._atom_name.extend((mult[k]-1)*self._atom_name)
+            self._atom_fix.extend((mult[k]-1)*self._atom_fix)
+            self._atom_coord.extend((mult[k]-1)*self._atom_coord)
             for i in range(1,mult[k]):
                 for j in range(i*nat,(i+1)*nat):
                     self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
@@ -738,7 +725,7 @@ class _step(object):
 
 class Molecule(_step):
     """
-    Overlay for Molecule-class
+    Main data container
 
     consistent interface for single molecules
     and trajectories
@@ -750,15 +737,15 @@ class Molecule(_step):
     """
     def __init__(self,name="New Mol",steps=1):
         """
-        Trajectory(steps=0)
-
         Create container with `steps` empty molecules
         """
         self.name = name
         self.pse=self._pse(pse)
         self._dataStack=[_step(self.pse) for i in range(steps)]
-        if self._dataStack:
-            self.changeStep(0)
+        if steps:
+            self._dataPointer=0
+        else:
+            self._dataPointer=None
         self._kpoints={'active':'gamma',\
                 'automatic':['1','1','1','0','0','0'],\
                 'disc':[]}
@@ -777,21 +764,7 @@ class Molecule(_step):
         """
         Select step 'num'
         """
-        properties=['_atom_name',
-                    '_atom_coord',
-                    '_atom_fix',
-                    '_bond_cutfac',
-                    '_bonds_outdated',
-                    '_script_group',
-                    '_selection',
-                    '_celldm',
-                    '_vec',
-                    '_vecinv',
-                    '_comment',
-                    '_undo_stack',
-                    '_undo_temp',]
-        for i in properties:
-            self.__setattr__(i,self._dataStack[num].__getattribute__(i))
+        self._dataPointer=num
 
     def set_all_vec(self,vec,scale=False):
         """
@@ -872,3 +845,22 @@ class Molecule(_step):
                         self[key]=deepcopy(self.cpse['X'])
             return super(Molecule._pse,self).__getitem__(key)
 
+properties=['_atom_name',
+            '_atom_coord',
+            '_atom_fix',
+            '_bond_cutfac',
+            '_bonds_outdated',
+            '_script_group',
+            '_selection',
+            '_celldm',
+            '_vec',
+            '_vecinv',
+            '_comment',
+            '_undo_stack',
+            '_undo_temp',]
+for i in properties:
+    def getter(self,i=i):
+        return self._dataStack[self._dataPointer].__getattribute__(i)
+    def setter(self,val,i=i):
+        self._dataStack[self._dataPointer].__setattr__(i,val)
+    setattr(Molecule,i,property(getter,setter))

@@ -17,7 +17,7 @@ from .collapsiblewidget import collapsibleWidget
 from .. import *
 from ..ftypeplugins import _gui_indict,_gui_outdict
 
-def launch_vipster(m=[],p=[]):
+def launchVipster(m=[],p=[]):
     app = QApplication([])
     gui = MainWidget(m,p)
     app.aboutToQuit.connect(gui.deleteLater)
@@ -357,7 +357,7 @@ class MainWidget(QWidget):
             #change step of trajectory when needed
             step = self.Step.value()-1
             self.curStep.setText(str(step+1))
-            self.curMol.changeMol(step)
+            self.curMol.changeStep(step)
             #Send Molecule to Visualisation and Editor
             self.moltab.setMol(self.curMol)
             self.visual.setMol(self.curMol,self.mult)

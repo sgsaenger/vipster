@@ -17,7 +17,7 @@ def parser(name,data):
                     i+=1
                     continue
             #fixed format nat and comment
-            tmol.newMol()
+            tmol.newStep()
             nat = int(data[i])
             tmol.set_comment(data[i+1].strip())
             #read coordinates and types

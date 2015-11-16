@@ -26,7 +26,7 @@ def parser(name,data):
         if 'ITEM' in line:
             if 'TIMESTEP' in line:
                 i+=2
-                tmol.newMol()
+                tmol.newStep()
             elif 'NUMBER OF ATOMS' in line:
                 nat=int(data[i+1])
                 i+=2
