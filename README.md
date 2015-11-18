@@ -1,4 +1,4 @@
-#VIsual Periodic STructure EditoR
+#![vipster](vipster-icon.png)VIsual Periodic STructure EditoR
 
 Visualization of various molecular structure files.
 
