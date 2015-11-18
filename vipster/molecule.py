@@ -768,32 +768,32 @@ class Molecule(_step):
 
     def set_all_vec(self,vec,scale=False):
         """
-        Set new cell-vectors for all included molecules
+        Set new cell-vectors for all included steps
         """
         if scale:
-            for mol in self._dataStack:
-                mol.set_vec(vec,scale)
+            for step in self._dataStack:
+                step.set_vec(vec,scale)
         else:
             vec = np.array(vec,'f')
             vecinv = np.linalg.inv(self._vec)
-            for mol in self._dataStack:
-                mol._vec = vec
-                mol._vecinv = vecinv
-                mol._bonds_outdated=True
+            for step in self._dataStack:
+                step._vec = vec
+                step._vecinv = vecinv
+                step._bonds_outdated=True
 
     def set_all_celldm(self,cdm,scale=False,fmt='bohr'):
         """
-        Set new cell-dimension for all included molecules
+        Set new cell-dimension for all included steps
         """
         if scale:
-            for mol in self._dataStack:
-                mol.set_celldm(cdm,scale,fmt)
+            for step in self._dataStack:
+                step.set_celldm(cdm,scale,fmt)
         else:
             if fmt=='angstrom':
                 cdm=cdm*1.889726125
-            for mol in self._dataStack:
-                mol._celldm = float(cdm)
-                mol._bonds_outdated=True
+            for step in self._dataStack:
+                step._celldm = float(cdm)
+                step._bonds_outdated=True
 
     def set_kpoints(self,mode,kpoints):
         """Set and modify active k-points
@@ -845,7 +845,7 @@ class Molecule(_step):
                         self[key]=deepcopy(self.cpse['X'])
             return super(Molecule._pse,self).__getitem__(key)
 
-properties=['_atom_name',
+_properties=['_atom_name',
             '_atom_coord',
             '_atom_fix',
             '_bond_cutfac',
@@ -858,7 +858,7 @@ properties=['_atom_name',
             '_comment',
             '_undo_stack',
             '_undo_temp',]
-for i in properties:
+for i in _properties:
     def getter(self,i=i):
         return self._dataStack[self._dataPointer].__getattribute__(i)
     def setter(self,val,i=i):

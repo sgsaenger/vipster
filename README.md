@@ -1,4 +1,4 @@
-#PW Toolbox
+#VIsual Periodic STructure EditoR
 
 Visualization of various molecular structure files.
 
@@ -32,11 +32,11 @@ python setup.py build_ext -i
 
 Start without loading:
 ```
-ptb
+vipster
 ```
 Supported cli-options:
 ```
-ptb -h
+vipster -h
 ```
 
 The GUI should be pretty self-explanatory (or will be at some point...)

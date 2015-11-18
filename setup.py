@@ -18,7 +18,7 @@ setup(
         scripts=["scripts/vipster"],
         packages=["vipster","vipster.ftypeplugins","vipster.gui","vipster.gui.tools"],
         package_data={"vipster":["default.json"],"vipster.gui":["opengl/*.vert","opengl/*.frag","opengl/bond_model","opengl/sphere_model"]},
-        data_files=[("share/doc/vipster",["LICENSE","README.md"])],
+        data_files=[("share/doc/vipster",["LICENSE","README.md"]),("share/pixmaps",["vipster.png","vipster-icon.png"])],
         ext_modules=[mol_c,gui_c],
         license="BSD",
         classifiers=["Development Status :: 4 - Beta",
