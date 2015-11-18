@@ -305,7 +305,7 @@ class MainWidget(QWidget):
         def saveHandler(self):
             fname = QFileDialog.getSaveFileName(self,"Save File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose File type","File type:",_gui_outdict.keys(),0,False)
+            ftype = QInputDialog.getItem(self,"Choose File type","File type:",list(_gui_outdict.keys()),0,False)
             if not ftype[1]: return
             ftype = str(ftype[0])
             try:

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from . import _cli_indict,_gui_indict,_cli_outdict,_gui_outdict
+from . import _cli_indict,_gui_indict,_cli_outdict,_gui_outdict,_param_dict
 
 def readFile(filename,fmt,mode="cli"):
     """

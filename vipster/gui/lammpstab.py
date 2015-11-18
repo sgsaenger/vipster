@@ -32,7 +32,7 @@ class LammpsTab(QWidget):
 
     def setParam(self,param):
         self.param=param
-        self.atom.setCurrentIndex(lammps_atom_style.keys().index(param["atom_style"]))
+        self.atom.setCurrentIndex(list(lammps_atom_style.keys()).index(param["atom_style"]))
         self.bond.setChecked(param["bonds"])
         self.angle.setChecked(param["angles"])
         self.dihedral.setChecked(param["dihedrals"])
