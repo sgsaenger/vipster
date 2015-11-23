@@ -17,11 +17,16 @@ from .collapsiblewidget import collapsibleWidget
 from .. import *
 from ..ftypeplugins import _gui_indict,_gui_outdict
 
-def launchVipster(m=[],p=[]):
+GuiMolecules = []
+GuiParameters = []
+
+def launchVipster(m=GuiMolecules,p=GuiParameters):
     app = QApplication([])
     gui = MainWidget(m,p)
     app.aboutToQuit.connect(gui.deleteLater)
     app.exec_()
+
+__all__=['GuiMolecules','GuiParameters','launchVipster']
 
 class MainWidget(QWidget):
 
