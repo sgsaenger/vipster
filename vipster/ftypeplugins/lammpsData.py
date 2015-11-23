@@ -205,35 +205,40 @@ def writer(mol,f,param,coordfmt):
         at=mol.get_atom(i,'angstrom')
         f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,*at[1]))
     #Bonds section:
+    convertIndices=lambda x: list(map(lambda y: tuple(map(lambda z: z+1,y)),x))
     if param["bonds"] and bondlist:
         f.write('\n#Bondtypes\n')
         for i,j in enumerate(bondtypelist):
-            f.write('#{:d} {:s} {:s}\n'.format(i,*j))
+            f.write('#{:d} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nBonds\n\n')
+        bondlist=convertIndices(bondlist)
         for i,j in enumerate(bondlist):
             f.write('{:d} {:d} {:d} {:d}\n'.format(i+1,bondtypelist.index(bondtypes[i]),*j))
     #Angles section:
     if param["angles"] and anglelist:
         f.write('\n#Angletypes\n')
         for i,j in enumerate(angletypelist):
-            f.write('#{:d} {:s} {:s} {:s}\n'.format(i,*j))
+            f.write('#{:d} {:s} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nAngles\n\n')
+        anglelist=convertIndices(anglelist)
         for i,j in enumerate(anglelist):
             f.write('{:d} {:d} {:d} {:d} {:d}\n'.format(i+1,angletypelist.index(angletypes[i]),*j))
     #Dihedrals section:
     if param["dihedrals"] and dihedrallist:
         f.write('\n#Dihedraltypes\n')
         for i,j in enumerate(dihedraltypelist):
-            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i,*j))
+            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nDihedrals\n\n')
+        dihedrallist=convertIndices(dihedrallist)
         for i,j in enumerate(dihedrallist):
             f.write('{:d} {:d} {:d} {:d} {:d} {:d}\n'.format(i+1,dihedraltypelist.index(dihedraltypes[i]),*j))
     #Impropers section:
     if param["impropers"] and improperlist:
         f.write('\n#Impropertypes\n')
         for i,j in enumerate(impropertypelist):
-            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i,*j))
+            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nImpropers\n\n')
+        improperlist=convertIndices(improperlist)
         for i,j in enumerate(improperlist):
             f.write('{:d} {:d} {:d} {:d} {:d} {:d}\n'.format(i+1,impropertypelist.index(impropertypes[i]),*j))
     f.write('\n')
