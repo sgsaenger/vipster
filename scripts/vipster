@@ -34,7 +34,7 @@ def printHelp(err):
     print('No option given: start GUI\n')
     print('Options:')
     print('-h: print this help')
-    for i in ptb.cli_indict.items():
+    for i in cli_indict.items():
         print('-'+i[0]+' [FILES]: '+i[1].__doc__.split('\n')[0])
     exit(err)
 

@@ -35,7 +35,7 @@ def parser(name,data):
 
     Element parsed via comment in 'Masses' part
     Only orthogonal cells supported
-    Assumes angstrom and atom_style != dipole/hybrid
+    Assumes angstrom and atom_style != dipole/hybrid/smd
     """
     tmol = Molecule(name)
     i=0
@@ -62,9 +62,16 @@ def parser(name,data):
                     raise NotImplementedError('cannot assign elements via masses')
             i+=len(types)+1
         elif 'Atoms' in line:
+            #guess where atom-type is found:
+            at=data[i+2].strip().split()
+            for pos in range(-4,-11,-1):
+                if int(at[pos]):
+                    atypepos=pos
+                    break
             for j in range(i+2,i+2+nat):
                 at = data[j].strip().split()
-                tmol.create_atom(types[int(at[1])-1],at[-3:],'angstrom')
+                print types[int(at[atypepos])-1]
+                tmol.create_atom(types[int(at[atypepos])-1],at[-3:],'angstrom')
         i+=1
     return tmol,None
 
@@ -172,15 +179,23 @@ def writer(mol,f,param,coordfmt):
     if param["bonds"] and bondlist:
         f.write(str(len(bondlist))+' bonds\n')
         f.write(str(len(bondtypelist))+' bond types\n')
+        for i,j in enumerate(bondtypelist):
+            f.write('#{:d} {:s} {:s}\n'.format(i+1,*j))
     if param["angles"] and anglelist:
         f.write(str(len(anglelist))+' angles\n')
         f.write(str(len(angletypelist))+' angle types\n')
+        for i,j in enumerate(angletypelist):
+            f.write('#{:d} {:s} {:s} {:s}\n'.format(i+1,*j))
     if param["dihedrals"] and dihedrallist:
         f.write(str(len(dihedrallist))+' dihedrals\n')
         f.write(str(len(dihedraltypelist))+' dihedral types\n')
+        for i,j in enumerate(dihedraltypelist):
+            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
     if param["impropers"] and improperlist:
         f.write(str(len(improperlist))+' impropers\n')
         f.write(str(len(impropertypelist))+' improper types\n')
+        for i,j in enumerate(impropertypelist):
+            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
     f.write('\n')
     #if cell is orthogonal, write vectors:
     v=mol.get_vec()*mol.get_celldm(fmt='angstrom')
@@ -207,38 +222,26 @@ def writer(mol,f,param,coordfmt):
     #Bonds section:
     convertIndices=lambda x: list(map(lambda y: tuple(map(lambda z: z+1,y)),x))
     if param["bonds"] and bondlist:
-        f.write('\n#Bondtypes\n')
-        for i,j in enumerate(bondtypelist):
-            f.write('#{:d} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nBonds\n\n')
         bondlist=convertIndices(bondlist)
         for i,j in enumerate(bondlist):
-            f.write('{:d} {:d} {:d} {:d}\n'.format(i+1,bondtypelist.index(bondtypes[i]),*j))
+            f.write('{:d} {:d} {:d} {:d}\n'.format(i+1,bondtypelist.index(bondtypes[i])+1,*j))
     #Angles section:
     if param["angles"] and anglelist:
-        f.write('\n#Angletypes\n')
-        for i,j in enumerate(angletypelist):
-            f.write('#{:d} {:s} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nAngles\n\n')
         anglelist=convertIndices(anglelist)
         for i,j in enumerate(anglelist):
-            f.write('{:d} {:d} {:d} {:d} {:d}\n'.format(i+1,angletypelist.index(angletypes[i]),*j))
+            f.write('{:d} {:d} {:d} {:d} {:d}\n'.format(i+1,angletypelist.index(angletypes[i])+1,*j))
     #Dihedrals section:
     if param["dihedrals"] and dihedrallist:
-        f.write('\n#Dihedraltypes\n')
-        for i,j in enumerate(dihedraltypelist):
-            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nDihedrals\n\n')
         dihedrallist=convertIndices(dihedrallist)
         for i,j in enumerate(dihedrallist):
-            f.write('{:d} {:d} {:d} {:d} {:d} {:d}\n'.format(i+1,dihedraltypelist.index(dihedraltypes[i]),*j))
+            f.write('{:d} {:d} {:d} {:d} {:d} {:d}\n'.format(i+1,dihedraltypelist.index(dihedraltypes[i])+1,*j))
     #Impropers section:
     if param["impropers"] and improperlist:
-        f.write('\n#Impropertypes\n')
-        for i,j in enumerate(impropertypelist):
-            f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
         f.write('\nImpropers\n\n')
         improperlist=convertIndices(improperlist)
         for i,j in enumerate(improperlist):
-            f.write('{:d} {:d} {:d} {:d} {:d} {:d}\n'.format(i+1,impropertypelist.index(impropertypes[i]),*j))
+            f.write('{:d} {:d} {:d} {:d} {:d} {:d}\n'.format(i+1,impropertypelist.index(impropertypes[i])+1,*j))
     f.write('\n')
