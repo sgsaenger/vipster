@@ -35,7 +35,7 @@ def parser(name,data):
 
     Element parsed via comment in 'Masses' part
     Only orthogonal cells supported
-    Assumes angstrom and atom_style != dipole/hybrid/smd
+    Assumes angstrom and atom_style != dipole/hybrid
     """
     tmol = Molecule(name)
     i=0
@@ -63,14 +63,23 @@ def parser(name,data):
             i+=len(types)+1
         elif 'Atoms' in line:
             #guess where atom-type is found:
-            at=data[i+2].strip().split()
-            for pos in range(-4,-11,-1):
-                if int(at[pos]):
-                    atypepos=pos
+            atomlist=[]
+            for j in range(i+2,i+2+nat):
+                atomlist.append(data[j].strip().split())
+            nargs=len(atomlist[0])
+            atypepos=1
+            for j in range(1,nargs):
+                try:
+                    int(atomlist[0][j])
+                    print('int found in column ',j)
+                except:
+                    continue
+                atomids = sorted(set([int(k[j]) for k in atomlist]))
+                if atomids==range(1,len(types)+1):
+                    atypepos=j
                     break
             for j in range(i+2,i+2+nat):
                 at = data[j].strip().split()
-                print types[int(at[atypepos])-1]
                 tmol.create_atom(types[int(at[atypepos])-1],at[-3:],'angstrom')
         i+=1
     return tmol,None

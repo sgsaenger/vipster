@@ -19,7 +19,7 @@ def readFile(filename,fmt,mode="cli"):
         else:
             return _cli_indict[fmt](filename,data)
 
-def writeFile(mol,fmt,filename,param="",coordfmt="",mode="gui"):
+def writeFile(mol,fmt,filename,param="",coordfmt="",mode="cli"):
     """
     Write a given trajectory to disc/stdout
 

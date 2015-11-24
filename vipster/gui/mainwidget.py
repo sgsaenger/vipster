@@ -330,7 +330,7 @@ class MainWidget(QWidget):
                         param = None
                     param = LammpsDialog.getWriteParams(self,param)
                 else:
-                    param = False
+                    param = None
                 coordfmt = self.moltab.fmt.currentText()
                 writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
             except StandardError as e:
