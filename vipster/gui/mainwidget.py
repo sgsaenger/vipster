@@ -300,7 +300,7 @@ class MainWidget(QWidget):
             ftype = str(ftype[0])
             m,p = readFile(fname,ftype,mode="gui")
             self.molecules.append(m)
-            self.mlist.addItem("Mol")
+            self.mlist.addItem(m.name)
             self.mlist.setCurrentRow(self.mlist.count()-1)
             if p:
                 self.parameters.append(p)
