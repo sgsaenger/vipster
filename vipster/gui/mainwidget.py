@@ -9,7 +9,7 @@ from PyQt4.QtCore import QTimer,Qt
 from .viewport import ViewPort
 from .moltab import MolTab
 from .pwtab import PWTab
-from .lammpstab import LammpsTab
+from .lammpstab import LammpsTab,LammpsDialog
 from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
@@ -324,9 +324,11 @@ class MainWidget(QWidget):
                 elif ftype=="Lammps Data file":
                     try:
                         param = self.parameters[self.paramlist.currentRow()]
-                        if param["type"]!="lammps":raise IndexError
+                        if param["type"]!="lammps":
+                            param = None
                     except:
-                        raise IndexError("No LAMMPS Parameter set")
+                        param = None
+                    param = LammpsDialog.getWriteParams(self,param)
                 else:
                     param = False
                 coordfmt = self.moltab.fmt.currentText()
