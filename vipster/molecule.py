@@ -24,6 +24,7 @@ class _step(object):
         self._atom_name=[]
         self._atom_coord=[]
         self._atom_fix=[]
+        self._bonds=[[],[],[],[],[],[],[],[]]
         self._bond_cutfac=1.0
         self._bonds_outdated=True
         self._script_group=dict()
@@ -848,6 +849,7 @@ class Molecule(_step):
 _properties=['_atom_name',
             '_atom_coord',
             '_atom_fix',
+            '_bonds',
             '_bond_cutfac',
             '_bonds_outdated',
             '_script_group',
