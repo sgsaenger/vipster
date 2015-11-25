@@ -73,13 +73,13 @@ def parser(name,data):
             elif header[0] == 'K_POINTS':
                 #Gamma point only
                 if header[1].strip('{()}') == 'gamma':
-                    tmol.set_kpoints('active','gamma')
+                    tmol.setKpoints('active','gamma')
                 #Monkhorst Pack Grid:
                 #x y z offset
                 elif header[1].strip('{()}') == 'automatic':
                     line = data.pop(0).strip().split()
-                    tmol.set_kpoints('automatic',line)
-                    tmol.set_kpoints('active','automatic')
+                    tmol.setKpoints('automatic',line)
+                    tmol.setKpoints('active','automatic')
                 #else:
                 #number of kpoints
                 #x y z weight
@@ -88,8 +88,8 @@ def parser(name,data):
                     kpoints = []
                     for i in range(nk):
                         kpoints.append(data.pop(0).strip().split())
-                    tmol.set_kpoints('disc',kpoints)
-                    tmol.set_kpoints('active',header[1])
+                    tmol.setKpoints('disc',kpoints)
+                    tmol.setKpoints('active',header[1])
             #CELL_PARAMETERS
             #only needed if ibrav=0
             #tbd changed between pw4 and pw5, ignored for now
@@ -100,33 +100,33 @@ def parser(name,data):
             else:
                 pass
     #Identify cell parameter representation, parse it
-    tmol.set_celldm(tparam['&system']['celldm(1)'])
+    tmol.setCellDim(tparam['&system']['celldm(1)'])
     if tparam['&system']['ibrav'] == '0':
         #check if CELL_PARAMETERS card has been read, if not present, throw error
         if tvec == [[0,0,0],[0,0,0],[0,0,0]]:
                 raise ValueError('ibrav=0, but CELL_PARAMETERS missing')
         else:
-                tmol.set_vec(tvec)
+                tmol.setVec(tvec)
     elif tparam['&system']['ibrav'] == '1':
         #simple cubic
         pass
     elif tparam['&system']['ibrav'] == '2':
         #face centered cubic
-        tmol.set_vec([[-0.5,0,0.5],[0,0.5,0.5],[-0.5,0.5,0]])
+        tmol.setVec([[-0.5,0,0.5],[0,0.5,0.5],[-0.5,0.5,0]])
     elif tparam['&system']['ibrav'] == '3':
         #body centered cubic
-        tmol.set_vec([[0.5,0.5,0.5],[-0.5,0.5,0.5],[-0.5,-0.5,0.5]])
+        tmol.setVec([[0.5,0.5,0.5],[-0.5,0.5,0.5],[-0.5,-0.5,0.5]])
     elif tparam['&system']['ibrav'] == '4':
         #hexagonal
         ca = float(tparam['&system']['celldm(3)'])
-        tmol.set_vec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,ca]])
+        tmol.setVec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,ca]])
     elif tparam['&system']['ibrav'] == '5':
         #trigonal
         c = float(tparam['&system']['celldm(4)'])
         tx=sqrt((1-c)/2)
         ty=sqrt((1-c)/6)
         tz=sqrt((1+2*c)/3)
-        tmol.set_vec([[tx,-ty,tz],[0,2*ty,tz],[-tx,-ty,tz]])
+        tmol.setVec([[tx,-ty,tz],[0,2*ty,tz],[-tx,-ty,tz]])
     elif tparam['&system']['ibrav'] == '-5':
         #trigonal,alternative
         c = float(tparam['&system']['celldm(4)'])
@@ -135,53 +135,53 @@ def parser(name,data):
         tz=sqrt((1+2*c)/3)
         u=(tz-2*sqrt(2)*ty)/sqrt(3)
         v=(tz+sqrt(2)*ty)/sqrt(3)
-        tmol.set_vec([[u,v,v],[v,u,v],[v,v,u]])
+        tmol.setVec([[u,v,v],[v,u,v],[v,v,u]])
     elif tparam['&system']['ibrav'] == '6':
         #simple tetragonal
         ca = float(tparam['&system']['celldm(3)'])
-        tmol.set_vec([[1,0,0],[0,1,0],[0,0,ca]])
+        tmol.setVec([[1,0,0],[0,1,0],[0,0,ca]])
     elif tparam['&system']['ibrav'] == '7':
         #body centered tetragonal
         ca = float(tparam['&system']['celldm(3)'])
-        tmol.set_vec([[0.5,-0.5,ca*0.5],[0.5,0.5,ca*0.5],[-0.5,-0.5,ca*0.5]])
+        tmol.setVec([[0.5,-0.5,ca*0.5],[0.5,0.5,ca*0.5],[-0.5,-0.5,ca*0.5]])
     elif tparam['&system']['ibrav'] == '8':
         #simple orthorhombic
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
-        tmol.set_vec([[1,0,0],[0,ba,0],[0,0,ca]])
+        tmol.setVec([[1,0,0],[0,ba,0],[0,0,ca]])
     elif tparam['&system']['ibrav'] == '9':
         #basis centered orthorhombic
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
-        tmol.set_vec([[0.5,ba*0.5,0],[-0.5,ba*0.5,0],[0,0,ca]])
+        tmol.setVec([[0.5,ba*0.5,0],[-0.5,ba*0.5,0],[0,0,ca]])
     elif tparam['&system']['ibrav'] == '10':
         #face centered orthorhombic
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
-        tmol.set_vec([[0.5,0,ca*0.5],[0.5,ba*0.5,0],[0,ba*0.5,ca*0.5]])
+        tmol.setVec([[0.5,0,ca*0.5],[0.5,ba*0.5,0],[0,ba*0.5,ca*0.5]])
     elif tparam['&system']['ibrav'] == '11':
         #body centered orthorhombic
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
-        tmol.set_vec([[0.5,ba*0.5,ca*0.5],[-0.5,ba*0.5,ca*0.5],[-0.5,-ba*0.5,ca*0.5]])
+        tmol.setVec([[0.5,ba*0.5,ca*0.5],[-0.5,ba*0.5,ca*0.5],[-0.5,-ba*0.5,ca*0.5]])
     elif tparam['&system']['ibrav'] == '12':
         #simple monoclinic
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
         cg = float(tparam['&system']['celldm(4)'])
-        tmol.set_vec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],[0,0,ca]])
+        tmol.setVec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],[0,0,ca]])
     elif tparam['&system']['ibrav'] == '-12':
         #simple monoclinic, alternate definition
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
         cb = float(tparam['&system']['celldm(5)'])
-        tmol.set_vec([[1,0,0],[0,ba,0],[ca*cb,0,ca*sqrt(1-cb)]])
+        tmol.setVec([[1,0,0],[0,ba,0],[ca*cb,0,ca*sqrt(1-cb)]])
     elif tparam['&system']['ibrav'] == '13':
         #base centered monoclinic
         ca = float(tparam['&system']['celldm(3)'])
         ba = float(tparam['&system']['celldm(2)'])
         cg = float(tparam['&system']['celldm(4)'])
-        tmol.set_vec([[0.5,0,-ca*0.5],[ba*cg,ba*sqrt(1-cg),0],[0.5,0,ca*0.5]])
+        tmol.setVec([[0.5,0,-ca*0.5],[ba*cg,ba*sqrt(1-cg),0],[0.5,0,ca*0.5]])
     elif tparam['&system']['ibrav'] == '14':
         #base centered monoclinic
         ba = float(tparam['&system']['celldm(2)'])
@@ -189,11 +189,11 @@ def parser(name,data):
         cg = float(tparam['&system']['celldm(4)'])
         cb = float(tparam['&system']['celldm(5)'])
         cal = float(tparam['&system']['celldm(6)'])
-        tmol.set_vec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],
+        tmol.setVec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],
                 [ca*cb,ca*(cal-cb*cg)/sqrt(1-cg),ca*sqrt(1+2*cal*cb*cg-cal*cal-cb*cb-cg*cg)/sqrt(1-cg)]])
     #create atoms after creating cell:
     for i in range(len(tcoord)):
-        tmol.create_atom(tcoord[i][0],tcoord[i][1:4],fmt, [int(x) for x in tcoord[i][4:]])
+        tmol.newAtom(tcoord[i][0],tcoord[i][1:4],fmt, [int(x) for x in tcoord[i][4:]])
     #delete nat, ntype and celldm before returning
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']
@@ -212,9 +212,9 @@ def writer(mol,f,param,coordfmt):
         f.write(i+'\n')
         #write all parameters
         if i == '&system':
-            f.write(' nat='+str(mol.get_nat())+'\n')
+            f.write(' nat='+str(mol.nat)+'\n')
             f.write(' ntyp='+str(mol.get_ntyp())+'\n')
-            f.write(' celldm(1)='+str(mol.get_celldm())+'\n')
+            f.write(' celldm(1)='+str(mol.getCellDim())+'\n')
         for j in range(len(param[i])):
             f.write(' '+param[i].keys()[j]+'='+param[i].values()[j]+'\n')
         f.write('/\n\n')
@@ -236,15 +236,15 @@ def writer(mol,f,param,coordfmt):
         raise KeyError('&cell namelist required, but not present')
     #ATOMIC_SPECIES card:
     f.write('ATOMIC_SPECIES'+'\n')
-    types = list(mol.get_types())
-    for i in range(len(mol.get_types())):
+    types = list(mol.getTypes())
+    for i in range(len(mol.getTypes())):
         atom = types[i]
         f.write(atom+'    '+str(mol.pse[atom]['m'])+'   '+str(mol.pse[atom]['PPfile'])+'\n')
     f.write('\n')
     #ATOMIC_POSITIONS
     f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
-    for i in range(mol.get_nat()):
-        atom=mol.get_atom(i,coordfmt)
+    for i in range(mol.nat):
+        atom=mol.getAtom(i,coordfmt)
         if 0 in atom[3]:
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {:1d}'.format(
                 atom[0],atom[1][0],atom[1][1],atom[1][2],atom[3][0],atom[3][1],atom[3][2])+'\n')
@@ -253,20 +253,20 @@ def writer(mol,f,param,coordfmt):
                 atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
     f.write('\n')
     #K_POINTS
-    f.write('K_POINTS'+' '+mol.get_kpoints('active')+'\n')
+    f.write('K_POINTS'+' '+mol.getKpoints('active')+'\n')
     #Gamma point only
-    if mol.get_kpoints('active') == 'gamma':
+    if mol.getKpoints('active') == 'gamma':
         pass
     #MPGrid:
     #x y z offset
-    elif mol.get_kpoints('active') == 'automatic':
-        auto = mol.get_kpoints('automatic')
+    elif mol.getKpoints('active') == 'automatic':
+        auto = mol.getKpoints('automatic')
         f.write('{:4s} {:4s} {:4s} {:4s} {:4s} {:4s}'.format(
                 auto[0],auto[1],auto[2],auto[3],auto[4],auto[5])+'\n')
     #number of kpoints
     #x y z weight
     else:
-        disc=mol.get_kpoints('disc')
+        disc=mol.getKpoints('disc')
         f.write(str(len(disc))+'\n')
         for i in range(len(disc)):
             f.write('{:4s} {:4s} {:4s} {:4s}'.format(
@@ -277,4 +277,4 @@ def writer(mol,f,param,coordfmt):
     fmt='{0[0][0]:15.10f} {0[0][1]:15.10f} {0[0][2]:15.10f}\n' + \
         '{0[1][0]:15.10f} {0[1][1]:15.10f} {0[1][2]:15.10f}\n' + \
         '{0[2][0]:15.10f} {0[2][1]:15.10f} {0[2][2]:15.10f}\n'
-    f.write(fmt.format(mol.get_vec()))
+    f.write(fmt.format(mol.getVec()))

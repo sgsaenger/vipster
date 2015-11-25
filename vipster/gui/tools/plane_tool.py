@@ -88,7 +88,7 @@ class Plane(QWidget):
         self.setLayout(vbox)
 
     def setMol(self,mol):
-        vol = mol.get_vol()
+        vol = mol.getVol()
         if vol is not None:
             self.shape = vol.shape
             lim=self.shape[self.volDir.currentIndex()]

@@ -52,8 +52,8 @@ def parser(name,data):
             tvec[1][1] = float(line.split()[1])-float(line.split()[0])
         elif 'zlo zhi' in line:
             tvec[2][2] = float(line.split()[1])-float(line.split()[0])
-            tmol.set_vec(tvec)
-            tmol.set_celldm(1,fmt='angstrom')
+            tmol.setVec(tvec)
+            tmol.setCellDim(1,fmt='angstrom')
         elif 'Masses' in line:
             for j in range(i+2,i+2+len(types)):
                 if '#' in data[j]:
@@ -80,7 +80,7 @@ def parser(name,data):
                     break
             for j in range(i+2,i+2+nat):
                 at = data[j].strip().split()
-                tmol.create_atom(types[int(at[atypepos])-1],at[-3:],'angstrom')
+                tmol.newAtom(types[int(at[atypepos])-1],at[-3:],'angstrom')
         i+=1
     return tmol,None
 
@@ -97,13 +97,13 @@ def writer(mol,f,param,coordfmt):
             or param["dihedrals"] or param["impropers"]\
             or param["atom_style"] in ["angle","bond","full","line","molecular","smd","template","tri"]:
         bondlist=[]
-        for i in mol.get_bonds():
+        for i in mol.getBonds():
             for j in i:
                 bondlist.append(tuple(sorted(j[0:2])))
         bondlist=sorted(set(bondlist))
         bondtypes=[]
         for i in bondlist:
-            bondtypes.append(tuple(sorted([mol.get_atom(j)[0] for j in i])))
+            bondtypes.append(tuple(sorted([mol.getAtom(j)[0] for j in i])))
         bondtypelist=list(set(bondtypes))
     if param["angles"] or param["dihedrals"] or param["impropers"]:
         anglelist=[]
@@ -117,7 +117,7 @@ def writer(mol,f,param,coordfmt):
                     anglelist.append(tuple([bondlist[i][0],bondlist[i][1],bondlist[j][0]]))
         angletypes=[]
         for i in anglelist:
-            at=[mol.get_atom(j)[0] for j in i]
+            at=[mol.getAtom(j)[0] for j in i]
             if at[0]>at[2]:
                 at.reverse()
             angletypes.append(tuple(at))
@@ -138,7 +138,7 @@ def writer(mol,f,param,coordfmt):
                     dihedrallist.append(tuple([a1[2],a1[1],a1[0],a2[0]]))
         dihedraltypes=[]
         for i in dihedrallist:
-            dt=[mol.get_atom(j)[0] for j in i]
+            dt=[mol.getAtom(j)[0] for j in i]
             if dt[0]>dt[3]:
                 dt.reverse()
             elif dt[0]==dt[3] and dt[1]>dt[2]:
@@ -148,7 +148,7 @@ def writer(mol,f,param,coordfmt):
     if param["impropers"]:
         from itertools import combinations
         improperlist=[]
-        for i in range(mol.get_nat()):
+        for i in range(mol.nat):
             neigh=[]
             for j in bondlist:
                 if i in j:
@@ -157,14 +157,14 @@ def writer(mol,f,param,coordfmt):
                 improperlist.append((i,)+j)
         impropertypes=[]
         for i in improperlist:
-            it=[mol.get_atom(j)[0] for j in i]
+            it=[mol.getAtom(j)[0] for j in i]
             if it[0]>it[3]:
                 it.reverse()
             elif it[0]==dt[3] and dt[1]>dt[2]:
                 it.reverse()
             impropertypes.append(tuple(dt))
         impropertypelist=list(set(impropertypes))
-    moleculeid = [0]*mol.get_nat()
+    moleculeid = [0]*mol.nat
     if param["atom_style"] in ["angle","bond","full","line","molecular","smd","template","tri"]:
         molbondlist = [set(i) for i in bondlist]
         def groupsets(setlist):
@@ -183,7 +183,7 @@ def writer(mol,f,param,coordfmt):
             for at in m:
                 moleculeid[at]=i
     #write header:
-    f.write('\n'+str(mol.get_nat())+' atoms\n')
+    f.write('\n'+str(mol.nat)+' atoms\n')
     f.write(str(mol.get_ntyp())+' atom types\n')
     if param["bonds"] and bondlist:
         f.write(str(len(bondlist))+' bonds\n')
@@ -207,7 +207,7 @@ def writer(mol,f,param,coordfmt):
             f.write('#{:d} {:s} {:s} {:s} {:s}\n'.format(i+1,*j))
     f.write('\n')
     #if cell is orthogonal, write vectors:
-    v=mol.get_vec()*mol.get_celldm(fmt='angstrom')
+    v=mol.getVec()*mol.getCellDim(fmt='angstrom')
     if not v.diagonal(1).any() and not v.diagonal(2).any():
         if not v.diagonal(-1).any() and not v.diagonal(-2).any():
             f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0,v[0][0]))
@@ -219,14 +219,14 @@ def writer(mol,f,param,coordfmt):
         raise TypeError('Cell not in suitable Lammps format')
     #Masses section: (always)
     f.write('Masses\n\n')
-    atomtypes=list(mol.get_types())
+    atomtypes=list(mol.getTypes())
     for i,j in enumerate(atomtypes):
         f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,mol.pse[j]['m'],j))
     #Atoms section: (always)
     f.write('\nAtoms\n\n')
-    for i in range(mol.get_nat()):
+    for i in range(mol.nat):
         string=lammps_atom_style[param["atom_style"]]
-        at=mol.get_atom(i,'angstrom')
+        at=mol.getAtom(i,'angstrom')
         f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,*at[1]))
     #Bonds section:
     convertIndices=lambda x: list(map(lambda y: tuple(map(lambda z: z+1,y)),x))

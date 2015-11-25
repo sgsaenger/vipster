@@ -19,22 +19,22 @@ def parser(name,data):
             #fixed format nat and comment
             tmol.newStep()
             nat = int(data[i])
-            tmol.set_comment(data[i+1].strip())
+            tmol.setComment(data[i+1].strip())
             #read coordinates and types
             for j in range(i+2,i+nat+2):
                     line = data[j].split()
-                    tmol.create_atom(line[0],line[1:4],'angstrom')
+                    tmol.newAtom(line[0],line[1:4],'angstrom')
             i+=nat+2
     return tmol,None
 
 def writer(mol,f,param,coordfmt):
     """ Save xyz in angstrom """
     # fixed format nat and comment
-    f.write(str(mol.get_nat())+'\n')
-    f.write(mol.get_comment()+'\n')
+    f.write(str(mol.nat)+'\n')
+    f.write(mol.getComment()+'\n')
     # write coordinates
-    for cntat in range(0,mol.get_nat()):
-            atom=mol.get_atom(cntat,'angstrom')
+    for cntat in range(0,mol.nat):
+            atom=mol.getAtom(cntat,'angstrom')
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                          atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
     f.close()

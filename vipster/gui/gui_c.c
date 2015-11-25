@@ -490,7 +490,7 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef GuiMethods[] = {
-    {"make_iso_surf",make_iso_surf,METH_VARARGS,"Construct isosurface"},
+    {"makeIsoSurf",make_iso_surf,METH_VARARGS,"Construct isosurface"},
     {NULL, NULL, 0, NULL}
 };
 

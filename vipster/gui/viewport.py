@@ -11,7 +11,7 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import *
 from OpenGL.arrays.vbo import *
 
-from .gui_c import make_iso_surf
+from .gui_c import makeIsoSurf
 from .. import config
 
 class ViewPort(QGLWidget):
@@ -48,38 +48,38 @@ class ViewPort(QGLWidget):
 
     def initEditMenu(self):
         def newFun():
-            self.mol.init_undo()
-            self.mol.create_atom()
-            self.mol.save_undo('create atom')
+            self.mol.initUndo()
+            self.mol.newAtom()
+            self.mol.saveUndo('create atom')
             self.parent.updateMolStep()
         newAction = QAction('&New atom',self)
         newAction.setShortcut('n')
         newAction.triggered.connect(newFun)
         def delFun():
-            sel = set(i[0] for i in self.mol.get_selection())
+            sel = set(i[0] for i in self.mol.getSelection())
             if not sel: return
-            self.mol.init_undo()
+            self.mol.initUndo()
             for i in sorted(sel,reverse=True):
-                self.mol.del_atom(i)
-            self.mol.save_undo('delete atom(s)')
+                self.mol.delAtom(i)
+            self.mol.saveUndo('delete atom(s)')
             self.parent.updateMolStep()
         delAction = QAction('&Delete atom(s)',self)
         delAction.setShortcut(QKeySequence.Delete)
         delAction.triggered.connect(delFun)
         def copyFun():
-            sel = set(i[0] for i in self.mol.get_selection())
+            sel = set(i[0] for i in self.mol.getSelection())
             self.copyBuf = []
             for i in sel:
-                self.copyBuf.append(deepcopy(self.mol.get_atom(i)))
+                self.copyBuf.append(deepcopy(self.mol.getAtom(i)))
         copyAction = QAction('&Copy atom(s)',self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.triggered.connect(copyFun)
         def pasteFun():
             if not self.copyBuf: return
-            self.mol.init_undo()
+            self.mol.initUndo()
             for i in self.copyBuf:
-                self.mol.create_atom(*i)
-            self.mol.save_undo('copy atom(s)')
+                self.mol.newAtom(*i)
+            self.mol.saveUndo('copy atom(s)')
             self.parent.updateMolStep()
         pasteAction = QAction('&Paste atom(s)',self)
         pasteAction.setShortcut('Ctrl+V')
@@ -135,14 +135,14 @@ class ViewPort(QGLWidget):
         self.mousePos = e.pos()
         if self.mouseMode=='Modify':
             #initiate undo
-            self.mol.init_undo()
+            self.mol.initUndo()
             self.modMode=''
             #determine which atoms to modify
-            sel = self.mol.get_selection()
+            sel = self.mol.getSelection()
             if sel:
                 self.modData=[set(i[0] for i in sel)]
             else:
-                self.modData = [range(self.mol.get_nat())]
+                self.modData = [range(self.mol.nat)]
             #axes in cellspace
             mat = self.rMatrix.inverted()[0]
             x = mat*QVector4D(1,0,0,0)
@@ -155,23 +155,23 @@ class ViewPort(QGLWidget):
             #for rotation, center is needed
             if e.buttons()&1:
                 def selToCoord(sel):
-                    return self.mol.get_atom(sel[0])[1]
+                    return self.mol.getAtom(sel[0])[1]
                 pick = self.pickAtom(e)
                 #picked atom
                 if pick:
-                    self.modData+=[self.mol.get_atom(pick[1])[1]]
+                    self.modData+=[self.mol.getAtom(pick[1])[1]]
                 #com of selection
                 elif sel:
                     coords=[selToCoord(i) for i in sel]
                     self.modData+=[(np.max(coords,axis=0)+np.min(coords,axis=0))/2]
                 #com of whole cell
                 else:
-                    self.modData+= [self.mol.get_center(True)]
+                    self.modData+= [self.mol.getCenter(True)]
         elif e.buttons()&2:
             if self.mouseMode =='Camera':
                 self.rMatrix.setToIdentity()
             elif self.mouseMode == 'Select':
-                self.mol.del_selection()
+                self.mol.delSelection()
                 self.parent.updateMolStep()
             self.update()
 
@@ -198,14 +198,14 @@ class ViewPort(QGLWidget):
                 angle= abs(delta.x()) + abs(delta.y())
                 axis = delta.y()*self.modData[1][0]-delta.x()*self.modData[1][1]
                 shift=self.modData[2]
-                self.mol._rotate(atoms,angle,axis,shift)
+                self.mol.rotate(atoms,angle,axis,shift)
                 self.parent.updateMolStep()
                 self.modMode='rotate'
         elif e.buttons()&2 and self.mouseMode=='Modify':
             #shift selection in z-direction (cam space)
             atoms=self.modData[0]
             vec = self.modData[1][2]*(delta.x()+delta.y())
-            self.mol._shift(atoms,vec*0.1)
+            self.mol.shift(atoms,vec*0.1)
             self.parent.updateMolStep()
             self.modMode='shift'
         elif (e.buttons() & 4):
@@ -218,26 +218,26 @@ class ViewPort(QGLWidget):
                 #shift selection in camera-plane
                 atoms=self.modData[0]
                 vec = self.modData[1][0]*delta.x()+self.modData[1][1]*delta.y()
-                self.mol._shift(atoms,vec*0.1)
+                self.mol.shift(atoms,vec*0.1)
                 self.parent.updateMolStep()
                 self.modMode='shift'
         self.mousePos = e.pos()
 
     def mouseReleaseEvent(self,e):
         if self.mouseMode=='Modify' and self.modMode:
-            self.mol.save_undo(self.modMode)
+            self.mol.saveUndo(self.modMode)
             self.modMode=''
             self.parent.updateMolStep()
         elif self.mouseMode=='Select' and e.button()&1:
             if self.rectPos:
                 for i in self.pickAtom(self.mousePos,self.rectPos):
-                    self.mol.add_selection(i[1:])
+                    self.mol.addSelection(i[1:])
                 self.rectPos = None
                 self.parent.updateMolStep()
             else:
                 pick = self.pickAtom(e)
                 if pick:
-                    self.mol.add_selection(pick[1:])
+                    self.mol.addSelection(pick[1:])
                     self.parent.updateMolStep()
 
     def pickAtom(self,c1,c2=None):
@@ -372,7 +372,7 @@ class ViewPort(QGLWidget):
                 del self.surfVBO
 
         #check if molecule has undo-stack:
-        undo = mol.get_undo()
+        undo = mol.getUndo()
         if undo:
             self.undoAction.setText('Undo '+undo)
             self.undoAction.setEnabled(True)
@@ -388,12 +388,12 @@ class ViewPort(QGLWidget):
         self.mol=mol
         self.mult=mult
         #local variables for convenience
-        atoms = mol.get_all_atoms()
+        atoms = mol.getAtoms()
         pse = mol.pse
-        vec = mol.get_vec()*mol.get_celldm()
-        center = mol.get_center(config['Rotate around COM'])
-        bonds = mol.get_bonds(config['Bond cutoff factor'])
-        sel = mol.get_selection()
+        vec = mol.getVec()*mol.getCellDim()
+        center = mol.getCenter(config['Rotate around COM'])
+        bonds = mol.getBonds(config['Bond cutoff factor'])
+        sel = mol.getSelection()
 
         #get bonds and calculate offsets
         if mult == [1,1,1]:
@@ -511,7 +511,7 @@ class ViewPort(QGLWidget):
     def setSurf(self,sval,plusminus=False):
         if sval==0:
             return
-        surface = make_iso_surf(self.mol.get_vol(),self.mol.get_vol_gradient(),sval,plusminus)
+        surface = makeIsoSurf(self.mol.getVol(),self.mol.get_volGradient(),sval,plusminus)
         self.surfVBO = VBO(surface)
         if self.showSurf:
             self.update()
@@ -524,7 +524,7 @@ class ViewPort(QGLWidget):
         #volume data:
         #'x/y/z',int
         if ptype in 'xyz':
-            v = self.mol.get_vol()
+            v = self.mol.getVol()
             vmin = v.min()
             vdiff = v.max()-vmin
             if ptype=='x':
@@ -589,7 +589,7 @@ class ViewPort(QGLWidget):
                     p[:,i]+=1
 
         #generate planeVBO
-        vec=self.mol.get_vec()*self.mol.get_celldm()
+        vec=self.mol.getVec()*self.mol.getCellDim()
         UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
         self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
 
@@ -783,9 +783,9 @@ class ViewPort(QGLWidget):
         glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,36,self.surfVBO+24)
         self.surfVBO.unbind()
 
-        self.surfShader.setUniformValue('volOff',*self.mol.get_vol_offset().tolist())
+        self.surfShader.setUniformValue('volOff',*self.mol.getVolOffset().tolist())
         self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-        self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.get_vec()*self.mol.get_celldm()).flatten()))
+        self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.getVec()*self.mol.getCellDim()).flatten()))
         self.surfShader.setUniformValue('rMatrix',self.rMatrix)
 
         glDisable(GL_CULL_FACE)

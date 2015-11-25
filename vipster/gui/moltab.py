@@ -37,20 +37,20 @@ class MolTab(QWidget):
         self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
         def cellHandler(row,col):
             if self.updatedisable: return
-            self.mol.init_undo()
+            self.mol.initUndo()
             name = str(self.table.item(row,0).text())
             coord = [0,0,0]
             fix = [0,0,0]
             for j in [0,1,2]:
                 coord[j]=float(self.table.item(row,j+1).text())
                 fix[j]=int(not self.table.item(row,j+1).checkState()/2)
-            self.mol.set_atom(row,name,coord,self.fmt.currentText(),fix)
-            self.mol.save_undo('set coordinates')
+            self.mol.setAtom(row,name,coord,self.fmt.currentText(),fix)
+            self.mol.saveUndo('set coordinates')
             self.parent.updateMolStep()
         self.table.cellChanged.connect(cellHandler)
         def selHandler():
             if self.updatedisable: return
-            sel = self.mol.get_selection()
+            sel = self.mol.getSelection()
             keep = []
             for i in self.table.selectedRanges():
                 for j in range(i.topRow(),i.bottomRow()+1):
@@ -59,9 +59,9 @@ class MolTab(QWidget):
                         keep.extend(l)
                     else:
                         keep.append([j,(0,0,0)])
-            self.mol.del_selection()
+            self.mol.delSelection()
             for i in keep:
-                self.mol.add_selection(i)
+                self.mol.addSelection(i)
             self.parent.updateMolStep()
         self.table.itemSelectionChanged.connect(selHandler)
 
@@ -78,12 +78,12 @@ class MolTab(QWidget):
         # show celldm
         def cdmHandler():
             if self.updatedisable: return
-            if float(self.cellDm.text()) == self.mol.get_celldm(self.fmt.currentText()):return
+            if float(self.cellDm.text()) == self.mol.getCellDim(self.fmt.currentText()):return
             par= self.parent
             if self.appAll.isChecked():
-                self.mol.set_all_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
+                self.mol.setCellDimAll(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             else:
-                self.mol.set_celldm(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
+                self.mol.setCellDim(float(self.cellDm.text()),self.scale.isChecked(),self.fmt.currentText())
             self.parent.updateMolStep()
 
         self.cellDm = QLineEdit()
@@ -97,12 +97,12 @@ class MolTab(QWidget):
             for i in [0,1,2]:
                 for j in [0,1,2]:
                     vec[i][j]=float(self.vtable.item(i,j).text())
-            if vec == self.mol.get_vec().tolist(): return
+            if vec == self.mol.getVec().tolist(): return
             par = self.parent
             if self.appAll.isChecked():
-                self.mol.set_all_vec(vec,self.scale.isChecked())
+                self.mol.setVecAll(vec,self.scale.isChecked())
             else:
-                self.mol.set_vec(vec,self.scale.isChecked())
+                self.mol.setVec(vec,self.scale.isChecked())
             self.parent.updateMolStep()
 
         self.vtable = QTableWidget()
@@ -151,7 +151,7 @@ class MolTab(QWidget):
             if kp.updatedisable:return
             auto=[str(kp.auto.widg[i].text()) for i in [0,1,2]]
             auto+=[str(int(kp.auto.widg[i].isChecked())) for i in [3,4,5]]
-            self.mol.set_kpoints('automatic',auto)
+            self.mol.setKpoints('automatic',auto)
         kp.auto = QWidget()
         kp.auto.widg = []
         for i in [0,1,2]:
@@ -187,7 +187,7 @@ class MolTab(QWidget):
             disc = []
             for i in range(kp.disc.rowCount()):
                 disc.append([str(kp.disc.item(i,j).text()) for j in range(4)])
-            self.mol.set_kpoints('disc',disc)
+            self.mol.setKpoints('disc',disc)
         kp.disc = QTableWidget()
         kp.disc.setColumnCount(4)
         kp.disc.setHorizontalHeaderLabels(['x','y','z','weight'])
@@ -233,13 +233,13 @@ class MolTab(QWidget):
         kp.updatedisable=True
         kp.disp.setCurrentIndex(min(index,2))
         fmt=kp.fmts[index]
-        self.mol.set_kpoints('active',fmt)
+        self.mol.setKpoints('active',fmt)
         if fmt=='automatic':
-            auto=self.mol.get_kpoints(fmt)
+            auto=self.mol.getKpoints(fmt)
             for i in range(6):
                 kp.auto.widg[i].setText(auto[i])
         elif fmt in kp.fmts[2:]:
-            disc=self.mol.get_kpoints(fmt)
+            disc=self.mol.getKpoints(fmt)
             kp.disc.setRowCount(len(disc))
             for i in range(len(disc)):
                 for j in range(4):
@@ -264,11 +264,11 @@ class MolTab(QWidget):
         self.updatedisable = True
         fmt = self.fmt.currentText()
         #fill atom coordinate widget
-        self.table.setRowCount(self.mol.get_nat())
+        self.table.setRowCount(self.mol.nat)
         #make table count from zero
-        self.table.setVerticalHeaderLabels([str(x) for x in range(self.mol.get_nat())])
-        for i in range(self.mol.get_nat()):
-            at = self.mol.get_atom(i,fmt)
+        self.table.setVerticalHeaderLabels([str(x) for x in range(self.mol.nat)])
+        for i in range(self.mol.nat):
+            at = self.mol.getAtom(i,fmt)
             self.table.setItem(i,0,QTableWidgetItem(at[0]))
             for j in [0,1,2]:
                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
@@ -277,17 +277,17 @@ class MolTab(QWidget):
         #update selection
         self.table.setSelectionMode(QAbstractItemView.MultiSelection)
         self.table.clearSelection()
-        for j in set(i[0] for i in self.mol.get_selection()):
+        for j in set(i[0] for i in self.mol.getSelection()):
             self.table.selectRow(j)
         self.table.setSelectionMode(QAbstractItemView.ExtendedSelection)
         #fill cell geometry widget
-        self.cellDm.setText(str(self.mol.get_celldm(fmt)))
-        vec = self.mol.get_vec()
+        self.cellDm.setText(str(self.mol.getCellDim(fmt)))
+        vec = self.mol.getVec()
         for i in [0,1,2]:
             for j in [0,1,2]:
                 self.vtable.setItem(i,j,QTableWidgetItem(str(vec[i,j])))
         #update k-point widgets
-        self.kp.fmt.setCurrentIndex(self.kp.fmts.index(self.mol.get_kpoints('active')))
-        self.changeKpoint(self.kp.fmts.index(self.mol.get_kpoints('active')))
+        self.kp.fmt.setCurrentIndex(self.kp.fmts.index(self.mol.getKpoints('active')))
+        self.changeKpoint(self.kp.fmts.index(self.mol.getKpoints('active')))
         #reenable handling
         self.updatedisable = False

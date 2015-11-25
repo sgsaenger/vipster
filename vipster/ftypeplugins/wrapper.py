@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from . import _cli_indict,_gui_indict,_cli_outdict,_gui_outdict,_param_dict
 
+inFormats = _cli_indict.keys()
+outFormats = _cli_outdict.keys()
+
 def readFile(filename,fmt,mode="cli"):
     """
     Read and parse a given file

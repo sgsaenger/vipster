@@ -33,11 +33,11 @@ def parser(name,data):
         #read initial positions:
         elif line[0] == 'site':
             tmol.newStep()
-            tmol.set_celldm(celldm)
-            tmol.set_vec(vec)
+            tmol.setCellDim(celldm)
+            tmol.setVec(vec)
             for j in range(i+1,i+nat+1):
                 atom = data[j].split()
-                tmol.create_atom(atom[1],atom[6:9],'alat')
+                tmol.newAtom(atom[1],atom[6:9],'alat')
             i+=nat
         #read k-points:
         elif line[0] == 'gamma-point':
@@ -48,8 +48,8 @@ def parser(name,data):
             for j in range(i+2,i+nk+2):
                 kp = data[j].split()
                 kpoints.append([kp[4],kp[5],kp[6].strip('),'),kp[9]])
-            tmol.set_kpoints('tpiba',kpoints)
-            tmol.set_kpoints('active','tpiba')
+            tmol.setKpoints('tpiba',kpoints)
+            tmol.setKpoints('active','tpiba')
             i+=nk
         #read step-vectors if cell is variable
         elif line[0] == 'CELL_PARAMETERS':
@@ -59,11 +59,11 @@ def parser(name,data):
         #read step-coordinates
         elif line[0] == 'ATOMIC_POSITIONS':
             tmol.newStep()
-            tmol.set_celldm(celldm)
-            tmol.set_vec(vec)
+            tmol.setCellDim(celldm)
+            tmol.setVec(vec)
             for j in range(i+1,i+nat+1):
                 atom = data[j].split()
-                tmol.create_atom(atom[0],atom[1:4],line[1].strip('()'),[int(x) for x in atom[4:]])
+                tmol.newAtom(atom[0],atom[1:4],line[1].strip('()'),[int(x) for x in atom[4:]])
             i+=nat
         #break on reaching final coordinates (duplicate)
         elif line[0] == 'Begin':

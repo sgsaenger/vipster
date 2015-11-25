@@ -3,8 +3,27 @@
 import numpy as np
 from copy import deepcopy
 
-from .mol_c import set_bonds_c,make_vol_gradient
+from .mol_c import setBondsC,makeVolGradient
 from . import pse
+
+#per-step properties
+_properties={'_atom_name':[],
+        '_atom_coord':[],
+        '_atom_fix':[],
+        '_bonds':[[],[],[],[],[],[],[],[]],
+        '_bond_cutfac':1.0,
+        '_bonds_outdated':True,
+        '_script_group':dict(),
+        '_selection':[],
+        '_celldm':1.0,
+        '_vec':np.array([[1,0,0],[0,1,0],[0,0,1]],'f'),
+        '_vecinv':np.array([[1,0,0],[0,1,0],[0,0,1]],'f'),
+        '_vol':None,
+        '_vol_grad':None,
+        '_vol_off':None,
+        '_comment':'',
+        '_undo_stack':[],
+        '_undo_temp':[],}
 
 class _step(object):
     """
@@ -21,22 +40,10 @@ class _step(object):
 
     def __init__(self,pse=None):
         self.pse=pse
-        self._atom_name=[]
-        self._atom_coord=[]
-        self._atom_fix=[]
-        self._bonds=[[],[],[],[],[],[],[],[]]
-        self._bond_cutfac=1.0
-        self._bonds_outdated=True
-        self._script_group=dict()
-        self._selection=[]
-        self._celldm = 1.0
-        self._vec=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
-        self._vecinv=np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],'f')
-        self._comment = ''
-        self._undo_stack=[]
-        self._undo_temp=[]
+        for i in _properties:
+            setattr(self,i,deepcopy(_properties[i]))
 
-    def create_atom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
+    def newAtom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
         """Make new atom
         name -> element symbol
         coord -> coordinates
@@ -44,14 +51,14 @@ class _step(object):
         fix -> 0 for no relaxation in PW
         """
         self._atom_name.append(name)
-        self._atom_coord.append(self._coord_to_bohr(coord,fmt))
+        self._atom_coord.append(self._coordToBohr(coord,fmt))
         while len(fix)<3:
             fix+=[1]
         self._atom_fix.append(fix)
         self._selection=[]
         self._bonds_outdated=True
 
-    def del_atom(self,index):
+    def delAtom(self,index):
         """Remove atom"""
         del self._atom_name[index]
         del self._atom_coord[index]
@@ -63,22 +70,22 @@ class _step(object):
     # SET FUNCTIONS
     ######################################################
 
-    def set_atom(self,index,name,coord,fmt,fix=[1,1,1]):
+    def setAtom(self,index,name,coord,fmt,fix=[1,1,1]):
         """Modify a given atom
 
         index -> atom id
         rest -> new properties
         """
         self._atom_name[index]=name
-        self._atom_coord[index]=self._coord_to_bohr(coord,fmt)
+        self._atom_coord[index]=self._coordToBohr(coord,fmt)
         self._atom_fix[index]=fix
         self._bonds_outdated=True
 
-    def set_comment(self,comment):
+    def setComment(self,comment):
         """Specify xyz comment line"""
         self._comment = comment
 
-    def set_celldm(self,cdm,scale=False,fmt='bohr'):
+    def setCellDim(self,cdm,scale=False,fmt='bohr'):
         """Set new cell-dimension
 
         cdm -> new cell-dimension
@@ -94,7 +101,7 @@ class _step(object):
         self._celldm = float(cdm)
         self._bonds_outdated=True
 
-    def set_vec(self,vec,scale=False):
+    def setVec(self,vec,scale=False):
         """Set new cell-vectors
 
         vec -> 3x3 list of new vectors
@@ -114,7 +121,7 @@ class _step(object):
     # to be called only by atom set/get
     ######################################################
 
-    def _coord_to_bohr(self,coord,fmt='bohr'):
+    def _coordToBohr(self,coord,fmt='bohr'):
         """Transform given coordinates to bohr
 
         coord -> new coordinates in given format
@@ -131,7 +138,7 @@ class _step(object):
         elif fmt == 'alat':
             return coord*self._celldm
 
-    def _coord_from_bohr(self,coord,fmt):
+    def _coordFromBohr(self,coord,fmt):
         """Transform given coordinates from bohr
 
         coord -> old coordinates in bohr
@@ -151,11 +158,9 @@ class _step(object):
     # RETURN FUNCTIONS
     ######################################################
 
-    def get_nat(self):
-        """Return number of atoms"""
-        return len(self._atom_coord)
+    nat = property(lambda self: len(self._atom_coord))
 
-    def get_celldm(self,fmt='bohr'):
+    def getCellDim(self,fmt='bohr'):
         """Return cell-dimension
 
         fmt -> str in ['angstrom','bohr','crystal','alat']
@@ -165,35 +170,33 @@ class _step(object):
         else:
             return self._celldm
 
-    def get_all_atoms(self):
+    def getAtoms(self):
         """Return names and coordinates (bohr) for all atoms"""
         return list(zip(self._atom_name,self._atom_coord))
 
-    def get_atom(self,index,fmt='bohr'):
+    def getAtom(self,index,fmt='bohr'):
         """Return one atom
 
         index -> index of atom
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
-        return [self._atom_name[index],self._coord_from_bohr(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
+        return [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
 
-    def get_vec(self):
+    def getVec(self):
         """Return cell-vectors"""
         return self._vec
 
-    def get_comment(self):
+    def getComment(self):
         """Return xyz-comment"""
         return self._comment
 
-    def get_types(self):
+    def getTypes(self):
         """Return types of atoms"""
         return set(self._atom_name)
 
-    def get_ntyp(self):
-        """Return number of types of atoms"""
-        return len(set(self._atom_name))
+    ntyp = property(lambda self: len(set(self._atom_name)))
 
-    def get_center(self,com=False):
+    def getCenter(self,com=False):
         """Return center-coordinates of molecule
 
         if com is True: return center of mass
@@ -208,7 +211,7 @@ class _step(object):
     # UNDO FUNCTIONS
     ######################################################
 
-    def init_undo(self):
+    def initUndo(self):
         """Save atoms temporarily
 
         Will be passed to undo-stack if needed
@@ -218,14 +221,14 @@ class _step(object):
                 deepcopy(self._atom_coord),\
                 deepcopy(self._atom_fix)]
 
-    def save_undo(self,name):
+    def saveUndo(self,name):
         """Put temp-save on stack
 
         name -> name of action to reverse
         """
         self._undo_stack.append([name]+self._undo_temp)
 
-    def get_undo(self):
+    def getUndo(self):
         """Return name of last undo, None otherwise"""
         if self._undo_stack:
             return self._undo_stack[-1][0]
@@ -246,7 +249,7 @@ class _step(object):
     # SELECTION FUNCTIONS
     ######################################################
 
-    def add_selection(self,item):
+    def addSelection(self,item):
         """Add an item to selection
 
         item -> [index,(offset in multiples of vec)]
@@ -256,11 +259,11 @@ class _step(object):
         else:
             self._selection.append(item)
 
-    def del_selection(self):
+    def delSelection(self):
         """Clear selection"""
         self._selection = []
 
-    def get_selection(self):
+    def getSelection(self):
         """Return the selection"""
         return self._selection
 
@@ -268,30 +271,30 @@ class _step(object):
     # BOND FUNCTIONS
     ######################################################
 
-    def get_bonds(self,cutfac=None):
+    def getBonds(self,cutfac=None):
         """Return bonds
 
         Sets bonds if not present.
         Returns list of lists.
         First entry: Bonds inside of cell
-        Other entries: Periodic bonds (see set_bonds)
+        Other entries: Periodic bonds (see setBonds)
         """
         if not cutfac:
             cutfac = self._bond_cutfac
         if self._bonds_outdated:
-            self.set_bonds(cutfac)
+            self.setBonds(cutfac)
         elif self._bond_cutfac != cutfac:
-            self.set_bonds(cutfac)
+            self.setBonds(cutfac)
         return self._bonds
 
-    def set_bonds(self,cutfac):
+    def setBonds(self,cutfac):
         """Set bonds
 
         Cutoff criterium:
         Sum of covalent radii times cutfac
         Generates list of lists, each lists contains:
         [idx_at1,idx_at2,offset_at1,offset_at2,distance]
-        Actual setting performed by C-routine set_bonds_c
+        Actual setting performed by C-routine setBondsC
         """
         self._bonds=[[],[],[],[],[],[],[],[]]
         if len(self._atom_coord)<2:
@@ -299,7 +302,7 @@ class _step(object):
         at_c = np.array(self._atom_coord)
         cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
         n=np.zeros(3,'f')
-        v = self.get_vec()*self.get_celldm()
+        v = self.getVec()*self.getCellDim()
         off = [[(n,n)],                            #orig
                [(v[0],n)],                         #x
                [(v[1],n)],                         #y
@@ -308,7 +311,7 @@ class _step(object):
                [(v[0]+v[2],n),(v[0],v[2])],        #xz,x-z
                [(v[1]+v[2],n),(v[1],v[2])],        #yz,y-z
                [(v[0]+v[1]+v[2],n),(v[0]+v[1],v[2]),(v[0]+v[2],v[1]),(v[1]+v[2],v[0])]] #xyz,xy-z,x-yz,-xyz
-        self._bonds = set_bonds_c(at_c,cutoff,cutfac,off)
+        self._bonds = setBondsC(at_c,cutoff,cutfac,off)
         self._bond_cutfac=cutfac
         self._bonds_outdated=False
 
@@ -321,45 +324,45 @@ class _step(object):
 
         x,y,z -> Integer multipliers along corresponding vector
         """
-        self.init_undo()
+        self.initUndo()
         vec = self._vec*self._celldm
         mult = [x,y,z]
         for k in range(3):
-            nat = self.get_nat()
+            nat = self.nat
             self._atom_name.extend((mult[k]-1)*self._atom_name)
             self._atom_fix.extend((mult[k]-1)*self._atom_fix)
             self._atom_coord.extend((mult[k]-1)*self._atom_coord)
             for i in range(1,mult[k]):
                 for j in range(i*nat,(i+1)*nat):
                     self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
-        self.set_vec(self._vec*[[x],[y],[z]])
+        self.setVec(self._vec*[[x],[y],[z]])
         self._bonds_outdated=True
-        self.save_undo('multiply cell')
+        self.saveUndo('multiply cell')
 
     def crop(self):
         """Crop all atoms outside of cell"""
-        self.init_undo()
-        nat=self.get_nat()
+        self.initUndo()
+        nat=self.nat
         dellist = []
         for i in range(nat):
-            at=self.get_atom(i,'crystal')
+            at=self.getAtom(i,'crystal')
             if np.any(at[1]>1.000001) or np.any(at[1]<-0.000001) or np.any(np.isclose(at[1]-1,0,atol=1.e-6)):
                 dellist.append(i)
         dellist.reverse()
         for i in dellist:
-            self.del_atom(i)
+            self.delAtom(i)
         self._bonds_outdated=True
-        self.save_undo('crop atoms')
+        self.saveUndo('crop atoms')
 
     def wrap(self):
         """Wrap all atoms outside of cell to the inside"""
-        self.init_undo()
-        nat = self.get_nat()
+        self.initUndo()
+        nat = self.nat
         for i in range(nat):
-            at=self.get_atom(i,'crystal')
-            self.set_atom(i,at[0],at[1]%1,'crystal')
+            at=self.getAtom(i,'crystal')
+            self.setAtom(i,at[0],at[1]%1,'crystal')
         self._bonds_outdated=True
-        self.save_undo('wrap atoms')
+        self.saveUndo('wrap atoms')
 
     def reshape(self,newvec):
         """Reshape cell
@@ -377,10 +380,10 @@ class _step(object):
         while np.any(olddim*m<newdim):
             m+=1
         self.mult(m,m,m)
-        oldcenter=self.get_center()
-        self.set_vec(newvec)
-        newcenter=self.get_center()
-        for i in range(self.get_nat()):
+        oldcenter=self.getCenter()
+        self.setVec(newvec)
+        newcenter=self.getCenter()
+        for i in range(self.nat):
             self._atom_coord[i]+=newcenter-oldcenter
         self.crop()
 
@@ -400,13 +403,13 @@ class _step(object):
         else:
             raise ValueError('Align vectors: invalid direction!')
 
-        v = self.get_vec()[int(vec)]
+        v = self.getVec()[int(vec)]
         v = v/np.linalg.norm(v)
 
         if np.all(np.equal(abs(v),d)):
             return
 
-        self.init_undo()
+        self.initUndo()
         ax = np.cross(v,d)
         ax = ax/np.linalg.norm(ax)
         c = np.float(np.dot(v,d))
@@ -416,16 +419,16 @@ class _step(object):
         mat=np.array([[ic*ax[0]*ax[0]+c,ic*ax[0]*ax[1]-s*ax[2],ic*ax[0]*ax[2]+s*ax[1]],
                       [ic*ax[0]*ax[1]+s*ax[2],ic*ax[1]*ax[1]+c,ic*ax[1]*ax[2]-s*ax[0]],
                       [ic*ax[0]*ax[2]-s*ax[1],ic*ax[1]*ax[2]+s*ax[0],ic*ax[2]*ax[2]+c]],'f')
-        mat = np.array([np.dot(i,mat) for i in self.get_vec()])
-        self.set_vec(mat,scale=True)
+        mat = np.array([np.dot(i,mat) for i in self.getVec()])
+        self.setVec(mat,scale=True)
         self._bonds_outdated=True
-        self.save_undo('align cell')
+        self.saveUndo('align cell')
 
     #####################################################
     # VOLUME DATA FUNCTIONS
     #####################################################
 
-    def set_vol(self,dim,vol,off):
+    def setVol(self,dim,vol,off):
         """Set volume data
 
         dim -> list of dimension of data-grid
@@ -449,20 +452,20 @@ class _step(object):
                         j=0
                         i+=1
                         line=vol[i].split()
-        self._vol_grad = make_vol_gradient(self._vol)
+        self._vol_grad = makeVolGradient(self._vol)
 
-    def get_vol(self):
+    def getVol(self):
         """Return volume data if present"""
         if hasattr(self,'_vol'):
             return self._vol
         else:
             return None
 
-    def get_vol_offset(self):
+    def getVolOffset(self):
         """Return offset of volume data"""
         return self._vol_off
 
-    def get_vol_gradient(self):
+    def getVolGradient(self):
         """Return volume gradient"""
         return self._vol_grad
 
@@ -483,15 +486,15 @@ class _step(object):
         script=script.strip().replace('\n',' ')
         rep=1
         #dictionary returns closure containing target operation and argument-check
-        ops={'rot':self._evalArgs(self._rotate,'lavo'),
-                'shi':self._evalArgs(self._shift,'lv'),
+        ops={'rot':self._evalArgs(self.rotate,'lavo'),
+                'shi':self._evalArgs(self.shift,'lv'),
                 'def':self._evalArgs('define','ls'),
-                'mir':self._evalArgs(self._mirror,'lvvo'),
+                'mir':self._evalArgs(self.mirror,'lvvo'),
                 'rep':self._evalArgs('repeat','i'),
-                'psh':self._evalArgs(self._pshift,'lvll'),
-                'par':self._evalArgs(self._parallelize,'lll')}
+                'psh':self._evalArgs(self.pshift,'lvll'),
+                'par':self._evalArgs(self.parallelize,'lll')}
         stack=[]
-        self.init_undo()
+        self.initUndo()
         #check for errors, parse and prepare
         while script:
             try:
@@ -519,7 +522,7 @@ class _step(object):
         except StandardError as e:
             return e.message
         else:
-            self.save_undo('script')
+            self.saveUndo('script')
             return 'Success!'
 
     def _evalArgs(self,op,args):
@@ -599,9 +602,9 @@ class _step(object):
                         arg,arglist = getArg(arglist,')')
                         arg = eval(arg)
                         if len(arg)==4 and type(arg[3]) is str:
-                            arg = self._coord_to_bohr(arg[0:3],arg[3])
+                            arg = self._coordToBohr(arg[0:3],arg[3])
                         elif len(arg)==3:
-                            arg = self._coord_to_bohr(arg)
+                            arg = self._coordToBohr(arg)
                         else:
                             raise ValueError('Not a valid vector: '+str(arg))
                     #implicit vector
@@ -628,7 +631,7 @@ class _step(object):
             return res,arglist
         return evArgs
 
-    def _rotate(self,atoms,angle,ax,shift=np.zeros(3)):
+    def rotate(self,atoms,angle,ax,shift=np.zeros(3)):
         """Rotate group of atoms
 
         atoms -> list of atoms
@@ -650,7 +653,7 @@ class _step(object):
             self._atom_coord[i]=np.dot(self._atom_coord[i]-shift,mat)+shift
         self._bonds_outdated=True
 
-    def _shift(self,atoms,vector):
+    def shift(self,atoms,vector):
         """Shift group of atoms
 
         atoms -> list of atoms
@@ -660,7 +663,7 @@ class _step(object):
             self._atom_coord[i]+=np.array(vector,'f')
         self._bonds_outdated=True
 
-    def _mirror(self,atoms,v1,v2,shift=np.zeros(3)):
+    def mirror(self,atoms,v1,v2,shift=np.zeros(3)):
         """Mirror group of atoms
 
         atoms -> list of atoms
@@ -675,7 +678,7 @@ class _step(object):
             self._atom_coord[i]=pos-2*proj
         self._bonds_outdated=True
 
-    def _parallelize(self,atoms,p1,p2):
+    def parallelize(self,atoms,p1,p2):
         """Parallelize planes
 
         atoms -> list of atoms
@@ -702,10 +705,10 @@ class _step(object):
                 or np.isclose(angle,0,atol=1.e-6):
             return
         axis=np.cross(n1,n2)
-        self._rotate(atoms,angle,axis,p1[1])
+        self.rotate(atoms,angle,axis,p1[1])
 
-    def _pshift(self,atoms,vec,plane):
-        """Shift planes relatively
+    def pshift(self,atoms,vec,plane):
+        """Shift over plane
 
         atoms -> list of atoms
         vec -> shift vector
@@ -722,7 +725,7 @@ class _step(object):
         z=np.cross(x,t)
         z=z/np.linalg.norm(z)
         shift=np.dot(vec,[x,np.cross(x,z),z])
-        self._shift(atoms,shift)
+        self.shift(atoms,shift)
 
 class Molecule(_step):
     """
@@ -742,61 +745,61 @@ class Molecule(_step):
         """
         self.name = name
         self.pse=self._pse(pse)
-        self._dataStack=[_step(self.pse) for i in range(steps)]
+        self.steps=[_step(self.pse) for i in range(steps)]
         if steps:
-            self._dataPointer=0
+            self.curStep=0
         else:
-            self._dataPointer=None
+            self.curStep=None
         self._kpoints={'active':'gamma',\
                 'automatic':['1','1','1','0','0','0'],\
                 'disc':[]}
 
     def __len__(self):
-        return len(self._dataStack)
+        return len(self.steps)
 
     def newStep(self):
         """
         Create new step
         """
-        self._dataStack.append(_step(self.pse))
-        self.changeStep(len(self._dataStack)-1)
+        self.steps.append(_step(self.pse))
+        self.changeStep(len(self.steps)-1)
 
     def changeStep(self,num):
         """
         Select step 'num'
         """
-        self._dataPointer=num
+        self.curStep=num
 
-    def set_all_vec(self,vec,scale=False):
+    def setVecAll(self,vec,scale=False):
         """
         Set new cell-vectors for all included steps
         """
         if scale:
-            for step in self._dataStack:
-                step.set_vec(vec,scale)
+            for step in self.steps:
+                step.setVec(vec,scale)
         else:
             vec = np.array(vec,'f')
             vecinv = np.linalg.inv(self._vec)
-            for step in self._dataStack:
+            for step in self.steps:
                 step._vec = vec
                 step._vecinv = vecinv
                 step._bonds_outdated=True
 
-    def set_all_celldm(self,cdm,scale=False,fmt='bohr'):
+    def setCellDimAll(self,cdm,scale=False,fmt='bohr'):
         """
         Set new cell-dimension for all included steps
         """
         if scale:
-            for step in self._dataStack:
-                step.set_celldm(cdm,scale,fmt)
+            for step in self.steps:
+                step.setCellDim(cdm,scale,fmt)
         else:
             if fmt=='angstrom':
                 cdm=cdm*1.889726125
-            for step in self._dataStack:
+            for step in self.steps:
                 step._celldm = float(cdm)
                 step._bonds_outdated=True
 
-    def set_kpoints(self,mode,kpoints):
+    def setKpoints(self,mode,kpoints):
         """Set and modify active k-points
 
         mode -> str in [active,automatic,disc]
@@ -810,7 +813,7 @@ class Molecule(_step):
         else:
             self._kpoints[mode]=kpoints
 
-    def get_kpoints(self,mode):
+    def getKpoints(self,mode):
         """Return active k-points or k-point-settings"""
         if mode in ['crystal','tpiba','crystal_b','tpiba_b']:
             return self._kpoints['disc']
@@ -846,23 +849,10 @@ class Molecule(_step):
                         self[key]=deepcopy(self.cpse['X'])
             return super(Molecule._pse,self).__getitem__(key)
 
-_properties=['_atom_name',
-            '_atom_coord',
-            '_atom_fix',
-            '_bonds',
-            '_bond_cutfac',
-            '_bonds_outdated',
-            '_script_group',
-            '_selection',
-            '_celldm',
-            '_vec',
-            '_vecinv',
-            '_comment',
-            '_undo_stack',
-            '_undo_temp',]
+#add step-properties to container:
 for i in _properties:
     def getter(self,i=i):
-        return self._dataStack[self._dataPointer].__getattribute__(i)
+        return self.steps[self.curStep].__getattribute__(i)
     def setter(self,val,i=i):
-        self._dataStack[self._dataPointer].__setattr__(i,val)
+        self.steps[self.curStep].__setattr__(i,val)
     setattr(Molecule,i,property(getter,setter))

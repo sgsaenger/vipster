@@ -11,7 +11,7 @@ from json import load as _load,dump as _dump
 with open(_dirname(__file__)+'/default.json') as _f:
     default = _load(_f,object_pairs_hook=_ODict)
 try:
-    with open(_expanduser('~/.toolbox.json')) as _f:
+    with open(_expanduser('~/.vipster.json')) as _f:
         _cfile = _load(_f,object_pairs_hook=_ODict)
 except:
     from copy import deepcopy as _deepcopy

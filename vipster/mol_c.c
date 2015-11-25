@@ -119,8 +119,8 @@ static PyObject* make_vol_gradient(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef MolMethods[] = {
-    {"set_bonds_c", set_bonds, METH_VARARGS,"Calculate bonds inside the cell"},
-    {"make_vol_gradient", make_vol_gradient, METH_VARARGS,"Calculate gradient of grid-data"},
+    {"setBondsC", set_bonds, METH_VARARGS,"Calculate bonds inside the cell"},
+    {"makeVolGradient", make_vol_gradient, METH_VARARGS,"Calculate gradient of grid-data"},
     {NULL, NULL, 0, NULL}
 };
 

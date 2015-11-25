@@ -17,13 +17,13 @@ class Picker(QTextEdit):
         self.setMinimumHeight(150)
 
     def setMol(self,mol):
-        sel = mol.get_selection()
+        sel = mol.getSelection()
         if sel:
             at=[]
-            vec = mol.get_vec()*mol.get_celldm('angstrom')
+            vec = mol.getVec()*mol.getCellDim('angstrom')
             output =u'Atoms: '
             for j,i in enumerate(sel):
-                at.append(mol.get_atom(i[0],'angstrom'))
+                at.append(mol.getAtom(i[0],'angstrom'))
                 output+=str(i[0])+'('+at[j][0]+')'
                 if j<len(sel)-1:
                     output+=', '
