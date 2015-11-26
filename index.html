@@ -1,0 +1,222 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Vipster by hein09</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-dark.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/hein09/vipster">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/hein09/vipster/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/hein09/vipster/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Vipster</h1>
+          <p>Visualization of various molecular structure files.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/hein09">hein09</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a id="visual-periodic-structure-editor" class="anchor" href="#visual-periodic-structure-editor" aria-hidden="true"><span class="octicon octicon-link"></span></a><img src="vipster-icon.png" alt="vipster">VIsual Periodic STructure EditoR</h1>
+
+<p>Visualization of various molecular structure files.</p>
+
+<p>Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.</p>
+
+<h2>
+<a id="supported-file-types" class="anchor" href="#supported-file-types" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supported file types:</h2>
+
+<ul>
+<li>standard xyz</li>
+<li>Empire-xyz</li>
+<li>PWScf input/output</li>
+<li>Lammps data/custom-dump</li>
+<li>Gaussian cube</li>
+<li>AIMALL output</li>
+</ul>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation:</h2>
+
+<p>Install globally (requires root):</p>
+
+<pre><code>python setup.py install
+</code></pre>
+
+<p>Install only for yourself:</p>
+
+<pre><code>python setup.py install --user
+</code></pre>
+
+<p>Don't install, just prepare to work in directory:</p>
+
+<pre><code>python setup.py build_ext -i
+</code></pre>
+
+<h2>
+<a id="usage-gui" class="anchor" href="#usage-gui" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage (GUI):</h2>
+
+<p>Start without loading:</p>
+
+<pre><code>vipster
+</code></pre>
+
+<p>Supported cli-options:</p>
+
+<pre><code>vipster -h
+</code></pre>
+
+<p>The GUI should be pretty self-explanatory (or will be at some point...)</p>
+
+<h3>
+<a id="mouse" class="anchor" href="#mouse" aria-hidden="true"><span class="octicon octicon-link"></span></a>Mouse:</h3>
+
+<p><strong>Camera mode</strong> (R):
+Left-click: Rotate rotate
+Middle-click: Move camera
+Right-click: Align camera to z-axis</p>
+
+<p><strong>Select mode</strong> (S):
+Left-click: Add/Remove atom to selection
+Right-click: Clear selection</p>
+
+<p><strong>Modify mode</strong> (M):
+Left-click: Rotate atoms around center of selection/center of molecule/clicked atom
+Middle-click: Shift atoms in xy-plane (camera)
+Right-click: Shift atoms along z-axis (camera)</p>
+
+<h3>
+<a id="tools" class="anchor" href="#tools" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tools:</h3>
+
+<p><strong>Pick:</strong></p>
+
+<p>Displays information for selected atoms</p>
+
+<p><strong>Script:</strong></p>
+
+<p>Interface for more complex actions:</p>
+
+<ul>
+<li>
+<strong>def</strong>ine (list) name: define a named group of atoms</li>
+<li>
+<strong>rep</strong>eat num: repeat the following operation num times</li>
+<li>
+<strong>shi</strong>ft (list) (vec): shift the given list of atoms along a given direction</li>
+<li>
+<strong>rot</strong>ate (list) angle (vec) (shift): rotates around vector vec with offset shift</li>
+<li>
+<strong>mir</strong>ror (list) (vec1) (vec2) (shift): mirrors at a plane given by the vectors 1 and 2, offset by shift</li>
+<li>
+<strong>par</strong>allelize (list1) (list2) (list3): list2 defines plane in list1, rotate list1 so that planes defined by l2 and l3 are parallel</li>
+<li>
+<strong>psh</strong>ift (list1) (vec) (list2) (list3): shift list1 according to vec over surface/plane list3</li>
+</ul>
+
+<p>Arguments can be given as follows:</p>
+
+<p>(list) of atoms can be either:</p>
+
+<ul>
+<li>'all'</li>
+<li>'sel': selected atoms</li>
+<li>defined name</li>
+<li>single index: idx/[idx]</li>
+<li>range: i1-i2/[i1-i2]</li>
+<li>explicit list: [i1,i2,i3,i4-i5]</li>
+</ul>
+
+<p>mandatory vector (vec) or optional vector (shift) can be one of:</p>
+
+<ul>
+<li>position vector of atom: (-)idx</li>
+<li>path between atoms: i1-i2</li>
+<li>explicit vector in bohr: (x,y,z)</li>
+<li>explicit vector in other formats: (x,y,z,'format')
+with format being one of bohr,angstrom,crystal,alat</li>
+</ul>
+
+<p><strong>Cell Mod.:</strong></p>
+
+<ul>
+<li>Wrap Atoms back to cell</li>
+<li>Crop Atoms outside of cell</li>
+<li>Permanently multiply unit cell</li>
+<li>Reshape the cell (BEWARE! Can mess up the structure! It's your responsibility to choose correct vectors!)</li>
+<li>Align cell vectors with coordinate axes</li>
+</ul>
+
+<p><strong>Plane:</strong></p>
+
+<p>Display either:</p>
+
+<ul>
+<li>Crystal Plane: Plane given by miller indices. Cell is (fixed) reference frame.</li>
+<li>Volume Slice: Heatmap visualization of volume data</li>
+</ul>
+
+<p><strong>Volume:</strong></p>
+
+<p>Display isosurface generated by chosen threshold.</p>
+
+<h2>
+<a id="usage-cliscripts" class="anchor" href="#usage-cliscripts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage (CLI,Scripts):</h2>
+
+<p>Import in Python:</p>
+
+<pre><code>from vipster import *
+</code></pre>
+
+<p>Main interface then consists of:</p>
+
+<ul>
+<li>Molecule: Main data-container, all methods to modify structure/cell, trajectories</li>
+<li>readFile/writeFile: load/save Data according to inFormats, outFormats</li>
+</ul>
+
+<p>Gui can be interfaced through:</p>
+
+<ul>
+<li>launchVipster: launch GUI, takes molecule/parameter lists as arguments</li>
+<li>GuiMolecules/GuiParameters: fallback if launchVipster receives no arguments</li>
+</ul>
+
+<p>Advanced interface:</p>
+
+<ul>
+<li>config/pse: active settings/global-pse (from ~/.vipster.json if present)</li>
+<li>default: fallback values (from distributed default.json)</li>
+<li>saveConfig: save current config to ~/.vipster.json</li>
+<li>newParam: create new parameter sets (PWScf/Lammps)</li>
+</ul>
+
+<p>See also <code>help()</code> and <code>dir()</code> functions in python</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
