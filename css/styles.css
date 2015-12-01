@@ -2,23 +2,30 @@ body{
     font-family: "Open Sans", sans-serif;
     padding-top:70px;
     background: #222;
-    color: #777;
+    color: #BBB;
 }
 header{
     font-family: "Satisfy", sans-serif;
     text-align:center;
+    padding-bottom: 70px;
 }
 h1{
     font-size:54px;
 }
-.navbar-brand{
-    font-family: "Satisfy",sans-serif;
-}
 .navbar{
     background: #333;
-    border-color: #555;
+}
+.navbar-brand{
+    font-family: "Satisfy",sans-serif;
 }
 #logo{
     max-width: 30%;
     height:auto;
+}
+#cover{
+    font-size:20px;
+    text-align:center
+}
+code{
+    background: #333;
 }

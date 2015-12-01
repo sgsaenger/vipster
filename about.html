@@ -22,7 +22,7 @@
                 </div>
                 <div class="collapse navbar-collapse">
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="about.html">About</a></li>
+                        <li class="active"><a href="#">About</a></li>
                         <li><a href="#">GUI</a></li>
                         <li><a href="#">CLI</a></li>
                         <li><a href="download.html">Get It!</a></li>
@@ -30,23 +30,32 @@
                 </div>
             </div>
         </nav>
-        <header class="container">
-            <img id="logo" src="vipster.png" alt="logo" width="645" height="501">
-            <h1>
-            Vipster</h1>
-            <h2>
-                Visual Periodic STructure EditoR
-            </h2>
-        </header>
-        <main id="cover" class="container">
-            <div class="row">
-                <div class="col-sm-2"></div>
-                <div class="col-sm-8"><p>Vipster is a Python-based tool for reading/modifying molecular structures.
-                It offers a simple Python-class that exposes necessary interfaces to different types of data
-                and an easy-to-use graphical Interface</p>
-                <a class="btn btn-default" href="about.html">Learn more!</a> </div>
-                <div class="col-sm-2"></div>
+        <main class="container">
+        <div class="row">
+            <div class="col-md-4 col-lg-6">
+                <p>Vipster offers help in both editing and visualizing 
+                chemical data. A standalone executable script is provided,
+                which directly launches the graphical interface, where
+                data can be pre- and post-processed.</p>
+                <p>Additionally, it can be loaded from within the Python-interpreter
+                or a script via <code>from vipster include *</code>, which exposes
+                among other the <code>Molecule</code> class, which is the main data container,
+                and the <code>readFile</code> and <code>launchVipster</code> functions,
+                which offer I/O- and GUI-capabilities.</p>
+                <p>Various file types are supported:</p>
+                <ul>
+                    <li>standard xyz</li>
+                    <li>Empire-xyz</li>
+                    <li>PWScf input/output</li>
+                    <li>Lammps data/custom-dump</li>
+                    <li>Gaussian cube</li>
+                    <li>AIMALL output</li>
+                </ul>
             </div>
+            <div class="col-md-8 col-lg-6">
+                <img class="img-responsive" src="screenshot.png" alt="screenshot" width="1298" height="964">
+            </div>
+        </div>
         </main>
     </body>
 </html>

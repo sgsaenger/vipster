@@ -25,28 +25,26 @@
                         <li><a href="about.html">About</a></li>
                         <li><a href="#">GUI</a></li>
                         <li><a href="#">CLI</a></li>
-                        <li><a href="download.html">Get It!</a></li>
+                        <li class="active"><a href="#">Get It!</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
-        <header class="container">
-            <img id="logo" src="vipster.png" alt="logo" width="645" height="501">
-            <h1>
-            Vipster</h1>
-            <h2>
-                Visual Periodic STructure EditoR
-            </h2>
-        </header>
-        <main id="cover" class="container">
-            <div class="row">
-                <div class="col-sm-2"></div>
-                <div class="col-sm-8"><p>Vipster is a Python-based tool for reading/modifying molecular structures.
-                It offers a simple Python-class that exposes necessary interfaces to different types of data
-                and an easy-to-use graphical Interface</p>
-                <a class="btn btn-default" href="about.html">Learn more!</a> </div>
-                <div class="col-sm-2"></div>
-            </div>
+        <main class="container">
+            <h3>Download:</h3>
+            <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
+
+            <h3>Installation:</h3>
+            <p>Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.</p>
+            <ul class="list-unstyled">
+                <li>Install globally (requires root):</li>
+                <li><code>python setup.py install</code></li>
+                <li>Install only for yourself:</li>
+                <li><code>python setup.py install --user</code></li>
+                <li>Don't install, just prepare to work in directory:</li>
+                <li><code>python setup.py build_ext -i</code></li>
+            </ul>
         </main>
     </body>
 </html>
