@@ -19,8 +19,15 @@
                     <a class="navbar-brand" href="index.html">
                             Vipster
                     </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
                 </div>
-                <div class="collapse navbar-collapse">
+                <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
                         <li class="active"><a href="#">About</a></li>
                         <li><a href="#">GUI</a></li>
@@ -31,31 +38,37 @@
             </div>
         </nav>
         <main class="container">
-        <div class="row">
-            <div class="col-md-4 col-lg-6">
-                <p>Vipster offers help in both editing and visualizing 
-                chemical data. A standalone executable script is provided,
-                which directly launches the graphical interface, where
-                data can be pre- and post-processed.</p>
-                <p>Additionally, it can be loaded from within the Python-interpreter
-                or a script via <code>from vipster include *</code>, which exposes
-                among other the <code>Molecule</code> class, which is the main data container,
-                and the <code>readFile</code> and <code>launchVipster</code> functions,
-                which offer I/O- and GUI-capabilities.</p>
-                <p>Various file types are supported:</p>
-                <ul>
-                    <li>standard xyz</li>
-                    <li>Empire-xyz</li>
-                    <li>PWScf input/output</li>
-                    <li>Lammps data/custom-dump</li>
-                    <li>Gaussian cube</li>
-                    <li>AIMALL output</li>
-                </ul>
+            <div class="row">
+                <div class="col-md-4 col-lg-6">
+                    <p>Vipster offers help in both editing and visualizing
+                    chemical data. A standalone executable script is provided,
+                    which directly launches the graphical interface, where
+                    data can be pre- and post-processed.</p>
+                    <p>Additionally, it can be loaded from within the Python-interpreter
+                    or a script via <code>from vipster include *</code>, which exposes
+                    among other the <code>Molecule</code> class, which is the main data container,
+                    and the <code>readFile</code> and <code>launchVipster</code> functions,
+                    which offer I/O- and GUI-capabilities.</p>
+                    <p>Various file types are supported:</p>
+                    <ul>
+                        <li>standard xyz</li>
+                        <li>Empire-xyz</li>
+                        <li>PWScf input/output</li>
+                        <li>Lammps data/custom-dump</li>
+                        <li>Gaussian cube</li>
+                        <li>AIMALL output</li>
+                    </ul>
+                </div>
+                <div class="col-md-8 col-lg-6">
+                    <img class="img-responsive" src="screenshot.png" alt="screenshot" width="1298" height="964">
+                </div>
             </div>
-            <div class="col-md-8 col-lg-6">
-                <img class="img-responsive" src="screenshot.png" alt="screenshot" width="1298" height="964">
-            </div>
-        </div>
         </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https:/github.com/hein09/vipster">GitHub</a></p>
+            </div>
+        </footer>
     </body>
 </html>

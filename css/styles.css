@@ -1,13 +1,17 @@
+html{
+    position: relative;
+    min-height: 100%;
+}
 body{
     font-family: "Open Sans", sans-serif;
     padding-top:70px;
     background: #222;
     color: #BBB;
+    margin-bottom: 60px;
 }
 header{
     font-family: "Satisfy", sans-serif;
     text-align:center;
-    padding-bottom: 70px;
 }
 h1{
     font-size:54px;
@@ -27,5 +31,14 @@ h1{
     text-align:center
 }
 code{
+    background: #333;
+}
+.footer{
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    height: 60px;
+}
+.jumbotron{
     background: #333;
 }

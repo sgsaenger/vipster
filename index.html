@@ -19,8 +19,15 @@
                     <a class="navbar-brand" href="index.html">
                             Vipster
                     </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
                 </div>
-                <div class="collapse navbar-collapse">
+                <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="about.html">About</a></li>
                         <li><a href="#">GUI</a></li>
@@ -31,12 +38,14 @@
             </div>
         </nav>
         <header class="container">
-            <img id="logo" src="vipster.png" alt="logo" width="645" height="501">
-            <h1>
-            Vipster</h1>
-            <h2>
-                Visual Periodic STructure EditoR
-            </h2>
+            <div class="jumbotron">
+                <img id="logo" src="vipster.png" alt="logo" width="645" height="501">
+                <h1>
+                Vipster</h1>
+                <h2>
+                    Visual Periodic STructure EditoR
+                </h2>
+            </div>
         </header>
         <main id="cover" class="container">
             <div class="row">
@@ -48,5 +57,11 @@
                 <div class="col-sm-2"></div>
             </div>
         </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https:/github.com/hein09/vipster">GitHub</a></p>
+            </div>
+        </footer>
     </body>
 </html>
