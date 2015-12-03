@@ -184,7 +184,7 @@ def writer(mol,f,param,coordfmt):
                 moleculeid[at]=i
     #write header:
     f.write('\n'+str(mol.nat)+' atoms\n')
-    f.write(str(mol.get_ntyp())+' atom types\n')
+    f.write(str(mol.ntyp)+' atom types\n')
     if param["bonds"] and bondlist:
         f.write(str(len(bondlist))+' bonds\n')
         f.write(str(len(bondtypelist))+' bond types\n')

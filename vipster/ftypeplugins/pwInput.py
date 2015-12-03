@@ -213,7 +213,7 @@ def writer(mol,f,param,coordfmt):
         #write all parameters
         if i == '&system':
             f.write(' nat='+str(mol.nat)+'\n')
-            f.write(' ntyp='+str(mol.get_ntyp())+'\n')
+            f.write(' ntyp='+str(mol.ntyp)+'\n')
             f.write(' celldm(1)='+str(mol.getCellDim())+'\n')
         for j in range(len(param[i])):
             f.write(' '+param[i].keys()[j]+'='+param[i].values()[j]+'\n')
