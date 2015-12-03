@@ -216,13 +216,13 @@ def writer(mol,f,param,coordfmt):
             f.write(' ntyp='+str(mol.ntyp)+'\n')
             f.write(' celldm(1)='+str(mol.getCellDim())+'\n')
         for j in range(len(param[i])):
-            f.write(' '+param[i].keys()[j]+'='+param[i].values()[j]+'\n')
+            f.write(' '+list(param[i].keys())[j]+'='+list(param[i].values())[j]+'\n')
         f.write('/\n\n')
     #&ions only when needed
     if '&ions' in param:
         f.write('&ions'+'\n')
         for j in range(len(param['&ions'])):
-            f.write(' '+param['&ions'].keys()[j]+'='+param['&ions'].values()[j]+'\n')
+            f.write(' '+list(param['&ions'].keys())[j]+'='+list(param['&ions'].values())[j]+'\n')
         f.write('/\n\n')
     elif param['&control']['calculation'] in ["'relax'","'vc-relax'","'md'","'vc-md'"]:
         raise KeyError('&ions namelist required, but not present')
@@ -230,7 +230,7 @@ def writer(mol,f,param,coordfmt):
     if '&cell' in param:
         f.write('&cell'+'\n')
         for j in range(len(param['&cell'])):
-            f.write(' '+param['&cell'].keys()[j]+'='+param['&cell'].values()[j]+'\n')
+            f.write(' '+list(param['&cell'].keys())[j]+'='+list(param['&cell'].values())[j]+'\n')
         f.write('/\n\n')
     elif param['&control']['calculation'] in ["'vc-relax'","'vc-md'"]:
         raise KeyError('&cell namelist required, but not present')
