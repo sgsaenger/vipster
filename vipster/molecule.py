@@ -191,8 +191,11 @@ class _step(object):
         return self._comment
 
     def getTypes(self):
-        """Return types of atoms"""
-        return set(self._atom_name)
+        """Return types of atoms
+
+        sorted by atomic number
+        """
+        return sorted(set(self._atom_name), key=lambda n: self.pse[n]["Z"])
 
     ntyp = property(lambda self: len(set(self._atom_name)))
 
