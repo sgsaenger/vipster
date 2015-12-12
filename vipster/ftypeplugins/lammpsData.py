@@ -71,7 +71,6 @@ def parser(name,data):
             for j in range(1,nargs):
                 try:
                     int(atomlist[0][j])
-                    print('int found in column ',j)
                 except:
                     continue
                 atomids = sorted(set([int(k[j]) for k in atomlist]))
