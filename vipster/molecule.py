@@ -631,7 +631,7 @@ class _step(object):
             return res,arglist
         return evArgs
 
-    def rotate(self,atoms,angle,ax,shift=np.zeros(3)):
+    def rotate(self,atoms,angle,ax,shift=np.zeros(3,'f')):
         """Rotate group of atoms
 
         atoms -> list of atoms
@@ -663,7 +663,7 @@ class _step(object):
             self._atom_coord[i]+=np.array(vector,'f')
         self._bonds_outdated=True
 
-    def mirror(self,atoms,v1,v2,shift=np.zeros(3)):
+    def mirror(self,atoms,v1,v2,shift=np.zeros(3,'f')):
         """Mirror group of atoms
 
         atoms -> list of atoms
