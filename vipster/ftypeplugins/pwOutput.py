@@ -44,13 +44,14 @@ def parser(name,data):
             gamma=True
         elif line[0:3] == ['number','of','k'] and not gamma:
             nk = int(line[4])
-            kpoints=[]
-            for j in range(i+2,i+nk+2):
-                kp = data[j].split()
-                kpoints.append([kp[4],kp[5],kp[6].strip('),'),kp[9]])
-            tmol.setKpoints('tpiba',kpoints)
-            tmol.setKpoints('active','tpiba')
-            i+=nk
+            if nk < 100:
+                kpoints=[]
+                for j in range(i+2,i+nk+2):
+                    kp = data[j].split()
+                    kpoints.append([kp[4],kp[5],kp[6].strip('),'),kp[9]])
+                tmol.setKpoints('tpiba',kpoints)
+                tmol.setKpoints('active','tpiba')
+                i+=nk
         #read step-vectors if cell is variable
         elif line[0] == 'CELL_PARAMETERS':
             for j in [0,1,2]:
