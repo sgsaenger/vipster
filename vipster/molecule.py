@@ -70,15 +70,15 @@ class _step(object):
     # SET FUNCTIONS
     ######################################################
 
-    def setAtom(self,index,name,coord,fmt,fix=[1,1,1]):
+    def setAtom(self,index=None,name=None,coord=None,fmt='bohr',fix=None):
         """Modify a given atom
 
         index -> atom id
         rest -> new properties
         """
-        self._atom_name[index]=name
-        self._atom_coord[index]=self._coordToBohr(coord,fmt)
-        self._atom_fix[index]=fix
+        if name: self._atom_name[index]=name
+        if coord!=None: self._atom_coord[index]=self._coordToBohr(coord,fmt)
+        if fix: self._atom_fix[index]=fix
         self._bonds_outdated=True
 
     def setComment(self,comment):
@@ -170,9 +170,9 @@ class _step(object):
         else:
             return self._celldm
 
-    def getAtoms(self):
+    def getAtoms(self,fmt='bohr'):
         """Return names and coordinates (bohr) for all atoms"""
-        return list(zip(self._atom_name,self._atom_coord))
+        return list(zip(self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)))
 
     def getAtom(self,index,fmt='bohr'):
         """Return one atom
@@ -459,10 +459,7 @@ class _step(object):
 
     def getVol(self):
         """Return volume data if present"""
-        if hasattr(self,'_vol'):
-            return self._vol
-        else:
-            return None
+        return self._vol
 
     def getVolOffset(self):
         """Return offset of volume data"""
@@ -634,7 +631,7 @@ class _step(object):
             return res,arglist
         return evArgs
 
-    def rotate(self,atoms,angle,ax,shift=np.zeros(3)):
+    def rotate(self,atoms,angle,ax,shift=np.zeros(3,'f')):
         """Rotate group of atoms
 
         atoms -> list of atoms
@@ -666,7 +663,7 @@ class _step(object):
             self._atom_coord[i]+=np.array(vector,'f')
         self._bonds_outdated=True
 
-    def mirror(self,atoms,v1,v2,shift=np.zeros(3)):
+    def mirror(self,atoms,v1,v2,shift=np.zeros(3,'f')):
         """Mirror group of atoms
 
         atoms -> list of atoms
