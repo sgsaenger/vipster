@@ -31,33 +31,22 @@
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="about.html">About</a></li>
                         <li><a href="#">GUI</a></li>
-                        <li class="dropdown">
+                        <li class="dropdown active">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="cli.html">Vipster</a></li>
-                                <li><a href="molecule.html">Molecule</a></li>
+                                <li class="active"><a href="#">Molecule</a></li>
                             </ul>
                         </li>
-                        <li class="active"><a href="#">Get It!</a></li>
+                        <li><a href="download.html">Get It!</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
         <main class="container">
-            <h3>Download:</h3>
-            <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
-
-            <h3>Installation:</h3>
-            <p>Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.</p>
-            <ul class="list-unstyled">
-                <li>Install globally (requires root):</li>
-                <li><code>python setup.py install</code></li>
-                <li>Install only for yourself:</li>
-                <li><code>python setup.py install --user</code></li>
-                <li>Don't install, just prepare to work in directory:</li>
-                <li><code>python setup.py build_ext -i</code></li>
-            </ul>
+        <p>The <code>vipster.Molecule</code> class is the main data container of Vipster.</p>
+        <p>It is the interface to one or multiple instances of <code>vipster._step</code>, depending on whether a single configuration or a trajectory needs to be represented.
+        The access to the data can happen either transparently (via the <code>Molecule</code>'s members and the active <code>Molecule.curStep</code>) or by accessing the elements of <code>Molecule.steps</code> directly.</p>
         </main>
         <footer class="footer">
             <div class="container">
