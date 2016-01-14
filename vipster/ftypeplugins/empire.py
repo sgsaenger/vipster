@@ -11,7 +11,7 @@ def parser(name,data):
     """ Parse Empire specific xyz file """
     tmol = Molecule(name)
     nat=int(data[0])
-    tmol.setComment(data[1].strip())
+    tmol.comment = data[1].strip()
     for j in range(2,nat+2):
         line=data[j].split()
         tmol.newAtom(line[0],line[1:4],'angstrom')

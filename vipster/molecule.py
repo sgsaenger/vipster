@@ -21,7 +21,7 @@ _properties={'_atom_name':[],
         '_vol':None,
         '_vol_grad':None,
         '_vol_off':None,
-        '_comment':'',
+        'comment':'',
         '_undo_stack':[],
         '_undo_temp':[],}
 
@@ -33,7 +33,7 @@ class _step(object):
     Atom symbols/coordinates (_atom_name/_atom_coord)
     Bonds between atoms (generated when requested) (_bonds)
     List of fixed atoms in PWScf calculation (_atom_fix)
-    XYZ comment line (_comment)
+    XYZ comment line (comment)
     Cube-style volume data (_vol)
     Cell geometry (_celldm/_vec)
     """
@@ -80,10 +80,6 @@ class _step(object):
         if coord!=None: self._atom_coord[index]=self._coordToBohr(coord,fmt)
         if fix: self._atom_fix[index]=fix
         self._bonds_outdated=True
-
-    def setComment(self,comment):
-        """Specify xyz comment line"""
-        self._comment = comment
 
     def setCellDim(self,cdm,scale=False,fmt='bohr'):
         """Set new cell-dimension
@@ -185,10 +181,6 @@ class _step(object):
     def getVec(self):
         """Return cell-vectors"""
         return self._vec
-
-    def getComment(self):
-        """Return xyz-comment"""
-        return self._comment
 
     def getTypes(self):
         """Return types of atoms
