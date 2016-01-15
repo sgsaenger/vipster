@@ -22,6 +22,7 @@ _properties={'_atom_name':[],
         '_vol_grad':None,
         '_vol_off':None,
         'comment':'',
+        '_undo_count':0,
         '_undo_stack':[],
         '_undo_temp':[],}
 
@@ -211,17 +212,23 @@ class _step(object):
 
         Will be passed to undo-stack if needed
         """
-        self._undo_temp=[\
-                deepcopy(self._atom_name),\
-                deepcopy(self._atom_coord),\
-                deepcopy(self._atom_fix)]
+        if not self._undo_count:
+            self._undo_temp=[\
+                    deepcopy(self._atom_name),\
+                    deepcopy(self._atom_coord),\
+                    deepcopy(self._atom_fix),
+                    deepcopy(self._celldm),
+                    deepcopy(self._vec)]
+        self._undo_count+=1
 
     def saveUndo(self,name):
         """Put temp-save on stack
 
         name -> name of action to reverse
         """
-        self._undo_stack.append([name]+self._undo_temp)
+        self._undo_count-=1
+        if not self._undo_count:
+            self._undo_stack.append([name]+self._undo_temp)
 
     def getUndo(self):
         """Return name of last undo, None otherwise"""
@@ -236,7 +243,7 @@ class _step(object):
         Pop atom infos from stack if present
         """
         if not self._undo_stack: return
-        _,self._atom_name,self._atom_coord,self._atom_fix=self._undo_stack.pop()
+        _,self._atom_name,self._atom_coord,self._atom_fix,self._celldm,self._vec=self._undo_stack.pop()
         self._selection=[]
         self._bonds_outdated=True
 
@@ -368,6 +375,7 @@ class _step(object):
         bulk-material with given geometry.
         PBC must be manually conserved!
         """
+        self.initUndo()
         self.wrap()
         newdim=abs(np.array(newvec)).sum(0)
         olddim=abs(self._vec).sum(0)
@@ -381,6 +389,7 @@ class _step(object):
         for i in range(self.nat):
             self._atom_coord[i]+=newcenter-oldcenter
         self.crop()
+        self.saveUndo('reshape cell')
 
     def align(self,vec,direc):
         """Align cell vectors
@@ -486,7 +495,6 @@ class _step(object):
                 'psh':self._evalArgs(self.pshift,'lvll'),
                 'par':self._evalArgs(self.parallelize,'lll')}
         stack=[]
-        self.initUndo()
         #check for errors, parse and prepare
         while script:
             try:
@@ -509,9 +517,11 @@ class _step(object):
         self._script_group={}
         #if everything went well, execute operations
         try:
+            self.initUndo()
             for op in stack:
                 op[0](*op[1:])
         except StandardError as e:
+            self._undo_count=0
             return e.message
         else:
             self.saveUndo('script')
@@ -631,6 +641,7 @@ class _step(object):
         ax -> rotation-axis
         shift -> optional vector shifting the rotation-axis
         """
+        self.initUndo()
         angle=np.radians(angle)
         c=np.float(np.cos(angle))
         s=np.float(-np.sin(angle))
@@ -644,6 +655,7 @@ class _step(object):
         for i in atoms:
             self._atom_coord[i]=np.dot(self._atom_coord[i]-shift,mat)+shift
         self._bonds_outdated=True
+        self.saveUndo('rotate atoms')
 
     def shift(self,atoms,vector):
         """Shift group of atoms
@@ -651,9 +663,11 @@ class _step(object):
         atoms -> list of atoms
         vector -> shift-vector
         """
+        self.initUndo()
         for i in atoms:
             self._atom_coord[i]+=np.array(vector,'f')
         self._bonds_outdated=True
+        self.saveUndo('shift atoms')
 
     def mirror(self,atoms,v1,v2,shift=np.zeros(3,'f')):
         """Mirror group of atoms
@@ -662,6 +676,7 @@ class _step(object):
         v1,v2 -> vectors defining the plane
         shift -> optional vector shifting the mirror-plane
         """
+        self.initUndo()
         normal=np.cross(v1,v2)
         normal=normal/np.linalg.norm(normal)
         for i in atoms:
@@ -669,6 +684,7 @@ class _step(object):
             proj = np.dot(pos-shift,normal)*normal
             self._atom_coord[i]=pos-2*proj
         self._bonds_outdated=True
+        self.saveUndo('mirror atoms')
 
     def parallelize(self,atoms,p1,p2):
         """Parallelize planes
@@ -678,6 +694,7 @@ class _step(object):
               second element is static point of reference
         p2 -> plane on surface/static target
         """
+        self.initUndo()
         if len(p1)!=3:
             raise ValueError('Mobile plane not valid')
         if len(p2)!=3:
@@ -698,6 +715,7 @@ class _step(object):
             return
         axis=np.cross(n1,n2)
         self.rotate(atoms,angle,axis,p1[1])
+        self.saveUndo('parallelize planes')
 
     def pshift(self,atoms,vec,plane):
         """Shift over plane
@@ -709,6 +727,7 @@ class _step(object):
         pl -> plane on surface/static target
               pl[0]-pl[1] give x-coordinate
         """
+        self.initUndo()
         if len(pl)!=3:
             raise ValueError('Static plane not valid')
         pl=[self._atom_coord[i] for i in p2]
@@ -718,6 +737,7 @@ class _step(object):
         z=z/np.linalg.norm(z)
         shift=np.dot(vec,[x,np.cross(x,z),z])
         self.shift(atoms,shift)
+        self.saveUndo('shift over plane')
 
 class Molecule(_step):
     """
