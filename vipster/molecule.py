@@ -487,13 +487,13 @@ class _step(object):
         script=script.strip().replace('\n',' ')
         rep=1
         #dictionary returns closure containing target operation and argument-check
-        ops={'rot':self._evalArgs(self.rotate,'lavo'),
-                'shi':self._evalArgs(self.shift,'lv'),
-                'def':self._evalArgs('define','ls'),
-                'mir':self._evalArgs(self.mirror,'lvvo'),
-                'rep':self._evalArgs('repeat','i'),
-                'psh':self._evalArgs(self.pshift,'lvll'),
-                'par':self._evalArgs(self.parallelize,'lll')}
+        ops={'rot':self._evalOperator(self.rotate,'lavo'),
+                'shi':self._evalOperator(self.shift,'lv'),
+                'def':self._evalOperator('define','ls'),
+                'mir':self._evalOperator(self.mirror,'lvvo'),
+                'rep':self._evalOperator('repeat','i'),
+                'psh':self._evalOperator(self.pshift,'lvll'),
+                'par':self._evalOperator(self.parallelize,'lll')}
         stack=[]
         #check for errors, parse and prepare
         while script:
@@ -527,14 +527,14 @@ class _step(object):
             self.saveUndo('script')
             return 'Success!'
 
-    def _evalArgs(self,op,args):
+    def _evalOperator(self,op,args):
         """Evaluate script-op-arguments
 
         op -> Given operator
         args -> required arguments for operator
         retval -> closure for evaluation of given arguments
         """
-        def getArg(arglist,sep=' '):
+        def getToken(arglist,sep=' '):
             arglist = arglist.split(sep,1)
             arg = arglist[0]
             if sep!=' ':
@@ -545,14 +545,14 @@ class _step(object):
                 rest = ''
             return arg,rest
 
-        def evArgs(arglist):
+        def evalOpTokens(arglist):
             res = [op]
             for t in args:
                 #list of atoms
                 if t == 'l':
                     #list of indices
                     if arglist[0] == '[':
-                        arg,arglist=getArg(arglist,']')
+                        arg,arglist=getToken(arglist,']')
                         arg = arg.strip('[]').split(',')
                         l=[]
                         for j in arg:
@@ -567,7 +567,7 @@ class _step(object):
                             raise IndexError('Atom index out of range')
                         res.append(l)
                     else:
-                        arg,arglist = getArg(arglist)
+                        arg,arglist = getToken(arglist)
                         #reference to definition
                         if arg.isalpha():
                             if arg == 'all':
@@ -584,15 +584,15 @@ class _step(object):
                             res.append(range(int(low),int(high)+1))
                 #angle
                 elif t == 'a':
-                    arg,arglist=getArg(arglist)
+                    arg,arglist=getToken(arglist)
                     res.append(float(arg))
                 #index for loops
                 elif t == 'i':
-                    arg,arglist=getArg(arglist)
+                    arg,arglist=getToken(arglist)
                     res.append(int(arg))
                 #arbitrary names for defined groups
                 elif t == 's':
-                    arg,arglist=getArg(arglist)
+                    arg,arglist=getToken(arglist)
                     res.append(arg)
                 #valid vector for operations
                 elif t in 'vo':
@@ -601,7 +601,7 @@ class _step(object):
                         continue
                     #explicit vector
                     if arglist[0] == '(':
-                        arg,arglist = getArg(arglist,')')
+                        arg,arglist = getToken(arglist,')')
                         arg = eval(arg)
                         if len(arg)==4 and type(arg[3]) is str:
                             arg = self._coordToBohr(arg[0:3],arg[3])
@@ -611,7 +611,7 @@ class _step(object):
                             raise ValueError('Not a valid vector: '+str(arg))
                     #implicit vector
                     elif arglist[0].isdigit():
-                        arg,arglist = getArg(arglist)
+                        arg,arglist = getToken(arglist)
                         #difference between atoms
                         if '-' in arg:
                             arg=arg.split('-')
@@ -621,7 +621,7 @@ class _step(object):
                             arg=np.array(self._atom_coord[int(arg)])
                     #implicit negative vector
                     elif arglist[0]=='-':
-                        arg,arglist = getArg(arglist)
+                        arg,arglist = getToken(arglist)
                         arg=np.array(-self._atom_coord[int(arg[1:])])
                     #fail when not a vector and vector needed
                     elif t=='v':
@@ -631,7 +631,7 @@ class _step(object):
                         continue
                     res.append(arg)
             return res,arglist
-        return evArgs
+        return evalOpTokens
 
     def rotate(self,atoms,angle,ax,shift=np.zeros(3,'f')):
         """Rotate group of atoms
