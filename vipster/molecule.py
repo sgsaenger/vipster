@@ -221,7 +221,7 @@ class _step(object):
                     deepcopy(self._vec)]
         self._undo_count+=1
 
-    def saveUndo(self,name):
+    def saveUndo(self,name=''):
         """Put temp-save on stack
 
         name -> name of action to reverse
