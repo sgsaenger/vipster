@@ -145,7 +145,11 @@ class MainWidget(QWidget):
             self.Step.setTickPosition(self.Step.TicksBelow)
             self.Step.setSingleStep(1)
             self.Step.valueChanged.connect(self.updateMolStep)
-            self.curStep = QLabel("1")
+            self.curStep = QLineEdit("1")
+            self.curStep.editingFinished.connect(self.updateMolStep)
+            self.stepRange = QIntValidator()
+            self.stepRange.setBottom(1)
+            self.curStep.setValidator(self.stepRange)
             self.maxStep = QLabel("1")
             self.xspin.valueChanged.connect(self.updateMult)
             self.yspin.valueChanged.connect(self.updateMult)
@@ -180,7 +184,9 @@ class MainWidget(QWidget):
             steps.addWidget(firstBut)
             steps.addWidget(decBut)
             steps.addWidget(self.Step)
+            steps.setStretchFactor(self.Step,1)
             steps.addWidget(self.curStep)
+            steps.setStretchFactor(self.curStep,0)
             steps.addWidget(QLabel("/"))
             steps.addWidget(self.maxStep)
             steps.addWidget(playBut)
@@ -344,7 +350,9 @@ class MainWidget(QWidget):
             steps=len(self.curMol)
             self.maxStep.setText(str(steps))
             self.Step.setMaximum(steps)
-            self.Step.setValue(steps)
+            self.Step.setValue(self.curMol.curStep+1)
+            self.curStep.setText(str(self.curMol.curStep+1))
+            self.stepRange.setTop(steps)
             self.updateMolStep()
 
         def selectParam(self,sel):
@@ -362,8 +370,15 @@ class MainWidget(QWidget):
 
         def updateMolStep(self):
             #change step of trajectory when needed
-            step = self.Step.value()-1
-            self.curStep.setText(str(step+1))
+            print self.sender()
+            if self.sender() is self.Step:
+                step = self.Step.value()-1
+                self.curStep.setText(str(step+1))
+            elif self.sender() is self.curStep:
+                step = int(self.curStep.text())-1
+                self.Step.setValue(step+1)
+            else:
+                step = self.Step.value()-1
             self.curMol.changeStep(step)
             #Send Molecule to Visualisation and Editor
             self.moltab.setMol(self.curMol)
