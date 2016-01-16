@@ -232,7 +232,8 @@ class _step(object):
                     deepcopy(self._atom_coord),\
                     deepcopy(self._atom_fix),
                     deepcopy(self._celldm),
-                    deepcopy(self._vec)]
+                    deepcopy(self._vec),
+                    deepcopy(self._vecinv)]
         self._undo_count+=1
 
     def saveUndo(self,name=''):
@@ -257,7 +258,7 @@ class _step(object):
         Pop atom infos from stack if present
         """
         if not self._undo_stack: return
-        _,self._atom_name,self._atom_coord,self._atom_fix,self._celldm,self._vec=self._undo_stack.pop()
+        _,self._atom_name,self._atom_coord,self._atom_fix,self._celldm,self._vec,self._vecinv=self._undo_stack.pop()
         self._selection=[]
         self._bonds_outdated=True
 
