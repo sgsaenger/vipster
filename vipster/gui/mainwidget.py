@@ -370,7 +370,6 @@ class MainWidget(QWidget):
 
         def updateMolStep(self):
             #change step of trajectory when needed
-            print self.sender()
             if self.sender() is self.Step:
                 step = self.Step.value()-1
                 self.curStep.setText(str(step+1))
