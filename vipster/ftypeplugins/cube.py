@@ -28,10 +28,11 @@ def parser(name,data):
     tmol.setVec(tvec)
     tmol.nvol=nvol
     pse = list(glob_pse.keys())
+    tmol.newAtoms(nat)
     for i in range(nat):
         # line = Z, charge(ignored), coord(x,y,z)
         line=data[i+6].split()
-        tmol.newAtom(pse[int(line[0])],line[2:5],'bohr')
+        tmol.setAtom(i,pse[int(line[0])],line[2:5])
     #rest of file has datagrid, x is outer loop, z inner
     tmol.setVol(nvol,data[6+nat:],origin)
     return tmol,None

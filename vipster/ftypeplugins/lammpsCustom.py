@@ -45,9 +45,11 @@ def parser(name,data):
                     fmt='angstrom'
                 else:
                     raise NotImplementedError('Lammps dump in not (yet) recognized format')
-                for j in range(i+1,i+1+nat):
-                    at = data[j].split()
-                    tmol.newAtom(at[1],at[2:],fmt=fmt)
+                tmol.newAtoms(nat)
+                for j in range(nat):
+                    at = data[j+1+i].split()
+                    tmol.setAtom(j,at[1],at[2:])
+                tmol.scaleAtoms(fmt)
                 i+=nat+1
         else:
             i+=1

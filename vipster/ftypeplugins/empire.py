@@ -12,9 +12,11 @@ def parser(name,data):
     tmol = Molecule(name)
     nat=int(data[0])
     tmol.comment = data[1].strip()
-    for j in range(2,nat+2):
-        line=data[j].split()
-        tmol.newAtom(line[0],line[1:4],'angstrom')
+    tmol.newAtoms(nat)
+    for j in range(nat):
+        line=data[j+2].split()
+        tmol.newAtom(j,line[0],line[1:4])
+    tmol.scaleAtoms('angstrom')
     vec=[0,0,0]
     for i in range(3):
         vec[i]=[float(x)for x in data[nat+3+i].split()]
@@ -32,10 +34,8 @@ def writer(mol,f,param,coordfmt):
     f.write(str(mol.nat)+'\n')
     f.write('Hamil=PM3 calc=spt Periodic\n')
     # write coordinates
-    for cntat in range(0,mol.nat):
-            atom=mol.getAtom(cntat,'angstrom')
-            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                         atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
+    for at in mol.getAtoms('angstrom'):
+        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}\n'.format(at[0],*at[1]))
     f.write('\n')
     vec = mol.getVec()*mol.getCellDim('angstrom')
     f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[0]))

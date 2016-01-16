@@ -8,7 +8,7 @@ from . import pse
 
 #per-step properties
 _properties={'_atom_name':[],
-        '_atom_coord':[],
+        '_atom_coord':np.array([],'f'),
         '_atom_fix':[],
         '_bonds':[[],[],[],[],[],[],[],[]],
         '_bond_cutfac':1.0,
@@ -52,17 +52,33 @@ class _step(object):
         fix -> 0 for no relaxation in PW
         """
         self._atom_name.append(name)
-        self._atom_coord.append(self._coordToBohr(coord,fmt))
+        self._atom_coord.resize([self.nat+1,3])
+        self._atom_coord[-1]=self._coordToBohr(coord,fmt)
         while len(fix)<3:
             fix+=[1]
         self._atom_fix.append(fix)
         self._selection=[]
         self._bonds_outdated=True
 
+    def newAtoms(self,count):
+        """Make 'count' new empty atoms"""
+        self._atom_name.extend(['X']*count)
+        self._atom_coord.resize([self.nat+count,3])
+        self._atom_fix.extend([[1,1,1]]*count)
+
+    def scaleAtoms(self,fmt):
+        """Rescale all atoms from given format to bohr"""
+        if fmt == 'angstrom':
+            self._atom_coord *= 1.889726125
+        elif fmt == 'crystal':
+            self._atom_coord = np.dot(self._atom_coord,self._vec)*self._celldm
+        elif fmt == 'alat':
+            self._atom_coord = self._atom_coord*self._celldm
+
     def delAtom(self,index):
         """Remove atom"""
         del self._atom_name[index]
-        del self._atom_coord[index]
+        self._atom_coord=np.delete(self._atom_coord,index,0)
         del self._atom_fix[index]
         self._selection=[]
         self._bonds_outdated=True
@@ -90,11 +106,10 @@ class _step(object):
         fmt -> str in ['angstrom'/'bohr']
         """
         if fmt=='angstrom':
-            cdm=cdm*1.889726125
+            cdm *= 1.889726125
         if scale:
             ratio=cdm/self._celldm
-            for i in range(len(self._atom_coord)):
-                self._atom_coord[i] = self._atom_coord[i]*ratio
+            self._atom_coord *= ratio
         self._celldm = float(cdm)
         self._bonds_outdated=True
 
@@ -107,8 +122,7 @@ class _step(object):
         vec = np.array(vec,'f')
         inv = self._vecinv
         if scale:
-            for i in range(len(self._atom_coord)):
-                self._atom_coord[i] = np.dot(np.dot(self._atom_coord[i],inv),vec)
+            self._atom_coord = np.dot(np.dot(self._atom_coord,inv),vec)
         self._vec = vec
         self._vecinv = np.linalg.inv(self._vec)
         self._bonds_outdated=True
@@ -301,7 +315,7 @@ class _step(object):
         self._bonds=[[],[],[],[],[],[],[],[]]
         if len(self._atom_coord)<2:
             return
-        at_c = np.array(self._atom_coord)
+        at_c = self._atom_coord
         cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
         n=np.zeros(3,'f')
         v = self.getVec()*self.getCellDim()

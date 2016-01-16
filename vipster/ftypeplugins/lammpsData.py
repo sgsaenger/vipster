@@ -77,9 +77,11 @@ def parser(name,data):
                 if atomids==range(1,len(types)+1):
                     atypepos=j
                     break
-            for j in range(i+2,i+2+nat):
-                at = data[j].strip().split()
-                tmol.newAtom(types[int(at[atypepos])-1],at[-3:],'angstrom')
+            tmol.newAtoms(nat)
+            for j in range(nat):
+                at = atomlist[j]
+                tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:])
+            tmol.scaleAtoms('angstrom')
         i+=1
     return tmol,None
 
@@ -223,8 +225,8 @@ def writer(mol,f,param,coordfmt):
         f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,mol.pse[j]['m'],j))
     #Atoms section: (always)
     f.write('\nAtoms\n\n')
+    string=lammps_atom_style[param["atom_style"]]
     for i in range(mol.nat):
-        string=lammps_atom_style[param["atom_style"]]
         at=mol.getAtom(i,'angstrom')
         f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,*at[1]))
     #Bonds section:

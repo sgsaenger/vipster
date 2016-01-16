@@ -31,7 +31,6 @@ def parser(name,data):
     """
     tmol = Molecule(name)
     tparam = {"type":"pw","name":name}
-    tcoord = []
     tvec = [[0,0,0],[0,0,0],[0,0,0]]
     #parse data and create tparam
     while data:
@@ -63,12 +62,13 @@ def parser(name,data):
             #Name   x   y   z
             elif header[0] == 'ATOMIC_POSITIONS':
                 fmt = header[1].strip('{()}')
+                tmol.newAtoms(int(tparam['&system']['nat']))
                 for i in range(int(tparam['&system']['nat'])):
                     #support empty lines
                     temp = data.pop(0).strip().split()
                     while not temp:
                             temp = data.pop(0).strip().split()
-                    tcoord.append(temp)
+                    tmol.setAtom(i,temp[0],temp[1:4],fix=[int(x) for x in temp[4:]])
             #K_POINTS fmt
             elif header[0] == 'K_POINTS':
                 #Gamma point only
@@ -192,8 +192,7 @@ def parser(name,data):
         tmol.setVec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],
                 [ca*cb,ca*(cal-cb*cg)/sqrt(1-cg),ca*sqrt(1+2*cal*cb*cg-cal*cal-cb*cb-cg*cg)/sqrt(1-cg)]])
     #create atoms after creating cell:
-    for i in range(len(tcoord)):
-        tmol.newAtom(tcoord[i][0],tcoord[i][1:4],fmt, [int(x) for x in tcoord[i][4:]])
+    tmol.scaleAtoms(fmt)
     #delete nat, ntype and celldm before returning
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']

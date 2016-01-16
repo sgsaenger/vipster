@@ -21,9 +21,11 @@ def parser(name,data):
             nat = int(data[i])
             tmol.comment = data[i+1].strip()
             #read coordinates and types
-            for j in range(i+2,i+nat+2):
-                    line = data[j].split()
-                    tmol.newAtom(line[0],line[1:4],'angstrom')
+            tmol.newAtoms(nat)
+            for j in range(nat):
+                line=data[j+i+2].split()
+                tmol.setAtom(j,line[0],line[1:4])
+            tmol.scaleAtoms('angstrom')
             i+=nat+2
     return tmol,None
 
@@ -33,8 +35,6 @@ def writer(mol,f,param,coordfmt):
     f.write(str(mol.nat)+'\n')
     f.write(mol.comment+'\n')
     # write coordinates
-    for cntat in range(0,mol.nat):
-            atom=mol.getAtom(cntat,'angstrom')
-            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
-                         atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
+    for at in mol.getAtoms('angstrom'):
+        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}\n'.format(at[0],*at[1]))
     f.close()

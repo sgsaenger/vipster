@@ -35,9 +35,11 @@ def parser(name,data):
             tmol.newStep()
             tmol.setCellDim(celldm)
             tmol.setVec(vec)
-            for j in range(i+1,i+nat+1):
-                atom = data[j].split()
-                tmol.newAtom(atom[1],atom[6:9],'alat')
+            tmol.newAtoms(nat)
+            for j in range(nat):
+                atom = data[j+i+1].split()
+                tmol.setAtom(j,atom[1],atom[6:9])
+            tmol.scaleAtoms('alat')
             i+=nat
         #read k-points:
         elif line[0] == 'gamma-point':
@@ -62,9 +64,11 @@ def parser(name,data):
             tmol.newStep()
             tmol.setCellDim(celldm)
             tmol.setVec(vec)
-            for j in range(i+1,i+nat+1):
-                atom = data[j].split()
-                tmol.newAtom(atom[0],atom[1:4],line[1].strip('()'),[int(x) for x in atom[4:]])
+            tmol.newAtoms(nat)
+            for j in range(nat):
+                atom = data[j+i+1].split()
+                tmol.setAtom(j,atom[0],atom[1:4],fix=[int(x) for x in atom[4:]])
+            tmol.scaleAtoms(line[1].strip('()'))
             i+=nat
         #break on reaching final coordinates (duplicate)
         elif line[0] == 'Begin':
