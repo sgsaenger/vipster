@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import _cli_indict,_gui_indict,_cli_outdict,_gui_outdict,_param_dict
 
+from copy import deepcopy
 inFormats = _cli_indict.keys()
 outFormats = _cli_outdict.keys()
 
@@ -45,4 +46,4 @@ def newParam(prog,var="default"):
     prog   -> file format, needs to be in param_dict
     preset -> variant of default set, if present
     """
-    return _param_dict[prog][var]
+    return deepcopy(_param_dict[prog][var])

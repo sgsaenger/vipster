@@ -7,7 +7,7 @@ from ..ftypeplugins.lammpsData import lammps_atom_style,param as defaultParam
 class LammpsDialog(QDialog):
     def __init__(self,parent=None,small=False):
         super(LammpsDialog,self).__init__(parent)
-        self.lammps=LammpsTab(small)
+        self.lammps=LammpsParam(small)
         buttons=QDialogButtonBox(QDialogButtonBox.Ok)
         buttons.accepted.connect(self.accept)
         vbox = QVBoxLayout()
@@ -23,9 +23,10 @@ class LammpsDialog(QDialog):
         dialog.exec_()
         return param
 
-class LammpsTab(QWidget):
+class LammpsParam(QWidget):
     def __init__(self,small=False):
-        super(LammpsTab,self).__init__()
+        super(LammpsParam,self).__init__()
+        self.updatedisable=False
         self.atom=QComboBox()
         self.atom.addItems(list(lammps_atom_style.keys()))
         self.atom.currentIndexChanged.connect(self.updateParam)
@@ -52,14 +53,17 @@ class LammpsTab(QWidget):
         self.setLayout(grid)
 
     def setParam(self,param):
+        self.updatedisable=True
         self.param=param
         self.atom.setCurrentIndex(list(lammps_atom_style.keys()).index(param["atom_style"]))
         self.bond.setChecked(param["bonds"])
         self.angle.setChecked(param["angles"])
         self.dihedral.setChecked(param["dihedrals"])
         self.improper.setChecked(param["impropers"])
+        self.updatedisable=False
 
     def updateParam(self):
+        if self.updatedisable: return
         self.param["atom_style"]=str(self.atom.currentText())
         self.param["bonds"]=bool(self.bond.checkState())
         self.param["angles"]=bool(self.angle.checkState())

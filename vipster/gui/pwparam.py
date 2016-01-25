@@ -4,9 +4,9 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 from collections import OrderedDict
 
-class PWTab(QTreeWidget):
+class PWParam(QTreeWidget):
     def __init__(self):
-        super(PWTab,self).__init__()
+        super(PWParam,self).__init__()
         self.setColumnCount(2)
         self.setHeaderLabels(['Parameter','Value'])
         self.setContextMenuPolicy(Qt.ActionsContextMenu)

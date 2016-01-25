@@ -8,8 +8,8 @@ from PyQt4.QtCore import QTimer,Qt
 
 from .viewport import ViewPort
 from .moltab import MolTab
-from .pwtab import PWTab
-from .lammpstab import LammpsTab,LammpsDialog
+from .pwparam import PWParam
+from .lammpsparam import LammpsParam,LammpsDialog
 from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
@@ -44,17 +44,17 @@ class MainWidget(QWidget):
             self.moltab = MolTab(self)
             rcol.addTab(self.moltab,"Molecule coordinates")
             #Parameter area
-            self.pwtab = PWTab()
-            self.lammpstab = LammpsTab()
+            self.pwparam = PWParam()
+            self.lammpsparam = LammpsParam()
             self.noparam=QLabel("No Parameter set selected")
             paramWidget=QWidget()
             paramLayout=QVBoxLayout()
             paramLayout.addWidget(self.noparam)
-            paramLayout.addWidget(self.pwtab,stretch=1)
-            paramLayout.addWidget(self.lammpstab,stretch=0)
+            paramLayout.addWidget(self.pwparam,stretch=1)
+            paramLayout.addWidget(self.lammpsparam,stretch=0)
             paramLayout.addStretch(0)
-            self.pwtab.hide()
-            self.lammpstab.hide()
+            self.pwparam.hide()
+            self.lammpsparam.hide()
             paramWidget.setLayout(paramLayout)
             rcol.addTab(paramWidget,"Parameters")
             #Settings:
@@ -359,14 +359,14 @@ class MainWidget(QWidget):
             param = self.parameters[sel]
             if param["type"]=="pw":
                 self.noparam.hide()
-                self.lammpstab.hide()
-                self.pwtab.show()
-                self.pwtab.setParam(param)
+                self.lammpsparam.hide()
+                self.pwparam.show()
+                self.pwparam.setParam(param)
             elif param["type"]=="lammps":
                 self.noparam.hide()
-                self.pwtab.hide()
-                self.lammpstab.show()
-                self.lammpstab.setParam(param)
+                self.pwparam.hide()
+                self.lammpsparam.show()
+                self.lammpsparam.setParam(param)
 
         def updateMolStep(self):
             #change step of trajectory when needed
