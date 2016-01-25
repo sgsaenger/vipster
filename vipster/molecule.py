@@ -778,8 +778,9 @@ class Molecule(_step):
         else:
             self.curStep=None
         self._kpoints={'active':'gamma',\
-                'automatic':['1','1','1','0','0','0'],\
-                'disc':[]}
+                'mpg':['1','1','1','0','0','0'],\
+                'discrete':[],
+                'options':{'crystal':False,'bands':False}}
 
     def __len__(self):
         return len(self.steps)
@@ -831,21 +832,16 @@ class Molecule(_step):
 
         mode -> str in [active,automatic,disc]
         kpoints -> corresponding argument
-        self._kpoints['active'] in [gamma,automatic,disc]
-        self._kpoints['automatic'] = [x,y,z,xoff,yoff,zoff]
-        self._kpoints['tpiba|crystal|tpiba_b|crystal_b'] = [[x,y,z,weight]]*nk
+        self._kpoints['active'] in ['gamma','automatic','discrete']
+        self._kpoints['mpg'] = [x,y,z,xoff,yoff,zoff]
+        self._kpoints['discrete'] = [[x,y,z],...]
+        self._kpoints['options'] = {'crystal':False,'bands':False}
         """
-        if mode in ['tpiba','crystal','tpiba_b','crystal_b']:
-            self._kpoints['disc']=kpoints
-        else:
-            self._kpoints[mode]=kpoints
+        self._kpoints[mode]=kpoints
 
     def getKpoints(self,mode):
         """Return active k-points or k-point-settings"""
-        if mode in ['crystal','tpiba','crystal_b','tpiba_b']:
-            return self._kpoints['disc']
-        else:
-            return self._kpoints[mode]
+        return self._kpoints[mode]
 
     ######################################################
     # LOCAL PSE-DICT

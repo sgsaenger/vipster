@@ -142,80 +142,101 @@ class MolTab(QWidget):
         kp.updatedisable=False
         #choose k point format
         kp.fmt = QComboBox()
-        kp.fmts = ['gamma','automatic','tpiba','crystal','tpiba_b','crystal_b']
-        for i in kp.fmts:
+        kp.fmts = ['gamma','mpg','discrete']
+        for i in ['Gamma','Monkhorst-Pack','Discrete']:
             kp.fmt.addItem(i)
 
         #Automatic: x,y,z, offset(x,y,z)
         def saveAutoK():
             if kp.updatedisable:return
-            auto=[str(kp.auto.widg[i].text()) for i in [0,1,2]]
-            auto+=[str(int(kp.auto.widg[i].isChecked())) for i in [3,4,5]]
-            self.mol.setKpoints('automatic',auto)
+            auto=[str(i.text()) for i in kp.auto.widg]
+            self.mol.setKpoints('mpg',auto)
         kp.auto = QWidget()
         kp.auto.widg = []
-        for i in [0,1,2]:
+        for i in range(3):
             kp.auto.widg.append(QLineEdit())
             kp.auto.widg[-1].setValidator(QIntValidator(1,40000))
             kp.auto.widg[-1].setText(str(1))
             kp.auto.widg[-1].editingFinished.connect(saveAutoK)
-        for i in [0,1,2]:
-            kp.auto.widg.append(QCheckBox())
-            kp.auto.widg[-1].stateChanged.connect(saveAutoK)
-        kp.auto.hbox1=QHBoxLayout()
-        kp.auto.hbox1.addWidget(QLabel('x:'))
-        kp.auto.hbox1.addWidget(kp.auto.widg[0])
-        kp.auto.hbox1.addWidget(QLabel('y:'))
-        kp.auto.hbox1.addWidget(kp.auto.widg[1])
-        kp.auto.hbox1.addWidget(QLabel('z:'))
-        kp.auto.hbox1.addWidget(kp.auto.widg[2])
-        kp.auto.hbox2 = QHBoxLayout()
-        kp.auto.hbox2.addWidget(QLabel('x offs.:'))
-        kp.auto.hbox2.addWidget(kp.auto.widg[3])
-        kp.auto.hbox2.addWidget(QLabel('y offs.:'))
-        kp.auto.hbox2.addWidget(kp.auto.widg[4])
-        kp.auto.hbox2.addWidget(QLabel('z offs.:'))
-        kp.auto.hbox2.addWidget(kp.auto.widg[5])
-        kp.auto.vbox = QVBoxLayout()
-        kp.auto.vbox.addLayout(kp.auto.hbox1)
-        kp.auto.vbox.addLayout(kp.auto.hbox2)
-        kp.auto.setLayout(kp.auto.vbox)
+        for i in range(3):
+            kp.auto.widg.append(QLineEdit())
+            kp.auto.widg[-1].setValidator(QDoubleValidator())
+            kp.auto.widg[-1].setText(str(0))
+            kp.auto.widg[-1].editingFinished.connect(saveAutoK)
+        hbox1=QHBoxLayout()
+        hbox1.addWidget(QLabel('x:'))
+        hbox1.addWidget(kp.auto.widg[0])
+        hbox1.addWidget(QLabel('y:'))
+        hbox1.addWidget(kp.auto.widg[1])
+        hbox1.addWidget(QLabel('z:'))
+        hbox1.addWidget(kp.auto.widg[2])
+        hbox2 = QHBoxLayout()
+        hbox2.addWidget(QLabel('x offs.:'))
+        hbox2.addWidget(kp.auto.widg[3])
+        hbox2.addWidget(QLabel('y offs.:'))
+        hbox2.addWidget(kp.auto.widg[4])
+        hbox2.addWidget(QLabel('z offs.:'))
+        hbox2.addWidget(kp.auto.widg[5])
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.setContentsMargins(0,0,0,0)
+        kp.auto.setLayout(vbox)
 
         #discrete kpoints
+        def optHandler():
+            self.mol.setKpoints('options',
+                    {'bands':kp.disc.bands.isChecked(),
+                     'crystal':kp.disc.crystal.isChecked()})
         def cellHandler():
             if kp.updatedisable: return
             disc = []
             for i in range(kp.disc.rowCount()):
                 disc.append([str(kp.disc.item(i,j).text()) for j in range(4)])
-            self.mol.setKpoints('disc',disc)
-        kp.disc = QTableWidget()
-        kp.disc.setColumnCount(4)
-        kp.disc.setHorizontalHeaderLabels(['x','y','z','weight'])
-        kp.disc.setContextMenuPolicy(Qt.ActionsContextMenu)
-        kp.disc.cellChanged.connect(cellHandler)
+            self.mol.setKpoints('discrete',disc)
+        kp.disc = QWidget()
+        kp.disc.table = QTableWidget()
+        kp.disc.table.setColumnCount(4)
+        kp.disc.table.setHorizontalHeaderLabels(['x','y','z','weight'])
+        kp.disc.table.setContextMenuPolicy(Qt.ActionsContextMenu)
+        kp.disc.table.cellChanged.connect(cellHandler)
         def newKpoint():
             kp.updatedisable=True
-            kp.disc.setRowCount(kp.disc.rowCount()+1)
+            kp.disc.table.setRowCount(kp.disc.rowCount()+1)
             for i in range(4):
-                kp.disc.setItem(kp.disc.rowCount()-1,i,QTableWidgetItem('1'))
+                kp.disc.table.setItem(kp.disc.rowCount()-1,i,QTableWidgetItem('1'))
             kp.updatedisable=False
             cellHandler()
-        newKp = QAction('New k-point',kp.disc)
+        newKp = QAction('New k-point',kp.disc.table)
         newKp.setShortcut('Ctrl+K')
         newKp.triggered.connect(newKpoint)
-        kp.disc.addAction(newKp)
+        kp.disc.table.addAction(newKp)
         def delKpoint():
-            kp.disc.removeRow(kp.disc.currentRow())
+            kp.disc.table.removeRow(kp.disc.table.currentRow())
             cellHandler()
-        delKp = QAction('Delete k-point',kp.disc)
+        delKp = QAction('Delete k-point',kp.disc.table)
         delKp.triggered.connect(delKpoint)
-        kp.disc.addAction(delKp)
+        kp.disc.table.addAction(delKp)
+        kp.disc.bands = QCheckBox()
+        kp.disc.bands.stateChanged.connect(optHandler)
+        kp.disc.crystal = QCheckBox()
+        kp.disc.crystal.stateChanged.connect(optHandler)
+        hbox3=QHBoxLayout()
+        hbox3.addWidget(QLabel('Bands:'))
+        hbox3.addWidget(kp.disc.bands)
+        hbox3.addWidget(QLabel('Crystal:'))
+        hbox3.addWidget(kp.disc.crystal)
+        vbox2=QVBoxLayout()
+        vbox2.addLayout(hbox3)
+        vbox2.addWidget(kp.disc.table)
+        vbox2.setContentsMargins(0,0,0,0)
+        kp.disc.setLayout(vbox2)
         #stacked display of various formats
         kp.disp = QStackedWidget()
         kp.disp.addWidget(QLabel('Gamma point only'))
         kp.disp.addWidget(kp.auto)
         kp.disp.addWidget(kp.disc)
-        kp.disp.setFixedHeight(120)
+        kp.disp.setFixedHeight(150)
         kp.fmt.currentIndexChanged.connect(self.changeKpoint)
 
         #layout
@@ -231,19 +252,22 @@ class MolTab(QWidget):
     def changeKpoint(self,index):
         kp=self.kp
         kp.updatedisable=True
-        kp.disp.setCurrentIndex(min(index,2))
+        kp.disp.setCurrentIndex(index)
         fmt=kp.fmts[index]
         self.mol.setKpoints('active',fmt)
-        if fmt=='automatic':
+        if fmt == 'mpg':
             auto=self.mol.getKpoints(fmt)
             for i in range(6):
                 kp.auto.widg[i].setText(auto[i])
-        elif fmt in kp.fmts[2:]:
+        elif fmt == 'discrete':
             disc=self.mol.getKpoints(fmt)
-            kp.disc.setRowCount(len(disc))
+            opts=self.mol.getKpoints('options')
+            kp.disc.bands.setChecked(opts['bands'])
+            kp.disc.crystal.setChecked(opts['crystal'])
+            kp.disc.table.setRowCount(len(disc))
             for i in range(len(disc)):
                 for j in range(4):
-                    kp.disc.setItem(i,j,QTableWidgetItem(disc[i][j]))
+                    kp.disc.table.setItem(i,j,QTableWidgetItem(disc[i][j]))
         kp.updatedisable=False
 
     def setMol(self,mol):

@@ -8,9 +8,10 @@ from . import lammpsCustom
 from . import cube
 from . import empire
 from . import aimall
+from . import cpmd
 
 #setup format-lookup-lists
-formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall]
+formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall,cpmd]
 _cli_indict=_ODict([(i.argument,i.parser) for i in formats])
 _cli_outdict=_ODict([(i.argument,i.parser) for i in formats if i.writer])
 _gui_indict=_ODict([(i.name,i.parser) for i in formats])

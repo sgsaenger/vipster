@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from ..molecule import Molecule
+from ..settings import config
 
 from collections import OrderedDict
-from math import sqrt
+from numpy import sqrt
 from re import split as regex
 
 name = 'PWScf Input'
@@ -57,7 +58,7 @@ def parser(name,data):
                 for i in range(int(tparam['&system']['ntyp'])):
                     line = data.pop(0).strip().split()
                     tmol.pse[line[0]]['m'] = float(line[1])
-                    tmol.pse[line[0]]['PPfile'] = line[2]
+                    tmol.pse[line[0]]['PWPP'] = line[2]
             #ATOMIC_POSITIONS fmt
             #Name   x   y   z
             elif header[0] == 'ATOMIC_POSITIONS':
@@ -65,31 +66,40 @@ def parser(name,data):
                 tmol.newAtoms(int(tparam['&system']['nat']))
                 for i in range(int(tparam['&system']['nat'])):
                     #support empty lines
-                    temp = data.pop(0).strip().split()
+                    temp = data.pop(0).split()
                     while not temp:
-                            temp = data.pop(0).strip().split()
+                            temp = data.pop(0).split()
                     tmol.setAtom(i,temp[0],temp[1:4],fix=[int(x) for x in temp[4:]])
             #K_POINTS fmt
             elif header[0] == 'K_POINTS':
+                active=header[1].strip('{()}')
                 #Gamma point only
-                if header[1].strip('{()}') == 'gamma':
+                if active=='gamma':
                     tmol.setKpoints('active','gamma')
                 #Monkhorst Pack Grid:
                 #x y z offset
-                elif header[1].strip('{()}') == 'automatic':
-                    line = data.pop(0).strip().split()
-                    tmol.setKpoints('automatic',line)
-                    tmol.setKpoints('active','automatic')
+                elif active == 'automatic':
+                    line = data.pop(0).split()
+                    tmol.setKpoints('mpg',line)
+                    tmol.setKpoints('active','mpg')
                 #else:
                 #number of kpoints
                 #x y z weight
                 else:
-                    nk = int(data.pop(0).strip().split()[0])
+                    nk = int(data.pop(0).split()[0])
                     kpoints = []
                     for i in range(nk):
-                        kpoints.append(data.pop(0).strip().split())
-                    tmol.setKpoints('disc',kpoints)
-                    tmol.setKpoints('active',header[1])
+                        kpoints.append(data.pop(0).split())
+                    tmol.setKpoints('discrete',kpoints)
+                    tmol.setKpoints('active','discrete')
+                    if active=='tpiba':
+                        pass
+                    elif active=='tpiba_b':
+                        tmol.setKpoints('options',{'bands':True,'crystal':False})
+                    elif active=='crystal':
+                        tmol.setKpoints('options',{'bands':False,'crystal':True})
+                    elif active=='crystal_b':
+                        tmol.setKpoints('options',{'bands':True,'crystal':True})
             #CELL_PARAMETERS
             #only needed if ibrav=0
             #tbd changed between pw4 and pw5, ignored for now
@@ -101,96 +111,98 @@ def parser(name,data):
                 pass
     #Identify cell parameter representation, parse it
     tmol.setCellDim(tparam['&system']['celldm(1)'])
-    if tparam['&system']['ibrav'] == '0':
+    ibrav=tparam['&system']['ibrav']
+    if ibrav == '0':
         #check if CELL_PARAMETERS card has been read, if not present, throw error
         if tvec == [[0,0,0],[0,0,0],[0,0,0]]:
                 raise ValueError('ibrav=0, but CELL_PARAMETERS missing')
         else:
                 tmol.setVec(tvec)
-    elif tparam['&system']['ibrav'] == '1':
+    elif ibrav == '1':
         #simple cubic
         pass
-    elif tparam['&system']['ibrav'] == '2':
+    elif ibrav == '2':
         #face centered cubic
         tmol.setVec([[-0.5,0,0.5],[0,0.5,0.5],[-0.5,0.5,0]])
-    elif tparam['&system']['ibrav'] == '3':
+    elif ibrav == '3':
         #body centered cubic
         tmol.setVec([[0.5,0.5,0.5],[-0.5,0.5,0.5],[-0.5,-0.5,0.5]])
-    elif tparam['&system']['ibrav'] == '4':
+    elif ibrav == '4':
         #hexagonal
-        ca = float(tparam['&system']['celldm(3)'])
-        tmol.setVec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,ca]])
-    elif tparam['&system']['ibrav'] == '5':
+        c = float(tparam['&system']['celldm(3)'])
+        tmol.setVec([[1,0,0],[-0.5,sqrt(3)*0.5,0],[0,0,c]])
+    elif ibrav == '5':
         #trigonal
-        c = float(tparam['&system']['celldm(4)'])
-        tx=sqrt((1-c)/2)
-        ty=sqrt((1-c)/6)
-        tz=sqrt((1+2*c)/3)
+        alpha = float(tparam['&system']['celldm(4)'])
+        tx=sqrt((1-alpha)/2)
+        ty=sqrt((1-alpha)/6)
+        tz=sqrt((1+2*alpha)/3)
         tmol.setVec([[tx,-ty,tz],[0,2*ty,tz],[-tx,-ty,tz]])
-    elif tparam['&system']['ibrav'] == '-5':
+    elif ibrav == '-5':
         #trigonal,alternative
-        c = float(tparam['&system']['celldm(4)'])
-        tx=sqrt((1-c)/2)
-        ty=sqrt((1-c)/6)
-        tz=sqrt((1+2*c)/3)
+        alpha = float(tparam['&system']['celldm(4)'])
+        tx=sqrt((1-alpha)/2)
+        ty=sqrt((1-alpha)/6)
+        tz=sqrt((1+2*alpha)/3)
         u=(tz-2*sqrt(2)*ty)/sqrt(3)
         v=(tz+sqrt(2)*ty)/sqrt(3)
         tmol.setVec([[u,v,v],[v,u,v],[v,v,u]])
-    elif tparam['&system']['ibrav'] == '6':
+    elif ibrav == '6':
         #simple tetragonal
-        ca = float(tparam['&system']['celldm(3)'])
-        tmol.setVec([[1,0,0],[0,1,0],[0,0,ca]])
-    elif tparam['&system']['ibrav'] == '7':
+        c = float(tparam['&system']['celldm(3)'])
+        tmol.setVec([[1,0,0],[0,1,0],[0,0,c]])
+    elif ibrav == '7':
         #body centered tetragonal
-        ca = float(tparam['&system']['celldm(3)'])
-        tmol.setVec([[0.5,-0.5,ca*0.5],[0.5,0.5,ca*0.5],[-0.5,-0.5,ca*0.5]])
-    elif tparam['&system']['ibrav'] == '8':
+        c = float(tparam['&system']['celldm(3)'])
+        tmol.setVec([[0.5,-0.5,c*0.5],[0.5,0.5,c*0.5],[-0.5,-0.5,c*0.5]])
+    elif ibrav == '8':
         #simple orthorhombic
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        tmol.setVec([[1,0,0],[0,ba,0],[0,0,ca]])
-    elif tparam['&system']['ibrav'] == '9':
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        tmol.setVec([[1,0,0],[0,b,0],[0,0,c]])
+    elif ibrav == '9':
         #basis centered orthorhombic
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        tmol.setVec([[0.5,ba*0.5,0],[-0.5,ba*0.5,0],[0,0,ca]])
-    elif tparam['&system']['ibrav'] == '10':
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        tmol.setVec([[0.5,b*0.5,0],[-0.5,b*0.5,0],[0,0,c]])
+    elif ibrav == '10':
         #face centered orthorhombic
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        tmol.setVec([[0.5,0,ca*0.5],[0.5,ba*0.5,0],[0,ba*0.5,ca*0.5]])
-    elif tparam['&system']['ibrav'] == '11':
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        tmol.setVec([[0.5,0,c*0.5],[0.5,b*0.5,0],[0,b*0.5,c*0.5]])
+    elif ibrav == '11':
         #body centered orthorhombic
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        tmol.setVec([[0.5,ba*0.5,ca*0.5],[-0.5,ba*0.5,ca*0.5],[-0.5,-ba*0.5,ca*0.5]])
-    elif tparam['&system']['ibrav'] == '12':
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        tmol.setVec([[0.5,b*0.5,c*0.5],[-0.5,b*0.5,c*0.5],[-0.5,-b*0.5,c*0.5]])
+    elif ibrav == '12':
         #simple monoclinic
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        cg = float(tparam['&system']['celldm(4)'])
-        tmol.setVec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],[0,0,ca]])
-    elif tparam['&system']['ibrav'] == '-12':
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        gamma = float(tparam['&system']['celldm(4)'])
+        tmol.setVec([[1,0,0],[b*gamma,b*sqrt(1-gamma**2),0],[0,0,c]])
+    elif ibrav == '-12':
         #simple monoclinic, alternate definition
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        cb = float(tparam['&system']['celldm(5)'])
-        tmol.setVec([[1,0,0],[0,ba,0],[ca*cb,0,ca*sqrt(1-cb)]])
-    elif tparam['&system']['ibrav'] == '13':
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        beta = float(tparam['&system']['celldm(5)'])
+        tmol.setVec([[1,0,0],[0,b,0],[c*beta,0,c*sqrt(1-beta**2)]])
+    elif ibrav == '13':
         #base centered monoclinic
-        ca = float(tparam['&system']['celldm(3)'])
-        ba = float(tparam['&system']['celldm(2)'])
-        cg = float(tparam['&system']['celldm(4)'])
-        tmol.setVec([[0.5,0,-ca*0.5],[ba*cg,ba*sqrt(1-cg),0],[0.5,0,ca*0.5]])
-    elif tparam['&system']['ibrav'] == '14':
-        #base centered monoclinic
-        ba = float(tparam['&system']['celldm(2)'])
-        ca = float(tparam['&system']['celldm(3)'])
-        cg = float(tparam['&system']['celldm(4)'])
-        cb = float(tparam['&system']['celldm(5)'])
-        cal = float(tparam['&system']['celldm(6)'])
-        tmol.setVec([[1,0,0],[ba*cg,ba*sqrt(1-cg),0],
-                [ca*cb,ca*(cal-cb*cg)/sqrt(1-cg),ca*sqrt(1+2*cal*cb*cg-cal*cal-cb*cb-cg*cg)/sqrt(1-cg)]])
+        c = float(tparam['&system']['celldm(3)'])
+        b = float(tparam['&system']['celldm(2)'])
+        gamma = float(tparam['&system']['celldm(4)'])
+        tmol.setVec([[0.5,0,-c*0.5],[b*gamma,ba*sqrt(1-gamma**2),0],[0.5,0,c*0.5]])
+    elif ibrav == '14':
+        #triclinic
+        b = float(tparam['&system']['celldm(2)'])
+        c = float(tparam['&system']['celldm(3)'])
+        gamma = float(tparam['&system']['celldm(6)'])
+        beta = float(tparam['&system']['celldm(5)'])
+        alpha = float(tparam['&system']['celldm(4)'])
+        singam = sqrt(1-gamma**2)
+        tmol.setVec([[1,0,0],[b*gamma,b*singam,0],
+                [c*beta,c*(alpha-beta*gamma)/singam,c*sqrt(1+2*alpha*beta*gamma-alpha*alpha-beta*beta-gamma*gamma)/singam]])
     #create atoms after creating cell:
     tmol.scaleAtoms(fmt)
     #delete nat, ntype and celldm before returning
@@ -238,7 +250,10 @@ def writer(mol,f,param,coordfmt):
     types = list(mol.getTypes())
     for i in range(len(mol.getTypes())):
         atom = types[i]
-        f.write(atom+'    '+str(mol.pse[atom]['m'])+'   '+str(mol.pse[atom]['PPfile'])+'\n')
+        pp=str(mol.pse[atom]['PWPP'])
+        if not pp:
+            pp=atom+config['Default PWScf PP-suffix']
+        f.write(atom+'    '+str(mol.pse[atom]['m'])+'   '+pp+'\n')
     f.write('\n')
     #ATOMIC_POSITIONS
     f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
@@ -252,20 +267,28 @@ def writer(mol,f,param,coordfmt):
                 atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')
     f.write('\n')
     #K_POINTS
-    f.write('K_POINTS'+' '+mol.getKpoints('active')+'\n')
+    active = mol.getKpoints('active')
     #Gamma point only
-    if mol.getKpoints('active') == 'gamma':
-        pass
+    if active == 'gamma':
+        f.write('K_POINTS gamma\n')
     #MPGrid:
     #x y z offset
-    elif mol.getKpoints('active') == 'automatic':
-        auto = mol.getKpoints('automatic')
+    elif active == 'mpg':
+        f.write('K_POINTS automatic\n')
+        auto = mol.getKpoints('mpg')
         f.write('{:4s} {:4s} {:4s} {:4s} {:4s} {:4s}'.format(
                 auto[0],auto[1],auto[2],auto[3],auto[4],auto[5])+'\n')
     #number of kpoints
     #x y z weight
     else:
-        disc=mol.getKpoints('disc')
+        opts=mol.getKpoints('options')
+        if opts['bands']:
+            if opts['crystal']: active='crystal_b'
+            else: active='tpiba_b'
+        elif opts['crystal']: active='crystal'
+        else: active='tpiba'
+        f.write('K_POINTS '+active+'\n')
+        disc=mol.getKpoints('discrete')
         f.write(str(len(disc))+'\n')
         for i in range(len(disc)):
             f.write('{:4s} {:4s} {:4s} {:4s}'.format(

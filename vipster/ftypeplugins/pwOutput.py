@@ -51,8 +51,8 @@ def parser(name,data):
                 for j in range(i+2,i+nk+2):
                     kp = data[j].split()
                     kpoints.append([kp[4],kp[5],kp[6].strip('),'),kp[9]])
-                tmol.setKpoints('tpiba',kpoints)
-                tmol.setKpoints('active','tpiba')
+                tmol.setKpoints('discrete',kpoints)
+                tmol.setKpoints('active','discrete')
                 i+=nk
         #read step-vectors if cell is variable
         elif line[0] == 'CELL_PARAMETERS':
