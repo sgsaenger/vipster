@@ -4,17 +4,38 @@ from ..settings import config
 
 from re import split as regex
 from numpy import cos,isclose,diag
+from collections import OrderedDict
 
 name = 'CPMD Input File'
 extension = 'cpi'
 argument = 'cpmd'
 
-param = None
 writer = None
+param = {"default":OrderedDict([("type","cpmd"),
+                    ("name","New CPMD parameters"),
+                    ("&INFO",""),
+                    ("&CPMD",""),
+                    ("&SYSTEM",""),
+                    ("&PIMD",""),
+                    ("&PATH",""),
+                    ("&ATOMS",""),
+                    ("&DFT",""),
+                    ("&PROP",""),
+                    ("&BASIS",""),
+                    ("&RESP",""),
+                    ("&PTDDFT",""),
+                    ("&LINRES",""),
+                    ("&HARDNESS",""),
+                    ("&TDDFT",""),
+                    ("&QMMMM",""),
+                    ("&CLAS",""),
+                    ("&EXTE",""),
+                    ("&VDW","")])}
 
 def parser(name,data):
     """ Parse CPMD Input file """
     tmol = Molecule(name)
+    tparam = param["default"]
     i=0
     ibrav='14'
     symmetries={'ISOLATED':'0',
@@ -39,12 +60,14 @@ def parser(name,data):
     while i < len(data):
         if data[i][0]=='!' or data[i].split()==[]:
             i+=1
-        elif "&SYSTEM" in data[i]:
-            #parse cell geometry!
+        elif '&' in data[i] and data[i].strip()!="&END":
+            #start recording namelist
+            nl=data[i].strip()
+            i+=1
             while not "&END" in data[i]:
-                if "ANGSTROM" in data[i]:
+                if nl=="&SYSTEM" and "ANGSTROM" in data[i]:
                     scale="angstrom"
-                elif "SCALE" in data[i]:
+                elif nl=="&SYSTEM" and "SCALE" in data[i]:
                     if "CARTESIAN" in data[i]:
                         scale="alat"
                     else:
@@ -60,7 +83,7 @@ def parser(name,data):
                             scalevec[1][1]=1/float(token.strip('SY='))
                         elif 'SZ=' in token:
                             scalevec[2][2]=1/float(token.strip('SZ='))
-                elif "KPOINTS" in data[i]:
+                elif nl=="&SYSTEM" and "KPOINTS" in data[i]:
                     if "MONKHORST" in data[i]:
                         kpoints=data[i+1].split()
                         if "SHIFT=" in data[i]:
@@ -88,14 +111,14 @@ def parser(name,data):
                             for j in range(nk):
                                 kpoints.append(data[i+j+1].split())
                             i+=nk
-                elif "SYMMETRY" in data[i]:
+                elif nl=="&SYSTEM" and "SYMMETRY" in data[i]:
                     arg = data[i+1].strip()
                     if arg.isdigit():
                         ibrav=arg
                     else:
                         ibrav=symmetries[arg]
                     i+=1
-                elif "CELL" in data[i]:
+                elif nl=="&SYSTEM" and "CELL" in data[i]:
                     cell=list(map(float,data[i+1].split()))
                     if "VECTORS" in data[i]:
                         ibrav='-2'
@@ -111,22 +134,18 @@ def parser(name,data):
                             #cell = [...,alpha,beta,gamma]
                             cosal,cosbeta,cosgam=map(cos,[cosal,cosbeta,cosgam])
                     i+=1
-                i+=1
-        elif '&ATOMS' in data[i]:
-            #parse atom coordinates
-            j=i+1
-            while not "&END" in data[j]:
-                if data[j][0]=='*':
-                    atype=regex('[-_.]',data[j][1:].strip())[0]
-                    nat=int(data[j+2])
+                elif nl=="&ATOMS" and data[i][0]=='*':
+                    atype=regex('[-_.]',data[i][1:].strip())[0]
+                    tmol.pse[atype]['CPPP']=data[i][1:].strip()
+                    tmol.pse[atype]['CPNL']=data[i+1].strip()
+                    nat=int(data[i+2])
                     tmol.newAtoms(nat)
-                    for k in range(nat):
-                        tmol.setAtom(k,atype,data[j+3+k].split())
-                    j+=2+nat
-                j+=1
-                pass
-            i+=j
-            pass
+                    for j in range(nat):
+                        tmol.setAtom(j,atype,data[i+3+j].split())
+                    i+=2+nat
+                else:
+                    tparam[nl]+=data[i]
+                i+=1
         else:
             i+=1
     #apply cell vec (scale SX etc.)
@@ -175,4 +194,4 @@ def parser(name,data):
     if scale:
         tmol.scaleAtoms(scale)
         tmol.setCellDim(tmol.getCellDim(),fmt=scale)
-    return tmol,None
+    return tmol,tparam

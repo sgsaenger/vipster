@@ -10,6 +10,7 @@ from .viewport import ViewPort
 from .moltab import MolTab
 from .pwparam import PWParam
 from .lammpsparam import LammpsParam,LammpsDialog
+from .cpparam import CPParam
 from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
@@ -46,15 +47,18 @@ class MainWidget(QWidget):
             #Parameter area
             self.pwparam = PWParam()
             self.lammpsparam = LammpsParam()
+            self.cpparam = CPParam()
             self.noparam=QLabel("No Parameter set selected")
             paramWidget=QWidget()
             paramLayout=QVBoxLayout()
             paramLayout.addWidget(self.noparam)
             paramLayout.addWidget(self.pwparam,stretch=1)
             paramLayout.addWidget(self.lammpsparam,stretch=0)
+            paramLayout.addWidget(self.cpparam,stretch=1)
             paramLayout.addStretch(0)
             self.pwparam.hide()
             self.lammpsparam.hide()
+            self.cpparam.hide()
             paramWidget.setLayout(paramLayout)
             rcol.addTab(paramWidget,"Parameters")
             #Settings:
@@ -263,6 +267,9 @@ class MainWidget(QWidget):
             newLammps = QAction("LAMMPS Parameter set",self)
             newLammps.triggered.connect(self.newLammpsHandler)
             pMenu.addAction(newLammps)
+            newCP = QAction("CPMD Parameter set",self)
+            newCP.triggered.connect(self.newCPHandler)
+            pMenu.addAction(newCP)
             loadAction = QAction("&Load Molecule(s)",self)
             loadAction.setShortcut("Ctrl+O")
             loadAction.triggered.connect(self.loadHandler)
@@ -294,6 +301,12 @@ class MainWidget(QWidget):
 
         def newLammpsHandler(self):
             param = newParam("lmp")
+            self.parameters.append(param)
+            self.paramlist.addItem(param["name"])
+            self.paramlist.setCurrentRow(self.paramlist.count()-1)
+
+        def newCPHandler(self):
+            param = newParam("cpmd")
             self.parameters.append(param)
             self.paramlist.addItem(param["name"])
             self.paramlist.setCurrentRow(self.paramlist.count()-1)
@@ -360,13 +373,21 @@ class MainWidget(QWidget):
             if param["type"]=="pw":
                 self.noparam.hide()
                 self.lammpsparam.hide()
+                self.cpparam.hide()
                 self.pwparam.show()
                 self.pwparam.setParam(param)
             elif param["type"]=="lammps":
                 self.noparam.hide()
                 self.pwparam.hide()
+                self.cpparam.hide()
                 self.lammpsparam.show()
                 self.lammpsparam.setParam(param)
+            elif param["type"]=="cpmd":
+                self.noparam.hide()
+                self.lammpsparam.hide()
+                self.pwparam.hide()
+                self.cpparam.show()
+                self.cpparam.setParam(param)
 
         def updateMolStep(self):
             #change step of trajectory when needed
