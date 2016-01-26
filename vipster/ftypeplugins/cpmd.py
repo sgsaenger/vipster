@@ -10,7 +10,6 @@ name = 'CPMD Input File'
 extension = 'cpi'
 argument = 'cpmd'
 
-writer = None
 param = {"default":OrderedDict([("type","cpmd"),
                     ("name","New CPMD parameters"),
                     ("&INFO",""),
@@ -107,7 +106,7 @@ def parser(name,data):
                                 line=data[i+j].split()
                             i+=j
                         else:
-                            nk = data[i+1]
+                            nk = int(data[i+1])
                             for j in range(nk):
                                 kpoints.append(data[i+j+1].split())
                             i+=nk
@@ -121,6 +120,9 @@ def parser(name,data):
                 elif nl=="&SYSTEM" and "CELL" in data[i]:
                     cell=list(map(float,data[i+1].split()))
                     if "VECTORS" in data[i]:
+                        while len(cell)<9:
+                            i+=1
+                            cell+=list(map(float,data[i+1].split()))
                         ibrav='-2'
                     else:
                         #cell = [a,b/a,c/a,cos(alpha),cos(beta),cos(gamma)]
@@ -139,9 +141,8 @@ def parser(name,data):
                     tmol.pse[atype]['CPPP']=data[i][1:].strip()
                     tmol.pse[atype]['CPNL']=data[i+1].strip()
                     nat=int(data[i+2])
-                    tmol.newAtoms(nat)
                     for j in range(nat):
-                        tmol.setAtom(j,atype,data[i+3+j].split())
+                        tmol.newAtom(atype,data[i+3+j].split())
                     i+=2+nat
                 else:
                     tparam[nl]+=data[i]
@@ -195,3 +196,77 @@ def parser(name,data):
         tmol.scaleAtoms(scale)
         tmol.setCellDim(tmol.getCellDim(),fmt=scale)
     return tmol,tparam
+
+def writer(mol,f,param,coordfmt='crystal'):
+    """
+    Save CPMD input file
+
+    Needs both mol and param
+    Respects coordfmt
+    """
+    for i in param:
+        #always write &CPMD namelist
+        if i=="&CPMD":
+            f.write("&CPMD\n")
+            f.write(param[i])
+            f.write("&END\n")
+        #expand &SYSTEM with atom and cell information
+        elif i == "&SYSTEM":
+            f.write("&SYSTEM\n")
+            #specify coordfmt
+            if coordfmt=="angstrom":
+                f.write("  ANGSTROM\n")
+            elif coordfmt=="crystal":
+                f.write("  SCALE\n")
+            elif coordfmt=="alat":
+                f.write("  SCALE CARTESIAN\n")
+            #cell vectors are always given explicitely
+            f.write("  CELL VECTORS\n")
+            vec=mol.getVec()*mol.getCellDim(coordfmt)
+            for j in vec:
+                f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*j))
+            #write K-Points if not gamma
+            if mol.getKpoints('active')=='mpg':
+                kpoints=mol.getKpoints('mpg')
+                f.write("  KPOINTS MONKHORST-PACK")
+                if all([float(j)==0 for j in kpoints[3:]]):
+                    f.write("\n")
+                else:
+                    f.write("  SHIFT={:4s} {:4s} {:4s}\n".format(*kpoints[3:]))
+                f.write("  {:4s} {:4s} {:4s}\n".format(*kpoints[:3]))
+            elif mol.getKpoints('active')=='discrete':
+                kpoints=mol.getKpoints('discrete')
+                opts=mol.getKpoints('options')
+                f.write("  KPOINTS")
+                if opts["crystal"]:
+                    f.write("  SCALED")
+                if opts["bands"]:
+                    f.write("  BANDS")
+                f.write("\n  "+str(len(kpoints))+"\n")
+                for j in kpoints:
+                    f.write("  {:4s} {:4s} {:4s} {:4s}\n".format(*j))
+            #write rest of &SYSTEM namelist
+            f.write(param[i])
+            f.write("&END\n")
+        #put coordinates and PP informations here
+        elif i=="&ATOMS":
+            f.write("&ATOMS\n")
+            atoms=mol.getAtoms(coordfmt)
+            types=mol.getTypes()
+            for j in types:
+                pp=mol.pse[j]['CPPP']
+                if not pp:
+                    pp=j+config['Default CPMD PP-suffix']
+                f.write("*"+pp+"\n")
+                f.write("  "+mol.pse[j]['CPNL']+"\n")
+                f.write("  "+str([a[0] for a in atoms].count(j))+"\n")
+                for k in atoms:
+                    if k[0]==j:
+                        f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*k[1]))
+            f.write("&END\n")
+        #write other namelists only when they're not empty
+        elif i[0]=="&":
+            if param[i]:
+                f.write(i+"\n")
+                f.write(param[i])
+                f.write("&END\n")

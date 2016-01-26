@@ -348,6 +348,12 @@ class MainWidget(QWidget):
                     except:
                         param = None
                     param = LammpsDialog.getWriteParams(self,param)
+                elif ftype=="CPMD Input File":
+                    try:
+                        param=self.parameters[self.paramlist.currentRow()]
+                        if param["type"]!="cpmd":raise IndexError
+                    except:
+                        raise IndexError("No CPMD Parameter set")
                 else:
                     param = None
                 coordfmt = self.moltab.fmt.currentText()

@@ -211,7 +211,7 @@ def parser(name,data):
     del tparam['&system']['celldm(1)']
     return tmol,tparam
 
-def writer(mol,f,param,coordfmt):
+def writer(mol,f,param,coordfmt='crystal'):
     """
     Save PWScf input file
 
