@@ -197,7 +197,7 @@ class MolTab(QWidget):
         kp.disc = QWidget()
         kp.disc.table = QTableWidget()
         kp.disc.table.setColumnCount(4)
-        kp.disc.table.setHorizontalHeaderLabels(['x','y','z','weight'])
+        kp.disc.table.setHorizontalHeaderLabels(['x','y','z','weight/count'])
         kp.disc.table.setContextMenuPolicy(Qt.ActionsContextMenu)
         kp.disc.table.cellChanged.connect(cellHandler)
         def newKpoint():

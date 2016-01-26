@@ -94,22 +94,28 @@ def parser(name,data):
                         i+=1
                     else:
                         kpoints=[]
+                        crystal=False
+                        bands=False
                         if "SCALED" in data[i]:
                             crystal=True
                         if "BANDS" in data[i]:
                             bands=True
-                            j=0
+                            j=1
                             line=data[i+j].split()
-                            while not all([float(i)==0 for i in line]):
-                                kpoints.append(line)
+                            while not all([float(k)==0 for k in line]):
+                                kpoints.append(line[1:4]+[line[0]])
+                                kpoints.append(line[4:]+['0'])
                                 j+=1
                                 line=data[i+j].split()
                             i+=j
                         else:
                             nk = int(data[i+1])
                             for j in range(nk):
-                                kpoints.append(data[i+j+1].split())
+                                kpoints.append(data[i+j+2].split())
                             i+=nk
+                        tmol.setKpoints('active','discrete')
+                        tmol.setKpoints('discrete',kpoints)
+                        tmol.setKpoints('options',{'crystal':crystal,'bands':bands})
                 elif nl=="&SYSTEM" and "SYMMETRY" in data[i]:
                     arg = data[i+1].strip()
                     if arg.isdigit():
@@ -241,10 +247,15 @@ def writer(mol,f,param,coordfmt='crystal'):
                 if opts["crystal"]:
                     f.write("  SCALED")
                 if opts["bands"]:
-                    f.write("  BANDS")
-                f.write("\n  "+str(len(kpoints))+"\n")
-                for j in kpoints:
-                    f.write("  {:4s} {:4s} {:4s} {:4s}\n".format(*j))
+                    f.write("  BANDS\n")
+                    for j in range(0,len(kpoints),2):
+                        line=kpoints[j]+kpoints[j+1]
+                        f.write("  {3:4s} {0:4s} {1:4s} {2:4s} {4:4s} {5:4s} {6:4s}\n".format(*line))
+                    f.write("  0 0. 0. 0. 0. 0. 0.\n")
+                else:
+                    f.write("\n  "+str(len(kpoints))+"\n")
+                    for j in kpoints:
+                        f.write("  {:4s} {:4s} {:4s} {:4s}\n".format(*j))
             #write rest of &SYSTEM namelist
             f.write(param[i])
             f.write("&END\n")
