@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 from copy import copy
 
-from .. import pse,config,saveConfig
+from .. import pse,config,saveConfig,default
 
 class ConfTab(QWidget):
     def __init__(self,parent):
@@ -57,7 +57,8 @@ class ConfTab(QWidget):
         self.setLayout(vbox)
 
     def configFromDefault(self):
-        config = copy(default['General'])
+        for i in config:
+            config[i]=default['General'][i]
         self.setWidget.setData(config)
         self.parent.updateMolStep()
 
@@ -128,6 +129,7 @@ class ConfTab(QWidget):
         def __init__(self,parent,data):
             super(ConfTab.ConfWidget,self).__init__()
             self.parent=parent
+            self.updateDisable=False
             vbox = QVBoxLayout()
             self.names=[]
             self.widgets=[]
@@ -159,6 +161,7 @@ class ConfTab(QWidget):
             self.setLayout(vbox)
 
         def setData(self,data):
+            self.updateDisable=True
             self.data = data
             for i in range(len(self.names)):
                 if self.types[i] == bool:
@@ -168,8 +171,10 @@ class ConfTab(QWidget):
                         *[int(255*j) for j in self.data[self.names[i]]]))
                 else:
                     self.widgets[i].setText(str(self.data[self.names[i]]))
+            self.updateDisable=False
 
         def changeHandler(self,change=None):
+            if self.updateDisable:return
             index = self.widgets.index(self.sender())
             iwidg = self.widgets[index]
             iname = self.names[index]

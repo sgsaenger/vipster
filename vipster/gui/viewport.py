@@ -25,21 +25,16 @@ class ViewPort(QGLWidget):
         form.setProfile(QGLFormat.CoreProfile)
         super(ViewPort,self).__init__(form)
         self.parent = parent
-        self.perspective=config['Start with perspective projection']
-        self.showBonds = True
-        self.showCell = True
         self.showPlane = False
         self.showSurf = False
         self.mouseMode = "Camera"
         self.mousePos = None
         self.rectPos = None
-        self.AA = True
         self.xsh = 0
         self.ysh = 0
         self.rMatrix = QMatrix4x4()
         self.distance = 25
         self.initEditMenu()
-        self.initViewMenu()
         self.copyBuf=[]
 
     ###############################################
@@ -303,42 +298,6 @@ class ViewPort(QGLWidget):
     # MODIFY RENDER-STATE
     ##########################################
 
-    def initViewMenu(self):
-        changeProj = QAction('Change &Projection',self)
-        changeProj.setShortcut('p')
-        changeProj.triggered.connect(self.changeState)
-        toggleCell = QAction('Toggle &Cell',self)
-        toggleCell.setShortcut('c')
-        toggleCell.triggered.connect(self.changeState)
-        antiAlias = QAction('Toggle &Antialiasing',self)
-        antiAlias.setShortcut('a')
-        antiAlias.triggered.connect(self.changeState)
-        toggleBonds = QAction('Toggle &Bonds',self)
-        toggleBonds.setShortcut('b')
-        toggleBonds.triggered.connect(self.changeState)
-        vMenu = self.parent.parent.menuBar().addMenu('&View')
-        vMenu.addAction(changeProj)
-        vMenu.addAction(toggleCell)
-        vMenu.addAction(toggleBonds)
-        vMenu.addAction(antiAlias)
-        vMenu.addSeparator()
-
-    def changeState(self):
-        reason = self.sender().text()
-        if reason=='Change &Projection':
-            self.perspective = not self.perspective
-        elif reason=='Toggle &Cell':
-            self.showCell = not self.showCell
-        elif reason=='Toggle &Bonds':
-            self.showBonds = not self.showBonds
-        elif reason=='Toggle &Antialiasing':
-            if self.AA:
-                    glDisable(GL_MULTISAMPLE)
-            elif not self.AA:
-                    glEnable(GL_MULTISAMPLE)
-            self.AA = not self.AA
-        self.update()
-
     def alignView(self):
         if self.sender().text()=='+x':
             self.rMatrix = QMatrix4x4([0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,1])
@@ -391,7 +350,7 @@ class ViewPort(QGLWidget):
         atoms = mol.getAtoms()
         pse = mol.pse
         vec = mol.getVec()*mol.getCellDim()
-        center = mol.getCenter(config['Rotate around COM'])
+        center = mol.getCenter(config["Rotate around COM"])
         bonds = mol.getBonds(config['Bond cutoff factor'])
         sel = mol.getSelection()
 
@@ -663,7 +622,7 @@ class ViewPort(QGLWidget):
     def paintEvent(self,e):
         if self.rectPos:
             p = QPainter(self)
-            if self.AA:
+            if config['Antialiasing']:
                 p.setRenderHint(QPainter.Antialiasing,True)
             self.paintStuff()
             #push transparent area in front
@@ -692,6 +651,10 @@ class ViewPort(QGLWidget):
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
         glEnable(GL_BLEND)
+        if config['Antialiasing']:
+            glEnable(GL_MULTISAMPLE)
+        else:
+            glDisable(GL_MULTISAMPLE)
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
 
         if not hasattr(self,'atomsVBO'): return
@@ -701,9 +664,8 @@ class ViewPort(QGLWidget):
         self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
         self.vMatrix.translate(self.xsh,self.ysh,0)
 
-        #TODO: orthogonal zooming needs fix
         #check for projection:
-        if self.perspective:
+        if config["Perspective projection"]:
             self.proj = self.pMatrix
         else:
             self.proj = self.oMatrix
@@ -713,12 +675,11 @@ class ViewPort(QGLWidget):
         if select:
             glDisable(GL_MULTISAMPLE)
             self.drawAtomsSelect()
-            glEnable(GL_MULTISAMPLE)
         else:
             self.drawAtoms()
-            if self.showBonds:
+            if config["Show bonds"]:
                 self.drawBonds()
-            if self.showCell:
+            if config["Show cell"]:
                 self.drawCell()
             if self.showSurf and hasattr(self,'surfVBO'):
                 self.drawSurf()
@@ -738,7 +699,7 @@ class ViewPort(QGLWidget):
 
         self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
         self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-        self.sphereShader.setUniformValue('atom_fac',config['Atom radius factor'])
+        self.sphereShader.setUniformValue('atom_fac',config["Atom radius factor"])
 
         if self.instanced:
             self.atomsVBO.bind()
@@ -862,7 +823,7 @@ class ViewPort(QGLWidget):
         self.sphereVBO.unbind()
 
         self.selectShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-        self.selectShader.setUniformValue('atom_fac',config['Atom radius factor'])
+        self.selectShader.setUniformValue('atom_fac',config["Atom radius factor"])
 
         if self.instanced:
             self.atomsVBO.bind()
@@ -898,7 +859,7 @@ class ViewPort(QGLWidget):
 
         self.sphereShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
         self.sphereShader.setUniformValue('rMatrix',self.rMatrix)
-        self.sphereShader.setUniformValue('atom_fac',config['Atom radius factor'])
+        self.sphereShader.setUniformValue('atom_fac',config["Atom radius factor"])
 
         if self.instanced:
             self.selVBO.bind()

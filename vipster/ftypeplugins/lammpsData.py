@@ -2,10 +2,10 @@
 from ..molecule import Molecule
 from collections import OrderedDict
 
-name = "Lammps Data file"
+name = "Lammps Data"
 extension = 'lmp'
 argument = 'lmp'
-param={"default":{"type":"lammps",
+param={"default":{"type":"lmp",
                   "name":"New LAMMPS",
                   "atom_style":"atomic",
                   "bonds":False,"angles":False,

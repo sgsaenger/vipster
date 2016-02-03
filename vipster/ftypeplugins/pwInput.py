@@ -10,7 +10,7 @@ name = 'PWScf Input'
 extension = 'pwi'
 argument = 'pwi'
 
-param={"default":{"type":"pw",
+param={"default":{"type":"pwi",
                   "name":"New PW parameters",
                   "&control":OrderedDict(),
                   "&system":OrderedDict(),
@@ -31,7 +31,7 @@ def parser(name,data):
     - ATOMIC_FORCES (PWSCFv5)
     """
     tmol = Molecule(name)
-    tparam = {"type":"pw","name":name}
+    tparam = {"type":"pwi","name":name}
     tvec = [[0,0,0],[0,0,0],[0,0,0]]
     #parse data and create tparam
     while data:
@@ -211,7 +211,7 @@ def parser(name,data):
     del tparam['&system']['celldm(1)']
     return tmol,tparam
 
-def writer(mol,f,param,coordfmt='crystal'):
+def writer(mol,f,param,coordfmt):
     """
     Save PWScf input file
 

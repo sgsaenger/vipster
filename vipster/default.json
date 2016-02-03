@@ -131,9 +131,43 @@
 "Atom radius factor":                   0.52917721092,
 "Bond radius":                          0.52917721092,
 "Bond cutoff factor":                   1.10,
+"Show bonds":                           true,
+"Show cell":                            true,
+"Antialiasing":                         true,
 "Rotate around COM":                    false,
-"Start with perspective projection":    false,
+"Perspective projection":               false,
 "Default PWScf PP-suffix":              ".uspp736.pbe.UPF",
 "Default CPMD PP-suffix":               ".uspp736.pbe"
+},
+"Parameters":
+{
+"pwi":{"relax":{"type":"pwi",
+                "name":"PW-relax",
+                "&control":{"calculation":"'relax'",
+                            "restart_mode":"'from_scratch'",
+                            "pseudo_dir":"'/home/hpc/nfcc/nfcc01/pot.pwscf'",
+                            "outdir":"'./'",
+                            "prefix":"'graph'",
+                            "wf_collect":".true.",
+                            "tprnfor":".true.",
+                            "nstep":"500",
+                            "etot_conv_thr":"1.d-4",
+                            "forc_conv_thr":"2.d-4"},
+                "&system":{"ibrav":"0",
+                           "ecutwfc":"30.0",
+                           "ecutrho":"120.0",
+                           "occupations":"'smearing'",
+                           "smearing":"'gauss'",
+                           "degauss":"0.01"},
+                "&electrons":{"diagonalization":"'david'",
+                              "electron_maxstep":"100",
+                              "conv_thr":"1.0e-8",
+                              "mixing_beta":"0.3"},
+                "&ions":{"ion_dynamics":"'bfgs'",
+                         "trust_radius_ini":"0.2"}
+               }
+     },
+"cpmd":{},
+"lmp":{}
 }
 }

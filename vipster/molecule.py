@@ -517,7 +517,7 @@ class _step(object):
                 op,script = ops[op[0:3]](script)
             except KeyError as e:
                 return 'Wrong Op: '+script[0]
-            except StandardError as e:
+            except Exception as e:
                 return e.message
             else:
                 if op[0]=='define':
@@ -535,7 +535,7 @@ class _step(object):
             self.initUndo()
             for op in stack:
                 op[0](*op[1:])
-        except StandardError as e:
+        except Exception as e:
             self._undo_count=0
             return e.message
         else:

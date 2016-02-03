@@ -10,13 +10,18 @@ from . import empire
 from . import aimall
 from . import cpmd
 
+from ..settings import _userParams
+
 #setup format-lookup-lists
 formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall,cpmd]
-_cli_indict=_ODict([(i.argument,i.parser) for i in formats])
-_cli_outdict=_ODict([(i.argument,i.parser) for i in formats if i.writer])
-_gui_indict=_ODict([(i.name,i.parser) for i in formats])
-_gui_outdict=_ODict([(i.name,i.writer) for i in formats if i.writer])
-_param_dict=_ODict([(i.argument,i.param) for i in formats if i.param])
+_indict=_ODict([(i.argument,i.parser) for i in formats])
+_outdict=_ODict([(i.argument,i.writer) for i in formats if i.writer])
+_guiInNames =_ODict([(i.name,i.argument) for i in formats])
+_guiOutNames=_ODict([(i.name,i.argument) for i in formats if i.writer])
+_paramdict=_ODict([(i.argument,i.param) for i in formats if i.param])
+for i in _userParams:
+    for j in _userParams[i]:
+        _paramdict[i][j]=_userParams[i][j]
 
 #import members into clean namespace
 from . import wrapper

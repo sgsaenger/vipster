@@ -8,15 +8,13 @@ from PyQt4.QtCore import QTimer,Qt
 
 from .viewport import ViewPort
 from .moltab import MolTab
-from .pwparam import PWParam
-from .lammpsparam import LammpsParam,LammpsDialog
-from .cpparam import CPParam
+from .parameterwidgets import ParamTab,ParamDialog
 from .conftab import ConfTab
 from .tools import tools
 from .collapsiblewidget import collapsibleWidget
 
 from .. import *
-from ..ftypeplugins import _gui_indict,_gui_outdict
+from ..ftypeplugins import _guiInNames,_guiOutNames
 
 GuiMolecules = []
 GuiParameters = []
@@ -45,22 +43,8 @@ class MainWidget(QWidget):
             self.moltab = MolTab(self)
             rcol.addTab(self.moltab,"Molecule coordinates")
             #Parameter area
-            self.pwparam = PWParam()
-            self.lammpsparam = LammpsParam()
-            self.cpparam = CPParam()
-            self.noparam=QLabel("No Parameter set selected")
-            paramWidget=QWidget()
-            paramLayout=QVBoxLayout()
-            paramLayout.addWidget(self.noparam)
-            paramLayout.addWidget(self.pwparam,stretch=1)
-            paramLayout.addWidget(self.lammpsparam,stretch=0)
-            paramLayout.addWidget(self.cpparam,stretch=1)
-            paramLayout.addStretch(0)
-            self.pwparam.hide()
-            self.lammpsparam.hide()
-            self.cpparam.hide()
-            paramWidget.setLayout(paramLayout)
-            rcol.addTab(paramWidget,"Parameters")
+            self.paramWidget = ParamTab()
+            rcol.addTab(self.paramWidget,"Parameters")
             #Settings:
             self.conftab = ConfTab(self)
             rcol.addTab(self.conftab,"Settings")
@@ -261,15 +245,6 @@ class MainWidget(QWidget):
             newAction.triggered.connect(self.newMolHandler)
             fMenu.addAction(newAction)
             pMenu = fMenu.addMenu("New &Parameter set")
-            newPW = QAction("PWScf Parameter set",self)
-            newPW.triggered.connect(self.newPWHandler)
-            pMenu.addAction(newPW)
-            newLammps = QAction("LAMMPS Parameter set",self)
-            newLammps.triggered.connect(self.newLammpsHandler)
-            pMenu.addAction(newLammps)
-            newCP = QAction("CPMD Parameter set",self)
-            newCP.triggered.connect(self.newCPHandler)
-            pMenu.addAction(newCP)
             loadAction = QAction("&Load Molecule(s)",self)
             loadAction.setShortcut("Ctrl+O")
             loadAction.triggered.connect(self.loadHandler)
@@ -287,26 +262,35 @@ class MainWidget(QWidget):
             exitAction.setShortcut("Ctrl+Q")
             exitAction.triggered.connect(qApp.quit)
             fMenu.addAction(exitAction)
+            #check for available parameter sets and add
+            for guiname,cliname in _guiOutNames.items():
+                p = availParam(cliname)
+                if not p:
+                    continue
+                if len(p)==1:
+                    action=QAction(guiname,self)
+                    action.triggered.connect(self.newParamHandler)
+                    pMenu.addAction(action)
+                else:
+                    p2Menu = pMenu.addMenu(guiname)
+                    for i in p:
+                        action=QAction(i,p2Menu)
+                        action.triggered.connect(self.newParamHandler)
+                        p2Menu.addAction(action)
 
         def newMolHandler(self):
             self.molecules.append(Molecule())
             self.mlist.addItem("New Mol")
             self.mlist.setCurrentRow(self.mlist.count()-1)
 
-        def newPWHandler(self):
-            param = newParam("pwi")
-            self.parameters.append(param)
-            self.paramlist.addItem(param["name"])
-            self.paramlist.setCurrentRow(self.paramlist.count()-1)
-
-        def newLammpsHandler(self):
-            param = newParam("lmp")
-            self.parameters.append(param)
-            self.paramlist.addItem(param["name"])
-            self.paramlist.setCurrentRow(self.paramlist.count()-1)
-
-        def newCPHandler(self):
-            param = newParam("cpmd")
+        def newParamHandler(self):
+            if self.sender().parent() != self:
+                prog = _guiOutNames[str(self.sender().parent().title())]
+                var = str(self.sender().text())
+            else:
+                prog = _guiOutNames[str(self.sender().text())]
+                var = "default"
+            param = newParam(prog,var)
             self.parameters.append(param)
             self.paramlist.addItem(param["name"])
             self.paramlist.setCurrentRow(self.paramlist.count()-1)
@@ -314,10 +298,10 @@ class MainWidget(QWidget):
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose file type","File type:",list(_gui_indict.keys()),0,False)
+            ftype = QInputDialog.getItem(self,"Choose file type","File type:",list(_guiInNames.keys()),0,False)
             if not ftype[1]: return
-            ftype = str(ftype[0])
-            m,p = readFile(fname,ftype,mode="gui")
+            ftype = _guiInNames[str(ftype[0])]
+            m,p = readFile(fname,ftype)
             self.molecules.append(m)
             self.mlist.addItem(m.name)
             self.mlist.setCurrentRow(self.mlist.count()-1)
@@ -329,37 +313,21 @@ class MainWidget(QWidget):
         def saveHandler(self):
             fname = QFileDialog.getSaveFileName(self,"Save File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose File type","File type:",list(_gui_outdict.keys()),0,False)
+            ftype = QInputDialog.getItem(self,"Choose File type","File type:",list(_guiOutNames.keys()),0,False)
             if not ftype[1]: return
-            ftype = str(ftype[0])
+            ftype = _guiOutNames[str(ftype[0])]
             try:
                 mol = self.curMol
-                if ftype=="PWScf Input":
-                    try:
-                        param = self.parameters[self.paramlist.currentRow()]
-                        if param["type"]!="pw":raise IndexError
-                    except:
-                        raise IndexError("No PW Parameter set")
-                elif ftype=="Lammps Data file":
-                    try:
-                        param = self.parameters[self.paramlist.currentRow()]
-                        if param["type"]!="lammps":
-                            param = None
-                    except:
-                        param = None
-                    param = LammpsDialog.getWriteParams(self,param)
-                elif ftype=="CPMD Input File":
-                    try:
-                        param=self.parameters[self.paramlist.currentRow()]
-                        if param["type"]!="cpmd":raise IndexError
-                    except:
-                        raise IndexError("No CPMD Parameter set")
-                else:
+                try:
+                    param = self.parameters[self.paramlist.currentRow()]
+                except:
                     param = None
                 coordfmt = self.moltab.fmt.currentText()
-                writeFile(mol,ftype,fname,param,coordfmt,mode="gui")
-            except StandardError as e:
-                QMessageBox(QMessageBox.Critical,"Error",type(e).__name__+": "+e.message,QMessageBox.Ok,self).exec_()
+                writeFile(mol,ftype,fname,param,coordfmt)
+            except Exception as error:
+                pd = ParamDialog(ftype,self.parameters)
+                if pd.exec_():
+                    writeFile(mol,ftype,fname,pd.getParam(),coordfmt)
 
         ########################################################
         #update view upon selections
@@ -376,24 +344,7 @@ class MainWidget(QWidget):
 
         def selectParam(self,sel):
             param = self.parameters[sel]
-            if param["type"]=="pw":
-                self.noparam.hide()
-                self.lammpsparam.hide()
-                self.cpparam.hide()
-                self.pwparam.show()
-                self.pwparam.setParam(param)
-            elif param["type"]=="lammps":
-                self.noparam.hide()
-                self.pwparam.hide()
-                self.cpparam.hide()
-                self.lammpsparam.show()
-                self.lammpsparam.setParam(param)
-            elif param["type"]=="cpmd":
-                self.noparam.hide()
-                self.lammpsparam.hide()
-                self.pwparam.hide()
-                self.cpparam.show()
-                self.cpparam.setParam(param)
+            self.paramWidget.setParam(param)
 
         def updateMolStep(self):
             #change step of trajectory when needed

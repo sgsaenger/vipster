@@ -3,8 +3,7 @@
 
 from sys import exit,argv
 from vipster import *
-from vipster.ftypeplugins import _cli_indict as cli_indict
-from PyQt4.QtGui import QApplication
+from vipster.ftypeplugins import _indict
 
 def main():
     """Main function
@@ -16,10 +15,10 @@ def main():
         p=[]
     elif argv[1] == '-h':
         printHelp(0)
-    elif argv[1].strip('-') in cli_indict:
+    elif argv[1].strip('-') in _indict:
         m=[];p=[]
         for i in argv[2:]:
-            a,b=readFile(i,argv[1].strip('-'),'cli')
+            a,b=readFile(i,argv[1].strip('-'))
             m.append(a)
             if b:
                 p.append(b)
@@ -34,7 +33,7 @@ def printHelp(err):
     print('No option given: start GUI\n')
     print('Options:')
     print('-h: print this help')
-    for i in cli_indict.items():
+    for i in _indict.items():
         print('-'+i[0]+' [FILES]: '+i[1].__doc__.split('\n')[0])
     exit(err)
 

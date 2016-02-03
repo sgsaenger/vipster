@@ -4,25 +4,6 @@ from PyQt4.QtGui import *
 from copy import copy
 from ..ftypeplugins.lammpsData import lammps_atom_style,param as defaultParam
 
-class LammpsDialog(QDialog):
-    def __init__(self,parent=None,small=False):
-        super(LammpsDialog,self).__init__(parent)
-        self.lammps=LammpsParam(small)
-        buttons=QDialogButtonBox(QDialogButtonBox.Ok)
-        buttons.accepted.connect(self.accept)
-        vbox = QVBoxLayout()
-        vbox.addWidget(self.lammps)
-        vbox.addWidget(buttons)
-        self.setLayout(vbox)
-
-    @staticmethod
-    def getWriteParams(parent=None,param=None):
-        dialog = LammpsDialog(parent)
-        if not param: param = defaultParam["default"]
-        dialog.lammps.setParam(copy(param))
-        dialog.exec_()
-        return param
-
 class LammpsParam(QWidget):
     def __init__(self,small=False):
         super(LammpsParam,self).__init__()
