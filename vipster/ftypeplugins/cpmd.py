@@ -6,7 +6,7 @@ from re import split as regex
 from numpy import cos,isclose,diag
 from collections import OrderedDict
 
-name = 'CPMD Input File'
+name = 'CPMD Input'
 extension = 'cpi'
 argument = 'cpmd'
 
@@ -148,7 +148,7 @@ def parser(name,data):
                     tmol.pse[atype]['CPNL']=data[i+1].strip()
                     nat=int(data[i+2])
                     for j in range(nat):
-                        tmol.newAtom(atype,data[i+3+j].split())
+                        tmol.newAtom(atype,data[i+3+j].split()[:3])
                     i+=2+nat
                 else:
                     tparam[nl]+=data[i]
@@ -203,7 +203,7 @@ def parser(name,data):
         tmol.setCellDim(tmol.getCellDim(),fmt=scale)
     return tmol,tparam
 
-def writer(mol,f,param,coordfmt='crystal'):
+def writer(mol,f,param,coordfmt):
     """
     Save CPMD input file
 
