@@ -14,7 +14,7 @@ from .tools import tools
 from .collapsiblewidget import collapsibleWidget
 
 from .. import *
-from ..ftypeplugins import _guiInNames,_guiOutNames
+from ..ftypeplugins import _guiInNames,_guiOutNames,_paramdict
 
 GuiMolecules = []
 GuiParameters = []
@@ -253,6 +253,9 @@ class MainWidget(QWidget):
             saveAction.setShortcut("Ctrl+S")
             saveAction.triggered.connect(self.saveHandler)
             fMenu.addAction(saveAction)
+            saveParamAction = QAction("Save Parameter set",self)
+            saveParamAction.triggered.connect(self.saveParamHandler)
+            fMenu.addAction(saveParamAction)
             scrotAction = QAction("Save Screensho&t",self)
             scrotAction.setShortcut("Ctrl+P")
             scrotAction.triggered.connect(self.makeScreen)
@@ -295,10 +298,21 @@ class MainWidget(QWidget):
             self.paramlist.addItem(param["name"])
             self.paramlist.setCurrentRow(self.paramlist.count()-1)
 
+        def saveParamHandler(self):
+            if self.parameters:
+                p = self.parameters[self.paramlist.currentRow()]
+                t = p["type"]
+                n = QInputDialog.getText(self,"Choose Name","Name:")
+                if not n[1]: return
+                n = str(n[0])
+                _paramdict[t][n]=p
+                _paramdict[t][n]["name"]=n
+                saveConfig()
+
         def loadHandler(self):
             fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
             if not fname: return
-            ftype = QInputDialog.getItem(self,"Choose file type","File type:",list(_guiInNames.keys()),0,False)
+            ftype = QInputDialog.getItem(self,"Choose File type","File type:",list(_guiInNames.keys()),0,False)
             if not ftype[1]: return
             ftype = _guiInNames[str(ftype[0])]
             m,p = readFile(fname,ftype)

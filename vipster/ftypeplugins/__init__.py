@@ -11,7 +11,7 @@ from . import aimall
 from . import cpmd
 from . import turbomole
 
-from ..settings import _userParams
+from ..settings import _paramdict
 
 #setup format-lookup-lists
 formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall,cpmd,turbomole]
@@ -19,10 +19,11 @@ _indict=_ODict([(i.argument,i.parser) for i in formats])
 _outdict=_ODict([(i.argument,i.writer) for i in formats if i.writer])
 _guiInNames =_ODict([(i.name,i.argument) for i in formats])
 _guiOutNames=_ODict([(i.name,i.argument) for i in formats if i.writer])
-_paramdict=_ODict([(i.argument,i.param) for i in formats if i.param])
-for i in _userParams:
-    for j in _userParams[i]:
-        _paramdict[i][j]=_userParams[i][j]
+_defaultParams=_ODict([(i.argument,i.param) for i in formats if i.param])
+for i in _defaultParams:
+    for j in _defaultParams[i]:
+        if j not in _paramdict[i]:
+            _paramdict[i][j]=_defaultParams[i][j]
 
 #import members into clean namespace
 from . import wrapper

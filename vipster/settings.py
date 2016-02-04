@@ -18,9 +18,9 @@ except:
     _cfile = _deepcopy(default)
 pse = _cfile['PSE']
 config = _cfile['General']
-_userParams = _cfile['Parameters']
+_paramdict = _cfile['Parameters']
 
 def saveConfig():
     """Write config and PSE to json-file"""
     with open(_expanduser('~/.vipster.json'),'w') as f:
-        _dump(_ODict([('PSE',pse),('General',config),('Parameters',_userParams)]),f,indent=2)
+        _dump(_ODict([('PSE',pse),('General',config),('Parameters',_paramdict)]),f,indent=2)
