@@ -12,7 +12,7 @@ argument = 'pwi'
 
 param={"default":{"type":"pwi",
                   "name":"New PW parameters",
-                  "&control":OrderedDict(),
+                  "&control":OrderedDict([('calculation','scf')]),
                   "&system":OrderedDict(),
                   "&electrons":OrderedDict()}}
 

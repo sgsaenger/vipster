@@ -3,7 +3,7 @@
 
 from sys import exit,argv
 from vipster import *
-from vipster.ftypeplugins import _indict
+from vipster.ftypeplugins import _indict,_outdict,_guiInNames,_guiOutNames
 
 def main():
     """Main function
@@ -13,28 +13,64 @@ def main():
     if len(argv)==1:
         m=[Molecule(steps=1)]
         p=[]
-    elif argv[1] == '-h':
+    elif argv[1] == '-h' or argv[1] == '--help':
         printHelp(0)
+    elif argv[1] == '--list-in':
+        for i in _guiInNames:
+            print('{}: {} files'.format(_guiInNames[i],i))
+    elif argv[1] == '--list-out':
+        for i in _guiOutNames:
+            print('{}: {} files'.format(_guiOutNames[i],i))
+    elif argv[1] == '--list-param':
+        if len(argv)>2:
+            l = argv[2:]
+        else:
+            l = list(availParam())
+        for i in l:
+            print(i+":")
+            for j in availParam(i):
+                print('\t'+j)
     elif argv[1].strip('-') in _indict:
-        m=[];p=[]
-        for i in argv[2:]:
-            a,b=readFile(i,argv[1].strip('-'))
-            m.append(a)
-            if b:
-                p.append(b)
+        parseAndLaunch(argv[1].strip('-'),argv[2:])
+    elif '2' in argv[1] and argv[1].split('2')[0].strip('-') in _indict and argv[1].split('2')[1] in _outdict:
+        fi = argv[1].split('2')[0].strip('-')
+        fo = argv[1].split('2')[1]
+        transcode(fi,fo,argv[2:])
     else:
         printHelp(2)
 
-    launchVipster(m,p)
+def parseAndLaunch(fmt,files):
+        m=[];p=[]
+        for i in files:
+            a,b=readFile(i,fmt)
+            m.append(a)
+            if b:
+                p.append(b)
+        launchVipster(m,p)
+
+def transcode(infmt,outfmt,files):
+    a,_ = readFile(files[0],infmt)
+    if len(files) > 2:
+        p = newParam(outfmt,files[2])
+    else:
+        p = None
+    try:
+        writeFile(a,outfmt,files[1],p)
+    except Exception as e:
+        print(e.message)
 
 def printHelp(err):
-    print('PWToolBox usage:')
-    print('ptb_main [OPTIONS]\n')
+    print('Vipster usage:')
+    print('vipster [OPTIONS]\n')
     print('No option given: start GUI\n')
     print('Options:')
-    print('-h: print this help')
-    for i in _indict.items():
-        print('-'+i[0]+' [FILES]: '+i[1].__doc__.split('\n')[0])
+    print('-h,--help: print this help')
+    print('--list-in: print available filetypes for parsing')
+    print('--list-out: print available filetypes for writing')
+    print('--list-param [<fmt>,...]: print available parameter sets (for all types or only given formats)')
+    print('')
+    print('-<fmt> FILE [FILES]: parse one or more FILES of filetype <fmt>')
+    print('-<fa>2<fb> IN OUT [PARAM]: convert file IN of type <fa> to OUT of <fb> (with parameter set PARAM if needed)')
     exit(err)
 
 if __name__ == '__main__':
