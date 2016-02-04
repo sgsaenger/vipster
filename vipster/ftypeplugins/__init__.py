@@ -9,11 +9,12 @@ from . import cube
 from . import empire
 from . import aimall
 from . import cpmd
+from . import turbomole
 
 from ..settings import _userParams
 
 #setup format-lookup-lists
-formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall,cpmd]
+formats=[xyz,pwInput,pwOutput,lammpsData,lammpsCustom,cube,empire,aimall,cpmd,turbomole]
 _indict=_ODict([(i.argument,i.parser) for i in formats])
 _outdict=_ODict([(i.argument,i.writer) for i in formats if i.writer])
 _guiInNames =_ODict([(i.name,i.argument) for i in formats])
