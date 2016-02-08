@@ -268,8 +268,11 @@ def writer(mol,f,param,coordfmt):
                 pp=mol.pse[j]['CPPP']
                 if not pp:
                     pp=j+config['Default CPMD PP-suffix']
+                nl=mol.pse[j]['CPNL']
+                if not nl:
+                    nl=j+config['Default CPMD Nonlocality']
                 f.write("*"+pp+"\n")
-                f.write("  "+mol.pse[j]['CPNL']+"\n")
+                f.write("  "+nl+"\n")
                 f.write("  "+str([a[0] for a in atoms].count(j))+"\n")
                 for k in atoms:
                     if k[0]==j:
