@@ -202,9 +202,9 @@ class MolTab(QWidget):
         kp.disc.table.cellChanged.connect(cellHandler)
         def newKpoint():
             kp.updatedisable=True
-            kp.disc.table.setRowCount(kp.disc.rowCount()+1)
+            kp.disc.table.setRowCount(kp.disc.table.rowCount()+1)
             for i in range(4):
-                kp.disc.table.setItem(kp.disc.rowCount()-1,i,QTableWidgetItem('1'))
+                kp.disc.table.setItem(kp.disc.table.rowCount()-1,i,QTableWidgetItem('1'))
             kp.updatedisable=False
             cellHandler()
         newKp = QAction('New k-point',kp.disc.table)
