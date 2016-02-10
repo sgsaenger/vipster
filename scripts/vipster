@@ -11,8 +11,7 @@ def main():
     Parses molecules if present, then starts gui
     """
     if len(argv)==1:
-        m=[Molecule(steps=1)]
-        p=[]
+        launchVipster([Molecule(steps=1)])
     elif argv[1] == '-h' or argv[1] == '--help':
         printHelp(0)
     elif argv[1] == '--list-in':
@@ -48,14 +47,36 @@ def parseAndLaunch(fmt,files):
                 p.append(b)
         launchVipster(m,p)
 
-def transcode(infmt,outfmt,files):
-    a,_ = readFile(files[0],infmt)
-    if len(files) > 2:
-        p = newParam(outfmt,files[2])
-    else:
-        p = None
+def transcode(inFmt,outFmt,arguments):
+    inMol,inParam = readFile(arguments[0],inFmt)
+    outMol = arguments[1]
+    outParam = inParam
+    if len(arguments) > 2:
+        if '-p' in arguments[2:]:
+            idx = arguments.index('-p')
+            outParam = newParam(outFmt,arguments[idx+1])
+        if '-k' in arguments[2:]:
+            idx = arguments.index('-k')
+            mode = arguments[idx+1]
+            if mode == 'gamma':
+                inMol.setKpoints('active','gamma')
+            elif mode == 'mpg':
+                inMol.setKpoints('active','mpg')
+                inMol.setKpoints('mpg',arguments[idx+2:idx+8])
+            elif mode[:4] == 'disc':
+                inMol.setKpoints('active','discrete')
+                inMol.setKpoints('options',{'crystal':'C' in mode,'bands':'B' in mode})
+                idx+=2
+                kpoints=[]
+                while len(arguments)>=idx+4:
+                    temp = arguments[idx:idx+4]
+                    if any([i in ['-p','-k'] for i in temp]): break
+                    kpoints.append(temp)
+                    idx+=4
+                inMol.setKpoints('discrete',kpoints)
     try:
-        writeFile(a,outfmt,files[1],p)
+        a = inMol.getKpoints('active')
+        writeFile(inMol,outFmt,outMol,outParam)
     except Exception as e:
         print(e.message)
 
@@ -70,7 +91,12 @@ def printHelp(err):
     print('--list-param [<fmt>,...]: print available parameter sets (for all types or only given formats)')
     print('')
     print('-<fmt> FILE [FILES]: parse one or more FILES of filetype <fmt>')
-    print('-<fa>2<fb> IN OUT [PARAM]: convert file IN of type <fa> to OUT of <fb> (with parameter set PARAM if needed)')
+    print('')
+    print('-<fa>2<fb> IN OUT [OPTS]: convert file IN of type <fa> to OUT of <fb>')
+    print('')
+    print('Options for transcoding:')
+    print('-p PARAM: use named preset-parameter-set')
+    print('-k MODE KPOINTS: set kpoints. see help(Molecule.setKpoints) for formatting')
     exit(err)
 
 if __name__ == '__main__':

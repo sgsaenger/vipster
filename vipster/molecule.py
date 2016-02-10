@@ -832,9 +832,9 @@ class Molecule(_step):
 
         mode -> str in [active,automatic,disc]
         kpoints -> corresponding argument
-        self._kpoints['active'] in ['gamma','automatic','discrete']
+        self._kpoints['active'] in ['gamma','mpg','discrete']
         self._kpoints['mpg'] = [x,y,z,xoff,yoff,zoff]
-        self._kpoints['discrete'] = [[x,y,z],...]
+        self._kpoints['discrete'] = [[x,y,z,w],...]
         self._kpoints['options'] = {'crystal':False,'bands':False}
         """
         self._kpoints[mode]=kpoints
