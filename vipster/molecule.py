@@ -344,14 +344,15 @@ class _step(object):
         self.initUndo()
         vec = self._vec*self._celldm
         mult = [x,y,z]
+        nat = self.nat
+        self._atom_coord.resize([self.nat*np.prod(mult),3])
         for k in range(3):
-            nat = self.nat
             self._atom_name.extend((mult[k]-1)*self._atom_name)
             self._atom_fix.extend((mult[k]-1)*self._atom_fix)
-            self._atom_coord.extend((mult[k]-1)*self._atom_coord)
             for i in range(1,mult[k]):
-                for j in range(i*nat,(i+1)*nat):
-                    self._atom_coord[j]=self._atom_coord[j]+i*vec[k]
+                for j in range(nat):
+                    self._atom_coord[j+i*nat] = self._atom_coord[j] + i*vec[k]
+            nat = nat*mult[k]
         self.setVec(self._vec*[[x],[y],[z]])
         self._bonds_outdated=True
         self.saveUndo('multiply cell')
@@ -502,10 +503,11 @@ class _step(object):
         script=script.strip().replace('\n',' ')
         rep=1
         #dictionary returns closure containing target operation and argument-check
-        ops={'rot':self._evalOperator(self.rotate,'lavo'),
-                'shi':self._evalOperator(self.shift,'lv'),
+        #upper-case: optional
+        ops={'rot':self._evalOperator(self.rotate,'lavV'),
+                'shi':self._evalOperator(self.shift,'lvF'),
                 'def':self._evalOperator('define','ls'),
-                'mir':self._evalOperator(self.mirror,'lvvo'),
+                'mir':self._evalOperator(self.mirror,'lvvV'),
                 'rep':self._evalOperator('repeat','i'),
                 'psh':self._evalOperator(self.pshift,'lvll'),
                 'par':self._evalOperator(self.parallelize,'lll')}
@@ -597,10 +599,18 @@ class _step(object):
                         elif '-' in arg:
                             low,high = arg.split('-')
                             res.append(range(int(low),int(high)+1))
-                #angle
-                elif t == 'a':
+                #float (factor or angle)
+                elif t in 'aF':
+                    #nothing left and optional:
+                    if not arglist and t == 'F':
+                        continue
                     arg,arglist=getToken(arglist)
-                    res.append(float(arg))
+                    try:
+                        arg = float(arg)
+                        res.append(float(arg))
+                    except Error as e:
+                        if t == 'a':
+                            raise ValueError('Not a valid float: '+str(arg))
                 #index for loops
                 elif t == 'i':
                     arg,arglist=getToken(arglist)
@@ -610,9 +620,9 @@ class _step(object):
                     arg,arglist=getToken(arglist)
                     res.append(arg)
                 #valid vector for operations
-                elif t in 'vo':
+                elif t in 'vV':
                     #nothing left and optional:
-                    if not arglist and t == 'o':
+                    if not arglist and t == 'V':
                         continue
                     #explicit vector
                     if arglist[0] == '(':
@@ -672,7 +682,7 @@ class _step(object):
         self._bonds_outdated=True
         self.saveUndo('rotate atoms')
 
-    def shift(self,atoms,vector):
+    def shift(self,atoms,vector,factor=1.0):
         """Shift group of atoms
 
         atoms -> list of atoms
@@ -680,7 +690,7 @@ class _step(object):
         """
         self.initUndo()
         for i in atoms:
-            self._atom_coord[i]+=np.array(vector,'f')
+            self._atom_coord[i]+=np.array(vector,'f')*factor
         self._bonds_outdated=True
         self.saveUndo('shift atoms')
 
