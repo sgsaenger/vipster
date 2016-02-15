@@ -44,6 +44,10 @@ class _step(object):
         for i in _properties:
             setattr(self,i,deepcopy(_properties[i]))
 
+    ######################################################
+    # ATOM FUNCTIONS
+    ######################################################
+
     def newAtom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
         """Make new atom
         name -> element symbol
@@ -83,10 +87,6 @@ class _step(object):
         self._selection=[]
         self._bonds_outdated=True
 
-    ######################################################
-    # SET FUNCTIONS
-    ######################################################
-
     def setAtom(self,index=None,name=None,coord=None,fmt='bohr',fix=None):
         """Modify a given atom
 
@@ -98,38 +98,32 @@ class _step(object):
         if fix: self._atom_fix[index]=fix
         self._bonds_outdated=True
 
-    def setCellDim(self,cdm,scale=False,fmt='bohr'):
-        """Set new cell-dimension
+    nat = property(lambda self: len(self._atom_coord))
 
-        cdm -> new cell-dimension
-        scale -> if True: scale coordinates of atoms (fixed crystal-coord.)
-        fmt -> str in ['angstrom'/'bohr']
+    def getAtoms(self,fmt='bohr'):
+        """Return names and coordinates (bohr) for all atoms"""
+        return list(zip(self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)))
+
+    def getAtom(self,index,fmt='bohr'):
+        """Return one atom
+
+        index -> index of atom
+        fmt -> str in ['angstrom','bohr','crystal','alat']
         """
-        if fmt=='angstrom':
-            cdm *= 1.889726125
-        if scale:
-            ratio=cdm/self._celldm
-            self._atom_coord *= ratio
-        self._celldm = float(cdm)
-        self._bonds_outdated=True
+        return [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
 
-    def setVec(self,vec,scale=False):
-        """Set new cell-vectors
+    def getTypes(self):
+        """Return types of atoms
 
-        vec -> 3x3 list of new vectors
-        scale -> if True: scale coordinates of atoms (fixed crystal-coord.)
+        sorted by atomic number
         """
-        vec = np.array(vec,'f')
-        inv = self._vecinv
-        if scale:
-            self._atom_coord = np.dot(np.dot(self._atom_coord,inv),vec)
-        self._vec = vec
-        self._vecinv = np.linalg.inv(self._vec)
-        self._bonds_outdated=True
+        return sorted(set(self._atom_name), key=lambda n: self.pse[n]["Z"])
+
+    ntyp = property(lambda self: len(set(self._atom_name)))
 
     #######################################################
     # COORD FMT FUNCTIONS
-    # to be called only by atom set/get
+    # internal use only
     ######################################################
 
     def _coordToBohr(self,coord,fmt='bohr'):
@@ -166,10 +160,37 @@ class _step(object):
             return coord/self._celldm
 
     ######################################################
-    # RETURN FUNCTIONS
+    # CELL FUNCTIONS
     ######################################################
 
-    nat = property(lambda self: len(self._atom_coord))
+    def setCellDim(self,cdm,scale=False,fmt='bohr'):
+        """Set new cell-dimension
+
+        cdm -> new cell-dimension
+        scale -> if True: scale coordinates of atoms (fixed crystal-coord.)
+        fmt -> str in ['angstrom'/'bohr']
+        """
+        if fmt=='angstrom':
+            cdm *= 1.889726125
+        if scale:
+            ratio=cdm/self._celldm
+            self._atom_coord *= ratio
+        self._celldm = float(cdm)
+        self._bonds_outdated=True
+
+    def setVec(self,vec,scale=False):
+        """Set new cell-vectors
+
+        vec -> 3x3 list of new vectors
+        scale -> if True: scale coordinates of atoms (fixed crystal-coord.)
+        """
+        vec = np.array(vec,'f')
+        inv = self._vecinv
+        if scale:
+            self._atom_coord = np.dot(np.dot(self._atom_coord,inv),vec)
+        self._vec = vec
+        self._vecinv = np.linalg.inv(self._vec)
+        self._bonds_outdated=True
 
     def getCellDim(self,fmt='bohr'):
         """Return cell-dimension
@@ -181,30 +202,9 @@ class _step(object):
         else:
             return self._celldm
 
-    def getAtoms(self,fmt='bohr'):
-        """Return names and coordinates (bohr) for all atoms"""
-        return list(zip(self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)))
-
-    def getAtom(self,index,fmt='bohr'):
-        """Return one atom
-
-        index -> index of atom
-        fmt -> str in ['angstrom','bohr','crystal','alat']
-        """
-        return [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
-
     def getVec(self):
         """Return cell-vectors"""
         return self._vec
-
-    def getTypes(self):
-        """Return types of atoms
-
-        sorted by atomic number
-        """
-        return sorted(set(self._atom_name), key=lambda n: self.pse[n]["Z"])
-
-    ntyp = property(lambda self: len(set(self._atom_name)))
 
     def getCenter(self,com=False):
         """Return center-coordinates of molecule
@@ -487,7 +487,7 @@ class _step(object):
         return self._vol_grad
 
     #####################################################
-    # SCRIPTING SUPPORT
+    # SCRIPTING FUNCTIONS
     #####################################################
 
     def evalScript(self,script):
