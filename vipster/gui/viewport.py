@@ -154,7 +154,7 @@ class ViewPort(QGLWidget):
                 pick = self.pickAtom(e)
                 #picked atom
                 if pick:
-                    self.modData+=[self.mol.getAtom(pick[1])[1]]
+                    self.modData+=[self.mol.getAtom(pick[0])[1]]
                 #com of selection
                 elif sel:
                     coords=[selToCoord(i) for i in sel]
@@ -226,13 +226,13 @@ class ViewPort(QGLWidget):
         elif self.mouseMode=='Select' and e.button()&1:
             if self.rectPos:
                 for i in self.pickAtom(self.mousePos,self.rectPos):
-                    self.mol.addSelection(i[1:])
+                    self.mol.addSelection(i)
                 self.rectPos = None
                 self.parent.updateMolStep()
             else:
                 pick = self.pickAtom(e)
                 if pick:
-                    self.mol.addSelection(pick[1:])
+                    self.mol.addSelection(pick)
                     self.parent.updateMolStep()
 
     def pickAtom(self,c1,c2=None):
@@ -275,7 +275,7 @@ class ViewPort(QGLWidget):
                     zoff = off%self.mult[2]
                     yoff = (off//self.mult[2])%self.mult[1]
                     xoff = ((off//self.mult[2])//self.mult[1])%self.mult[0]
-                    atoms.append([idx,realid,(xoff,yoff,zoff)])
+                    atoms.append((realid,(xoff,yoff,zoff)))
         if c2:
             return atoms
         elif atoms:

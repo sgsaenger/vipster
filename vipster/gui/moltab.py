@@ -52,13 +52,16 @@ class MolTab(QWidget):
             if self.updatedisable: return
             sel = self.mol.getSelection()
             keep = []
+            idx = set()
             for i in self.table.selectedRanges():
                 for j in range(i.topRow(),i.bottomRow()+1):
-                    l = [k for k in sel if k[0] == j]
-                    if l:
-                        keep.extend(l)
-                    else:
-                        keep.append([j,(0,0,0)])
+                    idx.add(j)
+            for i in idx:
+                l = [k for k in sel if k[0] == i]
+                if l:
+                    keep.extend(l)
+                else:
+                    keep.append((i,(0,0,0)))
             self.mol.delSelection()
             for i in keep:
                 self.mol.addSelection(i)
@@ -272,6 +275,7 @@ class MolTab(QWidget):
 
     def setMol(self,mol):
         #connect molecule
+        if self.sender() is self.table: return
         self.mol = mol
         #fill if visible
         if self.isVisible(): self.fillTab()
