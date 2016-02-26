@@ -137,8 +137,8 @@
 "Rotate around COM":                    false,
 "Perspective projection":               false,
 "Default PWScf PP-suffix":              ".uspp736.pbe.UPF",
-"Default CPMD PP-suffix":               ".uspp736.pbe",
-"Default CPMD Nonlocality:":            "LMAX=F"
+"Default CPMD PP-suffix":               ".uspp736.pbe BINARY",
+"Default CPMD Nonlocality":             "LMAX=F"
 },
 "Parameters":
 {

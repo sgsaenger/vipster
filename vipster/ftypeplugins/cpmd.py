@@ -5,6 +5,7 @@ from ..settings import config
 from re import split as regex
 from numpy import cos,isclose,diag
 from collections import OrderedDict
+from copy import deepcopy
 
 name = 'CPMD Input'
 extension = 'cpi'
@@ -34,7 +35,8 @@ param = {"default":OrderedDict([("type","cpmd"),
 def parser(name,data):
     """ Parse CPMD Input file """
     tmol = Molecule(name)
-    tparam = param["default"]
+    tparam = deepcopy(param["default"])
+    tparam["name"]=name
     i=0
     ibrav='14'
     symmetries={'ISOLATED':'0',
@@ -270,7 +272,7 @@ def writer(mol,f,param,coordfmt):
                     pp=j+config['Default CPMD PP-suffix']
                 nl=mol.pse[j]['CPNL']
                 if not nl:
-                    nl=j+config['Default CPMD Nonlocality']
+                    nl=config['Default CPMD Nonlocality']
                 f.write("*"+pp+"\n")
                 f.write("  "+nl+"\n")
                 f.write("  "+str([a[0] for a in atoms].count(j))+"\n")
