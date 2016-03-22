@@ -81,7 +81,7 @@ def parser(name,data):
             for j in range(nat):
                 at = atomlist[j]
                 tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:])
-            tmol.scaleAtoms('angstrom')
+            tmol.setFmt('angstrom',scale=True)
         i+=1
     return tmol,None
 

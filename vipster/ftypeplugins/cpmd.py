@@ -54,7 +54,7 @@ def parser(name,data):
                 'ORTHOROMBIC':'8',
                 'MONOCLINIC':'12',
                 'TRICLINIC':'14'}
-    scale=None
+    fmt=None
     unitvec=[[1,0,0],[0,1,0],[0,0,1]]
     scalevec=[[1,0,0],[0,1,0],[0,0,1]]
     angstrom=False
@@ -67,12 +67,12 @@ def parser(name,data):
             i+=1
             while not "&END" in data[i]:
                 if nl=="&SYSTEM" and "ANGSTROM" in data[i]:
-                    scale="angstrom"
+                    fmt="angstrom"
                 elif nl=="&SYSTEM" and "SCALE" in data[i]:
                     if "CARTESIAN" in data[i]:
-                        scale="alat"
+                        fmt="alat"
                     else:
-                        scale="crystal"
+                        fmt="crystal"
                     for token in data[i].strip().split():
                         if 'S=' in token:
                             scalevec[0][0]=1/float(token.strip('S='))
@@ -200,9 +200,9 @@ def parser(name,data):
         tmol.setVec([[1,0,0],[b*gamma,b*singam,0],
                 [c*beta,c*(alpha-beta*gamma)/singam,c*sqrt(1+2*alpha*beta*gamma-alpha*alpha-beta*beta-gamma*gamma)/singam]])
     #scale atoms/cell
-    if scale:
-        tmol.scaleAtoms(scale)
-        tmol.setCellDim(tmol.getCellDim(),fmt=scale)
+    if fmt:
+        tmol.setFmt(fmt,scale=True)
+        tmol.setCellDim(tmol.getCellDim(),fmt=fmt)
     return tmol,tparam
 
 def writer(mol,f,param,coordfmt):

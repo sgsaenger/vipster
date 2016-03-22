@@ -3,7 +3,7 @@
 from .cpparam import CPParam
 from .pwparam import PWParam
 from .lammpsparam import LammpsParam
-from .. import *
+from ..ftypeplugins import availParam,newParam
 
 from PyQt4.QtGui import *
 

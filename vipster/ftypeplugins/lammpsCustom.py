@@ -49,7 +49,7 @@ def parser(name,data):
                 for j in range(nat):
                     at = data[j+1+i].split()
                     tmol.setAtom(j,at[1],at[2:])
-                tmol.scaleAtoms(fmt)
+                tmol.setFmt(fmt,scale=True)
                 i+=nat+1
         else:
             i+=1

@@ -39,7 +39,7 @@ def parser(name,data):
             for j in range(nat):
                 atom = data[j+i+1].split()
                 tmol.setAtom(j,atom[1],atom[6:9])
-            tmol.scaleAtoms('alat')
+            tmol.setFmt('alat',scale=True)
             i+=nat
         #read k-points:
         elif line[0] == 'gamma-point':
@@ -67,8 +67,8 @@ def parser(name,data):
             tmol.newAtoms(nat)
             for j in range(nat):
                 atom = data[j+i+1].split()
-                tmol.setAtom(j,atom[0],atom[1:4],fix=[int(x) for x in atom[4:]])
-            tmol.scaleAtoms(line[1].strip('()'))
+                tmol.setAtom(j,atom[0],atom[1:4],fix=[not int(x) for x in atom[4:]])
+            tmol.setFmt(line[1].strip('()'),scale=True)
             i+=nat
         #break on reaching final coordinates (duplicate)
         elif line[0] == 'Begin':

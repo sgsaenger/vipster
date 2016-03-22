@@ -11,7 +11,7 @@ def main():
     Parses molecules if present, then starts gui
     """
     if len(argv)==1:
-        launchVipster([Molecule(steps=1)])
+        launchVipster()
     elif argv[1] == '-h' or argv[1] == '--help':
         printHelp(0)
     elif argv[1] == '--list-in':

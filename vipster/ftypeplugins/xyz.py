@@ -25,7 +25,7 @@ def parser(name,data):
             for j in range(nat):
                 line=data[j+i+2].split()
                 tmol.setAtom(j,line[0],line[1:4])
-            tmol.scaleAtoms('angstrom')
+            tmol.setFmt('angstrom',scale=True)
             i+=nat+2
     return tmol,None
 

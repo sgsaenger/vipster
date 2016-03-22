@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
-from .mainwidget import *
-from . import mainwidget
-__all__=mainwidget.__all__
+from .main import *
+from . import main
+__all__=main.__all__

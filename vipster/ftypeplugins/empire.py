@@ -16,7 +16,7 @@ def parser(name,data):
     for j in range(nat):
         line=data[j+2].split()
         tmol.newAtom(j,line[0],line[1:4])
-    tmol.scaleAtoms('angstrom')
+    tmol.setFmt('angstrom',scale=True)
     vec=[0,0,0]
     for i in range(3):
         vec[i]=[float(x)for x in data[nat+3+i].split()]

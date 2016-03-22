@@ -69,7 +69,7 @@ def parser(name,data):
                     temp = data.pop(0).split()
                     while not temp:
                             temp = data.pop(0).split()
-                    tmol.setAtom(i,temp[0],temp[1:4],fix=[int(x) for x in temp[4:]])
+                    tmol.setAtom(i,temp[0],temp[1:4],fix=[not int(x) for x in temp[4:]])
             #K_POINTS fmt
             elif header[0] == 'K_POINTS':
                 active=header[1].strip('{()}')
@@ -204,7 +204,7 @@ def parser(name,data):
         tmol.setVec([[1,0,0],[b*gamma,b*singam,0],
                 [c*beta,c*(alpha-beta*gamma)/singam,c*sqrt(1+2*alpha*beta*gamma-alpha*alpha-beta*beta-gamma*gamma)/singam]])
     #create atoms after creating cell:
-    tmol.scaleAtoms(fmt)
+    tmol.setFmt(fmt,scale=True)
     #delete nat, ntype and celldm before returning
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']
@@ -259,9 +259,9 @@ def writer(mol,f,param,coordfmt):
     f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
     for i in range(mol.nat):
         atom=mol.getAtom(i,coordfmt)
-        if 0 in atom[3]:
+        if any(atom[3]):
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {:1d}'.format(
-                atom[0],atom[1][0],atom[1][1],atom[1][2],atom[3][0],atom[3][1],atom[3][2])+'\n')
+                atom[0],atom[1][0],atom[1][1],atom[1][2],not atom[3][0],not atom[3][1],not atom[3][2])+'\n')
         else:
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                 atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')

@@ -6,6 +6,12 @@ from copy import deepcopy
 from .mol_c import setBondsC,makeVolGradient
 from . import pse
 
+#constants
+bohrrad = 0.52917721092
+invbohr = 1.88972612565
+fmts = ['angstrom','bohr','crystal','alat']
+kpfmts = ['gamma','mpg','discrete']
+
 #per-step properties
 _properties={'_atom_name':[],
         '_atom_coord':np.array([],'f'),
@@ -13,6 +19,7 @@ _properties={'_atom_name':[],
         '_bonds':[[],[],[],[],[],[],[],[]],
         '_bond_cutfac':1.0,
         '_bonds_outdated':True,
+        '_default_fmt':'bohr',
         '_script_group':dict(),
         '_selection':[],
         '_celldm':1.0,
@@ -48,18 +55,18 @@ class _step(object):
     # ATOM FUNCTIONS
     ######################################################
 
-    def newAtom(self,name='C',coord=[0.,0.,0.],fmt='bohr',fix=[1,1,1]):
+    def newAtom(self,name='C',coord=[0.,0.,0.],fmt=None,fix=[False,False,False]):
         """Make new atom
         name -> element symbol
         coord -> coordinates
-        fmt -> str in ['bohr'/'angstrom'/'crystal'/'alat']
+        fmt -> str in ['bohr','angstrom','crystal','alat']
         fix -> 0 for no relaxation in PW
         """
         self._atom_name.append(name)
         self._atom_coord.resize([self.nat+1,3])
         self._atom_coord[-1]=self._coordToBohr(coord,fmt)
         while len(fix)<3:
-            fix+=[1]
+            fix+=[False]
         self._atom_fix.append(fix)
         self._selection=[]
         self._bonds_outdated=True
@@ -68,16 +75,7 @@ class _step(object):
         """Make 'count' new empty atoms"""
         self._atom_name.extend(['X']*count)
         self._atom_coord.resize([self.nat+count,3])
-        self._atom_fix.extend([[1,1,1]]*count)
-
-    def scaleAtoms(self,fmt):
-        """Rescale all atoms from given format to bohr"""
-        if fmt == 'angstrom':
-            self._atom_coord *= 1.889726125
-        elif fmt == 'crystal':
-            self._atom_coord = np.dot(self._atom_coord,self._vec)*self._celldm
-        elif fmt == 'alat':
-            self._atom_coord = self._atom_coord*self._celldm
+        self._atom_fix.extend([[False,False,False]]*count)
 
     def delAtom(self,index):
         """Remove atom"""
@@ -87,7 +85,7 @@ class _step(object):
         self._selection=[]
         self._bonds_outdated=True
 
-    def setAtom(self,index=None,name=None,coord=None,fmt='bohr',fix=None):
+    def setAtom(self,index,name=None,coord=None,fmt=None,fix=None):
         """Modify a given atom
 
         index -> atom id
@@ -100,17 +98,17 @@ class _step(object):
 
     nat = property(lambda self: len(self._atom_coord))
 
-    def getAtoms(self,fmt='bohr'):
+    def getAtoms(self,fmt=None):
         """Return names and coordinates (bohr) for all atoms"""
         return list(zip(self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)))
 
-    def getAtom(self,index,fmt='bohr'):
-        """Return one atom
+    def getAtom(self,index,fmt=None):
+        """Return exacpt copy of one atom
 
         index -> index of atom
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
-        return [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt),fmt,self._atom_fix[index]]
+        return [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt),self._default_fmt if not fmt else fmt,self._atom_fix[index]]
 
     def getTypes(self):
         """Return types of atoms
@@ -123,10 +121,27 @@ class _step(object):
 
     #######################################################
     # COORD FMT FUNCTIONS
-    # internal use only
     ######################################################
 
-    def _coordToBohr(self,coord,fmt='bohr'):
+    def setFmt(self,fmt,scale=False):
+        """Set default format for future atom-operations
+
+        fmt -> str in ['bohr','angstrom','crystal','alat']
+        scale -> if true, existing atoms are rescaled"""
+        self._default_fmt = fmt
+        if scale:
+            if fmt == 'angstrom':
+                self._atom_coord *= invbohr
+            elif fmt == 'crystal':
+                self._atom_coord = np.dot(self._atom_coord,self._vec)*self._celldm
+            elif fmt == 'alat':
+                self._atom_coord = self._atom_coord*self._celldm
+
+    def getFmt(self):
+        """Return default format"""
+        return self._default_fmt
+
+    def _coordToBohr(self,coord,fmt=None):
         """Transform given coordinates to bohr
 
         coord -> new coordinates in given format
@@ -134,8 +149,10 @@ class _step(object):
         retval -> new coordinates in bohr
         """
         coord = np.array(coord,'f')
+        if not fmt:
+            fmt = self._default_fmt
         if fmt == 'angstrom':
-            return coord*1.889726125
+            return coord*invbohr
         elif fmt == 'bohr':
             return coord
         elif fmt == 'crystal':
@@ -150,8 +167,10 @@ class _step(object):
         fmt -> str in ['angstrom','bohr','crystal','alat']
         retval -> new coordinates in given format
         """
+        if not fmt:
+            fmt = self._default_fmt
         if fmt == 'angstrom':
-            return coord*0.52917721092
+            return coord*bohrrad
         elif fmt == 'bohr':
             return coord
         elif fmt == 'crystal':
@@ -163,15 +182,17 @@ class _step(object):
     # CELL FUNCTIONS
     ######################################################
 
-    def setCellDim(self,cdm,scale=False,fmt='bohr'):
+    def setCellDim(self,cdm,scale=False,fmt=None):
         """Set new cell-dimension
 
         cdm -> new cell-dimension
         scale -> if True: scale coordinates of atoms (fixed crystal-coord.)
-        fmt -> str in ['angstrom'/'bohr']
+        fmt -> str in ['angstrom','bohr']
         """
-        if fmt=='angstrom':
-            cdm *= 1.889726125
+        if not fmt:
+            fmt = self._default_fmt
+        if fmt == 'angstrom':
+            cdm *= invbohr
         if scale:
             ratio=cdm/self._celldm
             self._atom_coord *= ratio
@@ -192,13 +213,15 @@ class _step(object):
         self._vecinv = np.linalg.inv(self._vec)
         self._bonds_outdated=True
 
-    def getCellDim(self,fmt='bohr'):
+    def getCellDim(self,fmt=None):
         """Return cell-dimension
 
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
+        if not fmt:
+            fmt = self._default_fmt
         if fmt=='angstrom':
-            return self._celldm*0.52917721092
+            return self._celldm*bohrrad
         else:
             return self._celldm
 
@@ -212,7 +235,7 @@ class _step(object):
         if com is True: return center of mass
         else returns center of cell
         """
-        if com and len(self._atom_coord):
+        if com and self.nat:
             return (np.max(self._atom_coord,axis=0)+np.min(self._atom_coord,axis=0))/2
         else:
             return (self._vec[0]+self._vec[1]+self._vec[2])*self._celldm/2
@@ -314,7 +337,7 @@ class _step(object):
         Actual setting performed by C-routine setBondsC
         """
         self._bonds=[[],[],[],[],[],[],[],[]]
-        if len(self._atom_coord)<2:
+        if self.nat<2:
             return
         at_c = self._atom_coord
         cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
@@ -580,7 +603,7 @@ class _step(object):
                             #atom index
                             else:
                                 l.append(int(j))
-                        if not np.all(np.less(l,len(self._atom_coord))):
+                        if not np.all(np.less(l,self.nat)):
                             raise IndexError('Atom index out of range')
                         res.append(l)
                     else:
@@ -588,7 +611,7 @@ class _step(object):
                         #reference to definition
                         if arg.isalpha():
                             if arg == 'all':
-                                res.append(range(len(self._atom_name)))
+                                res.append(range(self.nat))
                             elif arg == 'sel':
                                 res.append(set([a[0] for a in self._selection]))
                             else:
@@ -823,19 +846,12 @@ class Molecule(_step):
                 step._vecinv = vecinv
                 step._bonds_outdated=True
 
-    def setCellDimAll(self,cdm,scale=False,fmt='bohr'):
+    def setCellDimAll(self,cdm,scale=False,fmt=None):
         """
         Set new cell-dimension for all included steps
         """
-        if scale:
-            for step in self.steps:
-                step.setCellDim(cdm,scale,fmt)
-        else:
-            if fmt=='angstrom':
-                cdm=cdm*1.889726125
-            for step in self.steps:
-                step._celldm = float(cdm)
-                step._bonds_outdated=True
+        for step in self.steps:
+            step.setCellDim(cdm,scale,fmt)
 
     def setKpoints(self,mode,kpoints):
         """Set and modify active k-points

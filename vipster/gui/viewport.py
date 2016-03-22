@@ -14,11 +14,20 @@ from OpenGL.arrays.vbo import *
 from .gui_c import makeIsoSurf
 from .. import config
 
+class VisualWidget(QWidget):
+    
+    def __init__(self,parent):
+        super(VisualWidget,self).__init__()
+        self.parent = parent
+        vbox = QVBoxLayout()
+        vbox.addWidget(ViewPort(parent))
+        self.setLayout(vbox)
+
+    def setMol(self,mol):
+        pass
+
 class ViewPort(QGLWidget):
 
-    ##################################################
-    # CALLED UPON INITIALISATION
-    ##################################################
     def __init__(self,parent):
         #init with antialiasing, transparency and OGLv3.3 core profile
         form=QGLFormat(QGL.SampleBuffers|QGL.AlphaChannel)
@@ -34,7 +43,7 @@ class ViewPort(QGLWidget):
         self.ysh = 0
         self.rMatrix = QMatrix4x4()
         self.distance = 25
-        self.initEditMenu()
+        #self.initEditMenu()
         self.copyBuf=[]
 
     ###############################################
@@ -331,13 +340,13 @@ class ViewPort(QGLWidget):
                 del self.surfVBO
 
         #check if molecule has undo-stack:
-        undo = mol.getUndo()
-        if undo:
-            self.undoAction.setText('Undo '+undo)
-            self.undoAction.setEnabled(True)
-        else:
-            self.undoAction.setText('Undo')
-            self.undoAction.setDisabled(True)
+        #undo = mol.getUndo()
+        #if undo:
+        #    self.undoAction.setText('Undo '+undo)
+        #    self.undoAction.setEnabled(True)
+        #else:
+        #    self.undoAction.setText('Undo')
+        #    self.undoAction.setDisabled(True)
 
         #clear old selection if present:
         if hasattr(self,'selVBO'):
@@ -347,7 +356,7 @@ class ViewPort(QGLWidget):
         self.mol=mol
         self.mult=mult
         #local variables for convenience
-        atoms = mol.getAtoms()
+        atoms = mol.getAtoms('bohr')
         pse = mol.pse
         vec = mol.getVec()*mol.getCellDim()
         center = mol.getCenter(config["Rotate around COM"])
