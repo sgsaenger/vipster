@@ -29,7 +29,7 @@ class CellMod(QWidget):
                 self.mol.crop()
             elif reason=='Align cell':
                 self.mol.align(self.alignVec.currentText(),self.alignDir.currentText())
-            self.parent.updateMolStep()
+            self.parent.updateMol()
 
         wrapBut = QPushButton('Wrap atoms')
         wrapBut.clicked.connect(modHandler)

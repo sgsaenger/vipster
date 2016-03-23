@@ -13,7 +13,7 @@ class Script(QWidget):
 
         def scriptHandler():
             self.scriptResult.setText(self.mol.evalScript(str(self.scriptArea.toPlainText())))
-            self.parent.updateMolStep()
+            self.parent.updateMol()
 
         self.scriptArea = QTextEdit()
         self.scriptResult = QLabel()

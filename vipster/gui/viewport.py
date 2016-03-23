@@ -4,7 +4,7 @@ from os.path import dirname
 from copy import deepcopy
 import numpy as np
 
-from PyQt4.QtCore import Qt,QRectF
+from PyQt4.QtCore import Qt,QRectF,QTimer
 from PyQt4.QtGui import *
 from PyQt4.QtOpenGL import *
 from OpenGL.GL import *
@@ -12,19 +12,182 @@ from OpenGL.GL.shaders import *
 from OpenGL.arrays.vbo import *
 
 from .gui_c import makeIsoSurf
-from .. import config
+from ..settings import config
 
-class VisualWidget(QWidget):
-    
+class VisualWidget(QFrame):
+
     def __init__(self,parent):
         super(VisualWidget,self).__init__()
         self.parent = parent
+        self.viewport = ViewPort(parent)
+        self.updatedisable = False
+        mouseLayout = self.initMouse()
+        control1,control2 = self.initControl()
         vbox = QVBoxLayout()
-        vbox.addWidget(ViewPort(parent))
+        vbox.addLayout(mouseLayout)
+        vbox.addWidget(self.viewport)
+        vbox.addLayout(control1)
+        vbox.addLayout(control2)
+        vbox.setStretchFactor(self.viewport,1)
+        vbox.setContentsMargins(0,0,0,0)
         self.setLayout(vbox)
+        self.setFrameStyle(38)
+
+    def initMouse(self):
+        self.mouseGroup = QButtonGroup()
+        mouseLayout = QHBoxLayout()
+        camBut = QPushButton("Camera")
+        camBut.setShortcut("r")
+        camBut.setToolTip("Move camera\n\nLMB: Rotate camera\nMMB: Drag camera\nRMB: Align camera to z-axis")
+        selBut = QPushButton("Select")
+        selBut.setShortcut("s")
+        selBut.setToolTip("Select atoms\n\nLMB: Select atoms\nRMB: Clear selection")
+        modBut = QPushButton("Modify")
+        modBut.setShortcut("m")
+        modBut.setToolTip("Modify geometry\n\nLMB: Rotate atoms (around Center of Mass or selected Atom)\nMMB: Move atoms in xy-plane (camera)\nRMB: Move atoms along z-axis (camera)")
+        for i in [camBut,selBut,modBut]:
+            mouseLayout.addWidget(i)
+            self.mouseGroup.addButton(i)
+            i.setCheckable(True)
+        self.mouseGroup.buttonClicked.connect(self.viewport.setMouseMode)
+        self.mouseGroup.setExclusive(True)
+        camBut.setChecked(True)
+        return mouseLayout
+
+    def initControl(self):
+        #controlLayout = QVBoxLayout()
+        row1 = QHBoxLayout()
+        row2 = QHBoxLayout()
+        #Camera-Alignment buttons
+        row1.addWidget(QLabel("Align camera:"))
+        for i,w in enumerate(["+x","+y","+z","-x","-y","-z"]):
+            button = QPushButton(w)
+            button.clicked.connect(self.viewport.alignView)
+            button.setFixedWidth(30)
+            row1.addWidget(button)
+        row1.addStretch()
+        #Cell multiplication
+        self.mult = []
+        row1.addWidget(QLabel("Cell multiply:"))
+        for i,s in enumerate(["x:","y:","z:"]):
+            row1.addWidget(QLabel(s))
+            self.mult.append(QSpinBox())
+            self.mult[-1].setMinimum(1)
+            self.mult[-1].valueChanged.connect(self.updateView)
+            row1.addWidget(self.mult[-1])
+        ##Choose step, animate
+        row2.addWidget(QLabel("Select step: "))
+        self.buttons = []
+        for i in range(5):
+            self.buttons.append(QPushButton())
+            self.buttons[-1].clicked.connect(self.changeStep)
+        self.buttons[0].setIcon(self.style().standardIcon(64))
+        self.buttons[0].setFixedWidth(30)
+        self.buttons[1].setAutoRepeat(True)
+        self.buttons[1].setIcon(self.style().standardIcon(66))
+        self.buttons[1].setFixedWidth(30)
+        self.buttons[2].setIcon(self.style().standardIcon(60))
+        self.buttons[2].setFixedWidth(30)
+        self.buttons[3].setIcon(self.style().standardIcon(65))
+        self.buttons[3].setAutoRepeat(True)
+        self.buttons[3].setFixedWidth(30)
+        self.buttons[4].setIcon(self.style().standardIcon(63))
+        self.buttons[4].setFixedWidth(30)
+        self.animTimer = QTimer()
+        self.animTimer.setInterval(50)
+        self.animTimer.timeout.connect(self.buttons[3].click)
+        for i,w in enumerate(self.buttons):
+            row2.addWidget(w)
+        self.slideStep = QSlider()
+        self.slideStep.setOrientation(1)
+        self.slideStep.setMinimum(1)
+        self.slideStep.setMaximum(1)
+        self.slideStep.setTickPosition(self.slideStep.TicksBelow)
+        self.slideStep.setSingleStep(1)
+        self.slideStep.valueChanged.connect(self.changeStep)
+        row2.addWidget(self.slideStep)
+        self.stepRange = QIntValidator()
+        self.stepRange.setBottom(1)
+        self.textStep = QLineEdit("1")
+        self.textStep.editingFinished.connect(self.changeStep)
+        self.textStep.setValidator(self.stepRange)
+        self.textStep.setFixedWidth(30)
+        row2.addWidget(self.textStep)
+        row2.addWidget(QLabel("/"))
+        self.maxStep = QLabel("1")
+        row2.addWidget(self.maxStep)
+        return row1,row2
+        #controlLayout.addLayout(row1)
+        #controlLayout.addLayout(row2)
+        #return controlLayout
 
     def setMol(self,mol):
-        pass
+        self.mol = mol
+        step = mol.curStep+1
+        length = len(mol)
+        if length == 1:
+            self.textStep.setDisabled(True)
+            self.slideStep.setDisabled(True)
+        else:
+            self.textStep.setEnabled(True)
+            self.slideStep.setEnabled(True)
+        if step == 1:
+            self.buttons[0].setDisabled(True)
+            self.buttons[1].setDisabled(True)
+        else:
+            self.buttons[0].setEnabled(True)
+            self.buttons[1].setEnabled(True)
+        if step == length:
+            self.animTimer.stop()
+            self.buttons[3].setDisabled(True)
+            self.buttons[4].setDisabled(True)
+        else:
+            self.buttons[3].setEnabled(True)
+            self.buttons[4].setEnabled(True)
+        if length and step<length:
+            self.buttons[2].setEnabled(True)
+        else:
+            self.buttons[2].setDisabled(True)
+        self.stepRange.setTop(length)
+        self.maxStep.setText(str(length))
+        self.textStep.setText(str(step))
+        self.slideStep.blockSignals(True)
+        self.slideStep.setMaximum(length)
+        self.slideStep.setValue(step)
+        self.slideStep.blockSignals(False)
+        self.updateView()
+
+    def updateView(self):
+        self.viewport.setMol(self.mol,[i.value() for i in self.mult])
+
+    def changeStep(self):
+        sender = self.sender()
+        if sender is self.slideStep:
+            step = self.slideStep.value()-1
+            self.textStep.setText(str(step+1))
+        elif sender is self.textStep:
+            step = int(self.textStep.text())-1
+            self.slideStep.blockSignals(True)
+            self.slideStep.setValue(step+1)
+            self.slideStep.blockSignals(False)
+        elif sender in self.buttons:
+            index = self.buttons.index(sender)
+            if index == 0:
+                step = 0
+            elif index == 1:
+                step = self.slideStep.value()-2
+            elif index == 2:
+                if self.animTimer.isActive():
+                        self.animTimer.stop()
+                else:
+                        self.animTimer.start()
+                return
+            elif index == 3:
+                step = self.slideStep.value()
+            elif index == 4:
+                step = len(self.mol)-1
+        self.mol.changeStep(step)
+        self.parent.updateMol()
 
 class ViewPort(QGLWidget):
 
@@ -43,64 +206,11 @@ class ViewPort(QGLWidget):
         self.ysh = 0
         self.rMatrix = QMatrix4x4()
         self.distance = 25
-        #self.initEditMenu()
         self.copyBuf=[]
 
     ###############################################
     # INPUT HANDLING
     ###############################################
-
-    def initEditMenu(self):
-        def newFun():
-            self.mol.initUndo()
-            self.mol.newAtom()
-            self.mol.saveUndo('create atom')
-            self.parent.updateMolStep()
-        newAction = QAction('&New atom',self)
-        newAction.setShortcut('n')
-        newAction.triggered.connect(newFun)
-        def delFun():
-            sel = set(i[0] for i in self.mol.getSelection())
-            if not sel: return
-            self.mol.initUndo()
-            for i in sorted(sel,reverse=True):
-                self.mol.delAtom(i)
-            self.mol.saveUndo('delete atom(s)')
-            self.parent.updateMolStep()
-        delAction = QAction('&Delete atom(s)',self)
-        delAction.setShortcut(QKeySequence.Delete)
-        delAction.triggered.connect(delFun)
-        def copyFun():
-            sel = set(i[0] for i in self.mol.getSelection())
-            self.copyBuf = []
-            for i in sel:
-                self.copyBuf.append(deepcopy(self.mol.getAtom(i)))
-        copyAction = QAction('&Copy atom(s)',self)
-        copyAction.setShortcut('Ctrl+C')
-        copyAction.triggered.connect(copyFun)
-        def pasteFun():
-            if not self.copyBuf: return
-            self.mol.initUndo()
-            for i in self.copyBuf:
-                self.mol.newAtom(*i)
-            self.mol.saveUndo('copy atom(s)')
-            self.parent.updateMolStep()
-        pasteAction = QAction('&Paste atom(s)',self)
-        pasteAction.setShortcut('Ctrl+V')
-        pasteAction.triggered.connect(pasteFun)
-        def undoFun():
-            self.mol.undo()
-            self.parent.updateMolStep()
-        self.undoAction = QAction('Undo',self)
-        self.undoAction.setShortcut('Ctrl+Z')
-        self.undoAction.triggered.connect(undoFun)
-        eMenu = self.parent.parent.menuBar().addMenu('&Edit')
-        eMenu.addAction(newAction)
-        eMenu.addAction(copyAction)
-        eMenu.addAction(pasteAction)
-        eMenu.addAction(delAction)
-        eMenu.addSeparator()
-        eMenu.addAction(self.undoAction)
 
     def keyPressEvent(self,e):
         if e.key() == Qt.Key_Up:
@@ -176,7 +286,7 @@ class ViewPort(QGLWidget):
                 self.rMatrix.setToIdentity()
             elif self.mouseMode == 'Select':
                 self.mol.delSelection()
-                self.parent.updateMolStep()
+                self.parent.updateMol()
             self.update()
 
     def mouseMoveEvent(self,e):
@@ -203,14 +313,14 @@ class ViewPort(QGLWidget):
                 axis = delta.y()*self.modData[1][0]-delta.x()*self.modData[1][1]
                 shift=self.modData[2]
                 self.mol.rotate(atoms,angle,axis,shift)
-                self.parent.updateMolStep()
+                self.parent.updateMol()
                 self.modMode='rotate'
         elif e.buttons()&2 and self.mouseMode=='Modify':
             #shift selection in z-direction (cam space)
             atoms=self.modData[0]
             vec = self.modData[1][2]*(delta.x()+delta.y())
             self.mol.shift(atoms,vec*0.1)
-            self.parent.updateMolStep()
+            self.parent.updateMol()
             self.modMode='shift'
         elif (e.buttons() & 4):
             if self.mouseMode=='Camera':
@@ -223,7 +333,7 @@ class ViewPort(QGLWidget):
                 atoms=self.modData[0]
                 vec = self.modData[1][0]*delta.x()+self.modData[1][1]*delta.y()
                 self.mol.shift(atoms,vec*0.1)
-                self.parent.updateMolStep()
+                self.parent.updateMol()
                 self.modMode='shift'
         self.mousePos = e.pos()
 
@@ -231,18 +341,18 @@ class ViewPort(QGLWidget):
         if self.mouseMode=='Modify' and self.modMode:
             self.mol.saveUndo(self.modMode)
             self.modMode=''
-            self.parent.updateMolStep()
+            self.parent.updateMol()
         elif self.mouseMode=='Select' and e.button()&1:
             if self.rectPos:
                 for i in self.pickAtom(self.mousePos,self.rectPos):
                     self.mol.addSelection(i)
                 self.rectPos = None
-                self.parent.updateMolStep()
+                self.parent.updateMol()
             else:
                 pick = self.pickAtom(e)
                 if pick:
                     self.mol.addSelection(pick)
-                    self.parent.updateMolStep()
+                    self.parent.updateMol()
 
     def pickAtom(self,c1,c2=None):
         #render with selectionmode
@@ -338,15 +448,6 @@ class ViewPort(QGLWidget):
                 del self.planeVBO
             if hasattr(self,'surfVBO'):
                 del self.surfVBO
-
-        #check if molecule has undo-stack:
-        #undo = mol.getUndo()
-        #if undo:
-        #    self.undoAction.setText('Undo '+undo)
-        #    self.undoAction.setEnabled(True)
-        #else:
-        #    self.undoAction.setText('Undo')
-        #    self.undoAction.setDisabled(True)
 
         #clear old selection if present:
         if hasattr(self,'selVBO'):
@@ -584,13 +685,23 @@ class ViewPort(QGLWidget):
         else:
             self.glslv='#version 130\n'
 
+        def makeShader(vf,ff):
+            s = QGLShaderProgram()
+            with open(dirname(__file__)+'/opengl/'+vf) as f:
+                v=self.glslv+f.read()
+                s.addShaderFromSourceCode(QGLShader.Vertex,v)
+            with open(dirname(__file__)+'/opengl/'+ff) as f:
+                f=self.glslv+f.read()
+                s.addShaderFromSourceCode(QGLShader.Fragment,f)
+            return s
+
         #add shaders:
-        self.sphereShader=self.makeShader('vertexSpheres.vert','fragmentSpheres.frag')
-        self.bondShader=self.makeShader('vertexBonds.vert','fragmentBonds.frag')
-        self.lineShader=self.makeShader('vertexLines.vert','fragmentLines.frag')
-        self.selectShader=self.makeShader('vertexSelect.vert','fragmentSelect.frag')
-        self.planeShader=self.makeShader('vertexPlane.vert','fragmentPlane.frag')
-        self.surfShader=self.makeShader('vertexSurf.vert','fragmentSpheres.frag')
+        self.sphereShader = makeShader('vertexSpheres.vert','fragmentSpheres.frag')
+        self.bondShader   = makeShader('vertexBonds.vert','fragmentBonds.frag')
+        self.lineShader   = makeShader('vertexLines.vert','fragmentLines.frag')
+        self.selectShader = makeShader('vertexSelect.vert','fragmentSelect.frag')
+        self.planeShader  = makeShader('vertexPlane.vert','fragmentPlane.frag')
+        self.surfShader   = makeShader('vertexSurf.vert','fragmentSpheres.frag')
 
         # load sphere
         sf=open(dirname(__file__)+'/opengl/sphere_model','r')
@@ -600,16 +711,6 @@ class ViewPort(QGLWidget):
         tf=open(dirname(__file__)+'/opengl/bond_model','r')
         self.torusVBO=VBO(np.array(tf.readline().split(),'f'))
         tf.close()
-
-    def makeShader(self,vf,ff):
-        s = QGLShaderProgram()
-        with open(dirname(__file__)+'/opengl/'+vf) as f:
-            v=self.glslv+f.read()
-            s.addShaderFromSourceCode(QGLShader.Vertex,v)
-        with open(dirname(__file__)+'/opengl/'+ff) as f:
-            f=self.glslv+f.read()
-            s.addShaderFromSourceCode(QGLShader.Fragment,f)
-        return s
 
     def resizeGL(self,width,height):
         #prevent divide by zero

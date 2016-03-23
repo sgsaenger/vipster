@@ -7,7 +7,7 @@ from copy import deepcopy
 from PyQt4.QtGui import *
 from PyQt4.QtCore import QTimer,Qt,QString
 
-from .viewport import ViewPort
+from .viewport import VisualWidget
 from .tools import tools
 from .parameterwidgets import ParamTab,ParamDialog
 from .molwidgets import MolCell,MolKPoints,MolTable
@@ -41,12 +41,12 @@ class MainWindow(QMainWindow):
         self.mol = self.molecules[0]
         self.param = None
         #
-        self.visual = ViewPort(self)
+        self.visual = VisualWidget(self)
         self.setCentralWidget(self.visual)
         #
         self.initEditWidgets()
         #
-        #self.initTools()
+        self.initTools()
         #
         self.initFmt()
         #
@@ -312,14 +312,14 @@ class MainWindow(QMainWindow):
 
     def updateMol(self):
         self.mol = self.molecules[self.mlist.currentRow()]
-        self.visual.setMol(self.mol,[1,1,1])
+        self.visual.setMol(self.mol)
         self.mtable.setMol(self.mol)
         self.mcell.setMol(self.mol)
         self.mkpoints.setMol(self.mol)
         self.pseglob.setMol(self.mol)
         self.psemol.setMol(self.mol)
-        #for tool in self.tools:
-        #    tool.setMol(self.mol)
+        for tool in self.tools:
+            tool.setMol(self.mol)
         self.fmt.setCurrentIndex(fmts.index(self.mol.getFmt()))
         undo = self.mol.getUndo()
         if undo:
