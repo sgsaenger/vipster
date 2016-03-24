@@ -444,7 +444,7 @@ class ViewPort(QGLWidget):
         #local variables for convenience
         atoms = mol.getAtoms('bohr')
         pse = mol.pse
-        vec = mol.getVec()*mol.getCellDim()
+        vec = mol.getVec()*mol.getCellDim('bohr')
         center = mol.getCenter(config["Rotate around COM"])
         bonds = mol.getBonds(config['Bond cutoff factor'])
         sel = mol.getSelection()
