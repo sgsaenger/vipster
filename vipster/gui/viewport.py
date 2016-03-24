@@ -22,7 +22,8 @@ class VisualWidget(QFrame):
         self.viewport = ViewPort(parent)
         self.updatedisable = False
         mouseLayout = self.initMouse()
-        control1,control2 = self.initControl()
+        control1 = self.initMod()
+        control2 = self.initControl()
         vbox = QVBoxLayout()
         vbox.addLayout(mouseLayout)
         vbox.addWidget(self.viewport)
@@ -54,10 +55,8 @@ class VisualWidget(QFrame):
         camBut.setChecked(True)
         return mouseLayout
 
-    def initControl(self):
-        #controlLayout = QVBoxLayout()
+    def initMod(self):
         row1 = QHBoxLayout()
-        row2 = QHBoxLayout()
         #Camera-Alignment buttons
         row1.addWidget(QLabel("Align camera:"))
         for i,w in enumerate(["+x","+y","+z","-x","-y","-z"]):
@@ -75,7 +74,11 @@ class VisualWidget(QFrame):
             self.mult[-1].setMinimum(1)
             self.mult[-1].valueChanged.connect(self.updateView)
             row1.addWidget(self.mult[-1])
+        return row1
+
+    def initControl(self):
         ##Choose step, animate
+        row2 = QHBoxLayout()
         row2.addWidget(QLabel("Select step: "))
         self.buttons = []
         for i in range(5):
@@ -116,10 +119,7 @@ class VisualWidget(QFrame):
         row2.addWidget(QLabel("/"))
         self.maxStep = QLabel("1")
         row2.addWidget(self.maxStep)
-        return row1,row2
-        #controlLayout.addLayout(row1)
-        #controlLayout.addLayout(row2)
-        #return controlLayout
+        return row2
 
     def setMol(self,mol):
         self.mol = mol
@@ -197,8 +197,6 @@ class ViewPort(QGLWidget):
         form.setProfile(QGLFormat.CoreProfile)
         super(ViewPort,self).__init__(form)
         self.parent = parent
-        self.showPlane = False
-        self.showSurf = False
         self.mouseMode = "Camera"
         self.mousePos = None
         self.rectPos = None
@@ -439,19 +437,6 @@ class ViewPort(QGLWidget):
     def setMol(self,mol,mult):
         #prepare atoms and bonds for drawing
         if not mol:return
-        #deactivate plane and volume data when
-        #molecule changes
-        if hasattr(self,'mol') and (self.mol is not mol):
-            self.showPlane = False
-            self.showSurf = False
-            if hasattr(self,'planeVBO'):
-                del self.planeVBO
-            if hasattr(self,'surfVBO'):
-                del self.surfVBO
-
-        #clear old selection if present:
-        if hasattr(self,'selVBO'):
-            del self.selVBO
 
         #save for interaction
         self.mol=mol
@@ -463,6 +448,9 @@ class ViewPort(QGLWidget):
         center = mol.getCenter(config["Rotate around COM"])
         bonds = mol.getBonds(config['Bond cutoff factor'])
         sel = mol.getSelection()
+        isoVal = mol.getIsoVal()
+        volPlane = mol.getVolPlane()
+        milPlane = mol.getMilPlane()
 
         #get bonds and calculate offsets
         if mult == [1,1,1]:
@@ -554,71 +542,47 @@ class ViewPort(QGLWidget):
                     self.selVBO.append(pos+[pse[at[0]][rad]*1.5,0.4,0.4,0.5,0.5])
             if self.selVBO and self.instanced:
                 self.selVBO=VBO(np.array(self.selVBO,'f'))
-        #make cell:
-        null=np.zeros(3)
-        celltmp=[null,vec[0],null,vec[1],null,vec[2],
-                vec[0],vec[0]+vec[1],vec[0],vec[0]+vec[2],
-                vec[1],vec[1]+vec[0],vec[1],vec[1]+vec[2],
-                vec[2],vec[2]+vec[0],vec[2],vec[2]+vec[1],
-                vec[0]+vec[1],vec[0]+vec[1]+vec[2],
-                vec[0]+vec[2],vec[0]+vec[1]+vec[2],
-                vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
-        self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
-
-        # save offset for plane and volume
-        if self.instanced:
-            self.offVBO=VBO(np.array(off,'f'))
-        else:
-            self.offVBO=off
-
-        self.update()
-
-    def toggleSurf(self):
-        self.showSurf = not self.showSurf
-        self.update()
-
-    def setSurf(self,sval,plusminus=False):
-        if sval==0:
-            return
-        surface = makeIsoSurf(self.mol.getVol(),self.mol.getVolGradient(),sval,plusminus)
-        self.surfVBO = VBO(surface)
-        if self.showSurf:
-            self.update()
-
-    def togglePlane(self):
-        self.showPlane = not self.showPlane
-        self.update()
-
-    def setPlane(self,ptype,pval):
-        #volume data:
-        #'x/y/z',int
-        if ptype in 'xyz':
+        elif hasattr(self,'selVBO'):
+            del self.selVBO
+        #check for isoValue -> make isoSurface
+        if isoVal[0]:
+            self.surfVBO = VBO(makeIsoSurf(self.mol.getVol(),self.mol.getVolGradient(),isoVal[1],isoVal[2]))
+        elif hasattr(self,'surfVBO'):
+            del self.surfVBO
+        #check for Volume-heatmap:
+        if volPlane[0]:
             v = self.mol.getVol()
             vmin = v.min()
             vdiff = v.max()-vmin
-            if ptype=='x':
-                pdat=v[pval,:,:]
-                pval = pval/v.shape[0]
-                p=[[pval,0,0],[pval,1,0],[pval,0,1],[pval,1,0],[pval,0,1],[pval,1,1]]
-            elif ptype=='y':
-                pdat=v[:,pval,:]
-                pval = pval/v.shape[1]
-                p=[[0,pval,0],[1,pval,0],[0,pval,1],[1,pval,0],[0,pval,1],[1,pval,1]]
-            elif ptype=='z':
-                pdat=v[:,:,pval]
-                pval = pval/v.shape[2]
-                p=[[0,0,pval],[1,0,pval],[0,1,pval],[1,0,pval],[0,1,pval],[1,1,pval]]
-            self.planeTex=np.array([(x-vmin)/vdiff for x in pdat],'f')
-
-        #crystal data:
-        #'c',[tuple]
-        elif ptype == 'c':
-            self.planeTex=np.array([[1.]],'f')
+            if volPlane[1]==0:
+                pdat=v[volPlane[2],:,:]
+                pos = volPlane[2]/v.shape[0]
+                p=np.array([[pos,0,0],[pos,1,0],[pos,0,1],[pos,1,0],[pos,0,1],[pos,1,1]],'f')
+            elif volPlane[1]==1:
+                pdat=v[:,volPlane[2],:]
+                pos = volPlane[2]/v.shape[1]
+                p=np.array([[0,pos,0],[1,pos,0],[0,pos,1],[1,pos,0],[0,pos,1],[1,pos,1]],'f')
+            elif volPlane[1]==2:
+                pdat=v[:,:,volPlane[2]]
+                pos = volPlane[2]/v.shape[2]
+                p=np.array([[0,0,pos],[1,0,pos],[0,1,pos],[1,0,pos],[0,1,pos],[1,1,pos]],'f')
+            self.volPlaneTex=np.array([(x-vmin)/vdiff for x in pdat],'f')
+            vec=self.mol.getVec()*self.mol.getCellDim()
+            UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
+            self.volPlaneVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
+        elif hasattr(self,'volPlaneVBO'):
+            del self.volPlaneTex
+            del self.volPlaneVBO
+        #check for crystal-plane:
+        if milPlane[0]:
+            self.milPlaneTex=np.array([[1.]],'f')
             p=[]
             #catch undefined case
+            pval = milPlane[1]
             if pval.count(0) == 3:
-                if hasattr(self,'planeVBO'):
-                    del self.planeVBO
+                if hasattr(self,'milPlaneVBO'):
+                    del self.milPlaneVBO
+                    del self.milPlaneTex
                 self.update()
                 return
             elif pval[0] == 0:
@@ -650,21 +614,37 @@ class ViewPort(QGLWidget):
                         for k in range(abs(pval[1])):
                             for l in range(abs(pval[2])):
                                 p+=[[(h+1.)/pval[0],float(k)/pval[1],float(l)/pval[2]],[float(h)/pval[0],(k+1.)/pval[1],float(l)/pval[2]],[float(h)/pval[0],float(k)/pval[1],(l+1.)/pval[2]],[(h+1.)/pval[0],(k+1.)/pval[1],float(l)/pval[2]],[(h+1.)/pval[0],float(k)/pval[1],(l+1.)/pval[2]],[float(h)/pval[0],(k+1.)/pval[1],(l+1.)/pval[2]]]
-        p=np.array(p,'f')
-        #take care of negative hkl-values
-        if ptype == 'c':
+            p=np.array(p,'f')
+            #take care of negative hkl-values
             for i in range(3):
                 if pval[i]<0:
                     p[:,i]+=1
 
-        #generate planeVBO
-        vec=self.mol.getVec()*self.mol.getCellDim()
-        UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
-        self.planeVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
+            #generate planeVBO
+            vec=self.mol.getVec()*self.mol.getCellDim()
+            UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
+            self.milPlaneVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
+        elif hasattr(self,'milPlaneVBO'):
+            del self.milPlaneVBO
+            del self.milPlaneTex
+        #make cell:
+        null=np.zeros(3)
+        celltmp=[null,vec[0],null,vec[1],null,vec[2],
+                vec[0],vec[0]+vec[1],vec[0],vec[0]+vec[2],
+                vec[1],vec[1]+vec[0],vec[1],vec[1]+vec[2],
+                vec[2],vec[2]+vec[0],vec[2],vec[2]+vec[1],
+                vec[0]+vec[1],vec[0]+vec[1]+vec[2],
+                vec[0]+vec[2],vec[0]+vec[1]+vec[2],
+                vec[1]+vec[2],vec[0]+vec[1]+vec[2]]
+        self.cellVBO=VBO(np.array([i+j for j in off for i in celltmp],'f'))
 
-        if self.showPlane:
-            self.update()
-        return
+        # save offset for plane and volume
+        if self.instanced:
+            self.offVBO=VBO(np.array(off,'f'))
+        else:
+            self.offVBO=off
+
+        self.update()
 
     ###################################################
     # RENDERING
@@ -791,10 +771,12 @@ class ViewPort(QGLWidget):
                 self.drawBonds()
             if config["Show cell"]:
                 self.drawCell()
-            if self.showSurf and hasattr(self,'surfVBO'):
+            if hasattr(self,'surfVBO'):
                 self.drawSurf()
-            if self.showPlane and hasattr(self,'planeVBO'):
-                self.drawPlane()
+            if hasattr(self,'volPlaneVBO'):
+                self.drawPlane(self.volPlaneVBO,self.volPlaneTex)
+            if hasattr(self,'milPlaneVBO'):
+                self.drawPlane(self.milPlaneVBO,self.milPlaneTex)
             if hasattr(self,'selVBO'):
                 self.drawSelection()
         if self.instanced: glBindVertexArray(0)
@@ -881,15 +863,15 @@ class ViewPort(QGLWidget):
         glDisableVertexAttribArray(2)
         self.surfShader.release()
 
-    def drawPlane(self):
+    def drawPlane(self,plane,tex):
         self.planeShader.bind()
 
-        self.planeVBO.bind()
+        plane.bind()
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,20,None)
-        glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,20,self.planeVBO+12)
-        self.planeVBO.unbind()
+        glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,20,plane+12)
+        plane.unbind()
 
         self.planeShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
 
@@ -899,7 +881,7 @@ class ViewPort(QGLWidget):
         glBindTexture(GL_TEXTURE_2D,ID)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RED,self.planeTex.shape[1],self.planeTex.shape[0],0,GL_RED,GL_FLOAT,self.planeTex)
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RED,tex.shape[1],tex.shape[0],0,GL_RED,GL_FLOAT,tex)
         self.planeShader.setUniformValue('texSampler',0)
 
         glDisable(GL_CULL_FACE)
@@ -910,13 +892,13 @@ class ViewPort(QGLWidget):
             glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,None)
             glVertexAttribDivisor(2,1)
             self.offVBO.unbind()
-            glDrawArraysInstanced(GL_TRIANGLES,0,len(self.planeVBO),len(self.offVBO))
+            glDrawArraysInstanced(GL_TRIANGLES,0,len(plane),len(self.offVBO))
             glVertexAttribDivisor(2,0)
             glDisableVertexAttribArray(2)
         else:
             for i in self.offVBO:
                 self.planeShader.setUniformValue('offset',*i)
-                glDrawArrays(GL_TRIANGLES,0,len(self.planeVBO))
+                glDrawArrays(GL_TRIANGLES,0,len(plane))
 
         glEnable(GL_CULL_FACE)
         glDeleteTextures(1)

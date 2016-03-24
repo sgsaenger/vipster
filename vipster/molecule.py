@@ -28,6 +28,9 @@ _properties={'_atom_name':[],
         '_vol':None,
         '_vol_grad':None,
         '_vol_off':None,
+        '_iso_val':(False,0,False),
+        '_vol_plane':(False,0,0),
+        '_mil_plane':(False,(0,0,0),(0,0,0)),
         'comment':'',
         '_undo_count':0,
         '_undo_stack':[],
@@ -508,6 +511,30 @@ class _step(object):
     def getVolGradient(self):
         """Return volume gradient"""
         return self._vol_grad
+
+    def setIsoVal(self,enabled,val,pm):
+        """Set current isovalue"""
+        self._iso_val = (enabled,val,pm)
+
+    def getIsoVal(self):
+        """Return current isovalue"""
+        return self._iso_val
+
+    def setVolPlane(self,enabled,direction,position):
+        """Set position/direction of volume-heatmap"""
+        self._vol_plane = (enabled,direction,position)
+
+    def getVolPlane(self):
+        """Return current volume-heatmap settings"""
+        return self._vol_plane
+
+    def setMilPlane(self,enabled,indices):
+        """Set miller-indices"""
+        self._mil_plane = (enabled,indices)
+
+    def getMilPlane(self):
+        """Return miller-indices"""
+        return self._mil_plane
 
     #####################################################
     # SCRIPTING FUNCTIONS

@@ -11,6 +11,6 @@ from .cellmod_tool import CellMod
 tools = OrderedDict([
     ('Pick',Picker),
     ('Script',Script),
-    ('Cell Mod.',CellMod)])
-    #('Plane',Plane)])
-#    ('Volume',Volume)])
+    ('Cell Mod.',CellMod),
+    ('Plane',Plane),
+    ('Volume',Volume)])
