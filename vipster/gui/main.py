@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self,m,p):
         super(MainWindow,self).__init__()
+        self.setWindowTitle("Vipster")
         #
         self.molecules = m
         if not self.molecules:
