@@ -5,7 +5,11 @@ from os import getcwd
 from copy import deepcopy
 
 from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer,Qt,QString
+from PyQt4.QtCore import QTimer,Qt
+try:
+    from PyQt4.QtCore import QString
+except:
+    QString = str
 
 from .viewport import VisualWidget
 from .tools import tools
