@@ -68,17 +68,17 @@ Displays information for selected atoms
 
 Interface for more complex actions:
 
-- **def**ine (list) name: define a named group of atoms
-- **rep**eat num: repeat the following operation num times
-- **shi**ft (list) (vec): shift the given list of atoms along a given direction
-- **rot**ate (list) angle (vec) (shift): rotates around vector vec with offset shift
-- **mir**ror (list) (vec1) (vec2) (shift): mirrors at a plane given by the vectors 1 and 2, offset by shift
-- **par**allelize (list1) (list2) (list3): list2 defines plane in list1, rotate list1 so that planes defined by l2 and l3 are parallel
-- **psh**ift (list1) (vec) (list2) (list3): shift list1 according to vec over surface/plane list3
+- **def**ine name list filter : define a named group of atoms
+- **sel**ect list filter : select given atoms
+- **shi**ft list vec: shift the given list of atoms along a given direction
+- **rot**ate list angle vec shift: rotates around vector vec with offset shift
+- **mir**ror list vec1 vec2 shift: mirrors at a plane given by the vectors 1 and 2, offset by shift
+- **par**allelize list1 list2 list3: list2 defines plane in list1, rotate list1 so that planes defined by l2 and l3 are parallel
+- **psh**ift list1 vec list2 list3: shift list1 according to vec over surface/plane list3
 
 Arguments can be given as follows:
 
-(list) of atoms can be either:
+list of atoms can be either:
 - 'all'
 - 'sel': selected atoms
 - defined name
@@ -86,13 +86,17 @@ Arguments can be given as follows:
 - range: i1-i2/[i1-i2]
 - explicit list: [i1,i2,i3,i4-i5]
 
-mandatory vector (vec) or optional vector (shift) can be one of:
+mandatory vector vec or optional vector shift can be one of:
 - position vector of atom: (-)idx
 - path between atoms: i1-i2
 - explicit vector in bohr: (x,y,z)
 - explicit vector in other formats: (x,y,z,'format')
   with format being one of bohr,angstrom,crystal,alat
 
+filter can be up to three of:
+- by type: tCl
+- by position: x>0, y<1.5
+- by coordination number: c8
 
 **Cell Mod.:**
 

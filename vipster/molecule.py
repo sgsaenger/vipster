@@ -20,8 +20,9 @@ _properties={'_atom_name':[],
         '_bond_cutfac':1.0,
         '_bonds_outdated':True,
         '_default_fmt':'bohr',
-        '_script_group':dict(),
         '_selection':[],
+        '_hidden':[],
+        '_script_definitions':dict(),
         '_celldm':1.0,
         '_vec':np.array([[1,0,0],[0,1,0],[0,0,1]],'f'),
         '_vecinv':np.array([[1,0,0],[0,1,0],[0,0,1]],'f'),
@@ -32,7 +33,7 @@ _properties={'_atom_name':[],
         '_vol_plane':(False,0,0),
         '_mil_plane':(False,(0,0,0),(0,0,0)),
         'comment':'',
-        '_undo_count':0,
+        '_undo_depth':0,
         '_undo_stack':[],
         '_undo_temp':[],}
 
@@ -71,7 +72,7 @@ class _step(object):
         while len(fix)<3:
             fix+=[False]
         self._atom_fix.append(fix)
-        self._selection=[]
+        self.delSelection()
         self._bonds_outdated=True
 
     def newAtoms(self,count):
@@ -85,7 +86,7 @@ class _step(object):
         del self._atom_name[index]
         self._atom_coord=np.delete(self._atom_coord,index,0)
         del self._atom_fix[index]
-        self._selection=[]
+        self.delSelection()
         self._bonds_outdated=True
 
     def setAtom(self,index,name=None,coord=None,fmt=None,fix=None):
@@ -252,7 +253,7 @@ class _step(object):
 
         Will be passed to undo-stack if needed
         """
-        if not self._undo_count:
+        if not self._undo_depth:
             self._undo_temp=[\
                     deepcopy(self._atom_name),\
                     deepcopy(self._atom_coord),\
@@ -260,15 +261,15 @@ class _step(object):
                     deepcopy(self._celldm),
                     deepcopy(self._vec),
                     deepcopy(self._vecinv)]
-        self._undo_count+=1
+        self._undo_depth+=1
 
     def saveUndo(self,name=''):
         """Put temp-save on stack
 
         name -> name of action to reverse
         """
-        self._undo_count-=1
-        if not self._undo_count:
+        self._undo_depth-=1
+        if not self._undo_depth:
             self._undo_stack.append([name]+self._undo_temp)
 
     def getUndo(self):
@@ -285,7 +286,7 @@ class _step(object):
         """
         if not self._undo_stack: return
         _,self._atom_name,self._atom_coord,self._atom_fix,self._celldm,self._vec,self._vecinv=self._undo_stack.pop()
-        self._selection=[]
+        self.delSelection()
         self._bonds_outdated=True
 
     ######################################################
@@ -550,163 +551,199 @@ class _step(object):
         Other evaluated operations are placed on stack and
         executed after successful parsing.
         """
-        script=script.strip().replace('\n',' ')
-        rep=1
+        def evalOperator(op,args):
+            """
+            op -> Given operator
+            args -> required arguments for operator
+            retval -> closure for evaluation of given arguments
+            """
+            def getToken(arglist,sep=' '):
+                arglist = arglist.split(sep,1)
+                arg = arglist[0]
+                if sep!=' ':
+                    arg+=sep
+                if len(arglist)>1:
+                    rest = arglist[1].strip()
+                else:
+                    rest = ''
+                return arg,rest
+            def evalOpTokens(arglist):
+                res = [op]
+                for t in args:
+                    #list of atoms
+                    if t == 'l':
+                        #list of indices
+                        if arglist[0] == '[':
+                            arg,arglist=getToken(arglist,']')
+                            arg = arg.strip('[]').split(',')
+                            l=[]
+                            for j in arg:
+                                #interpret range
+                                if '-' in j:
+                                    low,high = j.split('-')
+                                    l.extend(range(int(low),int(high)+1))
+                                #atom index
+                                else:
+                                    l.append(int(j))
+                            res.append(l)
+                        else:
+                            arg,arglist = getToken(arglist)
+                            #reference to definition
+                            if arg.isalpha():
+                                if arg == 'all':
+                                    res.append(range(self.nat))
+                                elif arg == 'sel':
+                                    res.append(set([a[0] for a in self._selection]))
+                                else:
+                                    res.append(self._script_definitions[arg])
+                            #single index
+                            elif arg.isdigit():
+                                res.append([int(arg)])
+                            elif '-' in arg:
+                                low,high = arg.split('-')
+                                res.append(range(int(low),int(high)+1))
+                    #float (factor or angle)
+                    elif t in 'fF':
+                        #nothing left and optional:
+                        if not arglist and t == 'F':
+                            continue
+                        arg,arglist=getToken(arglist)
+                        try:
+                            arg = float(arg)
+                            res.append(float(arg))
+                        except Error as e:
+                            if t == 'f':
+                                raise ValueError('Not a valid float: '+str(arg))
+                    #index for loops
+                    elif t == 'i':
+                        arg,arglist=getToken(arglist)
+                        res.append(int(arg))
+                    #arbitrary names for defined groups
+                    elif t in 'sS':
+                        arg,arglist=getToken(arglist)
+                        if t.isupper() and not arg: continue
+                        res.append(arg)
+                    #valid vector for operations
+                    elif t in 'vV':
+                        #nothing left and optional:
+                        if not arglist and t == 'V':
+                            continue
+                        #explicit vector
+                        if arglist[0] == '(':
+                            arg,arglist = getToken(arglist,')')
+                            arg = eval(arg)
+                            if len(arg)==4 and type(arg[3]) is str:
+                                arg = self._coordToBohr(arg[0:3],arg[3])
+                            elif len(arg)==3:
+                                arg = self._coordToBohr(arg)
+                            else:
+                                raise ValueError('Not a valid vector: '+str(arg))
+                        #implicit vector
+                        elif arglist[0].isdigit():
+                            arg,arglist = getToken(arglist)
+                            #difference between atoms
+                            if '-' in arg:
+                                arg=arg.split('-')
+                                arg=self._atom_coord[int(arg[0])]-self._atom_coord[int(arg[1])]
+                            #position of atom
+                            else:
+                                arg=np.array(self._atom_coord[int(arg)])
+                        #implicit negative vector
+                        elif arglist[0]=='-':
+                            arg,arglist = getToken(arglist)
+                            arg=np.array(-self._atom_coord[int(arg[1:])])
+                        #fail when not a vector and vector needed
+                        elif t=='v':
+                            raise ValueError('Not a valid vector: '+str(arg))
+                        #continue when not a vector and not needed
+                        else:
+                            continue
+                        res.append(arg)
+                return res
+            return evalOpTokens
         #dictionary returns closure containing target operation and argument-check
         #upper-case: optional
-        ops={'rot':self._evalOperator(self.rotate,'lavV'),
-                'shi':self._evalOperator(self.shift,'lvF'),
-                'def':self._evalOperator('define','ls'),
-                'mir':self._evalOperator(self.mirror,'lvvV'),
-                'rep':self._evalOperator('repeat','i'),
-                'psh':self._evalOperator(self.pshift,'lvll'),
-                'par':self._evalOperator(self.parallelize,'lll')}
+        ops={'rot':evalOperator(self.rotate,'lfvV'),
+             'shi':evalOperator(self.shift,'lvF'),
+             'def':evalOperator('define','slSSS'),
+             'sel':evalOperator('select','lSSS'),
+             'mir':evalOperator(self.mirror,'lvvV'),
+             'psh':evalOperator(self.pshift,'lvll'),
+             'par':evalOperator(self.parallelize,'lll')}
         stack=[]
+        script=script.strip().split('\n')
         #check for errors, parse and prepare
-        while script:
+        for line in script:
             try:
-                op,script = script.split(' ',1)
-                op,script = ops[op[0:3]](script)
+                operator,args = line.split(' ',1)
+                action = ops[operator[0:3].lower()](args)
             except KeyError as e:
-                return 'Wrong Op: '+script[0]
+                return 'Wrong Operator: '+operator
             except Exception as e:
                 return e.message
             else:
-                if op[0]=='define':
-                    self._script_group[op[2]]=op[1]
-                elif op[0]=='repeat':
-                    rep=op[1]
+                if action[0]=='define':
+                    self._script_definitions[action[1]] = \
+                        self.filterAtoms(action[2],*action[3:])
+                elif action[0]=='select':
+                    self.delSelection()
+                    sel = self.filterAtoms(action[1],*action[2:])
+                    sel = zip(sel,[(0,0,0)]*len(sel))
+                    for i in sel:
+                        self.addSelection(i)
+                elif action[0]=='repeat':
+                    rep=action[1]
                 else:
-                    for i in range(rep):
-                        stack.append(op)
-                    rep=1
+                    stack.append(action)
         # delete previous definitions
-        self._script_group={}
+        self._script_definitions={}
         #if everything went well, execute operations
         try:
             self.initUndo()
-            for op in stack:
-                op[0](*op[1:])
+            for action in stack:
+                action[0](*action[1:])
         except Exception as e:
-            self._undo_count=0
+            self._undo_depth=0
             return e.message
         else:
             self.saveUndo('script')
             return 'Success!'
 
-    def _evalOperator(self,op,args):
-        """Evaluate script-op-arguments
-
-        op -> Given operator
-        args -> required arguments for operator
-        retval -> closure for evaluation of given arguments
-        """
-        def getToken(arglist,sep=' '):
-            arglist = arglist.split(sep,1)
-            arg = arglist[0]
-            if sep!=' ':
-                arg+=sep
-            if len(arglist)>1:
-                rest = arglist[1].strip()
-            else:
-                rest = ''
-            return arg,rest
-
-        def evalOpTokens(arglist):
-            res = [op]
-            for t in args:
-                #list of atoms
-                if t == 'l':
-                    #list of indices
-                    if arglist[0] == '[':
-                        arg,arglist=getToken(arglist,']')
-                        arg = arg.strip('[]').split(',')
-                        l=[]
-                        for j in arg:
-                            #interpret range
-                            if '-' in j:
-                                low,high = j.split('-')
-                                l.extend(range(int(low),int(high)+1))
-                            #atom index
-                            else:
-                                l.append(int(j))
-                        if not np.all(np.less(l,self.nat)):
-                            raise IndexError('Atom index out of range')
-                        res.append(l)
-                    else:
-                        arg,arglist = getToken(arglist)
-                        #reference to definition
-                        if arg.isalpha():
-                            if arg == 'all':
-                                res.append(range(self.nat))
-                            elif arg == 'sel':
-                                res.append(set([a[0] for a in self._selection]))
-                            else:
-                                res.append(self._script_group[arg])
-                        #single index
-                        elif arg.isdigit():
-                            res.append([int(arg)])
-                        elif '-' in arg:
-                            low,high = arg.split('-')
-                            res.append(range(int(low),int(high)+1))
-                #float (factor or angle)
-                elif t in 'aF':
-                    #nothing left and optional:
-                    if not arglist and t == 'F':
-                        continue
-                    arg,arglist=getToken(arglist)
-                    try:
-                        arg = float(arg)
-                        res.append(float(arg))
-                    except Error as e:
-                        if t == 'a':
-                            raise ValueError('Not a valid float: '+str(arg))
-                #index for loops
-                elif t == 'i':
-                    arg,arglist=getToken(arglist)
-                    res.append(int(arg))
-                #arbitrary names for defined groups
-                elif t == 's':
-                    arg,arglist=getToken(arglist)
-                    res.append(arg)
-                #valid vector for operations
-                elif t in 'vV':
-                    #nothing left and optional:
-                    if not arglist and t == 'V':
-                        continue
-                    #explicit vector
-                    if arglist[0] == '(':
-                        arg,arglist = getToken(arglist,')')
-                        arg = eval(arg)
-                        if len(arg)==4 and type(arg[3]) is str:
-                            arg = self._coordToBohr(arg[0:3],arg[3])
-                        elif len(arg)==3:
-                            arg = self._coordToBohr(arg)
-                        else:
-                            raise ValueError('Not a valid vector: '+str(arg))
-                    #implicit vector
-                    elif arglist[0].isdigit():
-                        arg,arglist = getToken(arglist)
-                        #difference between atoms
-                        if '-' in arg:
-                            arg=arg.split('-')
-                            arg=self._atom_coord[int(arg[0])]-self._atom_coord[int(arg[1])]
-                        #position of atom
-                        else:
-                            arg=np.array(self._atom_coord[int(arg)])
-                    #implicit negative vector
-                    elif arglist[0]=='-':
-                        arg,arglist = getToken(arglist)
-                        arg=np.array(-self._atom_coord[int(arg[1:])])
-                    #fail when not a vector and vector needed
-                    elif t=='v':
-                        raise ValueError('Not a valid vector: '+str(arg))
-                    #continue when not a vector and not needed
-                    else:
-                        continue
-                    res.append(arg)
-            return res,arglist
-        return evalOpTokens
+    def filterAtoms(self,atoms,*filter):
+        atoms = set(atoms)
+        for f in filter:
+            if f[0] in ['x','y','z']:
+                axdir = {'x':0,'y':1,'z':2,'<':-1,'>':1}
+                axis = axdir[f[0]]
+                direction = axdir[f[1]]
+                target = float(f[2:])
+                remove = []
+                for at in atoms:
+                    if direction * (self.getAtom(at)[1][axis] - target) <= 0:
+                        remove.append(at)
+                for at in remove:
+                    atoms.remove(at)
+            elif f[0] == 'c':
+                target = int(f[1:])
+                bonds = self.getBonds()
+                remove = []
+                for at in atoms:
+                    count = 0
+                    for b in bonds:
+                        for p in b:
+                            count += p.count(at)
+                    if count != target:
+                        remove.append(at)
+                for at in remove:
+                    atoms.remove(at)
+            elif f[0] == 't':
+                remove = []
+                for at in atoms:
+                    if self.getAtom(at)[0] != f[1:]:
+                        remove.append(at)
+                for at in remove:
+                    atoms.remove(at)
+        return atoms
 
     def rotate(self,atoms,angle,ax,shift=np.zeros(3,'f')):
         """Rotate group of atoms
