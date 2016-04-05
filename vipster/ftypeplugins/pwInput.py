@@ -211,12 +211,11 @@ def parser(name,data):
     del tparam['&system']['celldm(1)']
     return tmol,tparam
 
-def writer(mol,f,param,coordfmt):
+def writer(mol,f,param):
     """
     Save PWScf input file
 
     Needs both mol and param
-    Respects coordfmt
     """
     #&control, &system and &electron namelists are mandatory
     for i in ['&control','&system','&electrons']:
@@ -256,12 +255,12 @@ def writer(mol,f,param,coordfmt):
         f.write(atom+'    '+str(mol.pse[atom]['m'])+'   '+pp+'\n')
     f.write('\n')
     #ATOMIC_POSITIONS
-    f.write('ATOMIC_POSITIONS'+' '+coordfmt+'\n')
+    f.write('ATOMIC_POSITIONS'+' '+mol.getFmt()+'\n')
     for i in range(mol.nat):
-        atom=mol.getAtom(i,coordfmt)
-        if any(atom[3]):
+        atom=mol.getAtom(i,fix=True)
+        if any(atom[2]):
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {:1d}'.format(
-                atom[0],atom[1][0],atom[1][1],atom[1][2],not atom[3][0],not atom[3][1],not atom[3][2])+'\n')
+                atom[0],atom[1][0],atom[1][1],atom[1][2],not atom[2][0],not atom[2][1],not atom[2][2])+'\n')
         else:
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                 atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')

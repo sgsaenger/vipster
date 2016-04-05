@@ -15,7 +15,7 @@ def parser(name,data):
     tmol.newAtoms(nat)
     for j in range(nat):
         line=data[j+2].split()
-        tmol.newAtom(j,line[0],line[1:4])
+        tmol.setAtom(j,line[0],line[1:4])
     tmol.setFmt('angstrom',scale=True)
     vec=[0,0,0]
     for i in range(3):
@@ -24,7 +24,7 @@ def parser(name,data):
     tmol.setCellDim(1,fmt='angstrom')
     return tmol,None
 
-def writer(mol,f,param,coordfmt):
+def writer(mol,f,param):
     """
     Save Empire input file
 

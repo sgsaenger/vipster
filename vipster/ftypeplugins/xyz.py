@@ -29,7 +29,7 @@ def parser(name,data):
             i+=nat+2
     return tmol,None
 
-def writer(mol,f,param,coordfmt):
+def writer(mol,f,param):
     """ Save xyz in angstrom """
     # fixed format nat and comment
     f.write(str(mol.nat)+'\n')

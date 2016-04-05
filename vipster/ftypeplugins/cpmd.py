@@ -205,12 +205,11 @@ def parser(name,data):
         tmol.setCellDim(tmol.getCellDim(),fmt=fmt)
     return tmol,tparam
 
-def writer(mol,f,param,coordfmt):
+def writer(mol,f,param):
     """
     Save CPMD input file
 
     Needs both mol and param
-    Respects coordfmt
     """
     for i in param:
         #always write &CPMD namelist
@@ -222,6 +221,7 @@ def writer(mol,f,param,coordfmt):
         elif i == "&SYSTEM":
             f.write("&SYSTEM\n")
             #specify coordfmt
+            coordfmt = mol.getFmt()
             if coordfmt=="angstrom":
                 f.write("  ANGSTROM\n")
             elif coordfmt=="crystal":
@@ -264,7 +264,7 @@ def writer(mol,f,param,coordfmt):
         #put coordinates and PP informations here
         elif i=="&ATOMS":
             f.write("&ATOMS\n")
-            atoms=mol.getAtoms(coordfmt)
+            atoms=mol.getAtoms()
             types=mol.getTypes()
             for j in types:
                 pp=mol.pse[j]['CPPP']
@@ -279,6 +279,8 @@ def writer(mol,f,param,coordfmt):
                 for k in atoms:
                     if k[0]==j:
                         f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*k[1]))
+            #write rest of &ATOMS namelist
+            f.write(param[i])
             f.write("&END\n")
         #write other namelists only when they're not empty
         elif i[0]=="&":

@@ -21,11 +21,9 @@ class PWParam(QTreeWidget):
         self.addAction(self.addIons)
         self.addAction(self.addCell)
         newPar = QAction('New Parameter',self)
-        newPar.setShortcut('Ctrl+N')
         newPar.triggered.connect(self.createParameter)
         self.addAction(newPar)
         delItem = QAction('Delete Item',self)
-        delItem.setShortcut('Del')
         delItem.triggered.connect(self.deleteItem)
         self.addAction(delItem)
 

@@ -60,12 +60,12 @@ class MolTable(collapsibleWidget):
         self.table.setRowCount(self.mol.nat)
         self.table.setVerticalHeaderLabels([str(x) for x in range(self.mol.nat)])
         for i in range(self.mol.nat):
-            at = self.mol.getAtom(i)
+            at = self.mol.getAtom(i,fix=True)
             self.table.setItem(i,0,QTableWidgetItem(at[0]))
             for j in [0,1,2]:
                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
                 self.table.item(i,j+1).setFlags(Qt.ItemFlag(51))
-                self.table.item(i,j+1).setCheckState(int(at[3][j])*2)
+                self.table.item(i,j+1).setCheckState(int(at[2][j])*2)
         #update selection
         self.table.setSelectionMode(QAbstractItemView.MultiSelection)
         self.table.clearSelection()

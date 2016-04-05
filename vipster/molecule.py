@@ -21,7 +21,6 @@ _properties={'_atom_name':[],
         '_bonds_outdated':True,
         '_default_fmt':'bohr',
         '_selection':[],
-        '_hidden':[],
         '_script_definitions':dict(),
         '_celldm':1.0,
         '_vec':np.array([[1,0,0],[0,1,0],[0,0,1]],'f'),
@@ -59,12 +58,12 @@ class _step(object):
     # ATOM FUNCTIONS
     ######################################################
 
-    def newAtom(self,name='C',coord=[0.,0.,0.],fmt=None,fix=[False,False,False]):
+    def newAtom(self,name='C',coord=[0.,0.,0.],fix=[False,False,False],fmt=None):
         """Make new atom
         name -> element symbol
         coord -> coordinates
-        fmt -> str in ['bohr','angstrom','crystal','alat']
         fix -> 0 for no relaxation in PW
+        fmt -> str in ['bohr','angstrom','crystal','alat']
         """
         self._atom_name.append(name)
         self._atom_coord.resize([self.nat+1,3])
@@ -89,7 +88,7 @@ class _step(object):
         self.delSelection()
         self._bonds_outdated=True
 
-    def setAtom(self,index,name=None,coord=None,fmt=None,fix=None):
+    def setAtom(self,index,name=None,coord=None,fix=None,fmt=None):
         """Modify a given atom
 
         index -> atom id
@@ -105,17 +104,26 @@ class _step(object):
 
     nat = property(lambda self: len(self._atom_coord))
 
-    def getAtoms(self,fmt=None):
-        """Return names and coordinates (bohr) for all atoms"""
-        return list(zip(self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)))
+    def getAtoms(self,fix=False,fmt=None):
+        """Return names and coordinates for all atoms
 
-    def getAtom(self,index,fmt=None):
+        fmt -> str in ['angstrom','bohr','crystal','alat']
+        """
+        l = [self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)]
+        if fix:
+            l.append(self._atom_fix)
+        return list(zip(*l))
+
+    def getAtom(self,index,fix=False,fmt=None):
         """Return exacpt copy of one atom
 
         index -> index of atom
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
-        return [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt),self._default_fmt if not fmt else fmt,self._atom_fix[index]]
+        l = [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt)]
+        if fix:
+            l.append(self._atom_fix[index])
+        return l
 
     def getTypes(self):
         """Return types of atoms
@@ -134,7 +142,7 @@ class _step(object):
         """Set default format for future atom-operations
 
         fmt -> str in ['bohr','angstrom','crystal','alat']
-        scale -> if true, existing atoms are rescaled"""
+        scale -> if true, existing atoms are rescaled from fmt to bohr"""
         self._default_fmt = fmt
         if scale:
             if fmt == 'angstrom':
@@ -393,7 +401,7 @@ class _step(object):
         nat=self.nat
         dellist = []
         for i in range(nat):
-            at=self.getAtom(i,'crystal')
+            at=self.getAtom(i,fmt='crystal')
             if np.any(at[1]>1.000001) or np.any(at[1]<-0.000001) or np.any(np.isclose(at[1]-1,0,atol=1.e-6)):
                 dellist.append(i)
         dellist.reverse()
@@ -407,8 +415,8 @@ class _step(object):
         self.initUndo()
         nat = self.nat
         for i in range(nat):
-            at=self.getAtom(i,'crystal')
-            self.setAtom(i,at[0],at[1]%1,'crystal')
+            at=self.getAtom(i,fmt='crystal')
+            self.setAtom(i,at[0],at[1]%1,fmt='crystal')
         self._bonds_outdated=True
         self.saveUndo('wrap atoms')
 

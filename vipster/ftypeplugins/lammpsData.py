@@ -85,7 +85,7 @@ def parser(name,data):
         i+=1
     return tmol,None
 
-def writer(mol,f,param,coordfmt):
+def writer(mol,f,param):
     """
     Save Lammps input data
 
@@ -227,7 +227,7 @@ def writer(mol,f,param,coordfmt):
     f.write('\nAtoms\n\n')
     string=lammps_atom_style[param["atom_style"]]
     for i in range(mol.nat):
-        at=mol.getAtom(i,'angstrom')
+        at=mol.getAtom(i,fmt='angstrom')
         f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,*at[1]))
     #Bonds section:
     convertIndices=lambda x: list(map(lambda y: tuple(map(lambda z: z+1,y)),x))

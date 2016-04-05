@@ -15,7 +15,7 @@ def parser(name,data):
             for l in data[i+1:]:
                 if '$' in l: break
                 line = l.split()
-                tmol.newAtom(line[3].capitalize(),line[0:3],'bohr')
+                tmol.newAtom(line[3].capitalize(),line[0:3],fmt='bohr')
             break
     return tmol,None
 

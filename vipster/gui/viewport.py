@@ -442,7 +442,7 @@ class ViewPort(QGLWidget):
         self.mol=mol
         self.mult=mult
         #local variables for convenience
-        atoms = mol.getAtoms('bohr')
+        atoms = mol.getAtoms(fmt='bohr')
         pse = mol.pse
         vec = mol.getVec()*mol.getCellDim('bohr')
         center = mol.getCenter(config["Rotate around COM"])

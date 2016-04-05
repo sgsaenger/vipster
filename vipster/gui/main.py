@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
             sel = set(i[0] for i in self.mol.getSelection())
             self.copyBuf = []
             for i in sel:
-                self.copyBuf.append(deepcopy(self.mol.getAtom(i)))
+                self.copyBuf.append(deepcopy(self.mol.getAtom(i,fmt='bohr')))
         copyAction = QAction('&Copy atom(s)',self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.triggered.connect(copyFun)
@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
             if not self.copyBuf: return
             self.mol.initUndo()
             for i in self.copyBuf:
-                self.mol.newAtom(*i)
+                self.mol.newAtom(*i,fmt='bohr')
             self.mol.saveUndo('copy atom(s)')
             self.updateMol()
         pasteAction = QAction('&Paste atom(s)',self)
@@ -272,12 +272,11 @@ class MainWindow(QMainWindow):
         if not ftype[1]: return
         ftype = _guiOutNames[str(ftype[0])]
         try:
-            coordfmt = self.fmt.currentText()
-            writeFile(self.mol,ftype,fname,self.param,coordfmt)
+            writeFile(self.mol,ftype,fname,self.param)
         except Exception as error:
             pd = ParamDialog(ftype,self.parameters)
             if pd.exec_():
-                writeFile(self.mol,ftype,fname,pd.getParam(),coordfmt)
+                writeFile(self.mol,ftype,fname,pd.getParam())
 
     def newParam(self):
         if self.sender().parent() != self:

@@ -19,7 +19,7 @@ def readFile(filename,fmt):
         data=data.readlines()
         return _indict[fmt](filename,data)
 
-def writeFile(mol,fmt,filename,param=None,coordfmt="crystal"):
+def writeFile(mol,fmt,filename,param=None):
     """
     Write a given trajectory to disc/stdout
 
@@ -27,13 +27,12 @@ def writeFile(mol,fmt,filename,param=None,coordfmt="crystal"):
     fmt -> file format, needs to be in _outdict
     filename -> path to file
     param -> parameter set to save
-    coordfmt -> format in which to save coordinates (bohr/angstrom/crystal/alat)
     """
     if fmt in _paramdict:
         if param is None or param["type"]!=fmt:
             raise Exception(" Writing format "+fmt+" needs accompanying parameter set!")
     with open(filename,'w') as f:
-        _outdict[fmt](mol,f,param,coordfmt)
+        _outdict[fmt](mol,f,param)
 
 def newParam(prog,var="default"):
     """

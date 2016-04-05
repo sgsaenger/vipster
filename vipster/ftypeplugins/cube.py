@@ -43,23 +43,3 @@ def parser(name,data):
     return tmol,None
 
 writer = None
-#def writer(mol,f,param,coordfmt):
-#    """ Save cube file """
-#    f.write(mol.getComment().split(';')[0])
-#    f.write(mol.getComment().split(';')[1])
-#    vol = mol.getVol()
-#    s = vol.shape
-#    vec = mol.getVec()*mol.getCellDim()
-#    vec = vec/s
-#    f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(mol.nat,0.,0.,0.))
-#    f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[0],vec[0][0],vec[0][1],vec[0][2]))
-#    f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[1],vec[1][0],vec[1][1],vec[1][2]))
-#    f.write('{:5d} {:.6f} {:.6f} {:.6f}\n'.format(s[2],vec[2][0],vec[2][1],vec[2][2]))
-#    for i in range(mol.nat):
-#        at = mol.getAtom(i,'bohr')
-#        f.write('{:5.0f} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(mol.pse[at[0]][1],0,*at[1]))
-#    vol = vol.flatten()
-#    for i in range(1,vol.size+1):
-#        f.write(str(vol[i-1])+'  ')
-#        if i%6==0 or i%s[0]==0:
-#            f.write('\n')
