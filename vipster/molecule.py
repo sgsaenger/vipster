@@ -95,9 +95,12 @@ class _step(object):
         index -> atom id
         rest -> new properties
         """
-        if name: self._atom_name[index]=name
-        if coord!=None: self._atom_coord[index]=self._coordToBohr(coord,fmt)
-        if fix: self._atom_fix[index]=fix
+        if name: self._atom_name[index] = name
+        if coord!=None: self._atom_coord[index] = self._coordToBohr(coord,fmt)
+        if fix:
+            while len(fix)<3:
+                fix+=[False]
+            self._atom_fix[index] = fix
         self._bonds_outdated=True
 
     nat = property(lambda self: len(self._atom_coord))
