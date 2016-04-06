@@ -224,13 +224,33 @@ class MainWindow(QMainWindow):
         pasteAction.triggered.connect(pasteFun)
         eMenu.addAction(pasteAction)
         #
+        eMenu.addSeparator()
+        def hideFun():
+            sel = set(i[0] for i in self.mol.getSelection())
+            for i in sel:
+                self.mol.setAtom(i,hidden=True)
+            self.updateMol()
+        hideAction = QAction('&Hide atom(s)',self)
+        hideAction.setShortcut('h')
+        hideAction.triggered.connect(hideFun)
+        eMenu.addAction(hideAction)
+        def showFun():
+            sel = set(i[0] for i in self.mol.getSelection())
+            for i in sel:
+                self.mol.setAtom(i,hidden=False)
+            self.updateMol()
+        showAction = QAction('&Show atom(s)',self)
+        showAction.setShortcut('j')
+        showAction.triggered.connect(showFun)
+        eMenu.addAction(showAction)
+        #
+        eMenu.addSeparator()
         def undoFun():
             self.mol.undo()
             self.updateMol()
         self.undoAction = QAction('Undo',self)
         self.undoAction.setShortcut('Ctrl+Z')
         self.undoAction.triggered.connect(undoFun)
-        eMenu.addSeparator()
         eMenu.addAction(self.undoAction)
 
     def initFinish(self):
