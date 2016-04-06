@@ -20,12 +20,13 @@ class MolTable(collapsibleWidget):
             if self.updatedisable: return
             self.mol.initUndo()
             name = str(self.table.item(row,0).text())
+            hidden = bool(self.table.item(row,0).checkState())
             coord = [0,0,0]
             fix = [0,0,0]
             for j in [0,1,2]:
                 coord[j]=float(self.table.item(row,j+1).text())
-                fix[j]=int(self.table.item(row,j+1).checkState()/2)
-            self.mol.setAtom(row,name,coord,fix=fix)
+                fix[j]=bool(self.table.item(row,j+1).checkState()/2)
+            self.mol.setAtom(row,name,coord,fix=fix,hidden=hidden)
             self.mol.saveUndo('set coordinates')
             self.parent.updateMol()
         self.table.cellChanged.connect(cellHandler)
@@ -60,8 +61,10 @@ class MolTable(collapsibleWidget):
         self.table.setRowCount(self.mol.nat)
         self.table.setVerticalHeaderLabels([str(x) for x in range(self.mol.nat)])
         for i in range(self.mol.nat):
-            at = self.mol.getAtom(i,fix=True)
+            at = self.mol.getAtom(i,fix=True,hidden=True)
             self.table.setItem(i,0,QTableWidgetItem(at[0]))
+            self.table.item(i,0).setFlags(Qt.ItemFlag(51))
+            self.table.item(i,0).setCheckState(int(at[3])*2)
             for j in [0,1,2]:
                 self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
                 self.table.item(i,j+1).setFlags(Qt.ItemFlag(51))

@@ -16,6 +16,7 @@ kpfmts = ['gamma','mpg','discrete']
 _properties={'_atom_name':[],
         '_atom_coord':np.array([],'f'),
         '_atom_fix':[],
+        '_atom_hidden':[],
         '_bonds':[[],[],[],[],[],[],[],[]],
         '_bond_cutfac':1.0,
         '_bonds_outdated':True,
@@ -58,7 +59,7 @@ class _step(object):
     # ATOM FUNCTIONS
     ######################################################
 
-    def newAtom(self,name='C',coord=[0.,0.,0.],fix=[False,False,False],fmt=None):
+    def newAtom(self,name='C',coord=[0.,0.,0.],fix=[False,False,False],hidden=False,fmt=None):
         """Make new atom
         name -> element symbol
         coord -> coordinates
@@ -71,6 +72,7 @@ class _step(object):
         while len(fix)<3:
             fix+=[False]
         self._atom_fix.append(fix)
+        self._atom_hidden.append(hidden)
         self.delSelection()
         self._bonds_outdated=True
 
@@ -79,16 +81,20 @@ class _step(object):
         self._atom_name.extend(['X']*count)
         self._atom_coord.resize([self.nat+count,3])
         self._atom_fix.extend([[False,False,False]]*count)
+        self._atom_hidden.extend([False]*count)
+        self.delSelection()
+        self._bonds_outdated=True
 
     def delAtom(self,index):
         """Remove atom"""
         del self._atom_name[index]
         self._atom_coord=np.delete(self._atom_coord,index,0)
         del self._atom_fix[index]
+        del self._atom_hidden[index]
         self.delSelection()
         self._bonds_outdated=True
 
-    def setAtom(self,index,name=None,coord=None,fix=None,fmt=None):
+    def setAtom(self,index,name=None,coord=None,fix=None,hidden=None,fmt=None):
         """Modify a given atom
 
         index -> atom id
@@ -100,11 +106,12 @@ class _step(object):
             while len(fix)<3:
                 fix+=[False]
             self._atom_fix[index] = fix
+        if hidden!=None: self._atom_hidden[index] = hidden
         self._bonds_outdated=True
 
     nat = property(lambda self: len(self._atom_coord))
 
-    def getAtoms(self,fix=False,fmt=None):
+    def getAtoms(self,fix=False,hidden=False,fmt=None):
         """Return names and coordinates for all atoms
 
         fmt -> str in ['angstrom','bohr','crystal','alat']
@@ -112,9 +119,11 @@ class _step(object):
         l = [self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)]
         if fix:
             l.append(self._atom_fix)
+        if hidden:
+            l.append(self._atom_hidden)
         return list(zip(*l))
 
-    def getAtom(self,index,fix=False,fmt=None):
+    def getAtom(self,index,fix=False,hidden=False,fmt=None):
         """Return exacpt copy of one atom
 
         index -> index of atom
@@ -123,6 +132,8 @@ class _step(object):
         l = [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt)]
         if fix:
             l.append(self._atom_fix[index])
+        if hidden:
+            l.append(self._atom_hidden[index])
         return l
 
     def getTypes(self):

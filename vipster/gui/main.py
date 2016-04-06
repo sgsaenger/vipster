@@ -318,7 +318,9 @@ class MainWindow(QMainWindow):
         self.psemol.setMol(self.mol)
         for tool in self.tools:
             tool.setMol(self.mol)
+        self.fmt.blockSignals(True)
         self.fmt.setCurrentIndex(fmts.index(self.mol.getFmt()))
+        self.fmt.blockSignals(False)
         undo = self.mol.getUndo()
         if undo:
             self.undoAction.setText('Undo '+undo)
