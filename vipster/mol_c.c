@@ -6,8 +6,6 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
 {
     PyArrayObject *coord_py;
     PyArrayObject *cutoff_py;
-    float *coord, *cutoff;
-    int nat;
 
     float cutfac;
 
@@ -17,17 +15,15 @@ static PyObject* set_bonds(PyObject *self, PyObject *args)
     PyArray_Descr *float32 = PyArray_DescrFromType(NPY_FLOAT32);
     float effcut;
 
-    PyObject *bonds;
-
     if (!PyArg_ParseTuple(args, "OOfO", &coord_py, &cutoff_py, &cutfac, &off_py)) return NULL;
     if (!(PyArray_Check(coord_py)|PyArray_ISFLOAT(coord_py))) return NULL;
     if (!(PyArray_Check(cutoff_py)|PyArray_ISFLOAT(cutoff_py))) return NULL;
     if (!(PyList_Check(off_py)|(PyList_Size(off_py)==8))) return NULL;
 
-    nat = PyArray_DIM(cutoff_py,0);
-    cutoff = (float*)PyArray_GETPTR1(cutoff_py,0);
-    coord = (float*)PyArray_GETPTR2(coord_py,0,0);
-    bonds = PyList_New(8);
+    int nat = PyArray_DIM(cutoff_py,0);
+    float *cutoff = PyArray_GETPTR1(cutoff_py,0);
+    float *coord = PyArray_GETPTR2(coord_py,0,0);
+    PyObject *bonds = PyList_New(8);
     for (Py_ssize_t i=0;i<8;i++){
         PyList_SetItem(bonds,i,PyList_New(0));
     }
