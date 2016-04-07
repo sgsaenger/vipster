@@ -152,6 +152,78 @@ def parser(name,data):
                     for j in range(nat):
                         tmol.newAtom(atype,data[i+3+j].split()[:3])
                     i+=2+nat
+                elif nl=="&ATOMS" and "CONSTRAINTS" in data[i]:
+                    #parse coordinate-fixes
+                    j = 1
+                    constraints = ""
+                    line = data[i+j]
+                    while not "END" in line:
+                        if "FIX" in line and ("ALL" in line or "QM" in line):
+                            for at in range(tmol.nat):
+                                tmol.setAtom(at,fix=[True,True,True])
+                        elif "FIX" in line and "ELEM" in line:
+                            j += 1
+                            vals = data[i+j].split()
+                            Z = int(vals.pop(0))
+                            if "SEQ" in line:
+                                beg = int(vals.pop(0))-1
+                                end = int(vals.pop(0))
+                                r = range(beg,end)
+                            else:
+                                r = range(tmol.nat)
+                            for at in r:
+                                if tmol.pse[tmol.getAtom(at)[0]]["Z"] == Z:
+                                    tmol.setAtom(at,fix=[True,True,True])
+                        elif "FIX" in line and "PPTY" in line:
+                            j += 1
+                            vals = data[i+j].split()
+                            PP = int(vals.pop(0))-1
+                            if "SEQ" in line:
+                                beg = int(vals.pop(0))-1
+                                end = int(vals.pop(0))
+                                r = range(beg,end)
+                            else:
+                                r = range(tmol.nat)
+                            pplist = OrderedDict([(at[0],None) for at in tmol.getAtoms()]).keys()
+                            for at in r:
+                                if tmol.getAtom(at)[0] == pplist[PP]:
+                                    tmol.setAtom(at,fix=[True,True,True])
+                        elif "FIX" in line and "SEQ" in line:
+                            j += 1
+                            vals = data[i+j].split()
+                            for at in range(int(vals[0])-1,int(vals[1])):
+                                tmol.setAtom(at,fix=[True,True,True])
+                        elif "FIX" in line and "ATOM" in line:
+                            j += 1
+                            vals = data[i+j].split()
+                            count = int(vals.pop(0))
+                            for k in range(count):
+                                if not vals:
+                                    j += 1
+                                    vals = data[i+j].split()
+                                tmol.setAtom(int(vals.pop(0))-1,fix=[True,True,True])
+                        elif "FIX" in line and "COOR" in line:
+                            j += 1
+                            vals = data[i+j].split()
+                            count = int(vals.pop(0))
+                            for k in range(count*4):
+                                if not vals:
+                                    j += 1
+                                    vals = data[i+j].split()
+                                fixcoord.append(int(vals.pop(0)))
+                                if len(fixcoord) == 4:
+                                    tmol.setAtom(fixcoord[0]-1,fix=[
+                                        bool(not fixcoord[1]),
+                                        bool(not fixcoord[2]),
+                                        bool(not fixcoord[3])])
+                                    fixcoord = []
+                        elif line.strip():
+                            constraints+=line
+                        j += 1
+                        line = data[i+j]
+                    if constraints:
+                        tparam[nl]+="CONSTRAINTS\n"+constraints+"END CONSTRAINTS\n"
+                    i += j
                 else:
                     tparam[nl]+=data[i]
                 i+=1
@@ -264,8 +336,11 @@ def writer(mol,f,param):
         #put coordinates and PP informations here
         elif i=="&ATOMS":
             f.write("&ATOMS\n")
-            atoms=mol.getAtoms()
-            types=mol.getTypes()
+            atoms = mol.getAtoms(fix=True)
+            types = mol.getTypes()
+            fixat = []
+            fixcoord = []
+            count = 0
             for j in types:
                 pp=mol.pse[j]['CPPP']
                 if not pp:
@@ -278,9 +353,37 @@ def writer(mol,f,param):
                 f.write("  "+str([a[0] for a in atoms].count(j))+"\n")
                 for k in atoms:
                     if k[0]==j:
+                        count+=1
                         f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*k[1]))
+                        if all(k[2]):
+                            fixat.append(count)
+                        elif any(k[2]):
+                            fixcoord.append((count,k[2]))
             #write rest of &ATOMS namelist
-            f.write(param[i])
+            if not fixat and not fixcoord:
+                f.write(param[i])
+            else:
+                if "CONSTRAINTS" in param[i]:
+                    f.write(param[i].partition("CONSTRAINTS")[0])
+                f.write("CONSTRAINTS\n")
+                if fixat:
+                    f.write("FIX ATOMS\n")
+                    f.write(str(len(fixat))+'\n')
+                    for j,at in enumerate(fixat):
+                        f.write(" {:4d}".format(at))
+                        if not (j+1)%10:
+                            f.write("\n")
+                    f.write("\n")
+                if fixcoord:
+                    f.write("FIX COORDS\n")
+                    f.write(str(len(fixcoord))+'\n')
+                    for at in fixcoord:
+                        f.write("{:4d}  {:1d} {:1d} {:1d}\n".format(at[0],*at[1]))
+                if "CONSTRAINTS" in param[i]:
+                    f.write(param[i].partition("CONSTRAINTS")[2])
+                else:
+                    f.write("END CONSTRAINTS\n")
+                    f.write(param[i])
             f.write("&END\n")
         #write other namelists only when they're not empty
         elif i[0]=="&":
