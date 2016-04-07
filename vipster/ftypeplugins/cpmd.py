@@ -58,6 +58,7 @@ def parser(name,data):
     unitvec=[[1,0,0],[0,1,0],[0,0,1]]
     scalevec=[[1,0,0],[0,1,0],[0,0,1]]
     angstrom=False
+    types=[]
     while i < len(data):
         if data[i][0]=='!' or data[i].split()==[]:
             i+=1
@@ -146,6 +147,7 @@ def parser(name,data):
                     i+=1
                 elif nl=="&ATOMS" and data[i][0]=='*':
                     atype=regex('[-_.]',data[i][1:].strip())[0]
+                    types.append(atype)
                     tmol.pse[atype]['CPPP']=data[i][1:].strip()
                     tmol.pse[atype]['CPNL']=data[i+1].strip()
                     nat=int(data[i+2])
@@ -184,9 +186,8 @@ def parser(name,data):
                                 r = range(beg,end)
                             else:
                                 r = range(tmol.nat)
-                            pplist = OrderedDict([(at[0],None) for at in tmol.getAtoms()]).keys()
                             for at in r:
-                                if tmol.getAtom(at)[0] == pplist[PP]:
+                                if tmol.getAtom(at)[0] == types[PP]:
                                     tmol.setAtom(at,fix=[True,True,True])
                         elif "FIX" in line and "SEQ" in line:
                             j += 1
@@ -224,6 +225,13 @@ def parser(name,data):
                     if constraints:
                         tparam[nl]+="CONSTRAINTS\n"+constraints+"END CONSTRAINTS\n"
                     i += j
+                elif nl=="&ATOMS" and "ISOTOPE" in data[i]:
+                    j = 0
+                    for t in types:
+                        j+=1
+                        mass = data[i+j].strip()
+                        tmol.pse[t]['m'] = mass
+                    i+=j
                 else:
                     tparam[nl]+=data[i]
                 i+=1
@@ -384,6 +392,9 @@ def writer(mol,f,param):
                 else:
                     f.write("END CONSTRAINTS\n")
                     f.write(param[i])
+            f.write("ISOTOPE\n")
+            for t in types:
+                f.write(mol.pse[t]['m']+"\n")
             f.write("&END\n")
         #write other namelists only when they're not empty
         elif i[0]=="&":
