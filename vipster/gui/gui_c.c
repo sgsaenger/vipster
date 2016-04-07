@@ -358,8 +358,8 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
     int x = PyArray_DIM(volume_py,0);
     int y = PyArray_DIM(volume_py,1);
     int z = PyArray_DIM(volume_py,2);
-    float (*volume)[y][z] = PyArray_GETPTR3(volume_py,0,0,0);
-    float (*gradient)[x][y][z] = PyArray_GETPTR4(gradient_py,0,0,0,0);
+    float *volume = PyArray_GETPTR3(volume_py,0,0,0);
+    float *gradient = PyArray_GETPTR4(gradient_py,0,0,0,0);
     typedef struct{
         float v1[3];
         float n1[3];
@@ -385,28 +385,28 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
 
                     /*determine the cube-vertices inside of volume*/
                     vert_sum=0;
-                    if (volume[i ][j ][k ]<isoval) vert_sum|=0x01;
-                    if (volume[i ][j ][k2]<isoval) vert_sum|=0x02;
-                    if (volume[i ][j2][k ]<isoval) vert_sum|=0x04;
-                    if (volume[i ][j2][k2]<isoval) vert_sum|=0x08;
-                    if (volume[i2][j ][k ]<isoval) vert_sum|=0x10;
-                    if (volume[i2][j ][k2]<isoval) vert_sum|=0x20;
-                    if (volume[i2][j2][k ]<isoval) vert_sum|=0x40;
-                    if (volume[i2][j2][k2]<isoval) vert_sum|=0x80;
+                    if (volume[i *y*z+j *z+k ]<isoval) vert_sum|=0x01;
+                    if (volume[i *y*z+j *z+k2]<isoval) vert_sum|=0x02;
+                    if (volume[i *y*z+j2*z+k ]<isoval) vert_sum|=0x04;
+                    if (volume[i *y*z+j2*z+k2]<isoval) vert_sum|=0x08;
+                    if (volume[i2*y*z+j *z+k ]<isoval) vert_sum|=0x10;
+                    if (volume[i2*y*z+j *z+k2]<isoval) vert_sum|=0x20;
+                    if (volume[i2*y*z+j2*z+k ]<isoval) vert_sum|=0x40;
+                    if (volume[i2*y*z+j2*z+k2]<isoval) vert_sum|=0x80;
 
                     if (0<vert_sum&&vert_sum<255){
                         /* determine interpolated edge intersections and normals */
 #define interpol(n_edge,n_edge2,n_edge3,i_1,j_1,k_1,i_2,j_2,k_2)\
-    ratio=(isoval-volume[i_1][j_1][k_1])/(volume[i_2][j_2][k_2]-volume[i_1][j_1][k_1]);\
+    ratio=(isoval-volume[i_1*y*z+j_1*z+k_1])/(volume[i_2*y*z+j_2*z+k_2]-volume[i_1*y*z+j_1*z+k_1]);\
     tempvert[n_edge][0]=vert_off[n_edge2][0]+ratio*(vert_off[n_edge3][0]-vert_off[n_edge2][0]);\
     tempvert[n_edge][1]=vert_off[n_edge2][1]+ratio*(vert_off[n_edge3][1]-vert_off[n_edge2][1]);\
     tempvert[n_edge][2]=vert_off[n_edge2][2]+ratio*(vert_off[n_edge3][2]-vert_off[n_edge2][2]);\
-    tempnorm[n_edge][0]=gradient[0][i_1][j_1][k_1]+ratio*\
-                            (gradient[0][i_2][j_2][k_2]-gradient[0][i_1][j_1][k_1]);\
-    tempnorm[n_edge][1]=gradient[1][i_1][j_1][k_1]+ratio*\
-                            (gradient[1][i_2][j_2][k_2]-gradient[1][i_1][j_1][k_1]);\
-    tempnorm[n_edge][2]=gradient[2][i_1][j_1][k_1]+ratio*\
-                            (gradient[2][i_2][j_2][k_2]-gradient[2][i_1][j_1][k_1]);
+    tempnorm[n_edge][0]=gradient[i_1*y*z+j_1*z+k_1]+ratio*\
+                            (gradient[i_2*y*z+j_2*z+k_2]-gradient[i_1*y*z+j_1*z+k_1]);\
+    tempnorm[n_edge][1]=gradient[x*y*z+i_1*y*z+j_1*z+k_1]+ratio*\
+                            (gradient[x*y*z+i_2*y*z+j_2*z+k_2]-gradient[x*y*z+i_1*y*z+j_1*z+k_1]);\
+    tempnorm[n_edge][2]=gradient[2*x*y*z+i_1*y*z+j_1*z+k_1]+ratio*\
+                            (gradient[2*x*y*z+i_2*y*z+j_2*z+k_2]-gradient[2*x*y*z+i_1*y*z+j_1*z+k_1]);
                         if (edge_lut[vert_sum]&&0x001) interpol( 0, 0, 1,i ,j ,k ,i ,j ,k2);
                         if (edge_lut[vert_sum]&&0x002) interpol( 1, 1, 5,i ,j ,k2,i2,j ,k2);
                         if (edge_lut[vert_sum]&&0x004) interpol( 2, 5, 4,i2,j ,k2,i2,j ,k );
@@ -431,42 +431,28 @@ static PyObject* make_iso_surf(PyObject *self, PyObject *args)
                             faces[nvert].v3[1]=(j+tempvert[tri_lut[vert_sum][l][2]][1])/y;
                             faces[nvert].v3[2]=(k+tempvert[tri_lut[vert_sum][l][2]][2])/z;
                             if(isoval>0){
-                                faces[nvert].n1[0]=tempnorm[tri_lut[vert_sum][l][0]][0];
-                                faces[nvert].n1[1]=tempnorm[tri_lut[vert_sum][l][0]][1];
-                                faces[nvert].n1[2]=tempnorm[tri_lut[vert_sum][l][0]][2];
+                                for(int m=0;m<3;m++){
+                                    faces[nvert].n1[m]=tempnorm[tri_lut[vert_sum][l][0]][m];
+                                    faces[nvert].n2[m]=tempnorm[tri_lut[vert_sum][l][1]][m];
+                                    faces[nvert].n3[m]=tempnorm[tri_lut[vert_sum][l][2]][m];
+                                    faces[nvert].c1[m]=0.1;
+                                    faces[nvert].c2[m]=0.1;
+                                    faces[nvert].c3[m]=0.1;
+                                }
                                 faces[nvert].c1[0]=0.8;
-                                faces[nvert].c1[1]=0.1;
-                                faces[nvert].c1[2]=0.1;
-                                faces[nvert].n2[0]=tempnorm[tri_lut[vert_sum][l][1]][0];
-                                faces[nvert].n2[1]=tempnorm[tri_lut[vert_sum][l][1]][1];
-                                faces[nvert].n2[2]=tempnorm[tri_lut[vert_sum][l][1]][2];
                                 faces[nvert].c2[0]=0.8;
-                                faces[nvert].c2[1]=0.1;
-                                faces[nvert].c2[2]=0.1;
-                                faces[nvert].n3[0]=tempnorm[tri_lut[vert_sum][l][2]][0];
-                                faces[nvert].n3[1]=tempnorm[tri_lut[vert_sum][l][2]][1];
-                                faces[nvert].n3[2]=tempnorm[tri_lut[vert_sum][l][2]][2];
                                 faces[nvert].c3[0]=0.8;
-                                faces[nvert].c3[1]=0.1;
-                                faces[nvert].c3[2]=0.1;
                             }else{
-                                faces[nvert].n1[0]=-tempnorm[tri_lut[vert_sum][l][0]][0];
-                                faces[nvert].n1[1]=-tempnorm[tri_lut[vert_sum][l][0]][1];
-                                faces[nvert].n1[2]=-tempnorm[tri_lut[vert_sum][l][0]][2];
-                                faces[nvert].c1[0]=0.1;
-                                faces[nvert].c1[1]=0.1;
+                                for(int m=0;m<3;m++){
+                                    faces[nvert].n1[m]=-tempnorm[tri_lut[vert_sum][l][0]][m];
+                                    faces[nvert].n2[m]=-tempnorm[tri_lut[vert_sum][l][1]][m];
+                                    faces[nvert].n3[m]=-tempnorm[tri_lut[vert_sum][l][2]][m];
+                                    faces[nvert].c1[m]=0.1;
+                                    faces[nvert].c2[m]=0.1;
+                                    faces[nvert].c3[m]=0.1;
+                                }
                                 faces[nvert].c1[2]=0.8;
-                                faces[nvert].n2[0]=-tempnorm[tri_lut[vert_sum][l][1]][0];
-                                faces[nvert].n2[1]=-tempnorm[tri_lut[vert_sum][l][1]][1];
-                                faces[nvert].n2[2]=-tempnorm[tri_lut[vert_sum][l][1]][2];
-                                faces[nvert].c2[0]=0.1;
-                                faces[nvert].c2[1]=0.1;
                                 faces[nvert].c2[2]=0.8;
-                                faces[nvert].n3[0]=-tempnorm[tri_lut[vert_sum][l][2]][0];
-                                faces[nvert].n3[1]=-tempnorm[tri_lut[vert_sum][l][2]][1];
-                                faces[nvert].n3[2]=-tempnorm[tri_lut[vert_sum][l][2]][2];
-                                faces[nvert].c3[0]=0.1;
-                                faces[nvert].c3[1]=0.1;
                                 faces[nvert].c3[2]=0.8;
                             }
                             nvert+=1;
