@@ -5,7 +5,7 @@ from os import getcwd
 from copy import deepcopy
 
 from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer,Qt
+from PyQt4.QtCore import QTimer,Qt,QSettings
 try:
     from PyQt4.QtCore import QString
 except:
@@ -81,6 +81,7 @@ class MainWindow(QMainWindow):
         mscroll.setFrameStyle(0)
         mdock = QDockWidget("Molecules")
         mdock.setWidget(mscroll)
+        mdock.setObjectName("Molecules")
         self.addDockWidget(1,mdock)
         #Parameter
         self.plist = QListWidget()
@@ -93,18 +94,22 @@ class MainWindow(QMainWindow):
         pwidget.setLayout(playout)
         pdock = QDockWidget("Parameters")
         pdock.setWidget(pwidget)
+        pdock.setObjectName("Parameters")
         self.addDockWidget(1,pdock)
         #Settings and PSE
         cdock = QDockWidget("Settings")
         cdock.setWidget(Settings(self))
+        cdock.setObjectName("Settings")
         self.addDockWidget(1,cdock)
         self.pseglob = PseGlobal(self)
         pgdock = QDockWidget("PSE")
         pgdock.setWidget(self.pseglob)
+        pgdock.setObjectName("PSE")
         self.addDockWidget(1,pgdock)
         self.psemol = PseMol(self)
         pmdock = QDockWidget("PSE (Mol.)")
         pmdock.setWidget(self.psemol)
+        pmdock.setObjectName("PSE (Mol.)")
         self.addDockWidget(1,pmdock)
         self.setTabPosition(Qt.AllDockWidgetAreas,QTabWidget.North)
         self.tabifyDockWidget(cdock,pgdock)
@@ -114,11 +119,13 @@ class MainWindow(QMainWindow):
 
     def initTools(self):
         self.tools = []
-        tb = self.addToolBar('Tools')
+        tb = self.addToolBar("Tools")
+        tb.setObjectName("Tools")
         tb.addWidget(QLabel("Tools:"))
         for i in tools.items():
             dw = QDockWidget(i[0])
             dw.setWidget(i[1](self))
+            dw.setObjectName(i[0])
             self.addDockWidget(2,dw)
             dw.hide()
             tb.addAction(dw.toggleViewAction())
@@ -128,7 +135,8 @@ class MainWindow(QMainWindow):
         self.fmt = QComboBox()
         self.fmt.addItems(fmts)
         self.fmt.currentIndexChanged[QString].connect(self.updateFmt)
-        fb = self.addToolBar('Format')
+        fb = self.addToolBar("Format")
+        fb.setObjectName("Format")
         fb.addWidget(self.fmt)
 
     def initFileMenu(self):
@@ -158,7 +166,7 @@ class MainWindow(QMainWindow):
         fMenu.addSeparator()
         exitAction = QAction("&Exit",self)
         exitAction.setShortcut("Ctrl+Q")
-        exitAction.triggered.connect(qApp.quit)
+        exitAction.triggered.connect(self.close)
         fMenu.addAction(exitAction)
         #check for available parameter sets and add
         for guiname,cliname in _guiOutNames.items():
@@ -261,6 +269,9 @@ class MainWindow(QMainWindow):
         self.show()
         self.mlist.setCurrentRow(self.mlist.count()-1)
         self.plist.setCurrentRow(self.plist.count()-1)
+        settings = QSettings("hein09","vipster")
+        self.restoreGeometry(settings.value("geometry").toByteArray())
+        self.restoreState(settings.value("windowState").toByteArray())
 
 ### I/O FUNCTIONS ###
 
@@ -321,6 +332,11 @@ class MainWindow(QMainWindow):
             _paramdict[t][n]["name"]=n
             saveConfig()
 
+    def closeEvent(self,e):
+        settings = QSettings("hein09","vipster")
+        settings.setValue("geometry",self.saveGeometry())
+        settings.setValue("windowState",self.saveState())
+        super(QMainWindow,self).closeEvent(e)
 
 ### PUBLIC UPDATE FUNCTIONS ###
 
