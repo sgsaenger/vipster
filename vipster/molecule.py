@@ -368,7 +368,7 @@ class _step(object):
         at_c = self._atom_coord
         cutoff=np.array([self.pse[i]['bondcut'] for i in self._atom_name],'f')
         n=np.zeros(3,'f')
-        v = self.getVec()*self.getCellDim()
+        v = self.getVec()*self.getCellDim('bohr')
         off = [[(n,n)],                            #orig
                [(v[0],n)],                         #x
                [(v[1],n)],                         #y
