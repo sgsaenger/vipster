@@ -310,7 +310,7 @@ def writer(mol,f,param):
                 f.write("  SCALE CARTESIAN\n")
             #cell vectors are always given explicitely
             f.write("  CELL VECTORS\n")
-            vec=mol.getVec()*mol.getCellDim(coordfmt)
+            vec=mol.getVec()*mol.getCellDim()
             for j in vec:
                 f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*j))
             #write K-Points if not gamma

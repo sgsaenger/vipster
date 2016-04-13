@@ -35,6 +35,6 @@ def writer(mol,f,param):
     f.write(str(mol.nat)+'\n')
     f.write(mol.comment+'\n')
     # write coordinates
-    for at in mol.getAtoms('angstrom'):
+    for at in mol.getAtoms(fmt='angstrom'):
         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}\n'.format(at[0],*at[1]))
     f.close()
