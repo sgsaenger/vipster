@@ -497,30 +497,14 @@ class _step(object):
     # VOLUME DATA FUNCTIONS
     #####################################################
 
-    def setVol(self,dim,vol,off):
+    def setVol(self,vol,off):
         """Set volume data
 
-        dim -> list of dimension of data-grid
         vol -> data-grid
         off -> offset of data
-
-        Parses string-list containing cube-style volume data
-        to list of shape dim[0]*dim[1]*dim[2]
         """
-        self._vol=np.zeros(dim,'f')
+        self._vol = np.array(vol,'f')
         self._vol_off = np.array(off,'f')
-        i=0
-        j=0
-        line=vol[i].split()
-        for x in range(dim[0]):
-            for y in range(dim[1]):
-                for z in range(dim[2]):
-                    self._vol[x][y][z]=float(line[j])
-                    j+=1
-                    if j==len(line) and i<(len(vol)-1):
-                        j=0
-                        i+=1
-                        line=vol[i].split()
         self._vol_grad = makeVolGradient(self._vol)
 
     def getVol(self):

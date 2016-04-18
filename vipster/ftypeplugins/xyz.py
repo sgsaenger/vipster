@@ -10,11 +10,11 @@ def parser(name,data):
     """ Parse xyz files (angstrom) """
     # create list of mol, trajectory support
     tmol = Molecule(name,steps=0)
-    i=0
+    i = 0
     while i < len(data):
             # handle empty lines at eof or between molecules
             if not data[i].strip().isdigit():
-                    i+=1
+                    i += 1
                     continue
             #fixed format nat and comment
             tmol.newStep()
@@ -23,10 +23,10 @@ def parser(name,data):
             #read coordinates and types
             tmol.newAtoms(nat)
             for j in range(nat):
-                line=data[j+i+2].split()
+                line = data[j+i+2].split()
                 tmol.setAtom(j,line[0],line[1:4])
             tmol.setFmt('angstrom',scale=True)
-            i+=nat+2
+            i += nat+2
     return tmol,None
 
 def writer(mol,f,param):
@@ -37,4 +37,3 @@ def writer(mol,f,param):
     # write coordinates
     for at in mol.getAtoms(fmt='angstrom'):
         f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}\n'.format(at[0],*at[1]))
-    f.close()
