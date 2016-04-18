@@ -147,7 +147,13 @@ class MainWindow(QMainWindow):
         newAction.triggered.connect(self.newMol)
         fMenu.addAction(newAction)
         #
-        pMenu = fMenu.addMenu("New &Parameter set")
+        nMenu = fMenu.addMenu("From existing Molecule:")
+        copyStep = QAction("&Copy single Step",self)
+        copyStep.triggered.connect(self.newMol)
+        nMenu.addAction(copyStep)
+        copyTraj = QAction("&Copy Trajectory",self)
+        copyTraj.triggered.connect(self.newMol)
+        nMenu.addAction(copyTraj)
         #
         loadAction = QAction("&Load Molecule(s)",self)
         loadAction.setShortcut("Ctrl+O")
@@ -158,6 +164,9 @@ class MainWindow(QMainWindow):
         saveAction.setShortcut("Ctrl+S")
         saveAction.triggered.connect(self.saveMol)
         fMenu.addAction(saveAction)
+        #
+        fMenu.addSeparator()
+        pMenu = fMenu.addMenu("New &Parameter set")
         #
         saveParamAction = QAction("Save Parameter set",self)
         saveParamAction.triggered.connect(self.saveParam)
@@ -276,7 +285,13 @@ class MainWindow(QMainWindow):
 ### I/O FUNCTIONS ###
 
     def newMol(self):
-        mol = Molecule()
+        sender = self.sender().text()
+        if "Molecule" in sender:
+            mol = Molecule()
+        elif "Step" in sender:
+            mol = self.mol.copy()
+        elif "Trajectory" in sender:
+            mol = self.mol.copyAll()
         self.molecules.append(mol)
         self.mlist.addItem(mol.name)
         self.mlist.setCurrentRow(self.mlist.count()-1)

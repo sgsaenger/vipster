@@ -901,6 +901,22 @@ class Molecule(_step):
                 'discrete':[],
                 'options':{'crystal':False,'bands':False}}
 
+    def copy(self):
+        """
+        Return copy of current step
+        """
+        m = Molecule(name = "Copy of "+self.name)
+        m.steps.append(deepcopy(self.steps[self.curStep]))
+        return m
+
+    def copyAll(self):
+        """
+        Return copy of trajectory
+        """
+        m = deepcopy(self)
+        m.name = "Copy of "+self.name
+        return m
+
     def __len__(self):
         return len(self.steps)
 
@@ -909,6 +925,14 @@ class Molecule(_step):
         Create new step
         """
         self.steps.append(_step(self.pse))
+        self.changeStep(len(self.steps)-1)
+
+    def copyStep(self,num=None):
+        """
+        Copy given or current step
+        """
+        if num == None: num = self.curStep
+        self.steps.append(deepcopy(self.steps[num]))
         self.changeStep(len(self.steps)-1)
 
     def changeStep(self,num):
