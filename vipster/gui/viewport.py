@@ -573,7 +573,7 @@ class ViewPort(QGLWidget):
                 pos = volPlane[2]/v.shape[2]
                 p=np.array([[0,0,pos],[1,0,pos],[0,1,pos],[1,0,pos],[0,1,pos],[1,1,pos]],'f')
             self.volPlaneTex=np.array([(x-vmin)/vdiff for x in pdat],'f')
-            vec=self.mol.getVec()*self.mol.getCellDim()
+            vec=self.mol.getVec()*self.mol.getCellDim('bohr')
             UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
             self.volPlaneVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
         elif hasattr(self,'volPlaneVBO'):
@@ -627,7 +627,7 @@ class ViewPort(QGLWidget):
                     p[:,i]+=1
 
             #generate planeVBO
-            vec=self.mol.getVec()*self.mol.getCellDim()
+            vec=self.mol.getVec()*self.mol.getCellDim('bohr')
             UV = [[0,0],[0,1],[1,0],[0,1],[1,0],[1,1]]
             self.milPlaneVBO=VBO(np.array([np.dot(p[i],vec).tolist()+UV[i%6] for i in range(len(p))],'f'))
         elif hasattr(self,'milPlaneVBO'):
@@ -844,7 +844,7 @@ class ViewPort(QGLWidget):
 
         self.surfShader.setUniformValue('volOff',*self.mol.getVolOffset().tolist())
         self.surfShader.setUniformValue('vpMatrix',self.proj*self.vMatrix*self.rMatrix)
-        self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.getVec()*self.mol.getCellDim()).flatten()))
+        self.surfShader.setUniformValue('cellVec',QMatrix3x3((self.mol.getVec()*self.mol.getCellDim('bohr')).flatten()))
         self.surfShader.setUniformValue('rMatrix',self.rMatrix)
 
         glDisable(GL_CULL_FACE)
