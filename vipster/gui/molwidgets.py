@@ -3,8 +3,8 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 
-from ..molecule import kpfmts
-from .collapsiblewidget import collapsibleWidget
+from vipster.molecule import kpfmts
+from vipster.gui.collapsiblewidget import collapsibleWidget
 
 class MolTable(collapsibleWidget):
     def __init__(self,parent):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from .. import pse as glob_pse
-from ..molecule import Molecule
+from vipster.settings import pse as glob_pse
+from vipster.molecule import Molecule
 
 name = 'Gaussian Cube'
 extension = 'cub'

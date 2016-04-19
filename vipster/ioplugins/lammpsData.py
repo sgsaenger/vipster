@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..molecule import Molecule
+from vipster.molecule import Molecule
 from collections import OrderedDict
 
 name = "Lammps Data"

@@ -3,7 +3,7 @@
 
 from sys import exit,argv
 from vipster import *
-from vipster.ftypeplugins import _indict,_outdict,_guiInNames,_guiOutNames
+from vipster.iowrapper import _indict,_outdict,_guiInNames,_guiOutNames
 
 def main():
     """Main function

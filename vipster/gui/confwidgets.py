@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import Qt
 from copy import copy
 
-from ..settings import pse,config,saveConfig,default
+from vipster.settings import pse,config,saveConfig,default
 
 class ConfWidget(QWidget):
     def __init__(self,parent,data):

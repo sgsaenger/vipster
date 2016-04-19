@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from ..molecule import Molecule
-from ..settings import config
+from vipster.molecule import Molecule
+from vipster.settings import config
 
 from collections import OrderedDict
 from numpy import sqrt

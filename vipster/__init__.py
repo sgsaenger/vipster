@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 
 #read local config and setup global variables/dictionaries
-from . import settings
-from .settings import *
-__all__=[_i for _i in dir(settings) if _i[0]!='_']
+from vipster.settings import *
+from vipster.settings import __all__
 
 #main data-class
-from .molecule import Molecule
-__all__.append("Molecule")
+from vipster.molecule import Molecule
+__all__ += ["Molecule"]
 
 #i/o-routines
-from . import ftypeplugins
-from .ftypeplugins import *
-__all__.extend(ftypeplugins.__all__)
+from vipster.iowrapper import *
+from vipster.iowrapper import __all__ as _aio_
+__all__ += _aio_
 
 #gui-launcher
-from . import gui
-from .gui import *
-__all__.extend(gui.__all__)
+from vipster.gui.main import launchVipster
+__all__ += ["launchVipster"]

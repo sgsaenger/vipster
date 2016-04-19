@@ -1,7 +1,23 @@
 # -*- coding: utf-8 -*-
-from . import _indict,_outdict,_paramdict
-
 from copy import deepcopy as _deepcopy
+from collections import OrderedDict as _ODict
+from importlib import import_module as _import
+
+from vipster.settings import _paramdict
+
+_formats = ["xyz","pwInput","pwOutput","lammpsData","lammpsCustom","cube","empire","aimall","cpmd","turbomole","xsf"]
+_plugins = []
+for i in _formats:
+    _plugins.append(_import(".ioplugins."+i,package="vipster"))
+_indict = _ODict([(i.argument,i.parser) for i in _plugins])
+_outdict = _ODict([(i.argument,i.writer) for i in _plugins if i.writer])
+_guiInNames  = _ODict([(i.name,i.argument) for i in _plugins])
+_guiOutNames = _ODict([(i.name,i.argument) for i in _plugins if i.writer])
+_defaultParams = _ODict([(i.argument,i.param) for i in _plugins if i.param])
+for i in _defaultParams:
+    for j in _defaultParams[i]:
+        if j not in _paramdict[i]:
+            _paramdict[i][j] = _defaultParams[i][j]
 inFormats = _indict.keys()
 outFormats = _outdict.keys()
 
@@ -55,3 +71,5 @@ def availParam(prog=None):
         return None
     else:
         return _paramdict.keys()
+
+__all__ = ["inFormats","outFormats","readFile","writeFile","newParam","availParam"]

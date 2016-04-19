@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..molecule import Molecule
+from vipster.molecule import Molecule
 
 name = 'AIMALL'
 extension = 'sum'

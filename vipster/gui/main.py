@@ -5,22 +5,21 @@ from os import getcwd
 from copy import deepcopy
 
 from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer,Qt,QSettings
+from PyQt4.QtCore import QTimer,Qt,QSettings,QByteArray
 try:
     from PyQt4.QtCore import QString
 except:
     QString = str
 
-from .viewport import VisualWidget
-from .tools import tools
-from .parameterwidgets import ParamTab,ParamDialog
-from .molwidgets import MolCell,MolKPoints,MolTable
-from .confwidgets import Settings,PseGlobal,PseMol
+from vipster.gui.viewport import VisualWidget
+from vipster.gui.tools import tools
+from vipster.gui.parameterwidgets import ParamTab,ParamDialog
+from vipster.gui.molwidgets import MolCell,MolKPoints,MolTable
+from vipster.gui.confwidgets import Settings,PseGlobal,PseMol
 
-from ..molecule import fmts,Molecule
-from ..settings import saveConfig
-from ..ftypeplugins import _guiInNames,_guiOutNames,_paramdict
-from ..ftypeplugins import *
+from vipster.molecule import fmts,Molecule
+from vipster.settings import saveConfig
+from vipster.iowrapper import availParam,newParam,_guiInNames,_guiOutNames,_paramdict
 
 GuiMolecules = []
 GuiParameters = []
@@ -279,8 +278,12 @@ class MainWindow(QMainWindow):
         self.mlist.setCurrentRow(self.mlist.count()-1)
         self.plist.setCurrentRow(self.plist.count()-1)
         settings = QSettings("hein09","vipster")
-        self.restoreGeometry(settings.value("geometry").toByteArray())
-        self.restoreState(settings.value("windowState").toByteArray())
+        g = settings.value("geometry")
+        w = settings.value("windowState")
+        if g:
+            self.restoreGeometry(g if isinstance(g,QByteArray) else g.toByteArray())
+        if g:
+            self.restoreState(w if isinstance(w,QByteArray) else w.toByteArray())
 
 ### I/O FUNCTIONS ###
 

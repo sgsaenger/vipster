@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..molecule import Molecule
+from vipster.molecule import Molecule
 
 name = 'xyz'
 extension = 'xyz'

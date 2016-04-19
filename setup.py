@@ -16,7 +16,7 @@ setup(
         url="https://github.com/hein09/vipster",
         requires=["numpy","OpenGL (>3.1.0)","PyQt4"],
         scripts=["scripts/vipster"],
-        packages=["vipster","vipster.ftypeplugins","vipster.gui","vipster.gui.tools"],
+        packages=["vipster","vipster.ioplugins","vipster.gui","vipster.gui.tools"],
         package_data={"vipster":["default.json"],"vipster.gui":["opengl/*.vert","opengl/*.frag","opengl/bond_model","opengl/sphere_model"]},
         data_files=[("share/doc/vipster",["LICENSE","README.md"]),
             ("share/pixmaps",["vipster.png","vipster-icon.png"]),

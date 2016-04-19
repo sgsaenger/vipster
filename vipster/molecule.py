@@ -3,8 +3,8 @@
 import numpy as np
 from copy import deepcopy
 
-from .mol_c import setBondsC,makeVolGradient
-from . import pse
+from vipster.mol_c import setBondsC,makeVolGradient
+from vipster.settings import pse
 
 #constants
 bohrrad = 0.52917721092

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .cpparam import CPParam
-from .pwparam import PWParam
-from .lammpsparam import LammpsParam
-from ..ftypeplugins import availParam,newParam
+from vipster.gui.cpparam import CPParam
+from vipster.gui.pwparam import PWParam
+from vipster.gui.lammpsparam import LammpsParam
+from vipster.iowrapper import availParam,newParam
 
 from PyQt4.QtGui import *
 

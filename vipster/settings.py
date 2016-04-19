@@ -24,3 +24,5 @@ def saveConfig():
     """Write config and PSE to json-file"""
     with open(_expanduser('~/.vipster.json'),'w') as f:
         _dump(_ODict([('PSE',pse),('General',config),('Parameters',_paramdict)]),f,indent=2)
+
+__all__ = ["pse","config","default","saveConfig"]

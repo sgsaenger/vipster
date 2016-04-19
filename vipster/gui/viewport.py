@@ -11,8 +11,8 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import *
 from OpenGL.arrays.vbo import *
 
-from .gui_c import makeIsoSurf
-from ..settings import config
+from vipster.gui.gui_c import makeIsoSurf
+from vipster.settings import config
 
 class VisualWidget(QFrame):
 

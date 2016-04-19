@@ -2,7 +2,8 @@
 
 from PyQt4.QtGui import *
 from copy import copy
-from ..ftypeplugins.lammpsData import lammps_atom_style,param as defaultParam
+
+from vipster.ioplugins.lammpsData import lammps_atom_style,param as defaultParam
 
 class LammpsParam(QWidget):
     def __init__(self,small=False):
