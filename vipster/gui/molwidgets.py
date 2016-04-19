@@ -259,7 +259,16 @@ class MolKPoints(collapsibleWidget):
             for i in range(6):
                 self.mpg.widg[i].setText(kp[i])
         elif fmt == 'discrete':
-            pass
+            options = self.mol.getKpoints('options')
+            self.disc.bands.setChecked(options['bands'])
+            self.disc.crystal.setChecked(options['crystal'])
+            kp = self.mol.getKpoints(fmt)
+            self.disc.table.setRowCount(len(kp))
+            self.updatedisable = True
+            for i in range(len(kp)):
+                for j in range(4):
+                    self.disc.table.setItem(i,j,QTableWidgetItem(kp[i][j]))
+            self.updatedisable = False
 
     def setMol(self,mol):
         self.mol = mol

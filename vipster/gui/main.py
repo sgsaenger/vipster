@@ -19,7 +19,7 @@ from vipster.gui.confwidgets import Settings,PseGlobal,PseMol
 
 from vipster.molecule import fmts,Molecule
 from vipster.settings import saveConfig
-from vipster.iowrapper import availParam,newParam,_guiInNames,_guiOutNames,_paramdict
+from vipster.iowrapper import availParam,newParam,_guiInNames,_guiOutNames,_paramdict,readFile,writeFile
 
 GuiMolecules = []
 GuiParameters = []
