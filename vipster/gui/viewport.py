@@ -753,18 +753,17 @@ class ViewPort(QGLWidget):
             glDisable(GL_MULTISAMPLE)
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
 
-        if not hasattr(self,'atomsVBO'): return
-
-        #construct viewMatrix
-        self.vMatrix = QMatrix4x4()
-        self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
-        self.vMatrix.translate(self.xsh,self.ysh,0)
-
         #check for projection:
         if config["Perspective projection"]:
             self.proj = self.pMatrix
+            self.vMatrix = QMatrix4x4()
+            self.vMatrix.lookAt(QVector3D(0,0,self.distance),QVector3D(0,0,0),QVector3D(0,1,0))
+            self.vMatrix.translate(self.xsh,self.ysh,0)
         else:
             self.proj = self.oMatrix
+            self.vMatrix = QMatrix4x4()
+            self.vMatrix.lookAt(QVector3D(0,0,500),QVector3D(0,0,0),QVector3D(0,1,0))
+            self.vMatrix.translate(self.xsh,self.ysh,0)
             #scale based on distance for zoom effect
             self.vMatrix.scale(10./self.distance)
         #rendering:
