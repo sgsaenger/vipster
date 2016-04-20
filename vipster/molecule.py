@@ -398,6 +398,7 @@ class _step(object):
         for k in range(3):
             self._atom_name.extend((mult[k]-1)*self._atom_name)
             self._atom_fix.extend((mult[k]-1)*self._atom_fix)
+            self._atom_hidden.extend((mult[k]-1)*self._atom_hidden)
             for i in range(1,mult[k]):
                 for j in range(nat):
                     self._atom_coord[j+i*nat] = self._atom_coord[j] + i*vec[k]
