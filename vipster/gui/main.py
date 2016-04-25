@@ -166,16 +166,6 @@ class MainWindow(QMainWindow):
         #
         fMenu.addSeparator()
         pMenu = fMenu.addMenu("New &Parameter set")
-        #
-        saveParamAction = QAction("Save Parameter set",self)
-        saveParamAction.triggered.connect(self.saveParam)
-        fMenu.addAction(saveParamAction)
-        #
-        fMenu.addSeparator()
-        exitAction = QAction("&Exit",self)
-        exitAction.setShortcut("Ctrl+Q")
-        exitAction.triggered.connect(self.close)
-        fMenu.addAction(exitAction)
         #check for available parameter sets and add
         for guiname,cliname in _guiOutNames.items():
             p = availParam(cliname)
@@ -191,6 +181,22 @@ class MainWindow(QMainWindow):
                     action=QAction(i,p2Menu)
                     action.triggered.connect(self.newParam)
                     p2Menu.addAction(action)
+        #
+        saveParamAction = QAction("Save Parameter set",self)
+        saveParamAction.triggered.connect(self.saveParam)
+        fMenu.addAction(saveParamAction)
+        #Screenshot
+        fMenu.addSeparator()
+        scrotAction = QAction("&Screenshot",self)
+        scrotAction.setShortcut("Ctrl+P")
+        scrotAction.triggered.connect(self.savePic)
+        fMenu.addAction(scrotAction)
+        #
+        fMenu.addSeparator()
+        exitAction = QAction("&Exit",self)
+        exitAction.setShortcut("Ctrl+Q")
+        exitAction.triggered.connect(self.close)
+        fMenu.addAction(exitAction)
 
     def initEditMenu(self):
         eMenu = self.menuBar().addMenu("&Edit")
@@ -349,6 +355,13 @@ class MainWindow(QMainWindow):
             _paramdict[t][n]=p
             _paramdict[t][n]["name"]=n
             saveConfig()
+
+    def savePic(self):
+        fn = QFileDialog.getSaveFileName(self,"Save Screenshot",getcwd(),"Portable Network Graphics (*.png)")
+        if not fn: return
+        if splitext(str(fn))[1] == "": fn+=".png"
+        img = self.visual.makePicture()
+        img.save(fn,None,0)
 
     def closeEvent(self,e):
         settings = QSettings("hein09","vipster")

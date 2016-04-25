@@ -189,6 +189,15 @@ class VisualWidget(QFrame):
         self.mol.changeStep(step)
         self.parent.updateMol()
 
+    def makePicture(self):
+        aa = config["Antialiasing"]
+        config["Antialiasing"] = False
+        self.viewport.paintEvent(None)
+        img = self.viewport.grabFrameBuffer(withAlpha=True)
+        config["Antialiasing"] = aa
+        self.viewport.paintEvent(None)
+        return img
+
 class ViewPort(QGLWidget):
 
     def __init__(self,parent):
