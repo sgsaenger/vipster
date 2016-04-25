@@ -41,12 +41,12 @@ def parser(name,data):
         elif periodic and "PRIMVEC" in data[i]:
             vec = [data[i+j].split() for j in range(1,4)]
             if animated and data[i].strip("PRIMVEC \r\n"):
-                tmol.setVecAll(vec)
-                tmol.setCellDimAll(1,fmt='angstrom')
-            elif animated:
                 tmol.changeStep(int(data[i].strip("PRIMVEC "))-1)
                 tmol.setVec(vec)
                 tmol.setCellDim(1,fmt='angstrom')
+            elif animated:
+                tmol.setVecAll(vec)
+                tmol.setCellDimAll(1,fmt='angstrom')
             else:
                 tmol = Molecule(name,steps=1)
                 tmol.setVec(vec)
@@ -91,8 +91,10 @@ def parser(name,data):
                                     line = data[i+j].split()
                                 vol[x][y][z] = float(line.pop(0))
                     del vol[-1]
-                    del vol[:][-1]
-                    del vol[:][:][-1]
+                    for n in vol:
+                        del n[-1]
+                        for m in n:
+                            del m[-1]
                     grids.append((vol,origin))
                     j += 1
                 j += 1
