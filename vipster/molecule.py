@@ -276,10 +276,11 @@ class _step(object):
         Will be passed to undo-stack if needed
         """
         if not self._undo_depth:
-            self._undo_temp=[\
-                    deepcopy(self._atom_name),\
-                    deepcopy(self._atom_coord),\
+            self._undo_temp=[
+                    deepcopy(self._atom_name),
+                    deepcopy(self._atom_coord),
                     deepcopy(self._atom_fix),
+                    deepcopy(self._atom_hidden),
                     deepcopy(self._celldm),
                     deepcopy(self._vec),
                     deepcopy(self._vecinv)]
@@ -307,7 +308,7 @@ class _step(object):
         Pop atom infos from stack if present
         """
         if not self._undo_stack: return
-        _,self._atom_name,self._atom_coord,self._atom_fix,self._celldm,self._vec,self._vecinv=self._undo_stack.pop()
+        _,self._atom_name,self._atom_coord,self._atom_fix,self._atom_hidden,self._celldm,self._vec,self._vecinv=self._undo_stack.pop()
         self.delSelection()
         self._bonds_outdated=True
 
