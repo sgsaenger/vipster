@@ -89,12 +89,14 @@ class MolCell(collapsibleWidget):
         #Cell Dimension
         def cdmHandler():
             if self.updatedisable: return
+            self.mol.initUndo()
             if float(self.cellDm.text()) == self.mol.getCellDim():return
             par = self.parent
             if self.appAll.isChecked():
                 self.mol.setCellDimAll(float(self.cellDm.text()),self.scale.isChecked())
             else:
                 self.mol.setCellDim(float(self.cellDm.text()),self.scale.isChecked())
+            self.mol.saveUndo("set cell dimension")
             self.parent.updateMol()
         self.cellDm = QLineEdit()
         self.cellDm.setValidator(QDoubleValidator())
@@ -102,6 +104,7 @@ class MolCell(collapsibleWidget):
         #Cell Vectors
         def vecHandler():
             if self.updatedisable: return
+            self.mol.initUndo()
             vec=[[0,0,0],[0,0,0],[0,0,0]]
             for i in [0,1,2]:
                 for j in [0,1,2]:
@@ -112,6 +115,7 @@ class MolCell(collapsibleWidget):
                 self.mol.setVecAll(vec,self.scale.isChecked())
             else:
                 self.mol.setVec(vec,self.scale.isChecked())
+            self.mol.saveUndo("set cell vectors")
             self.parent.updateMol()
         self.vtable = QTableWidget()
         self.vtable.setColumnCount(3)
