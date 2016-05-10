@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
         if not self.molecules:
             self.molecules.append(Molecule())
         self.parameters = p
+        self.copyBuf = []
         self.mol = self.molecules[0]
         self.param = None
         #
