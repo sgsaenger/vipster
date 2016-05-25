@@ -891,8 +891,9 @@ class Molecule(_step):
         """
         Return copy of current step
         """
-        m = Molecule(name = "Copy of "+self.name)
+        m = Molecule(name = "Copy of "+self.name,steps=0)
         m.steps.append(deepcopy(self.steps[self.curStep]))
+        m.curStep = 0
         return m
 
     def copyAll(self):

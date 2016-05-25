@@ -159,11 +159,7 @@ def writer(mol,f,param):
         impropertypes=[]
         for i in improperlist:
             it=[mol.getAtom(j)[0] for j in i]
-            if it[0]>it[3]:
-                it.reverse()
-            elif it[0]==dt[3] and dt[1]>dt[2]:
-                it.reverse()
-            impropertypes.append(tuple(dt))
+            impropertypes.append(tuple(it))
         impropertypelist=list(set(impropertypes))
     moleculeid = [0]*mol.nat
     if param["atom_style"] in ["angle","bond","full","line","molecular","smd","template","tri"]:
@@ -180,6 +176,7 @@ def writer(mol,f,param):
                     tlist.append(i)
             return tlist
         moleculelist = groupsets(molbondlist)
+        moleculelist = groupsets(moleculelist)
         for i,m in enumerate(moleculelist):
             for at in m:
                 moleculeid[at]=i
@@ -224,7 +221,7 @@ def writer(mol,f,param):
     for i,j in enumerate(atomtypes):
         f.write('{:d} {:2.4f} #{:s}\n'.format(i+1,mol.pse[j]['m'],j))
     #Atoms section: (always)
-    f.write('\nAtoms\n\n')
+    f.write('\nAtoms # {:}\n\n'.format(param["atom_style"]))
     string=lammps_atom_style[param["atom_style"]]
     for i in range(mol.nat):
         at=mol.getAtom(i,fmt='angstrom')
