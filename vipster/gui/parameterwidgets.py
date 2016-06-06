@@ -38,6 +38,7 @@ class ParamDialog(QDialog):
         #layout
         ok=QPushButton("OK")
         ok.clicked.connect(self.accept)
+        ok.setDefault(True)
         cancel=QPushButton("Cancel")
         cancel.clicked.connect(self.reject)
         vbox=QVBoxLayout()

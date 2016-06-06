@@ -58,17 +58,20 @@ class MolTable(collapsibleWidget):
 
     def fillTable(self):
         self.updatedisable = True
+        oldCount = self.table.rowCount()
         self.table.setRowCount(self.mol.nat)
+        if self.mol.nat > oldCount:
+            for i in range(oldCount,self.mol.nat):
+                for j in range(4):
+                    self.table.setItem(i,j,QTableWidgetItem())
+                    self.table.item(i,j).setFlags(Qt.ItemFlag(51))
         self.table.setVerticalHeaderLabels([str(x) for x in range(self.mol.nat)])
-        for i in range(self.mol.nat):
-            at = self.mol.getAtom(i,fix=True,hidden=True)
-            self.table.setItem(i,0,QTableWidgetItem(at[0]))
-            self.table.item(i,0).setFlags(Qt.ItemFlag(51))
-            self.table.item(i,0).setCheckState(int(at[3])*2)
-            for j in [0,1,2]:
-                self.table.setItem(i,j+1,QTableWidgetItem(str(at[1][j])))
-                self.table.item(i,j+1).setFlags(Qt.ItemFlag(51))
-                self.table.item(i,j+1).setCheckState(int(at[2][j])*2)
+        for i,at in enumerate(self.mol.getAtoms(fix=True,hidden=True)):
+            self.table.item(i,0).setText(at[0])
+            self.table.item(i,0).setCheckState(int(at[-1])*2)
+            for j in range(3):
+                self.table.item(i,j+1).setText(str(at[1][j]))
+                self.table.item(i,j+1).setCheckState(int(at[-2][j])*2)
         #update selection
         self.table.setSelectionMode(QAbstractItemView.MultiSelection)
         self.table.clearSelection()

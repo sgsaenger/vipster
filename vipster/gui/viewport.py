@@ -452,7 +452,7 @@ class ViewPort(QGLWidget):
         self.mult=mult
         #local variables for convenience
         atoms = mol.getAtoms(hidden=True,fmt='bohr')
-        hasHidden = any([i[2] for i in atoms])
+        hasHidden = any([i[-1] for i in atoms])
         pse = mol.pse
         vec = mol.getVec()*mol.getCellDim('bohr')
         center = mol.getCenter(config["Rotate around COM"])
@@ -496,7 +496,7 @@ class ViewPort(QGLWidget):
             if mult&j!=j: continue
             for i in bonds[j]:
                 #don't draw if one atom is hidden
-                if hasHidden and (atoms[i[0]][2] or atoms[i[1]][2]): continue
+                if hasHidden and (atoms[i[0]][-1] or atoms[i[1]][-1]): continue
                 #get positions of atoms
                 a = atoms[i[0]][1]+i[2][0]
                 b = atoms[i[1]][1]+i[2][1]
@@ -542,7 +542,7 @@ class ViewPort(QGLWidget):
         else:
             rad = 'covr'
         if hasHidden:
-            self.atomsVBO=[(at[1]+j).tolist()+[0.0 if at[2] else pse[at[0]][rad]]+pse[at[0]]['col'] for at in atoms for j in off]
+            self.atomsVBO=[(at[1]+j).tolist()+[0.0 if at[-1] else pse[at[0]][rad]]+pse[at[0]]['col'] for at in atoms for j in off]
         else:
             self.atomsVBO=[(at[1]+j).tolist()+[pse[at[0]][rad]]+pse[at[0]]['col'] for at in atoms for j in off]
         if self.instanced:

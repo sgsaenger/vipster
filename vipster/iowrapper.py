@@ -5,7 +5,7 @@ from importlib import import_module as _import
 
 from vipster.settings import _paramdict
 
-_formats = ["xyz","pwInput","pwOutput","lammpsData","lammpsCustom","cube","empire","aimall","cpmd","turbomole","xsf"]
+_formats = ["xyz","pwInput","pwOutput","lammpsData","lammpsCustom","cube","empire","aimall","cpmd","turbomole","xsf","mol2"]
 _plugins = []
 for i in _formats:
     _plugins.append(_import(".ioplugins."+i,package="vipster"))

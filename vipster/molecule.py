@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 
 from vipster.mol_c import setBondsC,makeVolGradient
-from vipster.settings import pse
+from vipster.settings import pse,config
 
 #constants
 bohrrad = 0.52917721092
@@ -17,8 +17,9 @@ _properties={'_atom_name':[],
         '_atom_coord':np.array([],'f'),
         '_atom_fix':[],
         '_atom_hidden':[],
+        '_atom_charge':[],
         '_bonds':[[],[],[],[],[],[],[],[]],
-        '_bond_cutfac':1.0,
+        '_bond_cutfac':None,
         '_bonds_outdated':True,
         '_default_fmt':'bohr',
         '_selection':[],
@@ -54,12 +55,13 @@ class _step(object):
         self.pse=pse
         for i in _properties:
             setattr(self,i,deepcopy(_properties[i]))
+        self._bond_cutfac = float(config['Bond cutoff factor'])
 
     ######################################################
     # ATOM FUNCTIONS
     ######################################################
 
-    def newAtom(self,name='C',coord=[0.,0.,0.],fix=[False,False,False],hidden=False,fmt=None):
+    def newAtom(self,name='C',coord=[0.,0.,0.],charge='0.',fix=[False,False,False],hidden=False,fmt=None):
         """Make new atom
         name -> element symbol
         coord -> coordinates
@@ -73,6 +75,7 @@ class _step(object):
             fix+=[False]
         self._atom_fix.append(fix)
         self._atom_hidden.append(hidden)
+        self._atom_charge.append(charge)
         self.delSelection()
         self._bonds_outdated=True
 
@@ -82,6 +85,7 @@ class _step(object):
         self._atom_coord.resize([self.nat+count,3])
         self._atom_fix.extend([[False,False,False]]*count)
         self._atom_hidden.extend([False]*count)
+        self._atom_charge.extend(['0.']*count)
         self.delSelection()
         self._bonds_outdated=True
 
@@ -91,10 +95,11 @@ class _step(object):
         self._atom_coord=np.delete(self._atom_coord,index,0)
         del self._atom_fix[index]
         del self._atom_hidden[index]
+        del self._atom_charge[index]
         self.delSelection()
         self._bonds_outdated=True
 
-    def setAtom(self,index,name=None,coord=None,fix=None,hidden=None,fmt=None):
+    def setAtom(self,index,name=None,coord=None,charge=None,fix=None,hidden=None,fmt=None):
         """Modify a given atom
 
         index -> atom id
@@ -107,29 +112,34 @@ class _step(object):
                 fix+=[False]
             self._atom_fix[index] = fix
         if hidden!=None: self._atom_hidden[index] = hidden
+        if charge!=None: self._atom_charge[index] = charge
         self._bonds_outdated=True
 
     nat = property(lambda self: len(self._atom_coord))
 
-    def getAtoms(self,fix=False,hidden=False,fmt=None):
+    def getAtoms(self,charge=False,fix=False,hidden=False,fmt=None):
         """Return names and coordinates for all atoms
 
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
         l = [self._atom_name,map(lambda f: self._coordFromBohr(f,fmt),self._atom_coord)]
+        if charge:
+            l.append(self._atom_charge)
         if fix:
             l.append(self._atom_fix)
         if hidden:
             l.append(self._atom_hidden)
         return list(zip(*l))
 
-    def getAtom(self,index,fix=False,hidden=False,fmt=None):
-        """Return exacpt copy of one atom
+    def getAtom(self,index,charge=False,fix=False,hidden=False,fmt=None):
+        """Return exact copy of one atom
 
         index -> index of atom
         fmt -> str in ['angstrom','bohr','crystal','alat']
         """
         l = [self._atom_name[index],self._coordFromBohr(self._atom_coord[index],fmt)]
+        if charge:
+            l.append(self._atom_charge[index])
         if fix:
             l.append(self._atom_fix[index])
         if hidden:
@@ -141,7 +151,7 @@ class _step(object):
 
         sorted by atomic number
         """
-        return sorted(set(self._atom_name), key=lambda n: self.pse[n]["Z"])
+        return sorted(sorted(set(self._atom_name)), key=lambda n: self.pse[n]["Z"])
 
     ntyp = property(lambda self: len(set(self._atom_name)))
 
@@ -279,6 +289,7 @@ class _step(object):
             self._undo_temp=[
                     deepcopy(self._atom_name),
                     deepcopy(self._atom_coord),
+                    deepcopy(self._atom_charge),
                     deepcopy(self._atom_fix),
                     deepcopy(self._atom_hidden),
                     deepcopy(self._celldm),
@@ -308,7 +319,7 @@ class _step(object):
         Pop atom infos from stack if present
         """
         if not self._undo_stack: return
-        _,self._atom_name,self._atom_coord,self._atom_fix,self._atom_hidden,self._celldm,self._vec,self._vecinv=self._undo_stack.pop()
+        _,self._atom_name,self._atom_coord,self._atom_charge,self._atom_fix,self._atom_hidden,self._celldm,self._vec,self._vecinv=self._undo_stack.pop()
         self.delSelection()
         self._bonds_outdated=True
 
@@ -400,6 +411,7 @@ class _step(object):
             self._atom_name.extend((mult[k]-1)*self._atom_name)
             self._atom_fix.extend((mult[k]-1)*self._atom_fix)
             self._atom_hidden.extend((mult[k]-1)*self._atom_hidden)
+            self._atom_charge.extend((mult[k]-1)*self._atom_charge)
             for i in range(1,mult[k]):
                 for j in range(nat):
                     self._atom_coord[j+i*nat] = self._atom_coord[j] + i*vec[k]
@@ -990,6 +1002,9 @@ class Molecule(_step):
                     for i in range(len(key),0,-1):
                         if key[:i] in self.cpse:
                             self[key] = deepcopy(self.cpse[key[:i]])
+                            break
+                        elif key[:i].upper() in self.cpse:
+                            self[key] = deepcopy(self.cpse[key[:i].upper()])
                             break
                     if not key in self:
                         self[key]=deepcopy(self.cpse['X'])

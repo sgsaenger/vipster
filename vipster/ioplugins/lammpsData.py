@@ -10,16 +10,22 @@ param={"default":{"type":"lmp",
                   "atom_style":"atomic",
                   "bonds":False,"angles":False,
                   "dihedrals":False,"impropers":False}}
+# Mapping:
+# 0 = idx
+# 1 = molecule-ID
+# 2 = atom-ID
+# 3,4,5 = x,y,z
+# 6 = charge
 lammps_atom_style=OrderedDict([
                 ("angle",     "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("atomic",    "{0:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("body",      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("body",      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("bond",      "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("charge",    "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("dipole",    "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0\n"),
-                ("electron",  "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("charge",    "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("dipole",    "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0\n"),
+                ("electron",  "{0:d} {2:d} {6:s} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("ellipsoid", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("full",      "{0:d} {1:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+                ("full",      "{0:d} {1:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("line",      "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("meso",      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("molecular", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
@@ -74,6 +80,7 @@ def parser(name,data):
                 except:
                     continue
                 atomids = sorted(set([int(k[j]) for k in atomlist]))
+                #if all([k<len(types)+1 for k in atomids]):
                 if atomids==range(1,len(types)+1):
                     atypepos=j
                     break
@@ -174,9 +181,11 @@ def writer(mol,f,param):
                         matched=True
                 if not matched:
                     tlist.append(i)
-            return tlist
+            if tlist == setlist:
+                return tlist
+            else:
+                return groupsets(tlist)
         moleculelist = groupsets(molbondlist)
-        moleculelist = groupsets(moleculelist)
         for i,m in enumerate(moleculelist):
             for at in m:
                 moleculeid[at]=i
@@ -223,9 +232,8 @@ def writer(mol,f,param):
     #Atoms section: (always)
     f.write('\nAtoms # {:}\n\n'.format(param["atom_style"]))
     string=lammps_atom_style[param["atom_style"]]
-    for i in range(mol.nat):
-        at=mol.getAtom(i,fmt='angstrom')
-        f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,*at[1]))
+    for i,at in enumerate(mol.getAtoms(charge=True,fmt='angstrom')):
+        f.write(string.format(i+1,moleculeid[i]+1,atomtypes.index(at[0])+1,at[1][0],at[1][1],at[1][2],at[-1]))
     #Bonds section:
     convertIndices=lambda x: list(map(lambda y: tuple(map(lambda z: z+1,y)),x))
     if param["bonds"] and bondlist:

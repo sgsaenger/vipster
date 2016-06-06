@@ -258,9 +258,9 @@ def writer(mol,f,param):
     f.write('ATOMIC_POSITIONS'+' '+mol.getFmt()+'\n')
     for i in range(mol.nat):
         atom=mol.getAtom(i,fix=True)
-        if any(atom[2]):
+        if any(atom[-1]):
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {:1d}'.format(
-                atom[0],atom[1][0],atom[1][1],atom[1][2],not atom[2][0],not atom[2][1],not atom[2][2])+'\n')
+                atom[0],atom[1][0],atom[1][1],atom[1][2],not atom[-1][0],not atom[-1][1],not atom[-1][2])+'\n')
         else:
             f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
                 atom[0],atom[1][0],atom[1][1],atom[1][2])+'\n')

@@ -39,16 +39,32 @@ def parser(name,data):
                 tmol.setCellDim(1,fmt='angstrom')
                 i+=4
             elif 'ATOMS' in line:
-                if line.strip() == 'ITEM: ATOMS id element xs ys zs':
-                    fmt='crystal'
-                elif line.strip() == 'ITEM: ATOMS id element x y z':
-                    fmt='angstrom'
-                else:
+                line = line.split()
+                if not 'id' in line and not 'element' in line and (not 'xs' in line or not 'x' in line):
                     raise NotImplementedError('Lammps dump in not (yet) recognized format')
+                ididx = line.index('id')-2
+                elidx = line.index('element')-2
+                if 'xs' in line:
+                    xidx = line.index('xs')-2
+                    yidx = line.index('ys')-2
+                    zidx = line.index('zs')-2
+                    fmt = 'crystal'
+                else:
+                    xidx = line.index('x')-2
+                    yidx = line.index('y')-2
+                    zidx = line.index('z')-2
+                    fmt = 'angstrom'
+                if 'q' in line:
+                    qidx = line.index('q')-2
+                else:
+                    qidx = False
                 tmol.newAtoms(nat)
                 for j in range(nat):
                     at = data[j+1+i].split()
-                    tmol.setAtom(j,at[1],at[2:])
+                    if qidx:
+                        tmol.setAtom(j,at[elidx],[at[xidx],at[yidx],at[zidx]],charge=at[qidx])
+                    else:
+                        tmol.setAtom(j,at[elidx],[at[xidx],at[yidx],at[zidx]])
                 tmol.setFmt(fmt,scale=True)
                 i+=nat+1
         else:
