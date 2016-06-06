@@ -3,6 +3,10 @@
 
 from sys import exit,argv
 from vipster import *
+if 'launchVipster' in globals():
+    hasGui = True
+else:
+    hasGui = False
 from vipster.iowrapper import _indict,_outdict,_guiInNames,_guiOutNames
 
 def main():
@@ -10,8 +14,10 @@ def main():
 
     Parses molecules if present, then starts gui
     """
-    if len(argv)==1:
+    if hasGui and len(argv)==1:
         launchVipster()
+    elif not hasGui and len(argv)==1:
+        printHelp(0)
     elif argv[1] == '-h' or argv[1] == '--help':
         printHelp(0)
     elif argv[1] == '--list-in':
@@ -29,7 +35,7 @@ def main():
             print(i+":")
             for j in availParam(i):
                 print('\t'+j)
-    elif argv[1].strip('-') in _indict:
+    elif hasGui and argv[1].strip('-') in _indict:
         parseAndLaunch(argv[1].strip('-'),argv[2:])
     elif '2' in argv[1] and argv[1].split('2')[0].strip('-') in _indict and argv[1].split('2')[1] in _outdict:
         fi = argv[1].split('2')[0].strip('-')
@@ -83,15 +89,19 @@ def transcode(inFmt,outFmt,arguments):
 def printHelp(err):
     print('Vipster usage:')
     print('vipster [OPTIONS]\n')
-    print('No option given: start GUI\n')
+    if hasGui:
+        print('No option given: start GUI\n')
+    else:
+        print('No GUI available\n')
     print('Options:')
     print('-h,--help: print this help')
     print('--list-in: print available filetypes for parsing')
     print('--list-out: print available filetypes for writing')
     print('--list-param [<fmt>,...]: print available parameter sets (for all types or only given formats)')
     print('')
-    print('-<fmt> FILE [FILES]: parse one or more FILES of filetype <fmt>')
-    print('')
+    if hasGui:
+        print('-<fmt> FILE [FILES]: parse one or more FILES of filetype <fmt>')
+        print('')
     print('-<fa>2<fb> IN OUT [OPTS]: convert file IN of type <fa> to OUT of <fb>')
     print('')
     print('Options for transcoding:')

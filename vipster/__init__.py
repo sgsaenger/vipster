@@ -14,5 +14,8 @@ from vipster.iowrapper import __all__ as _aio_
 __all__ += _aio_
 
 #gui-launcher
-from vipster.gui.main import launchVipster
-__all__ += ["launchVipster"]
+try:
+    from vipster.gui.main import launchVipster
+    __all__ += ["launchVipster"]
+except:
+    pass
