@@ -229,7 +229,7 @@ class MainWindow(QMainWindow):
             sel = set(i[0] for i in self.mol.getSelection())
             self.copyBuf = []
             for i in sel:
-                self.copyBuf.append(deepcopy(self.mol.getAtom(i,fmt='bohr')))
+                self.copyBuf.append(deepcopy(self.mol.getAtom(i,charge=True,fix=True,fmt='bohr')))
         copyAction = QAction('&Copy atom(s)',self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.triggered.connect(copyFun)

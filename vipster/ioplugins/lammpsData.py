@@ -112,7 +112,7 @@ def writer(mol,f,param):
         bondtypes=[]
         for i in bondlist:
             bondtypes.append(tuple(sorted([mol.getAtom(j)[0] for j in i])))
-        bondtypelist=list(set(bondtypes))
+        bondtypelist=sorted(list(set(bondtypes)))
     if param["angles"] or param["dihedrals"] or param["impropers"]:
         anglelist=[]
         for i in range(len(bondlist)):
@@ -129,7 +129,7 @@ def writer(mol,f,param):
             if at[0]>at[2]:
                 at.reverse()
             angletypes.append(tuple(at))
-        angletypelist=list(set(angletypes))
+        angletypelist=sorted(list(set(angletypes)))
     if param["dihedrals"]:
         dihedrallist=[]
         for i in range(len(anglelist)):
@@ -152,7 +152,7 @@ def writer(mol,f,param):
             elif dt[0]==dt[3] and dt[1]>dt[2]:
                 dt.reverse()
             dihedraltypes.append(tuple(dt))
-        dihedraltypelist=list(set(dihedraltypes))
+        dihedraltypelist=sorted(list(set(dihedraltypes)))
     if param["impropers"]:
         from itertools import combinations
         improperlist=[]
@@ -167,7 +167,7 @@ def writer(mol,f,param):
         for i in improperlist:
             it=[mol.getAtom(j)[0] for j in i]
             impropertypes.append(tuple(it))
-        impropertypelist=list(set(impropertypes))
+        impropertypelist=sorted(list(set(impropertypes)))
     moleculeid = [0]*mol.nat
     if param["atom_style"] in ["angle","bond","full","line","molecular","smd","template","tri"]:
         molbondlist = [set(i) for i in bondlist]
