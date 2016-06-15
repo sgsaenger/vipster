@@ -11,37 +11,39 @@ param={"default":{"type":"lmp",
                   "bonds":False,"angles":False,
                   "dihedrals":False,"impropers":False}}
 # Mapping:
-# 0 = idx
-# 1 = molecule-ID
-# 2 = atom-ID
-# 3,4,5 = x,y,z
-# 6 = charge
+# 0 = atom-ID (int)
+# 1 = molecule-ID (int)
+# 2 = atom-type (int)
+# 3,4,5 = x,y,z (int)
+# 6 = charge (float)
 lammps_atom_style=OrderedDict([
                 ("angle",     "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("atomic",    "{0:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("body",      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("bond",      "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("charge",    "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("dipole",    "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0\n"),
-                ("electron",  "{0:d} {2:d} {6:s} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("ellipsoid", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
                 ("full",      "{0:d} {1:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("line",      "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("meso",      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("molecular", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("peri",      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("smd",       "{0:d} {2:d} {1:d} 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("sphere",    "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("template",  "{0:d} {1:d} 0 0 {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("tri",       "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-                ("wavepacket","{0:d} {2:d} 0 0 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n")])
+                ("molecular", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n")])
+#unsupported due to unsupported properties:
+#                ("body",      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("dipole",    "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0\n"),
+#                ("dpd",       "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n")
+#                ("electron",  "{0:d} {2:d} {6:s} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("ellipsoid", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("line",      "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("meso",      "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("peri",      "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("smd",       "{0:d} {2:d} {1:d} 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("sphere",    "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("template",  "{0:d} {1:d} 0 0 {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("tri",       "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
+#                ("wavepacket","{0:d} {2:d} 0 0 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
 
 def parser(name,data):
     """ Parse Lammps data file
 
     Element parsed via comment in 'Masses' part
     Only orthogonal cells supported
-    Assumes angstrom and atom_style != dipole/hybrid
+    Assumes angstrom and atom_style in [angle,atomic,bond,charge,full,moleculuar]
     """
     tmol = Molecule(name)
     i=0
@@ -74,20 +76,27 @@ def parser(name,data):
                 atomlist.append(data[j].strip().split())
             nargs=len(atomlist[0])
             atypepos=1
-            for j in range(1,nargs):
+            for j in range(nargs,1,-1):
                 try:
-                    int(atomlist[0][j])
+                    atomids = [int(k[j]) for k in atomlist]
                 except:
                     continue
-                atomids = sorted(set([int(k[j]) for k in atomlist]))
-                #if all([k<len(types)+1 for k in atomids]):
-                if atomids==range(1,len(types)+1):
+                if set(atomids) != set([0]):
                     atypepos=j
                     break
             tmol.newAtoms(nat)
-            for j in range(nat):
-                at = atomlist[j]
-                tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:])
+            #guess where charge is found:
+            if atypepos < nargs-4:
+                qpos = atypepos+1
+            else:
+                qpos = False
+            #gotta load 'em all!
+            if qpos:
+                for j,at in enumerate(atomlist):
+                    tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:],at[qpos])
+            else:
+                for j,at in enumerate(atomlist):
+                    tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:])
             tmol.setFmt('angstrom',scale=True)
         i+=1
     return tmol,None
