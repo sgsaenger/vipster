@@ -5,7 +5,7 @@ from vipster.gui.pwparam import PWParam
 from vipster.gui.lammpsparam import LammpsParam
 from vipster.iowrapper import availParam,newParam
 
-from PyQt4.QtGui import *
+from vipster.gui.qtwrapper import *
 
 class ParamTab(QStackedWidget):
     def __init__(self):

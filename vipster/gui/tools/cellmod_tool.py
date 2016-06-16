@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtGui import *
+from vipster.gui.qtwrapper import *
 
 ####################################
 # Modify unit cell

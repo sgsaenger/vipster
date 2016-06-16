@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtGui import *
+from vipster.gui.qtwrapper import *
 
 ##############################################################
 # Widget with titlebutton and collapsible main-widget

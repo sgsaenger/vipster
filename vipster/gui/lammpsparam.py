@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtGui import *
+from vipster.gui.qtwrapper import *
 from copy import copy
 
 from vipster.ioplugins.lammpsData import lammps_atom_style,param as defaultParam

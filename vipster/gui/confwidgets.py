@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import Qt
+from vipster.gui.qtwrapper import *
 from copy import copy
 
 from vipster.settings import pse,config,saveConfig,default

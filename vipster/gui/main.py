@@ -4,12 +4,7 @@ from os.path import splitext
 from os import getcwd
 from copy import deepcopy
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import QTimer,Qt,QSettings,QByteArray
-try:
-    from PyQt4.QtCore import QString
-except:
-    QString = str
+from vipster.gui.qtwrapper import *
 
 from vipster.gui.viewport import VisualWidget
 from vipster.gui.tools import tools
@@ -308,6 +303,7 @@ class MainWindow(QMainWindow):
 
     def loadMol(self):
         fname = QFileDialog.getOpenFileName(self,"Open File",getcwd())
+        if qVersion()>'5': fname = fname[0]
         if not fname: return
         ftype = QInputDialog.getItem(self,"Choose File type","File type:",list(_guiInNames.keys()),0,False)
         if not ftype[1]: return
@@ -323,6 +319,7 @@ class MainWindow(QMainWindow):
 
     def saveMol(self):
         fname = QFileDialog.getSaveFileName(self,"Save File",getcwd())
+        if qVersion()>'5': fname = fname[0]
         if not fname: return
         ftype = QInputDialog.getItem(self,"Choose File type","File type:",list(_guiOutNames.keys()),0,False)
         if not ftype[1]: return

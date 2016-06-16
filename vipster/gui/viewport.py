@@ -4,9 +4,7 @@ from os.path import dirname
 from copy import deepcopy
 import numpy as np
 
-from PyQt4.QtCore import Qt,QRectF,QTimer
-from PyQt4.QtGui import *
-from PyQt4.QtOpenGL import *
+from vipster.gui.qtwrapper import *
 from OpenGL.GL import *
 from OpenGL.GL.shaders import *
 from OpenGL.arrays.vbo import *
@@ -84,17 +82,17 @@ class VisualWidget(QFrame):
         for i in range(5):
             self.buttons.append(QPushButton())
             self.buttons[-1].clicked.connect(self.changeStep)
-        self.buttons[0].setIcon(self.style().standardIcon(64))
+        self.buttons[0].setIcon(self.style().standardIcon(QStyle.SP_MediaSkipBackward))
         self.buttons[0].setFixedWidth(30)
         self.buttons[1].setAutoRepeat(True)
-        self.buttons[1].setIcon(self.style().standardIcon(66))
+        self.buttons[1].setIcon(self.style().standardIcon(QStyle.SP_MediaSeekBackward))
         self.buttons[1].setFixedWidth(30)
-        self.buttons[2].setIcon(self.style().standardIcon(60))
+        self.buttons[2].setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self.buttons[2].setFixedWidth(30)
-        self.buttons[3].setIcon(self.style().standardIcon(65))
+        self.buttons[3].setIcon(self.style().standardIcon(QStyle.SP_MediaSeekForward))
         self.buttons[3].setAutoRepeat(True)
         self.buttons[3].setFixedWidth(30)
-        self.buttons[4].setIcon(self.style().standardIcon(63))
+        self.buttons[4].setIcon(self.style().standardIcon(QStyle.SP_MediaSkipForward))
         self.buttons[4].setFixedWidth(30)
         self.animTimer = QTimer()
         self.animTimer.setInterval(50)
@@ -410,14 +408,21 @@ class ViewPort(QGLWidget):
             return None
 
     def wheelEvent(self,e):
-        delta = e.delta()
-        #zoom with vertical wheel
-        if e.orientation() & 2:
+        if qVersion() < '5':
+            delta = e.delta()
+            if e.orientation() & 2:
                 if delta < 0:
                         self.distance *= 1.1
                 elif delta > 0:
                         self.distance *= 0.9
                 self.update()
+        else:
+            delta = e.angleDelta().y()
+            if delta < 0:
+                    self.distance *= 1.1
+            elif delta > 0:
+                    self.distance *= 0.9
+            self.update()
         e.accept()
 
     ##########################################
@@ -746,6 +751,10 @@ class ViewPort(QGLWidget):
         else:
             self.paintStuff()
             self.updateGL()
+
+    def paintGL(self):
+        #dummy for Qt5
+        pass
 
     def paintStuff(self,select=False):
         if self.instanced: glBindVertexArray(self.VAO)
