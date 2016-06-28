@@ -212,6 +212,7 @@ class ViewPort(QGLWidget):
         self.rMatrix = QMatrix4x4()
         self.distance = 25
         self.copyBuf=[]
+        self.modMode = None
 
     ###############################################
     # INPUT HANDLING
@@ -241,6 +242,8 @@ class ViewPort(QGLWidget):
 
     def setMouseMode(self,but):
         t=but.text()
+        if self.mouseMode == "Modify":
+            self.mol.saveUndo(self.modMode)
         self.mouseMode = t
         if t == "Camera":
             self.setCursor(Qt.ArrowCursor)
@@ -251,11 +254,11 @@ class ViewPort(QGLWidget):
 
     def mousePressEvent(self,e):
         self.setFocus()
+        if not e.buttons()&7: return
         self.mousePos = e.pos()
         if self.mouseMode=='Modify':
             #initiate undo
             self.mol.initUndo()
-            self.modMode=''
             #determine which atoms to modify
             sel = self.mol.getSelection()
             if sel:
@@ -295,6 +298,7 @@ class ViewPort(QGLWidget):
             self.update()
 
     def mouseMoveEvent(self,e):
+        if not e.buttons()&7: return
         delta=e.pos()-self.mousePos
         if (e.buttons() & 1):
             if self.mouseMode == 'Camera':
@@ -345,7 +349,7 @@ class ViewPort(QGLWidget):
     def mouseReleaseEvent(self,e):
         if self.mouseMode=='Modify' and self.modMode:
             self.mol.saveUndo(self.modMode)
-            self.modMode=''
+            self.modMode=None
             self.parent.updateMol()
         elif self.mouseMode=='Select' and e.button()&1:
             if self.rectPos:

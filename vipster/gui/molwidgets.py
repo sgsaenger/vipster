@@ -12,7 +12,7 @@ class MolTable(collapsibleWidget):
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(['Type','x','y','z'])
         def showEvent(e):
-            if hasattr(self,'mol'): self.fillTable
+            if hasattr(self,'mol'): self.fillTable()
         self.table.showEvent = showEvent
         self.updatedisable = False
         def cellHandler(row,col):
