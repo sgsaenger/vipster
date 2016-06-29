@@ -1000,11 +1000,17 @@ class Molecule(_step):
                     self[key]=deepcopy(self.cpse[key])
                 else:
                     for i in range(len(key),0,-1):
+                        source = None
                         if key[:i] in self.cpse:
-                            self[key] = deepcopy(self.cpse[key[:i]])
-                            break
+                            source = key[:i]
                         elif key[:i].upper() in self.cpse:
-                            self[key] = deepcopy(self.cpse[key[:i].upper()])
+                            source = key[:i].upper()
+                        if source:
+                            self[key] = deepcopy(self.cpse[source])
+                            if not self[key]["PWPP"]:
+                                self[key]["PWPP"]=source+config["Default PWScf PP-suffix"]
+                            if not self[key]["CPPP"]:
+                                self[key]["CPPP"]=source+config["Default CPMD PP-suffix"]
                             break
                     if not key in self:
                         self[key]=deepcopy(self.cpse['X'])
