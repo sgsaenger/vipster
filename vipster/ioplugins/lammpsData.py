@@ -42,7 +42,6 @@ def parser(name,data):
     """ Parse Lammps data file
 
     Element parsed via comment in 'Masses' part
-    Only orthogonal cells supported
     Assumes angstrom and atom_style in [angle,atomic,bond,charge,full,moleculuar]
     """
     tmol = Molecule(name)
@@ -60,8 +59,8 @@ def parser(name,data):
             tvec[1][1] = float(line.split()[1])-float(line.split()[0])
         elif 'zlo zhi' in line:
             tvec[2][2] = float(line.split()[1])-float(line.split()[0])
-            tmol.setVec(tvec)
-            tmol.setCellDim(1,fmt='angstrom')
+        elif 'xy xz yz' in line:
+            tvec[1][0],tvec[2][0],tvec[2][1] = line.split()[:3]
         elif 'Masses' in line:
             for j in range(i+2,i+2+len(types)):
                 if '#' in data[j]:
@@ -70,34 +69,41 @@ def parser(name,data):
                     raise NotImplementedError('cannot assign elements via masses')
             i+=len(types)+1
         elif 'Atoms' in line:
-            #guess where atom-type is found:
+            #make a guess for column-content:
             atomlist=[]
             for j in range(i+2,i+2+nat):
                 atomlist.append(data[j].strip().split())
             nargs=len(atomlist[0])
-            atypepos=1
+            atypepos = 1
+            cpos = -3
+            testimageflags = 0
             for j in range(nargs,1,-1):
                 try:
-                    atomids = [int(k[j]) for k in atomlist]
+                    test = [int(k[j]) for k in atomlist]
                 except:
-                    continue
-                if set(atomids) != set([0]):
-                    atypepos=j
-                    break
+                    pass
+                else:
+                    #check for imageflags (3 integer columns)
+                    if nargs > 7 and j > 3:
+                        testimageflags += 1
+                        if testimageflags == 3:
+                            cpos = -6
+                    #check if one of the first two entries and not an empty charge column
+                    elif j == 2 and set(test) != set([0]):
+                        atypepos=j
+                        break
             tmol.newAtoms(nat)
             #guess where charge is found:
-            if atypepos < nargs-4:
+            if nargs+cpos-1 > atypepos:
                 qpos = atypepos+1
             else:
                 qpos = False
             #gotta load 'em all!
-            if qpos:
-                for j,at in enumerate(atomlist):
-                    tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:],at[qpos])
-            else:
-                for j,at in enumerate(atomlist):
-                    tmol.setAtom(j,types[int(at[atypepos])-1],at[-3:])
+            for j,at in enumerate(atomlist):
+                tmol.setAtom(j,types[int(at[atypepos])-1],at[cpos:cpos+3 if cpos+3 else None],at[qpos] if qpos else None)
             tmol.setFmt('angstrom',scale=True)
+            tmol.setVec(tvec)
+            tmol.setCellDim(1,fmt='angstrom')
         i+=1
     return tmol,None
 
