@@ -2,6 +2,7 @@
 from copy import deepcopy as _deepcopy
 from collections import OrderedDict as _ODict
 from importlib import import_module as _import
+from os import rename, remove
 
 from vipster.settings import _paramdict
 
@@ -46,9 +47,15 @@ def writeFile(mol,fmt,filename,param=None):
     """
     if fmt in _paramdict:
         if param is None or param["type"]!=fmt:
-            raise Exception(" Writing format "+fmt+" needs accompanying parameter set!")
-    with open(filename,'w') as f:
-        _outdict[fmt](mol,f,param)
+            raise TypeError(" Writing format "+fmt+" needs accompanying parameter set!")
+    try:
+        with open('vipster.tmp','w') as f:
+            _outdict[fmt](mol,f,param)
+    except Exception as e:
+        remove('vipster.tmp')
+        raise e
+    else:
+        rename('vipster.tmp',filename)
 
 def newParam(prog,var="default"):
     """

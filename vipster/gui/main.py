@@ -325,11 +325,17 @@ class MainWindow(QMainWindow):
         if not ftype[1]: return
         ftype = _guiOutNames[str(ftype[0])]
         try:
-            writeFile(self.mol,ftype,fname,self.param)
+            try:
+                writeFile(self.mol,ftype,fname,self.param)
+            except TypeError as error:
+                pd = ParamDialog(ftype,self.parameters)
+                if pd.exec_():
+                    writeFile(self.mol,ftype,fname,pd.getParam())
         except Exception as error:
-            pd = ParamDialog(ftype,self.parameters)
-            if pd.exec_():
-                writeFile(self.mol,ftype,fname,pd.getParam())
+            a = QErrorMessage(self)
+            a.setModal(True)
+            a.showMessage(error.message)
+            a.exec_()
 
     def newParam(self):
         if self.sender().parent() != self:

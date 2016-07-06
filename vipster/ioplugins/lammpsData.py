@@ -69,36 +69,45 @@ def parser(name,data):
                     raise NotImplementedError('cannot assign elements via masses')
             i+=len(types)+1
         elif 'Atoms' in line:
-            #make a guess for column-content:
             atomlist=[]
             for j in range(i+2,i+2+nat):
                 atomlist.append(data[j].strip().split())
-            nargs=len(atomlist[0])
-            atypepos = 1
-            cpos = -3
-            testimageflags = 0
-            for j in range(nargs,1,-1):
+            if '#' in line and line.split('#')[1].strip() in lammps_atom_style:
+                style = lammps_atom_style[line.split('#')[1].strip()].split()
+                atypepos = style.index('{2:d}')
+                cpos = style.index('{3:15.10f}')
                 try:
-                    test = [int(k[j]) for k in atomlist]
+                    qpos = style.index('{6:s}')
                 except:
-                    pass
-                else:
-                    #check for imageflags (3 integer columns)
-                    if nargs > 7 and j > 3:
-                        testimageflags += 1
-                        if testimageflags == 3:
-                            cpos = -6
-                    #check if one of the first two entries and not an empty charge column
-                    elif j == 2 and set(test) != set([0]):
-                        atypepos=j
-                        break
-            tmol.newAtoms(nat)
-            #guess where charge is found:
-            if nargs+cpos-1 > atypepos:
-                qpos = atypepos+1
+                    qpos = None
             else:
-                qpos = False
+                #make a guess for column-content:
+                nargs=len(atomlist[0])
+                atypepos = 1
+                cpos = -3
+                testimageflags = 0
+                for j in range(nargs,1,-1):
+                    try:
+                        test = [int(k[j]) for k in atomlist]
+                    except:
+                        pass
+                    else:
+                        #check for imageflags (3 integer columns)
+                        if nargs > 7 and j > 3:
+                            testimageflags += 1
+                            if testimageflags == 3:
+                                cpos = -6
+                        #check if one of the first two entries and not an empty charge column
+                        elif j == 2 and set(test) != set([0]):
+                            atypepos=j
+                            break
+                #guess where charge is found:
+                if nargs+cpos-1 > atypepos:
+                    qpos = atypepos+1
+                else:
+                    qpos = False
             #gotta load 'em all!
+            tmol.newAtoms(nat)
             for j,at in enumerate(atomlist):
                 tmol.setAtom(j,types[int(at[atypepos])-1],at[cpos:cpos+3 if cpos+3 else None],at[qpos] if qpos else None)
             tmol.setFmt('angstrom',scale=True)
@@ -112,7 +121,6 @@ def writer(mol,f,param):
     Save Lammps input data
 
     Cell parameters have to be in lower triangular form
-    Non orthogonal cell not supported for now
     Assumes angstrom
     """
     #calculate necessary values:
@@ -231,14 +239,14 @@ def writer(mol,f,param):
     #if cell is orthogonal, write vectors:
     v=mol.getVec()*mol.getCellDim(fmt='angstrom')
     if not v.diagonal(1).any() and not v.diagonal(2).any():
-        if not v.diagonal(-1).any() and not v.diagonal(-2).any():
-            f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0,v[0][0]))
-            f.write('{:.5f} {:.5f} ylo yhi\n'.format(0.0,v[1][1]))
-            f.write('{:.5f} {:.5f} zlo zhi\n\n'.format(0.0,v[2][2]))
-        else:
-            raise TypeError('Non-orthogonal cell not yet supported')
+        f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0,v[0][0]))
+        f.write('{:.5f} {:.5f} ylo yhi\n'.format(0.0,v[1][1]))
+        f.write('{:.5f} {:.5f} zlo zhi\n'.format(0.0,v[2][2]))
+        if v.diagonal(-1).any() or v.diagonal(-2).any():
+            f.write('{:.5f} {:.5f} {:.5f} xy xz yz\n'.format(v[1][0],v[2][0],v[2][1]))
+        f.write('\n')
     else:
-        raise TypeError('Cell not in suitable Lammps format')
+        raise Exception('Cell not in suitable Lammps format')
     #Masses section: (always)
     f.write('Masses\n\n')
     atomtypes=list(mol.getTypes())
