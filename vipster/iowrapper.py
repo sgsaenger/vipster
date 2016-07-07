@@ -2,7 +2,8 @@
 from copy import deepcopy as _deepcopy
 from collections import OrderedDict as _ODict
 from importlib import import_module as _import
-from os import rename, remove
+from os import remove
+from shutil import move
 
 from vipster.settings import _paramdict
 
@@ -55,7 +56,7 @@ def writeFile(mol,fmt,filename,param=None):
         remove('vipster.tmp')
         raise e
     else:
-        rename('vipster.tmp',filename)
+        move('vipster.tmp',filename)
 
 def newParam(prog,var="default"):
     """
