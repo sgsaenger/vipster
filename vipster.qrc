@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/shaders/atom">
+        <file>atom.frag</file>
+        <file>atom.vert</file>
+    </qresource>
+    <qresource prefix="/shaders/bond">
+        <file>bond.frag</file>
+        <file>bond.vert</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>vipster-icon.png</file>
+    </qresource>
+    <qresource prefix="/shaders/cell">
+        <file>cell.frag</file>
+        <file>cell.vert</file>
+    </qresource>
+</RCC>
