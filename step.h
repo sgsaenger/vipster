@@ -10,6 +10,7 @@ class Step
 {
 public:
     Step(PseMap pse);
+    std::string comment;
     void    newAtom(std::string name="C",
                     Vec coord={0.,0.,0.},
                     float charge=0.,
@@ -53,10 +54,6 @@ public:
     const std::array<std::vector<Bond>,8>& getBonds(float cutfac) const;
     std::array<std::vector<std::array<Vec,2>>,8> getBondOffsets() const;
     mutable PseMap pse;
-protected:
-    //t_atom& getAtom(size_t idx);                                //get reference (bohr)
-    //std::vector<t_atom>& getAtoms(void) noexcept;               //get reference (bohr)
-    //std::array<t_vec,3>& getCellVec(void) noexcept;
 private:
     Atom formatAtom(Atom at, Fmt source, Fmt target);
     std::vector<Atom> formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt target);

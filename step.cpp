@@ -1,5 +1,6 @@
 #include "step.h"
 #include <limits>
+#include <iostream>
 
 using namespace Vipster;
 
@@ -8,7 +9,8 @@ Step::Step(PseMap pse):
     celldim{1.},
     cellvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
     invvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
-    bonds_outdated{true}
+    bonds_outdated{true},
+    bondcut_factor{1.1}
 {
 }
 
@@ -80,13 +82,6 @@ void Step::setAtom(size_t idx, Atom at, Fmt fmt)
     bonds_outdated = true;
 }
 
-/*
-t_atom& Step::getAtom(size_t idx)
-{
-    return atoms.at(idx);
-}
-*/
-
 const Atom& Step::getAtom(size_t idx) const
 {
     return atoms.at(idx);
@@ -96,13 +91,6 @@ Atom Step::getAtomFmt(size_t idx, Fmt fmt)
 {
     return formatAtom(atoms.at(idx),Fmt::Bohr,fmt);
 }
-
-/*
-std::vector<t_atom>& Step::getAtoms() noexcept
-{
-    return atoms;
-}
-*/
 
 const std::vector<Atom>& Step::getAtoms() const noexcept
 {
@@ -282,13 +270,6 @@ void Step::setCellVec(std::array<Vec, 3> vec, bool scale)
     bonds_outdated = true;
 }
 
-/*
-std::array<t_vec,3>& Step::getCellVec() noexcept
-{
-    return cellvec;
-}
-*/
-
 const std::array<Vec,3>& Step::getCellVec() const noexcept
 {
     return cellvec;
@@ -359,11 +340,11 @@ void Step::setBonds(float cutfac) const
                     effcut = (cut_i+cut_j)*cutfac;
                     Vec pos_i = atoms[i].coord;
                     Vec pos_j = atoms[j].coord;
-                    dist_v[0] = pos_i[0] + off[0][0] - pos_j[0] + off[1][0];
+                    dist_v[0] = pos_i[0] + off[0][0] - pos_j[0] - off[1][0];
                     if(dist_v[0]>effcut)continue;
-                    dist_v[1] = pos_i[1] + off[0][1] - pos_j[1] + off[1][1];
+                    dist_v[1] = pos_i[1] + off[0][1] - pos_j[1] - off[1][1];
                     if(dist_v[1]>effcut)continue;
-                    dist_v[2] = pos_i[2] + off[0][2] - pos_j[2] + off[1][2];
+                    dist_v[2] = pos_i[2] + off[0][2] - pos_j[2] - off[1][2];
                     if(dist_v[2]>effcut)continue;
                     dist_n = dist_v[0]*dist_v[0]+dist_v[1]*dist_v[1]+dist_v[2]*dist_v[2];
                     if((0.57<dist_n)&&(dist_n<effcut*effcut)){

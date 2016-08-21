@@ -9,7 +9,7 @@ namespace Vipster {
     class Molecule
     {
     public:
-        Molecule(std::string name="",ulong s=1, PseMap pse=PseMap(&Vipster::pse));
+        Molecule(std::string name="New Molecule",ulong s=1, PseMap pse=PseMap(&Vipster::pse));
         std::string name;
         PseMap pse;
         Step& curStep();

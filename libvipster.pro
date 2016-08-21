@@ -29,7 +29,8 @@ HEADERS += \
     libvipster.h \
     step.h \
     iowrapper.h \
-    ioplugins/xyz.h
+    ioplugins/xyz.h \
+    ioplugin.h
 
 unix {
     target.path = /usr/lib

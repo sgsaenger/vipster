@@ -4,33 +4,14 @@
 #include "definitions.h"
 #include "molecule.h"
 #include <experimental/optional>
-#include <fstream>
-
-namespace Vipster{
-    using std::experimental::optional;
-    typedef std::map<std::string,std::string> Param;
-    struct IOPlugin{
-        std::string name;
-        std::string extension;
-        std::string argument;
-        std::map<std::string,Param>  *param;
-        std::tuple<Molecule,optional<Param>>  (*parser)(std::string fn, std::ifstream &file);
-        void        (*writer)(const Molecule &m,std::ofstream &file, Param p);
-    };
-    class IOError: public std::runtime_error
-    {
-        public:
-            IOError(std::string reason):std::runtime_error(reason){};
-    };
-}
-
+#include <cstdio>
+#include "ioplugin.h"
 #include "ioplugins/xyz.h"
 
 namespace Vipster{
-    enum class  IOFmt {xyz};
-
-    std::tuple<Molecule,optional<Param>>  readFile(std::string fn, IOFmt fmt);
-    void        writeFile(const Molecule &m, std::string fn, IOFmt fmt, Param p);
+    std::tuple<Molecule,optional<Param>>  readFile(std::string fn, std::string fmt);
+    void        writeFile(const Molecule &m, std::string fn, std::string fmt, Param p);
+    const std::map<std::string,IOPlugin> IOPlugins {{IO::XYZ.name,IO::XYZ}};
 }
 
 #endif // IOWRAPPER

@@ -6,9 +6,13 @@
 namespace Vipster{
 
 #ifdef __linux__
-const std::string sys_config = "/etc/vipster.json";
+#ifndef PREFIX
+#define PREFIX /usr/share/
+#endif
+const std::string sys_config = "PREFIXvipster.json";
 const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
 #elif _WIN32
+//WIP
 HMODULE hModule = GetModuleHandleW(NULL);
 WCHAR path[MAX_PATH];
 GetModuleFileNameW(hModule,path,MAX_PATH);
@@ -34,12 +38,12 @@ public:
     PseMap(const std::map<std::string,PseEntry> *x):internal(x){};
     PseEntry& operator [](const std::string &k);
 private:
-    const std::map<std::string,PseEntry> *const internal;
+    const std::map<std::string,PseEntry> * internal;
 };
 
 std::map<std::string,PseEntry> readPse(void);
 
-const auto pse = readPse();
+const std::map<std::string,PseEntry> pse = readPse();
 
 }
 
