@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     molIdx(0)
@@ -14,6 +14,21 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     newMol();
+}
+
+MainWindow::MainWindow(Vipster::Molecule m, QWidget *parent):
+    QMainWindow(parent),
+    ui(new Ui::MainWindow),
+    molIdx(0)
+{
+    ui->setupUi(this);
+    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    for(int j=0;j!=3;++j){
+        for(int k=0;k!=3;++k){
+             ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
+        }
+    }
+    newMol(m);
 }
 
 MainWindow::~MainWindow()
@@ -107,9 +122,9 @@ void MainWindow::editAtoms()
     setStep();
 }
 
-void MainWindow::newMol()
+void MainWindow::newMol(Vipster::Molecule m)
 {
-    molecules.emplace_back("New Molecule");
+    molecules.push_back(m);
     ui->molList->addItem(molecules.back().name.c_str());
     setMol(ui->molList->count()-1);
 }

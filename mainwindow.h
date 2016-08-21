@@ -17,6 +17,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(Vipster::Molecule m, QWidget *parent = 0);
     ~MainWindow();
     inline Vipster::Molecule& curMol();
 
@@ -24,7 +25,7 @@ public slots:
     void setMol(int i);
     void setStep(int i=-1);
     void about(void);
-    void newMol(void);
+    void newMol(Vipster::Molecule m=Vipster::Molecule());
     void editAtoms(void);
 
 private slots:

@@ -1,8 +1,7 @@
 #version 330 core
-in vec4 MaterialDiffuseColor;
-
 out vec4 fragColor;
 
+in vec4 MaterialDiffuseColor;
 in vec3 normals_cameraspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
