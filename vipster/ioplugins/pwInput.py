@@ -224,7 +224,7 @@ def writer(mol,f,param):
         if i == '&system':
             f.write(' nat='+str(mol.nat)+'\n')
             f.write(' ntyp='+str(mol.ntyp)+'\n')
-            f.write(' celldm(1)='+str(mol.getCellDim())+'\n')
+            f.write(' celldm(1)='+str(mol.getCellDim(fmt='bohr'))+'\n')
         for j in range(len(param[i])):
             f.write(' '+list(param[i].keys())[j]+'='+list(param[i].values())[j]+'\n')
         f.write('/\n\n')
