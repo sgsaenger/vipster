@@ -9,8 +9,8 @@ from vipster.gui.tools.script_tool import Script
 from vipster.gui.tools.cellmod_tool import CellMod
 
 tools = OrderedDict([
-    ('Pick',Picker),
-    ('Script',Script),
-    ('Cell Mod.',CellMod),
-    ('Plane',Plane),
-    ('Volume',Volume)])
+    ('Pick', Picker),
+    ('Script', Script),
+    ('Cell Mod.', CellMod),
+    ('Plane', Plane),
+    ('Volume', Volume)])

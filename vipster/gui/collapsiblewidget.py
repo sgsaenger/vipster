@@ -5,10 +5,11 @@ from vipster.gui.qtwrapper import *
 # Widget with titlebutton and collapsible main-widget
 #############################################################
 
+
 class collapsibleWidget(QWidget):
-    def __init__(self,title,widget,show=True):
-        super(collapsibleWidget,self).__init__()
-        sep=QFrame()
+    def __init__(self, title, widget, show=True):
+        super(collapsibleWidget, self).__init__()
+        sep = QFrame()
         sep.setFrameShape(QFrame.HLine)
         button = QPushButton(title)
         button.clicked.connect(self.toggle)
@@ -18,7 +19,7 @@ class collapsibleWidget(QWidget):
         vlist.addWidget(sep)
         vlist.addWidget(button)
         vlist.addWidget(self.widget)
-        vlist.setContentsMargins(0,0,0,0)
+        vlist.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vlist)
         if not show:
             self.widget.hide()

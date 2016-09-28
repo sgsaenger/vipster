@@ -6,24 +6,30 @@ from vipster.gui.qtwrapper import *
 # Volume-PP
 ####################################
 
+
 class Volume(QWidget):
 
-    def __init__(self,parent):
-        super(Volume,self).__init__()
+    def __init__(self, parent):
+        super(Volume, self).__init__()
 
         def setVal():
-            if self.updatedisable: return
+            if self.updatedisable:
+                return
             if self.sender() is self.volVal:
                 self.volSlide.blockSignals(True)
-                self.volSlide.setValue(int((float(self.volVal.text())-self.valRange.bottom())/
-                    (self.valRange.top()-self.valRange.bottom())*1000))
+                self.volSlide.setValue(int(
+                    (float(self.volVal.text()) - self.valRange.bottom()) /
+                    (self.valRange.top() - self.valRange.bottom()) * 1000))
                 self.volSlide.blockSignals(False)
             elif self.sender() is self.volSlide:
-                self.volVal.setText(str(self.volSlide.value()/1000.*(self.valRange.top()-
-                        self.valRange.bottom())+self.valRange.bottom()))
+                self.volVal.setText(str(
+                    self.volSlide.value() / 1000. *
+                    (self.valRange.top() - self.valRange.bottom()) +
+                    self.valRange.bottom()))
             elif self.sender() is self.volBut:
                 self.showSurf = not self.showSurf
-            parent.mol.setIsoVal(self.showSurf,float(self.volVal.text()),self.volBoth.isChecked())
+            parent.mol.setIsoVal(self.showSurf, float(self.volVal.text()),
+                                 self.volBoth.isChecked())
             parent.updateMol()
 
         self.updatedisable = False
@@ -49,14 +55,14 @@ class Volume(QWidget):
         self.volVal.returnPressed.connect(setVal)
         self.volBoth = QCheckBox('+/-')
         self.volBoth.stateChanged.connect(setVal)
-        hbox=QHBoxLayout()
+        hbox = QHBoxLayout()
         hbox.addWidget(self.volBoth)
         hbox.addWidget(self.volVal)
-        hbox2=QHBoxLayout()
+        hbox2 = QHBoxLayout()
         hbox2.addWidget(self.volMin)
         hbox2.addStretch()
         hbox2.addWidget(self.volMax)
-        vbox=QVBoxLayout()
+        vbox = QVBoxLayout()
         vbox.addLayout(hbox)
         vbox.addWidget(self.volSlide)
         vbox.addLayout(hbox2)
@@ -64,8 +70,8 @@ class Volume(QWidget):
         vbox.addStretch()
         self.setLayout(vbox)
 
-    def setMol(self,mol):
-        vol=mol.getVol()
+    def setMol(self, mol):
+        vol = mol.getVol()
         self.updatedisable = True
         if vol is not None:
             self.valRange.setBottom(vol.min())
@@ -77,8 +83,9 @@ class Volume(QWidget):
             self.volBoth.setEnabled(True)
             isoVal = mol.getIsoVal()
             self.volVal.setText(str(isoVal[1]))
-            self.volSlide.setValue(int((isoVal[1]-self.valRange.bottom())/
-                (self.valRange.top()-self.valRange.bottom())*1000))
+            self.volSlide.setValue(int(
+                (isoVal[1] - self.valRange.bottom()) /
+                (self.valRange.top() - self.valRange.bottom()) * 1000))
             self.volBoth.setChecked(isoVal[2])
             self.volBut.setChecked(isoVal[0])
         else:

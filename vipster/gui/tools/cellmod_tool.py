@@ -6,29 +6,32 @@ from vipster.gui.qtwrapper import *
 # Modify unit cell
 ####################################
 
+
 class CellMod(QWidget):
 
-    def __init__(self,parent):
-        super(CellMod,self).__init__()
+    def __init__(self, parent):
+        super(CellMod, self).__init__()
         self.parent = parent
         vbox = QVBoxLayout()
-        
+
         def modHandler():
-            reason=self.sender().text()
-            if reason=='Multiply cell':
-                self.mol.mult(int(self.xmult.text()),int(self.ymult.text()),int(self.zmult.text()))
-            elif reason=='Reshape cell':
-                vec=[[0,0,0],[0,0,0],[0,0,0]]
-                for i in [0,1,2]:
-                        for j in [0,1,2]:
-                                vec[i][j]=float(self.reshape.item(i,j).text())
+            reason = self.sender().text()
+            if reason == 'Multiply cell':
+                self.mol.mult(int(self.xmult.text()), int(self.ymult.text()),
+                              int(self.zmult.text()))
+            elif reason == 'Reshape cell':
+                vec = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+                for i in [0, 1, 2]:
+                    for j in [0, 1, 2]:
+                        vec[i][j] = float(self.reshape.item(i, j).text())
                 self.mol.reshape(vec)
-            elif reason=='Wrap atoms':
+            elif reason == 'Wrap atoms':
                 self.mol.wrap()
-            elif reason=='Crop atoms':
+            elif reason == 'Crop atoms':
                 self.mol.crop()
-            elif reason=='Align cell':
-                self.mol.align(self.alignVec.currentText(),self.alignDir.currentText())
+            elif reason == 'Align cell':
+                self.mol.align(self.alignVec.currentText(),
+                               self.alignDir.currentText())
             self.parent.updateMol()
 
         wrapBut = QPushButton('Wrap atoms')
@@ -60,13 +63,13 @@ class CellMod(QWidget):
         self.reshape.setColumnCount(3)
         self.reshape.setRowCount(3)
         self.reshape.setFixedHeight(120)
-        self.reshape.setColumnWidth(0,84)
-        self.reshape.setColumnWidth(1,84)
-        self.reshape.setColumnWidth(2,84)
-        self.reshape.setHorizontalHeaderLabels(['x','y','z'])
+        self.reshape.setColumnWidth(0, 84)
+        self.reshape.setColumnWidth(1, 84)
+        self.reshape.setColumnWidth(2, 84)
+        self.reshape.setHorizontalHeaderLabels(['x', 'y', 'z'])
         for i in range(3):
             for j in range(3):
-                self.reshape.setItem(i,j,QTableWidgetItem(str(0.0)))
+                self.reshape.setItem(i, j, QTableWidgetItem(str(0.0)))
         vbox.addWidget(self.reshape)
         rBut = QPushButton('Reshape cell')
         rBut.clicked.connect(modHandler)
@@ -74,7 +77,7 @@ class CellMod(QWidget):
 
         self.alignVec = QComboBox()
         self.alignDir = QComboBox()
-        for i,j in enumerate(['x','y','z']):
+        for i, j in enumerate(['x', 'y', 'z']):
             self.alignVec.addItem(str(i))
             self.alignDir.addItem(j)
         alignBut = QPushButton('Align cell')
@@ -86,8 +89,8 @@ class CellMod(QWidget):
         vbox.addLayout(abox)
         vbox.addWidget(alignBut)
         vbox.addStretch()
-        vbox.setContentsMargins(0,0,0,0)
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
 
-    def setMol(self,mol):
+    def setMol(self, mol):
         self.mol = mol

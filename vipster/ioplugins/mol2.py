@@ -8,19 +8,21 @@ param = None
 
 writer = None
 
-def parser(name,data):
+
+def parser(name, data):
     """ Parse sybyl mol2 files """
     tmol = Molecule(name)
-    i = 0
     parsing = False
     for line in data:
-        if not line.strip(): continue
-        elif line.strip()[0]=='#': continue
+        if not line.strip():
+            continue
+        elif line.strip()[0] == '#':
+            continue
         elif "@<TRIPOS>ATOM" in line:
             parsing = True
         elif parsing:
             if "@<TRIPOS>" in line:
-                tmol.setFmt("angstrom",scale=True)
-                return tmol,None
+                tmol.setFmt("angstrom", scale=True)
+                return tmol, None
             at = line.strip().split()
-            tmol.newAtom(at[5].upper(),at[2:5],charge=at[8])
+            tmol.newAtom(at[5].upper(), at[2:5], charge=at[8])

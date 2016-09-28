@@ -7,16 +7,18 @@ argument = 'turbo'
 
 param = None
 
-def parser(name,data):
+
+def parser(name, data):
     """ Parse turbomole specific input file """
     tmol = Molecule(name)
     for i in range(len(data)):
         if "$coord" in data[i]:
-            for l in data[i+1:]:
-                if '$' in l: break
+            for l in data[i + 1:]:
+                if '$' in l:
+                    break
                 line = l.split()
-                tmol.newAtom(line[3].capitalize(),line[0:3],fmt='bohr')
+                tmol.newAtom(line[3].capitalize(), line[0:3], fmt='bohr')
             break
-    return tmol,None
+    return tmol, None
 
 writer = None
