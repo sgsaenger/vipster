@@ -38,4 +38,4 @@ def writer(mol, f, param):
     f.write(mol.comment + '\n')
     # write coordinates
     for at in mol.getAtoms(fmt='angstrom'):
-        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}\n'.format(at[0], *at[1]))
+        f.write('{:4s} {: .4f} {: .4f} {: .4f}\n'.format(at[0], *at[1]))
