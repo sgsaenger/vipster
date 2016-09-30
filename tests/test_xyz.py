@@ -1,5 +1,4 @@
 from io import StringIO
-import numpy as np
 from vipster.ioplugins import xyz
 from vipster import Molecule
 from test_preamble import atom_equal
@@ -18,10 +17,10 @@ def test_xyz_parse_single():
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['H', 'O']
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
-                      ['O', np.array((0, 0, 0), 'f'), '0.',
+                      ['O', (0, 0, 0), '0.',
                        [False, False, False], False])
     assert atom_equal(Mol.getAtom(2, fmt='bohr'),
-                      ['H', np.array((-0.453515, 1.75107, 0), 'f')])
+                      ['H', (-0.4535, 1.751, 0)])
     assert len(Mol.getBonds(1.1)[0]) == 2
 
 

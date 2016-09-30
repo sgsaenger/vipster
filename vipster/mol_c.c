@@ -91,17 +91,17 @@ static PyObject* make_vol_gradient(PyObject *self, PyObject *args)
         }
         for (int j=0;j<y;j++) {
             if(j==0){
-                jl=x-1;jh=1;
-            }else if(j==x-1){
-                jl=x-2;jh=0;
+                jl=y-1;jh=1;
+            }else if(j==y-1){
+                jl=y-2;jh=0;
             }else{
                 jl=j-1;jh=j+1;
             }
             for (int k=0;k<z;k++) {
                 if(k==0){
-                    kl=x-1;kh=1;
-                }else if(k==x-1){
-                    kl=x-2;kh=0;
+                    kl=z-1;kh=1;
+                }else if(k==z-1){
+                    kl=z-2;kh=0;
                 }else{
                     kl=k-1;kh=k+1;
                 }

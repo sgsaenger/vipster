@@ -20,7 +20,7 @@ def parser(name, data):
     i = 0
     while i < len(data):
         if data[i][0] == '#':
-            continue
+            pass
         elif "ANIMSTEPS" in data[i]:
             tmol = Molecule(name, steps=int(data[i].strip("ANIMSTEPS \r\n")))
             animated = True

@@ -24,6 +24,6 @@ def parser(name, data):
             cptype = data[i].split()[3]
             if cptype == 'NACP':
                 cptype = data[i].split()[4].rstrip('0123456789')
-            tmol.newAtom(cptype, line[4:])
+            tmol.newAtom(cptype, line[4:], fmt='bohr')
         i += 1
     return tmol, None

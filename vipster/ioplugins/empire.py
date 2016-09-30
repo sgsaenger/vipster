@@ -37,9 +37,9 @@ def writer(mol, f, param):
     f.write('Hamil=PM3 calc=spt Periodic\n')
     # write coordinates
     for at in mol.getAtoms(fmt='angstrom'):
-        f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}\n'.format(at[0], *at[1]))
+        f.write('{:4s} {: .4f} {: .4f} {: .4f}\n'.format(at[0], *at[1]))
     f.write('\n')
     vec = mol.getVec() * mol.getCellDim(fmt='angstrom')
-    f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[0]))
-    f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[1]))
-    f.write('{:.10f} {:.10f} {:.10f}\n'.format(*vec[2]))
+    f.write('{:.4f} {:.4f} {:.4f}\n'.format(*vec[0]))
+    f.write('{:.4f} {:.4f} {:.4f}\n'.format(*vec[1]))
+    f.write('{:.4f} {:.4f} {:.4f}\n'.format(*vec[2]))
