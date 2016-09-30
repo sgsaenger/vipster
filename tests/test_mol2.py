@@ -4,7 +4,8 @@ from test_preamble import atom_equal
 
 def test_mol2_parse():
     name = 'mol2'
-    target = ["@<TRIPOS>MOLECULE\n",
+    target = ["#Comment\n",
+              "@<TRIPOS>MOLECULE\n",
               "MOL\n",
               "   3   2   1   0   0\n",
               "SMALL\n",

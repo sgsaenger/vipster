@@ -67,7 +67,7 @@ def parser(name, data):
         elif periodic and "CONVVEC" in data[i]:
             # could be used, but not atm
             pass
-        elif periodic and "CONVCOORD" in data[i]:
+        elif periodic and "CONVCOORD" in data[i]:  # pragma: no cover
             # should not even be there
             pass
         elif "BEGIN_" in data[i]:
