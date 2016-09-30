@@ -35,7 +35,8 @@ def parser(name, data):
         # line = Z, charge(ignored), coord(x, y, z)
         line = data[i + 6].split()
         tmol.setAtom(i, pse[int(line[0])], line[2:5])
-    tmol.setFmt(fmt, scale=True)
+    tmol.setFmt(fmt, scale=False)
+    tmol.setCellDim(1, fmt=fmt)
     # rest of file has datagrid, x is outer loop, z inner
     vol = [[[0] * nvol[2] for i in range(nvol[1])] for j in range(nvol[0])]
     i = 6 + nat

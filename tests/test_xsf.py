@@ -50,6 +50,7 @@ def test_xsf_parse_crystal():
     assert Mol.nat == 8
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['Na', 'Cl']
+    assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5, 0), (0, 0, 5)))
     assert list(map(len, Mol.getBonds(1.1))) == [12, 4, 4, 0, 4, 0, 0, 0]
 
 
@@ -108,6 +109,7 @@ def test_xsf_parse_crystal_animated_fixcell():
               "Na    0.0000  2.6000  2.5000"]
     Mol, _ = xsf.parser(name, target)
     assert Mol.name == name
+    assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5.3, 0), (0, 0, 5)))
     for step in Mol.steps:
         assert step.nat == 8
         assert step.ntyp == 2
@@ -156,8 +158,11 @@ def test_xsf_parse_crystal_animated_varcell():
         assert step.nat == 8
         assert step.ntyp == 2
         assert step.getTypes() == ['Na', 'Cl']
+    assert vec_equal(Mol.steps[0].getVec(), ((5, 0, 0), (0, 5, 0), (0, 0, 5)))
     assert list(map(len, Mol.steps[0].getBonds(1.1))) ==\
         [12, 4, 4, 0, 4, 0, 0, 0]
+    assert vec_equal(Mol.steps[1].getVec(),
+                     ((5, 0, 0), (0, 5.3, 0), (0, 0, 5)))
     assert list(map(len, Mol.steps[1].getBonds(1.1))) ==\
         [12, 4, 0, 0, 4, 0, 0, 0]
 
