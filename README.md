@@ -1,4 +1,6 @@
 #![vipster](vipster-icon.png)VIsual Periodic STructure EditoR
+[![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=testing)](https://travis-ci.org/hein09/vipster)
+[![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 
 Visualization of various molecular structure files.
 
