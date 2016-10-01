@@ -16,6 +16,7 @@ def test_xyz_parse_single():
     assert Mol.nat == 3
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['H', 'O']
+    assert Mol.getFmt() == 'angstrom'
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
                       ['O', (0, 0, 0), '0.',
                        [False, False, False], False])
@@ -44,6 +45,7 @@ def test_xyz_parse_multi():
     assert len(Mol) == 2
     assert Mol.nat == 5
     assert Mol.ntyp == 2
+    assert Mol.getFmt() == 'angstrom'
     assert len(Mol.getBonds(1.1)[0]) == 4
     assert Mol.getTypes() == ['H', 'C']
     Mol.changeStep(0)

@@ -14,6 +14,7 @@ def test_xsf_parse_molecular():
     assert Mol.nat == 3
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['H', 'O']
+    assert Mol.getFmt() == 'angstrom'
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
                       ['O', (0, 0, 0), '0.',
                        [False, False, False], False])
@@ -50,6 +51,7 @@ def test_xsf_parse_crystal():
     assert Mol.nat == 8
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['Na', 'Cl']
+    assert Mol.getFmt() == 'angstrom'
     assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5, 0), (0, 0, 5)))
     assert list(map(len, Mol.getBonds(1.1))) == [12, 4, 4, 0, 4, 0, 0, 0]
 
@@ -72,6 +74,7 @@ def test_xsf_parse_molecule_animated():
     Mol, _ = xsf.parser(name, target)
     assert len(Mol) == 3
     assert Mol.name == name
+    assert Mol.getFmt() == 'angstrom'
     for step in Mol.steps:
         assert step.nat == 3
         assert step.ntyp == 2
@@ -110,6 +113,7 @@ def test_xsf_parse_crystal_animated_fixcell():
     Mol, _ = xsf.parser(name, target)
     assert Mol.name == name
     assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5.3, 0), (0, 0, 5)))
+    assert Mol.getFmt() == 'angstrom'
     for step in Mol.steps:
         assert step.nat == 8
         assert step.ntyp == 2

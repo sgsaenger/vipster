@@ -1,5 +1,6 @@
 from vipster.ioplugins import pwOutput
 from test_preamble import *
+# flake8: noqa
 
 
 def test_pwOut_parse_fixcell_gamma_crystal_fixpos():
@@ -108,14 +109,20 @@ def test_pwOut_parse_varcell_discrete_angstrom():
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['Na', 'Cl']
     assert Mol.getKpoints('active') == 'discrete'
+    assert Mol.getKpoints('discrete') ==\
+        [['0.0000000', '0.0000000', '0.0000000', '0.7500000'],
+         ['0.5000000', '0.0000000', '0.0000000', '0.2500000']]
     assert Mol.steps[0].getFmt() == 'alat'
     assert Mol.steps[1].getFmt() == 'angstrom'
-    assert list(map(len, Mol.steps[0].getBonds(1.1))) == [12, 4, 4, 0, 4, 0, 0, 0]
+    assert list(map(len, Mol.steps[0].getBonds(1.1))) ==\
+        [12, 4, 4, 0, 4, 0, 0, 0]
     assert float_equal(Mol.steps[0].getCellDim(fmt='angstrom'), 5)
     assert vec_equal(Mol.steps[0].getVec(), ((1, 0, 0), (0, 1, 0), (0, 0, 1)))
-    assert list(map(len, Mol.steps[1].getBonds(1.1))) == [12, 4, 0, 0, 4, 0, 0, 0]
+    assert list(map(len, Mol.steps[1].getBonds(1.1))) ==\
+        [12, 4, 0, 0, 4, 0, 0, 0]
     assert float_equal(Mol.steps[1].getCellDim(fmt='angstrom'), 5)
-    assert vec_equal(Mol.steps[1].getVec(), ((1, 0, 0), (0, 1.06, 0), (0, 0, 1)))
+    assert vec_equal(Mol.steps[1].getVec(),
+                     ((1, 0, 0), (0, 1.06, 0), (0, 0, 1)))
     for i in range(8):
         assert atom_equal(Mol.steps[0].getAtom(i, fmt='bohr'),
                           Mol.steps[1].getAtom(i, fmt='bohr'))

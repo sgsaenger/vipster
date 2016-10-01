@@ -29,6 +29,7 @@ def test_cube_parse_bohr():
     assert Mol.nat == 8
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['Na', 'Cl']
+    assert Mol.getFmt() == 'bohr'
     assert vec_equal(Mol.getVec(), ((15, 0, 0), (0, 15, 0), (0, 0, 15)))
     assert list(map(len, Mol.getBonds(1.1))) == [12, 0, 0, 0, 0, 0, 0, 0]
     assert vec_equal(Mol.getVolOffset(), [0, 0, 0])
@@ -99,6 +100,7 @@ def test_cube_parse_angstrom():
     assert Mol.nat == 8
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['Na', 'Cl']
+    assert Mol.getFmt() == 'angstrom'
     assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5, 0), (0, 0, 5)))
     assert list(map(len, Mol.getBonds(1.1))) == [12, 4, 4, 0, 4, 0, 0, 0]
     assert vec_equal(Mol.getVolOffset(), [0.5, 0.5, 0.5])

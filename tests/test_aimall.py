@@ -29,6 +29,7 @@ def test_aimall_parse():
     assert Mol.nat == 4
     assert Mol.ntyp == 3
     assert Mol.getTypes() == ['BCP', 'H', 'O']
+    assert Mol.getFmt() == 'bohr'
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
                       ['O', (0, 0, 0), '0.',
                        [False, False, False], False])

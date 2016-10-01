@@ -20,6 +20,7 @@ def test_empire_parse():
     assert Mol.nat == 3
     assert Mol.ntyp == 2
     assert Mol.getTypes() == ['H', 'O']
+    assert Mol.getFmt() == 'angstrom'
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
                       ['O', (0, 0, 0), '0.',
                        [False, False, False], False])

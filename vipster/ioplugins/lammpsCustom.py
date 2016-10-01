@@ -44,8 +44,8 @@ def parser(name, data):
                 i += 4
             elif 'ATOMS' in line:
                 line = line.split()
-                if 'id' not in line and 'element' not in line and\
-                        ('xs' not in line or 'x' not in line):
+                if 'id' not in line or 'element' not in line or\
+                        ('xs' not in line and 'x' not in line):
                     raise NotImplementedError("Lammps dump in not (yet) "
                                               "recognized format")
                 # ididx = line.index('id') - 2
