@@ -12,8 +12,9 @@ argument = 'pwi'
 
 param = {"default": {"type": "pwi",
                      "name": "New PW parameters",
-                     "&control": OrderedDict([('calculation', 'scf')]),
-                     "&system": OrderedDict(),
+                     "&control": OrderedDict(),
+                     "&system": OrderedDict([('ibrav', '0'),
+                                             ('ecutwfc', '30.0')]),
                      "&electrons": OrderedDict()}}
 
 
@@ -33,7 +34,7 @@ def parser(name, data):
     """
     tmol = Molecule(name)
     tparam = {"type": "pwi", "name": name}
-    tvec = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    tvec = []
     # parse data and create tparam
     while data:
         header = data.pop(0).strip().split()
@@ -112,16 +113,65 @@ def parser(name, data):
             elif header[0] == 'CELL_PARAMETERS':
                 for i in [0, 1, 2]:
                     line = data.pop(0).strip().split()
-                    tvec[i] = [float(x) for x in line]
+                    tvec.append([float(x) for x in line])
             else:
                 pass
     # Identify cell parameter representation, parse it
-    tmol.setCellDim(tparam['&system']['celldm(1)'])
     ibrav = tparam['&system']['ibrav']
+    tparam['&system']['ibrav'] = '0'
+    # Get cell values
+    sys = tparam['&system']
+    a = b = c = cosab = cosac = cosbc = None
+    if 'celldm(1)' in sys:
+        a = float(sys['celldm(1)'])
+        del sys['celldm(1)']
+        tmol.setCellDim(a, fmt='bohr')
+        if 'celldm(2)' in sys:
+            b = float(sys['celldm(2)'])
+            del sys['celldm(2)']
+        if 'celldm(3)' in sys:
+            c = float(sys['celldm(3)'])
+            del sys['celldm(3)']
+        if 'celldm(4)' in sys:
+            cosab = float(sys['celldm(4)'])
+            del sys['celldm(4)']
+        if 'celldm(5)' in sys:
+            cosac = float(sys['celldm(5)'])
+            del sys['celldm(5)']
+        if 'celldm(6)' in sys:
+            cosbc = float(sys['celldm(6)'])
+            del sys['celldm(6)']
+        if ibrav == 14:
+            cosab, cosbc = cosbc, cosab
+    elif 'A' in sys:
+        a = float(sys['A'])
+        del sys['A']
+        tmol.setCellDim(a, fmt='angstrom')
+        if 'B' in sys:
+            b = float(sys['B'])
+            del sys['B']
+        if 'C' in sys:
+            c = float(sys['C'])
+            del sys['C']
+        if 'cosAB' in sys:
+            cosab = float(sys['cosAB'])
+            del sys['cosAB']
+        if 'cosAC' in sys:
+            cosac = float(sys['cosAC'])
+            del sys['cosAC']
+        if 'cosBC' in sys:
+            cosbc = float(sys['cosBC'])
+            del sys['cosBC']
+    else:
+        raise KeyError('Neither celldm(1) nor A specified')
+
+    def checkCellVal(v, n):
+        if v is None:
+            raise ValueError(n + ' is needed, but was not specified')
     if ibrav == '0':
         # check if CELL_PARAMETERS card has been read
         # if not present, throw error
-        if tvec == [[0, 0, 0], [0, 0, 0], [0, 0, 0]]:
+        if not tvec:
                 raise ValueError('ibrav=0, but CELL_PARAMETERS missing')
         else:
                 tmol.setVec(tvec)
@@ -136,99 +186,98 @@ def parser(name, data):
         tmol.setVec([[0.5, 0.5, 0.5], [-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5]])
     elif ibrav == '4':
         # hexagonal
-        c = float(tparam['&system']['celldm(3)'])
+        checkCellVal(c, 'c')
         tmol.setVec([[1, 0, 0], [-0.5, sqrt(3) * 0.5, 0], [0, 0, c]])
     elif ibrav == '5':
         # trigonal
-        alpha = float(tparam['&system']['celldm(4)'])
-        tx = sqrt((1 - alpha) / 2)
-        ty = sqrt((1 - alpha) / 6)
-        tz = sqrt((1 + 2 * alpha) / 3)
+        checkCellVal(cosab, 'cosab')
+        tx = sqrt((1 - cosab) / 2)
+        ty = sqrt((1 - cosab) / 6)
+        tz = sqrt((1 + 2 * cosab) / 3)
         tmol.setVec([[tx, -ty, tz], [0, 2 * ty, tz], [-tx, -ty, tz]])
     elif ibrav == '-5':
         # trigonal, alternative
-        alpha = float(tparam['&system']['celldm(4)'])
-        tx = sqrt((1 - alpha) / 2)
-        ty = sqrt((1 - alpha) / 6)
-        tz = sqrt((1 + 2 * alpha) / 3)
+        checkCellVal(cosab, 'cosab')
+        tx = sqrt((1 - cosab) / 2)
+        ty = sqrt((1 - cosab) / 6)
+        tz = sqrt((1 + 2 * cosab) / 3)
         u = (tz - 2 * sqrt(2) * ty) / sqrt(3)
         v = (tz + sqrt(2) * ty) / sqrt(3)
         tmol.setVec([[u, v, v], [v, u, v], [v, v, u]])
     elif ibrav == '6':
         # simple tetragonal
-        c = float(tparam['&system']['celldm(3)'])
+        checkCellVal(c, 'c')
         tmol.setVec([[1, 0, 0], [0, 1, 0], [0, 0, c]])
     elif ibrav == '7':
         # body centered tetragonal
-        c = float(tparam['&system']['celldm(3)'])
+        checkCellVal(c, 'c')
         tmol.setVec([[0.5, -0.5, c * 0.5],
                      [0.5, 0.5, c * 0.5],
                      [-0.5, -0.5, c * 0.5]])
     elif ibrav == '8':
         # simple orthorhombic
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
         tmol.setVec([[1, 0, 0], [0, b, 0], [0, 0, c]])
     elif ibrav == '9':
         # basis centered orthorhombic
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
         tmol.setVec([[0.5, b * 0.5, 0], [-0.5, b * 0.5, 0], [0, 0, c]])
     elif ibrav == '10':
         # face centered orthorhombic
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
         tmol.setVec([[0.5, 0, c * 0.5],
                      [0.5, b * 0.5, 0],
                      [0, b * 0.5, c * 0.5]])
     elif ibrav == '11':
         # body centered orthorhombic
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
         tmol.setVec([[0.5, b * 0.5, c * 0.5],
                      [-0.5, b * 0.5, c * 0.5],
                      [-0.5, -b * 0.5, c * 0.5]])
     elif ibrav == '12':
         # simple monoclinic
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
-        gamma = float(tparam['&system']['celldm(4)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
+        checkCellVal(cosab, 'cosab')
         tmol.setVec([[1, 0, 0],
-                     [b * gamma, b * sqrt(1 - gamma**2), 0],
+                     [b * cosab, b * sqrt(1 - cosab**2), 0],
                      [0, 0, c]])
     elif ibrav == '-12':
         # simple monoclinic, alternate definition
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
-        beta = float(tparam['&system']['celldm(5)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
+        checkCellVal(cosac, 'cosac')
         tmol.setVec([[1, 0, 0], [0, b, 0],
-                     [c * beta, 0, c * sqrt(1 - beta**2)]])
+                     [c * cosac, 0, c * sqrt(1 - cosac**2)]])
     elif ibrav == '13':
         # base centered monoclinic
-        c = float(tparam['&system']['celldm(3)'])
-        b = float(tparam['&system']['celldm(2)'])
-        gamma = float(tparam['&system']['celldm(4)'])
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
+        checkCellVal(cosab, 'cosab')
         tmol.setVec([[0.5, 0, -c * 0.5],
-                     [b * gamma, b * sqrt(1 - gamma**2), 0],
+                     [b * cosab, b * sqrt(1 - cosab**2), 0],
                      [0.5, 0, c * 0.5]])
     elif ibrav == '14':
         # triclinic
-        b = float(tparam['&system']['celldm(2)'])
-        c = float(tparam['&system']['celldm(3)'])
-        gamma = float(tparam['&system']['celldm(6)'])
-        beta = float(tparam['&system']['celldm(5)'])
-        alpha = float(tparam['&system']['celldm(4)'])
-        singam = sqrt(1 - gamma**2)
-        tmol.setVec([[1, 0, 0], [b * gamma, b * singam, 0],
-                    [c * beta, c * (alpha - beta * gamma) / singam,
-                     c * sqrt(1 + 2 * alpha * beta * gamma - alpha * alpha -
-                              beta * beta - gamma * gamma) / singam]])
-    # create atoms after creating cell:
+        checkCellVal(c, 'c')
+        checkCellVal(b, 'b')
+        checkCellVal(cosab, 'cosab')
+        checkCellVal(cosac, 'cosac')
+        checkCellVal(cosbc, 'cosbc')
+        singam = sqrt(1 - cosab**2)
+        tmol.setVec([[1, 0, 0], [b * cosab, b * singam, 0],
+                    [c * cosac, c * (cosbc - cosac * cosab) / singam,
+                     c * sqrt(1 + 2 * cosbc * cosac * cosab - cosbc * cosbc -
+                              cosac * cosac - cosab * cosab) / singam]])
+    # scale atoms after creating cell:
     tmol.setFmt(fmt, scale=True)
-    # delete nat, ntype and celldm before returning
+    # delete nat and ntype before returning
     del tparam['&system']['nat']
     del tparam['&system']['ntyp']
-    del tparam['&system']['celldm(1)']
     return tmol, tparam
 
 
@@ -284,12 +333,12 @@ def writer(mol, f, param):
     for i in range(mol.nat):
         atom = mol.getAtom(i, fix=True)
         if any(atom[-1]):
-            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f} {:1d} {:1d} {:1d}'.
+            f.write('{:4s} {: .5f} {: .5f} {: .5f} {:1d} {:1d} {:1d}'.
                     format(atom[0], atom[1][0], atom[1][1], atom[1][2],
                            not atom[-1][0], not atom[-1][1],
                            not atom[-1][2]) + '\n')
         else:
-            f.write('{:4s} {:15.10f} {:15.10f} {:15.10f}'.format(
+            f.write('{:4s} {: .5f} {: .5f} {: .5f}'.format(
                 atom[0], atom[1][0], atom[1][1], atom[1][2]) + '\n')
     f.write('\n')
     # K_POINTS
@@ -326,7 +375,7 @@ def writer(mol, f, param):
     f.write('\n')
     # Cell parameters
     f.write('CELL_PARAMETERS' + '\n')
-    fmt = '{0[0][0]:15.10f} {0[0][1]:15.10f} {0[0][2]:15.10f}\n' + \
-          '{0[1][0]:15.10f} {0[1][1]:15.10f} {0[1][2]:15.10f}\n' + \
-          '{0[2][0]:15.10f} {0[2][1]:15.10f} {0[2][2]:15.10f}\n'
+    fmt = '{0[0][0]: .5f} {0[0][1]: .5f} {0[0][2]: .5f}\n' + \
+          '{0[1][0]: .5f} {0[1][1]: .5f} {0[1][2]: .5f}\n' + \
+          '{0[2][0]: .5f} {0[2][1]: .5f} {0[2][2]: .5f}\n'
     f.write(fmt.format(mol.getVec()))
