@@ -21,6 +21,7 @@ def test_lammpsCustom_parse_angstrom():
               "6 Na   2.5000  0.0000  2.5000\n",
               "7 Cl   2.5000  2.5000  2.5000\n",
               "8 Na   0.0000  2.5000  2.5000\n",
+              "\n",
               "ITEM: TIMESTEP\n",
               "1\n",
               "ITEM: NUMBER OF ATOMS\n",

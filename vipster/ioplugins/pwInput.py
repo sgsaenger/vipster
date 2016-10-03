@@ -141,17 +141,17 @@ def parser(name, data):
         if 'celldm(6)' in sys:
             cosbc = float(sys['celldm(6)'])
             del sys['celldm(6)']
-        if ibrav == 14:
+        if ibrav == '14':
             cosab, cosbc = cosbc, cosab
     elif 'A' in sys:
         a = float(sys['A'])
         del sys['A']
         tmol.setCellDim(a, fmt='angstrom')
         if 'B' in sys:
-            b = float(sys['B'])
+            b = float(sys['B']) / a
             del sys['B']
         if 'C' in sys:
-            c = float(sys['C'])
+            c = float(sys['C']) / a
             del sys['C']
         if 'cosAB' in sys:
             cosab = float(sys['cosAB'])
@@ -162,8 +162,8 @@ def parser(name, data):
         if 'cosBC' in sys:
             cosbc = float(sys['cosBC'])
             del sys['cosBC']
-    else:
-        raise KeyError('Neither celldm(1) nor A specified')
+    elif ibrav != '0':
+        raise ValueError('Neither celldm(1) nor A specified')
 
     def checkCellVal(v, n):
         if v is None:
@@ -306,7 +306,8 @@ def writer(mol, f, param):
             f.write(' ' + list(param['&ions'].keys())[j] + '=' +
                     list(param['&ions'].values())[j] + '\n')
         f.write('/\n\n')
-    elif param['&control']['calculation'] in\
+    elif 'calculation' in param['&control'] and\
+         param['&control']['calculation'] in\
             ["'relax'", "'vc-relax'", "'md'", "'vc-md'"]:
         raise KeyError('&ions namelist required, but not present')
     # &cell only when needed
@@ -316,7 +317,8 @@ def writer(mol, f, param):
             f.write(' ' + list(param['&cell'].keys())[j] + '=' +
                     list(param['&cell'].values())[j] + '\n')
         f.write('/\n\n')
-    elif param['&control']['calculation'] in ["'vc-relax'", "'vc-md'"]:
+    elif 'calculation' in param['&control'] and\
+         param['&control']['calculation'] in ["'vc-relax'", "'vc-md'"]:
         raise KeyError('&cell namelist required, but not present')
     # ATOMIC_SPECIES card:
     f.write('ATOMIC_SPECIES' + '\n')

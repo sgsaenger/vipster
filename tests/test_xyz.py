@@ -56,15 +56,15 @@ def test_xyz_parse_multi():
 
 
 def test_xyz_write():
-    target = StringIO("3\n"
-                      "\n"
-                      "O     0.0000  0.0000  0.0000\n"
-                      "H     0.9572  0.0000  0.0000\n"
-                      "H    -0.2400  0.9266  0.0000\n")
+    target = "3\n"\
+             "\n"\
+             "O     0.0000  0.0000  0.0000\n"\
+             "H     0.9572  0.0000  0.0000\n"\
+             "H    -0.2400  0.9266  0.0000\n"
     f = StringIO()
     Mol = Molecule()
     Mol.newAtom('O', (0, 0, 0), fmt='angstrom')
     Mol.newAtom('H', (0.9572, 0, 0), fmt='angstrom')
     Mol.newAtom('H', (-0.23999, 0.926627, 0), fmt='angstrom')
     xyz.writer(Mol, f, None)
-    assert f.getvalue() == target.getvalue()
+    assert f.getvalue() == target

@@ -32,15 +32,15 @@ def test_empire_parse():
 
 
 def test_empire_write():
-    target = StringIO("3\n"
-                      "Hamil=PM3 calc=spt Periodic\n"
-                      "O     0.0000  0.0000  0.0000\n"
-                      "H     0.9572  0.0000  0.0000\n"
-                      "H    -0.2400  0.9266  0.0000\n"
-                      "\n"
-                      "1.0000 0.0000 0.0000\n"
-                      "0.0000 2.0000 0.0000\n"
-                      "0.0000 0.0000 3.0000\n")
+    target = "3\n"\
+             "Hamil=PM3 calc=spt Periodic\n"\
+             "O     0.0000  0.0000  0.0000\n"\
+             "H     0.9572  0.0000  0.0000\n"\
+             "H    -0.2400  0.9266  0.0000\n"\
+             "\n"\
+             "1.0000 0.0000 0.0000\n"\
+             "0.0000 2.0000 0.0000\n"\
+             "0.0000 0.0000 3.0000\n"
     f = StringIO()
     Mol = Molecule()
     Mol.newAtom('O', (0, 0, 0), fmt='angstrom')
@@ -49,4 +49,4 @@ def test_empire_write():
     Mol.setCellDim(1, fmt='angstrom')
     Mol.setVec(((1, 0, 0), (0, 2, 0), (0, 0, 3)))
     empire.writer(Mol, f, None)
-    assert f.getvalue() == target.getvalue()
+    assert f.getvalue() == target
