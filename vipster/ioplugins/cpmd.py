@@ -3,7 +3,7 @@ from vipster.molecule import Molecule
 from vipster.settings import config
 
 from re import split as regex
-from numpy import cos, sqrt
+from numpy import cos, sqrt, deg2rad
 from collections import OrderedDict
 from copy import deepcopy
 
@@ -52,10 +52,10 @@ def parser(name, data):
                   'TETRAGONAL': '6',
                   'BODY CENTERED TETRAGONAL': '7',
                   'BCT': '7',
-                  'ORTHOROMBIC': '8',
+                  'ORTHORHOMBIC': '8',
                   'MONOCLINIC': '12',
                   'TRICLINIC': '14'}
-    fmt = None
+    fmt = 'bohr'
     unitvec = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     scalevec = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     types = []
@@ -69,22 +69,6 @@ def parser(name, data):
             while "&END" not in data[i]:
                 if nl == "&SYSTEM" and "ANGSTROM" in data[i]:
                     fmt = "angstrom"
-                elif nl == "&SYSTEM" and "SCALE" in data[i]:
-                    if "CARTESIAN" in data[i]:
-                        fmt = "alat"
-                    else:
-                        fmt = "crystal"
-                    for token in data[i].strip().split():
-                        if 'S=' in token:
-                            scalevec[0][0] = 1 / float(token.strip('S='))
-                            scalevec[1][1] = 1 / float(token.strip('S='))
-                            scalevec[2][2] = 1 / float(token.strip('S='))
-                        elif 'SX=' in token:
-                            scalevec[0][0] = 1 / float(token.strip('SX='))
-                        elif 'SY=' in token:
-                            scalevec[1][1] = 1 / float(token.strip('SY='))
-                        elif 'SZ=' in token:
-                            scalevec[2][2] = 1 / float(token.strip('SZ='))
                 elif nl == "&SYSTEM" and "KPOINTS" in data[i]:
                     if "MONKHORST" in data[i]:
                         kpoints = data[i + 1].split()
@@ -115,11 +99,27 @@ def parser(name, data):
                             nk = int(data[i + 1])
                             for j in range(nk):
                                 kpoints.append(data[i + j + 2].split())
-                            i += nk
+                            i += 1 + nk
                         tmol.setKpoints('active', 'discrete')
                         tmol.setKpoints('discrete', kpoints)
                         tmol.setKpoints('options',
                                         {'crystal': crystal, 'bands': bands})
+                elif nl == "&SYSTEM" and "SCALE" in data[i]:
+                    if "CARTESIAN" in data[i]:
+                        fmt = "alat"
+                    else:
+                        fmt = "crystal"
+                    for token in data[i].strip().split():
+                        if 'S=' in token:
+                            scalevec[0][0] = 1 / float(token.strip('S='))
+                            scalevec[1][1] = 1 / float(token.strip('S='))
+                            scalevec[2][2] = 1 / float(token.strip('S='))
+                        elif 'SX=' in token:
+                            scalevec[0][0] = 1 / float(token.strip('SX='))
+                        elif 'SY=' in token:
+                            scalevec[1][1] = 1 / float(token.strip('SY='))
+                        elif 'SZ=' in token:
+                            scalevec[2][2] = 1 / float(token.strip('SZ='))
                 elif nl == "&SYSTEM" and "SYMMETRY" in data[i]:
                     arg = data[i + 1].strip()
                     if arg.isdigit():
@@ -142,13 +142,18 @@ def parser(name, data):
                             # cell = [a, b, c, ...]
                             b = b / a
                             c = c / a
-                        elif "DEGREE" in data[i]:
+                        if "DEGREE" in data[i]:
                             # cell = [..., alpha, beta, gamma]
                             alpha, beta, gamma =\
-                                map(cos, [alpha, beta, gamma])
+                                map(cos, map(deg2rad, [alpha, beta, gamma]))
                     i += 1
                 elif nl == "&ATOMS" and data[i][0] == '*':
                     atype = regex('[-_.]', data[i][1:].strip())[0]
+                    while atype in types:
+                        if not atype[-1].isdigit():
+                            atype += "1"
+                        else:
+                            atype = atype[:-1] + str(int(atype[-1]) + 1)
                     types.append(atype)
                     tmol.pse[atype]['CPPP'] = data[i][1:].strip()
                     tmol.pse[atype]['CPNL'] = data[i + 1].strip()
@@ -244,7 +249,7 @@ def parser(name, data):
     # parse cell parameters
     if ibrav == '-2':
         tmol.setVec([cell[0:3], cell[3:6], cell[6:9]])
-    if ibrav == '1':
+    elif ibrav == '1':
         # simple cubic
         pass
     elif ibrav == '2':
@@ -285,10 +290,22 @@ def parser(name, data):
                      [c * beta, c * (alpha - beta * gamma) / singam,
                       c * sqrt(1 + 2 * alpha * beta * gamma - alpha * alpha -
                                beta * beta - gamma * gamma) / singam]])
-    # scale atoms/cell
-    if fmt:
-        tmol.setFmt(fmt, scale=True)
-        tmol.setCellDim(tmol.getCellDim(), fmt=fmt)
+    # scale alat with explicit vectors
+    if fmt == 'alat' and ibrav == '-2':
+        vec = tmol.getVec()
+        a = sqrt(vec[0][0] * vec[0][0] + vec[0][1] *
+                 vec[0][1] + vec[0][2] * vec[0][2])
+        b = sqrt(vec[1][0] * vec[1][0] + vec[1][1] *
+                 vec[1][1] + vec[1][2] * vec[1][2])
+        c = sqrt(vec[2][0] * vec[2][0] + vec[2][1] *
+                 vec[2][1] + vec[2][2] * vec[2][2])
+        tmol.setVec([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        tmol.setVec([[a, 0, 0], [0, b, 0], [0, 0, c]], scale=True)
+        tmol.setVec(vec)
+    # scale crystal, alat /w symmetry, angstrom-atoms
+    tmol.setFmt(fmt, scale=True)
+    # scale angstrom-cell
+    tmol.setCellDim(tmol.getCellDim(fmt='bohr'), fmt=fmt)
     return tmol, tparam
 
 
@@ -314,12 +331,13 @@ def writer(mol, f, param):
             elif coordfmt == "crystal":
                 f.write("  SCALE\n")
             elif coordfmt == "alat":
-                f.write("  SCALE CARTESIAN\n")
+                coordfmt = "crystal"
+                f.write("  SCALE\n")
             # cell vectors are always given explicitely
             f.write("  CELL VECTORS\n")
             vec = mol.getVec() * mol.getCellDim()
             for j in vec:
-                f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*j))
+                f.write("  {: .4f} {: .4f} {: .4f}\n".format(*j))
             # write K-Points if not gamma
             if mol.getKpoints('active') == 'mpg':
                 kpoints = mol.getKpoints('mpg')
@@ -327,20 +345,20 @@ def writer(mol, f, param):
                 if all([float(j) == 0 for j in kpoints[3:]]):
                     f.write("\n")
                 else:
-                    f.write("  SHIFT={:4s} {:4s} {:4s}\n".format(*kpoints[3:]))
+                    f.write(" SHIFT={:4s} {:4s} {:4s}\n".format(*kpoints[3:]))
                 f.write("  {:4s} {:4s} {:4s}\n".format(*kpoints[:3]))
             elif mol.getKpoints('active') == 'discrete':
                 kpoints = mol.getKpoints('discrete')
                 opts = mol.getKpoints('options')
                 f.write("  KPOINTS")
                 if opts["crystal"]:
-                    f.write("  SCALED")
+                    f.write(" SCALED")
                 if opts["bands"]:
-                    f.write("  BANDS\n")
+                    f.write(" BANDS\n")
                     for j in range(0, len(kpoints), 2):
                         line = kpoints[j] + kpoints[j + 1]
-                        f.write("  {3:4s} {0:4s} {1:4s}\
-                                {2:4s} {4:4s} {5:4s} {6:4s}\n".
+                        f.write("  {3:4s} {0:4s} {1:4s} "
+                                "{2:4s} {4:4s} {5:4s} {6:4s}\n".
                                 format(*line))
                     f.write("  0 0. 0. 0. 0. 0. 0.\n")
                 else:
@@ -353,7 +371,7 @@ def writer(mol, f, param):
         # put coordinates and PP informations here
         elif i == "&ATOMS":
             f.write("&ATOMS\n")
-            atoms = mol.getAtoms(fix=True)
+            atoms = mol.getAtoms(fmt=coordfmt, fix=True)
             types = mol.getTypes()
             fixat = []
             fixcoord = []
@@ -371,7 +389,7 @@ def writer(mol, f, param):
                 for k in atoms:
                     if k[0] == j:
                         count += 1
-                        f.write("  {:10.5f} {:10.5f} {:10.5f}\n".format(*k[1]))
+                        f.write("  {: .4f} {: .4f} {: .4f}\n".format(*k[1]))
                         if all(k[2]):
                             fixat.append(count)
                         elif any(k[2]):
@@ -392,11 +410,11 @@ def writer(mol, f, param):
                             f.write("\n")
                     f.write("\n")
                 if fixcoord:
-                    f.write("FIX COORDS\n")
+                    f.write("FIX COORDINATES\n")
                     f.write(str(len(fixcoord)) + '\n')
                     for at in fixcoord:
-                        f.write("{:4d}  {:1d} {:1d} {:1d}\n".
-                                format(at[0], *at[1]))
+                        f.write("{:d}  {:1d} {:1d} {:1d}\n".
+                                format(at[0], *map(lambda x: not x, at[1])))
                 if "CONSTRAINTS" in param[i]:
                     f.write(param[i].partition("CONSTRAINTS")[2])
                 else:

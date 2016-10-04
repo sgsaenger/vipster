@@ -401,8 +401,6 @@ def test_pwi_write_kpoints():
     def assertKpoint():
         f = StringIO()
         pwInput.writer(Mol, f, Param)
-        for i in range(len(target.split('\n'))):
-            assert f.getvalue().split('\n')[i] == target.split('\n')[i]
         assert f.getvalue() == target
     Mol.setKpoints('active', 'gamma')
     target = body + "K_POINTS gamma\n" + tail
