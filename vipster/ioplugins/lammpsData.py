@@ -17,26 +17,26 @@ param = {"default": {"type": "lmp",
 # 3,4,5 = x,y,z (int)
 # 6 = charge (float)
 lammps_atom_style = OrderedDict([
-    ("angle", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("atomic", "{0:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("bond", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("charge", "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("full", "{0:d} {1:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("molecular", "{0:d} {1:d} {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n")])
+    ("angle", "{0:d} {1:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("atomic", "{0:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("bond", "{0:d} {1:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("charge", "{0:d} {2:d} {6:s} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("full", "{0:d} {1:d} {2:d} {6:s} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("molecular", "{0:d} {1:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n")])
 """unsupported due to unsupported properties:
-    ("body", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("dipole", "{0:d} {2:d} {6:s} {3:15.10f} {4:15.10f} {5:15.10f} 0 0 0\n"),
-    ("dpd", "{0:d} {2:d} 0 {3:15.10f} {4:15.10f} {5:15.10f}\n")
-    ("electron", "{0:d} {2:d} {6:s} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("ellipsoid", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("line", "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("meso", "{0:d} {2:d} 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("peri", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("smd", "{0:d} {2:d} {1:d} 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("sphere", "{0:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("template", "{0:d} {1:d} 0 0 {2:d} {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("tri", "{0:d} {1:d} {2:d} 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"),
-    ("wavepacket", "{0:d} {2:d} 0 0 0 0 0 0 {3:15.10f} {4:15.10f} {5:15.10f}\n"), # noqa: E501
+    ("body", "{0:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("dipole", "{0:d} {2:d} {6:s} {3: .4f} {4: .4f} {5: .4f} 0 0 0\n"),
+    ("dpd", "{0:d} {2:d} {} {3: .4f} {4: .4f} {5: .4f}\n")
+    ("electron", "{0:d} {2:d} {6:s} 0 0 {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("ellipsoid", "{0:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("line", "{0:d} {1:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("meso", "{0:d} {2:d} {} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("peri", "{0:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("smd", "{0:d} {2:d} {1:d} {} {} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("sphere", "{0:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("template", "{0:d} {1:d} {} {} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("tri", "{0:d} {1:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("wavepacket", "{0:d} {2:d} {} {} {} {} {} {} {3: .4f} {4: .4f} {5: .4f}\n") # noqa: E501
 """
 
 
@@ -66,8 +66,10 @@ def parser(name, data):
         elif 'Masses' in line:
             for j in range(i + 2, i + 2 + len(types)):
                 if '#' in data[j]:
-                    types[int(data[j].split()[0]) - 1] =\
-                        data[j].split('#')[1].strip()
+                    el = data[j].split('#')
+                    t = el[1].strip()
+                    types[int(el[0].split()[0]) - 1] = t
+                    tmol.pse[t]['m'] = float(el[0].split()[1])
                 else:
                     raise NotImplementedError("Can't deduce elements")
             i += len(types) + 1
@@ -76,11 +78,12 @@ def parser(name, data):
             for j in range(i + 2, i + 2 + nat):
                 atomlist.append(data[j].strip().split())
             if '#' in line and line.split('#')[1].strip() in lammps_atom_style:
-                style = lammps_atom_style[line.split('#')[1].strip()].split()
-                atypepos = style.index('{2:d}')
-                cpos = style.index('{3:15.10f}')
+                style = lammps_atom_style[line.split('#')[1].
+                                          strip()].split('} ')
+                atypepos = style.index('{2:d')
+                cpos = style.index('{3: .4f')
                 try:
-                    qpos = style.index('{6:s}')
+                    qpos = style.index('{6:s')
                 except:
                     qpos = None
             else:
@@ -255,16 +258,16 @@ def writer(mol, f, param):
     # if cell is orthogonal,  write vectors:
     v = mol.getVec() * mol.getCellDim(fmt='angstrom')
     if not v.diagonal(1).any() and not v.diagonal(2).any():
-        f.write('{:.5f} {:.5f} xlo xhi\n'.format(0.0, v[0][0]))
-        f.write('{:.5f} {:.5f} ylo yhi\n'.format(0.0, v[1][1]))
-        f.write('{:.5f} {:.5f} zlo zhi\n'.format(0.0, v[2][2]))
+        f.write('{: .4f} {: .4f} xlo xhi\n'.format(0.0, v[0][0]))
+        f.write('{: .4f} {: .4f} ylo yhi\n'.format(0.0, v[1][1]))
+        f.write('{: .4f} {: .4f} zlo zhi\n'.format(0.0, v[2][2]))
         if v.diagonal(-1).any() or v.diagonal(-2).any():
-            f.write('{:.5f} {:.5f} {:.5f} xy xz yz\n'.format(v[1][0],
-                                                             v[2][0],
-                                                             v[2][1]))
+            f.write('{: .4f} {: .4f} {: .4f} xy xz yz\n'.format(v[1][0],
+                                                                v[2][0],
+                                                                v[2][1]))
         f.write('\n')
     else:
-        raise Exception('Cell not in suitable Lammps format')
+        raise ValueError('Cell not in suitable Lammps format')
     # Masses section: (always)
     f.write('Masses\n\n')
     atomtypes = list(mol.getTypes())
