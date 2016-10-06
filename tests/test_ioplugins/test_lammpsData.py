@@ -75,6 +75,8 @@ def test_lmp_parse_atomstyles():
         assert atom_equal(Mol.getAtom(1), ['Na', [2.5, 2.5, 0]])
         assert atom_equal(Mol.getAtom(2), ['Cl', [0, 2.5, 0]])
         assert atom_equal(Mol.getAtom(3), ['Cl', [2.5, 0, 0]])
+    assert atom_equal(Mol.getAtom(0, charge=True), ['Na', [0, 0, 0], 1.])
+    assert atom_equal(Mol.getAtom(2, charge=True), ['Cl', [0, 2.5, 0], -1.0])
 
 
 def test_lmp_parse_image_skew_fail():
@@ -140,14 +142,14 @@ def test_lmp_write_proper():
     Mol.setFmt('angstrom')
     Mol.setCellDim(1)
     Mol.setVec(((5, 0, 0), (0, 5, 0), (0, 0, 5)))
-    Mol.newAtom('Na', (0.0, 0.0, 0.0), charge='1.')
-    Mol.newAtom('Na', (2.5, 2.5, 0.0), charge='1.')
-    Mol.newAtom('Na', (0.0, 2.5, 2.5), charge='1.')
-    Mol.newAtom('Na', (2.5, 0.0, 2.5), charge='1.')
-    Mol.newAtom('Cl', (0.0, 2.5, 0.0), charge='-1.')
-    Mol.newAtom('Cl', (2.5, 0.0, 0.0), charge='-1.')
-    Mol.newAtom('Cl', (0.0, 0.0, 2.5), charge='-1.')
-    Mol.newAtom('Cl', (2.5, 2.5, 2.5), charge='-1.')
+    Mol.newAtom('Na', (0.0, 0.0, 0.0), charge=1.)
+    Mol.newAtom('Na', (2.5, 2.5, 0.0), charge=1.)
+    Mol.newAtom('Na', (0.0, 2.5, 2.5), charge=1.)
+    Mol.newAtom('Na', (2.5, 0.0, 2.5), charge=1.)
+    Mol.newAtom('Cl', (0.0, 2.5, 0.0), charge=-1.)
+    Mol.newAtom('Cl', (2.5, 0.0, 0.0), charge=-1.)
+    Mol.newAtom('Cl', (0.0, 0.0, 2.5), charge=-1.)
+    Mol.newAtom('Cl', (2.5, 2.5, 2.5), charge=-1.)
     p = newParam('lmp')
     p['atom_style'] = 'full'
     p['bonds'] = True
@@ -211,14 +213,14 @@ def test_lmp_write_proper():
            "\n"
     atoms = "Atoms # full\n"\
             "\n"\
-            "1 1 1 1.  0.0000  0.0000  0.0000\n"\
-            "2 1 1 1.  2.5000  2.5000  0.0000\n"\
-            "3 1 1 1.  0.0000  2.5000  2.5000\n"\
-            "4 1 1 1.  2.5000  0.0000  2.5000\n"\
-            "5 1 2 -1.  0.0000  2.5000  0.0000\n"\
-            "6 1 2 -1.  2.5000  0.0000  0.0000\n"\
-            "7 1 2 -1.  0.0000  0.0000  2.5000\n"\
-            "8 1 2 -1.  2.5000  2.5000  2.5000\n"
+            "1 1 1  1.0000  0.0000  0.0000  0.0000\n"\
+            "2 1 1  1.0000  2.5000  2.5000  0.0000\n"\
+            "3 1 1  1.0000  0.0000  2.5000  2.5000\n"\
+            "4 1 1  1.0000  2.5000  0.0000  2.5000\n"\
+            "5 1 2 -1.0000  0.0000  2.5000  0.0000\n"\
+            "6 1 2 -1.0000  2.5000  0.0000  0.0000\n"\
+            "7 1 2 -1.0000  0.0000  0.0000  2.5000\n"\
+            "8 1 2 -1.0000  2.5000  2.5000  2.5000\n"
     f = StringIO()
     lammpsData.writer(Mol, f, p)
     target = head + atoms + tail

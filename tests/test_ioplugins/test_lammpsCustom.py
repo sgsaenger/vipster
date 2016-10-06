@@ -88,9 +88,9 @@ def test_lammpsCustom_parse_crystal_charge():
     assert float_equal(Mol.getCellDim(fmt='angstrom'), 1)
     assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5, 0), (0, 0, 5)))
     assert atom_equal(Mol.getAtom(1, charge=True, fmt='angstrom'),
-                      ['Cl', [2.5, 0, 0], '-0.5'])
+                      ['Cl', [2.5, 0, 0], -0.5])
     assert atom_equal(Mol.getAtom(2, charge=True, fmt='angstrom'),
-                      ['Na', [2.5, 2.5, 0], '0.5'])
+                      ['Na', [2.5, 2.5, 0], 0.5])
 
 
 def test_lammpsCustom_parse_invalid():

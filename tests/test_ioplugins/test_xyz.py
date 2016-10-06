@@ -18,7 +18,7 @@ def test_xyz_parse_single():
     assert Mol.getTypes() == ['H', 'O']
     assert Mol.getFmt() == 'angstrom'
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
-                      ['O', (0, 0, 0), '0.',
+                      ['O', (0, 0, 0), 0.,
                        [False, False, False], False])
     assert atom_equal(Mol.getAtom(2, fmt='bohr'),
                       ['H', (-0.4535, 1.751, 0)])

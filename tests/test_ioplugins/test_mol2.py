@@ -29,8 +29,8 @@ def test_mol2_parse():
     assert Mol.getTypes() == ['H', 'O']
     assert Mol.getFmt() == 'angstrom'
     assert atom_equal(Mol.getAtom(0, charge=True, fix=True, hidden=True),
-                      ['O', (0, 0, 0), '-0.830000',
+                      ['O', (0, 0, 0), -0.83,
                        [False, False, False], False])
-    assert atom_equal(Mol.getAtom(2, fmt='bohr'),
-                      ['H', (-0.4535, 1.7510, 0)])
+    assert atom_equal(Mol.getAtom(2, charge=True, fmt='bohr'),
+                      ['H', (-0.4535, 1.7510, 0), 0.415])
     assert len(Mol.getBonds(1.1)[0]) == 2

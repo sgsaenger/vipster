@@ -25,4 +25,4 @@ def parser(name, data):
                 tmol.setFmt("angstrom", scale=True)
                 return tmol, None
             at = line.strip().split()
-            tmol.newAtom(at[5].upper(), at[2:5], charge=at[8])
+            tmol.newAtom(at[5].upper(), at[2:5], charge=float(at[8]))

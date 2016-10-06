@@ -62,7 +62,7 @@ class _step(object):
     # ATOM FUNCTIONS
     ######################################################
 
-    def newAtom(self, name='C', coord=[0., 0., 0.], charge='0.',
+    def newAtom(self, name='C', coord=[0., 0., 0.], charge=0.,
                 fix=[False, False, False], hidden=False, fmt=None):
         """Make new atom
         name -> element symbol
@@ -87,7 +87,7 @@ class _step(object):
         self._atom_coord.resize([self.nat + count, 3])
         self._atom_fix.extend([[False, False, False]] * count)
         self._atom_hidden.extend([False] * count)
-        self._atom_charge.extend(['0.'] * count)
+        self._atom_charge.extend([0.] * count)
         self.delSelection()
         self._bonds_outdated = True
 

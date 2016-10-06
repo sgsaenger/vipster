@@ -20,14 +20,14 @@ lammps_atom_style = OrderedDict([
     ("angle", "{0:d} {1:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
     ("atomic", "{0:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
     ("bond", "{0:d} {1:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n"),
-    ("charge", "{0:d} {2:d} {6:s} {3: .4f} {4: .4f} {5: .4f}\n"),
-    ("full", "{0:d} {1:d} {2:d} {6:s} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("charge", "{0:d} {2:d} {6: .4f} {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("full", "{0:d} {1:d} {2:d} {6: .4f} {3: .4f} {4: .4f} {5: .4f}\n"),
     ("molecular", "{0:d} {1:d} {2:d} {3: .4f} {4: .4f} {5: .4f}\n")])
 """unsupported due to unsupported properties:
     ("body", "{0:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
-    ("dipole", "{0:d} {2:d} {6:s} {3: .4f} {4: .4f} {5: .4f} 0 0 0\n"),
+    ("dipole", "{0:d} {2:d} {6: .4f} {3: .4f} {4: .4f} {5: .4f} 0 0 0\n"),
     ("dpd", "{0:d} {2:d} {} {3: .4f} {4: .4f} {5: .4f}\n")
-    ("electron", "{0:d} {2:d} {6:s} 0 0 {3: .4f} {4: .4f} {5: .4f}\n"),
+    ("electron", "{0:d} {2:d} {6: .4f} 0 0 {3: .4f} {4: .4f} {5: .4f}\n"),
     ("ellipsoid", "{0:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
     ("line", "{0:d} {1:d} {2:d} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
     ("meso", "{0:d} {2:d} {} {} {} {3: .4f} {4: .4f} {5: .4f}\n"),
@@ -83,7 +83,7 @@ def parser(name, data):
                 atypepos = style.index('{2:d')
                 cpos = style.index('{3: .4f')
                 try:
-                    qpos = style.index('{6:s')
+                    qpos = style.index('{6: .4f')
                 except:
                     qpos = None
             else:
@@ -118,7 +118,7 @@ def parser(name, data):
             for j, at in enumerate(atomlist):
                 tmol.setAtom(j, types[int(at[atypepos]) - 1],
                              at[cpos:cpos + 3 if cpos + 3 else None],
-                             at[qpos] if qpos else None)
+                             float(at[qpos]) if qpos else None)
             tmol.setFmt('angstrom', scale=True)
             tmol.setVec(tvec)
             tmol.setCellDim(1, fmt='angstrom')

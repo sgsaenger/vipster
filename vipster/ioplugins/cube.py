@@ -32,9 +32,9 @@ def parser(name, data):
     pse = list(glob_pse.keys())
     tmol.newAtoms(nat)
     for i in range(nat):
-        # line = Z, charge(ignored), coord(x, y, z)
+        # line = Z, charge, coord(x, y, z)
         line = data[i + 6].split()
-        tmol.setAtom(i, pse[int(line[0])], line[2:5])
+        tmol.setAtom(i, pse[int(line[0])], line[2:5], charge=float(line[1]))
     tmol.setFmt(fmt, scale=False)
     tmol.setCellDim(1, fmt=fmt)
     # rest of file has datagrid, x is outer loop, z inner

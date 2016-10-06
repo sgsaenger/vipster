@@ -70,7 +70,7 @@ def parser(name, data):
                     if qidx:
                         tmol.setAtom(j, at[elidx],
                                      [at[xidx], at[yidx], at[zidx]],
-                                     charge=at[qidx])
+                                     charge=float(at[qidx]))
                     else:
                         tmol.setAtom(j, at[elidx],
                                      [at[xidx], at[yidx], at[zidx]])
