@@ -16,6 +16,6 @@ __all__ += _aio_
 #gui-launcher
 try:
     from vipster.gui.main import launchVipster
-    __all__ += ["launchVipster"]
+    __all__ += ["launchVipster"] # pragma: no cover
 except:
     pass
