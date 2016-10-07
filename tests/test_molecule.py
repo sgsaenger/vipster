@@ -126,3 +126,53 @@ def test_modify():
         assert False, "Wrong error"
     else:
         assert False, "Error missing"
+
+
+def test_selection():
+    Mol = Molecule()
+    Mol.newAtom('C', (0, 0, 0))
+    Mol.addSelection([1, (0, 0, 0)])
+    assert Mol.getSelection() == [[1, (0, 0, 0)]]
+    Mol.delSelection()
+    assert Mol.getSelection() == []
+
+
+def test_scripting():
+    Mol = Molecule()
+    Mol.setFmt('angstrom')
+    Mol.newAtom('C', (0, 0, 0))
+    Mol.newAtom('O', (1, 1, 0))
+    Mol.newAtom('B', (2, 2, 0))
+    Mol.newAtom('U', (0, 2, 0))
+    Mol.evalScript("def g all tU\n"
+                   "shi g 1-3 2")
+    assert atom_equal(Mol.getAtom(3), ('U', (2, 0, 0)))
+    Mol.undo()
+    Mol.evalScript("rot 3 90 2-0 1")
+    assert atom_equal(Mol.getAtom(3), ('U', (1, 1, np.sqrt(2))))
+    Mol.undo()
+    Mol.evalScript("rot 3 90 2-0\n"
+                   "mir 3 (1,0,0) (0,0,1,'angstrom') (1,0,0)")
+    assert atom_equal(Mol.getAtom(3), ('U', (1, -1, np.sqrt(2))))
+    Mol = Molecule()
+    Mol.setFmt('angstrom')
+    Mol.setCellDim(15)
+    Mol.newAtom('C1', (0, 0, 0))
+    Mol.newAtom('C1', (1, 0, 0))
+    Mol.newAtom('C1', (1, 0, 0))
+    Mol.newAtom('C2', (0, 0, 3))
+    Mol.newAtom('C2', (1, 0, 3))
+    Mol.newAtom('C2', (1, 0, 3))
+    Mol.evalScript("rot [2, 5] 60 (0, 0, 1)")
+    Mol.evalScript("rot 3-5 90 (1, 0, 0) 3")
+    assert len(Mol.getBonds(1.1)[0]) == 6
+    Mol.evalScript("sel all tC2\npar sel sel 0-2")
+    atoms = Mol.getAtoms()
+    assert vec_equal(atoms[0][1], atoms[3][1]-(0,0,3))
+    assert vec_equal(atoms[1][1], atoms[4][1]-(0,0,3))
+    assert vec_equal(atoms[2][1], atoms[5][1]-(0,0,3))
+    Mol.evalScript("rot sel 45 (1, 0, 0) 3")
+    Mol.evalScript("pshift 0-2 (0,0,1) sel")
+    assert atom_equal(Mol.getAtom(0), ['C1', (0, np.sqrt(2)/2, -np.sqrt(2)/2)])
+    assert atom_equal(Mol.getAtom(1), ['C1', (1, np.sqrt(2)/2, -np.sqrt(2)/2)])
+    assert atom_equal(Mol.getAtom(2), ['C1', (0.5, (np.sqrt(3)+np.sqrt(2))/2, -np.sqrt(2)/2)])

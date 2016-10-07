@@ -718,7 +718,7 @@ class _step(object):
                'def': evalOperator('define', 'slSSS'),
                'sel': evalOperator('select', 'lSSS'),
                'mir': evalOperator(self.mirror, 'lvvV'),
-               'psh': evalOperator(self.pshift, 'lvll'),
+               'psh': evalOperator(self.pshift, 'lvl'),
                'par': evalOperator(self.parallelize, 'lll')}
         stack = []
         script = script.strip().split('\n')
