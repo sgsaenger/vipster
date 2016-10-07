@@ -1,4 +1,9 @@
 #![vipster](vipster-icon.png)VIsual Periodic STructure EditoR
+Master:
+[![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=master)](https://travis-ci.org/hein09/vipster)
+[![codecov](https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
+
+Testing:
 [![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=testing)](https://travis-ci.org/hein09/vipster)
 [![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 
