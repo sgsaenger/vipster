@@ -1,5 +1,5 @@
 from test_preamble import *
-from vipster import Molecule
+from vipster import Molecule, pse, config
 
 
 def test_atoms_bohr():
@@ -80,6 +80,8 @@ def test_atoms_fmt():
 
 def test_modify():
     Mol = Molecule()
+    assert Mol.getUndo() == None
+    Mol.undo()
     Mol.setVec(((5, 0, 0), (0, 5, 0), (0, 0, 5)))
     Mol.newAtom('C', (0.5, 0.5, 0.5), fmt='crystal')
     assert vec_equal(Mol.getVec(), ((5, 0, 0), (0, 5, 0), (0, 0, 5)))
@@ -132,6 +134,9 @@ def test_selection():
     Mol = Molecule()
     Mol.newAtom('C', (0, 0, 0))
     Mol.addSelection([1, (0, 0, 0)])
+    Mol.addSelection([1, (1, 0, 0)])
+    assert Mol.getSelection() == [[1, (0, 0, 0)], [1, (1, 0, 0)]]
+    Mol.addSelection([1, (1, 0, 0)])
     assert Mol.getSelection() == [[1, (0, 0, 0)]]
     Mol.delSelection()
     assert Mol.getSelection() == []
@@ -176,3 +181,17 @@ def test_scripting():
     assert atom_equal(Mol.getAtom(0), ['C1', (0, np.sqrt(2)/2, -np.sqrt(2)/2)])
     assert atom_equal(Mol.getAtom(1), ['C1', (1, np.sqrt(2)/2, -np.sqrt(2)/2)])
     assert atom_equal(Mol.getAtom(2), ['C1', (0.5, (np.sqrt(3)+np.sqrt(2))/2, -np.sqrt(2)/2)])
+
+
+def test_molecule():
+    pass
+
+
+def test_pse():
+    Mol = Molecule()
+    assert 'C' not in Mol.pse
+    Mol.pse['C']
+    assert 'C' in Mol.pse
+    assert Mol.pse['C1'] == Mol.pse['C']
+    assert Mol.pse['c'] == Mol.pse['C']
+    assert Mol.pse['123'] == Mol.pse['X']

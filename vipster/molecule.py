@@ -1033,6 +1033,7 @@ class Molecule(_step):
             if key not in self:
                 if key in self.cpse:
                     self[key] = deepcopy(self.cpse[key])
+                    source = key
                 else:
                     for i in range(len(key), 0, -1):
                         source = None
@@ -1042,15 +1043,16 @@ class Molecule(_step):
                             source = key[:i].upper()
                         if source:
                             self[key] = deepcopy(self.cpse[source])
-                            if not self[key]["PWPP"]:
-                                self[key]["PWPP"] = source +\
-                                    config["Default PWScf PP-suffix"]
-                            if not self[key]["CPPP"]:
-                                self[key]["CPPP"] = source +\
-                                    config["Default CPMD PP-suffix"]
                             break
                     if key not in self:
                         self[key] = deepcopy(self.cpse['X'])
+                        source = 'X'
+                if not self[key]["PWPP"]:
+                    self[key]["PWPP"] = source +\
+                        config["Default PWScf PP-suffix"]
+                if not self[key]["CPPP"]:
+                    self[key]["CPPP"] = source +\
+                        config["Default CPMD PP-suffix"]
             return super(Molecule._pse, self).__getitem__(key)
 
 # add step-properties to container:
