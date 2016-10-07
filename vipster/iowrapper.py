@@ -53,6 +53,9 @@ def writeFile(mol, fmt, filename, param=None):
         if param is None or param["type"] != fmt:
             raise TypeError(" Writing format " + fmt +
                             " needs accompanying parameter set!")
+    # prompt for PermissionError before writing temp file
+    t = open(filename, 'w')
+    t.close()
     try:
         with open('vipster.tmp', 'w') as f:
             _outdict[fmt](mol, f, param)
