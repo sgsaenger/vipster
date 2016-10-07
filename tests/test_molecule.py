@@ -184,7 +184,49 @@ def test_scripting():
 
 
 def test_molecule():
-    pass
+    Mol = Molecule(name="Test Mol", steps=0)
+    assert Mol.name == "Test Mol"
+    assert len(Mol) == 0
+    Mol.newStep()
+    assert len(Mol) == 1
+    Mol.newAtom('C', (1, 1, 1))
+    assert Mol.nat == 1
+    assert atom_equal(Mol.getAtom(0, fmt='crystal'), ['C', (1, 1, 1)])
+    Mol.copyStep()
+    assert len(Mol) == 2
+    for s in Mol.steps:
+        assert s.nat == 1
+        assert s.getCellDim() == 1
+    assert Mol.curStep == 1
+    Mol.changeStep(0)
+    assert Mol.curStep == 0
+    Mol.setCellDimAll(1, fmt='angstrom', scale=True)
+    for s in Mol.steps:
+        assert float_equal(s.getCellDim(fmt='angstrom'), 1)
+        assert vec_equal(s.getVec(), ((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+        assert atom_equal(s.getAtom(0, fmt='angstrom'), ['C', (1, 1, 1)])
+    Mol.setVecAll(((2, 0, 0), (0, 2, 0), (0, 0, 2)), scale=True)
+    for s in Mol.steps:
+        assert float_equal(s.getCellDim(fmt='angstrom'), 1)
+        assert vec_equal(s.getVec(), ((2, 0, 0), (0, 2, 0), (0, 0, 2)))
+        assert atom_equal(s.getAtom(0, fmt='angstrom'), ['C', (2, 2, 2)])
+    Mol.setVecAll(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+    for s in Mol.steps:
+        assert float_equal(s.getCellDim(fmt='angstrom'), 1)
+        assert vec_equal(s.getVec(), ((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+        assert atom_equal(s.getAtom(0, fmt='crystal'), ['C', (2, 2, 2)])
+    assert Mol.getKpoints('active') == 'gamma'
+    assert Mol.getKpoints('mpg') == ['1', '1', '1', '0', '0', '0']
+    assert Mol.getKpoints('discrete') == []
+    assert Mol.getKpoints('options') == {'crystal': False, 'bands': False}
+    Mol.setKpoints('active', 'mpg')
+    assert Mol.getKpoints('active') == 'mpg'
+    Mol1 = Mol.copy()
+    assert len(Mol1) == 1
+    assert Mol1.name == "Copy of Test Mol"
+    Mol2 = Mol.copyAll()
+    assert len(Mol2) == 2
+    assert Mol2.name == "Copy of Test Mol"
 
 
 def test_pse():

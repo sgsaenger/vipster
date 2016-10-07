@@ -984,7 +984,7 @@ class Molecule(_step):
                 step.setVec(vec, scale)
         else:
             vec = np.array(vec, 'f')
-            vecinv = np.linalg.inv(self._vec)
+            vecinv = np.linalg.inv(vec)
             for step in self.steps:
                 step._vec = vec
                 step._vecinv = vecinv
