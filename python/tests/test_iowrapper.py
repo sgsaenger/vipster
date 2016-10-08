@@ -47,3 +47,4 @@ def test_io_errorhandling():
     assertFail('xyz', '/text.xyz', PermissionError)
     assertFail('pwi', 'test.pwi', TypeError)
     assertFail('pwi', 'test.pwi', KeyError, p)
+    remove('test.pwi')
