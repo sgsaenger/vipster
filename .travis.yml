@@ -1,0 +1,21 @@
+sudo: require
+dist: trusty
+language: cpp
+compiler: gcc
+before_install:
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo add-apt-repository --yes ppa:beineri/opt-qt57-trusty
+    - sudo apt-get update -qq
+    - sudo pip install codecov
+install: 
+    - sudo apt-get install -qq g++-5 qt57-meta-full
+    - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
+    - source $QT_ENV_SCRIPT
+    - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
+script:
+    - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y
+    - make
+    - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
+    - ./get_code_cov.sh
+after_success:
+    - codecov
