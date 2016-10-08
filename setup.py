@@ -15,7 +15,7 @@ gui_c = Extension(name="vipster.gui.gui_c",
 
 setup(
     name="vipster",
-    version="0.8.0",
+    version="1.0.0",
     description="VIsual Periodic STructure EditoR",
     author="Sebastian Gsänger",
     author_email="sebastian_gsaenger@web.de",
