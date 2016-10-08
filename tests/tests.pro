@@ -1,37 +1,23 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2016-07-27T14:00:20
+# Project created by QtCreator 2016-10-08T14:48:06
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += testlib
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       -= gui
 
-TARGET = vipster
+TARGET = tst_libvipstertest
+CONFIG   += console\
+            c++14
+CONFIG   -= app_bundle
+
 TEMPLATE = app
 
-CONFIG += c++14
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    glwidget.cpp
-
-HEADERS  += mainwindow.h \
-    glwidget.h \
-    atom_model.h \
-    bond_model.h
-
-FORMS    += mainwindow.ui
-
-DISTFILES += \
-    resources/atom.frag \
-    resources/atom.vert \
-    resources/bond.frag \
-    resources/bond.vert \
-    resources/cell.frag \
-    resources/cell.vert \
-    resources/icon.png
+SOURCES += tst_libvipstertest.cpp
+DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libvipster/release/ -lvipster
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libvipster/debug/ -lvipster
@@ -44,6 +30,3 @@ unix:CONFIG(debug, debug|release) {
 
 INCLUDEPATH += $$PWD/../libvipster
 DEPENDPATH += $$PWD/../libvipster
-
-RESOURCES += \
-    resources/vipster.qrc

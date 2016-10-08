@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     libvipster \
-    vipster
+    vipster \
+    tests

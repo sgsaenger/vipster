@@ -3,7 +3,10 @@ __pycache__/
 *.py[cod]
 
 # C extensions
-*.so
+*.so*
+
+# QMake project, not needed:
+Makefile
 
 # Distribution / packaging
 .Python

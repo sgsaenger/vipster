@@ -125,7 +125,7 @@ void MainWindow::editAtoms()
 void MainWindow::newMol(Vipster::Molecule m)
 {
     molecules.push_back(m);
-    ui->molList->addItem(molecules.back().name.c_str());
+    ui->molList->addItem(m.name.c_str());
     setMol(ui->molList->count()-1);
 }
 

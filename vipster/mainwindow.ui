@@ -26,8 +26,8 @@
    <string>Vipster</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>vipster-icon.png</normaloff>vipster-icon.png</iconset>
+   <iconset resource="resources/vipster.qrc">
+    <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
@@ -284,7 +284,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>19</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -293,7 +293,7 @@
     </property>
     <widget class="QMenu" name="menuFrom_existing_Molecule">
      <property name="title">
-      <string>From existing Molecule</string>
+      <string>&amp;From existing Molecule</string>
      </property>
      <addaction name="actionCopy_single_Step"/>
      <addaction name="actionCopy_Trajector"/>
@@ -339,7 +339,7 @@
    <property name="minimumSize">
     <size>
      <width>345</width>
-     <height>97</height>
+     <height>104</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -384,8 +384,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>353</width>
-          <height>594</height>
+          <width>341</width>
+          <height>566</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -632,17 +632,17 @@
   </action>
   <action name="actionNew_Parameter_Set">
    <property name="text">
-    <string>New Parameter set</string>
+    <string>New &amp;Parameter set</string>
    </property>
   </action>
   <action name="actionSave_Parameter_set">
    <property name="text">
-    <string>Save Parameter set</string>
+    <string>Sa&amp;ve Parameter set</string>
    </property>
   </action>
   <action name="actionScreenshot">
    <property name="text">
-    <string>Screenshot</string>
+    <string>S&amp;creenshot</string>
    </property>
   </action>
   <action name="actionExit">
@@ -655,7 +655,7 @@
   </action>
   <action name="actionNew_Atom">
    <property name="text">
-    <string>New Atom</string>
+    <string>&amp;New Atom</string>
    </property>
    <property name="shortcut">
     <string>N</string>
@@ -663,52 +663,52 @@
   </action>
   <action name="actionDelete_Atom_s">
    <property name="text">
-    <string>Delete Atom(s)</string>
+    <string>&amp;Delete Atom(s)</string>
    </property>
   </action>
   <action name="actionCopy_Atom_s">
    <property name="text">
-    <string>Copy Atom(s)</string>
+    <string>&amp;Copy Atom(s)</string>
    </property>
   </action>
   <action name="actionPaste_Atom_s">
    <property name="text">
-    <string>Paste Atom(s)</string>
+    <string>&amp;Paste Atom(s)</string>
    </property>
   </action>
   <action name="actionHide_Atom_s">
    <property name="text">
-    <string>Hide Atom(s)</string>
+    <string>&amp;Hide Atom(s)</string>
    </property>
   </action>
   <action name="actionShow_Atom_s">
    <property name="text">
-    <string>Show Atom(s)</string>
+    <string>&amp;Show Atom(s)</string>
    </property>
   </action>
   <action name="actionUndo">
    <property name="text">
-    <string>Undo</string>
+    <string>&amp;Undo</string>
    </property>
   </action>
   <action name="actionAbout_Vipster">
    <property name="text">
-    <string>About Vipster</string>
+    <string>&amp;About Vipster</string>
    </property>
   </action>
   <action name="actionCopy_single_Step">
    <property name="text">
-    <string>Copy single Step</string>
+    <string>&amp;Copy single Step</string>
    </property>
   </action>
   <action name="actionCopy_Trajector">
    <property name="text">
-    <string>Copy Trajectory</string>
+    <string>C&amp;opy Trajectory</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
    <property name="text">
-    <string>About Qt</string>
+    <string>About &amp;Qt</string>
    </property>
   </action>
  </widget>
@@ -743,7 +743,9 @@
   <tabstop>yMultBox</tabstop>
   <tabstop>zMultBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources/vipster.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>

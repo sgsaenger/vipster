@@ -6,7 +6,7 @@ using namespace Vipster;
 
 std::tuple<Molecule,optional<Param>> Vipster::IO::XYZ_parser(std::string fn, std::ifstream &file)
 {
-    Molecule m(fn,1);
+    Molecule m{fn,1};
     char linebuf[BUFFLEN];
     char *token;
     std::vector<std::string> tokens;

@@ -62,9 +62,9 @@ Vec Vipster::operator/(Vec v, const float &f)
 
 bool Vipster::operator ==(const Vec &v1, const Vec &v2)
 {
-    return (v1[0]-v2[0])<std::numeric_limits<float>::epsilon()&&
-            (v1[1]-v2[1])<std::numeric_limits<float>::epsilon()&&
-            (v1[2]-v2[2])<std::numeric_limits<float>::epsilon();
+    return (v1[0]-v2[0]) < std::numeric_limits<float>::epsilon()&&
+           (v1[1]-v2[1]) < std::numeric_limits<float>::epsilon()&&
+           (v1[2]-v2[2]) < std::numeric_limits<float>::epsilon();
 }
 
 float Vipster::t_vec_length(const Vec &v)
