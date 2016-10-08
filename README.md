@@ -19,6 +19,10 @@ Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.
 - Lammps data/custom-dump
 - Gaussian cube
 - AIMALL output
+- CPMD input
+- Mol2
+- XSF/AXSF
+- Turbomole
 
 ##Installation:
 
