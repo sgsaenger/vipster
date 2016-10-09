@@ -1,5 +1,5 @@
-#include "config.h"
-#include "json.hpp"
+#include <config.h>
+#include <json.hpp>
 #include <fstream>
 #include <locale>
 

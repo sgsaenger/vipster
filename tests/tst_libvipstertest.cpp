@@ -1,7 +1,9 @@
 #include <QString>
 #include <QtTest>
-#include "libvipster.h"
 #include <iostream>
+#include <global.h>
+#include <step.h>
+#include <molecule.h>
 
 using namespace Vipster;
 

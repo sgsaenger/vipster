@@ -1,4 +1,5 @@
-#include "definitions.h"
+#include <vec.h>
+#include <cmath>
 #include <limits>
 
 using namespace Vipster;

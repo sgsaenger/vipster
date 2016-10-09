@@ -1,7 +1,9 @@
 #ifndef CONFIG
 #define CONFIG
 
-#include "definitions.h"
+#include <string>
+#include <vector>
+#include <map>
 
 namespace Vipster{
 

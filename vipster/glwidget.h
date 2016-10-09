@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
-#include "libvipster.h"
+#include <step.h>
 
 class GLWidget: public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {

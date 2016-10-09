@@ -17,23 +17,26 @@ SOURCES += \
     config.cpp \
     molecule.cpp \
     step.cpp \
-    definitions.cpp \
     iowrapper.cpp \
-    ioplugins/xyz.cpp
+    ioplugins/xyz.cpp \
+    vec.cpp
 
 HEADERS += \
     config.h \
     molecule.h \
     json.hpp \
-    definitions.h \
-    libvipster.h \
     step.h \
     iowrapper.h \
     ioplugins/xyz.h \
-    ioplugin.h
+    ioplugin.h \
+    global.h \
+    atom.h \
+    bond.h \
+    vec.h \
+    param.h
 
 unix {
-    target.path = /usr/lib
+    target.path = /usr/lib/vipster
     INSTALLS += target
 }
 unix:CONFIG(debug, debug|release) {

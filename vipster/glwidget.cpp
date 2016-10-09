@@ -4,6 +4,7 @@
 #include "bond_model.h"
 #include <tuple>
 #include <limits>
+#include <cmath>
 //DEBUGGING:
 #include <iostream>
 #include <chrono>

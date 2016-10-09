@@ -1,6 +1,7 @@
 #include "xyz.h"
 #include <sstream>
 #include <iostream>
+#include <cstring>
 
 using namespace Vipster;
 

@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QCommandLineParser>
-#include "libvipster.h"
 #include <iostream>
+#include <iowrapper.h>
 
 int main(int argc, char *argv[])
 {

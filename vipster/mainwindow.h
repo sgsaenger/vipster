@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <vector>
 #include <array>
-#include "libvipster.h"
+#include <molecule.h>
 
 namespace Ui {
 class MainWindow;

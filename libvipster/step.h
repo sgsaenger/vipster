@@ -1,8 +1,12 @@
 #ifndef STEP_H
 #define STEP_H
 
-#include "config.h"
-#include "definitions.h"
+#include <global.h>
+#include <config.h>
+#include <vec.h>
+#include <atom.h>
+#include <bond.h>
+#include <set>
 
 namespace Vipster{
 

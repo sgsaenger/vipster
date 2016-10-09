@@ -1,12 +1,10 @@
 #ifndef IOWRAPPER
 #define IOWRAPPER
 
-#include "definitions.h"
-#include "molecule.h"
+#include <molecule.h>
+#include <ioplugin.h>
+#include <ioplugins/xyz.h>
 #include <experimental/optional>
-#include <cstdio>
-#include "ioplugin.h"
-#include "ioplugins/xyz.h"
 
 namespace Vipster{
     std::tuple<Molecule,optional<Param>>  readFile(std::string fn, std::string fmt);

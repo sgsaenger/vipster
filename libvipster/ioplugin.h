@@ -1,19 +1,15 @@
 #ifndef IOPLUGIN_H
 #define IOPLUGIN_H
 
-#include "definitions.h"
-#include "molecule.h"
+#include <molecule.h>
+#include <param.h>
 #include <experimental/optional>
 #include <fstream>
-#include <cstring>
 
 #define BUFFLEN 32768
 
 namespace Vipster{
     using std::experimental::optional;
-    struct Param{
-        std::string type;
-    };
     struct IOPlugin{
         std::string name;
         std::string extension;

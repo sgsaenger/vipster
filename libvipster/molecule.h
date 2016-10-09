@@ -1,9 +1,9 @@
 #ifndef MOLECULE_H
 #define MOLECULE_H
 
-#include "definitions.h"
-#include "step.h"
-#include "config.h"
+#include <global.h>
+#include <step.h>
+#include <config.h>
 
 namespace Vipster {
     class Molecule
