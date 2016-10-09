@@ -2,3 +2,4 @@ ignore:
     - "tests"
     - "python"
     - "vipster"
+    - "libvipster/json.hpp"
