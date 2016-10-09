@@ -39,8 +39,8 @@ public:
     const std::vector<Atom>& getAtoms(void) const noexcept;   //get const reference (bohr)
     std::vector<Atom> getAtomsFmt(Fmt fmt);                   //get copy (formatted)
     size_t  getNat(void) const noexcept;                        //get number of atoms
-    void    setCellDim(float cdm, bool scale=false);
-    float   getCellDim(void) const noexcept;
+    void    setCellDim(float cdm, bool scale=false, Fmt fmt=Fmt::Bohr);
+    float   getCellDim(Fmt fmt=Fmt::Bohr) const noexcept;
     void    setCellVec(float v11, float v12, float v13,
                        float v21, float v22, float v23,
                        float v31, float v32, float v33,bool scale=false);

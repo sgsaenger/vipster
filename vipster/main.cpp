@@ -13,8 +13,7 @@ int main(int argc, char *argv[])
     p.setApplicationDescription("Vipster");
     p.addHelpOption();
     p.addVersionOption();
-    QCommandLineOption xyzOption{"xyz", "Parse xyz <files>.", "files"};
-    p.addOption(xyzOption);
+    p.addOption({"xyz", "Parse xyz <files>.", "files"});
     p.process(a);
     Vipster::Molecule m;
     if(p.isSet("xyz")){

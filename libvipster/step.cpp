@@ -163,11 +163,11 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt tar
     case Fmt::Bohr:
         break;
     case Fmt::Angstrom:
-        for(Atom at:atoms) { at.coord*=invbohr; }
+        for(Atom& at:atoms) { at.coord*=invbohr; }
         break;
     case Fmt::Crystal:
         Vec ctemp;
-        for(Atom at:atoms)
+        for(Atom& at:atoms)
         {
             ctemp[0] = at.coord[0]*this->cellvec[0][0]+
                        at.coord[1]*this->cellvec[1][0]+
@@ -181,18 +181,19 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt tar
             at.coord.swap(ctemp);
         }
     case Fmt::Alat:
-        for(Atom at:atoms) { at.coord*=this->celldim; }
+        for(Atom& at:atoms) { at.coord*=this->celldim; }
+        break;
     }
     switch(target)
     {
     case Fmt::Bohr:
         break;
     case Fmt::Angstrom:
-        for(Atom at:atoms) { at.coord*=bohrrad; }
+        for(Atom& at:atoms) { at.coord*=bohrrad; }
         break;
     case Fmt::Crystal:
         Vec ctemp;
-        for(Atom at:atoms)
+        for(Atom& at:atoms)
         {
             ctemp[0] = at.coord[0]*this->invvec[0][0]+
                        at.coord[1]*this->invvec[1][0]+
@@ -206,26 +207,34 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt tar
             at.coord.swap(ctemp);
         }
     case Fmt::Alat:
-        for(Atom at:atoms) { at.coord/=this->celldim; }
+        for(Atom& at:atoms) { at.coord/=this->celldim; }
+        break;
     }
     return atoms;
 }
 
-void Step::setCellDim(float cdm, bool scale)
+void Step::setCellDim(float cdm, bool scale, Fmt fmt)
 {
+    if(fmt==Fmt::Angstrom){
+        cdm *= invbohr;
+    }
     if(!(cdm>0))throw std::invalid_argument("Atomview::setCellDim() : cell-dimension needs to be positive");
     if(scale)
     {
         float ratio = cdm/celldim;
-        for(Atom at:atoms) { at.coord*=ratio; }
+        for(Atom& at:atoms) { at.coord*=ratio; }
     }
     celldim = cdm;
     bonds_outdated = true;
 }
 
-float Step::getCellDim() const noexcept
+float Step::getCellDim(Fmt fmt) const noexcept
 {
-    return celldim;
+    if(fmt==Fmt::Angstrom){
+        return celldim * bohrrad;
+    }else{
+        return celldim;
+    }
 }
 
 void Step::setCellVec(float v11, float v12, float v13, float v21, float v22, float v23, float v31, float v32, float v33, bool scale)
@@ -241,8 +250,8 @@ void Step::setCellVec(Vec v1, Vec v2, Vec v3, bool scale)
 void Step::setCellVec(std::array<Vec, 3> vec, bool scale)
 {
     float det = vec[0][0]*(vec[1][1]*vec[2][2]-vec[1][2]*vec[2][1])
-                +vec[1][0]*(vec[1][2]*vec[2][0]-vec[1][0]*vec[2][2])
-                +vec[2][0]*(vec[1][0]*vec[2][1]-vec[1][1]*vec[2][0]);
+               +vec[1][0]*(vec[1][2]*vec[2][0]-vec[1][0]*vec[2][2])
+               +vec[2][0]*(vec[1][0]*vec[2][1]-vec[1][1]*vec[2][0]);
     if(std::abs(det) < std::numeric_limits<float>::epsilon())
     {
         throw std::invalid_argument("Atomview::setCellVec() : invalid cell-vectors (singular matrix)");
@@ -280,7 +289,7 @@ Vec Step::getCenter(bool com) const
     Vec temp{0.,0.,0.};
     if(com){
         Vec min{0.},max{0.};
-        for(Atom at:atoms){
+        for(const Atom& at:atoms){
             min[0]=(min[0]<at.coord[0])?min[0]:at.coord[0];
             min[1]=(min[1]<at.coord[1])?min[1]:at.coord[1];
             min[2]=(min[2]<at.coord[2])?min[2]:at.coord[2];
@@ -298,7 +307,7 @@ Vec Step::getCenter(bool com) const
 std::set<std::string> Step::getTypes() const noexcept
 {
     std::set<std::string> types;
-    for(Atom at:atoms) { types.insert(at.name); }
+    for(const Atom& at:atoms) { types.insert(at.name); }
     return types;
 }
 
@@ -328,7 +337,7 @@ void Step::setBonds(float cutfac) const
     auto    offsets = getBondOffsets();
     for(uint dir=0;dir<8;++dir){
         bonds[dir].clear();
-        for(auto off: offsets[dir]){
+        for(auto& off: offsets[dir]){
             for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
                 float cut_i = pse[atoms[i].name].bondcut;
                 if(cut_i < std::numeric_limits<float>::epsilon()) continue;

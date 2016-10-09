@@ -13,7 +13,7 @@ namespace Vipster {
         std::string name;
         PseMap pse;
         Step& curStep();
-        void setCellDimAll(float cdm, bool scale=false);
+        void setCellDimAll(float cdm, bool scale=false, Fmt fmt=Fmt::Bohr);
         //void setCellVecAll(float v11, float v12, float v13,
         //                   float v21, float v22, float v23,
         //                   float v31, float v32, float v33,bool scale=false);

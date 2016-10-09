@@ -13,10 +13,10 @@ Molecule::Molecule(std::string name, ulong s, PseMap pse):
     stepIdx = s-1;
 }
 
-void Molecule::setCellDimAll(float cdm, bool scale)
+void Molecule::setCellDimAll(float cdm, bool scale, Fmt fmt)
 {
-    for(auto s:steps){
-        s.setCellDim(cdm,scale);
+    for(Step& s:steps){
+        s.setCellDim(cdm,scale,fmt);
     }
 }
 
