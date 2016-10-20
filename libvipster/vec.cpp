@@ -68,17 +68,17 @@ bool Vipster::operator ==(const Vec &v1, const Vec &v2)
            (v1[2]-v2[2]) < std::numeric_limits<float>::epsilon();
 }
 
-float Vipster::t_vec_length(const Vec &v)
+float Vipster::Vec_length(const Vec &v)
 {
-    return std::sqrt(t_vec_dot(v,v));
+    return std::sqrt(Vec_dot(v,v));
 }
 
-float Vipster::t_vec_dot(const Vec &v1, const Vec &v2)
+float Vipster::Vec_dot(const Vec &v1, const Vec &v2)
 {
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
-Vec Vipster::t_vec_cross(const Vec &v1, const Vec &v2)
+Vec Vipster::Vec_cross(const Vec &v1, const Vec &v2)
 {
     return Vec{{v1[1]*v2[2]-v1[2]*v2[1],
                   v1[2]*v2[0]-v1[0]*v1[2],

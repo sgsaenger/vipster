@@ -1,6 +1,7 @@
 #include <step.h>
 #include <limits>
 #include <cmath>
+#include <iostream>
 
 using namespace Vipster;
 
@@ -10,6 +11,7 @@ Step::Step(PseMap pse):
     cellvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
     invvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
     bonds_outdated{true},
+    bonds_level{BondType::None},
     bondcut_factor{1.1}
 {
 }
@@ -52,7 +54,7 @@ void Step::newAtoms(size_t count)
 
 void Step::delAtom(size_t idx)
 {
-    if(idx>atoms.size()-1)throw std::out_of_range("Atomview::delAtom() : index is out of range");
+    if(idx>atoms.size()-1)throw std::out_of_range("Step::delAtom() : index is out of range");
     atoms.erase(atoms.begin()+idx);
     bonds_outdated = true;
 }
@@ -109,6 +111,7 @@ size_t Step::getNat() const noexcept
 
 Atom Step::formatAtom(Atom at, Fmt source, Fmt target)
 {
+    if (source == target) return at;
     switch(source){
     case Fmt::Bohr:
         break;
@@ -117,18 +120,18 @@ Atom Step::formatAtom(Atom at, Fmt source, Fmt target)
         break;
     case Fmt::Crystal:
         Vec ctemp;
-        ctemp[0] = at.coord[0]*this->cellvec[0][0]+
-                   at.coord[1]*this->cellvec[1][0]+
-                   at.coord[2]*this->cellvec[2][0];
-        ctemp[1] = at.coord[0]*this->cellvec[0][1]+
-                   at.coord[1]*this->cellvec[1][1]+
-                   at.coord[2]*this->cellvec[2][1];
-        ctemp[2] = at.coord[0]*this->cellvec[0][2]+
-                   at.coord[1]*this->cellvec[1][2]+
-                   at.coord[2]*this->cellvec[2][2];
+        ctemp[0] = at.coord[0]*cellvec[0][0]+
+                   at.coord[1]*cellvec[1][0]+
+                   at.coord[2]*cellvec[2][0];
+        ctemp[1] = at.coord[0]*cellvec[0][1]+
+                   at.coord[1]*cellvec[1][1]+
+                   at.coord[2]*cellvec[2][1];
+        ctemp[2] = at.coord[0]*cellvec[0][2]+
+                   at.coord[1]*cellvec[1][2]+
+                   at.coord[2]*cellvec[2][2];
         at.coord.swap(ctemp);
     case Fmt::Alat:
-        at.coord*=this->celldim;
+        at.coord *= celldim;
         break;
     }
     switch(target){
@@ -139,18 +142,18 @@ Atom Step::formatAtom(Atom at, Fmt source, Fmt target)
         break;
     case Fmt::Crystal:
         Vec ctemp;
-        ctemp[0] = at.coord[0]*this->invvec[0][0]+
-                   at.coord[1]*this->invvec[1][0]+
-                   at.coord[2]*this->invvec[2][0];
-        ctemp[1] = at.coord[0]*this->invvec[0][1]+
-                   at.coord[1]*this->invvec[1][1]+
-                   at.coord[2]*this->invvec[2][1];
-        ctemp[2] = at.coord[0]*this->invvec[0][2]+
-                   at.coord[1]*this->invvec[1][2]+
-                   at.coord[2]*this->invvec[2][2];
+        ctemp[0] = at.coord[0]*invvec[0][0]+
+                   at.coord[1]*invvec[1][0]+
+                   at.coord[2]*invvec[2][0];
+        ctemp[1] = at.coord[0]*invvec[0][1]+
+                   at.coord[1]*invvec[1][1]+
+                   at.coord[2]*invvec[2][1];
+        ctemp[2] = at.coord[0]*invvec[0][2]+
+                   at.coord[1]*invvec[1][2]+
+                   at.coord[2]*invvec[2][2];
         at.coord.swap(ctemp);
     case Fmt::Alat:
-        at.coord/=this->celldim;
+        at.coord /= celldim;
         break;
     }
     return at;
@@ -169,19 +172,19 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt tar
         Vec ctemp;
         for(Atom& at:atoms)
         {
-            ctemp[0] = at.coord[0]*this->cellvec[0][0]+
-                       at.coord[1]*this->cellvec[1][0]+
-                       at.coord[2]*this->cellvec[2][0];
-            ctemp[1] = at.coord[0]*this->cellvec[0][1]+
-                       at.coord[1]*this->cellvec[1][1]+
-                       at.coord[2]*this->cellvec[2][1];
-            ctemp[2] = at.coord[0]*this->cellvec[0][2]+
-                       at.coord[1]*this->cellvec[1][2]+
-                       at.coord[2]*this->cellvec[2][2];
+            ctemp[0] = at.coord[0]*cellvec[0][0]+
+                       at.coord[1]*cellvec[1][0]+
+                       at.coord[2]*cellvec[2][0];
+            ctemp[1] = at.coord[0]*cellvec[0][1]+
+                       at.coord[1]*cellvec[1][1]+
+                       at.coord[2]*cellvec[2][1];
+            ctemp[2] = at.coord[0]*cellvec[0][2]+
+                       at.coord[1]*cellvec[1][2]+
+                       at.coord[2]*cellvec[2][2];
             at.coord.swap(ctemp);
         }
     case Fmt::Alat:
-        for(Atom& at:atoms) { at.coord*=this->celldim; }
+        for(Atom& at:atoms) { at.coord*=celldim; }
         break;
     }
     switch(target)
@@ -195,19 +198,19 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt tar
         Vec ctemp;
         for(Atom& at:atoms)
         {
-            ctemp[0] = at.coord[0]*this->invvec[0][0]+
-                       at.coord[1]*this->invvec[1][0]+
-                       at.coord[2]*this->invvec[2][0];
-            ctemp[1] = at.coord[0]*this->invvec[0][1]+
-                       at.coord[1]*this->invvec[1][1]+
-                       at.coord[2]*this->invvec[2][1];
-            ctemp[2] = at.coord[0]*this->invvec[0][2]+
-                       at.coord[1]*this->invvec[1][2]+
-                       at.coord[2]*this->invvec[2][2];
+            ctemp[0] = at.coord[0]*invvec[0][0]+
+                       at.coord[1]*invvec[1][0]+
+                       at.coord[2]*invvec[2][0];
+            ctemp[1] = at.coord[0]*invvec[0][1]+
+                       at.coord[1]*invvec[1][1]+
+                       at.coord[2]*invvec[2][1];
+            ctemp[2] = at.coord[0]*invvec[0][2]+
+                       at.coord[1]*invvec[1][2]+
+                       at.coord[2]*invvec[2][2];
             at.coord.swap(ctemp);
         }
     case Fmt::Alat:
-        for(Atom& at:atoms) { at.coord/=this->celldim; }
+        for(Atom& at:atoms) { at.coord/=celldim; }
         break;
     }
     return atoms;
@@ -218,7 +221,7 @@ void Step::setCellDim(float cdm, bool scale, Fmt fmt)
     if(fmt==Fmt::Angstrom){
         cdm *= invbohr;
     }
-    if(!(cdm>0))throw std::invalid_argument("Atomview::setCellDim() : cell-dimension needs to be positive");
+    if(!(cdm>0))throw std::invalid_argument("Step::setCellDim() : cell-dimension needs to be positive");
     if(scale)
     {
         float ratio = cdm/celldim;
@@ -250,11 +253,11 @@ void Step::setCellVec(Vec v1, Vec v2, Vec v3, bool scale)
 void Step::setCellVec(std::array<Vec, 3> vec, bool scale)
 {
     float det = vec[0][0]*(vec[1][1]*vec[2][2]-vec[1][2]*vec[2][1])
-               +vec[1][0]*(vec[1][2]*vec[2][0]-vec[1][0]*vec[2][2])
-               +vec[2][0]*(vec[1][0]*vec[2][1]-vec[1][1]*vec[2][0]);
+               +vec[0][1]*(vec[1][2]*vec[2][0]-vec[1][0]*vec[2][2])
+               +vec[0][2]*(vec[1][0]*vec[2][1]-vec[1][1]*vec[2][0]);
     if(std::abs(det) < std::numeric_limits<float>::epsilon())
     {
-        throw std::invalid_argument("Atomview::setCellVec() : invalid cell-vectors (singular matrix)");
+        throw std::invalid_argument("Step::setCellVec() : invalid cell-vectors (singular matrix)");
     }
     float invdet = 1/det;
     std::array<Vec,3> inv;
@@ -316,74 +319,99 @@ size_t Step::getNtyp() const noexcept
     return getTypes().size();
 }
 
-const std::array<std::vector<Bond>,8>& Step::getBonds() const
+const std::vector<Bond>& Step::getBonds() const
 {
     return getBonds(bondcut_factor);
 }
 
-const std::array<std::vector<Bond>,8>& Step::getBonds(float cutfac) const
+const std::vector<Bond>& Step::getBonds(float cutfac) const
 {
-    if(bonds_outdated or (cutfac!=bondcut_factor))
+    if(bonds_outdated or (cutfac!=bondcut_factor) or (bonds_level<BondType::Molecule))
     {
         Step::setBonds(cutfac);
     }
     return bonds;
 }
 
+const std::vector<Bond>& Step::getBondsCell() const
+{
+    return getBondsCell(bondcut_factor);
+}
+
+const std::vector<Bond>& Step::getBondsCell(float cutfac) const
+{
+    if(bonds_outdated or (cutfac!=bondcut_factor) or (bonds_level<BondType::Cell))
+    {
+        Step::setBondsCell(cutfac);
+    }
+    return bonds;
+}
+
 void Step::setBonds(float cutfac) const
 {
-    float  effcut,dist_n;
-    Vec   dist_v;
-    auto    offsets = getBondOffsets();
-    for(uint dir=0;dir<8;++dir){
-        bonds[dir].clear();
-        for(auto& off: offsets[dir]){
-            for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
-                float cut_i = pse[atoms[i].name].bondcut;
-                if(cut_i < std::numeric_limits<float>::epsilon()) continue;
-                for(std::vector<Atom>::size_type j = 0; j != atoms.size(); ++j){
-                    if( (j<i) && (dir == 0)) continue;
-                    if( j == i) continue;
-                    float cut_j = pse[atoms[j].name].bondcut;
-                    if(cut_j < std::numeric_limits<float>::epsilon()) continue;
-                    effcut = (cut_i+cut_j)*cutfac;
-                    Vec pos_i = atoms[i].coord;
-                    Vec pos_j = atoms[j].coord;
-                    dist_v[0] = pos_i[0] + off[0][0] - pos_j[0] - off[1][0];
-                    if(dist_v[0]>effcut)continue;
-                    dist_v[1] = pos_i[1] + off[0][1] - pos_j[1] - off[1][1];
-                    if(dist_v[1]>effcut)continue;
-                    dist_v[2] = pos_i[2] + off[0][2] - pos_j[2] - off[1][2];
-                    if(dist_v[2]>effcut)continue;
-                    dist_n = dist_v[0]*dist_v[0]+dist_v[1]*dist_v[1]+dist_v[2]*dist_v[2];
-                    if((0.57<dist_n)&&(dist_n<effcut*effcut)){
-                        bonds[dir].push_back({i,j,std::sqrt(dist_n)});
-                    }
-                }
+    bonds.clear();
+    for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
+        float cut_i = pse[atoms[i].name].bondcut;
+        if (!cut_i) continue;
+        for(std::vector<Atom>::size_type j = i+1; j != atoms.size(); ++j){
+            float cut_j = pse[atoms[j].name].bondcut;
+            if (!cut_j) continue;
+            float effcut = (cut_i + cut_j) * cutfac;
+            Vec pos_i = atoms[i].coord;
+            Vec pos_j = atoms[j].coord;
+            Vec dist_v;
+            dist_v[0] = pos_i[0] - pos_j[0];
+            if (dist_v[0] > effcut) continue;
+            dist_v[1] = pos_i[1] - pos_j[1];
+            if (dist_v[1] > effcut) continue;
+            dist_v[2] = pos_i[2] - pos_j[2];
+            if (dist_v[2] > effcut) continue;
+            float dist_n = Vec_dot(dist_v, dist_v);
+            if((0.57 < dist_n) && (dist_n < effcut*effcut)){
+                bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
             }
         }
     }
     bonds_outdated = false;
     bondcut_factor = cutfac;
+    bonds_level = BondType::Molecule;
 }
 
-std::array<std::vector<std::array<Vec,2>>,8> Step::getBondOffsets() const
+void Step::setBondsCell(float cutfac) const
 {
-    Vec   n{0.};
-    Vec   vec01{cellvec[0]+cellvec[1]};
-    Vec   vec02{cellvec[0]+cellvec[2]};
-    Vec   vec12{cellvec[1]+cellvec[2]};
-    Vec   vec012{vec01+cellvec[2]};
-    std::array<Vec,2> orig{n, n}, x{cellvec[0], n}, y{cellvec[1], n}, z{cellvec[2], n};
-    std::array<Vec,2> xy{vec01, n}, xmy{cellvec[0], cellvec[1]};
-    std::array<Vec,2> xz{vec02, n}, xmz{cellvec[0], cellvec[2]};
-    std::array<Vec,2> yz{vec12, n}, ymz{cellvec[1], cellvec[2]};
-    std::array<Vec,2> xyz{vec012,n},xymz{vec01,cellvec[2]},xmyz{vec02,cellvec[1]},mxyz{vec12,cellvec[0]};
-    std::array<std::vector<std::array<Vec,2>>,8> off_list{{
-        {{orig}},
-        {{x}},{{y}}, {{xy,xmy}},
-        {{z}}, {{xz,xmz}}, {{yz,ymz}},
-        {{xyz,xymz,xmyz,mxyz}}
-    }};
-    return off_list;
+    bonds.clear();
+    for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
+        float cut_i = pse[atoms[i].name].bondcut;
+        if (!cut_i) continue;
+        for(std::vector<Atom>::size_type j = i+1; j != atoms.size(); ++j){
+            float cut_j = pse[atoms[j].name].bondcut;
+            if (!cut_j) continue;
+            float effcut = (cut_i + cut_j) * cutfac;
+            Vec dist_v = atoms[i].coord - atoms[j].coord;
+            Vec ctemp;
+            ctemp[0] = dist_v[0]*invvec[0][0] + dist_v[1]*invvec[1][0] + dist_v[2]*invvec[2][0];
+            ctemp[1] = dist_v[0]*invvec[0][1] + dist_v[1]*invvec[1][1] + dist_v[2]*invvec[2][1];
+            ctemp[2] = dist_v[0]*invvec[0][2] + dist_v[1]*invvec[1][2] + dist_v[2]*invvec[2][2];
+            dist_v.swap(ctemp);
+            dist_v /= celldim;
+            int xdiff = floor(dist_v[0]);
+            int ydiff = floor(dist_v[1]);
+            int zdiff = floor(dist_v[2]);
+            dist_v[0] = fmod(dist_v[0], 1);
+            dist_v[1] = fmod(dist_v[1], 1);
+            dist_v[2] = fmod(dist_v[2], 1);
+            ctemp[0] = dist_v[0]*cellvec[0][0] + dist_v[1]*cellvec[1][0] + dist_v[2]*cellvec[2][0];
+            ctemp[1] = dist_v[0]*cellvec[0][1] + dist_v[1]*cellvec[1][1] + dist_v[2]*cellvec[2][1];
+            ctemp[2] = dist_v[0]*cellvec[0][2] + dist_v[1]*cellvec[1][2] + dist_v[2]*cellvec[2][2];
+            dist_v.swap(ctemp);
+            dist_v *= celldim;
+            float dist_n = Vec_length(dist_v);
+            if ((0.57 < dist_n) && (dist_n < effcut)){
+                bonds.push_back({i, j, std::sqrt(dist_n), xdiff, ydiff, zdiff});
+            }
+        }
+    }
+    bonds_outdated = false;
+    bondcut_factor = cutfac;
+    bonds_level = BondType::Cell;
 }

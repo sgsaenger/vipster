@@ -13,7 +13,6 @@ std::tuple<Molecule,optional<Param>> Vipster::IO::XYZ_parser(std::string fn, std
     std::vector<std::string> tokens;
     int nat;
     std::string name;
-    float x,y,z;
     if(!file.getline(linebuf,BUFFLEN)||!std::sscanf(linebuf,"%d",&nat)){
         throw IOError("XYZ: Could not read number of atoms.");
     }

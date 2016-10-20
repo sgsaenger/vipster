@@ -6,6 +6,9 @@ namespace Vipster {
         ulong at1;
         ulong at2;
         float dist;
+        long xdiff;
+        long ydiff;
+        long zdiff;
     };
 }
 

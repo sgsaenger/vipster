@@ -30,7 +30,7 @@ GLWidget::~GLWidget()
 
     vao.destroy();
     atom_vbo.destroy();
-    for(auto vbo:bond_vbo) vbo.destroy();
+    bond_vbo.destroy();
 
     doneCurrent();
 }
@@ -41,7 +41,7 @@ void GLWidget::initializeGL()
     vao.create();
     if(vao.isCreated())vao.bind();
     atom_vbo.create();
-    for(auto vbo:bond_vbo) vbo.create();
+    bond_vbo.create();
 
     cell_vbo.create();
     cell_ibo.create();
@@ -134,11 +134,9 @@ void GLWidget::drawBonds(void)
 {
     if(bVo){
         bVo=false;
-        for(int i=0;i!=8;++i){
-            bond_vbo[i].bind();
-            bond_vbo[i].allocate((void*)bond_buffer[i].data(),bond_buffer[i].size()*24*sizeof(float));
-            bond_vbo[i].release();
-        }
+        bond_vbo.bind();
+        bond_vbo.allocate((void*)bond_buffer.data(),bond_buffer.size()*24*sizeof(float));
+        bond_vbo.release();
     }
     bond_shader.bind();
     torus_vbo.bind();
@@ -148,14 +146,14 @@ void GLWidget::drawBonds(void)
     bond_shader.setUniformValue("vpMatrix",pMatrix*vMatrix*rMatrix);
     bond_shader.setUniformValue("rMatrix",rMatrix);
 
-    bond_vbo[0].bind();
+    bond_vbo.bind();
     for(long i=1;i!=7;++i){
        glEnableVertexAttribArray(i);
        glVertexAttribDivisor(i,1);
        glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)((i-1)*16));
     }
-    bond_vbo[0].release();
-    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer[0].size());
+    bond_vbo.release();
+    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
     for(int i=1;i!=7;++i){
        glDisableVertexAttribArray(i);
        glVertexAttribDivisor(i,0);
@@ -205,15 +203,11 @@ void GLWidget::setStep(const Step& step)
     aVo=bVo=cVo=true;
     //cell
     float cdm = step.getCellDim();
-    Vec x,y,z,xy,xz,yz,xyz;
+    Vec x,y,z;
     x = step.getCellVec()[0]*cdm;
     y = step.getCellVec()[1]*cdm;
     z = step.getCellVec()[2]*cdm;
-    xy = x+y;
-    xz = x+z;
-    yz = y+z;
-    xyz = xy+z;
-    cell_buffer = {{ Vec(),x,y,z,xy,xz,yz,xyz }};
+    cell_buffer = {{ Vec(),x,y,z,x+y,x+z,y+z,x+y+z }};
     //atoms
     atom_buffer.reserve(step.getNat());
     atom_buffer.clear();
@@ -226,50 +220,48 @@ void GLWidget::setStep(const Step& step)
     Vec p1,p2,pos; //positions
     std::vector<float> c1,c2; //colors
     float c,s,ic; //cosine, sine, inverse cosine and angle for rot-mat
-    float rad=1; //TODO: pull bond-radius from config
+    float rad=0.53; //TODO: pull bond-radius from config
     Vec b_axis,r_axis; //bond, rotation axes
     Vec x_axis{{1,0,0}};
-    for(int i=0;i!=8;++i){
-        bond_buffer[i].reserve(step.getNat());
-        bond_buffer[i].clear();
-        for(const Bond& bd:step.getBonds()[i]){
-            p1 = step.getAtom(bd.at1).coord;
-            p2 = step.getAtom(bd.at2).coord;
-            c1 = step.pse[step.getAtom(bd.at1).name].col;
-            c2 = step.pse[step.getAtom(bd.at2).name].col;
-            b_axis = p1-p2;
-            pos = (p1+p2)/2;
-            if(std::abs(b_axis[1])<std::numeric_limits<float>::epsilon()&&
-                    std::abs(b_axis[2])<std::numeric_limits<float>::epsilon()){
-                r_axis={{0,1,0}};
-                c=std::copysign(1.,b_axis[0]);
-                ic=1-c;
-                s=0;
-            }else{
-                r_axis = -t_vec_cross(b_axis,x_axis);
-                r_axis/=t_vec_length(r_axis);
-                c = t_vec_dot(b_axis,x_axis)/t_vec_length(b_axis);
-                ic=1-c;
-                s = -std::sqrt(1-c*c);
-            }
-            bond_buffer[i].push_back({
-                 bd.dist*(ic*r_axis[0]*r_axis[0]+c),
-                 bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
-                 bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
-                 0,
-                 rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
-                 rad*(ic*r_axis[1]*r_axis[1]+c),
-                 rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
-                 0,
-                 rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
-                 rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
-                 rad*(ic*r_axis[2]*r_axis[2]+c),
-                 0,
-                 pos[0],pos[1],pos[2],1,
-                 c1[0],c1[1],c1[2],c1[3],
-                 c2[0],c2[1],c2[2],c2[3]
-             });
+    bond_buffer.reserve(step.getNat());
+    bond_buffer.clear();
+    for(const Bond& bd:step.getBonds()){
+        p1 = step.getAtom(bd.at1).coord;
+        p2 = step.getAtom(bd.at2).coord;
+        c1 = step.pse[step.getAtom(bd.at1).name].col;
+        c2 = step.pse[step.getAtom(bd.at2).name].col;
+        b_axis = p1-p2;
+        pos = (p1+p2)/2;
+        if(std::abs(b_axis[1])<std::numeric_limits<float>::epsilon()&&
+                std::abs(b_axis[2])<std::numeric_limits<float>::epsilon()){
+            r_axis={{0,1,0}};
+            c=std::copysign(1.,b_axis[0]);
+            ic=1-c;
+            s=0;
+        }else{
+            r_axis = -Vec_cross(b_axis,x_axis);
+            r_axis/=Vec_length(r_axis);
+            c = Vec_dot(b_axis,x_axis)/Vec_length(b_axis);
+            ic=1-c;
+            s = -std::sqrt(1-c*c);
         }
+        bond_buffer.push_back({
+             bd.dist*(ic*r_axis[0]*r_axis[0]+c),
+             bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
+             bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
+             0,
+             rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
+             rad*(ic*r_axis[1]*r_axis[1]+c),
+             rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
+             0,
+             rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
+             rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
+             rad*(ic*r_axis[2]*r_axis[2]+c),
+             0,
+             pos[0],pos[1],pos[2],1,
+             c1[0],c1[1],c1[2],c1[3],
+             c2[0],c2[1],c2[2],c2[3]
+         });
     }
     update();
 }

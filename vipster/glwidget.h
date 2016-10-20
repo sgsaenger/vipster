@@ -34,12 +34,12 @@ private:
     QOpenGLShaderProgram atom_shader,bond_shader,cell_shader;
     QOpenGLBuffer sphere_vbo,torus_vbo;     //model-geometries
     QOpenGLBuffer atom_vbo;                 //positions and properties
-    std::array<QOpenGLBuffer,8> bond_vbo;   //gpu-side data
+    QOpenGLBuffer bond_vbo; //gpu-side data
     QOpenGLBuffer cell_vbo; //gpu-side data
-    QOpenGLBuffer cell_ibo;
+    QOpenGLBuffer cell_ibo; //gpu-side data
     std::vector<std::array<float,8>> atom_buffer; //cpu-side data
-    std::array<std::vector<std::array<float,24>>,8> bond_buffer; //cpu-side data
-    std::array<std::array<float,3>,8> cell_buffer = {};
+    std::vector<std::array<float,24>> bond_buffer; //cpu-side data
+    std::array<std::array<float,3>,8> cell_buffer; //cpu-side data
     QMatrix4x4 pMatrix,vMatrix,rMatrix;
     std::array<int,3> mult = {{1,1,1}}; //number of repetitions
     bool aVo,bVo,cVo; //keep track if vbos are outdated

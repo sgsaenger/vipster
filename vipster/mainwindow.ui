@@ -284,7 +284,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>30</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -384,8 +384,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>341</width>
-          <height>566</height>
+          <width>353</width>
+          <height>594</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -511,32 +511,32 @@
               </property>
               <row>
                <property name="text">
-                <string>x</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>y</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>z</string>
-               </property>
-              </row>
-              <column>
-               <property name="text">
                 <string>1</string>
                </property>
-              </column>
-              <column>
+              </row>
+              <row>
                <property name="text">
                 <string>2</string>
                </property>
+              </row>
+              <row>
+               <property name="text">
+                <string>3</string>
+               </property>
+              </row>
+              <column>
+               <property name="text">
+                <string>x</string>
+               </property>
               </column>
               <column>
                <property name="text">
-                <string>3</string>
+                <string>y</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>z</string>
                </property>
               </column>
              </widget>

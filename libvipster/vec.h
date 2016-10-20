@@ -15,9 +15,9 @@ namespace Vipster{
     Vec operator*(Vec v, const float &f);
     Vec operator/=(Vec &v, const float &f);
     Vec operator/(Vec v, const float &f);
-    float t_vec_length(const Vec &v);
-    float t_vec_dot(const Vec &v1, const Vec &v2);
-    Vec t_vec_cross(const Vec &v1, const Vec &v2);
+    float Vec_length(const Vec &v);
+    float Vec_dot(const Vec &v1, const Vec &v2);
+    Vec Vec_cross(const Vec &v1, const Vec &v2);
 }
 
 #endif // VIPSTER_DEFINITIONS_H

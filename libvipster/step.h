@@ -54,22 +54,26 @@ public:
     const std::array<Vec,3>& getCellVec(void) const noexcept;
     std::set<std::string> getTypes(void)const noexcept;
     size_t  getNtyp(void) const noexcept;
-    const std::array<std::vector<Bond>,8>& getBonds() const;
-    const std::array<std::vector<Bond>,8>& getBonds(float cutfac) const;
-    std::array<std::vector<std::array<Vec,2>>,8> getBondOffsets() const;
+    const std::vector<Bond>& getBonds() const;
+    const std::vector<Bond>& getBonds(float cutfac) const;
+    const std::vector<Bond>& getBondsCell() const;
+    const std::vector<Bond>& getBondsCell(float cutfac) const;
     mutable PseMap pse;
 private:
     Atom formatAtom(Atom at, Fmt source, Fmt target);
     std::vector<Atom> formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt target);
     void setBonds(float cutfac) const;
+    void setBondsCell(float cutfac) const;
+    enum class BondType { None, Molecule, Cell };
     //DATA following:
     std::vector<Atom> atoms;
     float celldim;
     std::array<Vec,3> cellvec;
     std::array<Vec,3> invvec;
     mutable bool bonds_outdated;
+    mutable BondType bonds_level;
     mutable float bondcut_factor;
-    mutable std::array<std::vector<Bond>,8> bonds;
+    mutable std::vector<Bond> bonds;
 };
 
 
