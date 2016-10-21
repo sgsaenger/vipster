@@ -6,6 +6,7 @@ in vec4 s2Color;
 
 uniform mat4 vpMatrix;
 uniform mat4 rMatrix;
+uniform vec4 offset;
 
 out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -17,7 +18,7 @@ out vec4 s2Cpass;
 void main(void)
 {
     //standard vertex positioning:
-    gl_Position = vpMatrix * mMatrix * vec4(vertex_modelspace,1);
+    gl_Position = vpMatrix * (mMatrix * vec4(vertex_modelspace,1) + offset);
     //pass coordinate and colors to fragment shader
     vertex_side = vertex_modelspace.x;
     s1Cpass = s1Color;

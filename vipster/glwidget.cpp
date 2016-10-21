@@ -16,7 +16,8 @@ GLWidget::GLWidget(QWidget *parent):
     cell_ibo(QOpenGLBuffer::IndexBuffer),
     aVo(true),
     bVo(true),
-    cVo(true)
+    cVo(true),
+    curStep(NULL)
 {
     QSurfaceFormat format;
     format.setVersion(3,3);
@@ -42,6 +43,7 @@ void GLWidget::initializeGL()
     if(vao.isCreated())vao.bind();
     atom_vbo.create();
     bond_vbo.create();
+    pbc_vbo.create();
 
     cell_vbo.create();
     cell_ibo.create();
@@ -85,13 +87,13 @@ void GLWidget::paintGL()
 {
     vMatrix.setToIdentity();
     vMatrix.lookAt(QVector3D(0,0,10),QVector3D(),QVector3D(0,1,0));
-    vMatrix.translate(0,0,0);
+    //vMatrix.translate(0,0,0);
     drawAtoms();
     drawBonds();
     drawCell();
 }
 
-void GLWidget::drawAtoms(void)
+void GLWidget::drawAtoms()
 {
     if(aVo){
         aVo=false;
@@ -119,7 +121,22 @@ void GLWidget::drawAtoms(void)
     glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,32,(const GLvoid*)16);
     glVertexAttribDivisor(3,1);
     atom_vbo.release();
-    glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,atom_buffer.size());
+    Vec center = curStep->getCenter();
+    Vec xvec = curStep->getCellVec()[0]*curStep->getCellDim();
+    Vec yvec = curStep->getCellVec()[1]*curStep->getCellDim();
+    Vec zvec = curStep->getCellVec()[2]*curStep->getCellDim();
+    center += (mult[0]-1)*xvec/2.;
+    center += (mult[1]-1)*yvec/2.;
+    center += (mult[2]-1)*zvec/2.;
+    for(int x=0;x!=mult[0];++x){
+        for(int y=0;y!=mult[1];++y){
+            for(int z=0;z!=mult[2];++z){
+                Vec off = -center + x*xvec + y*yvec + z*zvec;
+                atom_shader.setUniformValue("offset", QVector3D(off[0], off[1], off[2]));
+                glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,atom_buffer.size());
+            }
+        }
+    }
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glVertexAttribDivisor(1,0);
@@ -130,13 +147,16 @@ void GLWidget::drawAtoms(void)
     atom_shader.release();
 }
 
-void GLWidget::drawBonds(void)
+void GLWidget::drawBonds()
 {
     if(bVo){
         bVo=false;
         bond_vbo.bind();
         bond_vbo.allocate((void*)bond_buffer.data(),bond_buffer.size()*24*sizeof(float));
         bond_vbo.release();
+        pbc_vbo.bind();
+        pbc_vbo.allocate((void*)pbc_buffer.data(),pbc_buffer.size()*24*sizeof(float));
+        pbc_vbo.release();
     }
     bond_shader.bind();
     torus_vbo.bind();
@@ -153,15 +173,53 @@ void GLWidget::drawBonds(void)
        glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)((i-1)*16));
     }
     bond_vbo.release();
-    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
+    Vec center = curStep->getCenter();
+    Vec xvec = curStep->getCellVec()[0]*curStep->getCellDim();
+    Vec yvec = curStep->getCellVec()[1]*curStep->getCellDim();
+    Vec zvec = curStep->getCellVec()[2]*curStep->getCellDim();
+    center += (mult[0]-1)*xvec/2.;
+    center += (mult[1]-1)*yvec/2.;
+    center += (mult[2]-1)*zvec/2.;
+    for(int x=0;x!=mult[0];++x){
+        for(int y=0;y!=mult[1];++y){
+            for(int z=0;z!=mult[2];++z){
+                Vec off = -center + x*xvec + y*yvec + z*zvec;
+                bond_shader.setUniformValue("offset", QVector4D(off[0], off[1], off[2], 0));
+                glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
+            }
+        }
+    }
     for(int i=1;i!=7;++i){
        glDisableVertexAttribArray(i);
        glVertexAttribDivisor(i,0);
     }
+
+    if(mult[0] != 1 || mult[1] != 1 || mult[2] != 1){
+        pbc_vbo.bind();
+        for(long i=1;i!=7;++i){
+           glEnableVertexAttribArray(i);
+           glVertexAttribDivisor(i,1);
+           glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)((i-1)*16));
+        }
+        pbc_vbo.release();
+        for(int x=0;x!=mult[0];++x){
+            for(int y=0;y!=mult[1];++y){
+                for(int z=0;z!=mult[2];++z){
+                    Vec off = -center + x*xvec + y*yvec + z*zvec;
+                    bond_shader.setUniformValue("offset", QVector4D(off[0], off[1], off[2], 0));
+                    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
+                }
+            }
+        }
+        for(int i=1;i!=7;++i){
+           glDisableVertexAttribArray(i);
+           glVertexAttribDivisor(i,0);
+        }
+    }
     bond_shader.release();
 }
 
-void GLWidget::drawCell(void)
+void GLWidget::drawCell()
 {
     if(cVo){
         cVo=false;
@@ -176,7 +234,22 @@ void GLWidget::drawCell(void)
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void*)0);
     cell_vbo.release();
     cell_ibo.bind();
-    glDrawElements(GL_LINES,24,GL_UNSIGNED_SHORT,(void*)0);
+    Vec center = curStep->getCenter();
+    Vec xvec = curStep->getCellVec()[0]*curStep->getCellDim();
+    Vec yvec = curStep->getCellVec()[1]*curStep->getCellDim();
+    Vec zvec = curStep->getCellVec()[2]*curStep->getCellDim();
+    center += (mult[0]-1)*xvec/2.;
+    center += (mult[1]-1)*yvec/2.;
+    center += (mult[2]-1)*zvec/2.;
+    for(int x=0;x!=mult[0];++x){
+        for(int y=0;y!=mult[1];++y){
+            for(int z=0;z!=mult[2];++z){
+                Vec off = -center + x*xvec + y*yvec + z*zvec;
+                cell_shader.setUniformValue("offset", QVector3D(off[0], off[1], off[2]));
+                glDrawElements(GL_LINES,24,GL_UNSIGNED_SHORT,(void*)0);
+            }
+        }
+    }
     cell_ibo.release();
     glDisableVertexAttribArray(0);
     cell_shader.release();
@@ -198,9 +271,18 @@ void GLWidget::setMode(int i,bool t)
     i=i+1;
 }
 
+void GLWidget::setMult(int i)
+{
+    if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = i; }
+    else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = i; }
+    else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = i; }
+    update();
+}
+
 void GLWidget::setStep(const Step& step)
 {
     aVo=bVo=cVo=true;
+    curStep = &step;
     //cell
     float cdm = step.getCellDim();
     Vec x,y,z;
@@ -225,7 +307,9 @@ void GLWidget::setStep(const Step& step)
     Vec x_axis{{1,0,0}};
     bond_buffer.reserve(step.getNat());
     bond_buffer.clear();
-    for(const Bond& bd:step.getBonds()){
+    pbc_buffer.reserve(step.getNat());
+    pbc_buffer.clear();
+    for(const Bond& bd:step.getBondsCell()){
         p1 = step.getAtom(bd.at1).coord;
         p2 = step.getAtom(bd.at2).coord;
         c1 = step.pse[step.getAtom(bd.at1).name].col;
@@ -245,23 +329,44 @@ void GLWidget::setStep(const Step& step)
             ic=1-c;
             s = -std::sqrt(1-c*c);
         }
-        bond_buffer.push_back({
-             bd.dist*(ic*r_axis[0]*r_axis[0]+c),
-             bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
-             bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
-             0,
-             rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
-             rad*(ic*r_axis[1]*r_axis[1]+c),
-             rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
-             0,
-             rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
-             rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
-             rad*(ic*r_axis[2]*r_axis[2]+c),
-             0,
-             pos[0],pos[1],pos[2],1,
-             c1[0],c1[1],c1[2],c1[3],
-             c2[0],c2[1],c2[2],c2[3]
-         });
+        std::cout << bd.xdiff << " " << bd.ydiff << " " << bd.zdiff << std::endl;
+        if(bd.xdiff==0 && bd.ydiff == 0 && bd.zdiff == 0){
+            bond_buffer.push_back({
+                 bd.dist*(ic*r_axis[0]*r_axis[0]+c),
+                 bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
+                 bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
+                 0,
+                 rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
+                 rad*(ic*r_axis[1]*r_axis[1]+c),
+                 rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
+                 0,
+                 rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
+                 rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
+                 rad*(ic*r_axis[2]*r_axis[2]+c),
+                 0,
+                 pos[0],pos[1],pos[2],1,
+                 c1[0],c1[1],c1[2],c1[3],
+                 c2[0],c2[1],c2[2],c2[3]
+             });
+        }else{
+            pbc_buffer.push_back({
+                 bd.dist*(ic*r_axis[0]*r_axis[0]+c),
+                 bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
+                 bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
+                 0,
+                 rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
+                 rad*(ic*r_axis[1]*r_axis[1]+c),
+                 rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
+                 0,
+                 rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
+                 rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
+                 rad*(ic*r_axis[2]*r_axis[2]+c),
+                 0,
+                 pos[0],pos[1],pos[2],1,
+                 c1[0],c1[1],c1[2],c1[3],
+                 c2[0],c2[1],c2[2],c2[3]
+             });
+        }
     }
     update();
 }

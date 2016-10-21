@@ -48,6 +48,11 @@ Vec Vipster::operator*(Vec v, const float &f)
     return v*=f;
 }
 
+Vec Vipster::operator*(const float &f, Vec v)
+{
+    return v*=f;
+}
+
 Vec Vipster::operator/=(Vec &v, const float &f)
 {
     v[0]/=f;
@@ -57,6 +62,11 @@ Vec Vipster::operator/=(Vec &v, const float &f)
 }
 
 Vec Vipster::operator/(Vec v, const float &f)
+{
+    return v/=f;
+}
+
+Vec Vipster::operator/(const float &f, Vec v)
 {
     return v/=f;
 }

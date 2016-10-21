@@ -541,39 +541,39 @@
               </column>
              </widget>
             </item>
+            <item>
+             <layout class="QHBoxLayout" name="cellEditLayout">
+              <item>
+               <widget class="QCheckBox" name="cellAllBox">
+                <property name="text">
+                 <string>Apply to all Steps</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="cellEditSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cellScaleBox">
+                <property name="text">
+                 <string>Scale coordinates with cell</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
            </layout>
           </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="cellEditLayout">
-           <item>
-            <widget class="QCheckBox" name="cellAllBox">
-             <property name="text">
-              <string>Apply to all Steps</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="cellEditSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="cellScaleBox">
-             <property name="text">
-              <string>Scale coordinates with cell</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </item>
          <item>
           <widget class="QPushButton" name="kpointStackButton">
@@ -720,6 +720,7 @@
    <header>glwidget.h</header>
    <slots>
     <slot>setMode(int,bool)</slot>
+    <slot>setMult(int)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -876,22 +877,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonGroup</sender>
-   <signal>buttonToggled(int,bool)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMode(int,bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>805</x>
-     <y>314</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>stepSlider</sender>
    <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
@@ -920,6 +905,70 @@
     <hint type="destinationlabel">
      <x>353</x>
      <y>156</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonGroup</sender>
+   <signal>buttonToggled(int,bool)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMode(int,bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>805</x>
+     <y>314</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1116</x>
+     <y>594</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1079</x>
+     <y>461</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1171</x>
+     <y>593</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1137</x>
+     <y>529</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1211</x>
+     <y>589</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1188</x>
+     <y>526</y>
     </hint>
    </hints>
   </connection>

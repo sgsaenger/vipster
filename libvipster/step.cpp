@@ -1,7 +1,6 @@
 #include <step.h>
 #include <limits>
 #include <cmath>
-#include <iostream>
 
 using namespace Vipster;
 
