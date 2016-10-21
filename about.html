@@ -46,24 +46,39 @@
         <main class="container">
             <div class="row">
                 <div class="col-md-4 col-lg-6">
-                    <p>Vipster offers help in both editing and visualizing
-                    chemical data. A standalone executable script is provided,
-                    which directly launches the graphical interface, where
-                    data can be pre- and post-processed.</p>
-                    <p>Additionally, it can be loaded from within the Python-interpreter
-                    or a script via <code>from vipster import *</code>, which exposes
-                    among other the <code>Molecule</code> class, which is the main data container,
-                    and the <code>readFile</code> and <code>launchVipster</code> functions,
-                    which offer I/O- and GUI-capabilities.</p>
-                    <p>Various file types are supported:</p>
-                    <ul>
-                        <li>standard xyz</li>
-                        <li>Empire-xyz</li>
-                        <li>PWScf input/output</li>
-                        <li>Lammps data/custom-dump</li>
-                        <li>Gaussian cube</li>
-                        <li>AIMALL output</li>
-                    </ul>
+                    <p> Vipster is a powerful and versatile tool for pre- and post-processing
+                        of periodic chemical structures.</p>
+                    <p> It has a beatiful graphical interface with a few rather rare
+                        and a few rather useless functions. Something for everyone, i hope! </p>
+                    <p> And if you're missing something, it has a simple python interface,
+                        allowing you to enhance it. Or your scripts. Or don't touch it, your call! </p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p> It can read the following files:</p>
+                            <ul>
+                                <li>standard xyz</li>
+                                <li>Empire-xyz</li>
+                                <li>PWScf input/output</li>
+                                <li>LAMMPS data/custom-dump</li>
+                                <li>Gaussian cube files</li>
+                                <li>AIMALL output</li>
+                                <li>CPMD input</li>
+                                <li>Mol2</li>
+                                <li>(A)XSF</li>
+                                <li>Turbomole</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <p> And write the following: </p>
+                            <ul>
+                                <li>xyz</li>
+                                <li>Empire-xyz</li>
+                                <li>PWScf input</li>
+                                <li>LAMMPS data</li>
+                                <li>CPMD input</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-8 col-lg-6">
                     <img class="img-responsive" src="screenshot.png" alt="screenshot" width="1298" height="964">
