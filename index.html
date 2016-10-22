@@ -5,8 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Vipster</title>
         <link rel="icon" type="image/png" href="favicon.png">
-        <link href='https://fonts.googleapis.com/css?family=Satisfy' rel='stylesheet' type='text/css'>
-        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic|Satisfy' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/styles.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -19,6 +18,12 @@
                     <a class="navbar-brand" href="index.html">
                             Vipster
                     </a>
+                    <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                       data-target="#navbar" aria-expanded="false">
                         <span class="sr-only">Toggle navigation</span>
@@ -30,7 +35,7 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="about.html">About</a></li>
-                        <li><a href="#">GUI</a></li>
+                        <li><a href="gui.html">GUI</a></li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -45,7 +50,7 @@
         </nav>
         <header class="container">
             <div class="jumbotron">
-                <img id="logo" src="vipster.png" alt="logo" width="645" height="501">
+                <img id="logo" src="images/vipster.png" alt="logo" width="645" height="501">
                 <h1>
                 Vipster</h1>
                 <h2>

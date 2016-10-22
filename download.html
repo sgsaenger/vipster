@@ -5,8 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Vipster</title>
         <link rel="icon" type="image/png" href="favicon.png">
-        <link href='https://fonts.googleapis.com/css?family=Satisfy' rel='stylesheet' type='text/css'>
-        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic|Satisfy' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/styles.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -19,6 +18,12 @@
                     <a class="navbar-brand" href="index.html">
                             Vipster
                     </a>
+                    <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                       data-target="#navbar" aria-expanded="false">
                         <span class="sr-only">Toggle navigation</span>
@@ -30,7 +35,7 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="about.html">About</a></li>
-                        <li><a href="#">GUI</a></li>
+                        <li><a href="gui.html">GUI</a></li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -44,12 +49,9 @@
             </div>
         </nav>
         <main class="container">
-            <h3>Download:</h3>
-            <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
-
             <h3>Installation:</h3>
-            <p>Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.</p>
+            <p><a href="#dl">Download it!</a></p>
+            <p>Depends on Python2.7/3, Numpy, PyQT4/5 and the Python OpenGL bindings.</p>
             <ul class="list-unstyled">
                 <li>Install globally (requires root):</li>
                 <li><code>python setup.py install</code></li>
@@ -58,6 +60,27 @@
                 <li>Don't install, just prepare to work in directory:</li>
                 <li><code>python setup.py build_ext -i</code></li>
             </ul>
+            <h3 id="dl">Download:</h3>
+            <h4>Version 1.0</h4>
+            <p><a href="https://github.com/hein09/vipster/archive/V1.0.tar.gz">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/hein09/vipster/archive/V1.0.zip">Download as .zip</a></p>
+            <h4>Development version</h4>
+            <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
+            <h4>New: C++-rewrite</h4>
+            <p>Careful, this is neither stable nor has it reached feature-parity!</p>
+            <p>
+                Status:
+                    <a href="https://travis-ci.org/hein09/vipster">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=testing" alt="Travis build status">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster/branch/testing">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg" alt="Codecov">
+                    </a>
+            </p>
+            <p><a href="https://github.com/hein09/vipster/tarball/testing">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/hein09/vipster/zipball/testing">Download as .zip</a></p>
+
         </main>
         <footer class="footer">
             <div class="container">
