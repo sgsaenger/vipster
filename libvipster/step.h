@@ -39,10 +39,10 @@ public:
     void    setAtom(size_t idx,Atom&& at);                    //replace with move
     void    setAtom(size_t idx,Atom at,Fmt fmt);              //replace with copy
     const Atom& getAtom(size_t idx)const;                     //get reference (const,bohr)
-    Atom  getAtomFmt(size_t idx, Fmt fmt);                    //get copy (formatted)
+    Atom    getAtomFmt(size_t idx, Fmt fmt);                  //get copy (formatted)
     const std::vector<Atom>& getAtoms(void) const noexcept;   //get const reference (bohr)
     std::vector<Atom> getAtomsFmt(Fmt fmt);                   //get copy (formatted)
-    size_t  getNat(void) const noexcept;                        //get number of atoms
+    size_t  getNat(void) const noexcept;                      //get number of atoms
     void    setCellDim(float cdm, bool scale=false, Fmt fmt=Fmt::Bohr);
     float   getCellDim(Fmt fmt=Fmt::Bohr) const noexcept;
     void    setCellVec(float v11, float v12, float v13,
