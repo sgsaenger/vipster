@@ -12,12 +12,7 @@
 using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent):
-    QOpenGLWidget(parent),
-    cell_ibo(QOpenGLBuffer::IndexBuffer),
-    aVo(true),
-    bVo(true),
-    cVo(true),
-    curStep(NULL)
+    QOpenGLWidget(parent)
 {
     QSurfaceFormat format;
     format.setVersion(3,3);
@@ -87,7 +82,8 @@ void GLWidget::paintGL()
 {
     vMatrix.setToIdentity();
     vMatrix.lookAt(QVector3D(0,0,10),QVector3D(),QVector3D(0,1,0));
-    //vMatrix.translate(0,0,0);
+    vMatrix.translate(xshift, yshift, 0);
+    vMatrix.scale(distance);
     drawAtoms();
     drawBonds();
     drawCell();
@@ -202,12 +198,12 @@ void GLWidget::drawBonds()
            glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)((i-1)*16));
         }
         pbc_vbo.release();
-        for(int x=0;x!=mult[0];++x){
-            for(int y=0;y!=mult[1];++y){
-                for(int z=0;z!=mult[2];++z){
+        for(int x=0;x!=std::max(mult[0]-1,1);++x){
+            for(int y=0;y!=std::max(mult[1]-1,1);++y){
+                for(int z=0;z!=std::max(mult[2]-1,1);++z){
                     Vec off = -center + x*xvec + y*yvec + z*zvec;
                     bond_shader.setUniformValue("offset", QVector4D(off[0], off[1], off[2], 0));
-                    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
+                    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,pbc_buffer.size());
                 }
             }
         }
@@ -268,7 +264,7 @@ void GLWidget::resizeGL(int w, int h)
 void GLWidget::setMode(int i,bool t)
 {
     if(!t)return;
-    i=i+1;
+    std::cout << i << std::endl;
 }
 
 void GLWidget::setMult(int i)
@@ -285,15 +281,17 @@ void GLWidget::setStep(const Step& step)
     curStep = &step;
     //cell
     float cdm = step.getCellDim();
-    Vec x,y,z;
-    x = step.getCellVec()[0]*cdm;
-    y = step.getCellVec()[1]*cdm;
-    z = step.getCellVec()[2]*cdm;
-    cell_buffer = {{ Vec(),x,y,z,x+y,x+z,y+z,x+y+z }};
+    Vec x_vec,y_vec,z_vec;
+    x_vec = step.getCellVec()[0]*cdm;
+    y_vec = step.getCellVec()[1]*cdm;
+    z_vec = step.getCellVec()[2]*cdm;
+    cell_buffer = {{ Vec(),x_vec,y_vec,z_vec,x_vec+y_vec,x_vec+z_vec,
+                     y_vec+z_vec,x_vec+y_vec+z_vec }};
     //atoms
+    const std::vector<Atom>& atoms = step.getAtoms();
     atom_buffer.reserve(step.getNat());
     atom_buffer.clear();
-    for(const Atom& at:step.getAtoms()){
+    for(const Atom& at:atoms){
         PseEntry *pse = &step.pse[at.name];
         atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse->covr,
                           pse->col[0],pse->col[1],pse->col[2],pse->col[3]}});
@@ -310,10 +308,15 @@ void GLWidget::setStep(const Step& step)
     pbc_buffer.reserve(step.getNat());
     pbc_buffer.clear();
     for(const Bond& bd:step.getBondsCell()){
-        p1 = step.getAtom(bd.at1).coord;
-        p2 = step.getAtom(bd.at2).coord;
-        c1 = step.pse[step.getAtom(bd.at1).name].col;
-        c2 = step.pse[step.getAtom(bd.at2).name].col;
+        const Atom &at1 = atoms[bd.at1];
+        const Atom &at2 = atoms[bd.at2];
+        c1 = step.pse[at1.name].col;
+        c2 = step.pse[at2.name].col;
+        p1 = at1.coord;
+        p2 = at2.coord;
+        if (bd.xdiff>0){ p2 += bd.xdiff * x_vec; }else if(bd.xdiff<0){ p1 -= bd.xdiff * x_vec; }
+        if (bd.ydiff>0){ p2 += bd.ydiff * y_vec; }else if(bd.ydiff<0){ p1 -= bd.ydiff * y_vec; }
+        if (bd.zdiff>0){ p2 += bd.zdiff * z_vec; }else if(bd.zdiff<0){ p1 -= bd.zdiff * z_vec; }
         b_axis = p1-p2;
         pos = (p1+p2)/2;
         if(std::abs(b_axis[1])<std::numeric_limits<float>::epsilon()&&
@@ -329,7 +332,6 @@ void GLWidget::setStep(const Step& step)
             ic=1-c;
             s = -std::sqrt(1-c*c);
         }
-        std::cout << bd.xdiff << " " << bd.ydiff << " " << bd.zdiff << std::endl;
         if(bd.xdiff==0 && bd.ydiff == 0 && bd.zdiff == 0){
             bond_buffer.push_back({
                  bd.dist*(ic*r_axis[0]*r_axis[0]+c),
@@ -378,27 +380,98 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
             {QMatrix4x4 tmp;
             tmp.rotate(10,1,0,0);
             rMatrix = tmp*rMatrix;
-            update();}
+            update();
+            e->accept();}
             break;
         case Qt::Key_Up:
             {QMatrix4x4 tmp;
             tmp.rotate(-10,1,0,0);
             rMatrix = tmp*rMatrix;
-            update();}
+            update();
+            e->accept();}
             break;
         case Qt::Key_Left:
             {QMatrix4x4 tmp;
             tmp.rotate(-10,0,1,0);
             rMatrix = tmp*rMatrix;
-            update();}
+            update();
+            e->accept();}
             break;
         case Qt::Key_Right:
             {QMatrix4x4 tmp;
             tmp.rotate(10,0,1,0);
             rMatrix = tmp*rMatrix;
-            update();}
+            update();
+            e->accept();}
             break;
         default:
+            break;
+    }
+}
+
+void GLWidget::wheelEvent(QWheelEvent *e)
+{
+    int delta = e->angleDelta().y();
+    distance *= delta>0 ? 1.1 : 0.9;
+    update();
+    e->accept();
+}
+
+void GLWidget::mousePressEvent(QMouseEvent *e)
+{
+    setFocus();
+    if (!(e->buttons()&7)) return;
+    mousePos = e->pos();
+    switch(mouseMode){
+        case MouseMode::Camera:
+            if(e->button() == Qt::MouseButton::RightButton){
+                rMatrix.setToIdentity();
+                update();
+            }
+            break;
+        case MouseMode::Select:
+            break;
+        case MouseMode::Modify:
+            break;
+    }
+}
+
+void GLWidget::mouseMoveEvent(QMouseEvent *e)
+{
+    if (!(e->buttons()&7)) return;
+    QPoint delta = e->pos() - mousePos;
+    switch(mouseMode){
+        case MouseMode::Camera:
+            if(e->buttons() & Qt::MouseButton::LeftButton){
+                QMatrix4x4 tmp;
+                tmp.rotate(delta.x(),0,1,0);
+                tmp.rotate(delta.y(),1,0,0);
+                rMatrix = tmp * rMatrix;
+                update();
+            }else if(e->buttons() & Qt::MouseButton::MiddleButton){
+                xshift += delta.x() / 10.;
+                yshift -= delta.y() / 10.;
+                update();
+            }
+            break;
+        case MouseMode::Select:
+            break;
+        case MouseMode::Modify:
+            break;
+    }
+    mousePos = e->pos();
+    e->accept();
+}
+
+void GLWidget::mouseReleaseEvent(QMouseEvent *e)
+{
+    if (!(e->buttons()&7)) return;
+    switch(mouseMode){
+        case MouseMode::Camera:
+            break;
+        case MouseMode::Select:
+            break;
+        case MouseMode::Modify:
             break;
     }
 }

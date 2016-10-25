@@ -4,13 +4,14 @@
 MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    molIdx(0)
+    curMol(NULL)
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
-             ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
+            ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
         }
     }
     newMol();
@@ -19,10 +20,11 @@ MainWindow::MainWindow(QWidget *parent):
 MainWindow::MainWindow(Vipster::Molecule m, QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    molIdx(0)
+    curMol(NULL)
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
              ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
@@ -36,16 +38,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-Vipster::Molecule& MainWindow::curMol()
-{
-    return molecules.at(molIdx);
-}
-
 void MainWindow::setMol(int i)
 {
-    molIdx = i;
-    uint steps = curMol().steps.size();
-    uint curStep = curMol().stepIdx;
+    curMol = &molecules.at(i);
+    uint steps = curMol->steps.size();
+    uint curStep = curMol->stepIdx;
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
     ui->stepEdit->setMaximum(steps);
@@ -65,9 +62,9 @@ void MainWindow::setMol(int i)
 void MainWindow::setStep(int i)
 {
     if(i<0){
-        i=curMol().stepIdx+1;
+        i=curMol->stepIdx+1;
     }else{
-        curMol().stepIdx=i;
+        curMol->stepIdx=i;
     }
     //Handle control-buttons
     if(i == 1){
@@ -80,8 +77,8 @@ void MainWindow::setStep(int i)
     //Fill atom list
     QSignalBlocker blockTable(ui->atomTable);
     int oldCount = ui->atomTable->rowCount();
-    int nat = curMol().curStep().getNat();
-    const std::vector<Vipster::Atom> *atoms = &curMol().curStep().getAtoms();
+    int nat = curMol->curStep().getNat();
+    const std::vector<Vipster::Atom> *atoms = &curMol->curStep().getAtoms();
     ui->atomTable->setRowCount(nat);
     if( oldCount < nat){
         for(int j=oldCount;j!=nat;++j){
@@ -103,22 +100,26 @@ void MainWindow::setStep(int i)
         }
     }
     //Fill cell view
-    ui->cellDimBox->setValue(curMol().curStep().getCellDim());
-    std::array<Vipster::Vec,3> vec = curMol().curStep().getCellVec();
+    ui->cellDimBox->setValue(curMol->curStep().getCellDim());
+    std::array<Vipster::Vec,3> vec = curMol->curStep().getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
             ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
         }
     }
     //Update display widget
-    ui->openGLWidget->setStep(curMol().curStep());
+    ui->openGLWidget->setStep(curMol->curStep());
 }
 
 void MainWindow::editAtoms()
 {
-    if ( QObject::sender() == ui->actionNew_Atom){
-        curMol().curStep().newAtom();
+    const QObject *sender = QObject::sender();
+    if ( sender == ui->actionNew_Atom){
+        curMol->curStep().newAtom();
     }
+//    }else if ( sender == ui->actionDelete_Atom_s){
+//        curMol->curStep().delAtom();
+//    }
     setStep();
 }
 
@@ -136,26 +137,22 @@ void MainWindow::about()
 
 void MainWindow::on_cellDimBox_valueChanged(double arg1)
 {
-    curMol().curStep().setCellDim(arg1,ui->cellScaleBox->isChecked());
+    curMol->curStep().setCellDim(arg1,ui->cellScaleBox->isChecked());
     setStep();
 }
 
 void MainWindow::on_cellVecTable_cellChanged(int row, int column)
 {
     std::array<std::array<float,3>,3> vec;
-    try{
-        vec = curMol().curStep().getCellVec();
-    }catch(std::out_of_range){
-        return;
-    }
+    vec = curMol->curStep().getCellVec();
     vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
-    curMol().curStep().setCellVec(vec);
+    curMol->curStep().setCellVec(vec);
     setStep();
 }
 
 void MainWindow::on_atomTable_cellChanged(int row, int column)
 {
-    Vipster::Atom at = curMol().curStep().getAtom(row);
+    Vipster::Atom at = curMol->curStep().getAtom(row);
     QTableWidgetItem *cell = ui->atomTable->item(row,column);
     switch(column){
     case 0:
@@ -166,6 +163,6 @@ void MainWindow::on_atomTable_cellChanged(int row, int column)
         at.coord[column-1] = locale().toDouble(cell->text());
         at.fix[column-1] = cell->checkState()/2;
     }
-    curMol().curStep().setAtom(row,at);
+    curMol->curStep().setAtom(row,at);
     setStep();
 }

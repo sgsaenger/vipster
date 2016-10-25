@@ -665,6 +665,9 @@
    <property name="text">
     <string>&amp;Delete Atom(s)</string>
    </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
   </action>
   <action name="actionCopy_Atom_s">
    <property name="text">
@@ -888,7 +891,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>357</x>
-     <y>635</y>
+     <y>626</y>
     </hint>
    </hints>
   </connection>
@@ -969,6 +972,22 @@
     <hint type="destinationlabel">
      <x>1188</x>
      <y>526</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDelete_Atom_s</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editAtoms()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
     </hint>
    </hints>
   </connection>

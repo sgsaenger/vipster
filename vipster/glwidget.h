@@ -23,14 +23,17 @@ public:
     void paintGL(void);
     void resizeGL(int w, int h);
     void keyPressEvent(QKeyEvent *e);
-    //void mousePressEvent(QMouseEvent *e);
-    //void mouseMoveEvent(QMouseEvent *e);
-    //void mouseReleaseEvent(QMouseEvent *);
-    void setStep(const Vipster::Step& step);
+    void wheelEvent(QWheelEvent *e);
+    void mousePressEvent(QMouseEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
 public slots:
+    void setStep(const Vipster::Step& step);
     void setMode(int i,bool t);
     void setMult(int i);
 private:
+    const Vipster::Step* curStep{NULL}; // Pointer to currently loaded Step
+    // OGL-CPU/GPU buffers
     QOpenGLVertexArrayObject vao;
     QOpenGLShaderProgram atom_shader,bond_shader,cell_shader;
     QOpenGLBuffer sphere_vbo,torus_vbo;     //model-geometries
@@ -38,15 +41,21 @@ private:
     QOpenGLBuffer bond_vbo; //gpu-side data
     QOpenGLBuffer pbc_vbo;  //gpu-side data
     QOpenGLBuffer cell_vbo; //gpu-side data
-    QOpenGLBuffer cell_ibo; //gpu-side data
+    QOpenGLBuffer cell_ibo{QOpenGLBuffer::IndexBuffer}; //gpu-side data
     std::vector<std::array<float,8>> atom_buffer;  //cpu-side data
     std::vector<std::array<float,24>> bond_buffer; //cpu-side data
     std::vector<std::array<float,24>> pbc_buffer;  //cpu-side data
     std::array<std::array<float,3>,8> cell_buffer; //cpu-side data
+    // Other data for rendering
     QMatrix4x4 pMatrix,vMatrix,rMatrix;
-    std::array<int,3> mult = {{1,1,1}}; //number of repetitions
-    bool aVo,bVo,cVo; //keep track if vbos are outdated
-    const Vipster::Step* curStep;
+    std::array<int,3> mult{{1,1,1}}; //number of repetitions
+    bool aVo{true},bVo{true},cVo{true}; //keep track if vbos are outdated
+    float xshift{0.0}, yshift{0.0}, distance{1.0};
+    // Input handling
+    enum class MouseMode { Camera, Select, Modify };
+    MouseMode mouseMode{MouseMode::Camera};
+    QPoint mousePos;
+    // private functions:
     void drawAtoms(void);
     void drawBonds(void);
     void drawCell(void);

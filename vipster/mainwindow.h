@@ -19,7 +19,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     explicit MainWindow(Vipster::Molecule m, QWidget *parent = 0);
     ~MainWindow();
-    inline Vipster::Molecule& curMol();
 
 public slots:
     void setMol(int i);
@@ -36,7 +35,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     std::vector<Vipster::Molecule> molecules;
-    uint molIdx;
+    Vipster::Molecule *curMol;
 };
 
 #endif // MAINWINDOW_H
