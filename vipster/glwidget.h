@@ -39,12 +39,10 @@ private:
     QOpenGLBuffer sphere_vbo,torus_vbo;     //model-geometries
     QOpenGLBuffer atom_vbo;                 //positions and properties
     QOpenGLBuffer bond_vbo; //gpu-side data
-    QOpenGLBuffer pbc_vbo;  //gpu-side data
     QOpenGLBuffer cell_vbo; //gpu-side data
     QOpenGLBuffer cell_ibo{QOpenGLBuffer::IndexBuffer}; //gpu-side data
     std::vector<std::array<float,8>> atom_buffer;  //cpu-side data
     std::vector<std::array<float,24>> bond_buffer; //cpu-side data
-    std::vector<std::array<float,24>> pbc_buffer;  //cpu-side data
     std::array<std::array<float,3>,8> cell_buffer; //cpu-side data
     // Other data for rendering
     QMatrix4x4 pMatrix,vMatrix,rMatrix;

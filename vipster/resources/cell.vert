@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec3 vertex_modelspace;
+layout(location = 0) in vec3 vertex_modelspace;
 uniform mat4 vpMatrix;
 uniform vec3 offset;
 

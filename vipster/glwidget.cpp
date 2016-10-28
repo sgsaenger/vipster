@@ -16,6 +16,8 @@ GLWidget::GLWidget(QWidget *parent):
 {
     QSurfaceFormat format;
     format.setVersion(3,3);
+    format.setSamples(8);
+    format.setAlphaBufferSize(8);
     format.setProfile(QSurfaceFormat::CoreProfile);
     this->setFormat(format);
 }
@@ -34,11 +36,12 @@ GLWidget::~GLWidget()
 void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
+    glEnable(GL_MULTISAMPLE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     vao.create();
     if(vao.isCreated())vao.bind();
     atom_vbo.create();
     bond_vbo.create();
-    pbc_vbo.create();
 
     cell_vbo.create();
     cell_ibo.create();
@@ -108,13 +111,13 @@ void GLWidget::drawAtoms()
 
     atom_vbo.bind();
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,32,0);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
     glVertexAttribDivisor(1,1);
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,32,(const GLvoid*)12);
+    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
     glVertexAttribDivisor(2,1);
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,32,(const GLvoid*)16);
+    glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
     glVertexAttribDivisor(3,1);
     atom_vbo.release();
     Vec center = curStep->getCenter();
@@ -150,9 +153,6 @@ void GLWidget::drawBonds()
         bond_vbo.bind();
         bond_vbo.allocate((void*)bond_buffer.data(),bond_buffer.size()*24*sizeof(float));
         bond_vbo.release();
-        pbc_vbo.bind();
-        pbc_vbo.allocate((void*)pbc_buffer.data(),pbc_buffer.size()*24*sizeof(float));
-        pbc_vbo.release();
     }
     bond_shader.bind();
     torus_vbo.bind();
@@ -161,13 +161,20 @@ void GLWidget::drawBonds()
     torus_vbo.release();
     bond_shader.setUniformValue("vpMatrix",pMatrix*vMatrix*rMatrix);
     bond_shader.setUniformValue("rMatrix",rMatrix);
+    bond_shader.setUniformValue("mult",mult[0], mult[1], mult[2]);
 
     bond_vbo.bind();
-    for(long i=1;i!=7;++i){
-       glEnableVertexAttribArray(i);
-       glVertexAttribDivisor(i,1);
-       glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)((i-1)*16));
+    for(long i=1;i!=8;++i){
+        glEnableVertexAttribArray(i);
+        glVertexAttribDivisor(i,1);
     }
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,24*sizeof(float),0);
+    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(3*sizeof(float)));
+    glVertexAttribPointer(3,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(6*sizeof(float)));
+    glVertexAttribPointer(4,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(9*sizeof(float)));
+    glVertexAttribPointer(5,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(12*sizeof(float)));
+    glVertexAttribPointer(6,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(16*sizeof(float)));
+    glVertexAttribPointer(7,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(20*sizeof(float)));
     bond_vbo.release();
     Vec center = curStep->getCenter();
     Vec xvec = curStep->getCellVec()[0]*curStep->getCellDim();
@@ -180,37 +187,15 @@ void GLWidget::drawBonds()
         for(int y=0;y!=mult[1];++y){
             for(int z=0;z!=mult[2];++z){
                 Vec off = -center + x*xvec + y*yvec + z*zvec;
-                bond_shader.setUniformValue("offset", QVector4D(off[0], off[1], off[2], 0));
+                bond_shader.setUniformValue("offset", QVector3D(off[0], off[1], off[2]));
+                bond_shader.setUniformValue("pbc_cell", QVector3D(x,y,z));
                 glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
             }
         }
     }
-    for(int i=1;i!=7;++i){
+    for(int i=1;i!=8;++i){
        glDisableVertexAttribArray(i);
        glVertexAttribDivisor(i,0);
-    }
-
-    if(mult[0] != 1 || mult[1] != 1 || mult[2] != 1){
-        pbc_vbo.bind();
-        for(long i=1;i!=7;++i){
-           glEnableVertexAttribArray(i);
-           glVertexAttribDivisor(i,1);
-           glVertexAttribPointer(i,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)((i-1)*16));
-        }
-        pbc_vbo.release();
-        for(int x=0;x!=std::max(mult[0]-1,1);++x){
-            for(int y=0;y!=std::max(mult[1]-1,1);++y){
-                for(int z=0;z!=std::max(mult[2]-1,1);++z){
-                    Vec off = -center + x*xvec + y*yvec + z*zvec;
-                    bond_shader.setUniformValue("offset", QVector4D(off[0], off[1], off[2], 0));
-                    glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,pbc_buffer.size());
-                }
-            }
-        }
-        for(int i=1;i!=7;++i){
-           glDisableVertexAttribArray(i);
-           glVertexAttribDivisor(i,0);
-        }
     }
     bond_shader.release();
 }
@@ -264,7 +249,7 @@ void GLWidget::resizeGL(int w, int h)
 void GLWidget::setMode(int i,bool t)
 {
     if(!t)return;
-    std::cout << i << std::endl;
+//    std::cout << i << std::endl;
 }
 
 void GLWidget::setMult(int i)
@@ -305,8 +290,6 @@ void GLWidget::setStep(const Step& step)
     Vec x_axis{{1,0,0}};
     bond_buffer.reserve(step.getNat());
     bond_buffer.clear();
-    pbc_buffer.reserve(step.getNat());
-    pbc_buffer.clear();
     for(const Bond& bd:step.getBondsCell()){
         const Atom &at1 = atoms[bd.at1];
         const Atom &at2 = atoms[bd.at2];
@@ -332,43 +315,29 @@ void GLWidget::setStep(const Step& step)
             ic=1-c;
             s = -std::sqrt(1-c*c);
         }
-        if(bd.xdiff==0 && bd.ydiff == 0 && bd.zdiff == 0){
-            bond_buffer.push_back({
-                 bd.dist*(ic*r_axis[0]*r_axis[0]+c),
-                 bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
-                 bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
-                 0,
-                 rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
-                 rad*(ic*r_axis[1]*r_axis[1]+c),
-                 rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
-                 0,
-                 rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
-                 rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
-                 rad*(ic*r_axis[2]*r_axis[2]+c),
-                 0,
-                 pos[0],pos[1],pos[2],1,
-                 c1[0],c1[1],c1[2],c1[3],
-                 c2[0],c2[1],c2[2],c2[3]
-             });
-        }else{
-            pbc_buffer.push_back({
-                 bd.dist*(ic*r_axis[0]*r_axis[0]+c),
-                 bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
-                 bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
-                 0,
-                 rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
-                 rad*(ic*r_axis[1]*r_axis[1]+c),
-                 rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
-                 0,
-                 rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
-                 rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
-                 rad*(ic*r_axis[2]*r_axis[2]+c),
-                 0,
-                 pos[0],pos[1],pos[2],1,
-                 c1[0],c1[1],c1[2],c1[3],
-                 c2[0],c2[1],c2[2],c2[3]
-             });
-        }
+        bond_buffer.push_back({
+             //mat3 with rotation and scaling
+             bd.dist*(ic*r_axis[0]*r_axis[0]+c),
+             bd.dist*(ic*r_axis[0]*r_axis[1]-s*r_axis[2]),
+             bd.dist*(ic*r_axis[0]*r_axis[2]+s*r_axis[1]),
+             rad*(ic*r_axis[1]*r_axis[0]+s*r_axis[2]),
+             rad*(ic*r_axis[1]*r_axis[1]+c),
+             rad*(ic*r_axis[1]*r_axis[2]-s*r_axis[0]),
+             rad*(ic*r_axis[2]*r_axis[0]-s*r_axis[1]),
+             rad*(ic*r_axis[2]*r_axis[1]+s*r_axis[0]),
+             rad*(ic*r_axis[2]*r_axis[2]+c),
+             //vec3 with position in modelspace
+             pos[0],pos[1],pos[2],
+             //faux vec4 with integral pbc information
+             (float)std::abs(bd.xdiff),
+             (float)std::abs(bd.ydiff),
+             (float)std::abs(bd.zdiff),
+             //padding float that tells if non-pbc bond
+             (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
+             //2*vec4 with colors
+             c1[0],c1[1],c1[2],c1[3],
+             c2[0],c2[1],c2[2],c2[3]
+        });
     }
     update();
 }

@@ -1,8 +1,8 @@
 #version 330 core
-in vec3 vertex_modelspace;
-in vec3 position_modelspace;
-in float scale_modelspace;
-in vec4 color_input;
+layout(location = 0) in vec3 vertex_modelspace;
+layout(location = 1) in vec3 position_modelspace;
+layout(location = 2) in float scale_modelspace;
+layout(location = 3) in vec4 color_input;
 
 uniform mat4 vpMatrix;
 uniform mat4 rMatrix;
