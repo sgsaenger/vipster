@@ -27,10 +27,11 @@ public:
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
-public slots:
     void setStep(const Vipster::Step& step);
+public slots:
     void setMode(int i,bool t);
     void setMult(int i);
+    void setCamera(int i);
 private:
     const Vipster::Step* curStep{NULL}; // Pointer to currently loaded Step
     // OGL-CPU/GPU buffers

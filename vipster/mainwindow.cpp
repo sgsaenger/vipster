@@ -146,7 +146,7 @@ void MainWindow::on_cellVecTable_cellChanged(int row, int column)
     std::array<std::array<float,3>,3> vec;
     vec = curMol->curStep().getCellVec();
     vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
-    curMol->curStep().setCellVec(vec);
+    curMol->curStep().setCellVec(vec,ui->cellScaleBox->isChecked());
     setStep();
 }
 

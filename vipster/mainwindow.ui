@@ -45,7 +45,7 @@
          <bool>true</bool>
         </property>
         <attribute name="buttonGroup">
-         <string notr="true">buttonGroup</string>
+         <string notr="true">modeGroup</string>
         </attribute>
        </widget>
       </item>
@@ -58,7 +58,7 @@
          <bool>true</bool>
         </property>
         <attribute name="buttonGroup">
-         <string notr="true">buttonGroup</string>
+         <string notr="true">modeGroup</string>
         </attribute>
        </widget>
       </item>
@@ -71,7 +71,7 @@
          <bool>true</bool>
         </property>
         <attribute name="buttonGroup">
-         <string notr="true">buttonGroup</string>
+         <string notr="true">modeGroup</string>
         </attribute>
        </widget>
       </item>
@@ -101,43 +101,64 @@
         <item>
          <widget class="QPushButton" name="pxButton">
           <property name="text">
-           <string>+x</string>
+           <string notr="true">+x</string>
           </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">cameraGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pyButton">
           <property name="text">
-           <string>+y</string>
+           <string notr="true">+y</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">cameraGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pzButton">
           <property name="text">
-           <string>+z</string>
+           <string notr="true">+z</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">cameraGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="mxButton">
           <property name="text">
-           <string>-x</string>
+           <string notr="true">-x</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">cameraGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="myButton">
           <property name="text">
-           <string>-y</string>
+           <string notr="true">-y</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">cameraGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="mzButton">
           <property name="text">
-           <string>-z</string>
+           <string notr="true">-z</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">cameraGroup</string>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -205,6 +226,9 @@
           <property name="text">
            <string/>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">stepGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -212,6 +236,9 @@
           <property name="text">
            <string/>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">stepGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -219,6 +246,9 @@
           <property name="text">
            <string/>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">stepGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -226,6 +256,9 @@
           <property name="text">
            <string/>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">stepGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -233,6 +266,9 @@
           <property name="text">
            <string/>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">stepGroup</string>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -284,7 +320,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>19</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -384,8 +420,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>353</width>
-          <height>594</height>
+          <width>341</width>
+          <height>566</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -724,6 +760,7 @@
    <slots>
     <slot>setMode(int,bool)</slot>
     <slot>setMult(int)</slot>
+    <slot>setCamera(int)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -774,12 +811,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1211</x>
-     <y>620</y>
+     <x>1209</x>
+     <y>632</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1170</x>
-     <y>627</y>
+     <x>1159</x>
+     <y>626</y>
     </hint>
    </hints>
   </connection>
@@ -790,8 +827,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>46</x>
-     <y>233</y>
+     <x>44</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
      <x>60</x>
@@ -822,8 +859,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>150</x>
-     <y>416</y>
+     <x>148</x>
+     <y>385</y>
     </hint>
     <hint type="destinationlabel">
      <x>160</x>
@@ -912,7 +949,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonGroup</sender>
+   <sender>modeGroup</sender>
    <signal>buttonToggled(int,bool)</signal>
    <receiver>openGLWidget</receiver>
    <slot>setMode(int,bool)</slot>
@@ -934,8 +971,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1116</x>
-     <y>594</y>
+     <x>1118</x>
+     <y>588</y>
     </hint>
     <hint type="destinationlabel">
      <x>1079</x>
@@ -950,8 +987,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1171</x>
-     <y>593</y>
+     <x>1175</x>
+     <y>588</y>
     </hint>
     <hint type="destinationlabel">
      <x>1137</x>
@@ -966,8 +1003,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1211</x>
-     <y>589</y>
+     <x>1232</x>
+     <y>588</y>
     </hint>
     <hint type="destinationlabel">
      <x>1188</x>
@@ -991,6 +1028,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>cameraGroup</sender>
+   <signal>buttonClicked(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setCamera(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>496</x>
+     <y>67</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>792</x>
+     <y>319</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -1002,6 +1055,8 @@
   <slot>setCellDim(double)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
+  <buttongroup name="modeGroup"/>
+  <buttongroup name="cameraGroup"/>
+  <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>

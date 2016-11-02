@@ -342,6 +342,47 @@ void GLWidget::setStep(const Step& step)
     update();
 }
 
+void GLWidget::setCamera(int i)
+{
+    switch(i){
+    case -2: // +x
+        rMatrix = QMatrix4x4{ 0, 1, 0, 0,
+                              0, 0, 1, 0,
+                              1, 0, 0, 0,
+                              0, 0, 0, 1};
+        break;
+    case -5: // -x
+        rMatrix = QMatrix4x4{ 0,-1, 0, 0,
+                              0, 0, 1, 0,
+                             -1, 0, 0, 0,
+                              0, 0, 0, 1};
+        break;
+    case -3: // +y
+        rMatrix = QMatrix4x4{-1, 0, 0, 0,
+                              0, 0, 1, 0,
+                              0, 1, 0, 0,
+                              0, 0, 0, 1};
+        break;
+    case -6: // -y
+        rMatrix = QMatrix4x4{ 1, 0, 0, 0,
+                              0, 0, 1, 0,
+                              0,-1, 0, 0,
+                              0, 0, 0, 1};
+        break;
+    case -4: // +z
+        rMatrix.setToIdentity();
+        break;
+    case -7: // -z
+        rMatrix = QMatrix4x4{-1, 0, 0, 0,
+                              0, 1, 0, 0,
+                              0, 0,-1, 0,
+                              0, 0, 0, 1};
+        break;
+    }
+    std::cout << i << std::endl;
+    update();
+}
+
 void GLWidget::keyPressEvent(QKeyEvent *e)
 {
     switch(e->key()){
