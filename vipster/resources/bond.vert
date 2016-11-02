@@ -30,7 +30,6 @@ void main(void)
         render = int((test.x > pbc_cell.x) && (test.y > pbc_cell.y) && (test.z > pbc_cell.z));
     }
     //standard vertex positioning:
-//    gl_Position = vpMatrix * (mMatrix * vec4(vertex_modelspace,1) + offset);
     gl_Position = vpMatrix * vec4(mMatrix * vertex_modelspace + pos_modelspace + offset, 1);
     //pass coordinate and colors to fragment shader
     vertex_side = vertex_modelspace.x;
@@ -47,6 +46,5 @@ void main(void)
     LightDirection_cameraspace = vec3(10,10,10) + EyeDirection_cameraspace;
 
     //Normals in camera space
-//    normals_cameraspace = (rMatrix*mMatrix * vec4(0,vertex_modelspace.yz,0)).xyz;
     normals_cameraspace = (rMatrix * vec4(mMatrix * vec3(0,vertex_modelspace.yz),0)).xyz;
 }

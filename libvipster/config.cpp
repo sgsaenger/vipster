@@ -22,7 +22,7 @@ std::map<std::string, PseEntry> Vipster::readPse()
                     v["vdwr"],v["col"]};
         }
     }else{
-        temp["X"]=PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,}}};
+        temp["X"]=PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}};
     }
     return temp;
 }

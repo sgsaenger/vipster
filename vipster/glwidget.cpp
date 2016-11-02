@@ -249,7 +249,6 @@ void GLWidget::resizeGL(int w, int h)
 void GLWidget::setMode(int i,bool t)
 {
     if(!t)return;
-//    std::cout << i << std::endl;
 }
 
 void GLWidget::setMult(int i)
@@ -282,19 +281,20 @@ void GLWidget::setStep(const Step& step)
                           pse->col[0],pse->col[1],pse->col[2],pse->col[3]}});
     }
     //bonds
-    Vec p1,p2,pos; //positions
-    std::vector<float> c1,c2; //colors
-    float c,s,ic; //cosine, sine, inverse cosine and angle for rot-mat
-    float rad=0.53; //TODO: pull bond-radius from config
-    Vec b_axis,r_axis; //bond, rotation axes
-    Vec x_axis{{1,0,0}};
+    Vec p1, p2, pos; //positions
+    std::vector<float> c1, c2; //colors
+    float c, s, ic; //cosine, sine, inverse cosine and angle for rot-mat
+    float rad = 0.53; //TODO: pull bond-radius from config
+    Vec b_axis, r_axis; //bond, rotation axes
+    constexpr Vec x_axis{{1,0,0}};
     bond_buffer.reserve(step.getNat());
     bond_buffer.clear();
     for(const Bond& bd:step.getBondsCell()){
         const Atom &at1 = atoms[bd.at1];
         const Atom &at2 = atoms[bd.at2];
         c1 = step.pse[at1.name].col;
-        c2 = step.pse[at2.name].col;
+        std::vector<float> &c1 = step.pse[at1.name].col;
+        std::vector<float> &c2 = step.pse[at2.name].col;
         p1 = at1.coord;
         p2 = at2.coord;
         if (bd.xdiff>0){ p2 += bd.xdiff * x_vec; }else if(bd.xdiff<0){ p1 -= bd.xdiff * x_vec; }
@@ -304,15 +304,15 @@ void GLWidget::setStep(const Step& step)
         pos = (p1+p2)/2;
         if(std::abs(b_axis[1])<std::numeric_limits<float>::epsilon()&&
                 std::abs(b_axis[2])<std::numeric_limits<float>::epsilon()){
-            r_axis={{0,1,0}};
-            c=std::copysign(1.,b_axis[0]);
-            ic=1-c;
-            s=0;
+            r_axis = {{0,1,0}};
+            c = std::copysign(1.,b_axis[0]);
+            ic = 1-c;
+            s = 0;
         }else{
             r_axis = -Vec_cross(b_axis,x_axis);
-            r_axis/=Vec_length(r_axis);
+            r_axis /= Vec_length(r_axis);
             c = Vec_dot(b_axis,x_axis)/Vec_length(b_axis);
-            ic=1-c;
+            ic = 1-c;
             s = -std::sqrt(1-c*c);
         }
         bond_buffer.push_back({

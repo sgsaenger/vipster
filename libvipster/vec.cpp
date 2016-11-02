@@ -126,7 +126,7 @@ float Vipster::Vec_dot(const Vec &v1, const Vec &v2)
 
 Vec Vipster::Vec_cross(const Vec &v1, const Vec &v2)
 {
-    return Vec{{v1[1]*v2[2]-v1[2]*v2[1],
-                  v1[2]*v2[0]-v1[0]*v1[2],
-                  v1[0]*v2[1]-v1[1]*v2[0]}};
+    return Vec{{v1[1]*v2[2] - v1[2]*v2[1],
+                v1[2]*v2[0] - v1[0]*v2[2],
+                v1[0]*v2[1] - v1[1]*v2[0]}};
 }
