@@ -5,6 +5,7 @@
 MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
     curMol(NULL),
+    curStep(NULL),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -15,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent):
 MainWindow::MainWindow(Vipster::Molecule m, QWidget *parent):
     QMainWindow(parent),
     curMol(NULL),
+    curStep(NULL),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -27,17 +29,21 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setMol(void)
+{
+    setMol(1);
+}
+
 void MainWindow::setMol(int i)
 {
-    curMol = &molecules.at(i);
+    curMol = &molecules.at(i-1);
     uint steps = curMol->steps.size();
-    uint curStep = curMol->stepIdx;
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
     ui->stepEdit->setMaximum(steps);
-    ui->stepEdit->setValue(curStep+1);
+    ui->stepEdit->setValue(1);
     ui->stepSlider->setMaximum(steps);
-    ui->stepSlider->setValue(curStep+1);
+    ui->stepSlider->setValue(1);
     if(steps == 1){
         ui->stepEdit->setDisabled(true);
         ui->stepSlider->setDisabled(true);
@@ -45,16 +51,17 @@ void MainWindow::setMol(int i)
         ui->stepEdit->setEnabled(true);
         ui->stepSlider->setEnabled(true);
     }
-    setStep(curStep);
+    setStep();
+}
+
+void MainWindow::setStep(void)
+{
+    setStep(1);
 }
 
 void MainWindow::setStep(int i)
 {
-    if(i<0){
-        i=curMol->stepIdx+1;
-    }else{
-        curMol->stepIdx=i;
-    }
+    curStep = &curMol->steps.at(i-1);
     //Handle control-buttons
     if(i == 1){
         ui->preStepButton->setDisabled(true);
@@ -64,14 +71,15 @@ void MainWindow::setStep(int i)
         ui->firstStepButton->setEnabled(true);
     }
     //Update child widgets
-    ui->openGLWidget->setStep(curMol->curStep());
+    ui->openGLWidget->setStep(curStep);
+    ui->molWidget->setStep(curStep);
 }
 
 void MainWindow::editAtoms()
 {
     const QObject *sender = QObject::sender();
     if ( sender == ui->actionNew_Atom){
-        curMol->curStep().newAtom();
+        curStep->newAtom();
     }
 //    }else if ( sender == ui->actionDelete_Atom_s){
 //        curMol->curStep().delAtom();
@@ -82,8 +90,7 @@ void MainWindow::editAtoms()
 void MainWindow::newMol(Vipster::Molecule m)
 {
     molecules.push_back(m);
-//    ui->molList->addItem(m.name.c_str());
-//    setMol(ui->molList->count()-1);
+    setMol(molecules.size());
 }
 
 void MainWindow::about()

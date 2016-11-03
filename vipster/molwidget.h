@@ -19,7 +19,10 @@ public:
     explicit MolWidget(QWidget *parent = 0);
     ~MolWidget();
     void setStep(Vipster::Step *step);
-    void setMolecules(const std::vector<Vipster::Molecule> &molecules);
+
+signals:
+    void stepChanged();
+    void molChanged();
 
 private slots:
     void on_cellDimBox_valueChanged(double cdm);

@@ -19,10 +19,13 @@ public:
     explicit MainWindow(Vipster::Molecule m, QWidget *parent = 0);
     ~MainWindow();
     Vipster::Molecule *curMol;
+    Vipster::Step *curStep;
 
 public slots:
+    void setMol(void);
     void setMol(int i);
-    void setStep(int i=-1);
+    void setStep(void);
+    void setStep(int i);
     void about(void);
     void newMol(Vipster::Molecule m=Vipster::Molecule());
     void editAtoms(void);

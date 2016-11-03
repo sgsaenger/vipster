@@ -3,14 +3,13 @@
 #include <array>
 #include <atom.h>
 #include <QTableWidgetItem>
+#include <iostream>
 
 MolWidget::MolWidget(QWidget *parent) :
     QWidget(parent),
-    parent((MainWindow*)parent),
     ui(new Ui::MolWidget),
     curStep(NULL)
 {
-    connect(ui->molList,SIGNAL(currentRowChanged(int)),parent,SLOT(setMol(int)));
     ui->setupUi(this);
     QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
@@ -30,6 +29,8 @@ void MolWidget::setStep(Vipster::Step *step)
     curStep = step;
     //Fill atom list
     QSignalBlocker blockTable(ui->atomTable);
+    QSignalBlocker blockCell(ui->cellVecTable);
+    QSignalBlocker blockDim(ui->cellDimBox);
     int oldCount = ui->atomTable->rowCount();
     int nat = curStep->getNat();
     const std::vector<Vipster::Atom> &atoms = curStep->getAtoms();
@@ -63,18 +64,10 @@ void MolWidget::setStep(Vipster::Step *step)
     }
 }
 
-void MolWidget::setMolecules(const std::vector<Vipster::Molecule> &molecules)
-{
-    ui->molList->clear();
-    for(const Vipster::Molecule &m:molecules){
-        ui->molList->addItem(m.name.c_str());
-    }
-}
-
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
     curStep->setCellDim(cdm, ui->cellScaleBox->isChecked());
-    parent->setStep();
+    emit stepChanged();
 }
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
@@ -83,7 +76,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     vec = curStep->getCellVec();
     vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
     curStep->setCellVec(vec, ui->cellScaleBox->isChecked());
-    parent->setStep();
+    emit stepChanged();
 }
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)
@@ -100,5 +93,5 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
         at.fix[column-1] = cell->checkState()/2;
     }
     curStep->setAtom(row, at);
-    parent->setStep();
+    emit stepChanged();
 }

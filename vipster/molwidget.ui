@@ -13,10 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QListWidget" name="molList"/>
-   </item>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,2,0,0,0,0,0">
    <item>
     <widget class="QPushButton" name="atomTableButton">
      <property name="text">
@@ -69,6 +66,12 @@
    </item>
    <item>
     <widget class="QWidget" name="cellContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <property name="leftMargin">
        <number>0</number>
@@ -215,9 +218,31 @@
    </item>
    <item>
     <widget class="QStackedWidget" name="kpointStack">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <widget class="QWidget" name="page"/>
      <widget class="QWidget" name="page_2"/>
     </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
@@ -230,8 +255,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>191</x>
-     <y>134</y>
+     <x>199</x>
+     <y>28</y>
     </hint>
     <hint type="destinationlabel">
      <x>191</x>
@@ -246,8 +271,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>179</x>
-     <y>285</y>
+     <x>187</x>
+     <y>251</y>
     </hint>
     <hint type="destinationlabel">
      <x>172</x>
@@ -262,8 +287,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>201</x>
-     <y>506</y>
+     <x>209</x>
+     <y>447</y>
     </hint>
     <hint type="destinationlabel">
      <x>198</x>

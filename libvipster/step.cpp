@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-Step::Step(PseMap pse):
+Step::Step(PseMap *pse):
     pse(pse),
     celldim{1.},
     cellvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
@@ -350,10 +350,10 @@ void Step::setBonds(float cutfac) const
 {
     bonds.clear();
     for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
-        float cut_i = pse[atoms[i].name].bondcut;
+        float cut_i = (*pse)[atoms[i].name].bondcut;
         if (!cut_i) continue;
         for(std::vector<Atom>::size_type j = i+1; j != atoms.size(); ++j){
-            float cut_j = pse[atoms[j].name].bondcut;
+            float cut_j = (*pse)[atoms[j].name].bondcut;
             if (!cut_j) continue;
             float effcut = (cut_i + cut_j) * cutfac;
             Vec pos_i = atoms[i].coord;
@@ -380,10 +380,10 @@ void Step::setBondsCell(float cutfac) const
 {
     bonds.clear();
     for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
-        float cut_i = pse[atoms[i].name].bondcut;
+        float cut_i = (*pse)[atoms[i].name].bondcut;
         if (!cut_i) continue;
         for(std::vector<Atom>::size_type j = i+1; j != atoms.size(); ++j){
-            float cut_j = pse[atoms[j].name].bondcut;
+            float cut_j = (*pse)[atoms[j].name].bondcut;
             if (!cut_j) continue;
             float effcut = (cut_i + cut_j) * cutfac;
             Vec dist_v = atoms[i].coord - atoms[j].coord;

@@ -12,7 +12,6 @@ namespace Vipster {
         Molecule(std::string name="New Molecule",ulong s=1, PseMap pse=PseMap(&Vipster::pse));
         std::string name;
         PseMap pse;
-        Step& curStep();
         void setCellDimAll(float cdm, bool scale=false, Fmt fmt=Fmt::Bohr);
         //void setCellVecAll(float v11, float v12, float v13,
         //                   float v21, float v22, float v23,
@@ -21,7 +20,6 @@ namespace Vipster {
         //void setCellVecAll(std::array<t_vec,3> vec,bool scale=false);
     //private:
         std::vector<Step> steps;
-        std::vector<Step>::size_type stepIdx;
     };
 }
 #endif // MOLECULE_H

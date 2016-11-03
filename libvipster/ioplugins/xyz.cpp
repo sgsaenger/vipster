@@ -16,11 +16,11 @@ std::tuple<Molecule,optional<Param>> Vipster::IO::XYZ_parser(std::string fn, std
     if(!file.getline(linebuf,BUFFLEN)||!std::sscanf(linebuf,"%d",&nat)){
         throw IOError("XYZ: Could not read number of atoms.");
     }
-    m.curStep().newAtoms(nat);
+    (*m.steps.end()).newAtoms(nat);
     if(!file.getline(linebuf,BUFFLEN)){
         throw IOError("XYZ: Could not read comment.");
     }
-    m.curStep().comment = std::string(linebuf);
+    (*m.steps.end()).comment = std::string(linebuf);
     for(int i=0;i!=nat;++i){
         if(!file.getline(linebuf,BUFFLEN)){
             throw IOError("XYZ: Should be "+std::to_string(nat)+" atoms, but found only:"+std::to_string(i));
@@ -30,7 +30,7 @@ std::tuple<Molecule,optional<Param>> Vipster::IO::XYZ_parser(std::string fn, std
             tokens.emplace_back(token);
             token = strtok(NULL," ");
         }
-        m.curStep().setAtom(i,tokens[0],{std::stof(tokens[1]),std::stof(tokens[2]),std::stof(tokens[3])});
+        (*m.steps.end()).setAtom(i,tokens[0],{std::stof(tokens[1]),std::stof(tokens[2]),std::stof(tokens[3])});
         tokens.clear();
     }
 

@@ -8,9 +8,8 @@ Molecule::Molecule(std::string name, ulong s, PseMap pse):
     pse{pse}
 {
     for(std::vector<Step>::size_type i=0;i!=s;++i){
-        steps.emplace_back(pse);
+        steps.emplace_back(&pse);
     }
-    stepIdx = s-1;
 }
 
 void Molecule::setCellDimAll(float cdm, bool scale, Fmt fmt)
@@ -18,9 +17,4 @@ void Molecule::setCellDimAll(float cdm, bool scale, Fmt fmt)
     for(Step& s:steps){
         s.setCellDim(cdm,scale,fmt);
     }
-}
-
-Step& Molecule::curStep()
-{
-    return steps.at(stepIdx);
 }

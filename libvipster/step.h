@@ -13,7 +13,7 @@ namespace Vipster{
 class Step
 {
 public:
-    Step(PseMap pse);
+    Step(PseMap *pse);
     std::string comment;
     void    newAtom(std::string name="C",
                     Vec coord={0.,0.,0.},
@@ -58,7 +58,7 @@ public:
     const std::vector<Bond>& getBonds(float cutfac) const;
     const std::vector<Bond>& getBondsCell() const;
     const std::vector<Bond>& getBondsCell(float cutfac) const;
-    mutable PseMap pse;
+    PseMap *pse;
 private:
     Atom formatAtom(Atom at, Fmt source, Fmt target);
     std::vector<Atom> formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt target);

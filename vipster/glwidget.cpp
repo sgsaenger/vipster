@@ -259,42 +259,40 @@ void GLWidget::setMult(int i)
     update();
 }
 
-void GLWidget::setStep(const Step& step)
+void GLWidget::setStep(const Step* step)
 {
+    curStep = step;
     aVo=bVo=cVo=true;
-    curStep = &step;
     //cell
-    float cdm = step.getCellDim();
+    float cdm = step->getCellDim();
     Vec x_vec,y_vec,z_vec;
-    x_vec = step.getCellVec()[0]*cdm;
-    y_vec = step.getCellVec()[1]*cdm;
-    z_vec = step.getCellVec()[2]*cdm;
+    x_vec = step->getCellVec()[0]*cdm;
+    y_vec = step->getCellVec()[1]*cdm;
+    z_vec = step->getCellVec()[2]*cdm;
     cell_buffer = {{ Vec(),x_vec,y_vec,z_vec,x_vec+y_vec,x_vec+z_vec,
                      y_vec+z_vec,x_vec+y_vec+z_vec }};
     //atoms
-    const std::vector<Atom>& atoms = step.getAtoms();
-    atom_buffer.reserve(step.getNat());
+    const std::vector<Atom>& atoms = step->getAtoms();
+    atom_buffer.reserve(step->getNat());
     atom_buffer.clear();
     for(const Atom& at:atoms){
-        PseEntry *pse = &step.pse[at.name];
-        atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse->covr,
-                          pse->col[0],pse->col[1],pse->col[2],pse->col[3]}});
+        PseEntry &pse = (*step->pse)[at.name];
+        atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
+                          pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
     }
     //bonds
     Vec p1, p2, pos; //positions
-    std::vector<float> c1, c2; //colors
     float c, s, ic; //cosine, sine, inverse cosine and angle for rot-mat
     float rad = 0.53; //TODO: pull bond-radius from config
     Vec b_axis, r_axis; //bond, rotation axes
     constexpr Vec x_axis{{1,0,0}};
-    bond_buffer.reserve(step.getNat());
+    bond_buffer.reserve(step->getNat());
     bond_buffer.clear();
-    for(const Bond& bd:step.getBondsCell()){
+    for(const Bond& bd:step->getBondsCell()){
         const Atom &at1 = atoms[bd.at1];
         const Atom &at2 = atoms[bd.at2];
-        c1 = step.pse[at1.name].col;
-        std::vector<float> &c1 = step.pse[at1.name].col;
-        std::vector<float> &c2 = step.pse[at2.name].col;
+        std::vector<float> &c1 = (*step->pse)[at1.name].col;
+        std::vector<float> &c2 = (*step->pse)[at2.name].col;
         p1 = at1.coord;
         p2 = at2.coord;
         if (bd.xdiff>0){ p2 += bd.xdiff * x_vec; }else if(bd.xdiff<0){ p1 -= bd.xdiff * x_vec; }
@@ -379,7 +377,6 @@ void GLWidget::setCamera(int i)
                               0, 0, 0, 1};
         break;
     }
-    std::cout << i << std::endl;
     update();
 }
 

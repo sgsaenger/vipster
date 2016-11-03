@@ -40,7 +40,7 @@ public:
     PseMap(const std::map<std::string,PseEntry> *x):internal(x){};
     PseEntry& operator [](const std::string &k);
 private:
-    const std::map<std::string,PseEntry> * internal;
+    const std::map<std::string,PseEntry> *internal;
 };
 
 std::map<std::string,PseEntry> readPse(void);

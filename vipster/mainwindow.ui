@@ -320,7 +320,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>30</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -386,7 +386,32 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="MolWidget" name="molWidget"/>
+   <widget class="QWidget" name="molDockContents">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="MolWidget" name="molWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -508,6 +533,10 @@
    <extends>QWidget</extends>
    <header>molwidget.h</header>
    <container>1</container>
+   <slots>
+    <signal>stepChanged()</signal>
+    <signal>molChanged()</signal>
+   </slots>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -557,8 +586,8 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1209</x>
-     <y>632</y>
+     <x>1211</x>
+     <y>631</y>
     </hint>
     <hint type="destinationlabel">
      <x>1159</x>
@@ -685,8 +714,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1232</x>
-     <y>588</y>
+     <x>1230</x>
+     <y>601</y>
     </hint>
     <hint type="destinationlabel">
      <x>1188</x>
@@ -726,6 +755,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>molWidget</sender>
+   <signal>stepChanged()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setStep()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>56</x>
+     <y>136</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>110</x>
+     <y>33</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>molWidget</sender>
+   <signal>molChanged()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setMol()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>59</x>
+     <y>208</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>99</x>
+     <y>92</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -733,12 +794,12 @@
   <slot>editAtoms()</slot>
   <slot>about()</slot>
   <slot>newMol()</slot>
-  <slot>setCellVec(int,int)</slot>
-  <slot>setCellDim(double)</slot>
+  <slot>setStep()</slot>
+  <slot>setMol()</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="cameraGroup"/>
   <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
+  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>
