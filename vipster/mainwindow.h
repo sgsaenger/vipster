@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QMessageBox>
 #include <vector>
 #include <array>
 #include <molecule.h>
@@ -19,6 +18,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     explicit MainWindow(Vipster::Molecule m, QWidget *parent = 0);
     ~MainWindow();
+    Vipster::Molecule *curMol;
 
 public slots:
     void setMol(int i);
@@ -27,15 +27,9 @@ public slots:
     void newMol(Vipster::Molecule m=Vipster::Molecule());
     void editAtoms(void);
 
-private slots:
-    void on_cellDimBox_valueChanged(double arg1);
-    void on_cellVecTable_cellChanged(int row, int column);
-    void on_atomTable_cellChanged(int row, int column);
-
 private:
     Ui::MainWindow *ui;
     std::vector<Vipster::Molecule> molecules;
-    Vipster::Molecule *curMol;
 };
 
 #endif // MAINWINDOW_H

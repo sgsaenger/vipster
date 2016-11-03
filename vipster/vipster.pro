@@ -15,14 +15,17 @@ CONFIG += c++14
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    molwidget.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
     atom_model.h \
-    bond_model.h
+    bond_model.h \
+    molwidget.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    molwidget.ui
 
 DISTFILES += \
     resources/atom.frag \

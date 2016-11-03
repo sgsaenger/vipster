@@ -371,272 +371,6 @@
    <addaction name="menuEdit"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QDockWidget" name="dockWidget">
-   <property name="minimumSize">
-    <size>
-     <width>345</width>
-     <height>104</height>
-    </size>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QScrollArea" name="scrollArea">
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarAsNeeded</enum>
-       </property>
-       <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <property name="sizeAdjustPolicy">
-        <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-       </property>
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="scrollAreaWidgetContents">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>341</width>
-          <height>566</height>
-         </rect>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QListWidget" name="molList"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="atomTableButton">
-           <property name="text">
-            <string>Atoms</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTableWidget" name="atomTable">
-           <column>
-            <property name="text">
-             <string>Type</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>x</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>y</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>z</string>
-            </property>
-           </column>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cellWidgetButton">
-           <property name="text">
-            <string>Cell Geometry</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="cellContainer" native="true">
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <layout class="QHBoxLayout" name="cellDimLayout">
-              <item>
-               <widget class="QLabel" name="cellVecLabel">
-                <property name="text">
-                 <string>Cell vectors:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="cellDimSpacer">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="cellDimLabel">
-                <property name="text">
-                 <string>Cell dimension:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="cellDimBox">
-                <property name="minimum">
-                 <double>1.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QTableWidget" name="cellVecTable">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>110</height>
-               </size>
-              </property>
-              <row>
-               <property name="text">
-                <string>1</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>2</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>3</string>
-               </property>
-              </row>
-              <column>
-               <property name="text">
-                <string>x</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>y</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>z</string>
-               </property>
-              </column>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="cellEditLayout">
-              <item>
-               <widget class="QCheckBox" name="cellAllBox">
-                <property name="text">
-                 <string>Apply to all Steps</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="cellEditSpacer">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cellScaleBox">
-                <property name="text">
-                 <string>Scale coordinates with cell</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="kpointStackButton">
-           <property name="text">
-            <string>K-Points</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QStackedWidget" name="kpointStack">
-           <widget class="QWidget" name="page"/>
-           <widget class="QWidget" name="page_2"/>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
     <string>toolBar</string>
@@ -647,6 +381,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+  </widget>
+  <widget class="QDockWidget" name="molDock">
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="MolWidget" name="molWidget"/>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -763,6 +503,12 @@
     <slot>setCamera(int)</slot>
    </slots>
   </customwidget>
+  <customwidget>
+   <class>MolWidget</class>
+   <extends>QWidget</extends>
+   <header>molwidget.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>camButton</tabstop>
@@ -817,54 +563,6 @@
     <hint type="destinationlabel">
      <x>1159</x>
      <y>626</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>atomTableButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>atomTable</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>44</x>
-     <y>229</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>60</x>
-     <y>344</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>kpointStackButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>kpointStack</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>147</x>
-     <y>601</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>142</x>
-     <y>618</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cellWidgetButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>cellContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>148</x>
-     <y>385</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>160</x>
-     <y>511</y>
     </hint>
    </hints>
   </connection>
@@ -929,22 +627,6 @@
     <hint type="destinationlabel">
      <x>357</x>
      <y>626</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>molList</sender>
-   <signal>currentRowChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>setMol(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>210</x>
-     <y>151</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>353</x>
-     <y>156</y>
     </hint>
    </hints>
   </connection>
@@ -1035,8 +717,8 @@
    <slot>setCamera(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>496</x>
-     <y>67</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>792</x>
@@ -1055,8 +737,8 @@
   <slot>setCellDim(double)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="modeGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>
