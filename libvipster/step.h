@@ -7,13 +7,14 @@
 #include <atom.h>
 #include <bond.h>
 #include <set>
+#include <memory>
 
 namespace Vipster{
-
 class Step
 {
 public:
-    Step(PseMap *pse);
+    Step();
+    Step(const std::shared_ptr<PseMap> &pse);
     std::string comment;
     void    newAtom(std::string name="C",
                     Vec coord={0.,0.,0.},
@@ -58,7 +59,7 @@ public:
     const std::vector<Bond>& getBonds(float cutfac) const;
     const std::vector<Bond>& getBondsCell() const;
     const std::vector<Bond>& getBondsCell(float cutfac) const;
-    PseMap *pse;
+    std::shared_ptr<PseMap> pse;
 private:
     Atom formatAtom(Atom at, Fmt source, Fmt target);
     std::vector<Atom> formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt target);
@@ -67,12 +68,12 @@ private:
     enum class BondType { None, Molecule, Cell };
     //DATA following:
     std::vector<Atom> atoms;
-    float celldim;
-    std::array<Vec,3> cellvec;
-    std::array<Vec,3> invvec;
-    mutable bool bonds_outdated;
-    mutable BondType bonds_level;
-    mutable float bondcut_factor;
+    float celldim {1.};
+    std::array<Vec,3> cellvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
+    std::array<Vec,3> invvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
+    mutable bool bonds_outdated{true};
+    mutable BondType bonds_level{BondType::None};
+    mutable float bondcut_factor{1.1};
     mutable std::vector<Bond> bonds;
 };
 

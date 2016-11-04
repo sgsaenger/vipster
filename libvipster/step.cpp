@@ -4,14 +4,13 @@
 
 using namespace Vipster;
 
-Step::Step(PseMap *pse):
-    pse(pse),
-    celldim{1.},
-    cellvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
-    invvec{{ {{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}} }},
-    bonds_outdated{true},
-    bonds_level{BondType::None},
-    bondcut_factor{1.1}
+Step::Step():
+    pse{std::make_shared<PseMap>(&Vipster::pse)}
+{
+}
+
+Step::Step(const std::shared_ptr<PseMap> &pse):
+    pse{pse}
 {
 }
 

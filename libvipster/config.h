@@ -34,18 +34,18 @@ struct PseEntry{
     std::vector<float> col;
 };
 
+std::map<std::string,PseEntry> readPse(void);
+
+const std::map<std::string,PseEntry> pse = readPse();
+
 class PseMap:public std::map<std::string,PseEntry>
 {
 public:
-    PseMap(const std::map<std::string,PseEntry> *x):internal(x){};
+    PseMap(const std::map<std::string,PseEntry> *x=&Vipster::pse):internal(x){};
     PseEntry& operator [](const std::string &k);
 private:
     const std::map<std::string,PseEntry> *internal;
 };
-
-std::map<std::string,PseEntry> readPse(void);
-
-const std::map<std::string,PseEntry> pse = readPse();
 
 }
 

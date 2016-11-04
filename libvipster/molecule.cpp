@@ -3,12 +3,11 @@
 using namespace Vipster;
 
 
-Molecule::Molecule(std::string name, ulong s, PseMap pse):
-    name{name},
-    pse{pse}
+Molecule::Molecule(std::string name, ulong s):
+    name{name}
 {
     for(std::vector<Step>::size_type i=0;i!=s;++i){
-        steps.emplace_back(&pse);
+        steps.emplace_back(pse);
     }
 }
 

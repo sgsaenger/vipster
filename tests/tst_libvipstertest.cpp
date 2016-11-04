@@ -134,7 +134,7 @@ void LibVipsterTest::testStep()
 
 void LibVipsterTest::testPse()
 {
-    PseMap p{&Vipster::pse};
+    PseMap p;
     auto pseComp = [](const PseEntry& comp1, const PseEntry& comp2){
         return std::tie(comp1.bondcut, comp1.col, comp1.covr, comp1.CPNL, comp1.CPPP, comp1.m, comp1.PWPP, comp1.vdwr, comp1.Z)
                 ==
@@ -151,7 +151,7 @@ void LibVipsterTest::testPse()
     QVERIFY2(pseComp(p["Zzyzzyx"], Vipster::pse.at("X")), "pse miss mismatch");
     Molecule m;
     Step s = m.steps[0];
-    QVERIFY2(pseComp(m.pse["C"], Vipster::pse.at("C")), "mol mismatch");
+    QVERIFY2(pseComp((*m.pse)["C"], Vipster::pse.at("C")), "mol mismatch");
     QVERIFY2(pseComp((*s.pse)["C"], Vipster::pse.at("C")), "step existing mismatch");
     QVERIFY2(pseComp((*s.pse)["H"], Vipster::pse.at("H")), "step new mismatch");
 }
