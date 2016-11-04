@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
     p.addVersionOption();
     p.addOption({"xyz", "Parse xyz <files>.", "files"});
     p.process(a);
-    Vipster::Molecule m;
     if(p.isSet("xyz")){
-        std::tie(m,std::ignore) = Vipster::readFile(p.values("xyz").at(0).toStdString(),"xyz");
+        Vipster::Molecule m;
+        std::tie(m,std::ignore,std::ignore) = Vipster::readFile(p.values("xyz").at(0).toStdString(),Vipster::IOFmt::XYZ);
         MainWindow w(m);
         w.show();
         return a.exec();

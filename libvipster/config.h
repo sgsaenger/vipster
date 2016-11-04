@@ -15,7 +15,7 @@ const std::string sys_config = "PREFIXvipster.json";
 const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
 #elif _WIN32
 //WIP
-HMODULE hModule = GetModuleHandleW(NULL);
+HMODULE hModule = GetModuleHandleW(nullptr);
 WCHAR path[MAX_PATH];
 GetModuleFileNameW(hModule,path,MAX_PATH);
 const std::string sys_config = "./vipster.json";

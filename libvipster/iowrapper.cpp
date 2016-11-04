@@ -2,7 +2,7 @@
 
 using namespace Vipster;
 
-std::tuple<Molecule,optional<Param>>  Vipster::readFile(std::string fn, std::string fmt)
+std::tuple<Molecule, IOType, IOBase*>  Vipster::readFile(std::string fn, IOFmt fmt)
 {
     std::ifstream file{fn};
     if(!file){
@@ -15,7 +15,7 @@ std::tuple<Molecule,optional<Param>>  Vipster::readFile(std::string fn, std::str
     }
 }
 
-void  Vipster::writeFile(const Molecule &m, std::string fn, std::string fmt, Param p)
+void  Vipster::writeFile(const Molecule &m, std::string fn, IOFmt fmt, IOBase p)
 {
 
 }

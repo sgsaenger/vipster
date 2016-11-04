@@ -21,11 +21,11 @@ public:
                     float charge=0.,
                     std::array<bool,3> fix={false,false,false},
                     bool hidden=false,
-                    Fmt fmt=Fmt::Bohr
+                    AtomFmt fmt=AtomFmt::Bohr
     );                                                  //initialization of atom
     void    newAtom(const Atom &at);                  //copy of atom
     void    newAtom(Atom&& at);                       //move of atom
-    void    newAtom(Atom at, Fmt fmt);                //copy of atom (possibly too many)
+    void    newAtom(Atom at, AtomFmt fmt);                //copy of atom (possibly too many)
     void    newAtoms(size_t count);                     //batch creation
     void    delAtom(size_t idx);                        //delete
     void    setAtom(size_t idx,                         //modify/initialize
@@ -34,18 +34,18 @@ public:
                     float charge=0.,
                     std::array<bool,3> fix={false,false,false},
                     bool hidden=false,
-                    Fmt fmt=Fmt::Bohr
+                    AtomFmt fmt=AtomFmt::Bohr
     );
     void    setAtom(size_t idx,const Atom& at);               //replace with copy
     void    setAtom(size_t idx,Atom&& at);                    //replace with move
-    void    setAtom(size_t idx,Atom at,Fmt fmt);              //replace with copy
+    void    setAtom(size_t idx,Atom at,AtomFmt fmt);              //replace with copy
     const Atom& getAtom(size_t idx)const;                     //get reference (const,bohr)
-    Atom    getAtomFmt(size_t idx, Fmt fmt);                  //get copy (formatted)
+    Atom    getAtomFmt(size_t idx, AtomFmt fmt);                  //get copy (formatted)
     const std::vector<Atom>& getAtoms(void) const noexcept;   //get const reference (bohr)
-    std::vector<Atom> getAtomsFmt(Fmt fmt);                   //get copy (formatted)
+    std::vector<Atom> getAtomsFmt(AtomFmt fmt);                   //get copy (formatted)
     size_t  getNat(void) const noexcept;                      //get number of atoms
-    void    setCellDim(float cdm, bool scale=false, Fmt fmt=Fmt::Bohr);
-    float   getCellDim(Fmt fmt=Fmt::Bohr) const noexcept;
+    void    setCellDim(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
+    float   getCellDim(AtomFmt fmt=AtomFmt::Bohr) const noexcept;
     void    setCellVec(float v11, float v12, float v13,
                        float v21, float v22, float v23,
                        float v31, float v32, float v33,bool scale=false);
@@ -61,18 +61,18 @@ public:
     const std::vector<Bond>& getBondsCell(float cutfac) const;
     std::shared_ptr<PseMap> pse;
 private:
-    Atom formatAtom(Atom at, Fmt source, Fmt target);
-    std::vector<Atom> formatAtoms(std::vector<Atom> atoms, Fmt source, Fmt target);
+    Atom formatAtom(Atom at, AtomFmt source, AtomFmt target);
+    std::vector<Atom> formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target);
     void setBonds(float cutfac) const;
     void setBondsCell(float cutfac) const;
-    enum class BondType { None, Molecule, Cell };
+    enum class BondLevel { None, Molecule, Cell };
     //DATA following:
     std::vector<Atom> atoms;
     float celldim {1.};
     std::array<Vec,3> cellvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
     std::array<Vec,3> invvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
     mutable bool bonds_outdated{true};
-    mutable BondType bonds_level{BondType::None};
+    mutable BondLevel bonds_level{BondLevel::None};
     mutable float bondcut_factor{1.1};
     mutable std::vector<Bond> bonds;
 };

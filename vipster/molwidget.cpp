@@ -7,8 +7,7 @@
 
 MolWidget::MolWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MolWidget),
-    curStep(NULL)
+    ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
     QSignalBlocker tableBlocker(ui->cellVecTable);

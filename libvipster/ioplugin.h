@@ -2,21 +2,19 @@
 #define IOPLUGIN_H
 
 #include <molecule.h>
-#include <param.h>
-#include <experimental/optional>
 #include <fstream>
 
 #define BUFFLEN 32768
 
 namespace Vipster{
-    using std::experimental::optional;
+    enum class IOType{ None, Param};
+    class IOBase{};
     struct IOPlugin{
         std::string name;
         std::string extension;
         std::string argument;
-        std::map<std::string,Param>  *param;
-        std::tuple<Molecule,optional<Param>>  (*parser)(std::string fn, std::ifstream &file);
-        void        (*writer)(const Molecule &m,std::ofstream &file, Param &p);
+        std::tuple<Molecule, IOType, IOBase*>  (*parser)(std::string fn, std::ifstream &file);
+        void        (*writer)(const Molecule &m,std::ofstream &file, IOBase &p);
     };
     class IOError: public std::runtime_error
     {

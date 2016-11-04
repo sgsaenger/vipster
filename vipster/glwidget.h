@@ -33,7 +33,7 @@ public slots:
     void setMult(int i);
     void setCamera(int i);
 private:
-    const Vipster::Step* curStep{NULL}; // Pointer to currently loaded Step
+    const Vipster::Step* curStep{nullptr}; // Pointer to currently loaded Step
     // OGL-CPU/GPU buffers
     QOpenGLVertexArrayObject vao;
     QOpenGLShaderProgram atom_shader,bond_shader,cell_shader;

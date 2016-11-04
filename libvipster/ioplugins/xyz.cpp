@@ -1,3 +1,4 @@
+/*
 #include "xyz.h"
 #include <sstream>
 #include <iostream>
@@ -5,7 +6,7 @@
 
 using namespace Vipster;
 
-std::tuple<Molecule,optional<Param>> Vipster::IO::XYZ_parser(std::string fn, std::ifstream &file)
+std::tuple<Molecule, IOType, IOBase*> Vipster::IO::XYZ_parser(std::string fn, std::ifstream &file)
 {
     Molecule m{fn,1};
     char linebuf[BUFFLEN];
@@ -34,10 +35,12 @@ std::tuple<Molecule,optional<Param>> Vipster::IO::XYZ_parser(std::string fn, std
         tokens.clear();
     }
 
-    return std::tuple<Molecule,optional<Param>>(m,optional<Param>());
+    return std::tuple<Molecule, IOType, IOBase*>(m, IOType::None, nullptr);
 }
 
-void    Vipster::IO::XYZ_writer(const Molecule &m, std::ofstream &file,Param &p)
+void    Vipster::IO::XYZ_writer(const Molecule &m, std::ofstream &file, IOBase &p)
 {
 
 }
+
+*/

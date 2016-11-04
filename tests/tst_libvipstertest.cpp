@@ -66,7 +66,7 @@ void LibVipsterTest::testStep()
     step.newAtom("C", {0.,0.,0.}, 0., {false, false, false}, false);
     step.newAtom(atom);
     step.newAtom(Atom{"C",{0.,0.,0.},0.,{false,false,false},false});
-    step.newAtom(atom, Fmt::Alat);
+    step.newAtom(atom, AtomFmt::Alat);
     QVERIFY2(step.getNat() == 9, "step: nat mismatch");
     for(uint i=0;i!=step.getNat();++i)
     {
@@ -87,7 +87,7 @@ void LibVipsterTest::testStep()
     step.setAtom(0, atom2);
     step.setAtom(1, Atom{"H",{0.5,0.5,0.5},0.5,{false,false,false},false});
     step.setAtom(2, "H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false);
-    step.setAtom(3, atom2, Fmt::Alat);
+    step.setAtom(3, atom2, AtomFmt::Alat);
     step.delAtom(4);
     for(uint i=0;i!=step.getNat();++i)
     {
@@ -101,25 +101,25 @@ void LibVipsterTest::testStep()
     }
     // getCellDim, setCellDim, getCellVec, setCellVec, getAtomFt, getAtomsFmt
     QVERIFY2(step.getCellDim() == 1, "step: CellDim mismatch");
-    QVERIFY2((step.getAtomFmt(0, Fmt::Alat).coord == Vec{0.5,0.5,0.5}), "step: Coord mismatch");
+    QVERIFY2((step.getAtomFmt(0, AtomFmt::Alat).coord == Vec{0.5,0.5,0.5}), "step: Coord mismatch");
     step.setCellDim(2);
-    QVERIFY2((step.getAtomFmt(0, Fmt::Alat).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getAtomFmt(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
     step.setCellDim(4, true);
-    QVERIFY2((step.getAtomFmt(0, Fmt::Alat).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getAtomFmt(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
     QVERIFY2(step.getCellDim() == 4, "step: CellDim mismatch");
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "step: CellVec mismatch");
-    QVERIFY2((step.getAtomFmt(0, Fmt::Crystal).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getAtomFmt(0, AtomFmt::Crystal).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
     step.setCellVec(4,0,0,0,2,0,0,0,1);
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{4,0,0}},{{0,2,0}},{{0,0,1}} }}), "step: CellVec mismatch");
-    QVERIFY2((step.getAtomFmt(0, Fmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getAtomFmt(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "step: Coord mismatch");
     step.setCellVec(Vec{1,0,0},Vec{0,1,0},Vec{0,0,1},true);
-    QVERIFY2((step.getAtomFmt(0, Fmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "step: Coord mismatch");
-    for(const Atom& at:step.getAtomsFmt(Fmt::Crystal)){
+    QVERIFY2((step.getAtomFmt(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "step: Coord mismatch");
+    for(const Atom& at:step.getAtomsFmt(AtomFmt::Crystal)){
         QVERIFY2((at.coord == Vec{0.0625,0.125,0.25}), "step: coord mismatch");
     }
-    step.setCellDim(4,false,Fmt::Angstrom);
+    step.setCellDim(4,false,AtomFmt::Angstrom);
     QVERIFY2(step.getCellDim()!=4, "step CellDim mismatch");
-    QVERIFY2(step.getCellDim(Fmt::Angstrom)==4, "step CellDim mismatch");
+    QVERIFY2(step.getCellDim(AtomFmt::Angstrom)==4, "step CellDim mismatch");
     step.setCellDim(4);
     QVERIFY2(step.getCellDim()==4, "step CellDim mismatch");
     // getCenter

@@ -32,7 +32,7 @@ private slots:
 private:
     MainWindow *parent;
     Ui::MolWidget *ui;
-    Vipster::Step *curStep;
+    Vipster::Step *curStep{nullptr};
 };
 
 #endif // MOLWIDGET_H
