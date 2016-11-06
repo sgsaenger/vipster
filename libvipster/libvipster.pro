@@ -11,14 +11,13 @@ TEMPLATE = lib
 
 DEFINES += LIBVIPSTER_LIBRARY
 
-CONFIG += c++14
+CONFIG += c++11
 
 SOURCES += \
     config.cpp \
     molecule.cpp \
     step.cpp \
     iowrapper.cpp \
-    ioplugins/xyz.cpp \
     vec.cpp
 
 HEADERS += \
@@ -27,13 +26,13 @@ HEADERS += \
     json.hpp \
     step.h \
     iowrapper.h \
-    ioplugins/xyz.h \
     ioplugin.h \
     global.h \
     atom.h \
     bond.h \
     vec.h \
-    param.h
+    param.h \
+    ioplugins/xyz.hpp
 
 unix {
     target.path = /usr/lib/vipster

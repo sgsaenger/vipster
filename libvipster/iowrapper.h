@@ -3,7 +3,7 @@
 
 #include <molecule.h>
 #include <ioplugin.h>
-#include <ioplugins/xyz.h>
+#include <ioplugins/xyz.hpp>
 
 namespace Vipster{
     enum class IOFmt{XYZ};

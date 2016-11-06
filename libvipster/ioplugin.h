@@ -4,8 +4,6 @@
 #include <molecule.h>
 #include <fstream>
 
-#define BUFFLEN 32768
-
 namespace Vipster{
     enum class IOType{ None, Param};
     class IOBase{};

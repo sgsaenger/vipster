@@ -10,7 +10,7 @@ QT       -= gui
 
 TARGET = tst_libvipstertest
 CONFIG   += console\
-            c++14
+            c++11
 CONFIG   -= app_bundle
 
 TEMPLATE = app
