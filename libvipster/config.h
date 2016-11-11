@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 namespace Vipster{
 
@@ -34,17 +34,17 @@ struct PseEntry{
     std::vector<float> col;
 };
 
-std::map<std::string,PseEntry> readPse(void);
+std::unordered_map<std::string,PseEntry> readPse(void);
 
-const std::map<std::string,PseEntry> pse = readPse();
+const std::unordered_map<std::string,PseEntry> pse = readPse();
 
-class PseMap:public std::map<std::string,PseEntry>
+class PseMap:public std::unordered_map<std::string,PseEntry>
 {
 public:
-    PseMap(const std::map<std::string,PseEntry> *x=&Vipster::pse):internal(x){};
+    PseMap(const std::unordered_map<std::string,PseEntry> *x=&Vipster::pse):internal(x){};
     PseEntry& operator [](const std::string &k);
 private:
-    const std::map<std::string,PseEntry> *internal;
+    const std::unordered_map<std::string,PseEntry> *internal;
 };
 
 }

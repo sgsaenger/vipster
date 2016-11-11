@@ -36,7 +36,11 @@ GLWidget::~GLWidget()
 void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
+    glClearColor(1,1,1,1);
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     vao.create();
     if(vao.isCreated())vao.bind();
@@ -62,12 +66,6 @@ void GLWidget::initializeGL()
     torus_vbo.allocate((void*)&bond_model,288*sizeof(float));
     torus_vbo.release();
 
-    glClearColor(1,1,1,1);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glEnable(GL_MULTISAMPLE);
-
     atom_shader.addShaderFromSourceFile(QOpenGLShader::Vertex,":/shaders/atom/atom.vert");
     atom_shader.addShaderFromSourceFile(QOpenGLShader::Fragment,":/shaders/atom/atom.frag");
     atom_shader.link();
@@ -88,7 +86,7 @@ void GLWidget::paintGL()
     vMatrix.translate(xshift, yshift, 0);
     vMatrix.scale(distance);
     drawAtoms();
-    drawBonds();
+//    drawBonds();
     drawCell();
 }
 
@@ -288,7 +286,7 @@ void GLWidget::setStep(const Step* step)
     constexpr Vec x_axis{{1,0,0}};
     bond_buffer.reserve(step->getNat());
     bond_buffer.clear();
-    for(const Bond& bd:step->getBondsCell()){
+    for(const Bond& bd:step->getBonds()){
         const Atom &at1 = atoms[bd.at1];
         const Atom &at2 = atoms[bd.at2];
         std::vector<float> &c1 = (*step->pse)[at1.name].col;

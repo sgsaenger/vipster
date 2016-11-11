@@ -39,17 +39,6 @@ void Step::newAtom(Atom at, AtomFmt fmt)
     bonds_outdated = true;
 }
 
-void Step::newAtoms(size_t count)
-{
-    Atom temp {"C",{0.,0.,0.},0.,{false,false,false},false};
-    atoms.reserve(atoms.size()+count);
-    for(size_t i=0;i!=count;i++)
-    {
-        atoms.push_back(temp);
-    }
-    bonds_outdated = true;
-}
-
 void Step::delAtom(size_t idx)
 {
     if(idx>atoms.size()-1)throw std::out_of_range("Step::delAtom() : index is out of range");
@@ -326,7 +315,7 @@ const std::vector<Bond>& Step::getBonds(float cutfac) const
 {
     if(bonds_outdated or (cutfac!=bondcut_factor) or (bonds_level<BondLevel::Molecule))
     {
-        Step::setBonds(cutfac);
+//        Step::setBonds(cutfac);
     }
     return bonds;
 }

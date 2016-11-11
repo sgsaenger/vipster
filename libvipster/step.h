@@ -26,7 +26,6 @@ public:
     void    newAtom(const Atom &at);                  //copy of atom
     void    newAtom(Atom&& at);                       //move of atom
     void    newAtom(Atom at, AtomFmt fmt);                //copy of atom (possibly too many)
-    void    newAtoms(size_t count);                     //batch creation
     void    delAtom(size_t idx);                        //delete
     void    setAtom(size_t idx,                         //modify/initialize
                     std::string name="C",

@@ -77,7 +77,7 @@ void LibVipsterTest::testStep()
     // newAtoms, getAtoms, setAtom, delAtom
     step = mol.steps[1];
     QVERIFY2(step.getNat() == 0, "step: nat mismatch");
-    step.newAtoms(5);
+//    step.newAtoms(5);
     QVERIFY2(step.getNat() == 5, "step: nat mismatch");
     for(uint i=0;i!=step.getNat();++i)
     {

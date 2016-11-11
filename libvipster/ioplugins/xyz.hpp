@@ -3,7 +3,6 @@
 
 #include "ioplugin.h"
 #include <sstream>
-#include <iostream>
 
 namespace Vipster{
 namespace IO{
@@ -30,7 +29,6 @@ const IOPlugin XYZ{"xyz","xyz","xyz",
                     }
                 }
                 s = std::make_shared<Step>();
-                s->newAtoms(nat);
                 stage = ParseStage::comment;
                 break;
             case ParseStage::comment:
@@ -42,10 +40,11 @@ const IOPlugin XYZ{"xyz","xyz","xyz",
                 Atom a{"C", {0.,0.,0.}, 0., {false, false, false}, false};
                 std::istringstream linestream{std::move(line)};
                 linestream >> a.name >> a.coord[0] >> a.coord[1] >> a.coord [2];
-                s->setAtom(i, std::move(a));
+                s->newAtom(std::move(a));
                 i++;
                 if(i == nat){
                     stage = ParseStage::nat;
+                    s->setCellDim(1,true,AtomFmt::Angstrom);
                     m.insertStep(std::move(*s));
                 }
                 break;

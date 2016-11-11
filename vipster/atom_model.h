@@ -1,7 +1,7 @@
 #ifndef ATOM_MODEL
 #define ATOM_MODEL
 
-constexpr int atom_model_npoly = 4608;
+constexpr int atom_model_npoly = 4608 / 3 ;
 constexpr  float atom_model[4608] = {-0.707107,0.0,0.707107,
 -0.55557,0.0,0.83147,
 -0.69352,0.19509,0.69352,

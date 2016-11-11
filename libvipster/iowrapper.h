@@ -4,6 +4,7 @@
 #include <molecule.h>
 #include <ioplugin.h>
 #include <ioplugins/xyz.hpp>
+#include <map>
 
 namespace Vipster{
     enum class IOFmt{XYZ};

@@ -1,7 +1,7 @@
 #ifndef BOND_MODEL
 #define BOND_MODEL
 
-constexpr int bond_model_npoly = 288;
+constexpr int bond_model_npoly = 288 / 3;
 constexpr float bond_model[288] = {
 -0.5,0.353553384542,0.353553384542,
 0.5,0.353553384542,0.353553384542,

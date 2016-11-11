@@ -31,8 +31,8 @@ HEADERS += \
     atom.h \
     bond.h \
     vec.h \
-    param.h \
-    ioplugins/xyz.hpp
+    ioplugins/xyz.hpp \
+    ioplugins/pwinput.hpp
 
 unix {
     target.path = /usr/lib/vipster
