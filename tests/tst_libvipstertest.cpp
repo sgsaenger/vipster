@@ -46,8 +46,6 @@ void LibVipsterTest::testMolecule()
 
 void LibVipsterTest::testStep()
 {
-    Molecule mol{"Test Molecule", 2};
-    QVERIFY2(mol.steps.size() == 2, "mol: length mismatch");
     auto atomComp = [](const Atom& comp1, const Atom& comp2){
         return std::tie(comp1.name, comp1.coord, comp1.charge, comp1.fix, comp1.hidden)
                 ==
@@ -56,7 +54,8 @@ void LibVipsterTest::testStep()
     Atom atom{"C", {0.,0.,0.}, 0., {false, false, false}, false};
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false};
 
-    Step step = mol.steps[0];
+    Step step;
+
     // newAtom, getAtom, getNat
     step.newAtom();
     step.newAtom("C");
@@ -74,21 +73,15 @@ void LibVipsterTest::testStep()
         QVERIFY2(atomComp(step.getAtom(i), atom), msg.c_str());
     }
 
-    // newAtoms, getAtoms, setAtom, delAtom
-    step = mol.steps[1];
-    QVERIFY2(step.getNat() == 0, "step: nat mismatch");
-//    step.newAtoms(5);
-    QVERIFY2(step.getNat() == 5, "step: nat mismatch");
-    for(uint i=0;i!=step.getNat();++i)
-    {
-        std::string msg = "step: atom mismatch at pos " + std::to_string(i);
-        QVERIFY2(atomComp(step.getAtom(i), atom), msg.c_str());
-    }
+    // getAtoms, setAtom, delAtom
     step.setAtom(0, atom2);
     step.setAtom(1, Atom{"H",{0.5,0.5,0.5},0.5,{false,false,false},false});
     step.setAtom(2, "H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false);
     step.setAtom(3, atom2, AtomFmt::Alat);
-    step.delAtom(4);
+    for(uint i=4;i!=9;++i)
+    {
+        step.delAtom(4);
+    }
     for(uint i=0;i!=step.getNat();++i)
     {
         std::string msg = "step: atom mismatch at pos " + std::to_string(i);
