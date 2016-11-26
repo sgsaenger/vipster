@@ -1,8 +1,9 @@
 #include "iowrapper.h"
+#include <boost/spirit/include/qi.hpp>
 
 using namespace Vipster;
 
-std::tuple<Molecule, IOType, IOBase*>  Vipster::readFile(std::string fn, IOFmt fmt)
+IOData Vipster::readFile(std::string fn, IOFmt fmt)
 {
     std::ifstream file{fn};
     if(!file){
@@ -15,7 +16,7 @@ std::tuple<Molecule, IOType, IOBase*>  Vipster::readFile(std::string fn, IOFmt f
     }
 }
 
-void  Vipster::writeFile(const Molecule &m, std::string fn, IOFmt fmt, IOBase p)
+bool  Vipster::writeFile(const IOData &d, std::string fn, IOFmt fmt)
 {
-
+    return false;
 }

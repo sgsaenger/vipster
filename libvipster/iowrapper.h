@@ -3,15 +3,14 @@
 
 #include <molecule.h>
 #include <ioplugin.h>
-#include <ioplugins/xyz.hpp>
+//#include <ioplugins/xyz.hpp>
 #include <map>
 
 namespace Vipster{
-    enum class IOFmt{XYZ};
-    const std::map<IOFmt,IOPlugin> IOPlugins {{IOFmt::XYZ, IO::XYZ}};
-    std::tuple<Molecule, IOType, IOBase*>  readFile(std::string fn, IOFmt fmt);
-    void        writeFile(const Molecule &m, std::string fn, IOFmt fmt, IOBase p);
-//    const std::map<std::string,IOPlugin> IOPlugins {{IO::XYZ.name,IO::XYZ}};
+    enum class  IOFmt{XYZ};
+    const       std::map<IOFmt,IOPlugin> IOPlugins;
+    IOData      readFile(std::string fn, IOFmt fmt);
+    bool        writeFile(const IOData &d, std::string fn, IOFmt fmt);
 }
 
 #endif // IOWRAPPER

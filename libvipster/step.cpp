@@ -1,3 +1,4 @@
+#include <global.h>
 #include <step.h>
 #include <limits>
 #include <cmath>
@@ -36,6 +37,13 @@ void Step::newAtom(Atom &&at)
 void Step::newAtom(Atom at, AtomFmt fmt)
 {
     atoms.push_back(formatAtom(at,fmt,AtomFmt::Bohr));
+    bonds_outdated = true;
+}
+
+void Step::newAtoms(const std::vector<Atom> &v)
+{
+    atoms.reserve(atoms.size()+v.size());
+    atoms.insert(atoms.end(),v.begin(),v.end());
     bonds_outdated = true;
 }
 
@@ -304,6 +312,16 @@ std::set<std::string> Step::getTypes() const noexcept
 size_t Step::getNtyp() const noexcept
 {
     return getTypes().size();
+}
+
+void  Step::setComment(const std::string &s)
+{
+    comment = s;
+}
+
+const std::string& Step::getComment() const noexcept
+{
+    return comment;
 }
 
 const std::vector<Bond>& Step::getBonds() const

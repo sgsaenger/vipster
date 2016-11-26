@@ -37,7 +37,7 @@ void MainWindow::setMol(void)
 void MainWindow::setMol(int i)
 {
     curMol = &molecules.at(i-1);
-    uint steps = curMol->steps.size();
+    uint steps = curMol->getNstep();
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
     ui->stepEdit->setMaximum(steps);
@@ -61,7 +61,7 @@ void MainWindow::setStep(void)
 
 void MainWindow::setStep(int i)
 {
-    curStep = &curMol->steps.at(i-1);
+    curStep = &curMol->getStep(i-1);
     //Handle control-buttons
     if(i == 1){
         ui->preStepButton->setDisabled(true);
