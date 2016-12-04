@@ -18,7 +18,9 @@ SOURCES += \
     molecule.cpp \
     step.cpp \
     iowrapper.cpp \
-    vec.cpp
+    vec.cpp \
+    ioplugins/xyz.cpp \
+    ioplugins/pwinput.cpp
 
 HEADERS += \
     config.h \
@@ -31,8 +33,8 @@ HEADERS += \
     atom.h \
     bond.h \
     vec.h \
-    ioplugins/xyz.hpp \
-    ioplugins/pwinput.hpp
+    ioplugins/xyz.h \
+    ioplugins/pwinput.h
 
 unix {
     target.path = /usr/lib/vipster

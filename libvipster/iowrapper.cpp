@@ -12,11 +12,11 @@ IOData Vipster::readFile(std::string fn, IOFmt fmt)
     if(Vipster::IOPlugins.find(fmt)==Vipster::IOPlugins.end()){
         throw IOError("Unknown format");
     }else{
-        return Vipster::IOPlugins.at(fmt).parser(fn,file);
+        return Vipster::IOPlugins.at(fmt)->parser(fn,file);
     }
 }
 
-bool  Vipster::writeFile(const IOData &d, std::string fn, IOFmt fmt)
-{
-    return false;
-}
+//bool  Vipster::writeFile(const IOData &d, std::string fn, IOFmt fmt)
+//{
+//    return false;
+//}

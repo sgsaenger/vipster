@@ -27,21 +27,24 @@ LibVipsterTest::LibVipsterTest()
 void LibVipsterTest::testMolecule()
 {
     Molecule mol1;
-//    QVERIFY2(mol1.name == "New Molecule", "mol1: name mismatch");
-//    QVERIFY2(mol1.steps.size() == 1, "mol1: length mismatch");
+    QVERIFY2(mol1.getName() == "New Molecule", "mol1: name mismatch");
+    QVERIFY2(mol1.getNstep() == 1, "mol1: length mismatch");
     Molecule mol2{"Test molecule"};
-//    QVERIFY2(mol2.name == "Test molecule", "mol2: name mismatch");
-//    QVERIFY2(mol2.steps.size() == 1, "mol2: length mismatch");
+    QVERIFY2(mol2.getName() == "Test molecule", "mol2: name mismatch");
+    QVERIFY2(mol2.getNstep() == 1, "mol2: length mismatch");
     Molecule mol3{"Test mol3", 3};
-//    QVERIFY2(mol3.name == "Test mol3", "mol3: name mismatch");
-//    QVERIFY2(mol3.steps.size() == 3, "mol3: length mismatch");
-//    for(Step& s:mol3.steps){
-//        QVERIFY2(s.getCellDim()==1, "mol3: CellDim mismatch");
-//    }
+    QVERIFY2(mol3.getName() == "Test mol3", "mol3: name mismatch");
+    QVERIFY2(mol3.getNstep() == 3, "mol3: length mismatch");
+    for(Step &s: mol3.getSteps()){
+        QVERIFY2(s.getCellDim()==1, "mol3: CellDim mismatch");
+    }
     mol3.setCellDimAll(2);
-//    for(Step& s:mol3.steps){
-//        QVERIFY2(s.getCellDim()==2, "mol3: CellDim mismatch");
-//    }
+    for(Step& s:mol3.getSteps()){
+        QVERIFY2(s.getCellDim()==2, "mol3: CellDim mismatch");
+    }
+    Molecule mol4 = Molecule("Move test");
+    QVERIFY2(mol4.getName() == "Move test", "mol4: name mismatch");
+    QVERIFY2(mol4.getNstep() == 1, "mol4: length mismatch");
 }
 
 void LibVipsterTest::testStep()
@@ -143,10 +146,10 @@ void LibVipsterTest::testPse()
     }
     QVERIFY2(pseComp(p["Zzyzzyx"], Vipster::pse.at("X")), "pse miss mismatch");
     Molecule m;
-//    Step s = m.steps[0];
-//    QVERIFY2(pseComp((*m.pse)["C"], Vipster::pse.at("C")), "mol mismatch");
-//    QVERIFY2(pseComp((*s.pse)["C"], Vipster::pse.at("C")), "step existing mismatch");
-//    QVERIFY2(pseComp((*s.pse)["H"], Vipster::pse.at("H")), "step new mismatch");
+    Step &s = m.getStep(0);
+    QVERIFY2(pseComp((*m.pse)["C"], Vipster::pse.at("C")), "mol mismatch");
+    QVERIFY2(pseComp((*s.pse)["C"], Vipster::pse.at("C")), "step existing mismatch");
+    QVERIFY2(pseComp((*s.pse)["H"], Vipster::pse.at("H")), "step new mismatch");
 }
 
 QTEST_APPLESS_MAIN(LibVipsterTest)

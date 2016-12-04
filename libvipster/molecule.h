@@ -9,7 +9,7 @@ namespace Vipster {
     {
     public:
         Molecule(std::string name="New Molecule",ulong s=1);
-        std::shared_ptr<PseMap> pse = std::make_shared<PseMap>(&Vipster::pse);
+        std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
         void setCellDimAll(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
         //void setCellVecAll(float v11, float v12, float v13,
         //                   float v21, float v22, float v23,

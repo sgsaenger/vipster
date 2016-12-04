@@ -6,7 +6,7 @@
 using namespace Vipster;
 
 Step::Step():
-    pse{std::make_shared<PseMap>(&Vipster::pse)}
+    pse{std::make_shared<PseMap>()}
 {
 }
 

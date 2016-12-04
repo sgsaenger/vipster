@@ -3,7 +3,6 @@
 
 #include <molecule.h>
 #include <fstream>
-#include <boost/spirit/include/qi.hpp>
 
 namespace Vipster{
     enum class IOType{ None, PWParam};
@@ -18,7 +17,7 @@ namespace Vipster{
         std::string extension;
         std::string argument;
         IOData (*parser)(std::string fn, std::ifstream &file);
-        //bool   (*writer)(const IOData& d, std::ofstream &file);
+        bool   (*writer)(const IOData& d, std::ofstream &file);
     };
     class IOError: public std::runtime_error
     {

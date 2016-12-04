@@ -6,10 +6,10 @@
 using json = nlohmann::json;
 using namespace Vipster;
 
-std::unordered_map<std::string, PseEntry> Vipster::readPse()
+std::map<std::string, PseEntry> Vipster::readPse()
 {
     std::ifstream user_file{user_config};
-    std::unordered_map<std::string,PseEntry> temp;
+    std::map<std::string,PseEntry> temp;
     if(user_file){
         json loc;
         loc << user_file;

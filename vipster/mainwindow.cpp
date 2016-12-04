@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent):
     newMol();
 }
 
-MainWindow::MainWindow(Vipster::Molecule m, QWidget *parent):
+MainWindow::MainWindow(Vipster::Molecule &m, QWidget *parent):
     QMainWindow(parent),
     curMol(nullptr),
     curStep(nullptr),
@@ -87,7 +87,13 @@ void MainWindow::editAtoms()
     setStep();
 }
 
-void MainWindow::newMol(Vipster::Molecule m)
+void MainWindow::newMol()
+{
+    molecules.push_back(Vipster::Molecule());
+    setMol(molecules.size());
+}
+
+void MainWindow::newMol(Vipster::Molecule &m)
 {
     molecules.push_back(m);
     setMol(molecules.size());
