@@ -11,6 +11,8 @@ before_install:
     - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
     - source $QT_ENV_SCRIPT
     - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
+    - wget http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.62/libboost1.62-dev_1.62.0+dfsg-4_amd64.deb
+    - sudo dpkg -i libboost1.62-dev_1.62.0+dfsg-4_amd64.deb
 install:
     - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y
     - make
