@@ -5,12 +5,15 @@
 #include <fstream>
 
 namespace Vipster{
-    enum class IOType{ None, PWParam};
-    struct IOBase{};
+namespace IO {
+    struct BaseParam{
+//        virtual Vipster::IOType getIOType()=0;
+        virtual ~BaseParam(){};
+    };
+}
     struct IOData{
-        std::shared_ptr<Molecule> mol;
-        IOType data_type;
-        std::shared_ptr<IOBase> data;
+        Molecule mol;
+        std::shared_ptr<IO::BaseParam> data;
     };
     struct IOPlugin{
         std::string name;

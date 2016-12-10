@@ -90,9 +90,8 @@ struct xyz_parse_grammar
 Vipster::IOData xyz_file_parser(std::string fn, std::ifstream &file)
 {
     Vipster::IOData d{
-        std::make_shared<Vipster::Molecule>(fn,0),
-        Vipster::IOType::None,
-        std::shared_ptr<Vipster::IOBase>()
+        Vipster::Molecule{fn,0},
+        std::shared_ptr<Vipster::IO::BaseParam>()
     };
 
     typedef std::istreambuf_iterator<char> iter;
@@ -100,7 +99,7 @@ Vipster::IOData xyz_file_parser(std::string fn, std::ifstream &file)
 
     xyz_parse_grammar<boost::spirit::multi_pass<iter>> grammar;
 
-    qi::phrase_parse(first, boost::spirit::make_default_multi_pass(iter()), grammar, qi::blank, *d.mol);
+    qi::phrase_parse(first, boost::spirit::make_default_multi_pass(iter()), grammar, qi::blank, d.mol);
 
     return d;
 }

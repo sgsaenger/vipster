@@ -4,8 +4,6 @@
 
 MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
-    curMol(nullptr),
-    curStep(nullptr),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -13,15 +11,22 @@ MainWindow::MainWindow(QWidget *parent):
     newMol();
 }
 
-MainWindow::MainWindow(Vipster::Molecule &m, QWidget *parent):
+MainWindow::MainWindow(const Vipster::Molecule &m, QWidget *parent):
     QMainWindow(parent),
-    curMol(nullptr),
-    curStep(nullptr),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
     newMol(m);
+}
+
+MainWindow::MainWindow(Vipster::Molecule &&m, QWidget *parent):
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    newMol(std::move(m));
 }
 
 MainWindow::~MainWindow()
@@ -93,9 +98,15 @@ void MainWindow::newMol()
     setMol(molecules.size());
 }
 
-void MainWindow::newMol(Vipster::Molecule &m)
+void MainWindow::newMol(const Vipster::Molecule &m)
 {
     molecules.push_back(m);
+    setMol(molecules.size());
+}
+
+void MainWindow::newMol(Vipster::Molecule &&m)
+{
+    molecules.push_back(std::move(m));
     setMol(molecules.size());
 }
 

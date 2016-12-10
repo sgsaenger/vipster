@@ -6,7 +6,7 @@
 namespace Vipster{
 namespace IO{
 extern const IOPlugin PWInput;
-struct PWParam{
+struct PWParam: BaseParam{
     std::map<std::string, std::string> control;
     std::map<std::string, std::string> system;
     std::map<std::string, std::string> electrons;
