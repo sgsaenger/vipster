@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-IOData Vipster::readFile(std::string fn, IOFmt fmt)
+IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt)
 {
     std::ifstream file{fn};
     if(!file){
@@ -16,7 +16,7 @@ IOData Vipster::readFile(std::string fn, IOFmt fmt)
     }
 }
 
-//bool  Vipster::writeFile(const IOData &d, std::string fn, IOFmt fmt)
+//bool  Vipster::writeFile(const IO::BaseData &d, std::string fn, IOFmt fmt)
 //{
 //    return false;
 //}

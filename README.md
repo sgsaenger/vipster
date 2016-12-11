@@ -9,8 +9,9 @@ Testing:
 
 Visualization of various molecular structure files.
 
-Port to C++11, maybe 14, we'll see when it's finished.
+Port to C++14.
 I try to provide a functionally equivalent python wrapper.
+(and sane library interface, independent of QT. And a JS-wrapper/implementation?)
 ~~Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.~~
 
 ##Supported file types:

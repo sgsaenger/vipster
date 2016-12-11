@@ -13,8 +13,8 @@ namespace Vipster{
                     {IOFmt::XYZ, &IO::XYZ},
                     {IOFmt::PWI, &IO::PWInput}
                 };
-    IOData      readFile(std::string fn, IOFmt fmt);
-//    bool        writeFile(const IOData &d, std::string fn, IOFmt fmt);
+    IO::BaseData      readFile(std::string fn, IOFmt fmt);
+//    bool        writeFile(const IO::BaseData &d, std::string fn, IOFmt fmt);
 }
 
 #endif // IOWRAPPER

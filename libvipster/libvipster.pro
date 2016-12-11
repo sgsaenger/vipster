@@ -11,7 +11,7 @@ TEMPLATE = lib
 
 DEFINES += LIBVIPSTER_LIBRARY
 
-CONFIG += c++11
+CONFIG += c++14
 
 SOURCES += \
     config.cpp \

@@ -29,6 +29,30 @@ std::ostream& operator<< (ostream& stream, const Vipster::IO::PWParam& p)
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::Atom,
+        (std::string, name)
+        (float, coord[0])
+        (float, coord[1])
+        (float, coord[2])
+)
+
+BOOST_FUSION_ADAPT_ADT(
+        Vipster::Step,
+        (std::vector<Vipster::Atom>, std::vector<Vipster::Atom>, obj.getAtoms(), obj.newAtoms(val))
+)
+
+BOOST_FUSION_ADAPT_ADT(
+        Vipster::Molecule,
+        (std::vector<Vipster::Step>, std::vector<Vipster::Step>, obj.getSteps(), obj.newSteps(val))
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::PseEntry,
+        m,
+        PWPP
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
         Vipster::IO::PWParam,
         control,
         system,
@@ -37,25 +61,70 @@ BOOST_FUSION_ADAPT_STRUCT(
         cell
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::IO::PWData,
+        data,
+        mol
+)
+
 template<typename Iterator>
 struct pwi_parse_grammar
-        : qi::grammar<Iterator, shared_ptr<Vipster::IO::PWParam>(), qi::blank_type>
+        : qi::grammar<Iterator, Vipster::IO::PWData(), qi::blank_type>
 {
     pwi_parse_grammar(): pwi_parse_grammar::base_type(file)
     {
         key = *(qi::graph - qi::char_("=/,'"));
+        key.name("Key (or unquoted value)");
         fstr = qi::char_('\'') >> qi::lexeme[*(qi::char_ - '\'')] > qi::char_('\'');
+        fstr.name("Quoted value");
         value = fstr | key;
+        value.name("Value");
         nl_entry = key >> qi::lit('=') >> value;
-        namelist = *qi::eol
-                   >> nl_entry % (qi::eol | ',')
-                   >> *qi::eol >> '/' >> *qi::eol;
-        param = qi::no_case["&control"] > namelist >
-                qi::no_case["&system"] > namelist >
-                qi::no_case["&electrons"] > namelist >
-                -(qi::no_case["&ions"] > namelist) >
-                -(qi::no_case["&cell"] > namelist);
-        file = param;
+        nl_entry.name("Namelist KV-pair");
+        namelist = qi::omit[qi::no_case[qi::string(qi::_r1)]] >> *qi::eol
+                   >> nl_entry % (*(qi::eol >> -(qi::lit('!') >> *(qi::char_ - qi::eol) > qi::eol)) | ',')
+                   >> *qi::eol >> '/';
+        namelist.name("Namelist");
+        param = namelist(string{"&control"}) > *qi::eol >
+                namelist(string{"&system"}) > *qi::eol >
+                namelist(string{"&electrons"}) > *qi::eol >
+                -(namelist(string{"&ions"}) > *qi::eol) >
+                -(namelist(string{"&cell"}));
+        param.name("PW parameter set");
+        //TODO: hier weitermachen
+        //IDEE: semantic action nach param -> nat,ntyp,ibrav an mol uebergeben?!
+        //IDEE2: ^-operator um reihenfolge beliebig zu machen?
+        name = +(qi::char_ - qi::space);
+        pseentry = qi::double_ > name;
+        pseentry.name("PSEEntry");
+        psepair = name > pseentry;
+        psepair.name("PSE KV-pair");
+        species = qi::no_case[qi::lit("atomic_species")] > qi::eol
+                > (psepair % qi::eol);
+        species.name("Atomic species");
+        atom = name > qi::double_ > qi::double_ > qi::double_;
+        atom.name("Atom");
+        format = qi::no_case[qi::lit("crystal")][phx::ref(fmt) = Vipster::AtomFmt::Crystal]
+               | qi::no_case[qi::lit("alat")][phx::ref(fmt) = Vipster::AtomFmt::Alat]
+               | qi::no_case[qi::lit("bohr")][phx::ref(fmt) = Vipster::AtomFmt::Bohr]
+               | qi::no_case[qi::lit("angstrom")][phx::ref(fmt) = Vipster::AtomFmt::Angstrom];
+        format.name("Atom format");
+        positions = qi::no_case[qi::lit("atomic_positions")] > -format > qi::eol
+                > (atom % qi::eol);
+        positions.name("Atomic positions");
+//        forces = qi::eol;
+        step = positions;
+        steps = step;
+        mol.name("Molecule");
+        mol = qi::omit[species] > *qi::eol >
+              steps > *qi::eol;// >
+//              kpoints > *qi::eol >
+//              cell > *qi::eol >
+//              occupations > *qi::eol >
+//              constraints > *qi::eol >
+//              forces > *qi::eol;
+        file = param > *qi::eol > mol;
+        file.name("PWScf input file");
         qi::on_error<qi::fail>(
                 file,
                 std::cout
@@ -66,41 +135,63 @@ struct pwi_parse_grammar
                 << phx::val("\"")
                 << std::endl
         );
-        BOOST_SPIRIT_DEBUG_NODE(file);
-        BOOST_SPIRIT_DEBUG_NODE(param);
-        BOOST_SPIRIT_DEBUG_NODE(namelist);
-        BOOST_SPIRIT_DEBUG_NODE(nl_entry);
-        BOOST_SPIRIT_DEBUG_NODE(key);
-        BOOST_SPIRIT_DEBUG_NODE(fstr);
-        BOOST_SPIRIT_DEBUG_NODE(value);
+//        BOOST_SPIRIT_DEBUG_NODE(file);
+//        BOOST_SPIRIT_DEBUG_NODE(param);
+//        BOOST_SPIRIT_DEBUG_NODE(namelist);
+//        BOOST_SPIRIT_DEBUG_NODE(nl_entry);
+//        BOOST_SPIRIT_DEBUG_NODE(value);
+//        BOOST_SPIRIT_DEBUG_NODE(key);
+//        BOOST_SPIRIT_DEBUG_NODE(fstr);
+//        BOOST_SPIRIT_DEBUG_NODE(mol);
+        BOOST_SPIRIT_DEBUG_NODE(name);
+//        BOOST_SPIRIT_DEBUG_NODE(species);
+//        BOOST_SPIRIT_DEBUG_NODE(psepair);
+//        BOOST_SPIRIT_DEBUG_NODE(pseentry);
+        BOOST_SPIRIT_DEBUG_NODE(positions);
+        BOOST_SPIRIT_DEBUG_NODE(atom);
+        BOOST_SPIRIT_DEBUG_NODE(format);
     }
-//    qi::rule<Iterator, Vipster::IOData(), qi::blank_type> file;
-    qi::rule<Iterator, shared_ptr<Vipster::IO::PWParam>(), qi::blank_type> file;
+    qi::rule<Iterator, Vipster::IO::PWData(), qi::blank_type> file;
+//Parameter-set, composed of F90-namelists
     qi::rule<Iterator, Vipster::IO::PWParam(), qi::blank_type> param;
-    qi::rule<Iterator, map<string, string>(), qi::blank_type> namelist;
+    qi::rule<Iterator, map<string, string>(string), qi::blank_type> namelist;
     qi::rule<Iterator, pair<string, string>(), qi::blank_type> nl_entry;
-    qi::rule<Iterator, string(), qi::blank_type> key;
-    qi::rule<Iterator, string(), qi::blank_type> value;
-    qi::rule<Iterator, string(), qi::blank_type> fstr;
+    qi::rule<Iterator, string()> value;
+    qi::rule<Iterator, string()> key;
+    qi::rule<Iterator, string()> fstr;
+//Molecule
     qi::rule<Iterator, Vipster::Molecule(), qi::blank_type> mol;
+    qi::rule<Iterator, vector<Vipster::Step>(), qi::blank_type> steps;
+    qi::rule<Iterator, Vipster::Step(), qi::blank_type> step;
+    qi::rule<Iterator, string()> name;
+    qi::rule<Iterator, vector<pair<string,Vipster::PseEntry>>(), qi::blank_type> species;
+    qi::rule<Iterator, pair<string,Vipster::PseEntry>(), qi::blank_type> psepair;
+    qi::rule<Iterator, Vipster::PseEntry(), qi::blank_type> pseentry;
+    qi::rule<Iterator, vector<Vipster::Atom>(), qi::blank_type> positions;
+    qi::rule<Iterator, qi::blank_type> format;
+    qi::rule<Iterator, Vipster::Atom(), qi::blank_type> atom;
+    Vipster::AtomFmt fmt = Vipster::AtomFmt::Alat;
+//    qi::rule<Iterator, qi::unused_type(), qi::blank_type> kpoints;
+//    qi::rule<Iterator, qi::unused_type(), qi::blank_type> cell;
+//    qi::rule<Iterator, qi::unused_type(), qi::blank_type> occupations;
+//    qi::rule<Iterator, qi::unused_type(), qi::blank_type> constraints;
+//    qi::rule<Iterator, qi::unused_type(), qi::blank_type> forces;
 };
 
-Vipster::IOData pwi_file_parser(std::string fn, std::ifstream &file)
+Vipster::IO::BaseData pwi_file_parser(std::string fn, std::ifstream &file)
 {
-    Vipster::IOData d{
-        Vipster::Molecule{fn,1},
-        shared_ptr<Vipster::IO::PWParam>(new Vipster::IO::PWParam)
-    };
-    Vipster::IO::PWParam* p = dynamic_cast<Vipster::IO::PWParam*>(d.data.get());
+    Vipster::IO::PWData d;
+    d.mol.setName(fn);
+//    Vipster::IO::PWParam* p = dynamic_cast<Vipster::IO::PWParam*>(&d.data);
 
     typedef std::istreambuf_iterator<char> iter;
     boost::spirit::multi_pass<iter> first = boost::spirit::make_default_multi_pass(iter(file));
 
     pwi_parse_grammar<boost::spirit::multi_pass<iter>> grammar;
 
-    qi::phrase_parse(first, boost::spirit::make_default_multi_pass(iter()), grammar, qi::blank, d.data);
+    qi::phrase_parse(first, boost::spirit::make_default_multi_pass(iter()), grammar, qi::blank, d);
 
-    cout << *p << endl;
+//    cout << *p << endl;
     return d;
 }
 

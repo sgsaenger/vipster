@@ -40,26 +40,27 @@ struct xyz_parse_grammar
 {
     xyz_parse_grammar(): xyz_parse_grammar::base_type(mol, "XYZ")
     {
-        mol = steps > qi::eoi;
-        mol.name("Molecule");
-        steps = step % *qi::eol;
-        steps.name("Steps");
+        name = +(qi::char_ - qi::space);
+        name.name("Element");
+        atom = name
+               >> qi::double_
+               >> qi::double_
+               >> qi::double_;
+        atom.name("Atom");
+        atoms = (atom % qi::eol)
+                > qi::eps(qi::_r1 == phx::bind(&std::vector<Vipster::Atom>::size,qi::_val));
+        atoms.name("Atoms");
+        comment = *(qi::char_ - qi::eol) > qi::eol;
+        comment.name("Comment");
         step %= qi::omit[qi::int_[qi::_a = qi::_1] > qi::eol]
                 > comment
                 > atoms(qi::_a)
                 > qi::eps[phx::bind(&Vipster::Step::setCellDim,qi::_val,1,true,Vipster::AtomFmt::Angstrom)];
         step.name("Step");
-        comment = *(qi::char_ - qi::eol);
-        comment.name("Comment");
-        atoms = qi::repeat(qi::_r1)[qi::eol > atom];
-        atoms.name("Atoms");
-        atom = name
-               > qi::double_
-               > qi::double_
-               > qi::double_;
-        atom.name("Atom");
-        name = +qi::alnum;
-        name.name("Element");
+        steps = step % +qi::eol;
+        steps.name("Steps");
+        mol = steps;
+        mol.name("Molecule");
         qi::on_error<qi::fail>(
                 mol,
                 std::cout
@@ -87,12 +88,10 @@ struct xyz_parse_grammar
     qi::rule<Iterator, std::string()> name;
 };
 
-Vipster::IOData xyz_file_parser(std::string fn, std::ifstream &file)
+Vipster::IO::BaseData xyz_file_parser(std::string fn, std::ifstream &file)
 {
-    Vipster::IOData d{
-        Vipster::Molecule{fn,0},
-        std::shared_ptr<Vipster::IO::BaseParam>()
-    };
+    Vipster::IO::BaseData d;
+    d.mol.setName(fn);
 
     typedef std::istreambuf_iterator<char> iter;
     boost::spirit::multi_pass<iter> first = boost::spirit::make_default_multi_pass(iter(file));

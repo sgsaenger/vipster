@@ -13,6 +13,9 @@ struct PWParam: BaseParam{
     std::map<std::string, std::string> ions;
     std::map<std::string, std::string> cell;
 };
+struct PWData: Vipster::IO::BaseData{
+    PWParam data;
+};
 }
 }
 

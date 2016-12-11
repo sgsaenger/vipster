@@ -7,20 +7,19 @@
 namespace Vipster{
 namespace IO {
     struct BaseParam{
-//        virtual Vipster::IOType getIOType()=0;
-        virtual ~BaseParam(){};
+        virtual ~BaseParam() = default;
+    };
+    struct BaseData{
+        Molecule mol{"",0};
+        virtual ~BaseData() = default;
     };
 }
-    struct IOData{
-        Molecule mol;
-        std::shared_ptr<IO::BaseParam> data;
-    };
     struct IOPlugin{
         std::string name;
         std::string extension;
         std::string argument;
-        IOData (*parser)(std::string fn, std::ifstream &file);
-        bool   (*writer)(const IOData& d, std::ofstream &file);
+        IO::BaseData (*parser)(std::string fn, std::ifstream &file);
+        bool   (*writer)(const IO::BaseData& d, std::ofstream &file);
     };
     class IOError: public std::runtime_error
     {
