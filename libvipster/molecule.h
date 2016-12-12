@@ -5,6 +5,7 @@
 #include <config.h>
 
 namespace Vipster {
+    enum class KPointFmt{Gamma, MPG, Discrete};
     class Molecule
     {
     public:
@@ -26,9 +27,12 @@ namespace Vipster {
         size_t getNstep(void) const noexcept;
         void setName(const std::string &s);
         const std::string& getName(void) const noexcept;
+        void setKPointFmt(KPointFmt f) noexcept;
+        KPointFmt getKPointFmt(void) const noexcept;
     private:
         std::vector<Step> steps;
         std::string name;
+        KPointFmt kpfmt = KPointFmt::Gamma;
     };
 }
 #endif // MOLECULE_H

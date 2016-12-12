@@ -43,7 +43,8 @@ BOOST_FUSION_ADAPT_ADT(
 
 BOOST_FUSION_ADAPT_ADT(
         Vipster::Molecule,
-        (std::vector<Vipster::Step>, std::vector<Vipster::Step>, obj.getSteps(), obj.newSteps(val))
+        (obj.getSteps(), obj.newSteps(val))
+        (obj.getKPointFmt(), obj.setKPointFmt(val))
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -109,16 +110,17 @@ struct pwi_parse_grammar
                | qi::no_case[qi::lit("bohr")][phx::ref(fmt) = Vipster::AtomFmt::Bohr]
                | qi::no_case[qi::lit("angstrom")][phx::ref(fmt) = Vipster::AtomFmt::Angstrom];
         format.name("Atom format");
-        positions = qi::no_case[qi::lit("atomic_positions")] > -format > qi::eol
+        atoms = qi::no_case[qi::lit("atomic_positions")] > -format > qi::eol
                 > (atom % qi::eol);
-        positions.name("Atomic positions");
-//        forces = qi::eol;
-        step = positions;
-        steps = step;
+        atoms.name("Atomic positions");
+        positions = qi::as<Vipster::Step>()[atoms];
+        kpoints %= qi::no_case[qi::lit("k_points")] >
+                    (qi::no_case[qi::lit("gamma")][qi::_val = Vipster::KPointFmt::Gamma]
+                    |qi::no_case[qi::lit("automatic")][qi::_val = Vipster::KPointFmt::MPG]);
         mol.name("Molecule");
         mol = qi::omit[species] > *qi::eol >
-              steps > *qi::eol;// >
-//              kpoints > *qi::eol >
+              positions > *qi::eol >
+              kpoints > *qi::eol;// >
 //              cell > *qi::eol >
 //              occupations > *qi::eol >
 //              constraints > *qi::eol >
@@ -147,10 +149,11 @@ struct pwi_parse_grammar
 //        BOOST_SPIRIT_DEBUG_NODE(species);
 //        BOOST_SPIRIT_DEBUG_NODE(psepair);
 //        BOOST_SPIRIT_DEBUG_NODE(pseentry);
-        BOOST_SPIRIT_DEBUG_NODE(positions);
+        BOOST_SPIRIT_DEBUG_NODE(atoms);
         BOOST_SPIRIT_DEBUG_NODE(atom);
         BOOST_SPIRIT_DEBUG_NODE(format);
     }
+    Vipster::AtomFmt fmt = Vipster::AtomFmt::Alat;
     qi::rule<Iterator, Vipster::IO::PWData(), qi::blank_type> file;
 //Parameter-set, composed of F90-namelists
     qi::rule<Iterator, Vipster::IO::PWParam(), qi::blank_type> param;
@@ -161,17 +164,16 @@ struct pwi_parse_grammar
     qi::rule<Iterator, string()> fstr;
 //Molecule
     qi::rule<Iterator, Vipster::Molecule(), qi::blank_type> mol;
-    qi::rule<Iterator, vector<Vipster::Step>(), qi::blank_type> steps;
+    qi::rule<Iterator, vector<Vipster::Step>(), qi::blank_type> positions;
     qi::rule<Iterator, Vipster::Step(), qi::blank_type> step;
     qi::rule<Iterator, string()> name;
     qi::rule<Iterator, vector<pair<string,Vipster::PseEntry>>(), qi::blank_type> species;
     qi::rule<Iterator, pair<string,Vipster::PseEntry>(), qi::blank_type> psepair;
     qi::rule<Iterator, Vipster::PseEntry(), qi::blank_type> pseentry;
-    qi::rule<Iterator, vector<Vipster::Atom>(), qi::blank_type> positions;
+    qi::rule<Iterator, vector<Vipster::Atom>(), qi::blank_type> atoms;
     qi::rule<Iterator, qi::blank_type> format;
     qi::rule<Iterator, Vipster::Atom(), qi::blank_type> atom;
-    Vipster::AtomFmt fmt = Vipster::AtomFmt::Alat;
-//    qi::rule<Iterator, qi::unused_type(), qi::blank_type> kpoints;
+    qi::rule<Iterator, Vipster::KPointFmt(), qi::blank_type> kpoints;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> cell;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> occupations;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> constraints;

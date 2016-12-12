@@ -33,7 +33,12 @@ void Molecule::newStep(Step &&step)
 void Molecule::newSteps(const std::vector<Step> &v)
 {
     steps.reserve(steps.size()+v.size());
+    std::vector<Step>::iterator pos = steps.end();
     steps.insert(steps.end(),v.begin(),v.end());
+    for(;pos!=steps.end();++pos)
+    {
+        pos->pse = pse;
+    }
 }
 
 Step& Molecule::getStep(size_t idx)
@@ -69,4 +74,14 @@ void Molecule::setName(const std::string &s)
 const std::string& Molecule::getName(void)const noexcept
 {
     return name;
+}
+
+void Molecule::setKPointFmt(KPointFmt f) noexcept
+{
+    kpfmt = f;
+}
+
+KPointFmt Molecule::getKPointFmt() const noexcept
+{
+    return kpfmt;
 }
