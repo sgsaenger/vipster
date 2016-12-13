@@ -12,13 +12,14 @@ struct DiscreteKPoint{
 };
 
 struct KPoints{
+    enum DiscreteProperties{crystal=0x1,band=0x2};
     KPointFmt active = KPointFmt::Gamma;
     struct MPG{
         int x,y,z;
         float sx,sy,sz;
     } mpg;
     struct Discrete{
-        bool crystal,band;
+        DiscreteProperties properties;
         std::vector<DiscreteKPoint> kpoints;
     } discrete;
 };

@@ -10,6 +10,7 @@
 namespace qi = boost::spirit::qi;
 namespace phx = boost::phoenix;
 using namespace std;
+using namespace Vipster;
 
 std::ostream& operator<< (ostream& stream, const map<string, string>m)
 {
@@ -38,6 +39,14 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::DiscreteKPoint,
+        (float, pos[0])
+        (float, pos[1])
+        (float, pos[2])
+        (float, weight)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
         Vipster::KPoints::MPG,
         x,
         y,
@@ -49,9 +58,8 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
         Vipster::KPoints::Discrete,
-        crystal,
-        band,
-        kpoints
+        (Vipster::KPoints::DiscreteProperties, properties)
+        (std::vector<Vipster::DiscreteKPoint>, kpoints)
 )
 
 
@@ -141,7 +149,13 @@ struct pwi_parse_grammar
         atoms.name("Atomic positions");
         positions = qi::as<Vipster::Step>()[atoms];
         kpointmpg = qi::eol > qi::int_ > qi::int_ > qi::int_ > qi::double_ > qi::double_ > qi::double_;
-        kpointdisc = qi::attr(Vipster::KPoints::Discrete{});
+        disckpoint = qi::double_ > qi::double_ > qi::double_ > qi::double_;
+        disckpoints = (disckpoint % qi::eol);
+        kpointdisc = ((qi::no_case[qi::lit("crystal_b")] > qi::attr(KPoints::DiscreteProperties::crystal|KPoints::DiscreteProperties::band))
+                     |(qi::no_case[qi::lit("crystal")] > qi::attr(KPoints::DiscreteProperties::crystal))
+                     |(qi::no_case[qi::lit("tpiba_b")] > qi::attr(KPoints::DiscreteProperties::band))
+                     |(-qi::no_case[qi::lit("tpiba")] > qi::attr(0))
+                     ) > qi::eol > qi::omit[qi::int_] > qi::eol > (disckpoint % qi::eol);
         kpoints = qi::no_case[qi::lit("k_points")] >
                    (qi::no_case[qi::lit("gamma")]
                    |(qi::no_case[qi::lit("automatic")] > qi::attr(Vipster::KPointFmt::MPG) > kpointmpg)
@@ -205,6 +219,8 @@ struct pwi_parse_grammar
     qi::rule<Iterator, Vipster::KPoints(), qi::blank_type> kpoints;
     qi::rule<Iterator, Vipster::KPoints::MPG(), qi::blank_type> kpointmpg;
     qi::rule<Iterator, Vipster::KPoints::Discrete(), qi::blank_type> kpointdisc;
+    qi::rule<Iterator, vector<Vipster::DiscreteKPoint>(), qi::blank_type> disckpoints;
+    qi::rule<Iterator, Vipster::DiscreteKPoint(), qi::blank_type> disckpoint;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> cell;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> occupations;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> constraints;
