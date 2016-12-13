@@ -3,6 +3,7 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/support_multi_pass.hpp>
 #include <boost/spirit/include/phoenix.hpp>
+#include <boost/fusion/include/adapt_struct_named.hpp>
 #include <boost/fusion/include/adapt_adt.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 
@@ -36,6 +37,31 @@ BOOST_FUSION_ADAPT_STRUCT(
         (float, coord[2])
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::KPoints::MPG,
+        x,
+        y,
+        z,
+        sx,
+        sy,
+        sz
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::KPoints::Discrete,
+        crystal,
+        band,
+        kpoints
+)
+
+
+BOOST_FUSION_ADAPT_STRUCT(
+        Vipster::KPoints,
+        active,
+        mpg,
+        discrete
+)
+
 BOOST_FUSION_ADAPT_ADT(
         Vipster::Step,
         (std::vector<Vipster::Atom>, std::vector<Vipster::Atom>, obj.getAtoms(), obj.newAtoms(val))
@@ -44,7 +70,7 @@ BOOST_FUSION_ADAPT_ADT(
 BOOST_FUSION_ADAPT_ADT(
         Vipster::Molecule,
         (obj.getSteps(), obj.newSteps(val))
-        (obj.getKPointFmt(), obj.setKPointFmt(val))
+        (obj.getKPoints(), obj.setKPoints(val))
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -114,9 +140,12 @@ struct pwi_parse_grammar
                 > (atom % qi::eol);
         atoms.name("Atomic positions");
         positions = qi::as<Vipster::Step>()[atoms];
-        kpoints %= qi::no_case[qi::lit("k_points")] >
-                    (qi::no_case[qi::lit("gamma")][qi::_val = Vipster::KPointFmt::Gamma]
-                    |qi::no_case[qi::lit("automatic")][qi::_val = Vipster::KPointFmt::MPG]);
+        kpointmpg = qi::eol > qi::int_ > qi::int_ > qi::int_ > qi::double_ > qi::double_ > qi::double_;
+        kpointdisc = qi::attr(Vipster::KPoints::Discrete{});
+        kpoints = qi::no_case[qi::lit("k_points")] >
+                   (qi::no_case[qi::lit("gamma")]
+                   |(qi::no_case[qi::lit("automatic")] > qi::attr(Vipster::KPointFmt::MPG) > kpointmpg)
+                   |(qi::attr(Vipster::KPointFmt::Discrete) > qi::attr(Vipster::KPoints::MPG{}) > kpointdisc));
         mol.name("Molecule");
         mol = qi::omit[species] > *qi::eol >
               positions > *qi::eol >
@@ -173,7 +202,9 @@ struct pwi_parse_grammar
     qi::rule<Iterator, vector<Vipster::Atom>(), qi::blank_type> atoms;
     qi::rule<Iterator, qi::blank_type> format;
     qi::rule<Iterator, Vipster::Atom(), qi::blank_type> atom;
-    qi::rule<Iterator, Vipster::KPointFmt(), qi::blank_type> kpoints;
+    qi::rule<Iterator, Vipster::KPoints(), qi::blank_type> kpoints;
+    qi::rule<Iterator, Vipster::KPoints::MPG(), qi::blank_type> kpointmpg;
+    qi::rule<Iterator, Vipster::KPoints::Discrete(), qi::blank_type> kpointdisc;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> cell;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> occupations;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> constraints;

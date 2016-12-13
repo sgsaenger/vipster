@@ -34,7 +34,8 @@ HEADERS += \
     bond.h \
     vec.h \
     ioplugins/xyz.h \
-    ioplugins/pwinput.h
+    ioplugins/pwinput.h \
+    kpoints.h
 
 unix {
     target.path = /usr/lib/vipster

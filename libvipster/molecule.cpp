@@ -76,12 +76,12 @@ const std::string& Molecule::getName(void)const noexcept
     return name;
 }
 
-void Molecule::setKPointFmt(KPointFmt f) noexcept
+void Molecule::setKPoints(const KPoints &k)
 {
-    kpfmt = f;
+    kpoints = k;
 }
 
-KPointFmt Molecule::getKPointFmt() const noexcept
+const KPoints& Molecule::getKPoints() const noexcept
 {
-    return kpfmt;
+    return kpoints;
 }
