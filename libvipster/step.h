@@ -47,10 +47,10 @@ public:
     void    setCellVec(float v11, float v12, float v13,
                        float v21, float v22, float v23,
                        float v31, float v32, float v33,bool scale=false);
-    void    setCellVec(Vec v1, Vec v2, Vec v3,bool scale=false);
-    void    setCellVec(std::array<Vec,3> vec,bool scale=false);
+    void    setCellVec(const Vec &v1, const Vec &v2, const Vec &v3, bool scale=false);
+    void    setCellVec(Mat vec,bool scale=false);
     Vec   getCenter(bool com=false) const;
-    const std::array<Vec,3>& getCellVec(void) const noexcept;
+    const Mat& getCellVec(void) const noexcept;
     std::set<std::string> getTypes(void)const noexcept;
     size_t  getNtyp(void) const noexcept;
     void  setComment(const std::string &s);
@@ -70,8 +70,8 @@ private:
     std::string comment;
     std::vector<Atom> atoms;
     float celldim {1.};
-    std::array<Vec,3> cellvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
-    std::array<Vec,3> invvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
+    Mat cellvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
+    Mat invvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
     mutable bool bonds_outdated{true};
     mutable BondLevel bonds_level{BondLevel::None};
     mutable float bondcut_factor{1.1};

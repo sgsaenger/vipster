@@ -26,6 +26,8 @@ namespace Vipster{
     float Vec_length(const Vec &v);
     float Vec_dot(const Vec &v1, const Vec &v2);
     Vec Vec_cross(const Vec &v1, const Vec &v2);
+
+    typedef std::array<Vec,3> Mat;
 }
 
 #endif // VIPSTER_DEFINITIONS_H

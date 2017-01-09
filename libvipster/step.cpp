@@ -237,39 +237,39 @@ float Step::getCellDim(AtomFmt fmt) const noexcept
 
 void Step::setCellVec(float v11, float v12, float v13, float v21, float v22, float v23, float v31, float v32, float v33, bool scale)
 {
-    setCellVec(std::array<Vec,3>{{{{v11,v12,v13}},{{v21,v22,v23}},{{v31,v32,v33}}}},scale);
+    setCellVec(Mat{{{{v11,v12,v13}},{{v21,v22,v23}},{{v31,v32,v33}}}},scale);
 }
 
-void Step::setCellVec(Vec v1, Vec v2, Vec v3, bool scale)
+void Step::setCellVec(const Vec& v1, const Vec& v2, const Vec& v3, bool scale)
 {
-    setCellVec(std::array<Vec,3>{v1,v2,v3},scale);
+    setCellVec(Mat{v1,v2,v3},scale);
 }
 
-void Step::setCellVec(std::array<Vec, 3> vec, bool scale)
+void Step::setCellVec(Mat mat, bool scale)
 {
-    float det = vec[0][0]*(vec[1][1]*vec[2][2]-vec[1][2]*vec[2][1])
-               +vec[0][1]*(vec[1][2]*vec[2][0]-vec[1][0]*vec[2][2])
-               +vec[0][2]*(vec[1][0]*vec[2][1]-vec[1][1]*vec[2][0]);
+    float det = mat[0][0]*(mat[1][1]*mat[2][2]-mat[1][2]*mat[2][1])
+               +mat[0][1]*(mat[1][2]*mat[2][0]-mat[1][0]*mat[2][2])
+               +mat[0][2]*(mat[1][0]*mat[2][1]-mat[1][1]*mat[2][0]);
     if(std::abs(det) < std::numeric_limits<float>::epsilon())
     {
         throw std::invalid_argument("Step::setCellVec() : invalid cell-vectors (singular matrix)");
     }
     float invdet = 1/det;
-    std::array<Vec,3> inv;
-    inv[0][0] = (vec[1][1]*vec[2][2]-vec[2][1]*vec[1][2])*invdet;
-    inv[0][1] = (vec[0][2]*vec[2][1]-vec[0][1]*vec[2][2])*invdet;
-    inv[0][2] = (vec[0][1]*vec[1][2]-vec[0][2]*vec[1][1])*invdet;
-    inv[1][0] = (vec[1][2]*vec[2][0]-vec[1][0]*vec[2][2])*invdet;
-    inv[1][1] = (vec[0][0]*vec[2][2]-vec[0][2]*vec[2][0])*invdet;
-    inv[1][2] = (vec[1][0]*vec[0][2]-vec[0][0]*vec[1][2])*invdet;
-    inv[2][0] = (vec[1][0]*vec[2][1]-vec[2][0]*vec[1][1])*invdet;
-    inv[2][1] = (vec[2][0]*vec[0][1]-vec[0][0]*vec[2][1])*invdet;
-    inv[2][2] = (vec[0][0]*vec[1][1]-vec[1][0]*vec[0][1])*invdet;
+    Mat inv;
+    inv[0][0] = (mat[1][1]*mat[2][2]-mat[2][1]*mat[1][2])*invdet;
+    inv[0][1] = (mat[0][2]*mat[2][1]-mat[0][1]*mat[2][2])*invdet;
+    inv[0][2] = (mat[0][1]*mat[1][2]-mat[0][2]*mat[1][1])*invdet;
+    inv[1][0] = (mat[1][2]*mat[2][0]-mat[1][0]*mat[2][2])*invdet;
+    inv[1][1] = (mat[0][0]*mat[2][2]-mat[0][2]*mat[2][0])*invdet;
+    inv[1][2] = (mat[1][0]*mat[0][2]-mat[0][0]*mat[1][2])*invdet;
+    inv[2][0] = (mat[1][0]*mat[2][1]-mat[2][0]*mat[1][1])*invdet;
+    inv[2][1] = (mat[2][0]*mat[0][1]-mat[0][0]*mat[2][1])*invdet;
+    inv[2][2] = (mat[0][0]*mat[1][1]-mat[1][0]*mat[0][1])*invdet;
     std::vector<Atom> tatoms;
     if(scale){
         tatoms=formatAtoms(atoms,AtomFmt::Bohr,AtomFmt::Crystal);
     }
-    cellvec.swap(vec);
+    cellvec.swap(mat);
     invvec.swap(inv);
     if(scale){
         atoms=formatAtoms(tatoms,AtomFmt::Crystal,AtomFmt::Bohr);
@@ -277,7 +277,7 @@ void Step::setCellVec(std::array<Vec, 3> vec, bool scale)
     bonds_outdated = true;
 }
 
-const std::array<Vec,3>& Step::getCellVec() const noexcept
+const Mat& Step::getCellVec() const noexcept
 {
     return cellvec;
 }

@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <vector>
-#include <array>
 #include <molecule.h>
 
 namespace Ui {

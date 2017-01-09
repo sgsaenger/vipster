@@ -1,6 +1,5 @@
 #include "molwidget.h"
 #include "ui_molwidget.h"
-#include <array>
 #include <atom.h>
 #include <QTableWidgetItem>
 #include <iostream>
@@ -55,7 +54,7 @@ void MolWidget::setStep(Vipster::Step *step)
     }
     //Fill cell view
     ui->cellDimBox->setValue(curStep->getCellDim());
-    std::array<Vipster::Vec,3> vec = curStep->getCellVec();
+    Vipster::Mat vec = curStep->getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
             ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
@@ -71,7 +70,7 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 {
-    std::array<std::array<float,3>,3> vec;
+    Vipster::Mat vec;
     vec = curStep->getCellVec();
     vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
     curStep->setCellVec(vec, ui->cellScaleBox->isChecked());
