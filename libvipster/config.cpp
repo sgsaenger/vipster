@@ -6,23 +6,23 @@
 using json = nlohmann::json;
 using namespace Vipster;
 
-std::map<std::string, PseEntry> Vipster::readPse()
+PseMap Vipster::readPse()
 {
     std::ifstream user_file{user_config};
-    std::map<std::string,PseEntry> temp;
+    PseMap temp{true};
     if(user_file){
-        json loc;
-        loc << user_file;
-        for(auto it=loc["PSE"].begin();it!=loc["PSE"].end();++it)
+        json loc_file;
+        loc_file << user_file;
+        for(auto it=loc_file["PSE"].begin();it!=loc_file["PSE"].end();++it)
         {
             auto v = it.value();
-            temp[it.key()]=PseEntry{v["PWPP"],
+            temp.emplace(it.key(),PseEntry{v["PWPP"],
                     v["CPPP"],v["CPNL"],v["Z"],
                     v["m"],v["bondcut"],v["covr"],
-                    v["vdwr"],v["col"]};
+                    v["vdwr"],v["col"]});
         }
     }else{
-        temp["X"]=PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}};
+        temp.emplace("X", PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}});
     }
     return temp;
 }
@@ -39,13 +39,13 @@ PseEntry& PseMap::operator [](const std::string& k)
             if(std::islower(test[0])){
                 test[0] = std::toupper(test[0],loc);
             }
-            if(internal->find(test)!=internal->end())
+            if(pse.find(test)!=pse.end())
             {
-                emplace(k,internal->at(test));
+                emplace(k,pse.at(test));
                 return at(k);
             }
         }
-        emplace(k,internal->at("X"));
+        emplace(k,pse.at("X"));
         return at(k);
     }
 }

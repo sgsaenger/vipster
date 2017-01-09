@@ -12,7 +12,7 @@ struct DiscreteKPoint{
 };
 
 struct KPoints{
-    enum DiscreteProperties{crystal=0x1,band=0x2};
+    enum DiscreteProperties{none=0x0,crystal=0x1,band=0x2};
     KPointFmt active = KPointFmt::Gamma;
     struct MPG{
         int x,y,z;
