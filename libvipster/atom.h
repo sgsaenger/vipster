@@ -5,6 +5,7 @@
 
 namespace Vipster{
     enum class AtomFmt { Bohr = 1, Angstrom = 2, Crystal = 3, Alat = 4 };
+    typedef std::array<bool,3> FixVec;
 
     struct Atom{
         std::string name;

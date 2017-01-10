@@ -17,7 +17,7 @@ public:
     void    newAtom(std::string name="C",
                     Vec coord={0.,0.,0.},
                     float charge=0.,
-                    std::array<bool,3> fix={false,false,false},
+                    FixVec fix={false,false,false},
                     bool hidden=false,
                     AtomFmt fmt=AtomFmt::Bohr
     );                                                  //initialization of atom
@@ -30,7 +30,7 @@ public:
                     std::string name="C",
                     Vec coord={0.,0.,0.},
                     float charge=0.,
-                    std::array<bool,3> fix={false,false,false},
+                    FixVec fix={false,false,false},
                     bool hidden=false,
                     AtomFmt fmt=AtomFmt::Bohr
     );
