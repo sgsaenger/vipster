@@ -6,6 +6,7 @@
 namespace Vipster{
     typedef std::array<float,3> Vec;
     bool  operator==(const Vec &v1, const Vec &v2);
+    bool  operator!=(const Vec &v1, const Vec &v2);
     Vec operator +=(Vec &v1, const Vec &v2);
     Vec operator +(Vec v1, const Vec &v2);
     Vec operator +=(Vec &v1, const float &f);

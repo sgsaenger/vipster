@@ -114,6 +114,11 @@ bool Vipster::operator ==(const Vec &v1, const Vec &v2)
            (v1[2]-v2[2]) < std::numeric_limits<float>::epsilon();
 }
 
+bool Vipster::operator !=(const Vec &v1, const Vec &v2)
+{
+    return !(v1==v2);
+}
+
 float Vipster::Vec_length(const Vec &v)
 {
     return std::sqrt(Vec_dot(v,v));

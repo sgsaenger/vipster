@@ -49,11 +49,6 @@ void LibVipsterTest::testMolecule()
 
 void LibVipsterTest::testStep()
 {
-    auto atomComp = [](const Atom& comp1, const Atom& comp2){
-        return std::tie(comp1.name, comp1.coord, comp1.charge, comp1.fix, comp1.hidden)
-                ==
-               std::tie(comp2.name, comp2.coord, comp2.charge, comp2.fix, comp2.hidden);
-    };
     Atom atom{"C", {0.,0.,0.}, 0., {false, false, false}, false};
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false};
 
@@ -73,7 +68,7 @@ void LibVipsterTest::testStep()
     for(uint i=0;i!=step.getNat();++i)
     {
         std::string msg = "step: atom mismatch at pos " + std::to_string(i);
-        QVERIFY2(atomComp(step.getAtom(i), atom), msg.c_str());
+        QVERIFY2(step.getAtom(i) == atom, msg.c_str());
     }
 
     // getAtoms, setAtom, delAtom
@@ -88,12 +83,12 @@ void LibVipsterTest::testStep()
     for(uint i=0;i!=step.getNat();++i)
     {
         std::string msg = "step: atom mismatch at pos " + std::to_string(i);
-        QVERIFY2(atomComp(step.getAtom(i), atom2), msg.c_str());
+        QVERIFY2(step.getAtom(i) == atom2, msg.c_str());
     }
     for(const Atom& at:step.getAtoms())
     {
         std::string msg = "step: atom mismatch";
-        QVERIFY2(atomComp(at, atom2), msg.c_str());
+        QVERIFY2(at == atom2, msg.c_str());
     }
     // getCellDim, setCellDim, getCellVec, setCellVec, getAtomFt, getAtomsFmt
     QVERIFY2(step.getCellDim() == 1, "step: CellDim mismatch");
