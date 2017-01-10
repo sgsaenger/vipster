@@ -38,7 +38,7 @@ HEADERS += \
     kpoints.h
 
 unix {
-    target.path = /usr/lib/vipster
+    target.path = /usr/lib
     INSTALLS += target
 }
 unix:CONFIG(debug, debug|release) {
