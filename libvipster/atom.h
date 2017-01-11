@@ -8,7 +8,7 @@ namespace Vipster{
     typedef std::array<bool,3> FixVec;
 
     struct Atom{
-        std::string name;
+        std::string name="C";
         Vec coord;
         float charge;
         std::array<bool,3> fix;

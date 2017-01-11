@@ -1,7 +1,5 @@
 #include <global.h>
 #include <step.h>
-#include <limits>
-#include <cmath>
 
 using namespace Vipster;
 
@@ -114,17 +112,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target)
         at.coord*=invbohr;
         break;
     case AtomFmt::Crystal:
-        Vec ctemp;
-        ctemp[0] = at.coord[0]*cellvec[0][0]+
-                   at.coord[1]*cellvec[1][0]+
-                   at.coord[2]*cellvec[2][0];
-        ctemp[1] = at.coord[0]*cellvec[0][1]+
-                   at.coord[1]*cellvec[1][1]+
-                   at.coord[2]*cellvec[2][1];
-        ctemp[2] = at.coord[0]*cellvec[0][2]+
-                   at.coord[1]*cellvec[1][2]+
-                   at.coord[2]*cellvec[2][2];
-        at.coord.swap(ctemp);
+        at.coord = cellvec * at.coord;
     case AtomFmt::Alat:
         at.coord *= celldim;
         break;
@@ -136,17 +124,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target)
         at.coord*=bohrrad;
         break;
     case AtomFmt::Crystal:
-        Vec ctemp;
-        ctemp[0] = at.coord[0]*invvec[0][0]+
-                   at.coord[1]*invvec[1][0]+
-                   at.coord[2]*invvec[2][0];
-        ctemp[1] = at.coord[0]*invvec[0][1]+
-                   at.coord[1]*invvec[1][1]+
-                   at.coord[2]*invvec[2][1];
-        ctemp[2] = at.coord[0]*invvec[0][2]+
-                   at.coord[1]*invvec[1][2]+
-                   at.coord[2]*invvec[2][2];
-        at.coord.swap(ctemp);
+        at.coord = invvec * at.coord;
     case AtomFmt::Alat:
         at.coord /= celldim;
         break;
@@ -164,20 +142,7 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, AtomFmt source, Ato
         for(Atom& at:atoms) { at.coord*=invbohr; }
         break;
     case AtomFmt::Crystal:
-        Vec ctemp;
-        for(Atom& at:atoms)
-        {
-            ctemp[0] = at.coord[0]*cellvec[0][0]+
-                       at.coord[1]*cellvec[1][0]+
-                       at.coord[2]*cellvec[2][0];
-            ctemp[1] = at.coord[0]*cellvec[0][1]+
-                       at.coord[1]*cellvec[1][1]+
-                       at.coord[2]*cellvec[2][1];
-            ctemp[2] = at.coord[0]*cellvec[0][2]+
-                       at.coord[1]*cellvec[1][2]+
-                       at.coord[2]*cellvec[2][2];
-            at.coord.swap(ctemp);
-        }
+        for(Atom& at:atoms) { at.coord = cellvec * at.coord; }
     case AtomFmt::Alat:
         for(Atom& at:atoms) { at.coord*=celldim; }
         break;
@@ -190,20 +155,7 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, AtomFmt source, Ato
         for(Atom& at:atoms) { at.coord*=bohrrad; }
         break;
     case AtomFmt::Crystal:
-        Vec ctemp;
-        for(Atom& at:atoms)
-        {
-            ctemp[0] = at.coord[0]*invvec[0][0]+
-                       at.coord[1]*invvec[1][0]+
-                       at.coord[2]*invvec[2][0];
-            ctemp[1] = at.coord[0]*invvec[0][1]+
-                       at.coord[1]*invvec[1][1]+
-                       at.coord[2]*invvec[2][1];
-            ctemp[2] = at.coord[0]*invvec[0][2]+
-                       at.coord[1]*invvec[1][2]+
-                       at.coord[2]*invvec[2][2];
-            at.coord.swap(ctemp);
-        }
+        for(Atom& at:atoms) { at.coord = invvec * at.coord; }
     case AtomFmt::Alat:
         for(Atom& at:atoms) { at.coord/=celldim; }
         break;
@@ -245,31 +197,14 @@ void Step::setCellVec(const Vec& v1, const Vec& v2, const Vec& v3, bool scale)
     setCellVec(Mat{v1,v2,v3},scale);
 }
 
-void Step::setCellVec(Mat mat, bool scale)
+void Step::setCellVec(const Mat &mat, bool scale)
 {
-    float det = mat[0][0]*(mat[1][1]*mat[2][2]-mat[1][2]*mat[2][1])
-               +mat[0][1]*(mat[1][2]*mat[2][0]-mat[1][0]*mat[2][2])
-               +mat[0][2]*(mat[1][0]*mat[2][1]-mat[1][1]*mat[2][0]);
-    if(std::abs(det) < std::numeric_limits<float>::epsilon())
-    {
-        throw std::invalid_argument("Step::setCellVec() : invalid cell-vectors (singular matrix)");
-    }
-    float invdet = 1/det;
-    Mat inv;
-    inv[0][0] = (mat[1][1]*mat[2][2]-mat[2][1]*mat[1][2])*invdet;
-    inv[0][1] = (mat[0][2]*mat[2][1]-mat[0][1]*mat[2][2])*invdet;
-    inv[0][2] = (mat[0][1]*mat[1][2]-mat[0][2]*mat[1][1])*invdet;
-    inv[1][0] = (mat[1][2]*mat[2][0]-mat[1][0]*mat[2][2])*invdet;
-    inv[1][1] = (mat[0][0]*mat[2][2]-mat[0][2]*mat[2][0])*invdet;
-    inv[1][2] = (mat[1][0]*mat[0][2]-mat[0][0]*mat[1][2])*invdet;
-    inv[2][0] = (mat[1][0]*mat[2][1]-mat[2][0]*mat[1][1])*invdet;
-    inv[2][1] = (mat[2][0]*mat[0][1]-mat[0][0]*mat[2][1])*invdet;
-    inv[2][2] = (mat[0][0]*mat[1][1]-mat[1][0]*mat[0][1])*invdet;
+    Mat inv = Mat_inv(mat);
     std::vector<Atom> tatoms;
     if(scale){
         tatoms=formatAtoms(atoms,AtomFmt::Bohr,AtomFmt::Crystal);
     }
-    cellvec.swap(mat);
+    cellvec = mat;
     invvec.swap(inv);
     if(scale){
         atoms=formatAtoms(tatoms,AtomFmt::Crystal,AtomFmt::Bohr);
@@ -288,12 +223,12 @@ Vec Step::getCenter(bool com) const
     if(com){
         Vec min{0.},max{0.};
         for(const Atom& at:atoms){
-            min[0]=(min[0]<at.coord[0])?min[0]:at.coord[0];
-            min[1]=(min[1]<at.coord[1])?min[1]:at.coord[1];
-            min[2]=(min[2]<at.coord[2])?min[2]:at.coord[2];
-            max[0]=(max[0]>at.coord[0])?max[0]:at.coord[0];
-            max[1]=(max[1]>at.coord[1])?max[1]:at.coord[1];
-            max[2]=(max[2]>at.coord[2])?max[2]:at.coord[2];
+            min[0]=std::min(min[0],at.coord[0]);
+            min[1]=std::min(min[1],at.coord[1]);
+            min[2]=std::min(min[2],at.coord[2]);
+            max[0]=std::min(max[0],at.coord[0]);
+            max[1]=std::min(max[1],at.coord[1]);
+            max[2]=std::min(max[2],at.coord[2]);
         }
         temp=(min+max)/2;
     }else{

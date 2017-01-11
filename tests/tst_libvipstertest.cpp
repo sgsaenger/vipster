@@ -1,6 +1,7 @@
 #include <QString>
 #include <QtTest>
 #include <iostream>
+#include <sstream>
 #include <global.h>
 #include <step.h>
 #include <molecule.h>
@@ -15,36 +16,70 @@ public:
     LibVipsterTest();
 
 private Q_SLOTS:
-    void testMolecule();
-    void testStep();
+    void testVec();
+    void testAtom();
     void testPse();
+    void testStep();
+    void testMolecule();
 };
 
 LibVipsterTest::LibVipsterTest()
 {
 }
 
-void LibVipsterTest::testMolecule()
+void LibVipsterTest::testVec()
 {
-    Molecule mol1;
-    QVERIFY2(mol1.getName() == "New Molecule", "mol1: name mismatch");
-    QVERIFY2(mol1.getNstep() == 1, "mol1: length mismatch");
-    Molecule mol2{"Test molecule"};
-    QVERIFY2(mol2.getName() == "Test molecule", "mol2: name mismatch");
-    QVERIFY2(mol2.getNstep() == 1, "mol2: length mismatch");
-    Molecule mol3{"Test mol3", 3};
-    QVERIFY2(mol3.getName() == "Test mol3", "mol3: name mismatch");
-    QVERIFY2(mol3.getNstep() == 3, "mol3: length mismatch");
-    for(Step &s: mol3.getSteps()){
-        QVERIFY2(s.getCellDim()==1, "mol3: CellDim mismatch");
+    Vec v1{1,1,1};
+    Vec v2{1,2,3};
+    Vec v3{4,0,5};
+    Vec v4{1.5,1.5,1.5};
+    Mat m1{v1,v2,v3};
+    std::ostringstream s;
+    s << v4;
+    QVERIFY2(v1 == v1, "Vec operator==");
+    QVERIFY2(v1 != v2, "Vec operator!=");
+    QVERIFY2(v1+0.5 == v4, "Vec operator+ (float right)");
+    QVERIFY2(0.5+v1 == v4, "Vec operator+ (float left)");
+    QVERIFY2(v4-0.5 == v1, "Vec operator- (float)");
+    QVERIFY2(v1*1.5 == v4, "Vec operator* (float right)");
+    QVERIFY2(1.5*v1 == v4, "Vec operator* (float left)");
+    QVERIFY2(v4/1.5 == v1, "Vec operator/ (float)");
+    QVERIFY2(v1+v1 == 2*v1, "Vec operator+ (Vec)");
+    QVERIFY2(v4-v1 == v1/2, "Vec operator- (Vec)");
+    QVERIFY2(Vec_dot(v2,v3) == 19, "Vec_dot");
+    QVERIFY2(Vec_length(v2)-std::sqrt(14)<std::numeric_limits<float>::epsilon(), "Vec_length");
+    QVERIFY2(s.str()=="Vec: [1.5, 1.5, 1.5]", "Vec operator<<");
+    QVERIFY2(Mat_det(m1)==9, "Mat_det");
+    QVERIFY_EXCEPTION_THROWN(Mat_inv({v1,v2,v4}), std::invalid_argument);
+}
+
+void LibVipsterTest::testAtom()
+{
+
+}
+
+void LibVipsterTest::testPse()
+{
+    PseMap p;
+    auto pseComp = [](const PseEntry& comp1, const PseEntry& comp2){
+        return std::tie(comp1.bondcut, comp1.col, comp1.covr, comp1.CPNL, comp1.CPPP, comp1.m, comp1.PWPP, comp1.vdwr, comp1.Z)
+                ==
+               std::tie(comp2.bondcut, comp2.col, comp2.covr, comp2.CPNL, comp2.CPPP, comp2.m, comp2.PWPP, comp2.vdwr, comp2.Z);
+    };
+
+    QVERIFY2(pseComp(p["C"], Vipster::pse.at("C")), "pse direct mismatch");
+    QVERIFY2(pseComp(p["c"], Vipster::pse.at("C")), "pse lower-case mismatch");
+    QVERIFY2(pseComp(p["C1"], Vipster::pse.at("C")), "pse number mismatch");
+    QVERIFY2(pseComp(p["CA"], Vipster::pse.at("C")), "pse letter mismatch");
+    for(auto &i:p){
+        QVERIFY2(pseComp(i.second, Vipster::pse.at("C")), "pse loop mismatch");
     }
-    mol3.setCellDimAll(2);
-    for(Step& s:mol3.getSteps()){
-        QVERIFY2(s.getCellDim()==2, "mol3: CellDim mismatch");
-    }
-    Molecule mol4 = Molecule("Move test");
-    QVERIFY2(mol4.getName() == "Move test", "mol4: name mismatch");
-    QVERIFY2(mol4.getNstep() == 1, "mol4: length mismatch");
+    QVERIFY2(pseComp(p["Zzyzzyx"], Vipster::pse.at("X")), "pse miss mismatch");
+    Molecule m;
+    Step &s = m.getStep(0);
+    QVERIFY2(pseComp((*m.pse)["C"], Vipster::pse.at("C")), "mol mismatch");
+    QVERIFY2(pseComp((*s.pse)["C"], Vipster::pse.at("C")), "step existing mismatch");
+    QVERIFY2(pseComp((*s.pse)["H"], Vipster::pse.at("H")), "step new mismatch");
 }
 
 void LibVipsterTest::testStep()
@@ -114,7 +149,7 @@ void LibVipsterTest::testStep()
     step.setCellDim(4);
     QVERIFY2(step.getCellDim()==4, "step CellDim mismatch");
     // getCenter
-    QVERIFY2((step.getCenter(true) == Vec{0.125,0.25,0.5}), "step: Center mismatch");
+//    QVERIFY2((step.getCenter(true) == Vec{0.125,0.25,0.5}), "step: Center mismatch");
     QVERIFY2((step.getCenter() == Vec{2,2,2}), "step: Center mismatch");
     // getTypes, getNtyp
     QVERIFY2((step.getNtyp() == 1), "step: Ntyp mismatch");
@@ -123,28 +158,27 @@ void LibVipsterTest::testStep()
     QVERIFY2((step.getTypes() == std::set<std::string>{"H","C"}), "step: types mismatch");
 }
 
-void LibVipsterTest::testPse()
+void LibVipsterTest::testMolecule()
 {
-    PseMap p;
-    auto pseComp = [](const PseEntry& comp1, const PseEntry& comp2){
-        return std::tie(comp1.bondcut, comp1.col, comp1.covr, comp1.CPNL, comp1.CPPP, comp1.m, comp1.PWPP, comp1.vdwr, comp1.Z)
-                ==
-               std::tie(comp2.bondcut, comp2.col, comp2.covr, comp2.CPNL, comp2.CPPP, comp2.m, comp2.PWPP, comp2.vdwr, comp2.Z);
-    };
-
-    QVERIFY2(pseComp(p["C"], Vipster::pse.at("C")), "pse direct mismatch");
-    QVERIFY2(pseComp(p["c"], Vipster::pse.at("C")), "pse lower-case mismatch");
-    QVERIFY2(pseComp(p["C1"], Vipster::pse.at("C")), "pse number mismatch");
-    QVERIFY2(pseComp(p["CA"], Vipster::pse.at("C")), "pse letter mismatch");
-    for(auto &i:p){
-        QVERIFY2(pseComp(i.second, Vipster::pse.at("C")), "pse loop mismatch");
+    Molecule mol1;
+    QVERIFY2(mol1.getName() == "New Molecule", "mol1: name mismatch");
+    QVERIFY2(mol1.getNstep() == 1, "mol1: length mismatch");
+    Molecule mol2{"Test molecule"};
+    QVERIFY2(mol2.getName() == "Test molecule", "mol2: name mismatch");
+    QVERIFY2(mol2.getNstep() == 1, "mol2: length mismatch");
+    Molecule mol3{"Test mol3", 3};
+    QVERIFY2(mol3.getName() == "Test mol3", "mol3: name mismatch");
+    QVERIFY2(mol3.getNstep() == 3, "mol3: length mismatch");
+    for(Step &s: mol3.getSteps()){
+        QVERIFY2(s.getCellDim()==1, "mol3: CellDim mismatch");
     }
-    QVERIFY2(pseComp(p["Zzyzzyx"], Vipster::pse.at("X")), "pse miss mismatch");
-    Molecule m;
-    Step &s = m.getStep(0);
-    QVERIFY2(pseComp((*m.pse)["C"], Vipster::pse.at("C")), "mol mismatch");
-    QVERIFY2(pseComp((*s.pse)["C"], Vipster::pse.at("C")), "step existing mismatch");
-    QVERIFY2(pseComp((*s.pse)["H"], Vipster::pse.at("H")), "step new mismatch");
+    mol3.setCellDimAll(2);
+    for(Step& s:mol3.getSteps()){
+        QVERIFY2(s.getCellDim()==2, "mol3: CellDim mismatch");
+    }
+    Molecule mol4 = Molecule("Move test");
+    QVERIFY2(mol4.getName() == "Move test", "mol4: name mismatch");
+    QVERIFY2(mol4.getNstep() == 1, "mol4: length mismatch");
 }
 
 QTEST_APPLESS_MAIN(LibVipsterTest)

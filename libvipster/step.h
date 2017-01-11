@@ -48,7 +48,7 @@ public:
                        float v21, float v22, float v23,
                        float v31, float v32, float v33,bool scale=false);
     void    setCellVec(const Vec &v1, const Vec &v2, const Vec &v3, bool scale=false);
-    void    setCellVec(Mat vec,bool scale=false);
+    void    setCellVec(const Mat &vec, bool scale=false);
     Vec   getCenter(bool com=false) const;
     const Mat& getCellVec(void) const noexcept;
     std::set<std::string> getTypes(void)const noexcept;

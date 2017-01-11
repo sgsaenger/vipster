@@ -18,7 +18,6 @@ SOURCES += \
     molecule.cpp \
     step.cpp \
     iowrapper.cpp \
-    vec.cpp \
     ioplugins/xyz.cpp \
     ioplugins/pwinput.cpp
 
