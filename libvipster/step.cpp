@@ -13,13 +13,6 @@ Step::Step(const std::shared_ptr<PseMap> &pse):
 {
 }
 
-void Step::newAtom(std::string name, Vec coord, float charge, std::array<bool,3> fix, bool hidden, AtomFmt fmt)
-{
-    Atom at{name,coord,charge,fix,hidden};
-    atoms.push_back(formatAtom(at,fmt,AtomFmt::Bohr));
-    bonds_outdated = true;
-}
-
 void Step::newAtom(const Atom& at)
 {
     atoms.push_back(at);
@@ -52,13 +45,6 @@ void Step::delAtom(size_t idx)
     bonds_outdated = true;
 }
 
-void Step::setAtom(size_t idx, std::string name, Vec coord, float charge, std::array<bool,3> fix, bool hidden, AtomFmt fmt)
-{
-    Atom at{name,coord,charge,fix,hidden};
-    atoms.at(idx) = formatAtom(at,fmt,AtomFmt::Bohr);
-    bonds_outdated = true;
-}
-
 void Step::setAtom(size_t idx, const Atom &at)
 {
     atoms.at(idx) = at;
@@ -82,7 +68,7 @@ const Atom& Step::getAtom(size_t idx) const
     return atoms.at(idx);
 }
 
-Atom Step::getAtomFmt(size_t idx, AtomFmt fmt)
+Atom Step::getAtom(size_t idx, AtomFmt fmt)
 {
     return formatAtom(atoms.at(idx),AtomFmt::Bohr,fmt);
 }
@@ -92,7 +78,7 @@ const std::vector<Atom>& Step::getAtoms() const noexcept
     return atoms;
 }
 
-std::vector<Atom> Step::getAtomsFmt(AtomFmt fmt)
+std::vector<Atom> Step::getAtoms(AtomFmt fmt)
 {
     return formatAtoms(atoms,AtomFmt::Bohr,fmt);
 }
@@ -217,24 +203,22 @@ const Mat& Step::getCellVec() const noexcept
     return cellvec;
 }
 
-Vec Step::getCenter(bool com) const
+Vec Step::getCenter(bool com) const noexcept
 {
-    Vec temp{0.,0.,0.};
-    if(com){
-        Vec min{0.},max{0.};
+    if(com && getNat()){
+        Vec min{},max{};
         for(const Atom& at:atoms){
             min[0]=std::min(min[0],at.coord[0]);
             min[1]=std::min(min[1],at.coord[1]);
             min[2]=std::min(min[2],at.coord[2]);
-            max[0]=std::min(max[0],at.coord[0]);
-            max[1]=std::min(max[1],at.coord[1]);
-            max[2]=std::min(max[2],at.coord[2]);
+            max[0]=std::max(max[0],at.coord[0]);
+            max[1]=std::max(max[1],at.coord[1]);
+            max[2]=std::max(max[2],at.coord[2]);
         }
-        temp=(min+max)/2;
+        return (min+max)/2;
     }else{
-        temp=(cellvec[0]+cellvec[1]+cellvec[2])*celldim/2;
+        return (cellvec[0]+cellvec[1]+cellvec[2])*celldim/2;
     }
-    return temp;
 }
 
 std::set<std::string> Step::getTypes() const noexcept

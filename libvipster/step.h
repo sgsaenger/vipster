@@ -14,33 +14,18 @@ class Step
 public:
     Step();
     Step(const std::shared_ptr<PseMap> &pse);
-    void    newAtom(std::string name="C",
-                    Vec coord={0.,0.,0.},
-                    float charge=0.,
-                    FixVec fix={false,false,false},
-                    bool hidden=false,
-                    AtomFmt fmt=AtomFmt::Bohr
-    );                                                  //initialization of atom
-    void    newAtom(const Atom &at);                    //copy of atom
-    void    newAtom(Atom&& at);                         //move of atom
-    void    newAtom(Atom at, AtomFmt fmt);              //copy of atom (possibly too many)
-    void    newAtoms(const std::vector<Atom> &v);       //batch copy
-    void    delAtom(size_t idx);                        //delete
-    void    setAtom(size_t idx,                         //modify/initialize
-                    std::string name="C",
-                    Vec coord={0.,0.,0.},
-                    float charge=0.,
-                    FixVec fix={false,false,false},
-                    bool hidden=false,
-                    AtomFmt fmt=AtomFmt::Bohr
-    );
+    void    newAtom(const Atom &at);                          //copy of atom
+    void    newAtom(Atom&& at={});                            //move of atom
+    void    newAtom(Atom at, AtomFmt fmt);                    //copy of atom (possibly too many)
+    void    newAtoms(const std::vector<Atom> &v);             //batch copy
+    void    delAtom(size_t idx);                              //delete
     void    setAtom(size_t idx,const Atom& at);               //replace with copy
     void    setAtom(size_t idx,Atom&& at);                    //replace with move
     void    setAtom(size_t idx,Atom at,AtomFmt fmt);          //replace with copy
     const Atom& getAtom(size_t idx)const;                     //get reference (const,bohr)
-    Atom    getAtomFmt(size_t idx, AtomFmt fmt);              //get copy (formatted)
+    Atom    getAtom(size_t idx, AtomFmt fmt);                 //get copy (formatted)
     const std::vector<Atom>& getAtoms(void) const noexcept;   //get const reference (bohr)
-    std::vector<Atom> getAtomsFmt(AtomFmt fmt);               //get copy (formatted)
+    std::vector<Atom> getAtoms(AtomFmt fmt);                  //get copy (formatted)
     size_t  getNat(void) const noexcept;                      //get number of atoms
     void    setCellDim(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
     float   getCellDim(AtomFmt fmt=AtomFmt::Bohr) const noexcept;
@@ -49,7 +34,7 @@ public:
                        float v31, float v32, float v33,bool scale=false);
     void    setCellVec(const Vec &v1, const Vec &v2, const Vec &v3, bool scale=false);
     void    setCellVec(const Mat &vec, bool scale=false);
-    Vec   getCenter(bool com=false) const;
+    Vec   getCenter(bool com=false) const noexcept;
     const Mat& getCellVec(void) const noexcept;
     std::set<std::string> getTypes(void)const noexcept;
     size_t  getNtyp(void) const noexcept;

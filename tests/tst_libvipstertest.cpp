@@ -113,29 +113,29 @@ void LibVipsterTest::testPse()
 
 void LibVipsterTest::testStep()
 {
-    Atom atom{"C", {0.,0.,0.}, 0., {false, false, false}, false};
+    Atom atom;
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false};
     Step step;
     // newAtom, getAtom, getNat
     step.newAtom();
-    step.newAtom("C");
-    step.newAtom("C", {0.,0.,0.});
-    step.newAtom("C", {0.,0.,0.}, 0.);
-    step.newAtom("C", {0.,0.,0.}, 0., {false, false, false});
-    step.newAtom("C", {0.,0.,0.}, 0., {false, false, false}, false);
-    step.newAtom(atom);
+    step.newAtom({"C"});
+    step.newAtom({"C", {0.,0.,0.}});
+    step.newAtom({"C", {0.,0.,0.}, 0.});
+    step.newAtom({"C", {0.,0.,0.}, 0., {false, false, false}});
+    step.newAtom({"C", {0.,0.,0.}, 0., {false, false, false}, false});
     step.newAtom(Atom{"C",{0.,0.,0.},0.,{false,false,false},false});
+    step.newAtom(atom);
     step.newAtom(atom, AtomFmt::Alat);
-    QVERIFY2(step.getNat() == 9, "step: nat mismatch");
+    QVERIFY2(step.getNat() == 9, "Step: getNat");
     for(uint i=0;i!=step.getNat();++i)
     {
-        std::string msg = "step: atom mismatch at pos " + std::to_string(i);
+        std::string msg = "Step: newAtom (all)/ getAtom (unformatted)" + std::to_string(i);
         QVERIFY2(step.getAtom(i) == atom, msg.c_str());
     }
     // getAtoms, setAtom, delAtom
     step.setAtom(0, atom2);
     step.setAtom(1, Atom{"H",{0.5,0.5,0.5},0.5,{false,false,false},false});
-    step.setAtom(2, "H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false);
+    step.setAtom(2, {"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false});
     step.setAtom(3, atom2, AtomFmt::Alat);
     for(uint i=4;i!=9;++i)
     {
@@ -143,45 +143,47 @@ void LibVipsterTest::testStep()
     }
     for(uint i=0;i!=step.getNat();++i)
     {
-        std::string msg = "step: atom mismatch at pos " + std::to_string(i);
+        std::string msg = "Step: setAtom (all)/ delAtom" + std::to_string(i);
         QVERIFY2(step.getAtom(i) == atom2, msg.c_str());
     }
     for(const Atom& at:step.getAtoms())
     {
-        std::string msg = "step: atom mismatch";
+        std::string msg = "Step: getAtoms";
         QVERIFY2(at == atom2, msg.c_str());
     }
-    // getCellDim, setCellDim, getCellVec, setCellVec, getAtomFt, getAtomsFmt
-    QVERIFY2(step.getCellDim() == 1, "step: CellDim mismatch");
-    QVERIFY2((step.getAtomFmt(0, AtomFmt::Alat).coord == Vec{0.5,0.5,0.5}), "step: Coord mismatch");
+    // getCellDim, setCellDim, getCellVec, setCellVec, getAtom, getAtoms
+    QVERIFY2(step.getCellDim() == 1, "Step: getCellDim");
+    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord == Vec{0.5,0.5,0.5}), "Step: getAtom (Alat)");
     step.setCellDim(2);
-    QVERIFY2((step.getAtomFmt(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "Step: setCellDim");
+    QVERIFY2(step.getCellDim() == 2,"Step: setCellDim");
     step.setCellDim(4, true);
-    QVERIFY2((step.getAtomFmt(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
-    QVERIFY2(step.getCellDim() == 4, "step: CellDim mismatch");
-    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "step: CellVec mismatch");
-    QVERIFY2((step.getAtomFmt(0, AtomFmt::Crystal).coord == Vec{0.25,0.25,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "Step: setCellDim (scaling)");
+    QVERIFY2(step.getCellDim() == 4,"Step: setCellDim (scaling)");
+    //
+    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: getCellVec");
+    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord == Vec{0.25,0.25,0.25}), "Step: getAtom (Crystal)");
     step.setCellVec(4,0,0,0,2,0,0,0,1);
-    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{4,0,0}},{{0,2,0}},{{0,0,1}} }}), "step: CellVec mismatch");
-    QVERIFY2((step.getAtomFmt(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "step: Coord mismatch");
+    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{4,0,0}},{{0,2,0}},{{0,0,1}} }}), "Step: setCellVec");
+    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "Step: setCellVec");
     step.setCellVec(Vec{1,0,0},Vec{0,1,0},Vec{0,0,1},true);
-    QVERIFY2((step.getAtomFmt(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "step: Coord mismatch");
-    for(const Atom& at:step.getAtomsFmt(AtomFmt::Crystal)){
-        QVERIFY2((at.coord == Vec{0.0625,0.125,0.25}), "step: coord mismatch");
+    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: setCellVec (scaling)");
+    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "Step: setCellVec (scaling)");
+    for(const Atom& at:step.getAtoms(AtomFmt::Crystal)){
+        QVERIFY2((at.coord == Vec{0.0625,0.125,0.25}), "Step: getAtoms (formatted)");
     }
     step.setCellDim(4,false,AtomFmt::Angstrom);
-    QVERIFY2(step.getCellDim()!=4, "step CellDim mismatch");
-    QVERIFY2(step.getCellDim(AtomFmt::Angstrom)==4, "step CellDim mismatch");
+    QVERIFY2(step.getCellDim()!=4, "Step: setCellDim (formatted)");
+    QVERIFY2(step.getCellDim(AtomFmt::Angstrom)==4, "Step: getCellDim (formatted)");
     step.setCellDim(4);
-    QVERIFY2(step.getCellDim()==4, "step CellDim mismatch");
     // getCenter
-//    QVERIFY2((step.getCenter(true) == Vec{0.125,0.25,0.5}), "step: Center mismatch");
-    QVERIFY2((step.getCenter() == Vec{2,2,2}), "step: Center mismatch");
+    QVERIFY2((step.getCenter(true) == Vec{0.125,0.25,0.5}), "Step: getCenter (of Mass)");
+    QVERIFY2((step.getCenter() == Vec{2,2,2}), "Step: getCenter (of Cell)");
     // getTypes, getNtyp
-    QVERIFY2((step.getNtyp() == 1), "step: Ntyp mismatch");
-    step.setAtom(0);
-    QVERIFY2((step.getNtyp() == 2), "step: Ntyp mismatch");
-    QVERIFY2((step.getTypes() == std::set<std::string>{"H","C"}), "step: types mismatch");
+    QVERIFY2((step.getNtyp() == 1), "Step: getNtyp");
+    step.setAtom(0,atom);
+    QVERIFY2((step.getNtyp() == 2), "Step: getNtyp");
+    QVERIFY2((step.getTypes() == std::set<std::string>{"H","C"}), "Step: getTypes");
 }
 
 void LibVipsterTest::testMolecule()
