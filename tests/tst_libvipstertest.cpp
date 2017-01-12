@@ -69,7 +69,22 @@ void LibVipsterTest::testVec()
 
 void LibVipsterTest::testAtom()
 {
-
+    Atom a1;
+    Atom a2{"C",{{0,0,0}},0,{{false,false,false}},0};
+    Atom a3{"O",{{1,2,3}}};
+    std::ostringstream s;
+    s << a1.fix;
+    QVERIFY2(s.str() == "FixVec: [false, false, false]", "FixVec operator<<");
+    s.str("");
+    s << a1;
+    QVERIFY2(s.str() == "Atom:\n"
+                        " Name: C\n"
+                        " Coord: Vec: [0, 0, 0]\n"
+                        " Charge: 0\n"
+                        " Fixed: FixVec: [false, false, false]\n"
+                        " Hidden: false", "Atom operator<<");
+    QVERIFY2(a1 == a2, "Atom operator==");
+    QVERIFY2(a1 != a3, "Atom operator!=");
 }
 
 void LibVipsterTest::testPse()

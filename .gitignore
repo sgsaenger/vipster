@@ -60,3 +60,4 @@ docs/_build/
 
 # qt-creator stuff
 *.pro.user
+*.autosave
