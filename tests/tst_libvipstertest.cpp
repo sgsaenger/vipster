@@ -29,13 +29,22 @@ LibVipsterTest::LibVipsterTest()
 
 void LibVipsterTest::testVec()
 {
-    Vec v1{1,1,1};
-    Vec v2{1,2,3};
-    Vec v3{4,0,5};
-    Vec v4{1.5,1.5,1.5};
-    Mat m1{v1,v2,v3};
+    constexpr Vec v1{1,1,1};
+    constexpr Vec v2{1,2,3};
+    constexpr Vec v3{1,-2,1};
+    constexpr Vec v4{1.5,1.5,1.5};
+    constexpr Mat m1{v1,v2,v3};
+    constexpr Mat m2{Vec{1,1,1},Vec{1,2,-2},Vec{1,3,1}};
+    constexpr Mat m3{Vec{4./3.,-0.5,1./6.},Vec{1./3.,0,-1./3.},Vec{-2./3.,0.5,1./6.}};
     std::ostringstream s;
     s << v4;
+    QVERIFY2(s.str()=="Vec: [1.5, 1.5, 1.5]", "Vec operator<<");
+    s.str("");
+    s << m1;
+    QVERIFY2(s.str() == "Mat:\n"
+                        "[Vec: [1, 1, 1],\n"
+                        "Vec: [1, 2, 3],\n"
+                        "Vec: [1, -2, 1]]", "Mat operator <<");
     QVERIFY2(v1 == v1, "Vec operator==");
     QVERIFY2(v1 != v2, "Vec operator!=");
     QVERIFY2(v1+0.5 == v4, "Vec operator+ (float right)");
@@ -46,10 +55,15 @@ void LibVipsterTest::testVec()
     QVERIFY2(v4/1.5 == v1, "Vec operator/ (float)");
     QVERIFY2(v1+v1 == 2*v1, "Vec operator+ (Vec)");
     QVERIFY2(v4-v1 == v1/2, "Vec operator- (Vec)");
-    QVERIFY2(Vec_dot(v2,v3) == 19, "Vec_dot");
+    QVERIFY2(v1-2 == -v1, "Vec operator- (unary)");
+    QVERIFY2(Vec_dot(v1,v2) == 6, "Vec_dot");
+    QVERIFY2(Vec_cross(v1,v2) == v3, "Vec_cross");
     QVERIFY2(Vec_length(v2)-std::sqrt(14)<std::numeric_limits<float>::epsilon(), "Vec_length");
-    QVERIFY2(s.str()=="Vec: [1.5, 1.5, 1.5]", "Vec operator<<");
-    QVERIFY2(Mat_det(m1)==9, "Mat_det");
+    QVERIFY2(Mat_det(m1)==6, "Mat_det");
+    QVERIFY2(Mat_trans(m1)==m2, "Mat_trans");
+    QVERIFY2((m1*v1==Vec{3,6,0}), "Mat operator* (vec right)");
+    QVERIFY2(v1*m1==m2*v1, "Mat operator* (vec left)");
+    QVERIFY2(Mat_inv(m1) == m3, "Mat_inv");
     QVERIFY_EXCEPTION_THROWN(Mat_inv({v1,v2,v4}), std::invalid_argument);
 }
 
@@ -86,9 +100,7 @@ void LibVipsterTest::testStep()
 {
     Atom atom{"C", {0.,0.,0.}, 0., {false, false, false}, false};
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false};
-
     Step step;
-
     // newAtom, getAtom, getNat
     step.newAtom();
     step.newAtom("C");
@@ -105,7 +117,6 @@ void LibVipsterTest::testStep()
         std::string msg = "step: atom mismatch at pos " + std::to_string(i);
         QVERIFY2(step.getAtom(i) == atom, msg.c_str());
     }
-
     // getAtoms, setAtom, delAtom
     step.setAtom(0, atom2);
     step.setAtom(1, Atom{"H",{0.5,0.5,0.5},0.5,{false,false,false},false});
