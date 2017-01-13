@@ -27,7 +27,6 @@ public:
     const std::vector<Step>& getSteps(void) const noexcept;
     size_t getNstep(void) const noexcept;
     void setName(const std::string &s);
-    std::string& getName(void) noexcept;
     const std::string& getName(void) const noexcept;
     void setKPoints(const KPoints &k);
     KPoints& getKPoints(void) noexcept;

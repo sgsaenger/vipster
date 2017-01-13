@@ -245,7 +245,7 @@ void LibVipsterTest::testMolecule()
      */
     QVERIFY2(mol.getName() == "New Molecule", "Molecule: getName");
     mol.setName("Test-…üø©");
-    QVERIFY2(mol.getName() == "Test-…üø©", "Molecule: getName");
+    QVERIFY2(mol.getName() == "Test-…üø©", "Molecule: setName");
     QVERIFY2(mol.getNstep() == 1, "Molecule: getNstep");
     /*
      * non-default constructor
@@ -281,7 +281,7 @@ void LibVipsterTest::testMolecule()
     KPoints k{KPointFmt::MPG,{6,1,1,0,0,0},{Vipster::KPoints::DiscreteProperties::crystal,{{Vec{1,2,3},0.5}}}};
     mol.setKPoints(k);
     QVERIFY2(mol.getKPoints().active == KPointFmt::MPG, "Molecule: setKPoints");
-    mol.getKPoints().active == KPointFmt::Discrete;
+    mol.getKPoints().active = KPointFmt::Discrete;
     QVERIFY2(mol.getKPoints().active == KPointFmt::Discrete, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().mpg.x == 6, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.properties == KPoints::DiscreteProperties::crystal, "Molecule: setKPoints");
