@@ -42,9 +42,9 @@ void LibVipsterTest::testVec()
     s.str("");
     s << m1;
     QVERIFY2(s.str() == "Mat:\n"
-                        "[Vec: [1, 1, 1],\n"
-                        "Vec: [1, 2, 3],\n"
-                        "Vec: [1, -2, 1]]", "Mat operator <<");
+                        " [Vec: [1, 1, 1],\n"
+                        "  Vec: [1, 2, 3],\n"
+                        "  Vec: [1, -2, 1]]", "Mat operator <<");
     QVERIFY2(v1 == v1, "Vec operator==");
     QVERIFY2(v1 != v2, "Vec operator!=");
     QVERIFY2(v1+0.5 == v4, "Vec operator+ (float right)");
@@ -114,9 +114,17 @@ void LibVipsterTest::testPse()
 void LibVipsterTest::testStep()
 {
     Atom atom;
-    Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false};
+    Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, true, false}, true};
     Step step;
-    // newAtom, getAtom, getNat
+    /*
+     * getComment,setComment
+     */
+    QVERIFY2(step.getComment() == "", "Step: getComment");
+    step.setComment("Testäößą☭");
+    QVERIFY2(step.getComment() == "Testäößą☭", "Step: getComment");
+    /*
+     * newAtom, getAtom, getNat
+     */
     step.newAtom();
     step.newAtom({"C"});
     step.newAtom({"C", {0.,0.,0.}});
@@ -132,18 +140,21 @@ void LibVipsterTest::testStep()
         std::string msg = "Step: newAtom (all)/ getAtom (unformatted)" + std::to_string(i);
         QVERIFY2(step.getAtom(i) == atom, msg.c_str());
     }
-    // getAtoms, setAtom, delAtom
+    /*
+     * getAtoms, setAtom, delAtom, newAtoms
+     */
     step.setAtom(0, atom2);
-    step.setAtom(1, Atom{"H",{0.5,0.5,0.5},0.5,{false,false,false},false});
-    step.setAtom(2, {"H", {0.5,0.5,0.5}, 0.5, {false, false, false}, false});
-    step.setAtom(3, atom2, AtomFmt::Alat);
-    for(uint i=4;i!=9;++i)
+    step.setAtom(1, {"H", {0.5,0.5,0.5}, 0.5, {false, true, false}, true});
+    step.setAtom(2, atom2, AtomFmt::Alat);
+    for(uint i=3;i!=9;++i)
     {
-        step.delAtom(4);
+        step.delAtom(3);
     }
+    step.newAtoms({{atom2, atom2, atom2}});
+    QVERIFY2(step.getNat() == 6 , "Step: newAtoms");
     for(uint i=0;i!=step.getNat();++i)
     {
-        std::string msg = "Step: setAtom (all)/ delAtom" + std::to_string(i);
+        std::string msg = "Step: setAtom (all)/ delAtom/ newAtoms" + std::to_string(i);
         QVERIFY2(step.getAtom(i) == atom2, msg.c_str());
     }
     for(const Atom& at:step.getAtoms())
@@ -151,39 +162,78 @@ void LibVipsterTest::testStep()
         std::string msg = "Step: getAtoms";
         QVERIFY2(at == atom2, msg.c_str());
     }
-    // getCellDim, setCellDim, getCellVec, setCellVec, getAtom, getAtoms
+    /*
+     * getCellDim, setCellDim
+     */
     QVERIFY2(step.getCellDim() == 1, "Step: getCellDim");
-    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord == Vec{0.5,0.5,0.5}), "Step: getAtom (Alat)");
     step.setCellDim(2);
-    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "Step: setCellDim");
+    QVERIFY2((step.getAtom(0).coord == Vec{0.5,0.5,0.5}), "Step: setCellDim");
     QVERIFY2(step.getCellDim() == 2,"Step: setCellDim");
     step.setCellDim(4, true);
-    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord == Vec{0.25,0.25,0.25}), "Step: setCellDim (scaling)");
+    QVERIFY2((step.getAtom(0).coord == Vec{1,1,1}), "Step: setCellDim (scaling)");
     QVERIFY2(step.getCellDim() == 4,"Step: setCellDim (scaling)");
-    //
+    /*
+     * getCellVec, setCellVec
+     */
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: getCellVec");
-    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord == Vec{0.25,0.25,0.25}), "Step: getAtom (Crystal)");
     step.setCellVec(4,0,0,0,2,0,0,0,1);
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{4,0,0}},{{0,2,0}},{{0,0,1}} }}), "Step: setCellVec");
-    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "Step: setCellVec");
-    step.setCellVec(Vec{1,0,0},Vec{0,1,0},Vec{0,0,1},true);
-    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: setCellVec (scaling)");
-    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord == Vec{0.0625,0.125,0.25}), "Step: setCellVec (scaling)");
+    QVERIFY2((step.getAtom(0).coord == Vec{1,1,1}), "Step: setCellVec");
+    step.setCellVec(Vec{2,0,0},Vec{0,1,0},Vec{0,0,1},true);
+    QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{2,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: setCellVec (scaling)");
+    QVERIFY2((step.getAtom(0).coord == Vec{0.5,0.5,1}), "Step: setCellVec (scaling)");
+    /*
+     * formatted get/set/new
+     */
+    step.newAtom({"H", Vec{0.5,0.5,1}*bohrrad, 0.5, {false,true,false},true},AtomFmt::Angstrom);
+    step.newAtom({"H", {0.125,0.125,0.25},0.5,{false,true,false},true}, AtomFmt::Alat);
+    step.newAtom({"H", {0.0625,0.125,0.25},0.5,{false,true,false},true}, AtomFmt::Crystal);
+    step.newAtoms({atom,atom,atom});
+    step.setAtom(9,{"H", Vec{0.5,0.5,1}*bohrrad, 0.5, {false,true,false},true},AtomFmt::Angstrom);
+    step.setAtom(10,{"H", {0.125,0.125,0.25},0.5,{false,true,false},true}, AtomFmt::Alat);
+    step.setAtom(11,{"H", {0.0625,0.125,0.25},0.5,{false,true,false},true}, AtomFmt::Crystal);
+    QVERIFY2((step.getAtom(0, AtomFmt::Alat).coord==Vec{0.125,0.125,0.25}), "Step: getAtom (alat)");
+    for(const Atom& at:step.getAtoms(AtomFmt::Alat)){
+        QVERIFY2((at.coord == Vec{0.125,0.125,0.25}), "Step: getAtoms (alat)");
+    }
+    QVERIFY2((step.getAtom(0, AtomFmt::Crystal).coord==Vec{0.0625,0.125,0.25}), "Step: getAtom (crystal)");
     for(const Atom& at:step.getAtoms(AtomFmt::Crystal)){
-        QVERIFY2((at.coord == Vec{0.0625,0.125,0.25}), "Step: getAtoms (formatted)");
+        QVERIFY2((at.coord == Vec{0.0625,0.125,0.25}), "Step: getAtoms (crystal)");
+    }
+    QVERIFY2((step.getAtom(0, AtomFmt::Angstrom).coord==Vec{0.5,0.5,1}*bohrrad), "Step: getAtom (angstrom)");
+    for(const Atom& at:step.getAtoms(AtomFmt::Angstrom)){
+        QVERIFY2((at.coord == Vec{0.5,0.5,1}*bohrrad), "Step: getAtoms (angstrom)");
     }
     step.setCellDim(4,false,AtomFmt::Angstrom);
-    QVERIFY2(step.getCellDim()!=4, "Step: setCellDim (formatted)");
+    QVERIFY2(step.getCellDim()==4*invbohr, "Step: setCellDim (formatted)");
     QVERIFY2(step.getCellDim(AtomFmt::Angstrom)==4, "Step: getCellDim (formatted)");
     step.setCellDim(4);
-    // getCenter
-    QVERIFY2((step.getCenter(true) == Vec{0.125,0.25,0.5}), "Step: getCenter (of Mass)");
-    QVERIFY2((step.getCenter() == Vec{2,2,2}), "Step: getCenter (of Cell)");
-    // getTypes, getNtyp
+    /*
+     * getCenter
+     */
+    QVERIFY2((step.getCenter(true) == Vec{0.5,0.5,1}), "Step: getCenter (of Mass)");
+    QVERIFY2((step.getCenter() == Vec{4,2,2}), "Step: getCenter (of Cell)");
+    /*
+     * getTypes, getNtyp
+     */
     QVERIFY2((step.getNtyp() == 1), "Step: getNtyp");
     step.setAtom(0,atom);
     QVERIFY2((step.getNtyp() == 2), "Step: getNtyp");
     QVERIFY2((step.getTypes() == std::set<std::string>{"H","C"}), "Step: getTypes");
+    /*
+     * operator<<
+     */
+    std::stringstream s;
+    s << step;
+    QVERIFY2(s.str() == "Step:\n"
+                        " Atoms: 12\n"
+                        " Types: 2\n"
+                        " Cell dimension: 4\n"
+                        " Vectors: Mat:\n"
+                        " [Vec: [2, 0, 0],\n"
+                        "  Vec: [0, 1, 0],\n"
+                        "  Vec: [0, 0, 1]]\n"
+                        " Comment: Testäößą☭", "Step: operator<<");
 }
 
 void LibVipsterTest::testMolecule()

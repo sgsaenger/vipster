@@ -194,7 +194,7 @@ inline Mat Mat_inv(const Mat &m)
 
 inline std::ostream& operator<<(std::ostream &s, const Mat &v)
 {
-    s << "Mat:\n[" << v[0] << ",\n" << v[1] << ",\n" << v[2] << "]";
+    s << "Mat:\n [" << v[0] << ",\n  " << v[1] << ",\n  " << v[2] << "]";
     return s;
 }
 

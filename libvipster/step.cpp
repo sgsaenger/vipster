@@ -13,6 +13,14 @@ Step::Step(const std::shared_ptr<PseMap> &pse):
 {
 }
 
+std::ostream& Vipster::operator<< (std::ostream& s, const Step& st)
+{
+    s << "Step:\n Atoms: " << st.getNat() <<"\n Types: " << st.getNtyp()
+      << "\n Cell dimension: " << st.celldim << "\n Vectors: " << st.cellvec
+      << "\n Comment: " << st.comment;
+    return s;
+}
+
 void Step::newAtom(const Atom& at)
 {
     atoms.push_back(at);
@@ -206,7 +214,12 @@ const Mat& Step::getCellVec() const noexcept
 Vec Step::getCenter(bool com) const noexcept
 {
     if(com && getNat()){
-        Vec min{},max{};
+        Vec min{std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max()};
+        Vec max{std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min()};
         for(const Atom& at:atoms){
             min[0]=std::min(min[0],at.coord[0]);
             min[1]=std::min(min[1],at.coord[1]);

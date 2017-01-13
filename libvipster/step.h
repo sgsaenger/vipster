@@ -14,6 +14,7 @@ class Step
 public:
     Step();
     Step(const std::shared_ptr<PseMap> &pse);
+    friend std::ostream& operator<< (std::ostream& s, const Step& st);
     void    newAtom(const Atom &at);                          //copy of atom
     void    newAtom(Atom&& at={});                            //move of atom
     void    newAtom(Atom at, AtomFmt fmt);                    //copy of atom (possibly too many)
@@ -62,7 +63,7 @@ private:
     mutable float bondcut_factor{1.1};
     mutable std::vector<Bond> bonds;
 };
-
+std::ostream& operator<< (std::ostream& s, const Step& st);
 
 }
 #endif // STEP_H
