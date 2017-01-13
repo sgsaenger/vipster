@@ -238,25 +238,66 @@ void LibVipsterTest::testStep()
 
 void LibVipsterTest::testMolecule()
 {
-    Molecule mol1;
-    QVERIFY2(mol1.getName() == "New Molecule", "mol1: name mismatch");
-    QVERIFY2(mol1.getNstep() == 1, "mol1: length mismatch");
-    Molecule mol2{"Test molecule"};
-    QVERIFY2(mol2.getName() == "Test molecule", "mol2: name mismatch");
-    QVERIFY2(mol2.getNstep() == 1, "mol2: length mismatch");
-    Molecule mol3{"Test mol3", 3};
-    QVERIFY2(mol3.getName() == "Test mol3", "mol3: name mismatch");
-    QVERIFY2(mol3.getNstep() == 3, "mol3: length mismatch");
-    for(Step &s: mol3.getSteps()){
-        QVERIFY2(s.getCellDim()==1, "mol3: CellDim mismatch");
+    Step step;
+    Molecule mol;
+    /*
+     * default constructor, name, Nstep
+     */
+    QVERIFY2(mol.getName() == "New Molecule", "Molecule: getName");
+    mol.setName("Test-…üø©");
+    QVERIFY2(mol.getName() == "Test-…üø©", "Molecule: getName");
+    QVERIFY2(mol.getNstep() == 1, "Molecule: getNstep");
+    /*
+     * non-default constructor
+     */
+    mol = Molecule{"Testitest", 3};
+    QVERIFY2(mol.getName() == "Testitest", "Molecule: non-default constructor");
+    QVERIFY2(mol.getNstep() == 3, "Molecule: non-default constructor");
+    /*
+     * newStep(s)
+     */
+    mol.newStep();
+    mol.newStep(step);
+    QVERIFY2(mol.getNstep() == 5, "Molecule: newStep");
+    mol.newSteps({Step{},Step{},Step{}});
+    QVERIFY2(mol.getNstep() == 8, "Molecule: newSteps");
+    /*
+     * Batch modify steps
+     */
+    for(Step &s: mol.getSteps()){
+        QVERIFY2(s.getCellDim()==1, "Molecule: getSteps");
     }
-    mol3.setCellDimAll(2);
-    for(Step& s:mol3.getSteps()){
-        QVERIFY2(s.getCellDim()==2, "mol3: CellDim mismatch");
+    mol.setCellDimAll(2);
+    for(Step& s:mol.getSteps()){
+        QVERIFY2(s.getCellDim()==2, "Molecule: setCellDim");
     }
-    Molecule mol4 = Molecule("Move test");
-    QVERIFY2(mol4.getName() == "Move test", "mol4: name mismatch");
-    QVERIFY2(mol4.getNstep() == 1, "mol4: length mismatch");
+    /*
+     * K-Points
+     */
+    QVERIFY2(mol.getKPoints().active == KPointFmt::Gamma, "Molecule: getKPoints");
+    QVERIFY2(mol.getKPoints().mpg.x == 0, "Molecule: getKPoints");
+    QVERIFY2(mol.getKPoints().discrete.properties == KPoints::DiscreteProperties::none, "Molecule: getKPoints");
+    QVERIFY2(mol.getKPoints().discrete.kpoints.empty(), "Molecule: getKPoints");
+    KPoints k{KPointFmt::MPG,{6,1,1,0,0,0},{Vipster::KPoints::DiscreteProperties::crystal,{{Vec{1,2,3},0.5}}}};
+    mol.setKPoints(k);
+    QVERIFY2(mol.getKPoints().active == KPointFmt::MPG, "Molecule: setKPoints");
+    mol.getKPoints().active == KPointFmt::Discrete;
+    QVERIFY2(mol.getKPoints().active == KPointFmt::Discrete, "Molecule: getKPoints");
+    QVERIFY2(mol.getKPoints().mpg.x == 6, "Molecule: setKPoints");
+    QVERIFY2(mol.getKPoints().discrete.properties == KPoints::DiscreteProperties::crystal, "Molecule: setKPoints");
+    QVERIFY2(mol.getKPoints().discrete.kpoints.size() == 1, "Molecule: setKPoints");
+    QVERIFY2(mol.getKPoints().discrete.kpoints[0].weight == 0.5, "Molecule: setKPoints");
+    QVERIFY2((mol.getKPoints().discrete.kpoints[0].pos == Vec{1,2,3}), "Molecule: setKPoints");
+    /*
+     * const-correctness
+     */
+    const Molecule& mref = mol;
+    mol.getStep(0).setCellDim(4);
+    QVERIFY2(mref.getStep(0).getCellDim()==4, "Molecule: getStep const");
+    mol.setCellDimAll(4);
+    for(auto& s:mref.getSteps()){
+        QVERIFY2(s.getCellDim()==4, "Molecule: getSteps const");
+    }
 }
 
 QTEST_APPLESS_MAIN(LibVipsterTest)

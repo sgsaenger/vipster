@@ -4,7 +4,7 @@
 #include <vec.h>
 
 namespace Vipster{
-    enum class AtomFmt { Bohr = 1, Angstrom = 2, Crystal = 3, Alat = 4 };
+    enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };
 
     typedef std::array<bool,3> FixVec;
     inline std::ostream& operator<<(std::ostream &s, const FixVec &v)

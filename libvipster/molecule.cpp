@@ -4,12 +4,21 @@ using namespace Vipster;
 
 
 Molecule::Molecule(std::string name, ulong s):
-    name{name}
+    name{name},
+    kpoints{}
 {
     for(std::vector<Step>::size_type i=0;i!=s;++i){
         steps.emplace_back(pse);
     }
 }
+
+std::ostream& Vipster::operator<< (std::ostream& s, const Molecule& m)
+{
+    s << "Molecule:\n Name: " << m.getName() << "\n Steps: " << m.getNstep()
+      << "\n Active K-Point:" << m.getKPoints();
+    return s;
+}
+
 
 void Molecule::setCellDimAll(float cdm, bool scale, AtomFmt fmt)
 {
@@ -82,6 +91,11 @@ void Molecule::setKPoints(const KPoints &k)
 }
 
 const KPoints& Molecule::getKPoints() const noexcept
+{
+    return kpoints;
+}
+
+KPoints& Molecule::getKPoints() noexcept
 {
     return kpoints;
 }
