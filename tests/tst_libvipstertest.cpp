@@ -38,13 +38,12 @@ void LibVipsterTest::testVec()
     constexpr Mat m3{Vec{4./3.,-0.5,1./6.},Vec{1./3.,0,-1./3.},Vec{-2./3.,0.5,1./6.}};
     std::ostringstream s;
     s << v4;
-    QVERIFY2(s.str()=="Vec: [1.5, 1.5, 1.5]", "Vec operator<<");
+    QVERIFY2(s.str()=="[1.5, 1.5, 1.5]", "Vec operator<<");
     s.str("");
     s << m1;
-    QVERIFY2(s.str() == "Mat:\n"
-                        " [Vec: [1, 1, 1],\n"
-                        "  Vec: [1, 2, 3],\n"
-                        "  Vec: [1, -2, 1]]", "Mat operator <<");
+    QVERIFY2(s.str() == "[[1, 1, 1],\n"
+                        " [1, 2, 3],\n"
+                        " [1, -2, 1]]", "Mat operator <<");
     QVERIFY2(v1 == v1, "Vec operator==");
     QVERIFY2(v1 != v2, "Vec operator!=");
     QVERIFY2(v1+0.5 == v4, "Vec operator+ (float right)");
@@ -74,14 +73,14 @@ void LibVipsterTest::testAtom()
     Atom a3{"O",{{1,2,3}}};
     std::ostringstream s;
     s << a1.fix;
-    QVERIFY2(s.str() == "FixVec: [false, false, false]", "FixVec operator<<");
+    QVERIFY2(s.str() == "[false, false, false]", "FixVec operator<<");
     s.str("");
     s << a1;
     QVERIFY2(s.str() == "Atom:\n"
                         " Name: C\n"
-                        " Coord: Vec: [0, 0, 0]\n"
+                        " Coord: [0, 0, 0]\n"
                         " Charge: 0\n"
-                        " Fixed: FixVec: [false, false, false]\n"
+                        " Fixed: [false, false, false]\n"
                         " Hidden: false", "Atom operator<<");
     QVERIFY2(a1 == a2, "Atom operator==");
     QVERIFY2(a1 != a3, "Atom operator!=");
@@ -229,10 +228,10 @@ void LibVipsterTest::testStep()
                         " Atoms: 12\n"
                         " Types: 2\n"
                         " Cell dimension: 4\n"
-                        " Vectors: Mat:\n"
-                        " [Vec: [2, 0, 0],\n"
-                        "  Vec: [0, 1, 0],\n"
-                        "  Vec: [0, 0, 1]]\n"
+                        " Vectors:\n"
+                        "[[2, 0, 0],\n"
+                        " [0, 1, 0],\n"
+                        " [0, 0, 1]]\n"
                         " Comment: Testäößą☭", "Step: operator<<");
 }
 
@@ -276,15 +275,15 @@ void LibVipsterTest::testMolecule()
      */
     QVERIFY2(mol.getKPoints().active == KPointFmt::Gamma, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().mpg.x == 0, "Molecule: getKPoints");
-    QVERIFY2(mol.getKPoints().discrete.properties == KPoints::DiscreteProperties::none, "Molecule: getKPoints");
+    QVERIFY2(mol.getKPoints().discrete.properties == DiscreteKPoint::none, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints.empty(), "Molecule: getKPoints");
-    KPoints k{KPointFmt::MPG,{6,1,1,0,0,0},{Vipster::KPoints::DiscreteProperties::crystal,{{Vec{1,2,3},0.5}}}};
+    KPoints k{KPointFmt::MPG,{6,1,1,0,0,0},{Vipster::DiscreteKPoint::crystal,{{Vec{1,2,3},0.5}}}};
     mol.setKPoints(k);
     QVERIFY2(mol.getKPoints().active == KPointFmt::MPG, "Molecule: setKPoints");
     mol.getKPoints().active = KPointFmt::Discrete;
     QVERIFY2(mol.getKPoints().active == KPointFmt::Discrete, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().mpg.x == 6, "Molecule: setKPoints");
-    QVERIFY2(mol.getKPoints().discrete.properties == KPoints::DiscreteProperties::crystal, "Molecule: setKPoints");
+    QVERIFY2(mol.getKPoints().discrete.properties == DiscreteKPoint::crystal, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints.size() == 1, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints[0].weight == 0.5, "Molecule: setKPoints");
     QVERIFY2((mol.getKPoints().discrete.kpoints[0].pos == Vec{1,2,3}), "Molecule: setKPoints");
@@ -298,6 +297,42 @@ void LibVipsterTest::testMolecule()
     for(auto& s:mref.getSteps()){
         QVERIFY2(s.getCellDim()==4, "Molecule: getSteps const");
     }
+    QVERIFY2(mol.getKPoints().active == mref.getKPoints().active, "Molecule: getKpoints const");
+    QVERIFY2(mol.getKPoints().mpg.x == mref.getKPoints().mpg.x, "Molecule: getKpoints const");
+    QVERIFY2(mol.getKPoints().discrete.kpoints[0].weight == mref.getKPoints().discrete.kpoints[0].weight, "Molecule: getKpoints const");
+    /*
+     * operator<<
+     */
+    std::stringstream s;
+    k = mol.getKPoints();
+    k.active = KPointFmt::Gamma;
+    s.str("");
+    s << k;
+    QVERIFY2(s.str() == "Gamma-point only", "KPoints: operator<< (Gamma)");
+    k.active = KPointFmt::MPG;
+    s.str("");
+    s << k;
+    QVERIFY2(s.str() == "Monkhorst-Pack grid:\n"
+                        " x: 6, y: 1, z: 1\n"
+                        " sx: 0, sy: 0, sz: 0", "KPoints: operator<< (MPG)");
+    k.active = KPointFmt::Discrete;
+    k.discrete.properties = (DiscreteKPoint::Properties)(DiscreteKPoint::crystal|DiscreteKPoint::band);
+    k.discrete.kpoints.push_back({{3,2,1},0.25});
+    s.str("");
+    s << k;
+    QVERIFY2(s.str() == "2 discrete point(s):\n"
+                        " Band structure paths\n"
+                        " Crystal coordinates\n"
+                        " at: [1, 2, 3], weight: 0.5\n"
+                        " at: [3, 2, 1], weight: 0.25", "KPoints: operator<< (Discrete)");
+    s.str("");
+    s << mol;
+    QVERIFY2(s.str() == "Molecule:\n"
+                        " Name: Testitest\n"
+                        " Steps: 8\n"
+                        " Active K-Point: 1 discrete point(s):\n"
+                        " Crystal coordinates\n"
+                        " at: [1, 2, 3], weight: 0.5", "Molecule: operator<<");
 }
 
 QTEST_APPLESS_MAIN(LibVipsterTest)

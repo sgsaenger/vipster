@@ -58,7 +58,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
         Vipster::KPoints::Discrete,
-        (Vipster::KPoints::DiscreteProperties, properties)
+        (Vipster::DiscreteKPoint::Properties, properties)
         (std::vector<Vipster::DiscreteKPoint>, kpoints)
 )
 
@@ -151,9 +151,9 @@ struct pwi_parse_grammar
         kpointmpg = qi::eol > qi::int_ > qi::int_ > qi::int_ > qi::double_ > qi::double_ > qi::double_;
         disckpoint = qi::double_ > qi::double_ > qi::double_ > qi::double_;
         disckpoints = (disckpoint % qi::eol);
-        kpointdisc = ((qi::no_case[qi::lit("crystal_b")] > qi::attr(KPoints::DiscreteProperties::crystal|KPoints::DiscreteProperties::band))
-                     |(qi::no_case[qi::lit("crystal")] > qi::attr(KPoints::DiscreteProperties::crystal))
-                     |(qi::no_case[qi::lit("tpiba_b")] > qi::attr(KPoints::DiscreteProperties::band))
+        kpointdisc = ((qi::no_case[qi::lit("crystal_b")] > qi::attr(DiscreteKPoint::crystal|DiscreteKPoint::band))
+                     |(qi::no_case[qi::lit("crystal")] > qi::attr(DiscreteKPoint::crystal))
+                     |(qi::no_case[qi::lit("tpiba_b")] > qi::attr(DiscreteKPoint::band))
                      |(-qi::no_case[qi::lit("tpiba")] > qi::attr(0))
                      ) > qi::eol > qi::omit[qi::int_] > qi::eol > (disckpoint % qi::eol);
         kpoints = qi::no_case[qi::lit("k_points")] >

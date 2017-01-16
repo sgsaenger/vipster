@@ -16,7 +16,7 @@ Step::Step(const std::shared_ptr<PseMap> &pse):
 std::ostream& Vipster::operator<< (std::ostream& s, const Step& st)
 {
     s << "Step:\n Atoms: " << st.getNat() <<"\n Types: " << st.getNtyp()
-      << "\n Cell dimension: " << st.getCellDim() << "\n Vectors: " << st.getCellVec()
+      << "\n Cell dimension: " << st.getCellDim() << "\n Vectors:\n" << st.getCellVec()
       << "\n Comment: " << st.comment;
     return s;
 }

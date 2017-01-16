@@ -12,7 +12,7 @@ typedef std::array<Vec,3> Mat;
 
 inline std::ostream& operator<<(std::ostream &s, const Vec &v)
 {
-    s << "Vec: [" << v[0] << ", " << v[1] << ", " << v[2] << "]";
+    s << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
     return s;
 }
 
@@ -194,7 +194,7 @@ inline Mat Mat_inv(const Mat &m)
 
 inline std::ostream& operator<<(std::ostream &s, const Mat &v)
 {
-    s << "Mat:\n [" << v[0] << ",\n  " << v[1] << ",\n  " << v[2] << "]";
+    s << "[" << v[0] << ",\n " << v[1] << ",\n " << v[2] << "]";
     return s;
 }
 

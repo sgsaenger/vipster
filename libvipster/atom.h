@@ -9,7 +9,7 @@ namespace Vipster{
     typedef std::array<bool,3> FixVec;
     inline std::ostream& operator<<(std::ostream &s, const FixVec &v)
     {
-        s << std::boolalpha << "FixVec: ["
+        s << std::boolalpha << "["
           << v[0] << ", " << v[1] << ", " << v[2] << "]";
         return s;
     }

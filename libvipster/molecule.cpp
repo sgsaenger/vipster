@@ -15,7 +15,7 @@ Molecule::Molecule(std::string name, ulong s):
 std::ostream& Vipster::operator<< (std::ostream& s, const Molecule& m)
 {
     s << "Molecule:\n Name: " << m.getName() << "\n Steps: " << m.getNstep()
-      << "\n Active K-Point:" << m.getKPoints();
+      << "\n Active K-Point: " << m.getKPoints();
     return s;
 }
 
