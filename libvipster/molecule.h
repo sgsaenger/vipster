@@ -13,11 +13,6 @@ public:
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
     friend std::ostream& operator<< (std::ostream& s, const Molecule& st);
     void setCellDimAll(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
-    //void setCellVecAll(float v11, float v12, float v13,
-    //                   float v21, float v22, float v23,
-    //                   float v31, float v32, float v33,bool scale=false);
-    //void setCellVecAll(t_vec v1, t_vec v2, t_vec v3,bool scale=false);
-    //void setCellVecAll(std::array<t_vec,3> vec,bool scale=false);
     void newStep(const Step& step);
     void newStep(Step&& step={});
     void newSteps(const std::vector<Step> &v);

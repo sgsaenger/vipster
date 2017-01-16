@@ -71,22 +71,12 @@ void Step::setAtom(size_t idx, Atom at, AtomFmt fmt)
     bonds_outdated = true;
 }
 
-const Atom& Step::getAtom(size_t idx) const
-{
-    return atoms.at(idx);
-}
-
-Atom Step::getAtom(size_t idx, AtomFmt fmt)
+Atom Step::getAtom(size_t idx, AtomFmt fmt) const
 {
     return formatAtom(atoms.at(idx),AtomFmt::Bohr,fmt);
 }
 
-const std::vector<Atom>& Step::getAtoms() const noexcept
-{
-    return atoms;
-}
-
-std::vector<Atom> Step::getAtoms(AtomFmt fmt)
+std::vector<Atom> Step::getAtoms(AtomFmt fmt) const
 {
     return formatAtoms(atoms,AtomFmt::Bohr,fmt);
 }
@@ -96,7 +86,7 @@ size_t Step::getNat() const noexcept
     return atoms.size();
 }
 
-Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target)
+Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
 {
     if (source == target) return at;
     switch(source){
@@ -126,7 +116,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target)
     return at;
 }
 
-std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target)
+std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target) const
 {
     switch(source)
     {
@@ -179,16 +169,6 @@ float Step::getCellDim(AtomFmt fmt) const noexcept
     }else{
         return celldim;
     }
-}
-
-void Step::setCellVec(float v11, float v12, float v13, float v21, float v22, float v23, float v31, float v32, float v33, bool scale)
-{
-    setCellVec(Mat{{{{v11,v12,v13}},{{v21,v22,v23}},{{v31,v32,v33}}}},scale);
-}
-
-void Step::setCellVec(const Vec& v1, const Vec& v2, const Vec& v3, bool scale)
-{
-    setCellVec(Mat{v1,v2,v3},scale);
 }
 
 void Step::setCellVec(const Mat &mat, bool scale)

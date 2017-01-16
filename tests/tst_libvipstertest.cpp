@@ -175,10 +175,10 @@ void LibVipsterTest::testStep()
      * getCellVec, setCellVec
      */
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{1,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: getCellVec");
-    step.setCellVec(4,0,0,0,2,0,0,0,1);
+    step.setCellVec({{{{4,0,0}},{{0,2,0}},{{0,0,1}}}});
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{4,0,0}},{{0,2,0}},{{0,0,1}} }}), "Step: setCellVec");
     QVERIFY2((step.getAtom(0).coord == Vec{1,1,1}), "Step: setCellVec");
-    step.setCellVec(Vec{2,0,0},Vec{0,1,0},Vec{0,0,1},true);
+    step.setCellVec({{{{2,0,0}},{{0,1,0}},{{0,0,1}}}},true);
     QVERIFY2((step.getCellVec() == std::array<Vec,3>{{ {{2,0,0}},{{0,1,0}},{{0,0,1}} }}), "Step: setCellVec (scaling)");
     QVERIFY2((step.getAtom(0).coord == Vec{0.5,0.5,1}), "Step: setCellVec (scaling)");
     /*

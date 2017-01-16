@@ -15,25 +15,19 @@ public:
     Step();
     Step(const std::shared_ptr<PseMap> &pse);
     friend std::ostream& operator<< (std::ostream& s, const Step& st);
-    void    newAtom(const Atom &at);                          //copy of atom
-    void    newAtom(Atom&& at={});                            //move of atom
-    void    newAtom(Atom at, AtomFmt fmt);                    //copy of atom (possibly too many)
-    void    newAtoms(const std::vector<Atom> &v);             //batch copy
-    void    delAtom(size_t idx);                              //delete
-    void    setAtom(size_t idx,const Atom& at);               //replace with copy
-    void    setAtom(size_t idx,Atom&& at);                    //replace with move
-    void    setAtom(size_t idx,Atom at,AtomFmt fmt);          //replace with copy
-    const Atom& getAtom(size_t idx)const;                     //get reference (const,bohr)
-    Atom    getAtom(size_t idx, AtomFmt fmt);                 //get copy (formatted)
-    const std::vector<Atom>& getAtoms(void) const noexcept;   //get const reference (bohr)
-    std::vector<Atom> getAtoms(AtomFmt fmt);                  //get copy (formatted)
-    size_t  getNat(void) const noexcept;                      //get number of atoms
+    void    newAtom(const Atom &at);
+    void    newAtom(Atom&& at={});
+    void    newAtom(Atom at, AtomFmt fmt);
+    void    newAtoms(const std::vector<Atom> &v);
+    void    delAtom(size_t idx);
+    void    setAtom(size_t idx,const Atom& at);
+    void    setAtom(size_t idx,Atom&& at);
+    void    setAtom(size_t idx,Atom at,AtomFmt fmt);
+    Atom    getAtom(size_t idx, AtomFmt fmt=AtomFmt::Bohr) const;
+    std::vector<Atom> getAtoms(AtomFmt fmt=AtomFmt::Bohr) const;
+    size_t  getNat(void) const noexcept;
     void    setCellDim(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
     float   getCellDim(AtomFmt fmt=AtomFmt::Bohr) const noexcept;
-    void    setCellVec(float v11, float v12, float v13,
-                       float v21, float v22, float v23,
-                       float v31, float v32, float v33,bool scale=false);
-    void    setCellVec(const Vec &v1, const Vec &v2, const Vec &v3, bool scale=false);
     void    setCellVec(const Mat &vec, bool scale=false);
     Vec   getCenter(bool com=false) const noexcept;
     const Mat& getCellVec(void) const noexcept;
@@ -47,8 +41,8 @@ public:
     const std::vector<Bond>& getBondsCell(float cutfac) const;
     std::shared_ptr<PseMap> pse;
 private:
-    Atom formatAtom(Atom at, AtomFmt source, AtomFmt target);
-    std::vector<Atom> formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target);
+    Atom formatAtom(Atom at, AtomFmt source, AtomFmt target) const;
+    std::vector<Atom> formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target) const;
     void setBonds(float cutfac) const;
     void setBondsCell(float cutfac) const;
     enum class BondLevel { None, Molecule, Cell };
