@@ -15,12 +15,11 @@ namespace Vipster{
     }
 
     struct Atom{
-        std::string name="C";
-        Vec coord={{0,0,0}};
-        float charge=0;
-        std::array<bool,3> fix={{false,false,false}};
-        bool hidden=false;
-        //let's hope this does not break the aggregate-property:
+        std::string name;
+        Vec coord;
+        float charge;
+        FixVec fix;
+        bool hidden;
         bool operator ==(const Atom &a2) const{
             return std::tie(name, coord, charge, fix, hidden)
                     ==

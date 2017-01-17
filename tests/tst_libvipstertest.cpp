@@ -68,7 +68,7 @@ void LibVipsterTest::testVec()
 
 void LibVipsterTest::testAtom()
 {
-    Atom a1;
+    Atom a1{"C"};
     Atom a2{"C",{{0,0,0}},0,{{false,false,false}},0};
     Atom a3{"O",{{1,2,3}}};
     std::ostringstream s;
@@ -112,7 +112,7 @@ void LibVipsterTest::testPse()
 
 void LibVipsterTest::testStep()
 {
-    Atom atom;
+    Atom atom{"C"};
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, true, false}, true};
     Step step;
     /*

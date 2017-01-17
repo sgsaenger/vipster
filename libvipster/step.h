@@ -16,7 +16,7 @@ public:
     Step(const std::shared_ptr<PseMap> &pse);
     friend std::ostream& operator<< (std::ostream& s, const Step& st);
     void    newAtom(const Atom &at);
-    void    newAtom(Atom&& at={});
+    void    newAtom(Atom&& at={"C"});
     void    newAtom(Atom at, AtomFmt fmt);
     void    newAtoms(const std::vector<Atom> &v);
     void    delAtom(size_t idx);
