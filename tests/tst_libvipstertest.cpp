@@ -38,12 +38,12 @@ void LibVipsterTest::testVec()
     constexpr Mat m3{Vec{4./3.,-0.5,1./6.},Vec{1./3.,0,-1./3.},Vec{-2./3.,0.5,1./6.}};
     std::ostringstream s;
     s << v4;
-    QVERIFY2(s.str()=="[1.5, 1.5, 1.5]", "Vec operator<<");
+    QVERIFY2(s.str()=="Vec[1.5, 1.5, 1.5]", "Vec operator<<");
     s.str("");
     s << m1;
-    QVERIFY2(s.str() == "[[1, 1, 1],\n"
-                        " [1, 2, 3],\n"
-                        " [1, -2, 1]]", "Mat operator <<");
+    QVERIFY2(s.str() == "Mat[[1, 1, 1]\n"
+                        "    [1, 2, 3]\n"
+                        "    [1, -2, 1]]", "Mat operator <<");
     QVERIFY2(v1 == v1, "Vec operator==");
     QVERIFY2(v1 != v2, "Vec operator!=");
     QVERIFY2(v1+0.5 == v4, "Vec operator+ (float right)");
@@ -73,7 +73,7 @@ void LibVipsterTest::testAtom()
     Atom a3{"O",{{1,2,3}}};
     std::ostringstream s;
     s << a1.fix;
-    QVERIFY2(s.str() == "[false, false, false]", "FixVec operator<<");
+    QVERIFY2(s.str() == "FixVec[false, false, false]", "FixVec operator<<");
     s.str("");
     s << a1;
     QVERIFY2(s.str() == "Atom:\n"
@@ -229,9 +229,9 @@ void LibVipsterTest::testStep()
                         " Types: 2\n"
                         " Cell dimension: 4\n"
                         " Vectors:\n"
-                        "[[2, 0, 0],\n"
-                        " [0, 1, 0],\n"
-                        " [0, 0, 1]]\n"
+                        " [[2, 0, 0]\n"
+                        "  [0, 1, 0]\n"
+                        "  [0, 0, 1]]\n"
                         " Comment: Testäößą☭", "Step: operator<<");
 }
 

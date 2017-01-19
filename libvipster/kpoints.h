@@ -50,7 +50,8 @@ inline std::ostream& operator<< (std::ostream& s, const KPoints &k)
             s << "\n Crystal coordinates";
         }
         for(const DiscreteKPoint &p:d.kpoints){
-            s << "\n at: " << p.pos << ", weight: " << p.weight;
+            s << "\n at: [" << p.pos[0] << ", " << p.pos[1] << ", " << p.pos[2]
+              << "], weight: " << p.weight;
         }
         break;
     }
