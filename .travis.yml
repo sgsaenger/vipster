@@ -16,6 +16,7 @@ before_install:
     - wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2
     - tar -xf boost_1_64_0.tar.bz2
 install:
+    - emcc
     - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y INCLUDEPATH+=$TRAVIS_BUILD_DIR/boost_1_64_0 INCLUDEPATH+=$TRAVIS_BUILD_DIR/pybind11-2.1.1/include
     - make
     - cp libvipster/default.json ~/.vipster.json
