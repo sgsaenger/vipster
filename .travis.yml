@@ -7,7 +7,7 @@ before_install:
     - sudo add-apt-repository --yes ppa:beineri/opt-qt571-trusty
     - sudo apt-get update -qq
     - sudo pip install codecov
-    - sudo apt-get install -qq -y g++-5 qt57-meta-minimal
+    - sudo apt-get install -qq -y g++-5 qt57-meta-minimal emscripten
     - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
     - source $QT_ENV_SCRIPT
     - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90

@@ -5,4 +5,5 @@ SUBDIRS += \
     vipster \
     tests
 
-unix: SUBDIRS += python
+unix: SUBDIRS += python \
+    emscripten
