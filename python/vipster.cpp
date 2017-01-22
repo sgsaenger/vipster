@@ -1,7 +1,9 @@
 #include <sstream>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
+#include <pybind11/stl_bind.h>
 #include <molecule.h>
+#include <iowrapper.h>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -43,22 +45,29 @@ py::class_<Array, holder_type> bind_array(py::module &m, std::string const &name
         }
     });
     cl.def(py::self == py::self);
+    py::implicitly_convertible<py::iterable, Array>();
     return cl;
 }
 
 PYBIND11_PLUGIN(vipster) {
     py::module m("vipster", "pybind11 example plugin");
 
+    /*
+     * Step (Atoms + Cell)
+     */
+
     bind_array<Vec>(m, "Vec");
     bind_array<Mat>(m, "Mat");
     bind_array<FixVec>(m,"FixVec");
-    py::implicitly_convertible<py::iterable, Vec>();
+    py::bind_vector<std::vector<Atom>>(m,"__AtomVector__");
+    py::bind_vector<std::vector<Step>>(m,"__StepVector__");
 
     py::enum_<AtomFmt>(m, "AtomFmt")
         .value("Bohr", AtomFmt::Bohr)
         .value("Angstrom", AtomFmt::Angstrom)
         .value("Crystal", AtomFmt::Crystal)
-        .value("Alat", AtomFmt::Alat);
+        .value("Alat", AtomFmt::Alat)
+    ;
 
     py::class_<Atom>(m, "Atom")
         .def("__init__",
@@ -82,23 +91,91 @@ PYBIND11_PLUGIN(vipster) {
         .def("__repr__",[](const Step &a){std::ostringstream s;s<<a;return s.str();})
         .def_property_readonly("nat", &Step::getNat)
         .def_property_readonly("ntyp", &Step::getNtyp)
-//        .def("newAtom", [](Step& s){s.newAtom();})
-//        .def("newAtom", py::overload_cast<const Atom&>(&Step::newAtom), "at"_a)
+        .def("newAtom", [](Step& s){s.newAtom();})
         .def("newAtom", py::overload_cast<Atom, AtomFmt>(&Step::newAtom), "at"_a=Atom{"C"}, "fmt"_a=AtomFmt::Bohr)
         .def("delAtom", &Step::delAtom, "i"_a)
         .def("setAtom", py::overload_cast<size_t, const Atom&>(&Step::setAtom), "i"_a, "at"_a)
         .def("setAtom", py::overload_cast<size_t, Atom, AtomFmt>(&Step::setAtom), "i"_a, "at"_a, "fmt"_a)
         .def("getAtom", &Step::getAtom, "i"_a, "fmt"_a=AtomFmt::Bohr)
+        .def("getAtoms",&Step::getAtoms, "fmt"_a=AtomFmt::Bohr)
         .def("getCellDim", &Step::getCellDim, "fmt"_a=AtomFmt::Bohr)
         .def("setCellDim", &Step::setCellDim, "dim"_a, "scale"_a=false, "fmt"_a=AtomFmt::Bohr)
+        .def("getCellVec", &Step::getCellVec)
+        .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
         .def("getCenter", &Step::getCenter, "com"_a=false)
         .def_property("comment", &Step::getComment, &Step::setComment)
     ;
 
+    /*
+     * K-Points
+     */
+    py::bind_vector<std::vector<DiscreteKPoint>>(m, "__KPointVector__");
+
+    py::enum_<KPointFmt>(m, "KPointFmt")
+        .value("Gamma",KPointFmt::Gamma)
+        .value("MPG",KPointFmt::MPG)
+        .value("Discrete",KPointFmt::Discrete)
+    ;
+
+    py::class_<KPoints> k(m, "KPoints");
+    k.def(py::init())
+        .def("__repr__",[](const KPoints &k){std::ostringstream s;s<<k;return s.str();})
+        .def_readwrite("active", &KPoints::active)
+        .def_readwrite("mpg", &KPoints::mpg)
+        .def_readwrite("discrete", &KPoints::discrete)
+    ;
+
+    py::class_<KPoints::MPG>(k, "MPG")
+        .def_readwrite("x",&KPoints::MPG::x)
+        .def_readwrite("y",&KPoints::MPG::y)
+        .def_readwrite("z",&KPoints::MPG::z)
+        .def_readwrite("sx",&KPoints::MPG::sx)
+        .def_readwrite("sy",&KPoints::MPG::sy)
+        .def_readwrite("sz",&KPoints::MPG::sz)
+    ;
+
+    py::class_<KPoints::Discrete> disc(k, "Discrete");
+    disc.def_readwrite("properties", &KPoints::Discrete::properties)
+        .def_readwrite("kpoints", &KPoints::Discrete::kpoints)
+    ;
+
+    py::class_<DiscreteKPoint> dp(m, "DiscreteKPoint");
+    dp.def("__init__",[](DiscreteKPoint& dp, const Vec& p, float w)
+           { new (&dp) DiscreteKPoint{p,w};},
+           "pos"_a=Vec{},"weight"_a=0.)
+        .def_readwrite("pos", &DiscreteKPoint::pos)
+        .def_readwrite("weight", &DiscreteKPoint::weight)
+    ;
+
+    py::enum_<DiscreteKPoint::Properties>(dp, "Properties", py::arithmetic())
+        .value("none", DiscreteKPoint::Properties::none)
+        .value("crystal", DiscreteKPoint::Properties::crystal)
+        .value("band", DiscreteKPoint::Properties::band)
+    ;
+
+    /*
+     * Molecule (Steps + KPoints)
+     */
     py::class_<Molecule>(m, "Molecule")
         .def(py::init())
         .def("__repr__",[](const Molecule &m){std::ostringstream s;s<<m;return s.str();})
+        .def("newStep", py::overload_cast<const Step&>(&Molecule::newStep), "step"_a=Step{})
+        .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a)
+        .def("getSteps",py::overload_cast<>(&Molecule::getSteps))
+        .def_property_readonly("nstep", &Molecule::getNstep)
+        .def_property("name", &Molecule::getName, &Molecule::setName)
+        .def_property("kpoints", py::overload_cast<>(&Molecule::getKPoints), &Molecule::setKPoints)
     ;
+
+    /*
+     * IO
+     */
+    py::enum_<IOFmt>(m,"IOFmt")
+        .value("XYZ",IOFmt::XYZ)
+        .value("PWI",IOFmt::PWI)
+    ;
+
+    m.def("readFile",[](std::string fn, IOFmt fmt){return readFile(fn,fmt).mol;},"fn"_a,"fmt"_a);
 
     return m.ptr();
 }
