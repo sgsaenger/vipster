@@ -383,6 +383,8 @@ class MainWindow(QMainWindow):
                                          "Portable Network Graphics (*.png)")
         if not fn:
             return
+        elif type(fn) is tuple:
+            fn = fn[0]
         if splitext(str(fn))[1] == "":
             fn += ".png"
         img = self.visual.makePicture()
