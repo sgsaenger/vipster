@@ -1,47 +1,18 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-
-# C extensions
+# Binaries
+vipster/vipster
+tests/tst_libvipstertest
+# C++ build files
+*.o
 *.so*
-
-# QMake project, not needed:
+# Emscripten
+*.js
+*.html
+# Qt
 Makefile
-
-# Distribution / packaging
-.Python
-env/
-bin/
-build/
-develop-eggs/
-dist/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-
-# Translations
-*.mo
-
-# Sphinx documentation
-docs/_build/
+qrc_*
+ui_*
+moc_*
+*.moc
 
 # Test files
 *.xyz
