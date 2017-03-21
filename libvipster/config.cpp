@@ -6,6 +6,10 @@
 using json = nlohmann::json;
 using namespace Vipster;
 
+namespace Vipster{
+    extern const PseMap pse = readPse();
+}
+
 PseMap Vipster::readPse()
 {
     std::ifstream user_file{user_config};

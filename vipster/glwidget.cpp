@@ -57,13 +57,13 @@ void GLWidget::initializeGL()
     sphere_vbo.create();
     sphere_vbo.bind();
     sphere_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    sphere_vbo.allocate((void*)&atom_model,4608*sizeof(float));
+    sphere_vbo.allocate((void*)&atom_model,atom_model_npoly*3*sizeof(float));
     sphere_vbo.release();
 
     torus_vbo.create();
     torus_vbo.bind();
     torus_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    torus_vbo.allocate((void*)&bond_model,288*sizeof(float));
+    torus_vbo.allocate((void*)&bond_model,bond_model_npoly*3*sizeof(float));
     torus_vbo.release();
 
     atom_shader.addShaderFromSourceFile(QOpenGLShader::Vertex,":/shaders/atom/atom.vert");

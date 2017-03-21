@@ -20,6 +20,8 @@ const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json
 //GetModuleFileNameW(hModule,path,MAX_PATH);
 //const std::string sys_config = "./vipster.json";
 const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipster.json";
+#elif __EMSCRIPTEN__
+const std::string user_config = "/vipster.json";
 #endif
 
 struct PseEntry{
@@ -42,6 +44,7 @@ public:
     using std::map<std::string,PseEntry>::at;
     using std::map<std::string,PseEntry>::emplace;
     using std::map<std::string,PseEntry>::find;
+    using std::map<std::string,PseEntry>::size;
     PseMap(bool r=false):root(r){};
     PseEntry& operator [](const std::string &k);
 private:
@@ -50,7 +53,7 @@ private:
 
 PseMap readPse(void);
 
-const PseMap pse = readPse();
+extern const PseMap pse;
 
 }
 
