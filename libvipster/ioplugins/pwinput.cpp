@@ -13,6 +13,11 @@ namespace phx = boost::phoenix;
 using namespace std;
 using namespace Vipster;
 
+// TEMPORARY HELPER
+Mat mkCell(int i){
+        return Mat{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}};
+}
+
 std::ostream& operator<< (ostream& stream, const map<string, string>m)
 {
     for(auto& p:m){
@@ -109,6 +114,13 @@ struct pwi_parse_grammar
 {
     pwi_parse_grammar(): pwi_parse_grammar::base_type(file)
     {
+        /* Namelists:
+         * &NAME
+         * key=value, key=value
+         * key=value
+         * !comment
+         * /
+         */
         key = *(qi::graph - qi::char_("=/,'"));
         key.name("Key (or unquoted value)");
         fstr = qi::char_('\'') >> qi::lexeme[*(qi::char_ - '\'')] > qi::char_('\'');
@@ -118,7 +130,7 @@ struct pwi_parse_grammar
         nl_entry = key >> qi::lit('=') >> value;
         nl_entry.name("Namelist KV-pair");
         namelist = qi::omit[qi::no_case[qi::string(qi::_r1)]] >> *qi::eol
-                   >> nl_entry % (*(qi::eol >> -(qi::lit('!') >> *(qi::char_ - qi::eol) > qi::eol)) | ',')
+                   >> -(nl_entry % (*(qi::eol >> -(qi::lit('!') >> *(qi::char_ - qi::eol) > qi::eol)) | ','))
                    >> *qi::eol >> '/';
         namelist.name("Namelist");
         param = namelist(string{"&control"}) > *qi::eol >
@@ -127,9 +139,12 @@ struct pwi_parse_grammar
                 -(namelist(string{"&ions"}) > *qi::eol) >
                 -(namelist(string{"&cell"}));
         param.name("PW parameter set");
-        //TODO: hier weitermachen
-        //IDEE: semantic action nach param -> nat,ntyp,ibrav an mol uebergeben?!
-        //IDEE2: ^-operator um reihenfolge beliebig zu machen?
+        /* Cards:
+         * NAME {options}
+         * #comment
+         * !comment
+         * <content>
+         */
         name = +(qi::char_ - qi::space);
         pseentry = qi::double_ > name;
         pseentry.name("PSEEntry");
@@ -153,21 +168,24 @@ struct pwi_parse_grammar
         positions = qi::as<Step>()[atoms(qi::_r1)];
         kpointmpg = qi::eol > qi::int_ > qi::int_ > qi::int_ > qi::double_ > qi::double_ > qi::double_;
         disckpoint = qi::double_ > qi::double_ > qi::double_ > qi::double_;
-        disckpoints = (disckpoint % qi::eol);
+        disckpoints = (disckpoint % qi::eol)
+                    > qi::eps(qi::_r1 == phx::bind(&vector<DiscreteKPoint>::size,qi::_val));
         kpointdisc = ((qi::no_case[qi::lit("crystal_b")] > qi::attr(DiscreteKPoint::crystal|DiscreteKPoint::band))
                      |(qi::no_case[qi::lit("crystal")] > qi::attr(DiscreteKPoint::crystal))
                      |(qi::no_case[qi::lit("tpiba_b")] > qi::attr(DiscreteKPoint::band))
                      |(-qi::no_case[qi::lit("tpiba")] > qi::attr(0))
-                     ) > qi::eol > qi::omit[qi::int_] > qi::eol > (disckpoint % qi::eol);
+                     ) > qi::eol > qi::omit[qi::int_[qi::_a = qi::_1]] > qi::eol > disckpoints(qi::_a);
         kpoints = qi::no_case[qi::lit("k_points")] >
                    (qi::no_case[qi::lit("gamma")]
                    |(qi::no_case[qi::lit("automatic")] > qi::attr(KPointFmt::MPG) > kpointmpg)
                    |(qi::attr(KPointFmt::Discrete) > qi::attr(KPoints::MPG{}) > kpointdisc));
+        cell = qi::eps(qi::_r1 != 0)[qi::_val = phx::bind(&mkCell, qi::_r1)]
+             | qi::no_case[qi::lit("cell_parameters")];
         mol.name("Molecule");
         mol = qi::omit[species(qi::_r1)] > *qi::eol >
               positions(qi::_r2) > *qi::eol >
-              kpoints > *qi::eol;// >
-//              cell(qi::_r3) > *qi::eol >
+              kpoints > *qi::eol >
+              cell(qi::_r3) > *qi::eol;// >
 //              occupations > *qi::eol >
 //              constraints > *qi::eol >
 //              forces > *qi::eol;
@@ -202,9 +220,15 @@ struct pwi_parse_grammar
 //        BOOST_SPIRIT_DEBUG_NODE(atoms);
 //        BOOST_SPIRIT_DEBUG_NODE(atom);
 //        BOOST_SPIRIT_DEBUG_NODE(format);
+//        BOOST_SPIRIT_DEBUG_NODE(kpoints);
+//        BOOST_SPIRIT_DEBUG_NODE(kpointmpg);
+//        BOOST_SPIRIT_DEBUG_NODE(kpointdisc);
+//        BOOST_SPIRIT_DEBUG_NODE(disckpoint);
+//        BOOST_SPIRIT_DEBUG_NODE(disckpoints);
+        BOOST_SPIRIT_DEBUG_NODE(cell);
     }
     AtomFmt fmt = AtomFmt::Alat;
-    Mat m={{{1,0,0},{0,1,0},{0,0,1}}};
+    Mat m = {{{{1, 0, 0}}, {{0, 1, 0}}, {{0, 0, 1}}}};
     qi::rule<Iterator, IO::PWData(), qi::locals<int,int,int>, qi::blank_type> file;
 //Parameter-set, composed of F90-namelists
     qi::rule<Iterator, IO::PWParam(), qi::blank_type> param;
@@ -225,9 +249,10 @@ struct pwi_parse_grammar
     qi::rule<Iterator, Atom(), qi::blank_type> atom;
     qi::rule<Iterator, KPoints(), qi::blank_type> kpoints;
     qi::rule<Iterator, KPoints::MPG(), qi::blank_type> kpointmpg;
-    qi::rule<Iterator, KPoints::Discrete(), qi::blank_type> kpointdisc;
+    qi::rule<Iterator, KPoints::Discrete(), qi::locals<int>, qi::blank_type> kpointdisc;
     qi::rule<Iterator, DiscreteKPoint(), qi::blank_type> disckpoint;
-//    qi::rule<Iterator, qi::unused_type(int), qi::blank_type> cell;
+    qi::rule<Iterator, vector<DiscreteKPoint>(int), qi::blank_type> disckpoints;
+    qi::rule<Iterator, Mat(int), qi::blank_type> cell;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> occupations;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> constraints;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> forces;
