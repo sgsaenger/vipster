@@ -19,7 +19,8 @@ SOURCES += \
     step.cpp \
     iowrapper.cpp \
     ioplugins/xyz.cpp \
-    ioplugins/pwinput.cpp
+    ioplugins/pwinput.cpp \
+    ioplugins/newpwi.cpp
 
 HEADERS += \
     config.h \

@@ -257,29 +257,3 @@ struct pwi_parse_grammar
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> constraints;
 //    qi::rule<Iterator, qi::unused_type(), qi::blank_type> forces;
 };
-
-Vipster::IO::BaseData pwi_file_parser(std::string fn, std::ifstream &file)
-{
-    Vipster::IO::PWData d;
-    d.mol.setName(fn);
-//    Vipster::IO::PWParam* p = dynamic_cast<Vipster::IO::PWParam*>(&d.data);
-
-    typedef std::istreambuf_iterator<char> iter;
-    boost::spirit::multi_pass<iter> first = boost::spirit::make_default_multi_pass(iter(file));
-
-    pwi_parse_grammar<boost::spirit::multi_pass<iter>> grammar;
-
-    qi::phrase_parse(first, boost::spirit::make_default_multi_pass(iter()), grammar, qi::blank, d);
-
-//    cout << *p << endl;
-    return d;
-}
-
-const Vipster::IOPlugin Vipster::IO::PWInput =
-{
-    "pwi",
-    "pwi",
-    "pwi",
-    &pwi_file_parser,
-    nullptr
-};
