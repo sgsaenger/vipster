@@ -9,7 +9,6 @@ enum class KPointFmt{Gamma, MPG, Discrete};
 struct DiscreteKPoint{
     Vec pos;
     float weight;
-    enum Properties{none=0x0,crystal=0x1,band=0x2};
 };
 
 struct KPoints{
@@ -19,7 +18,8 @@ struct KPoints{
         float sx,sy,sz;
     } mpg;
     struct Discrete{
-        DiscreteKPoint::Properties properties;
+        enum Properties{none=0x0,crystal=0x1,band=0x2,contour=0x4};
+        Properties properties;
         std::vector<DiscreteKPoint> kpoints;
     } discrete;
 };
@@ -43,11 +43,14 @@ inline std::ostream& operator<< (std::ostream& s, const KPoints &k)
         break;
     case KPointFmt::Discrete:
         s << d.kpoints.size() << " discrete point(s):";
-        if (d.properties & DiscreteKPoint::band){
+        if (d.properties & KPoints::Discrete::band){
             s << "\n Band structure paths";
         }
-        if (d.properties & DiscreteKPoint::crystal){
+        if (d.properties & KPoints::Discrete::crystal){
             s << "\n Crystal coordinates";
+        }
+        if (d.properties & KPoints::Discrete::contour){
+            s << "\n Contour plot paths";
         }
         for(const DiscreteKPoint &p:d.kpoints){
             s << "\n at: [" << p.pos[0] << ", " << p.pos[1] << ", " << p.pos[2]

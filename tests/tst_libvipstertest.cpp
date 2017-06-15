@@ -275,15 +275,15 @@ void LibVipsterTest::testMolecule()
      */
     QVERIFY2(mol.getKPoints().active == KPointFmt::Gamma, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().mpg.x == 0, "Molecule: getKPoints");
-    QVERIFY2(mol.getKPoints().discrete.properties == DiscreteKPoint::none, "Molecule: getKPoints");
+    QVERIFY2(mol.getKPoints().discrete.properties == KPoints::Discrete::none, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints.empty(), "Molecule: getKPoints");
-    KPoints k{KPointFmt::MPG,{6,1,1,0,0,0},{Vipster::DiscreteKPoint::crystal,{{Vec{1,2,3},0.5}}}};
+    KPoints k{KPointFmt::MPG,{6,1,1,0,0,0},{KPoints::Discrete::crystal,{{Vec{1,2,3},0.5}}}};
     mol.setKPoints(k);
     QVERIFY2(mol.getKPoints().active == KPointFmt::MPG, "Molecule: setKPoints");
     mol.getKPoints().active = KPointFmt::Discrete;
     QVERIFY2(mol.getKPoints().active == KPointFmt::Discrete, "Molecule: getKPoints");
     QVERIFY2(mol.getKPoints().mpg.x == 6, "Molecule: setKPoints");
-    QVERIFY2(mol.getKPoints().discrete.properties == DiscreteKPoint::crystal, "Molecule: setKPoints");
+    QVERIFY2(mol.getKPoints().discrete.properties == KPoints::Discrete::crystal, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints.size() == 1, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints[0].weight == 0.5, "Molecule: setKPoints");
     QVERIFY2((mol.getKPoints().discrete.kpoints[0].pos == Vec{1,2,3}), "Molecule: setKPoints");
@@ -316,7 +316,7 @@ void LibVipsterTest::testMolecule()
                         " x: 6, y: 1, z: 1\n"
                         " sx: 0, sy: 0, sz: 0", "KPoints: operator<< (MPG)");
     k.active = KPointFmt::Discrete;
-    k.discrete.properties = (DiscreteKPoint::Properties)(DiscreteKPoint::crystal|DiscreteKPoint::band);
+    k.discrete.properties = (KPoints::Discrete::Properties)(KPoints::Discrete::crystal|KPoints::Discrete::band);
     k.discrete.kpoints.push_back({{3,2,1},0.25});
     s.str("");
     s << k;

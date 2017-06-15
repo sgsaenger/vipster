@@ -61,7 +61,7 @@ inline Vec operator +(const float &f, Vec v)
 
 inline Vec operator -(const Vec &v)
 {
-    return {-v[0],-v[1],-v[2]};
+    return {{-v[0],-v[1],-v[2]}};
 }
 
 inline Vec operator -=(Vec &v1, const Vec &v2)
@@ -133,9 +133,9 @@ inline float Vec_length(const Vec &v)
 
 inline Vec Vec_cross(const Vec &v1, const Vec &v2)
 {
-    return {v1[1]*v2[2]-v1[2]*v2[1],
-            v1[2]*v2[0]-v1[0]*v2[2],
-            v1[0]*v2[1]-v1[1]*v2[0]};
+    return {{v1[1]*v2[2]-v1[2]*v2[1],
+             v1[2]*v2[0]-v1[0]*v2[2],
+             v1[0]*v2[1]-v1[1]*v2[0]}};
 }
 
 inline Vec operator*(const Mat &m, const Vec &v)
@@ -149,9 +149,9 @@ inline Vec operator*(const Mat &m, const Vec &v)
 
 inline Mat Mat_trans(const Mat &m)
 {
-    return {Vec{m[0][0],m[1][0],m[2][0]},
-            Vec{m[0][1],m[1][1],m[2][1]},
-            Vec{m[0][2],m[1][2],m[2][2]}};
+    return {{Vec{{m[0][0],m[1][0],m[2][0]}},
+             Vec{{m[0][1],m[1][1],m[2][1]}},
+             Vec{{m[0][2],m[1][2],m[2][2]}}}};
 }
 
 inline Vec operator*(const Vec &v, const Mat&m)

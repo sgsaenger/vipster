@@ -62,11 +62,11 @@ BOOST_FUSION_ADAPT_STRUCT(
         sz
 )
 
-BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::KPoints::Discrete,
-        (Vipster::DiscreteKPoint::Properties, properties)
-        (std::vector<Vipster::DiscreteKPoint>, kpoints)
-)
+//BOOST_FUSION_ADAPT_STRUCT(
+//        Vipster::KPoints::Discrete,
+//        (Vipster::DiscreteKPoint::Properties, properties)
+//        (std::vector<Vipster::DiscreteKPoint>, kpoints)
+//)
 
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -166,15 +166,15 @@ struct pwi_parse_grammar
                 > qi::eps(qi::_r1 == phx::bind(&vector<Atom>::size,qi::_val));
         atoms.name("Atomic positions");
         positions = qi::as<Step>()[atoms(qi::_r1)];
-        kpointmpg = qi::eol > qi::int_ > qi::int_ > qi::int_ > qi::double_ > qi::double_ > qi::double_;
-        disckpoint = qi::double_ > qi::double_ > qi::double_ > qi::double_;
-        disckpoints = (disckpoint % qi::eol)
-                    > qi::eps(qi::_r1 == phx::bind(&vector<DiscreteKPoint>::size,qi::_val));
-        kpointdisc = ((qi::no_case[qi::lit("crystal_b")] > qi::attr(DiscreteKPoint::crystal|DiscreteKPoint::band))
-                     |(qi::no_case[qi::lit("crystal")] > qi::attr(DiscreteKPoint::crystal))
-                     |(qi::no_case[qi::lit("tpiba_b")] > qi::attr(DiscreteKPoint::band))
-                     |(-qi::no_case[qi::lit("tpiba")] > qi::attr(0))
-                     ) > qi::eol > qi::omit[qi::int_[qi::_a = qi::_1]] > qi::eol > disckpoints(qi::_a);
+//        kpointmpg = qi::eol > qi::int_ > qi::int_ > qi::int_ > qi::double_ > qi::double_ > qi::double_;
+//        disckpoint = qi::double_ > qi::double_ > qi::double_ > qi::double_;
+//        disckpoints = (disckpoint % qi::eol)
+//                    > qi::eps(qi::_r1 == phx::bind(&vector<DiscreteKPoint>::size,qi::_val));
+//        kpointdisc = ((qi::no_case[qi::lit("crystal_b")] > qi::attr(DiscreteKPoint::crystal|DiscreteKPoint::band))
+//                     |(qi::no_case[qi::lit("crystal")] > qi::attr(DiscreteKPoint::crystal))
+//                     |(qi::no_case[qi::lit("tpiba_b")] > qi::attr(DiscreteKPoint::band))
+//                     |(-qi::no_case[qi::lit("tpiba")] > qi::attr(0))
+//                     ) > qi::eol > qi::omit[qi::int_[qi::_a = qi::_1]] > qi::eol > disckpoints(qi::_a);
         kpoints = qi::no_case[qi::lit("k_points")] >
                    (qi::no_case[qi::lit("gamma")]
                    |(qi::no_case[qi::lit("automatic")] > qi::attr(KPointFmt::MPG) > kpointmpg)

@@ -12,7 +12,9 @@ public:
     Molecule(std::string name="New Molecule",ulong s=1);
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
     friend std::ostream& operator<< (std::ostream& s, const Molecule& st);
+
     void setCellDimAll(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
+
     void newStep(const Step& step);
     void newStep(Step&& step={});
     void newSteps(const std::vector<Step> &v);
@@ -21,8 +23,10 @@ public:
     std::vector<Step>& getSteps(void) noexcept;
     const std::vector<Step>& getSteps(void) const noexcept;
     size_t getNstep(void) const noexcept;
+
     void setName(const std::string &s);
     const std::string& getName(void) const noexcept;
+
     void setKPoints(const KPoints &k);
     KPoints& getKPoints(void) noexcept;
     const KPoints& getKPoints(void) const noexcept;

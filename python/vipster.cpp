@@ -147,10 +147,10 @@ PYBIND11_PLUGIN(vipster) {
         .def_readwrite("weight", &DiscreteKPoint::weight)
     ;
 
-    py::enum_<DiscreteKPoint::Properties>(dp, "Properties", py::arithmetic())
-        .value("none", DiscreteKPoint::Properties::none)
-        .value("crystal", DiscreteKPoint::Properties::crystal)
-        .value("band", DiscreteKPoint::Properties::band)
+    py::enum_<KPoints::Discrete::Properties>(dp, "Properties", py::arithmetic())
+        .value("none", KPoints::Discrete::Properties::none)
+        .value("crystal", KPoints::Discrete::Properties::crystal)
+        .value("band", KPoints::Discrete::Properties::band)
     ;
 
     /*
