@@ -4,17 +4,22 @@
 #include <boost/spirit/include/support_multi_pass.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/adapt_adt.hpp>
+#include <boost/fusion/adapted/std_array.hpp>
 
 
 namespace qi = boost::spirit::qi;
 namespace phx = boost::phoenix;
 
+namespace boost { namespace spirit { namespace traits {
+    template <typename T, size_t N>
+        struct is_container<std::array<T, N>, void> : mpl::false_ { };
+} } }
+
+
 BOOST_FUSION_ADAPT_STRUCT(
         Vipster::Atom,
-        (std::string, name)
-        (float, coord[0])
-        (float, coord[1])
-        (float, coord[2])
+        name,
+        coord
 )
 
 BOOST_FUSION_ADAPT_ADT(
@@ -42,10 +47,7 @@ struct xyz_parse_grammar
     {
         name = +(qi::char_ - qi::space);
         name.name("Element");
-        atom = name
-               >> qi::double_
-               >> qi::double_
-               >> qi::double_;
+        atom = name > qi::as<Vipster::Vec>()[qi::double_ > qi::double_ > qi::double_];
         atom.name("Atom");
         atoms = (atom % qi::eol)
                 > qi::eps(qi::_r1 == phx::bind(&std::vector<Vipster::Atom>::size,qi::_val));

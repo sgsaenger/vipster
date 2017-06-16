@@ -14,6 +14,7 @@ public:
     friend std::ostream& operator<< (std::ostream& s, const Molecule& st);
 
     void setCellDimAll(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
+    void setCellVecAll(const Mat &mat, bool scale=false);
 
     void newStep(const Step& step);
     void newStep(Step&& step={});

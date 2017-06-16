@@ -27,6 +27,26 @@ void Molecule::setCellDimAll(float cdm, bool scale, AtomFmt fmt)
     }
 }
 
+void Molecule::setCellVecAll(const Mat &mat, bool scale)
+{
+    Mat inv = Mat_inv(mat);
+    if(scale){
+        std::vector<Atom> tatoms;
+        for(Step& s:steps){
+            tatoms = s.formatAtoms(s.atoms, AtomFmt::Bohr, AtomFmt::Crystal);
+            s.cellvec = mat;
+            s.invvec = inv;
+            s.atoms = s.formatAtoms(tatoms, AtomFmt::Crystal, AtomFmt::Bohr);
+            s.bonds_outdated = true;
+        }
+    }else{
+        for(Step& s:steps){
+            s.cellvec = mat;
+            s.invvec = inv;
+        }
+    }
+}
+
 void Molecule::newStep(const Step &step)
 {
     steps.push_back(step);

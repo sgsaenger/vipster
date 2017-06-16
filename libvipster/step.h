@@ -9,11 +9,13 @@
 #include <memory>
 
 namespace Vipster{
+class Molecule;
 class Step
 {
 public:
     Step();
     Step(const std::shared_ptr<PseMap> &pse);
+    friend Molecule;
     friend std::ostream& operator<< (std::ostream& s, const Step& st);
     void    newAtom(const Atom &at);
     void    newAtom(Atom&& at={"C",{{0,0,0}},0,{{false,false,false}},false});
@@ -23,14 +25,16 @@ public:
     void    setAtom(size_t idx,const Atom& at);
     void    setAtom(size_t idx,Atom&& at);
     void    setAtom(size_t idx,Atom at,AtomFmt fmt);
-    Atom    getAtom(size_t idx, AtomFmt fmt=AtomFmt::Bohr) const;
-    std::vector<Atom> getAtoms(AtomFmt fmt=AtomFmt::Bohr) const;
+    const Atom& getAtom(size_t idx) const;
+    Atom    getAtom(size_t idx, AtomFmt fmt) const;
+    const std::vector<Atom>& getAtoms() const;
+    std::vector<Atom> getAtoms(AtomFmt fmt) const;
     size_t  getNat(void) const noexcept;
     void    setCellDim(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
     float   getCellDim(AtomFmt fmt=AtomFmt::Bohr) const noexcept;
     void    setCellVec(const Mat &vec, bool scale=false);
-    Vec   getCenter(bool com=false) const noexcept;
     const Mat& getCellVec(void) const noexcept;
+    Vec   getCenter(bool com=false) const noexcept;
     std::set<std::string> getTypes(void)const noexcept;
     size_t  getNtyp(void) const noexcept;
     void  setComment(const std::string &s);

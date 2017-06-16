@@ -76,9 +76,19 @@ void Step::setAtom(size_t idx, Atom at, AtomFmt fmt)
     bonds_outdated = true;
 }
 
+const Atom& Step::getAtom(size_t idx) const
+{
+    return atoms.at(idx);
+}
+
 Atom Step::getAtom(size_t idx, AtomFmt fmt) const
 {
     return formatAtom(atoms.at(idx),AtomFmt::Bohr,fmt);
+}
+
+const std::vector<Atom>& Step::getAtoms() const
+{
+    return atoms;
 }
 
 std::vector<Atom> Step::getAtoms(AtomFmt fmt) const
