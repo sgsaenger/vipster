@@ -30,8 +30,12 @@ public:
     const std::vector<Atom>& getAtoms() const;
     std::vector<Atom> getAtoms(AtomFmt fmt) const;
     size_t  getNat(void) const noexcept;
-    void    setCellDim(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
-    float   getCellDim(AtomFmt fmt=AtomFmt::Bohr) const noexcept;
+    AtomFmt getFmt() const noexcept;
+    void    setFmt(AtomFmt fmt, bool scale=false);
+    void    setCellDim(float cdm, bool scale=false);
+    void    setCellDim(float cdm, bool scale, AtomFmt fmt);
+    float   getCellDim() const noexcept;
+    float   getCellDim(AtomFmt fmt) const noexcept;
     void    setCellVec(const Mat &vec, bool scale=false);
     const Mat& getCellVec(void) const noexcept;
     Vec   getCenter(bool com=false) const noexcept;
@@ -46,11 +50,12 @@ public:
     std::shared_ptr<PseMap> pse;
 private:
     Atom formatAtom(Atom at, AtomFmt source, AtomFmt target) const;
-    std::vector<Atom> formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target) const;
+    std::vector<Atom> formatAtoms(std::vector<Atom> atvec, AtomFmt source, AtomFmt target) const;
     void setBonds(float cutfac) const;
     void setBondsCell(float cutfac) const;
     enum class BondLevel { None, Molecule, Cell };
     //DATA following:
+    AtomFmt format=AtomFmt::Bohr;
     std::string comment;
     std::vector<Atom> atoms;
     float celldim {1.};

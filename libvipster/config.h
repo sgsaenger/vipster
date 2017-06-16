@@ -41,6 +41,7 @@ public:
     using std::map<std::string,PseEntry>::end;
     using std::map<std::string,PseEntry>::at;
     using std::map<std::string,PseEntry>::emplace;
+    using std::map<std::string,PseEntry>::find;
     PseMap(bool r=false):root(r){};
     PseEntry& operator [](const std::string &k);
 private:

@@ -47,6 +47,13 @@ void Molecule::setCellVecAll(const Mat &mat, bool scale)
     }
 }
 
+void Molecule::setFmtAll(AtomFmt fmt, bool scale)
+{
+    for(Step& s:steps){
+        s.setFmt(fmt, scale);
+    }
+}
+
 void Molecule::newStep(const Step &step)
 {
     steps.push_back(step);

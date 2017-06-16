@@ -11,12 +11,12 @@ before_install:
     - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
     - source $QT_ENV_SCRIPT
     - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
-    - wget http://mirrors.kernel.org/ubuntu/pool/universe/p/pybind11/pybind11-dev_2.0.1-3_all.deb
-    - sudo dpkg -i pybind11-dev_2.0.1-3_all.deb
+    - wget https://github.com/pybind/pybind11/archive/v2.1.1.tar.gz
+    - tar -xf v2.1.1.tar.gz
     - wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2
     - tar -xf boost_1_64_0.tar.bz2
 install:
-    - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y INCLUDEPATH+=$TRAVIS_BUILD_DIR/boost_1_64_0
+    - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y INCLUDEPATH+=$TRAVIS_BUILD_DIR/boost_1_64_0 INCLUDEPATH+=$TRAVIS_BUILD_DIR/pybind11-2.1.1/include
     - make
     - cp libvipster/default.json ~/.vipster.json
 script:

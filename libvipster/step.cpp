@@ -40,7 +40,7 @@ void Step::newAtom(Atom &&at)
 
 void Step::newAtom(Atom at, AtomFmt fmt)
 {
-    atoms.push_back(formatAtom(at,fmt,AtomFmt::Bohr));
+    atoms.push_back(formatAtom(at,fmt,format));
     bonds_outdated = true;
 }
 
@@ -72,7 +72,7 @@ void Step::setAtom(size_t idx, Atom &&at)
 
 void Step::setAtom(size_t idx, Atom at, AtomFmt fmt)
 {
-    atoms.at(idx) = formatAtom(at,fmt,AtomFmt::Bohr);
+    atoms.at(idx) = formatAtom(at,fmt,format);
     bonds_outdated = true;
 }
 
@@ -83,7 +83,7 @@ const Atom& Step::getAtom(size_t idx) const
 
 Atom Step::getAtom(size_t idx, AtomFmt fmt) const
 {
-    return formatAtom(atoms.at(idx),AtomFmt::Bohr,fmt);
+    return formatAtom(atoms.at(idx),format,fmt);
 }
 
 const std::vector<Atom>& Step::getAtoms() const
@@ -93,12 +93,24 @@ const std::vector<Atom>& Step::getAtoms() const
 
 std::vector<Atom> Step::getAtoms(AtomFmt fmt) const
 {
-    return formatAtoms(atoms,AtomFmt::Bohr,fmt);
+    return formatAtoms(atoms,format,fmt);
 }
 
 size_t Step::getNat() const noexcept
 {
     return atoms.size();
+}
+
+AtomFmt Step::getFmt() const noexcept
+{
+    return format;
+}
+
+void Step::setFmt(AtomFmt fmt, bool scale)
+{
+    if(scale)
+        atoms = formatAtoms(atoms,format,fmt);
+    format = fmt;
 }
 
 Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
@@ -111,7 +123,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
         at.coord*=invbohr;
         break;
     case AtomFmt::Crystal:
-        at.coord = cellvec * at.coord;
+        at.coord = at.coord * cellvec;
     case AtomFmt::Alat:
         at.coord *= celldim;
         break;
@@ -123,7 +135,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
         at.coord*=bohrrad;
         break;
     case AtomFmt::Crystal:
-        at.coord = invvec * at.coord;
+        at.coord = at.coord * invvec;
     case AtomFmt::Alat:
         at.coord /= celldim;
         break;
@@ -131,19 +143,20 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
     return at;
 }
 
-std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, AtomFmt source, AtomFmt target) const
+std::vector<Atom> Step::formatAtoms(std::vector<Atom> atvec, AtomFmt source, AtomFmt target) const
 {
+    if(source==target) return atvec;
     switch(source)
     {
     case AtomFmt::Bohr:
         break;
     case AtomFmt::Angstrom:
-        for(Atom& at:atoms) { at.coord*=invbohr; }
+        for(Atom& at:atvec) { at.coord*=invbohr; }
         break;
     case AtomFmt::Crystal:
-        for(Atom& at:atoms) { at.coord = cellvec * at.coord; }
+        for(Atom& at:atvec) { at.coord = at.coord * cellvec; }
     case AtomFmt::Alat:
-        for(Atom& at:atoms) { at.coord*=celldim; }
+        for(Atom& at:atvec) { at.coord*=celldim; }
         break;
     }
     switch(target)
@@ -151,22 +164,19 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atoms, AtomFmt source, Ato
     case AtomFmt::Bohr:
         break;
     case AtomFmt::Angstrom:
-        for(Atom& at:atoms) { at.coord*=bohrrad; }
+        for(Atom& at:atvec) { at.coord*=bohrrad; }
         break;
     case AtomFmt::Crystal:
-        for(Atom& at:atoms) { at.coord = invvec * at.coord; }
+        for(Atom& at:atvec) { at.coord = at.coord * invvec; }
     case AtomFmt::Alat:
-        for(Atom& at:atoms) { at.coord/=celldim; }
+        for(Atom& at:atvec) { at.coord/=celldim; }
         break;
     }
-    return atoms;
+    return atvec;
 }
 
-void Step::setCellDim(float cdm, bool scale, AtomFmt fmt)
+void Step::setCellDim(float cdm, bool scale)
 {
-    if(fmt==AtomFmt::Angstrom){
-        cdm *= invbohr;
-    }
     if(!(cdm>0))throw std::invalid_argument("Step::setCellDim() : cell-dimension needs to be positive");
     if(scale)
     {
@@ -177,10 +187,28 @@ void Step::setCellDim(float cdm, bool scale, AtomFmt fmt)
     bonds_outdated = true;
 }
 
-float Step::getCellDim(AtomFmt fmt) const noexcept
+void Step::setCellDim(float cdm, bool scale, AtomFmt fmt)
 {
     if(fmt==AtomFmt::Angstrom){
-        return celldim * bohrrad;
+        cdm *= invbohr;
+    }
+    setCellDim(cdm, scale);
+}
+
+
+float Step::getCellDim() const noexcept
+{
+    return celldim;
+}
+
+float Step::getCellDim(AtomFmt fmt) const noexcept
+{
+    if(fmt!=format){
+        if(fmt==AtomFmt::Angstrom){
+            return celldim * bohrrad;
+        }else{
+            return celldim * invbohr;
+        }
     }else{
         return celldim;
     }
@@ -191,12 +219,12 @@ void Step::setCellVec(const Mat &mat, bool scale)
     Mat inv = Mat_inv(mat);
     std::vector<Atom> tatoms;
     if(scale){
-        tatoms=formatAtoms(atoms,AtomFmt::Bohr,AtomFmt::Crystal);
+        tatoms=formatAtoms(atoms,format,AtomFmt::Crystal);
     }
     cellvec = mat;
     invvec.swap(inv);
     if(scale){
-        atoms=formatAtoms(tatoms,AtomFmt::Crystal,AtomFmt::Bohr);
+        atoms=formatAtoms(tatoms,AtomFmt::Crystal,format);
     }
     bonds_outdated = true;
 }

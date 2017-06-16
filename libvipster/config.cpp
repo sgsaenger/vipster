@@ -21,7 +21,8 @@ PseMap Vipster::readPse()
                     v["m"],v["bondcut"],v["covr"],
                     v["vdwr"],v["col"]});
         }
-    }else{
+    }
+    if(temp.find("X")==temp.end()){
         temp.emplace("X", PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}});
     }
     return temp;
@@ -32,17 +33,19 @@ PseEntry& PseMap::operator [](const std::string& k)
     try{
         return at(k);
     }catch(const std::out_of_range& ex){
-        std::locale loc;
-        for(size_t i=k.length();i>0;--i)
-        {
-            std::string test = k.substr(0,i);
-            if(std::islower(test[0])){
-                test[0] = std::toupper(test[0],loc);
-            }
-            if(pse.find(test)!=pse.end())
+        if(!root){
+            std::locale loc;
+            for(size_t i=k.length();i>0;--i)
             {
-                emplace(k,pse.at(test));
-                return at(k);
+                std::string test = k.substr(0,i);
+                if(std::islower(test[0])){
+                    test[0] = std::toupper(test[0],loc);
+                }
+                if(pse.find(test)!=pse.end())
+                {
+                    emplace(k,pse.at(test));
+                    return at(k);
+                }
             }
         }
         emplace(k,pse.at("X"));

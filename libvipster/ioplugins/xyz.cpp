@@ -47,7 +47,7 @@ struct xyz_parse_grammar
     {
         name = +(qi::char_ - qi::space);
         name.name("Element");
-        atom = name > qi::as<Vipster::Vec>()[qi::double_ > qi::double_ > qi::double_];
+        atom = name > qi::as<Vipster::Vec>()[qi::float_ > qi::float_ > qi::float_];
         atom.name("Atom");
         atoms = (atom % qi::eol)
                 > qi::eps(qi::_r1 == phx::bind(&std::vector<Vipster::Atom>::size,qi::_val));
@@ -56,8 +56,7 @@ struct xyz_parse_grammar
         comment.name("Comment");
         step %= qi::omit[qi::int_[qi::_a = qi::_1] > qi::eol]
                 > comment
-                > atoms(qi::_a)
-                > qi::eps[phx::bind(&Vipster::Step::setCellDim,qi::_val,1,true,Vipster::AtomFmt::Angstrom)];
+                > atoms(qi::_a);
         step.name("Step");
         steps = step % +qi::eol;
         steps.name("Steps");
@@ -73,13 +72,6 @@ struct xyz_parse_grammar
                 << phx::val("\"")
                 << std::endl
         );
-//        BOOST_SPIRIT_DEBUG_NODE(mol);
-//        BOOST_SPIRIT_DEBUG_NODE(steps);
-//        BOOST_SPIRIT_DEBUG_NODE(step);
-        BOOST_SPIRIT_DEBUG_NODE(atoms);
-        BOOST_SPIRIT_DEBUG_NODE(atom);
-        BOOST_SPIRIT_DEBUG_NODE(comment);
-        BOOST_SPIRIT_DEBUG_NODE(name);
     }
     qi::rule<Iterator, Vipster::Molecule(), qi::blank_type> mol;
     qi::rule<Iterator, std::vector<Vipster::Step>(), qi::blank_type> steps;
@@ -101,6 +93,7 @@ Vipster::IO::BaseData xyz_file_parser(std::string fn, std::ifstream &file)
     xyz_parse_grammar<boost::spirit::multi_pass<iter>> grammar;
 
     qi::phrase_parse(first, boost::spirit::make_default_multi_pass(iter()), grammar, qi::blank, d.mol);
+    d.mol.setFmtAll(Vipster::AtomFmt::Angstrom);
 
     return d;
 }
