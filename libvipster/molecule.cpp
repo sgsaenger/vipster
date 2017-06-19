@@ -3,7 +3,7 @@
 using namespace Vipster;
 
 
-Molecule::Molecule(std::string name, ulong s):
+Molecule::Molecule(std::string name, unsigned long s):
     name{name},
     kpoints{}
 {

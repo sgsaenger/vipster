@@ -27,6 +27,11 @@ LibVipsterTest::LibVipsterTest()
 {
 }
 
+bool floatComp(float a, float b)
+{
+    return std::abs(a-b)<std::numeric_limits<float>::epsilon();
+}
+
 void LibVipsterTest::testVec()
 {
     constexpr Vec v1{1,1,1};
@@ -55,9 +60,9 @@ void LibVipsterTest::testVec()
     QVERIFY2(v1+v1 == 2*v1, "Vec operator+ (Vec)");
     QVERIFY2(v4-v1 == v1/2, "Vec operator- (Vec)");
     QVERIFY2(v1-2 == -v1, "Vec operator- (unary)");
-    QVERIFY2(Vec_dot(v1,v2) == 6, "Vec_dot");
+    QVERIFY2(floatComp(Vec_dot(v1,v2), 6), "Vec_dot");
     QVERIFY2(Vec_cross(v1,v2) == v3, "Vec_cross");
-    QVERIFY2(Vec_length(v2)-std::sqrt(14)<std::numeric_limits<float>::epsilon(), "Vec_length");
+    QVERIFY2(std::abs(Vec_length(v2)-std::sqrt(14))<std::numeric_limits<float>::epsilon(), "Vec_length");
     QVERIFY2(Mat_det(m1)==6, "Mat_det");
     QVERIFY2(Mat_trans(m1)==m2, "Mat_trans");
     QVERIFY2((m1*v1==Vec{3,6,0}), "Mat operator* (vec right)");
@@ -164,13 +169,13 @@ void LibVipsterTest::testStep()
     /*
      * getCellDim, setCellDim
      */
-    QVERIFY2(step.getCellDim() == 1, "Step: getCellDim");
+    QVERIFY2(floatComp(step.getCellDim(), 1), "Step: getCellDim");
     step.setCellDim(2);
     QVERIFY2((step.getAtom(0).coord == Vec{0.5,0.5,0.5}), "Step: setCellDim");
-    QVERIFY2(step.getCellDim() == 2,"Step: setCellDim");
+    QVERIFY2(floatComp(step.getCellDim(), 2),"Step: setCellDim");
     step.setCellDim(4, true);
     QVERIFY2((step.getAtom(0).coord == Vec{1,1,1}), "Step: setCellDim (scaling)");
-    QVERIFY2(step.getCellDim() == 4,"Step: setCellDim (scaling)");
+    QVERIFY2(floatComp(step.getCellDim(), 4),"Step: setCellDim (scaling)");
     /*
      * getCellVec, setCellVec
      */
@@ -204,8 +209,8 @@ void LibVipsterTest::testStep()
         QVERIFY2((at.coord == Vec{0.5,0.5,1}*bohrrad), "Step: getAtoms (angstrom)");
     }
     step.setCellDim(4,false,AtomFmt::Angstrom);
-    QVERIFY2(step.getCellDim()==4*invbohr, "Step: setCellDim (formatted)");
-    QVERIFY2(step.getCellDim(AtomFmt::Angstrom)==4, "Step: getCellDim (formatted)");
+    QVERIFY2(floatComp(step.getCellDim(), 4*invbohr), "Step: setCellDim (formatted)");
+    QVERIFY2(floatComp(step.getCellDim(AtomFmt::Angstrom), 4), "Step: getCellDim (formatted)");
     step.setCellDim(4);
     /*
      * getCenter
@@ -264,11 +269,11 @@ void LibVipsterTest::testMolecule()
      * Batch modify steps
      */
     for(Step &s: mol.getSteps()){
-        QVERIFY2(s.getCellDim()==1, "Molecule: getSteps");
+        QVERIFY2(floatComp(s.getCellDim(), 1), "Molecule: getSteps");
     }
     mol.setCellDimAll(2);
     for(Step& s:mol.getSteps()){
-        QVERIFY2(s.getCellDim()==2, "Molecule: setCellDim");
+        QVERIFY2(floatComp(s.getCellDim(), 2), "Molecule: setCellDim");
     }
     /*
      * K-Points
@@ -285,21 +290,21 @@ void LibVipsterTest::testMolecule()
     QVERIFY2(mol.getKPoints().mpg.x == 6, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.properties == KPoints::Discrete::crystal, "Molecule: setKPoints");
     QVERIFY2(mol.getKPoints().discrete.kpoints.size() == 1, "Molecule: setKPoints");
-    QVERIFY2(mol.getKPoints().discrete.kpoints[0].weight == 0.5, "Molecule: setKPoints");
+    QVERIFY2(floatComp(mol.getKPoints().discrete.kpoints[0].weight, 0.5), "Molecule: setKPoints");
     QVERIFY2((mol.getKPoints().discrete.kpoints[0].pos == Vec{1,2,3}), "Molecule: setKPoints");
     /*
      * const-correctness
      */
     const Molecule& mref = mol;
     mol.getStep(0).setCellDim(4);
-    QVERIFY2(mref.getStep(0).getCellDim()==4, "Molecule: getStep const");
+    QVERIFY2(floatComp(mref.getStep(0).getCellDim(), 4), "Molecule: getStep const");
     mol.setCellDimAll(4);
     for(auto& s:mref.getSteps()){
-        QVERIFY2(s.getCellDim()==4, "Molecule: getSteps const");
+        QVERIFY2(floatComp(s.getCellDim(), 4), "Molecule: getSteps const");
     }
     QVERIFY2(mol.getKPoints().active == mref.getKPoints().active, "Molecule: getKpoints const");
     QVERIFY2(mol.getKPoints().mpg.x == mref.getKPoints().mpg.x, "Molecule: getKpoints const");
-    QVERIFY2(mol.getKPoints().discrete.kpoints[0].weight == mref.getKPoints().discrete.kpoints[0].weight, "Molecule: getKpoints const");
+    QVERIFY2(floatComp(mol.getKPoints().discrete.kpoints[0].weight, mref.getKPoints().discrete.kpoints[0].weight), "Molecule: getKpoints const");
     /*
      * operator<<
      */

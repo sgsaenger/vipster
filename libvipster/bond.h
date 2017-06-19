@@ -3,8 +3,8 @@
 
 namespace Vipster {
     struct Bond{
-        ulong at1;
-        ulong at2;
+        unsigned long at1;
+        unsigned long at2;
         float dist;
         long xdiff;
         long ydiff;

@@ -27,16 +27,12 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     molwidget.ui
 
-DISTFILES += \
-    resources/atom.frag \
-    resources/atom.vert \
-    resources/bond.frag \
-    resources/bond.vert \
-    resources/cell.frag \
-    resources/cell.vert \
-    resources/icon.png
+DISTFILES +=
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libvipster/release/ -lvipster
+win32:CONFIG(release, debug|release){
+    LIBS += -L$$OUT_PWD/../libvipster/release/ -lvipster
+    RC_ICONS = resources/vipster.ico
+}
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libvipster/debug/ -lvipster
 else:unix: LIBS += -L$$OUT_PWD/../libvipster/ -lvipster
 unix:CONFIG(debug, debug|release) {
