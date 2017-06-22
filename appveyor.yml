@@ -1,0 +1,19 @@
+version: 1.0.{build}
+clone_depth: 30
+clone_folder: c:\projects\vipster
+environment:
+  QTDIR: C:\Qt\5.9\mingw53_32
+  MWDIR: C:\Qt\Tools\mingw530_32\bin
+  PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
+build_script:
+- cmd: >-
+    qmake.exe vipster.pro -spec win32-g++ INCLUDEPATH+=C:\Libraries\boost_1_63_0
+
+    mingw32-make.exe
+test_script:
+- cmd: >-
+    copy C:\projects\vipster\libvipster\default.json %USERPROFILE%\vipster.json
+
+    cd C:\projects\vipster\tests\release
+
+    tst_libvipstertest.exe

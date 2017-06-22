@@ -7,6 +7,7 @@ Master:
 Testing:
 [![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=testing)](https://travis-ci.org/hein09/vipster)
 [![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
+[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/testing)
 
 Visualization and editing framework for atomistic simulations.
 

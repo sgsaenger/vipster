@@ -3,5 +3,6 @@ TEMPLATE = subdirs
 SUBDIRS += \
     libvipster \
     vipster \
-    tests \
-    python
+    tests
+
+unix: SUBDIRS += python
