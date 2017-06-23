@@ -1,4 +1,3 @@
-#include <iostream>
 #include <sys/types.h>
 #include <emscripten.h>
 #include <emscripten/bind.h>
@@ -6,6 +5,7 @@
 #include <GLES3/gl3.h>
 #include <molecule.h>
 #include <atom_model.h>
+#include <glwrapper.h>
 
 namespace em = emscripten;
 using namespace Vipster;
@@ -22,7 +22,22 @@ em::class_<std::array<T, 3>> register_array(const char* name) {
 }
 
 EMSCRIPTEN_BINDINGS(vipster) {
-    register_array<int>("intarr");
+}
+
+extern "C" {
+EMSCRIPTEN_KEEPALIVE
+void resizeGL(int w, int h)
+{
+//    h==0?h=1:0;
+    glViewport(0,0,w,h);
+//    float aspect = float(w)/h;
+//    pMatrix.setToIdentity();
+//    //pMatrix.perspective(60.0,aspect,0.001,1000);
+//    pMatrix.ortho(-10*aspect,10*aspect,-10,10,0,1000);
+}
+}
+
+void one_iter(){
 }
 
 int main()
@@ -43,105 +58,10 @@ int main()
 
     emscripten_webgl_make_context_current(context);
 
-    GLuint atom_prog = glCreateProgram();
-    GLuint atom_vs = glCreateShader(GL_VERTEX_SHADER);
-    GLuint atom_fs = glCreateShader(GL_FRAGMENT_SHADER);
-    int gl_ok = 0;
-
-    const char *atomVert =
-        "#version 300 es\n"
-        "in vec3 vertex_modelspace;\n"
-        "in vec3 position_modelspace;\n"
-        "in float scale_modelspace;\n"
-        "in vec4 color_input;\n"
-        "uniform mat4 vpMatrix;\n"
-        "uniform mat4 rMatrix;\n"
-        "uniform float atom_fac;\n"
-        "uniform vec3 offset;\n"
-        "out vec3 normals_cameraspace;\n"
-        "out vec3 EyeDirection_cameraspace;\n"
-        "out vec3 LightDirection_cameraspace;\n"
-        "out vec4 MaterialDiffuseColor;\n"
-        "void main(void)\n"
-        "{\n"
-        "   gl_Position = vpMatrix * vec4(vertex_modelspace * scale_modelspace *"
-        " atom_fac + position_modelspace + offset, 1);\n"
-        "   vec3 vertex_cameraspace = (rMatrix * vec4(vertex_modelspace, 1)).xyz;\n"
-        "   EyeDirection_cameraspace = vec3(0,0,25) - vertex_cameraspace;\n"
-        "   LightDirection_cameraspace = vec3(10,10,10) + EyeDirection_cameraspace;\n"
-        "   normals_cameraspace = (rMatrix * vec4(vertex_modelspace, 0)).xyz;\n"
-        "   MaterialDiffuseColor = color_input;\n"
-        "}\n";
-
-    const char *atomFrag = 
-        "# version 300 es\n"
-        "precision highp float;\n"
-        "out vec4 fragColor;\n"
-        "in vec3 normals_cameraspace;\n"
-        "in vec3 EyeDirection_cameraspace;\n"
-        "in vec3 LightDirection_cameraspace;\n"
-        "in vec4 MaterialDiffuseColor;\n"
-        "void main(void)\n"
-        "{\n"
-        "   vec3 LightColor = vec3(1,1,1);\n"
-        "   float LightPower = 50.f;\n"
-        "   float distance = 10.;\n"
-        "   vec3 MaterialAmbientColor = vec3(0.5,0.5,0.5) * MaterialDiffuseColor.xyz;\n"
-        "   vec3 MaterialSpecularColor = vec3(0.3,0.3,0.3);\n"
-        "   vec3 n = normalize(normals_cameraspace);\n"
-        "   vec3 l = normalize(LightDirection_cameraspace);\n"
-        "   float cosTheta = clamp(dot(n,l),0.,1.);\n"
-        "   vec3 E = normalize(EyeDirection_cameraspace);\n"
-        "   vec3 R = reflect(-l,n);\n"
-        "   float cosAlpha = clamp(dot(E,R),0.,1.);\n"
-        "   vec3 fragTemp = MaterialAmbientColor +\n"
-        "MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,10.)/(distance*distance) + \n"
-        "MaterialDiffuseColor.xyz * LightColor * LightPower * cosTheta/(distance*distance);\n"
-        "   fragColor = vec4(fragTemp,MaterialDiffuseColor.a);\n"
-        "}\n";
-
-    glShaderSource(atom_vs, 1, &atomVert, NULL);
-    glCompileShader(atom_vs);
-    glGetShaderiv(atom_vs, GL_COMPILE_STATUS, &gl_ok);
-    if(!gl_ok){
-        GLint infoLen = 0;
-        glGetShaderiv(atom_vs, GL_INFO_LOG_LENGTH, &infoLen);
-        if(infoLen > 1)
-        {
-            char* infoLog = (char*) malloc(sizeof(char)*infoLen+1);
-            glGetShaderInfoLog(atom_vs,infoLen,NULL,infoLog);
-            printf("Error compiling vertshader:\n%s\n", infoLog);
-            free(infoLog);
-        }
-    }else{
-        printf("vert-shader sucess\n");
-    }
-    glShaderSource(atom_fs, 1, &atomFrag, NULL);
-    glCompileShader(atom_fs);
-    glGetShaderiv(atom_fs, GL_COMPILE_STATUS, &gl_ok);
-    if(!gl_ok){
-        printf("frag-shader failure\n");
-        GLint infoLen = 0;
-        glGetShaderiv(atom_fs, GL_INFO_LOG_LENGTH, &infoLen);
-        if(infoLen > 1)
-        {
-            char* infoLog = (char*) malloc(sizeof(char)*infoLen+1);
-            glGetShaderInfoLog(atom_fs,infoLen,NULL,infoLog);
-            printf("Error compiling fragshader:\n%s\n", infoLog);
-            free(infoLog);
-        }
-    }else{
-        printf("frag-shader sucess\n");
-    }
-
-    glAttachShader(atom_prog,atom_vs);
-    glAttachShader(atom_prog,atom_fs);
-    glLinkProgram(atom_prog);
-    glGetProgramiv(atom_prog, GL_LINK_STATUS, &gl_ok);
-    if(!gl_ok){
-        printf("linking error\n");
-    }
-    glUseProgram(atom_prog);
+    GLuint atomProg = loadShader("# version 300 es\nprecision highp float;\n",
+                                 "/atom.vert",
+                                 "/atom.frag");
+    glUseProgram(atomProg);
 
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
@@ -161,20 +81,20 @@ int main()
                       0,0,1,0,
                       0,0,0,1};
     float offset[3] = {0,0,0};
-    GLint vpMatLoc = glGetUniformLocation(atom_prog, "vpMatrix");
+    GLint vpMatLoc = glGetUniformLocation(atomProg, "vpMatrix");
     glUniformMatrix4fv(vpMatLoc, 1, false, vpMat);
-    GLint rMatLoc = glGetUniformLocation(atom_prog, "rMatrix");
+    GLint rMatLoc = glGetUniformLocation(atomProg, "rMatrix");
     glUniformMatrix4fv(rMatLoc, 1, false, rMat);
-    GLint atfacLoc = glGetUniformLocation(atom_prog, "atom_fac");
+    GLint atfacLoc = glGetUniformLocation(atomProg, "atom_fac");
     glUniform1f(atfacLoc, (GLfloat)0.5);
-    GLint offsetLoc = glGetUniformLocation(atom_prog, "offset");
+    GLint offsetLoc = glGetUniformLocation(atomProg, "offset");
     glUniform3fv(offsetLoc, 1, offset);
 
     Molecule mol{"test"};
     Step& st = mol.getStep(0);
     st.newAtom();
-    st.newAtom({"O",{1,0,0}});
-    st.newAtom({"F",{0,1,0}});
+    st.newAtom({"O",{{1,0,0}}});
+    st.newAtom({"F",{{0,1,0}}});
     std::vector<std::array<float,8>> atom_buffer;
     for(const Atom& at:st.getAtoms()){
         PseEntry &pse = (*st.pse)[at.name];
@@ -212,5 +132,6 @@ int main()
     glVertexAttribDivisor(3,0);
     glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
+    emscripten_set_main_loop(one_iter, 0, 1);
     return 1;
 }

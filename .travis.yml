@@ -4,20 +4,20 @@ language: cpp
 compiler: gcc
 before_install:
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    - sudo add-apt-repository --yes ppa:beineri/opt-qt571-trusty
+    - sudo add-apt-repository -y ppa:beineri/opt-qt571-trusty
     - sudo apt-get update -qq
     - sudo pip install codecov
-    - sudo apt-get install -qq -y g++-5 qt57-meta-minimal emscripten
+    - sudo apt-get install -qq -y g++-5 qt57-meta-minimal
     - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
     - source $QT_ENV_SCRIPT
     - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
-    - wget https://github.com/pybind/pybind11/archive/v2.1.1.tar.gz
-    - tar -xf v2.1.1.tar.gz
-    - wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2
-    - tar -xf boost_1_64_0.tar.bz2
+    - wget https://github.com/pybind/pybind11/archive/v2.1.1.tar.gz && tar -xf v2.1.1.tar.gz
+    - wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2 && tar -xf boost_1_64_0.tar.bz2
+    - git clone --depth 1 --branch master https://github.com/urho3d/emscripten-sdk.git && emscripten-sdk/emsdk activate --build=Release sdk-master-64bit && source emscripten-sdk/emsdk_env.sh
+    - for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
 install:
-    - emcc
-    - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y INCLUDEPATH+=$TRAVIS_BUILD_DIR/boost_1_64_0 INCLUDEPATH+=$TRAVIS_BUILD_DIR/pybind11-2.1.1/include
+    #- emcc
+    - qmake -r CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 QMAKE_CXXFLAGS+=-std=c++1y "INCLUDEPATH+=$TRAVIS_BUILD_DIR/boost_1_64_0 $TRAVIS_BUILD_DIR/pybind11-2.1.1/include /usr/share/emscripten/system/include"
     - make
     - cp libvipster/default.json ~/.vipster.json
 script:
