@@ -1,4 +1,3 @@
-#include <sys/types.h>
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
@@ -6,6 +5,7 @@
 #include <molecule.h>
 #include <atom_model.h>
 #include <glwrapper.h>
+#include <iostream>
 
 namespace em = emscripten;
 using namespace Vipster;
@@ -37,7 +37,36 @@ void resizeGL(int w, int h)
 }
 }
 
-void one_iter(){
+EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
+{
+    switch (eventType) {
+    case EMSCRIPTEN_EVENT_MOUSEDOWN:
+        std::cout << "mousedown on canvas" << std::endl;
+        break;
+    case EMSCRIPTEN_EVENT_MOUSEUP:
+        std::cout << "mouseup" << std::endl;
+        break;
+    case EMSCRIPTEN_EVENT_MOUSEMOVE:
+        std::cout << "mousemove" << std::endl;
+        break;
+    default:
+        std::cout << "this should not happen!" << std::endl;
+        break;
+    }
+    return 1;
+}
+
+EM_BOOL wheel_event(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
+{
+    std::cout << "wheel on canvas" << std::endl;
+    return 1;
+}
+
+
+void one_iter(void *gl_v){
+    auto* gl_p = (GLWrapper*)gl_v;
+    glBindVertexArray(gl_p->atom_vao);
+    glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,gl_p->atom_buffer.size());
 }
 
 int main()
@@ -57,20 +86,15 @@ int main()
     }
 
     emscripten_webgl_make_context_current(context);
-
-    GLuint atomProg = loadShader("# version 300 es\nprecision highp float;\n",
-                                 "/atom.vert",
-                                 "/atom.frag");
-    glUseProgram(atomProg);
-
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
-    GLuint sphere_vbo;
-    glGenBuffers(1,&sphere_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
-    glBufferData(GL_ARRAY_BUFFER, atom_model_npoly*3*sizeof(float), (void*)&atom_model, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, NULL);
+    GLWrapper gl{};
+
+    gl.atom_program = loadShader("# version 300 es\nprecision highp float;\n",
+                                 "/atom.vert",
+                                 "/atom.frag");
+    glUseProgram(gl.atom_program);
 
     float vpMat[16] = {1,0,0,0,
                        0,1,0,0,
@@ -81,13 +105,13 @@ int main()
                       0,0,1,0,
                       0,0,0,1};
     float offset[3] = {0,0,0};
-    GLint vpMatLoc = glGetUniformLocation(atomProg, "vpMatrix");
+    GLint vpMatLoc = glGetUniformLocation(gl.atom_program, "vpMatrix");
     glUniformMatrix4fv(vpMatLoc, 1, false, vpMat);
-    GLint rMatLoc = glGetUniformLocation(atomProg, "rMatrix");
+    GLint rMatLoc = glGetUniformLocation(gl.atom_program, "rMatrix");
     glUniformMatrix4fv(rMatLoc, 1, false, rMat);
-    GLint atfacLoc = glGetUniformLocation(atomProg, "atom_fac");
+    GLint atfacLoc = glGetUniformLocation(gl.atom_program, "atom_fac");
     glUniform1f(atfacLoc, (GLfloat)0.5);
-    GLint offsetLoc = glGetUniformLocation(atomProg, "offset");
+    GLint offsetLoc = glGetUniformLocation(gl.atom_program, "offset");
     glUniform3fv(offsetLoc, 1, offset);
 
     Molecule mol{"test"};
@@ -95,43 +119,19 @@ int main()
     st.newAtom();
     st.newAtom({"O",{{1,0,0}}});
     st.newAtom({"F",{{0,1,0}}});
-    std::vector<std::array<float,8>> atom_buffer;
     for(const Atom& at:st.getAtoms()){
         PseEntry &pse = (*st.pse)[at.name];
-        atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
+        gl.atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
                                 pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
     }
-    GLuint atom_vbo;
-    glGenBuffers(1,&atom_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
-    glBufferData(GL_ARRAY_BUFFER, atom_buffer.size()*8*sizeof(float), (void*)atom_buffer.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, gl.atom_vbo);
+    glBufferData(GL_ARRAY_BUFFER, gl.atom_buffer.size()*8*sizeof(float), (void*)gl.atom_buffer.data(), GL_STATIC_DRAW);
 
-    //DRAW!
-    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
-    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
-    glVertexAttribDivisor(1,1);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
-    glVertexAttribDivisor(2,1);
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
-    glVertexAttribDivisor(3,1);
 
-    glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,atom_buffer.size());
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glVertexAttribDivisor(1,0);
-    glVertexAttribDivisor(2,0);
-    glVertexAttribDivisor(3,0);
-    glBindBuffer(GL_ARRAY_BUFFER, NULL);
-
-    emscripten_set_main_loop(one_iter, 0, 1);
+    emscripten_set_mousedown_callback("#canvas", nullptr, 1, mouse_event);
+    emscripten_set_mouseup_callback(0, nullptr, 1, mouse_event);
+    emscripten_set_mousemove_callback(0, nullptr, 1, mouse_event);
+    emscripten_set_wheel_callback("#canvas", nullptr, 1, wheel_event);
+    emscripten_set_main_loop_arg(one_iter, &gl, 0, 1);
     return 1;
 }

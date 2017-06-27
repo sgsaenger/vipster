@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <atom_model.h>
+#include <bond_model.h>
 
 std::string readShader(std::string filePath){
     std::string content;
@@ -65,7 +67,38 @@ GLuint loadShader(std::string header, std::string vertPath, std::string fragPath
         throw std::invalid_argument{"Program does not link "+vertPath+" and "+fragPath};
     }
 
+//    glDetachShader(program, vertShader);
     glDeleteShader(vertShader);
+//    glDetachShader(program, fragShader);
     glDeleteShader(fragShader);
     return program;
+}
+
+GLWrapper::GLWrapper()
+{
+    glGenVertexArrays(1, &atom_vao);
+    glBindVertexArray(atom_vao);
+    glGenBuffers(1, &sphere_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
+    glBufferData(GL_ARRAY_BUFFER, atom_model_npoly*3*sizeof(float), (void*)&atom_model, GL_STATIC_DRAW);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
+    glEnableVertexAttribArray(0);
+    glGenBuffers(1, &atom_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
+    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
+    glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
+    glVertexAttribDivisor(1,1);
+    glVertexAttribDivisor(2,1);
+    glVertexAttribDivisor(3,1);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+}
+
+GLWrapper::~GLWrapper()
+{
+    glDeleteBuffers(1, &sphere_vbo);
+    glDeleteBuffers(1, &atom_vbo);
+    glDeleteVertexArrays(1, &atom_vao);
 }
