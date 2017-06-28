@@ -8,7 +8,8 @@
 
 typedef std::array<float,16> glMat;
 typedef std::array<float,4> glVec;
-void glMatScale(glMat&m, float f);
+void glMatScale(glMat& m, float f);
+void glMatRot(glMat& m, float a, float x, float y, float z);
 
 GLuint loadShader(std::string header, std::string vertPath, std::string fragPath);
 

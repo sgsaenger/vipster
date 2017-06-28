@@ -40,22 +40,28 @@ void resizeGL(int w, int h)
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
 {
     static bool handling_in_progress=false;
+    static long localX, localY;
+    auto* gl_p = (GLWrapper*)userData;
     switch (eventType) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
         if(!handling_in_progress){
-            std::cout << "mousedown on canvas, begin handling" << std::endl;
-            handling_in_progress=true;
+            handling_in_progress = true;
+            localX = mouseEvent->canvasX;
+            localY = mouseEvent->canvasY;
         }
         break;
     case EMSCRIPTEN_EVENT_MOUSEUP:
         if(handling_in_progress){
-            std::cout << "mouseup, stop handling" << std::endl;
-            handling_in_progress=false;
+            handling_in_progress = false;
         }
         break;
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
         if(handling_in_progress){
-            std::cout << "mousemove, do something" << std::endl;
+            glMatRot(gl_p->vpMat, mouseEvent->canvasX-localX, 1, 0, 0);
+            glMatRot(gl_p->vpMat, mouseEvent->canvasY-localY, 0, 1, 0);
+            gl_p->vpMatChanged = true;
+            localX = mouseEvent->canvasX;
+            localY = mouseEvent->canvasY;
         }
         break;
     }
@@ -65,7 +71,7 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
 EM_BOOL wheel_event(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
 {
     auto* gl_p = (GLWrapper*)userData;
-    glMatScale(gl_p->vpMat, wheelEvent->deltaY>0?1.1:0.9);
+    glMatScale(gl_p->vpMat, wheelEvent->deltaY<0?1.1:0.9);
     gl_p->vpMatChanged = true;
     return 1;
 }
