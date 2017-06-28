@@ -67,11 +67,20 @@ GLuint loadShader(std::string header, std::string vertPath, std::string fragPath
         throw std::invalid_argument{"Program does not link "+vertPath+" and "+fragPath};
     }
 
-//    glDetachShader(program, vertShader);
+    glDetachShader(program, vertShader);
     glDeleteShader(vertShader);
-//    glDetachShader(program, fragShader);
+    glDetachShader(program, fragShader);
     glDeleteShader(fragShader);
     return program;
+}
+
+void glMatScale(glMat& m, float f)
+{
+    for(int i=0;i<4;i++){
+        m[i*4+0]*=f;
+        m[i*4+1]*=f;
+        m[i*4+2]*=f;
+    }
 }
 
 GLWrapper::GLWrapper()

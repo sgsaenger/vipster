@@ -39,18 +39,24 @@ void resizeGL(int w, int h)
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
 {
+    static bool handling_in_progress=false;
     switch (eventType) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
-        std::cout << "mousedown on canvas" << std::endl;
+        if(!handling_in_progress){
+            std::cout << "mousedown on canvas, begin handling" << std::endl;
+            handling_in_progress=true;
+        }
         break;
     case EMSCRIPTEN_EVENT_MOUSEUP:
-        std::cout << "mouseup" << std::endl;
+        if(handling_in_progress){
+            std::cout << "mouseup, stop handling" << std::endl;
+            handling_in_progress=false;
+        }
         break;
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
-        std::cout << "mousemove" << std::endl;
-        break;
-    default:
-        std::cout << "this should not happen!" << std::endl;
+        if(handling_in_progress){
+            std::cout << "mousemove, do something" << std::endl;
+        }
         break;
     }
     return 1;
@@ -58,13 +64,20 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
 
 EM_BOOL wheel_event(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
 {
-    std::cout << "wheel on canvas" << std::endl;
+    auto* gl_p = (GLWrapper*)userData;
+    glMatScale(gl_p->vpMat, wheelEvent->deltaY>0?1.1:0.9);
+    gl_p->vpMatChanged = true;
     return 1;
 }
 
 
 void one_iter(void *gl_v){
     auto* gl_p = (GLWrapper*)gl_v;
+    if(gl_p->vpMatChanged){
+        glUniformMatrix4fv(glGetUniformLocation(gl_p->atom_program, "vpMatrix"),
+                           1, false, gl_p->vpMat.data());
+        gl_p->vpMatChanged = false;
+    }
     glBindVertexArray(gl_p->atom_vao);
     glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,gl_p->atom_buffer.size());
 }
@@ -96,23 +109,26 @@ int main()
                                  "/atom.frag");
     glUseProgram(gl.atom_program);
 
-    float vpMat[16] = {1,0,0,0,
-                       0,1,0,0,
-                       0,0,1,0,
-                       0,0,0,1};
-    float rMat[16] = {1,0,0,0,
-                      0,1,0,0,
-                      0,0,1,0,
-                      0,0,0,1};
-    float offset[3] = {0,0,0};
+    gl.vpMat = {{1,0,0,0,
+                 0,1,0,0,
+                 0,0,1,0,
+                 0,0,0,1}};
+    gl.rMat = {{1,0,0,0,
+                0,1,0,0,
+                0,0,1,0,
+                0,0,0,1}};
+    gl.offset = {{0,0,0}};
     GLint vpMatLoc = glGetUniformLocation(gl.atom_program, "vpMatrix");
-    glUniformMatrix4fv(vpMatLoc, 1, false, vpMat);
+    glUniformMatrix4fv(vpMatLoc, 1, false, gl.vpMat.data());
+    gl.vpMatChanged = false;
     GLint rMatLoc = glGetUniformLocation(gl.atom_program, "rMatrix");
-    glUniformMatrix4fv(rMatLoc, 1, false, rMat);
+    glUniformMatrix4fv(rMatLoc, 1, false, gl.rMat.data());
+    gl.rMatChanged = false;
     GLint atfacLoc = glGetUniformLocation(gl.atom_program, "atom_fac");
     glUniform1f(atfacLoc, (GLfloat)0.5);
     GLint offsetLoc = glGetUniformLocation(gl.atom_program, "offset");
-    glUniform3fv(offsetLoc, 1, offset);
+    glUniform3fv(offsetLoc, 1, gl.offset.data());
+    gl.offsetChanged = false;
 
     Molecule mol{"test"};
     Step& st = mol.getStep(0);
@@ -128,10 +144,10 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, gl.atom_buffer.size()*8*sizeof(float), (void*)gl.atom_buffer.data(), GL_STATIC_DRAW);
 
 
-    emscripten_set_mousedown_callback("#canvas", nullptr, 1, mouse_event);
-    emscripten_set_mouseup_callback(0, nullptr, 1, mouse_event);
-    emscripten_set_mousemove_callback(0, nullptr, 1, mouse_event);
-    emscripten_set_wheel_callback("#canvas", nullptr, 1, wheel_event);
+    emscripten_set_mousedown_callback("#canvas", &gl, 1, mouse_event);
+    emscripten_set_mouseup_callback(0, &gl, 1, mouse_event);
+    emscripten_set_mousemove_callback(0, &gl, 1, mouse_event);
+    emscripten_set_wheel_callback("#canvas", &gl, 1, wheel_event);
     emscripten_set_main_loop_arg(one_iter, &gl, 0, 1);
     return 1;
 }
