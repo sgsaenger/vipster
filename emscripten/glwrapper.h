@@ -5,11 +5,19 @@
 #include <GLES3/gl3.h>
 #include <vector>
 #include <array>
+#include "molecule.h"
+
+using namespace Vipster;
 
 typedef std::array<float,16> glMat;
 typedef std::array<float,4> glVec;
 void glMatScale(glMat& m, float f);
 void glMatRot(glMat& m, float a, float x, float y, float z);
+//glMat glMatPerspective(float vAngle, float aspRatio, float near, float far);
+glMat glMatOrtho(float left, float right, float bottom, float top, float near, float far);
+glMat glMatLookAt(Vec eye, Vec target, Vec up);
+glMat operator *=(glMat& a, const glMat& b);
+glMat operator *(glMat a, const glMat& b);
 
 GLuint loadShader(std::string header, std::string vertPath, std::string fragPath);
 
@@ -26,9 +34,9 @@ struct GLWrapper{
     std::vector<std::array<float,8>> bond_buffer;
     std::array<std::array<float,3>,8> cell_buffer;
     // cpu-side uniforms
-    glMat vpMat, rMat;
+    glMat vMat, pMat, rMat;
     glVec offset;
-    bool vpMatChanged, rMatChanged, offsetChanged;
+    bool vMatChanged, pMatChanged, rMatChanged, offsetChanged;
 };
 
 #endif // GLWRAPPER_H
