@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    </head>
+    <title>Vipster</title>
+    <style>
+        body{
+            font-family: arial;
+            margin: 0;
+            padding: none;
+        }
+        canvas.emscripten{
+            border:0px none;
+            background-color: white;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+    <body>
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+        <script type="text/javascript">
+            var Module = {
+                preRun: [],
+                postRun: [],
+                canvas: (function() {
+                  var canvas = document.getElementById('canvas');
+                  canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+                  canvas.width = window.innerWidth;
+                  canvas.height = window.innerHeight;
+                  return canvas;
+                })(),
+            };
+            window.addEventListener("resize", function(e){ Module.canvas.width=window.innerWidth; Module.canvas.height=window.innerHeight;}, false);
+        </script>
+        <script async type="text/javascript" src="js/vipster.js"></script>
+    </body>
+</html>

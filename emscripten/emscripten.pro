@@ -13,7 +13,7 @@ QMAKE_LFLAGS = --bind --embed-file $$PWD/../libvipster/default.json@vipster.json
 
 INCLUDEPATH += $$PWD/../libvipster $$PWD/../vipster /usr/lib/emscripten/system/include
 
-TARGET = vipster.html
+TARGET = vipster.js
 
 SOURCES += \
     vipster.cpp \

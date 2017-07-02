@@ -3,3 +3,5 @@ ignore:
     - "python"
     - "vipster"
     - "libvipster/json.hpp"
+    - "boost*"
+    - "pybind*"
