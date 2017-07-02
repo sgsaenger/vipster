@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic|Satisfy' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/styles.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="index.html">
+                            Vipster
+                    </a>
+                    <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="gui.html">GUI</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="cli.html">Vipster</a></li>
+                                <li><a href="molecule.html">Molecule</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="download.html">Get It!</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <header class="container">
+            <div class="jumbotron">
+                <img id="logo" src="images/vipster.png" alt="logo" width="645" height="501">
+                <h1>
+                Vipster</h1>
+                <h2>
+                    Visual Periodic STructure EditoR
+                </h2>
+            </div>
+        </header>
+        <main id="cover" class="container">
+            <div class="row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-8"> <p>Vipster is a powerful editor for molecular structures.
+                    It's designed from the ground up for periodic simulations,
+                    and it's scriptable in python!</p>
+                <a class="btn btn-default" href="about.html">Learn more!</a> </div>
+                <div class="col-sm-2"></div>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https://github.com/hein09/vipster">GitHub</a></p>
+            </div>
+        </footer>
+    </body>
+</html>

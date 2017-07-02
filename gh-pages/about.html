@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic|Satisfy' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/styles.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="index.html">
+                            Vipster
+                    </a>
+                    <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="active"><a href="#">About</a></li>
+                        <li><a href="gui.html">GUI</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="cli.html">Vipster</a></li>
+                                <li><a href="molecule.html">Molecule</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="download.html">Get It!</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <main class="container">
+            <div class="row">
+                <div class="col-md-4 col-lg-6">
+                    <p> Vipster is a powerful and versatile tool for pre- and post-processing
+                        of periodic chemical structures.</p>
+                    <p> It has a beatiful graphical interface with a few rather rare
+                        and a few rather useless functions. Something for everyone, i hope! </p>
+                    <p> And if you're missing something, it has a simple python interface,
+                        allowing you to enhance it. Or your scripts. Or don't touch it, your call! </p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p> It can read the following files:</p>
+                            <ul>
+                                <li>standard xyz</li>
+                                <li>Empire-xyz</li>
+                                <li>PWScf input/output</li>
+                                <li>LAMMPS data/custom-dump</li>
+                                <li>Gaussian cube files</li>
+                                <li>AIMALL output</li>
+                                <li>CPMD input</li>
+                                <li>Mol2</li>
+                                <li>(A)XSF</li>
+                                <li>Turbomole</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <p> And write the following: </p>
+                            <ul>
+                                <li>xyz</li>
+                                <li>Empire-xyz</li>
+                                <li>PWScf input</li>
+                                <li>LAMMPS data</li>
+                                <li>CPMD input</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 col-lg-6">
+                    <img class="img-responsive" src="images/screenshot.png" alt="screenshot" width="1680" height="1016">
+
+                </div>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https://github.com/hein09/vipster">GitHub</a></p>
+            </div>
+        </footer>
+    </body>
+</html>
