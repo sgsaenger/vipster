@@ -35,8 +35,9 @@ struct GLWrapper{
     std::array<std::array<float,3>,8> cell_buffer;
     // cpu-side uniforms
     glMat vMat, pMat, rMat;
-    glVec offset;
-    bool vMatChanged, pMatChanged, rMatChanged, offsetChanged;
+    bool vMatChanged, pMatChanged, rMatChanged;
+    // other state
+    int width, height;
 };
 
 #endif // GLWRAPPER_H

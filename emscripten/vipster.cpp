@@ -21,20 +21,23 @@ em::class_<std::array<T, 3>> register_array(const char* name) {
     ;
 }
 
-EMSCRIPTEN_BINDINGS(vipster) {
-}
+//EMSCRIPTEN_BINDINGS(vipster) {
+//}
 
-extern "C" {
-EMSCRIPTEN_KEEPALIVE
-void resizeGL(int w, int h)
+//extern "C" {
+//EMSCRIPTEN_KEEPALIVE
+//}
+void resize_gl(GLWrapper *gl, int w, int h)
 {
-//    h==0?h=1:0;
+    std::cout << "resizing" << std::endl;
+    h==0?h=1:0;
     glViewport(0,0,w,h);
-//    float aspect = float(w)/h;
-//    pMatrix.setToIdentity();
-//    //pMatrix.perspective(60.0,aspect,0.001,1000);
-//    pMatrix.ortho(-10*aspect,10*aspect,-10,10,0,1000);
-}
+    gl->width = w;
+    gl->height = h;
+
+    float aspect = (float)w/h;
+    gl->pMat = glMatOrtho(-10*aspect,10*aspect,-10,10,0,1000);
+    gl->pMatChanged = true;
 }
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
@@ -112,6 +115,11 @@ std::ostream& operator<<(std::ostream &s, const glMat &d)
 
 void one_iter(void *gl_v){
     auto* gl_p = (GLWrapper*)gl_v;
+    int width, height, fullscreen;
+    emscripten_get_canvas_size(&width, &height, &fullscreen);
+    if( width != gl_p->width || height != gl_p->height){
+        resize_gl(gl_p, width, height);
+    }
     if(gl_p->rMatChanged){
         glUniformMatrix4fv(glGetUniformLocation(gl_p->atom_program, "rMatrix"),
                            1, true, gl_p->rMat.data());
@@ -148,7 +156,10 @@ int main()
 
     emscripten_webgl_make_context_current(context);
     glClearColor(1,1,1,1);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLWrapper gl{};
 
@@ -157,34 +168,19 @@ int main()
                                  "/atom.frag");
     glUseProgram(gl.atom_program);
 
-    float aspect = 16/9;
-    gl.pMat = glMatOrtho(-10*aspect,10*aspect,-10,10,0,1000);
-//    gl.pMat = {{1,0,0,0,
-//                0,1,0,0,
-//                0,0,1,0,
-//                0,0,0,1}};
     gl.vMat = glMatLookAt({{0,0,10}},{{0,0,0}},{{0,1,0}});
-//    gl.vMat = {{1,0,0,0,
-//                0,1,0,0,
-//                0,0,1,0,
-//                0,0,0,1}};
     gl.rMat = {{1,0,0,0,
                 0,1,0,0,
                 0,0,1,0,
                 0,0,0,1}};
-    gl.offset = {{0,0,0}};
-//    GLint vpMatLoc = glGetUniformLocation(gl.atom_program, "vpMatrix");
-//    glUniformMatrix4fv(vpMatLoc, 1, false, (gl.pMat*gl.vMat*gl.rMat).data());
-//    GLint rMatLoc = glGetUniformLocation(gl.atom_program, "rMatrix");
-//    glUniformMatrix4fv(rMatLoc, 1, false, gl.rMat.data());
+    Vec offset = {{0,0,0}};
     GLint atfacLoc = glGetUniformLocation(gl.atom_program, "atom_fac");
     glUniform1f(atfacLoc, (GLfloat)0.5);
     GLint offsetLoc = glGetUniformLocation(gl.atom_program, "offset");
-    glUniform3fv(offsetLoc, 1, gl.offset.data());
+    glUniform3fv(offsetLoc, 1, offset.data());
     gl.pMatChanged = true;
     gl.vMatChanged = true;
     gl.rMatChanged = true;
-    gl.offsetChanged = false;
 
     Molecule mol{"test"};
     Step& st = mol.getStep(0);

@@ -92,55 +92,54 @@ void glMatRot(glMat& m, float a, float x, float y, float z)
     float tmp = a * M_PI / 180.;
     float s = std::sin(tmp);
     float c = std::cos(tmp);
-//    if(x==0){
-//        if(y==0){
-//            if(z!=0){
-//                // z-axis
-//                if(z<0) s = -s;
-//                m[0] = c * (tmp = m[0]) - s * m[4];
-//                m[4] = c * tmp + s * m[4];
-//                m[1] = c * (tmp = m[1]) - s * m[5];
-//                m[5] = c * tmp + s * m[5];
-//                m[2] = c * (tmp = m[2]) - s * m[6];
-//                m[6] = c * tmp + s * m[6];
-//                m[3] = c * (tmp = m[3]) - s * m[7];
-//                m[7] = c * tmp + s * m[7];
-//            }
-//        }else if(z==0){
-//            // y-axis
-//            if(y<0) s = -s;
-//            m[0] = c * (tmp = m[0]) + s * m[8];
-//            m[8] = c * tmp - s * m[8];
-//            m[1] = c * (tmp = m[1]) + s * m[9];
-//            m[9] = c * tmp - s * m[9];
-//            m[2] = c * (tmp = m[2]) + s * m[10];
-//            m[10] = c * tmp - s * m[10];
-//            m[3] = c * (tmp = m[3]) + s * m[11];
-//            m[11] = c * tmp - s * m[11];
-//        }
-//    }else if(y==0 && z==0){
-//        // x-axis
-//        if(x<0) s = -s;
-//        m[4] = c * (tmp = m[4]) - s * m[8];
-//        m[8] = c * tmp + s * m[8];
-//        m[5] = c * (tmp = m[5]) - s * m[9];
-//        m[9] = c * tmp + s * m[9];
-//        m[6] = c * (tmp = m[6]) - s * m[10];
-//        m[10] = c * tmp + s * m[10];
-//        m[7] = c * (tmp = m[7]) - s * m[11];
-//        m[11] = c * tmp + s * m[11];
-//    }else{
+    if(x==0){
+        if(y==0){
+            if(z!=0){
+                // z-axis
+                if(z<0) s = -s;
+                m[0] = c * (tmp = m[0]) - s * m[4];
+                m[4] = s * tmp + c * m[4];
+                m[1] = c * (tmp = m[1]) - s * m[5];
+                m[5] = s * tmp + c * m[5];
+                m[2] = c * (tmp = m[2]) - s * m[6];
+                m[6] = s * tmp + c * m[6];
+                m[3] = c * (tmp = m[3]) - s * m[7];
+                m[7] = s * tmp + c * m[7];
+            }
+        }else if(z==0){
+            // y-axis
+            if(y<0) s = -s;
+            m[0] = c * (tmp = m[0]) + s * m[8];
+            m[8] = -s * tmp + c * m[8];
+            m[1] = c * (tmp = m[1]) + s * m[9];
+            m[9] = -s * tmp + c * m[9];
+            m[2] = c * (tmp = m[2]) + s * m[10];
+            m[10] = -s * tmp + c * m[10];
+            m[3] = c * (tmp = m[3]) + s * m[11];
+            m[11] = -s * tmp + c * m[11];
+        }
+    }else if(y==0 && z==0){
+        // x-axis
+        if(x<0) s = -s;
+        m[4] = c * (tmp = m[4]) - s * m[8];
+        m[8] = s * tmp + c * m[8];
+        m[5] = c * (tmp = m[5]) - s * m[9];
+        m[9] = s * tmp + c * m[9];
+        m[6] = c * (tmp = m[6]) - s * m[10];
+        m[10] = s * tmp + c * m[10];
+        m[7] = c * (tmp = m[7]) - s * m[11];
+        m[11] = s * tmp + c * m[11];
+    }else{
         // general rotation
-        // TODO, WIP
-    Vec axis{{x,y,z}};
-    axis /= Vec_length(axis);
-    Vec axismc = axis*(1-c);
-    glMat rotate{{c+axismc[0]*axis[0], axismc[1]*axis[0]-s*axis[2], axismc[2]*axis[0]+s*axis[1], 0,
-                  axismc[0]*axis[1]+s*axis[2], c+axismc[1]*axis[1], axismc[2]*axis[1]-s*axis[0], 0,
-                  axismc[0]*axis[2]-s*axis[1], axismc[1]*axis[2]+s*axis[0], c+axismc[2]*axis[2], 0,
-                  0,0,0,1}};
-    m = rotate * m;
-//    }
+        Vec axis{{x,y,z}};
+        axis /= Vec_length(axis);
+        Vec axismc = axis*(1-c);
+        glMat rotate{{c+axismc[0]*axis[0], axismc[1]*axis[0]-s*axis[2], axismc[2]*axis[0]+s*axis[1], 0,
+                      axismc[0]*axis[1]+s*axis[2], c+axismc[1]*axis[1], axismc[2]*axis[1]-s*axis[0], 0,
+                      axismc[0]*axis[2]-s*axis[1], axismc[1]*axis[2]+s*axis[0], c+axismc[2]*axis[2], 0,
+                      0,0,0,1}};
+        m = rotate * m;
+    }
 }
 
 glMat glMatOrtho(float left, float right, float bottom, float top, float near, float far)
