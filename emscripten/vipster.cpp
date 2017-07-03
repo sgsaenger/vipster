@@ -2,10 +2,13 @@
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
 #include <GLES3/gl3.h>
-#include <molecule.h>
-#include <atom_model.h>
-#include <glwrapper.h>
+
 #include <iostream>
+
+#include <glwrapper.h>
+#include <molecule.h>
+#include <iowrapper.h>
+#include <atom_model.h>
 
 namespace em = emscripten;
 using namespace Vipster;
@@ -21,12 +24,21 @@ em::class_<std::array<T, 3>> register_array(const char* name) {
     ;
 }
 
-//EMSCRIPTEN_BINDINGS(vipster) {
-//}
+EMSCRIPTEN_BINDINGS(vipster) {
+    em::enum_<IOFmt>("IOFmt")
+            .value("XYZ", IOFmt::XYZ)
+            .value("PWI", IOFmt::PWI)
+            ;
+}
 
-//extern "C" {
-//EMSCRIPTEN_KEEPALIVE
-//}
+extern "C" {
+EMSCRIPTEN_KEEPALIVE
+void emReadFile(std::string fn, IOFmt fmt){
+    readFile(fn, fmt);
+}
+
+}
+
 void resize_gl(GLWrapper *gl, int w, int h)
 {
     h==0?h=1:0;
