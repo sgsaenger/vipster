@@ -84,6 +84,14 @@ void glMatScale(glMat& m, float f)
     }
 }
 
+void glMatTranslate(glMat &m, float x, float y, float z)
+{
+    //assuming 0 0 0 1 in last row of m
+    m[3]+=x;
+    m[7]+=y;
+    m[11]+=z;
+}
+
 void glMatRot(glMat& m, float a, float x, float y, float z)
 {
     if(a==0){

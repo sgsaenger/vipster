@@ -29,7 +29,6 @@ em::class_<std::array<T, 3>> register_array(const char* name) {
 //}
 void resize_gl(GLWrapper *gl, int w, int h)
 {
-    std::cout << "resizing" << std::endl;
     h==0?h=1:0;
     glViewport(0,0,w,h);
     gl->width = w;
@@ -42,32 +41,53 @@ void resize_gl(GLWrapper *gl, int w, int h)
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
 {
-    static bool handling_in_progress=false;
+    enum class MouseMode { Camera, Select, Modify};
+    enum class OpMode { None, Rotation, Translation };
+    static OpMode currentOp = OpMode::None;
     static long localX, localY;
     auto* gl_p = (GLWrapper*)userData;
     switch (eventType) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
-        if(!handling_in_progress){
-            handling_in_progress = true;
-            localX = mouseEvent->canvasX;
-            localY = mouseEvent->canvasY;
+        if(currentOp == OpMode::None){
+            switch(mouseEvent->button){
+            case 0:
+                currentOp = OpMode::Rotation;
+                break;
+            case 1:
+                currentOp = OpMode::Translation;
+                break;
+            case 2:
+                gl_p->rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
+                gl_p->rMatChanged = true;
+            default:
+                break;
+            }
         }
         break;
     case EMSCRIPTEN_EVENT_MOUSEUP:
-        if(handling_in_progress){
-            handling_in_progress = false;
+        if(currentOp!=OpMode::None && !mouseEvent->buttons){
+            currentOp = OpMode::None;
         }
         break;
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
-        if(handling_in_progress){
+        switch(currentOp){
+        case OpMode::Rotation:
             glMatRot(gl_p->rMat, mouseEvent->canvasX-localX, 0, 1, 0);
             glMatRot(gl_p->rMat, mouseEvent->canvasY-localY, 1, 0, 0);
             gl_p->rMatChanged = true;
-            localX = mouseEvent->canvasX;
-            localY = mouseEvent->canvasY;
+            break;
+        case OpMode::Translation:
+            glMatTranslate(gl_p->vMat, (mouseEvent->canvasX-localX)/10.,
+                           -(mouseEvent->canvasY-localY)/10.,0);
+            gl_p->vMatChanged = true;
+            break;
+        default:
+            break;
         }
         break;
     }
+    localX = mouseEvent->canvasX;
+    localY = mouseEvent->canvasY;
     return 1;
 }
 
@@ -101,16 +121,6 @@ EM_BOOL key_event(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* 
         break;
     }
     return 1;
-}
-
-std::ostream& operator<<(std::ostream &s, const glMat &d)
-{
-    s << "glMat:\n"
-      << d[0] << ' ' << d[1] << ' ' << d[2] << ' ' << d[3] << '\n'
-      << d[4] << ' ' << d[5] << ' ' << d[6] << ' ' << d[7] << '\n'
-      << d[8] << ' ' << d[9] << ' ' << d[10] << ' ' << d[11] << '\n'
-      << d[12] << ' ' << d[13] << ' ' << d[14] << ' ' << d[15] << '\n';
-    return s;
 }
 
 void one_iter(void *gl_v){

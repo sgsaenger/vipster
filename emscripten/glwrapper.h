@@ -12,6 +12,7 @@ using namespace Vipster;
 typedef std::array<float,16> glMat;
 typedef std::array<float,4> glVec;
 void glMatScale(glMat& m, float f);
+void glMatTranslate(glMat& m, float x, float y, float z);
 void glMatRot(glMat& m, float a, float x, float y, float z);
 //glMat glMatPerspective(float vAngle, float aspRatio, float near, float far);
 glMat glMatOrtho(float left, float right, float bottom, float top, float near, float far);
