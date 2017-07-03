@@ -20,11 +20,10 @@ glMat glMatLookAt(Vec eye, Vec target, Vec up);
 glMat operator *=(glMat& a, const glMat& b);
 glMat operator *(glMat a, const glMat& b);
 
-GLuint loadShader(std::string header, std::string vertPath, std::string fragPath);
-
 struct GLWrapper{
-    GLWrapper();
-    ~GLWrapper();
+    // molecule-store
+    std::vector<Vipster::Molecule> molecules;
+    Step* curStep{nullptr};
     // gpu-side data
     GLuint atom_program, bond_program, cell_program;
     GLuint atom_vao, bond_vao, cell_vao;
@@ -40,5 +39,8 @@ struct GLWrapper{
     // other state
     int width, height;
 };
+
+GLuint loadShader(std::string header, std::string vertPath, std::string fragPath);
+void initAtomVAO(GLWrapper& gl);
 
 #endif // GLWRAPPER_H

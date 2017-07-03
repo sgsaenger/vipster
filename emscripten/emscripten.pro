@@ -20,6 +20,7 @@ SOURCES += \
     $$PWD/../libvipster/config.cpp \
     $$PWD/../libvipster/molecule.cpp \
     $$PWD/../libvipster/step.cpp \
+    $$PWD/../libvipster/iowrapper.cpp \
     $$PWD/../libvipster/ioplugins/xyz.cpp \
     $$PWD/../libvipster/ioplugins/pwinput.cpp \
     glwrapper.cpp

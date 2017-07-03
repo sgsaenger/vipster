@@ -197,17 +197,17 @@ glMat operator *(glMat a, const glMat& b)
     return a*=b;
 }
 
-GLWrapper::GLWrapper()
+void initAtomVAO(GLWrapper& gl)
 {
-    glGenVertexArrays(1, &atom_vao);
-    glBindVertexArray(atom_vao);
-    glGenBuffers(1, &sphere_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
+    glGenVertexArrays(1, &gl.atom_vao);
+    glBindVertexArray(gl.atom_vao);
+    glGenBuffers(1, &gl.sphere_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gl.sphere_vbo);
     glBufferData(GL_ARRAY_BUFFER, atom_model_npoly*3*sizeof(float), (void*)&atom_model, GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
     glEnableVertexAttribArray(0);
-    glGenBuffers(1, &atom_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
+    glGenBuffers(1, &gl.atom_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gl.atom_vbo);
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
     glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
     glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
@@ -219,9 +219,9 @@ GLWrapper::GLWrapper()
     glEnableVertexAttribArray(3);
 }
 
-GLWrapper::~GLWrapper()
-{
-    glDeleteBuffers(1, &sphere_vbo);
-    glDeleteBuffers(1, &atom_vbo);
-    glDeleteVertexArrays(1, &atom_vao);
-}
+//GLWrapper::~GLWrapper()
+//{
+//    glDeleteBuffers(1, &sphere_vbo);
+//    glDeleteBuffers(1, &atom_vbo);
+//    glDeleteVertexArrays(1, &atom_vao);
+//}

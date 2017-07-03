@@ -37,11 +37,14 @@
             window.addEventListener("resize", function(e){ Module.canvas.width=window.innerWidth; Module.canvas.height=window.innerHeight;}, false);
             function readFile(e){
                 var file = e.target.files[0];
-                //var reader = new FileReader();
-                //reader.onload = function(e){ document.getElementById('output').innerHTML = e.target.result; };
-                //reader.readAsArrayBuffer(file);
-                Module.FS_createDataFile("/tmp","test.file", file, true, true);
-                Module._emReadFile("/tmp/test.file", Module.IOFmt.XYZ);
+                var reader = new FileReader();
+                reader.onload = function(e){
+                    //document.getElementById('output').innerHTML = e.target.result;
+                    Module.FS_createDataFile("/tmp","test.file", e.target.result, true);
+                    Module.ccall("emReadFile", null, ['string', 'number'], ["/tmp/test.file", Module.IOFmt.XYZ.value]);
+                    Module.FS_unlink("/tmp/test.file")
+                };
+                reader.readAsText(file);
                 document.getElementById('output').innerHTML = "Success!";
             };
             document.getElementById('upload').addEventListener('change', readFile, false);
