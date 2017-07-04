@@ -23,7 +23,7 @@ SOURCES += \
     $$PWD/../libvipster/iowrapper.cpp \
     $$PWD/../libvipster/ioplugins/xyz.cpp \
     $$PWD/../libvipster/ioplugins/pwinput.cpp \
-    glwrapper.cpp
+    guiwrapper.cpp
 
 HEADERS += \
-    glwrapper.h
+    guiwrapper.h

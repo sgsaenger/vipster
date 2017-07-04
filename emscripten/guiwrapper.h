@@ -10,17 +10,18 @@
 using namespace Vipster;
 
 typedef std::array<float,16> glMat;
-typedef std::array<float,4> glVec;
-void glMatScale(glMat& m, float f);
-void glMatTranslate(glMat& m, float x, float y, float z);
-void glMatRot(glMat& m, float a, float x, float y, float z);
-//glMat glMatPerspective(float vAngle, float aspRatio, float near, float far);
-glMat glMatOrtho(float left, float right, float bottom, float top, float near, float far);
-glMat glMatLookAt(Vec eye, Vec target, Vec up);
-glMat operator *=(glMat& a, const glMat& b);
-glMat operator *(glMat a, const glMat& b);
+//typedef std::array<float,4> glVec;
+void glMatScale(glMat &m, float f);
+void glMatTranslate(glMat &m, float x, float y, float z);
+void glMatRot(glMat &m, float a, float x, float y, float z);
+//glMat glMatMkPerspective(float vAngle, float aspRatio, float near, float far);
+glMat glMatMkOrtho(float left, float right, float bottom, float top, float near, float far);
+glMat glMatMkLookAt(Vec eye, Vec target, Vec up);
+glMat operator *=(glMat &a, const glMat &b);
+glMat operator *(glMat a, const glMat &b);
+GLuint loadShader(std::string header, std::string vertPath, std::string fragPath);
 
-struct GLWrapper{
+struct GuiWrapper{
     // molecule-store
     std::vector<Vipster::Molecule> molecules;
     Step* curStep{nullptr};
@@ -40,7 +41,7 @@ struct GLWrapper{
     int width, height;
 };
 
-GLuint loadShader(std::string header, std::string vertPath, std::string fragPath);
-void initAtomVAO(GLWrapper& gl);
+void initAtomVAO(GuiWrapper &gui);
+void deleteGLObjects(GuiWrapper &gui);
 
 #endif // GLWRAPPER_H

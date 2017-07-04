@@ -1,10 +1,7 @@
-#include "glwrapper.h"
+#include "guiwrapper.h"
 #include <fstream>
 #include <iostream>
-#include <vector>
-#include <cmath>
 #include <atom_model.h>
-#include <bond_model.h>
 
 std::string readShader(std::string filePath){
     std::string content;
@@ -75,7 +72,7 @@ GLuint loadShader(std::string header, std::string vertPath, std::string fragPath
     return program;
 }
 
-void glMatScale(glMat& m, float f)
+void glMatScale(glMat &m, float f)
 {
     for(int i=0;i<4;i++){
         m[i*4+0]*=f;
@@ -92,7 +89,7 @@ void glMatTranslate(glMat &m, float x, float y, float z)
     m[11]+=z;
 }
 
-void glMatRot(glMat& m, float a, float x, float y, float z)
+void glMatRot(glMat &m, float a, float x, float y, float z)
 {
     if(a==0){
         return;
@@ -150,7 +147,7 @@ void glMatRot(glMat& m, float a, float x, float y, float z)
     }
 }
 
-glMat glMatOrtho(float left, float right, float bottom, float top, float near, float far)
+glMat glMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
 {
     return glMat{{2/(right-left),0,0,-(right+left)/(right-left),
                   0,2/(top-bottom),0,-(top+bottom)/(top-bottom),
@@ -158,7 +155,7 @@ glMat glMatOrtho(float left, float right, float bottom, float top, float near, f
                   0,0,0,1}};
 }
 
-glMat glMatLookAt(Vec eye, Vec target, Vec up)
+glMat glMatMkLookAt(Vec eye, Vec target, Vec up)
 {
     Vec dir = target - eye;
     dir /= Vec_length(dir);
@@ -171,7 +168,7 @@ glMat glMatLookAt(Vec eye, Vec target, Vec up)
                   0, 0, 0, 1}};
 }
 
-glMat operator *=(glMat& a, const glMat& b)
+glMat operator *=(glMat &a, const glMat &b)
 {
     a = glMat{{a[0]*b[0]+a[1]*b[4]+a[2]*b[ 8]+a[3]*b[12],
                a[0]*b[1]+a[1]*b[5]+a[2]*b[ 9]+a[3]*b[13],
@@ -192,36 +189,48 @@ glMat operator *=(glMat& a, const glMat& b)
     return a;
 }
 
-glMat operator *(glMat a, const glMat& b)
+glMat operator *(glMat a, const glMat &b)
 {
     return a*=b;
 }
 
-void initAtomVAO(GLWrapper& gl)
+void initAtomVAO(GuiWrapper &gui)
 {
-    glGenVertexArrays(1, &gl.atom_vao);
-    glBindVertexArray(gl.atom_vao);
-    glGenBuffers(1, &gl.sphere_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gl.sphere_vbo);
+    glGenVertexArrays(1, &gui.atom_vao);
+    glBindVertexArray(gui.atom_vao);
+    glGenBuffers(1, &gui.sphere_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gui.sphere_vbo);
     glBufferData(GL_ARRAY_BUFFER, atom_model_npoly*3*sizeof(float), (void*)&atom_model, GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
-    glEnableVertexAttribArray(0);
-    glGenBuffers(1, &gl.atom_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gl.atom_vbo);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
-    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
-    glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
-    glVertexAttribDivisor(1,1);
-    glVertexAttribDivisor(2,1);
-    glVertexAttribDivisor(3,1);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glEnableVertexAttribArray(3);
+    GLuint vertexLoc = glGetAttribLocation(gui.atom_program, "vertex_modelspace");
+    glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,0);
+    glEnableVertexAttribArray(vertexLoc);
+    glGenBuffers(1, &gui.atom_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gui.atom_vbo);
+    GLuint positionLoc = glGetAttribLocation(gui.atom_program, "position_modelspace");
+    glVertexAttribPointer(positionLoc,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
+    glVertexAttribDivisor(positionLoc,1);
+    glEnableVertexAttribArray(positionLoc);
+    GLuint scaleLoc = glGetAttribLocation(gui.atom_program, "scale_modelspace");
+    glVertexAttribPointer(scaleLoc,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
+    glVertexAttribDivisor(scaleLoc,1);
+    glEnableVertexAttribArray(scaleLoc);
+    GLuint colorLoc = glGetAttribLocation(gui.atom_program, "color_input");
+    glVertexAttribPointer(colorLoc,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
+    glVertexAttribDivisor(colorLoc,1);
+    glEnableVertexAttribArray(colorLoc);
 }
 
-//GLWrapper::~GLWrapper()
-//{
-//    glDeleteBuffers(1, &sphere_vbo);
-//    glDeleteBuffers(1, &atom_vbo);
-//    glDeleteVertexArrays(1, &atom_vao);
-//}
+void deleteGLObjects(GuiWrapper &gui)
+{
+    glDeleteBuffers(1, &gui.sphere_vbo);
+    glDeleteBuffers(1, &gui.torus_vbo);
+    glDeleteProgram(gui.atom_program);
+    glDeleteBuffers(1, &gui.atom_vbo);
+    glDeleteVertexArrays(1, &gui.atom_vao);
+    glDeleteProgram(gui.bond_program);
+    glDeleteBuffers(1, &gui.bond_vbo);
+    glDeleteVertexArrays(1, &gui.bond_vao);
+    glDeleteProgram(gui.cell_program);
+    glDeleteBuffers(1, &gui.cell_vbo);
+    glDeleteVertexArrays(1, &gui.cell_vao);
+}
