@@ -52,7 +52,8 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     switch (eventType) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
         if(currentOp == OpMode::None){
-            switch(mouseEvent->button){
+            int button = mouseEvent->button | mouseEvent->altKey | mouseEvent->ctrlKey << 1;
+            switch(button){
             case 0:
                 currentOp = OpMode::Rotation;
                 break;
@@ -91,6 +92,92 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     }
     localX = mouseEvent->canvasX;
     localY = mouseEvent->canvasY;
+    return 1;
+}
+
+EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void* userData)
+{
+    constexpr long translateDelta = 10, scaleDelta = 10;
+    enum class TwoTouch { None, Scale, Translate};
+    static TwoTouch ttMode = TwoTouch::None;
+    static long local1X, local2X, local1Y, local2Y, distance, transX, transY;
+    long tmp=0, tmp2=0;
+    switch (eventType) {
+    case EMSCRIPTEN_EVENT_TOUCHSTART:
+        switch(touchEvent->numTouches){
+        case 2:
+            local2X = touchEvent->touches[1].canvasX;
+            local2Y = touchEvent->touches[1].canvasY;
+            distance = std::sqrt(std::pow(local2X-touchEvent->touches[0].canvasX,2)+
+                                 std::pow(local2Y-touchEvent->touches[0].canvasY,2));
+            transX = (local2X + touchEvent->touches[0].canvasX)/2;
+            transY = (local2Y + touchEvent->touches[0].canvasY)/2;
+        case 1:
+            local1X = touchEvent->touches[0].canvasX;
+            local1Y = touchEvent->touches[0].canvasY;
+            break;
+        default:
+            gl.rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
+            gl.rMatChanged = true;
+            break;
+        }
+        break;
+    case EMSCRIPTEN_EVENT_TOUCHMOVE:
+        switch(touchEvent->numTouches){
+        case 1:
+            glMatRot(gl.rMat, touchEvent->touches[0].canvasX-local1X, 0, 1, 0);
+            glMatRot(gl.rMat, touchEvent->touches[0].canvasY-local1Y, 1, 0, 0);
+            gl.rMatChanged = true;
+            local1X = touchEvent->touches[0].canvasX;
+            local1Y = touchEvent->touches[0].canvasY;
+            break;
+        case 2:
+            if(ttMode == TwoTouch::None){
+                tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
+                                         touchEvent->touches[0].canvasX,2)+
+                                std::pow(touchEvent->touches[1].canvasY-
+                                         touchEvent->touches[0].canvasY,2));
+                if (std::abs(tmp-distance)>scaleDelta){
+                    ttMode = TwoTouch::Scale;
+                }else if(local1X-touchEvent->touches[0].canvasX > translateDelta||
+                         local1Y-touchEvent->touches[0].canvasY > translateDelta||
+                         local2X-touchEvent->touches[1].canvasX > translateDelta||
+                         local2Y-touchEvent->touches[1].canvasY > translateDelta){
+                    ttMode = TwoTouch::Translate;
+                }
+            }
+            if(ttMode == TwoTouch::None) break;
+            if(ttMode == TwoTouch::Scale){
+                if(!tmp)
+                    tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
+                                             touchEvent->touches[0].canvasX,2)+
+                                    std::pow(touchEvent->touches[1].canvasY-
+                                             touchEvent->touches[0].canvasY,2));
+                glMatScale(gl.vMat, (tmp-distance)<0?1.1:0.9);
+                gl.vMatChanged = true;
+                distance = tmp;
+            }else if(ttMode == TwoTouch::Translate){
+                tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
+                tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
+                glMatTranslate(gl.vMat, (tmp-transX)/10., (tmp-transY)/10., 0);
+                gl.vMatChanged = true;
+                transX = tmp;
+                transY = tmp2;
+            }
+            local1X = touchEvent->touches[0].canvasX;
+            local1Y = touchEvent->touches[0].canvasY;
+            local2X = touchEvent->touches[1].canvasX;
+            local2Y = touchEvent->touches[1].canvasY;
+            break;
+        default:
+            break;
+        }
+        break;
+    case EMSCRIPTEN_EVENT_TOUCHEND:
+    case EMSCRIPTEN_EVENT_TOUCHCANCEL:
+        ttMode = TwoTouch::None;
+        break;
+    }
     return 1;
 }
 
@@ -224,6 +311,9 @@ int main()
     emscripten_set_mousemove_callback(0, nullptr, 1, mouse_event);
     emscripten_set_wheel_callback("#canvas", nullptr, 1, wheel_event);
     emscripten_set_keypress_callback(0, nullptr, 1, key_event);
+    emscripten_set_touchstart_callback("#canvas", nullptr, 1, touch_event);
+    emscripten_set_touchmove_callback("#canvas", nullptr, 1, touch_event);
+    emscripten_set_touchend_callback("#canvas", nullptr, 1, touch_event);
     emscripten_set_main_loop(one_iter, 0, 1);
     return 1;
 }

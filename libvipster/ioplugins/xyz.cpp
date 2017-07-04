@@ -47,7 +47,7 @@ struct xyz_parse_grammar
     {
         name = +(qi::char_ - qi::space);
         name.name("Element");
-        atom = name > qi::as<Vipster::Vec>()[qi::float_ > qi::float_ > qi::float_];
+        atom = name >> qi::as<Vipster::Vec>()[qi::float_ > qi::float_ > qi::float_];
         atom.name("Atom");
         atoms = (atom % qi::eol)
                 > qi::eps(qi::_r1 == phx::bind(&std::vector<Vipster::Atom>::size,qi::_val));
