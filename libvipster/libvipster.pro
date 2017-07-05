@@ -24,7 +24,6 @@ SOURCES += \
 HEADERS += \
     config.h \
     molecule.h \
-    json.hpp \
     step.h \
     iowrapper.h \
     ioplugin.h \

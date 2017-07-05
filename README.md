@@ -38,6 +38,15 @@ Visualization and editing framework for atomistic simulations.
   </tr>
 </table>
 
+## Dependencies:
+
+- [JSON for Modern C++](https://github.com/nlohmann/json)
+- [Qt5 >= 5.7](https://www.qt.io)
+- [boost::spirit >= 1.6.3](https://www.boost-spirit.com)
+- and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
+- optional: [pybind11](https://github.com/pybind/pybind11)
+- optional: [emscripten](http://kripken.github.io/emscripten-site)
+
 ## Supported file types:
 
 - standard xyz
