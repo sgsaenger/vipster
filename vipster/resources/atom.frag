@@ -1,4 +1,3 @@
-#version 330 core
 out vec4 fragColor;
 
 in vec4 MaterialDiffuseColor;
@@ -22,18 +21,18 @@ void main(void)
     vec3 n = normalize(normals_cameraspace);
     vec3 l = normalize(LightDirection_cameraspace);
     //angle of incidence
-    float cosTheta = clamp(dot(n,l),0,1);
+    float cosTheta = clamp(dot(n,l),0.,1.);
 
     //specular lighting:
     vec3 E = normalize(EyeDirection_cameraspace);
     //direct reflection vector:
     vec3 R = reflect(-l,n);
     //angular difference from R:
-    float cosAlpha = clamp(dot(E,R),0,1);
+    float cosAlpha = clamp(dot(E,R),0.,1.);
 
     //final color
     vec3 fragTemp = MaterialAmbientColor +
-                MaterialSpecularColor*LightColor*LightPower * pow(cosAlpha,10)/(distance*distance)+
+                MaterialSpecularColor*LightColor*LightPower * pow(cosAlpha,10.)/(distance*distance)+
                 MaterialDiffuseColor.xyz*LightColor*LightPower*cosTheta/(distance*distance);
     fragColor = vec4(fragTemp,MaterialDiffuseColor.a);
 }

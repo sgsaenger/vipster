@@ -63,8 +63,6 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
             case 2:
                 gui.rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
                 gui.rMatChanged = true;
-            default:
-                break;
             }
         }
         break;
@@ -76,16 +74,14 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
         switch(currentOp){
         case OpMode::Rotation:
-            glMatRot(gui.rMat, mouseEvent->canvasX-localX, 0, 1, 0);
-            glMatRot(gui.rMat, mouseEvent->canvasY-localY, 1, 0, 0);
+            guiMatRot(gui.rMat, mouseEvent->canvasX-localX, 0, 1, 0);
+            guiMatRot(gui.rMat, mouseEvent->canvasY-localY, 1, 0, 0);
             gui.rMatChanged = true;
             break;
         case OpMode::Translation:
-            glMatTranslate(gui.vMat, (mouseEvent->canvasX-localX)/10.,
+            guiMatTranslate(gui.vMat, (mouseEvent->canvasX-localX)/10.,
                            -(mouseEvent->canvasY-localY)/10.,0);
             gui.vMatChanged = true;
-            break;
-        default:
             break;
         }
         break;
@@ -125,8 +121,8 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
     case EMSCRIPTEN_EVENT_TOUCHMOVE:
         switch(touchEvent->numTouches){
         case 1:
-            glMatRot(gui.rMat, touchEvent->touches[0].canvasX-local1X, 0, 1, 0);
-            glMatRot(gui.rMat, touchEvent->touches[0].canvasY-local1Y, 1, 0, 0);
+            guiMatRot(gui.rMat, touchEvent->touches[0].canvasX-local1X, 0, 1, 0);
+            guiMatRot(gui.rMat, touchEvent->touches[0].canvasY-local1Y, 1, 0, 0);
             gui.rMatChanged = true;
             local1X = touchEvent->touches[0].canvasX;
             local1Y = touchEvent->touches[0].canvasY;
@@ -153,13 +149,13 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
                                              touchEvent->touches[0].canvasX,2)+
                                     std::pow(touchEvent->touches[1].canvasY-
                                              touchEvent->touches[0].canvasY,2));
-                glMatScale(gui.vMat, (tmp-distance)<0?1.1:0.9);
+                guiMatScale(gui.vMat, (tmp-distance)<0?1.1:0.9);
                 gui.vMatChanged = true;
                 distance = tmp;
             }else if(ttMode == TwoTouch::Translate){
                 tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
                 tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
-                glMatTranslate(gui.vMat, (tmp-transX)/10., (tmp-transY)/10., 0);
+                guiMatTranslate(gui.vMat, (tmp-transX)/10., (tmp-transY)/10., 0);
                 gui.vMatChanged = true;
                 transX = tmp;
                 transY = tmp2;
@@ -168,8 +164,6 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
             local1Y = touchEvent->touches[0].canvasY;
             local2X = touchEvent->touches[1].canvasX;
             local2Y = touchEvent->touches[1].canvasY;
-            break;
-        default:
             break;
         }
         break;
@@ -183,7 +177,7 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
 
 EM_BOOL wheel_event(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
 {
-    glMatScale(gui.vMat, wheelEvent->deltaY<0?1.1:0.9);
+    guiMatScale(gui.vMat, wheelEvent->deltaY<0?1.1:0.9);
     gui.vMatChanged = true;
     return 1;
 }
@@ -192,19 +186,19 @@ EM_BOOL key_event(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* 
 {
     switch(keyEvent->keyCode){
         case 37:
-            glMatRot(gui.rMat, -10, 0, 1, 0);
+            guiMatRot(gui.rMat, -10, 0, 1, 0);
             gui.rMatChanged = true;
         break;
         case 39:
-            glMatRot(gui.rMat, 10, 0, 1, 0);
+            guiMatRot(gui.rMat, 10, 0, 1, 0);
             gui.rMatChanged = true;
         break;
         case 38:
-            glMatRot(gui.rMat, -10, 1, 0, 0);
+            guiMatRot(gui.rMat, -10, 1, 0, 0);
             gui.rMatChanged = true;
         break;
         case 40:
-            glMatRot(gui.rMat, 10, 1, 0, 0);
+            guiMatRot(gui.rMat, 10, 1, 0, 0);
             gui.rMatChanged = true;
         break;
     }
@@ -213,42 +207,46 @@ EM_BOOL key_event(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* 
 
 void one_iter(){
     int width, height, fullscreen;
-    static Step* curStep{nullptr};
-    if(curStep != gui.curStep){
-        curStep = gui.curStep;
+    static const Step* step{nullptr};
+    static int localWidth, localHeight;
+    // update Step-data
+    if(step != gui.curStep){
+        step = gui.curStep;
         gui.atom_buffer.clear();
-        for(const Atom& at:curStep->getAtoms()){
-            PseEntry &pse = (*curStep->pse)[at.name];
+        gui.atom_buffer.reserve(gui.curStep->getNat());
+        for(const Atom& at:gui.curStep->getAtoms()){
+            PseEntry &pse = (*gui.curStep->pse)[at.name];
             gui.atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
                                     pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
         }
         glBindBuffer(GL_ARRAY_BUFFER, gui.atom_vbo);
         glBufferData(GL_ARRAY_BUFFER, gui.atom_buffer.size()*8*sizeof(float),
-                     (void*)gui.atom_buffer.data(), GL_STATIC_DRAW);
+                     (void*)gui.atom_buffer.data(), GL_STREAM_DRAW);
     }
+    // handle resize
     emscripten_get_canvas_size(&width, &height, &fullscreen);
-    if( width != gui.width || height != gui.height){
+    if( width != localWidth || height != localHeight){
+        height==0?height=1:0;
         glViewport(0,0,width,height);
-        gui.width = width;
-        gui.height = height;
         float aspect = (float)width/height;
-        gui.pMat = glMatMkOrtho(-10*aspect,10*aspect,-10,10,0,1000);
+        gui.pMat = guiMatMkOrtho(-10*aspect,10*aspect,-10, 10, 0, 1000);
         gui.pMatChanged = true;
+        localWidth = width;
+        localHeight = height;
     }
+    // update mvp-matrices if needed
     if(gui.rMatChanged){
         glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "rMatrix"),
                            1, true, gui.rMat.data());
         glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "vpMatrix"),
                            1, true, (gui.pMat*gui.vMat*gui.rMat).data());
-        gui.pMatChanged = false;
-        gui.vMatChanged = false;
-        gui.rMatChanged = false;
+        gui.pMatChanged = gui.vMatChanged = gui.rMatChanged = false;
     }else if(gui.pMatChanged || gui.vMatChanged){
         glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "vpMatrix"),
                            1, true, (gui.pMat*gui.vMat*gui.rMat).data());
-        gui.pMatChanged = false;
-        gui.vMatChanged = false;
+        gui.pMatChanged = gui.vMatChanged = false;
     }
+    // draw stuff
     glBindVertexArray(gui.atom_vao);
     glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,gui.atom_buffer.size());
 }
@@ -276,34 +274,31 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//    GLWrapper gl{};
-
     gui.atom_program = loadShader("# version 300 es\nprecision highp float;\n",
-                                 "/atom.vert",
-                                 "/atom.frag");
+                                 readShader("/atom.vert"),
+                                 readShader("/atom.frag"));
     glUseProgram(gui.atom_program);
 
     initAtomVAO(gui);
 
-    gui.vMat = glMatMkLookAt({{0,0,10}},{{0,0,0}},{{0,1,0}});
+    gui.vMat = guiMatMkLookAt({{0,0,10}},{{0,0,0}},{{0,1,0}});
     gui.rMat = {{1,0,0,0,
                 0,1,0,0,
                 0,0,1,0,
                 0,0,0,1}};
+    gui.pMatChanged = gui.vMatChanged = gui.rMatChanged = true;
     Vec offset = {{0,0,0}};
     GLuint atfacLoc = glGetUniformLocation(gui.atom_program, "atom_fac");
     glUniform1f(atfacLoc, (GLfloat)0.5);
     GLuint offsetLoc = glGetUniformLocation(gui.atom_program, "offset");
     glUniform3fv(offsetLoc, 1, offset.data());
-    gui.pMatChanged = true;
-    gui.vMatChanged = true;
-    gui.rMatChanged = true;
 
     gui.molecules.emplace_back("test");
     gui.curStep = &gui.molecules[0].getStep(0);
-    gui.curStep->newAtom();
-    gui.curStep->newAtom({"O",{{1,0,0}}});
-    gui.curStep->newAtom({"F",{{0,1,0}}});
+    Step* step = const_cast<Step*>(gui.curStep);
+    step->newAtom();
+    step->newAtom({"O",{{1,0,0}}});
+    step->newAtom({"F",{{0,1,0}}});
 
 
     emscripten_set_mousedown_callback("#canvas", nullptr, 1, mouse_event);

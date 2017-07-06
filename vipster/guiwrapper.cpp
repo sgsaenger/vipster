@@ -3,7 +3,8 @@
 #include <iostream>
 #include <atom_model.h>
 
-std::string readShader(std::string filePath){
+std::string readShader(std::string filePath)
+{
     std::string content;
     std::ifstream fileStream{filePath};
 
@@ -14,41 +15,41 @@ std::string readShader(std::string filePath){
     return content;
 }
 
-GLuint loadShader(std::string header, std::string vertPath, std::string fragPath)
+GLuint loadShader(std::string header, std::string vertShaderStr, std::string fragShaderStr)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
     GLint gl_ok = GL_FALSE;
 
-    std::string vertShaderStr = header+readShader(vertPath);
+    vertShaderStr = header + vertShaderStr;
     const char *vertShaderSrc = vertShaderStr.c_str();
     glShaderSource(vertShader, 1, &vertShaderSrc, nullptr);
     glCompileShader(vertShader);
     glGetShaderiv(vertShader, GL_COMPILE_STATUS, &gl_ok);
     if(!gl_ok){
-        std::cout << "Shader does not compile: " << vertPath << std::endl;
+        std::cout << "Vertex-Shader does not compile" << std::endl;
         GLint infoLen = 0;
         glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &infoLen);
         std::vector<char> infoLog;
         infoLog.resize((infoLen > 1)?infoLen:1);
         glGetShaderInfoLog(vertShader, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
-        throw std::invalid_argument{"Shader does not compile: "+vertPath};
+        throw std::invalid_argument{"Vertex-Shader does not compile"};
     }
 
-    std::string fragShaderStr = header+readShader(fragPath);
+    fragShaderStr = header + fragShaderStr;
     const char *fragShaderSrc = fragShaderStr.c_str();
     glShaderSource(fragShader, 1, &fragShaderSrc, nullptr);
     glCompileShader(fragShader);
     glGetShaderiv(fragShader, GL_COMPILE_STATUS, &gl_ok);
     if(!gl_ok){
-        std::cout << "Shader does not compile: " << fragPath << std::endl;
+        std::cout << "Shader does not compile" << std::endl;
         GLint infoLen = 0;
         glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &infoLen);
         std::vector<char> infoLog(infoLen > 1?infoLen:1);
         glGetShaderInfoLog(fragShader, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
-        throw std::invalid_argument{"Shader does not compile: "+fragPath};
+        throw std::invalid_argument{"Shader does not compile"};
     }
 
     GLuint program = glCreateProgram();
@@ -57,12 +58,12 @@ GLuint loadShader(std::string header, std::string vertPath, std::string fragPath
     glLinkProgram(program);
     glGetProgramiv(program, GL_LINK_STATUS, &gl_ok);
     if(!gl_ok){
-        std::cout << "Program does not link: " << vertPath << ", " << fragPath << std::endl;
+        std::cout << "Program does not link" << std::endl;
         GLint infoLen = 0;
         std::vector<char> infoLog(infoLen > 1?infoLen:1);
         glGetProgramInfoLog(program, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
-        throw std::invalid_argument{"Program does not link "+vertPath+" and "+fragPath};
+        throw std::invalid_argument{"Program does not link"};
     }
 
     glDetachShader(program, vertShader);
@@ -72,7 +73,7 @@ GLuint loadShader(std::string header, std::string vertPath, std::string fragPath
     return program;
 }
 
-void glMatScale(glMat &m, float f)
+void guiMatScale(guiMat &m, float f)
 {
     for(int i=0;i<4;i++){
         m[i*4+0]*=f;
@@ -81,7 +82,7 @@ void glMatScale(glMat &m, float f)
     }
 }
 
-void glMatTranslate(glMat &m, float x, float y, float z)
+void guiMatTranslate(guiMat &m, float x, float y, float z)
 {
     //assuming 0 0 0 1 in last row of m
     m[3]+=x;
@@ -89,7 +90,7 @@ void glMatTranslate(glMat &m, float x, float y, float z)
     m[11]+=z;
 }
 
-void glMatRot(glMat &m, float a, float x, float y, float z)
+void guiMatRot(guiMat &m, float a, float x, float y, float z)
 {
     if(a==0){
         return;
@@ -139,7 +140,7 @@ void glMatRot(glMat &m, float a, float x, float y, float z)
         Vec axis{{x,y,z}};
         axis /= Vec_length(axis);
         Vec axismc = axis*(1-c);
-        glMat rotate{{c+axismc[0]*axis[0], axismc[1]*axis[0]-s*axis[2], axismc[2]*axis[0]+s*axis[1], 0,
+        guiMat rotate{{c+axismc[0]*axis[0], axismc[1]*axis[0]-s*axis[2], axismc[2]*axis[0]+s*axis[1], 0,
                       axismc[0]*axis[1]+s*axis[2], c+axismc[1]*axis[1], axismc[2]*axis[1]-s*axis[0], 0,
                       axismc[0]*axis[2]-s*axis[1], axismc[1]*axis[2]+s*axis[0], c+axismc[2]*axis[2], 0,
                       0,0,0,1}};
@@ -147,30 +148,30 @@ void glMatRot(glMat &m, float a, float x, float y, float z)
     }
 }
 
-glMat glMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
+guiMat guiMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
 {
-    return glMat{{2/(right-left),0,0,-(right+left)/(right-left),
+    return guiMat{{2/(right-left),0,0,-(right+left)/(right-left),
                   0,2/(top-bottom),0,-(top+bottom)/(top-bottom),
                   0,0,-2/(far-near),-(far+near)/(far-near),
                   0,0,0,1}};
 }
 
-glMat glMatMkLookAt(Vec eye, Vec target, Vec up)
+guiMat guiMatMkLookAt(Vec eye, Vec target, Vec up)
 {
     Vec dir = target - eye;
     dir /= Vec_length(dir);
     Vec r = Vec_cross(dir, up);
     r /= Vec_length(r);
     Vec u = Vec_cross(r, dir);
-    return glMat{{r[0], r[1], r[2], -Vec_dot(r, eye),
+    return guiMat{{r[0], r[1], r[2], -Vec_dot(r, eye),
                   u[0], u[1], u[2], -Vec_dot(u, eye),
                   -dir[0], -dir[1], -dir[2], Vec_dot(dir, eye),
                   0, 0, 0, 1}};
 }
 
-glMat operator *=(glMat &a, const glMat &b)
+guiMat operator *=(guiMat &a, const guiMat &b)
 {
-    a = glMat{{a[0]*b[0]+a[1]*b[4]+a[2]*b[ 8]+a[3]*b[12],
+    a = guiMat{{a[0]*b[0]+a[1]*b[4]+a[2]*b[ 8]+a[3]*b[12],
                a[0]*b[1]+a[1]*b[5]+a[2]*b[ 9]+a[3]*b[13],
                a[0]*b[2]+a[1]*b[6]+a[2]*b[10]+a[3]*b[14],
                a[0]*b[3]+a[1]*b[7]+a[2]*b[11]+a[3]*b[15],
@@ -189,7 +190,7 @@ glMat operator *=(glMat &a, const glMat &b)
     return a;
 }
 
-glMat operator *(glMat a, const glMat &b)
+guiMat operator *(guiMat a, const guiMat &b)
 {
     return a*=b;
 }

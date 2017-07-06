@@ -8,8 +8,8 @@ QMAKE_CXX = emcc
 QMAKE_CXXFLAGS = --bind -s USE_WEBGL2=1
 QMAKE_LINK = emcc
 QMAKE_LFLAGS = --bind --embed-file $$PWD/../libvipster/default.json@vipster.json \
-    --embed-file $$PWD/atom.frag@atom.frag \
-    --embed-file $$PWD/atom.vert@atom.vert
+    --embed-file $$PWD/../vipster/resources/atom.frag@atom.frag \
+    --embed-file $$PWD/../vipster/resources/atom.vert@atom.vert
 
 INCLUDEPATH += $$PWD/../libvipster $$PWD/../vipster /usr/lib/emscripten/system/include
 
@@ -23,7 +23,4 @@ SOURCES += \
     $$PWD/../libvipster/iowrapper.cpp \
     $$PWD/../libvipster/ioplugins/xyz.cpp \
     $$PWD/../libvipster/ioplugins/pwinput.cpp \
-    guiwrapper.cpp
-
-HEADERS += \
-    guiwrapper.h
+    $$PWD/../vipster/guiwrapper.cpp

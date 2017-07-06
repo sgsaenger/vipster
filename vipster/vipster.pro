@@ -14,12 +14,14 @@ TEMPLATE = app
 CONFIG += c++14
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+    mainwindow.cpp \
     glwidget.cpp \
+    guiwrapper.cpp\
     molwidget.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
+    guiwrapper.h \
     atom_model.h \
     bond_model.h \
     molwidget.h
