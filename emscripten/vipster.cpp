@@ -1,7 +1,6 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
-#include <GLES3/gl3.h>
 
 #include <iostream>
 
@@ -274,12 +273,12 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    gui.atom_program = loadShader("# version 300 es\nprecision highp float;\n",
-                                 readShader("/atom.vert"),
-                                 readShader("/atom.frag"));
+    gui.loadShader(gui.atom_program, "# version 300 es\nprecision highp float;\n",
+                   readShader("/atom.vert"),
+                   readShader("/atom.frag"));
     glUseProgram(gui.atom_program);
 
-    initAtomVAO(gui);
+    gui.initAtomVAO();
 
     gui.vMat = guiMatMkLookAt({{0,0,10}},{{0,0,0}},{{0,1,0}});
     gui.rMat = {{1,0,0,0,
@@ -310,6 +309,6 @@ int main()
     emscripten_set_touchmove_callback("#canvas", nullptr, 1, touch_event);
     emscripten_set_touchend_callback("#canvas", nullptr, 1, touch_event);
     emscripten_set_main_loop(one_iter, 0, 1);
-    deleteGLObjects(gui);
+    gui.deleteGLObjects();
     return 1;
 }

@@ -29,16 +29,10 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
-std::string GLWidget::readShader(QString filePath)
-{
-    // redefined here because GUIWrapper shall not depend on Qt
-    QFile f(filePath);
-    f.open(QIODevice::ReadOnly);
-    return f.readAll().toStdString();
-}
-
 void GLWidget::initializeGL()
 {
+    std::cout << "hallo!" << std::endl;
+    initializeOpenGLFunctions();
     glClearColor(1,1,1,1);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
@@ -46,42 +40,42 @@ void GLWidget::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    gui.atom_program = loadShader("# version 330\n",
-                                  readShader(":/shaders/atom/atom.vert"),
-                                  readShader(":/shaders/atom/atom.frag"));
-    glUseProgram(gui.atom_program);
+    loadShader(atom_program, "# version 330\n",
+                   readShader(":/shaders/atom/atom.vert"),
+                   readShader(":/shaders/atom/atom.frag"));
+    glUseProgram(atom_program);
     //TODO: remove temps
-    glUniform1f(glGetUniformLocation(gui.atom_program, "atom_fac"), 0.5);
+    glUniform1f(glGetUniformLocation(atom_program, "atom_fac"), 0.5);
     //
-    initAtomVAO(gui);
+    initAtomVAO();
     //
-    gui.rMat = {{1,0,0,0,
+    rMat = {{1,0,0,0,
                 0,1,0,0,
                 0,0,1,0,
                 0,0,0,1}};
-    gui.vMat = guiMatMkLookAt({{0,0,10}}, {{0,0,0}}, {{0,1,0}});
-    gui.pMatChanged = gui.rMatChanged = gui.vMatChanged = true;
+    vMat = guiMatMkLookAt({{0,0,10}}, {{0,0,0}}, {{0,1,0}});
+    pMatChanged = rMatChanged = vMatChanged = true;
 }
 
 void GLWidget::paintGL()
 {
-    glUseProgram(gui.atom_program);
-    if(gui.rMatChanged){
-        glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "rMatrix"),
-                           1, true, gui.rMat.data());
-        glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "vpMatrix"),
-                           1, true, (gui.pMat*gui.vMat*gui.rMat).data());
-        gui.rMatChanged = gui.vMatChanged = gui.pMatChanged = false;
-    }else if (gui.pMatChanged || gui.vMatChanged){
-        glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "vpMatrix"),
-                           1, true, (gui.pMat*gui.vMat*gui.rMat).data());
-        gui.vMatChanged = gui.pMatChanged = false;
+    glUseProgram(atom_program);
+    if(rMatChanged){
+        glUniformMatrix4fv(glGetUniformLocation(atom_program, "rMatrix"),
+                           1, true, rMat.data());
+        glUniformMatrix4fv(glGetUniformLocation(atom_program, "vpMatrix"),
+                           1, true, (pMat*vMat*rMat).data());
+        rMatChanged = vMatChanged = pMatChanged = false;
+    }else if (pMatChanged || vMatChanged){
+        glUniformMatrix4fv(glGetUniformLocation(atom_program, "vpMatrix"),
+                           1, true, (pMat*vMat*rMat).data());
+        vMatChanged = pMatChanged = false;
     }
-    if(gui.atoms_changed){
-        glBindBuffer(GL_ARRAY_BUFFER, gui.atom_vbo);
-        glBufferData(GL_ARRAY_BUFFER, gui.atom_buffer.size()*8*sizeof(float),
-                     (void*)gui.atom_buffer.data(), GL_STREAM_DRAW);
-        gui.atoms_changed=false;
+    if(atoms_changed){
+        glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
+        glBufferData(GL_ARRAY_BUFFER, atom_buffer.size()*8*sizeof(float),
+                     (void*)atom_buffer.data(), GL_STREAM_DRAW);
+        atoms_changed=false;
     }
     //
     Vec center = curStep->getCenter();
@@ -92,14 +86,14 @@ void GLWidget::paintGL()
     center += (mult[1]-1)*yvec/2.;
     center += (mult[2]-1)*zvec/2.;
     //
-    glUseProgram(gui.atom_program);
-    glBindVertexArray(gui.atom_vao);
-    GLuint offLoc = glGetUniformLocation(gui.atom_program, "offset");
+    glUseProgram(atom_program);
+    glBindVertexArray(atom_vao);
+    GLuint offLoc = glGetUniformLocation(atom_program, "offset");
     for(int x=0;x!=mult[0];++x){
         for(int y=0;y!=mult[1];++y){
             for(int z=0;z!=mult[2];++z){
                 glUniform3fv(offLoc, 1, (-center+x*xvec+y*yvec+z*zvec).data());
-                glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,gui.atom_buffer.size());
+                glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,atom_buffer.size());
             }
         }
     }
@@ -110,8 +104,8 @@ void GLWidget::resizeGL(int w, int h)
     h==0?h=1:0;
     glViewport(0,0,w,h);
     float aspect = float(w)/h;
-    gui.pMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, 0, 1000);
-    gui.pMatChanged;
+    pMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, 0, 1000);
+    pMatChanged = true;;
 }
 
 void GLWidget::setMode(int i,bool t)
@@ -132,13 +126,13 @@ void GLWidget::setStep(const Step* step)
     curStep = step;
     //atoms
     const std::vector<Atom>& atoms = step->getAtoms();
-    gui.atom_buffer.reserve(step->getNat());
-    gui.atom_buffer.clear();
+    atom_buffer.reserve(step->getNat());
+    atom_buffer.clear();
     for(const Atom& at:atoms){
         PseEntry &pse = (*step->pse)[at.name];
-        gui.atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
+        atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
                           pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
-        gui.atoms_changed = true;
+        atoms_changed = true;
     }
     update();
 }
@@ -147,43 +141,43 @@ void GLWidget::setCamera(int i)
 {
     switch(i){
     case -2: // +x
-        gui.rMat = {{ 0, 1, 0, 0,
+        rMat = {{ 0, 1, 0, 0,
                       0, 0, 1, 0,
                       1, 0, 0, 0,
                       0, 0, 0, 1}};
         break;
     case -5: // -x
-        gui.rMat = {{ 0,-1, 0, 0,
+        rMat = {{ 0,-1, 0, 0,
                       0, 0, 1, 0,
                      -1, 0, 0, 0,
                       0, 0, 0, 1}};
         break;
     case -3: // +y
-        gui.rMat = {{-1, 0, 0, 0,
+        rMat = {{-1, 0, 0, 0,
                       0, 0, 1, 0,
                       0, 1, 0, 0,
                       0, 0, 0, 1}};
         break;
     case -6: // -y
-        gui.rMat = {{ 1, 0, 0, 0,
+        rMat = {{ 1, 0, 0, 0,
                       0, 0, 1, 0,
                       0,-1, 0, 0,
                       0, 0, 0, 1}};
         break;
     case -4: // +z
-        gui.rMat = {{ 1, 0, 0, 0,
+        rMat = {{ 1, 0, 0, 0,
                       0, 1, 0, 0,
                       0, 0, 1, 0,
                       0, 0, 0, 1}};
         break;
     case -7: // -z
-        gui.rMat = {{-1, 0, 0, 0,
+        rMat = {{-1, 0, 0, 0,
                       0, 1, 0, 0,
                       0, 0,-1, 0,
                       0, 0, 0, 1}};
         break;
     }
-    gui.rMatChanged = true;
+    rMatChanged = true;
     update();
 }
 
@@ -191,20 +185,20 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
 {
     switch(e->key()){
         case Qt::Key_Down:
-            guiMatRot(gui.rMat, 10, 1, 0, 0);
-            gui.rMatChanged = true;
+            guiMatRot(rMat, 10, 1, 0, 0);
+            rMatChanged = true;
             break;
         case Qt::Key_Up:
-            guiMatRot(gui.rMat, -10, 1, 0, 0);
-            gui.rMatChanged = true;
+            guiMatRot(rMat, -10, 1, 0, 0);
+            rMatChanged = true;
             break;
         case Qt::Key_Left:
-            guiMatRot(gui.rMat, -10, 0, 1, 0);
-            gui.rMatChanged = true;
+            guiMatRot(rMat, -10, 0, 1, 0);
+            rMatChanged = true;
             break;
         case Qt::Key_Right:
-            guiMatRot(gui.rMat, 10, 0, 1, 0);
-            gui.rMatChanged = true;
+            guiMatRot(rMat, 10, 0, 1, 0);
+            rMatChanged = true;
             break;
         default:
             return;
@@ -215,8 +209,8 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
 
 void GLWidget::wheelEvent(QWheelEvent *e)
 {
-    guiMatScale(gui.vMat, e->angleDelta().y()>0?1.1:0.9);
-    gui.vMatChanged = true;
+    guiMatScale(vMat, e->angleDelta().y()>0?1.1:0.9);
+    vMatChanged = true;
     e->accept();
     update();
 }
@@ -233,8 +227,8 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     switch(mouseMode){
         case MouseMode::Camera:
             if(e->button() == Qt::MouseButton::RightButton){
-                gui.rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
-                gui.rMatChanged = true;
+                rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
+                rMatChanged = true;
                 update();
             }
             break;
@@ -252,13 +246,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
     switch(mouseMode){
         case MouseMode::Camera:
             if(e->buttons() & Qt::MouseButton::LeftButton){
-                guiMatRot(gui.rMat, delta.x(), 0, 1, 0);
-                guiMatRot(gui.rMat, delta.y(), 1, 0, 0);
-                gui.rMatChanged = true;
+                guiMatRot(rMat, delta.x(), 0, 1, 0);
+                guiMatRot(rMat, delta.y(), 1, 0, 0);
+                rMatChanged = true;
                 update();
             }else if(e->buttons() & Qt::MouseButton::MiddleButton){
-                guiMatTranslate(gui.vMat, delta.x()/10., -delta.y()/10., 0);
-                gui.vMatChanged = true;
+                guiMatTranslate(vMat, delta.x()/10., -delta.y()/10., 0);
+                vMatChanged = true;
                 update();
             }
             break;

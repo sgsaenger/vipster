@@ -2,7 +2,11 @@
 #define GLWRAPPER_H
 
 #include <string>
+#ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
+#else
+#include <QOpenGLFunctions_3_3_Core>
+#endif
 #include <vector>
 #include <array>
 #include "molecule.h"
@@ -10,7 +14,18 @@
 using namespace Vipster;
 
 typedef std::array<float,16> guiMat;
+
+#ifdef __EMSCRIPTEN__
+std::string readShader(std::string filePath);
 struct GuiWrapper{
+#else
+#include <QString>
+std::string readShader(QString filePath);
+struct GuiWrapper: protected QOpenGLFunctions_3_3_Core{
+#endif
+    void loadShader(GLuint &program, std::string header, std::string vertShaderStr, std::string fragShaderStr);
+    void initAtomVAO(void);
+    void deleteGLObjects(void);
     // molecule-store
     std::vector<Vipster::Molecule> molecules;
     const Step* curStep{nullptr};
@@ -36,9 +51,5 @@ guiMat guiMatMkOrtho(float left, float right, float bottom, float top, float nea
 guiMat guiMatMkLookAt(Vec eye, Vec target, Vec up);
 guiMat operator *=(guiMat &a, const guiMat &b);
 guiMat operator *(guiMat a, const guiMat &b);
-std::string readShader(std::string filePath);
-GLuint loadShader(std::string header, std::string vertShaderStr, std::string fragShaderStr);
-void initAtomVAO(GuiWrapper &gui);
-void deleteGLObjects(GuiWrapper &gui);
 
 #endif // GLWRAPPER_H

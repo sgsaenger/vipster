@@ -3,6 +3,7 @@
 #include <iostream>
 #include <atom_model.h>
 
+#ifdef __EMSCRIPTEN__
 std::string readShader(std::string filePath)
 {
     std::string content;
@@ -14,8 +15,17 @@ std::string readShader(std::string filePath)
                    std::istreambuf_iterator<char>{});
     return content;
 }
+#else
+#include <QFile>
+std::string readShader(QString filePath)
+{
+    QFile f(filePath);
+    f.open(QIODevice::ReadOnly);
+    return f.readAll().toStdString();
+}
+#endif
 
-GLuint loadShader(std::string header, std::string vertShaderStr, std::string fragShaderStr)
+void GuiWrapper::loadShader(GLuint &program, std::string header, std::string vertShaderStr, std::string fragShaderStr)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -52,7 +62,7 @@ GLuint loadShader(std::string header, std::string vertShaderStr, std::string fra
         throw std::invalid_argument{"Shader does not compile"};
     }
 
-    GLuint program = glCreateProgram();
+    program = glCreateProgram();
     glAttachShader(program, vertShader);
     glAttachShader(program, fragShader);
     glLinkProgram(program);
@@ -70,7 +80,6 @@ GLuint loadShader(std::string header, std::string vertShaderStr, std::string fra
     glDeleteShader(vertShader);
     glDetachShader(program, fragShader);
     glDeleteShader(fragShader);
-    return program;
 }
 
 void guiMatScale(guiMat &m, float f)
@@ -195,43 +204,43 @@ guiMat operator *(guiMat a, const guiMat &b)
     return a*=b;
 }
 
-void initAtomVAO(GuiWrapper &gui)
+void GuiWrapper::initAtomVAO(void)
 {
-    glGenVertexArrays(1, &gui.atom_vao);
-    glBindVertexArray(gui.atom_vao);
-    glGenBuffers(1, &gui.sphere_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gui.sphere_vbo);
+    glGenVertexArrays(1, &atom_vao);
+    glBindVertexArray(atom_vao);
+    glGenBuffers(1, &sphere_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
     glBufferData(GL_ARRAY_BUFFER, atom_model_npoly*3*sizeof(float), (void*)&atom_model, GL_STATIC_DRAW);
-    GLuint vertexLoc = glGetAttribLocation(gui.atom_program, "vertex_modelspace");
+    GLuint vertexLoc = glGetAttribLocation(atom_program, "vertex_modelspace");
     glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,0);
     glEnableVertexAttribArray(vertexLoc);
-    glGenBuffers(1, &gui.atom_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gui.atom_vbo);
-    GLuint positionLoc = glGetAttribLocation(gui.atom_program, "position_modelspace");
+    glGenBuffers(1, &atom_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
+    GLuint positionLoc = glGetAttribLocation(atom_program, "position_modelspace");
     glVertexAttribPointer(positionLoc,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
     glVertexAttribDivisor(positionLoc,1);
     glEnableVertexAttribArray(positionLoc);
-    GLuint scaleLoc = glGetAttribLocation(gui.atom_program, "scale_modelspace");
+    GLuint scaleLoc = glGetAttribLocation(atom_program, "scale_modelspace");
     glVertexAttribPointer(scaleLoc,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
     glVertexAttribDivisor(scaleLoc,1);
     glEnableVertexAttribArray(scaleLoc);
-    GLuint colorLoc = glGetAttribLocation(gui.atom_program, "color_input");
+    GLuint colorLoc = glGetAttribLocation(atom_program, "color_input");
     glVertexAttribPointer(colorLoc,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
     glVertexAttribDivisor(colorLoc,1);
     glEnableVertexAttribArray(colorLoc);
 }
 
-void deleteGLObjects(GuiWrapper &gui)
+void GuiWrapper::deleteGLObjects(void)
 {
-    glDeleteBuffers(1, &gui.sphere_vbo);
-    glDeleteBuffers(1, &gui.torus_vbo);
-    glDeleteProgram(gui.atom_program);
-    glDeleteBuffers(1, &gui.atom_vbo);
-    glDeleteVertexArrays(1, &gui.atom_vao);
-    glDeleteProgram(gui.bond_program);
-    glDeleteBuffers(1, &gui.bond_vbo);
-    glDeleteVertexArrays(1, &gui.bond_vao);
-    glDeleteProgram(gui.cell_program);
-    glDeleteBuffers(1, &gui.cell_vbo);
-    glDeleteVertexArrays(1, &gui.cell_vao);
+    glDeleteBuffers(1, &sphere_vbo);
+    glDeleteBuffers(1, &torus_vbo);
+    glDeleteProgram(atom_program);
+    glDeleteBuffers(1, &atom_vbo);
+    glDeleteVertexArrays(1, &atom_vao);
+    glDeleteProgram(bond_program);
+    glDeleteBuffers(1, &bond_vbo);
+    glDeleteVertexArrays(1, &bond_vao);
+    glDeleteProgram(cell_program);
+    glDeleteBuffers(1, &cell_vbo);
+    glDeleteVertexArrays(1, &cell_vao);
 }
