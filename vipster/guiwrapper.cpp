@@ -157,12 +157,12 @@ void guiMatRot(guiMat &m, float a, float x, float y, float z)
     }
 }
 
-guiMat guiMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
+guiMat guiMatMkOrtho(float l, float r, float b, float t, float n, float f)
 {
-    return guiMat{{2/(right-left),0,0,-(right+left)/(right-left),
-                  0,2/(top-bottom),0,-(top+bottom)/(top-bottom),
-                  0,0,-2/(far-near),-(far+near)/(far-near),
-                  0,0,0,1}};
+    return guiMat{{2/(r-l), 0, 0, (r+l)/(l-r),
+                   0, 2/(t-b), 0, (t+b)/(b-t),
+                   0, 0, (2/(n-f)), ((f+n)/(n-f)),
+                   0, 0, 0, 1}};
 }
 
 guiMat guiMatMkLookAt(Vec eye, Vec target, Vec up)
