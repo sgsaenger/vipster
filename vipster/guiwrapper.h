@@ -24,7 +24,10 @@ std::string readShader(QString filePath);
 struct GuiWrapper: protected QOpenGLFunctions_3_3_Core{
 #endif
     void loadShader(GLuint &program, std::string header, std::string vertShaderStr, std::string fragShaderStr);
+    void initUBO(void);
     void initAtomVAO(void);
+    void initBondVAO(void);
+    void initCellVAO(void);
     void deleteGLObjects(void);
     // molecule-store
     std::vector<Vipster::Molecule> molecules;
@@ -34,10 +37,12 @@ struct GuiWrapper: protected QOpenGLFunctions_3_3_Core{
     GLuint atom_vao, bond_vao, cell_vao;
     GLuint atom_vbo, bond_vbo, cell_vbo;
     GLuint sphere_vbo, torus_vbo;
+    GLuint cell_ibo;
+    GLuint ubo;
     // cpu-side data
     std::vector<std::array<float,8>> atom_buffer;
-    std::vector<std::array<float,8>> bond_buffer;
-    std::array<std::array<float,3>,8> cell_buffer;
+    std::vector<std::array<float,24>> bond_buffer;
+    std::array<Vec,8> cell_buffer;
     bool atoms_changed, bonds_changed, cell_changed;
     // cpu-side uniforms
     guiMat vMat, pMat, rMat;

@@ -34,7 +34,6 @@ public slots:
     void setCamera(int i);
 private:
     const Vipster::Step* curStep{nullptr}; // Pointer to currently loaded Step
-//    GuiWrapper gui;
     // Other data for rendering
     std::array<int,3> mult{{1,1,1}}; //number of repetitions
     float xshift{0.0}, yshift{0.0}, distance{1.0};

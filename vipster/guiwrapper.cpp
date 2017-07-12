@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <atom_model.h>
+#include <bond_model.h>
 
 #ifdef __EMSCRIPTEN__
 std::string readShader(std::string filePath)
@@ -204,6 +205,21 @@ guiMat operator *(guiMat a, const guiMat &b)
     return a*=b;
 }
 
+void GuiWrapper::initUBO(void)
+{
+    GLuint atomLoc = glGetUniformBlockIndex(atom_program, "viewMat");
+    glUniformBlockBinding(atom_program, atomLoc, 0);
+//    GLuint bondLoc = glGetUniformBlockIndex(bond_program, "viewMat");
+//    glUniformBlockBinding(bond_program, bondLoc, 0);
+    GLuint cellLoc = glGetUniformBlockIndex(cell_program, "viewMat");
+    glUniformBlockBinding(cell_program, cellLoc, 0);
+
+    glGenBuffers(1, &ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, 2*16*sizeof(float), NULL, GL_STATIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, atomLoc, ubo, 0, 2*16*sizeof(float));
+}
+
 void GuiWrapper::initAtomVAO(void)
 {
     glGenVertexArrays(1, &atom_vao);
@@ -230,17 +246,74 @@ void GuiWrapper::initAtomVAO(void)
     glEnableVertexAttribArray(colorLoc);
 }
 
+void GuiWrapper::initBondVAO(void)
+{
+    glGenVertexArrays(1, &bond_vao);
+    glBindVertexArray(bond_vao);
+    glGenBuffers(1, &torus_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, torus_vbo);
+    glBufferData(GL_ARRAY_BUFFER, bond_model_npoly*3*sizeof(float), (void*)&bond_model, GL_STATIC_DRAW);
+    GLuint vertexLoc = glGetAttribLocation(bond_program, "vertex_modelspace");
+    glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,0);
+    glEnableVertexAttribArray(vertexLoc);
+    glGenBuffers(1, &bond_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
+    GLuint mMatLoc = glGetAttribLocation(bond_program, "mMatrix");
+    glVertexAttribPointer(mMatLoc  ,3,GL_FLOAT,GL_FALSE,24*sizeof(float),0);
+    glVertexAttribPointer(mMatLoc+1,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(3*sizeof(float)));
+    glVertexAttribPointer(mMatLoc+2,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(6*sizeof(float)));
+    glVertexAttribDivisor(mMatLoc,1);
+    glVertexAttribDivisor(mMatLoc+1,1);
+    glVertexAttribDivisor(mMatLoc+2,1);
+    glEnableVertexAttribArray(mMatLoc);
+    glEnableVertexAttribArray(mMatLoc+1);
+    glEnableVertexAttribArray(mMatLoc+2);
+    GLuint positionLoc = glGetAttribLocation(bond_program, "position_modelspace");
+    glVertexAttribPointer(positionLoc,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(9*sizeof(float)));
+    glVertexAttribDivisor(positionLoc,1);
+    glEnableVertexAttribArray(positionLoc);
+    GLuint critLoc = glGetAttribLocation(bond_program, "pbc_crit");
+    glVertexAttribPointer(critLoc,1,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(12*sizeof(float)));
+    glVertexAttribDivisor(critLoc,1);
+    glEnableVertexAttribArray(critLoc);
+    GLuint color1Loc = glGetAttribLocation(bond_program, "s1Color");
+    glVertexAttribPointer(color1Loc,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(16*sizeof(float)));
+    glVertexAttribDivisor(color1Loc,1);
+    glEnableVertexAttribArray(color1Loc);
+    GLuint color2Loc = glGetAttribLocation(bond_program, "s2Color");
+    glVertexAttribPointer(color2Loc,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(20*sizeof(float)));
+    glVertexAttribDivisor(color2Loc,1);
+    glEnableVertexAttribArray(color2Loc);
+}
+
+void GuiWrapper::initCellVAO(void)
+{
+    glGenVertexArrays(1, &cell_vao);
+    glBindVertexArray(cell_vao);
+    glGenBuffers(1, &cell_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
+    GLushort indices[24] = {0,1,0,2,0,3,1,4,1,5,2,4,2,6,3,5,3,6,4,7,5,7,6,7};
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, GL_STATIC_DRAW);
+    glGenBuffers(1, &cell_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
+    GLuint vertexLoc = glGetAttribLocation(cell_program, "vertex_modelspace");
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(vertexLoc);
+}
+
 void GuiWrapper::deleteGLObjects(void)
 {
-    glDeleteBuffers(1, &sphere_vbo);
-    glDeleteBuffers(1, &torus_vbo);
+    glDeleteBuffers(1, &ubo);
     glDeleteProgram(atom_program);
     glDeleteBuffers(1, &atom_vbo);
+    glDeleteBuffers(1, &sphere_vbo);
     glDeleteVertexArrays(1, &atom_vao);
     glDeleteProgram(bond_program);
     glDeleteBuffers(1, &bond_vbo);
+    glDeleteBuffers(1, &torus_vbo);
     glDeleteVertexArrays(1, &bond_vao);
     glDeleteProgram(cell_program);
     glDeleteBuffers(1, &cell_vbo);
+    glDeleteBuffers(1, &cell_ibo);
     glDeleteVertexArrays(1, &cell_vao);
 }

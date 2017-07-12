@@ -210,6 +210,7 @@ void one_iter(){
     static int localWidth, localHeight;
     // update Step-data
     if(step != gui.curStep){
+        //atoms
         step = gui.curStep;
         gui.atom_buffer.clear();
         gui.atom_buffer.reserve(gui.curStep->getNat());
@@ -221,6 +222,12 @@ void one_iter(){
         glBindBuffer(GL_ARRAY_BUFFER, gui.atom_vbo);
         glBufferData(GL_ARRAY_BUFFER, gui.atom_buffer.size()*8*sizeof(float),
                      (void*)gui.atom_buffer.data(), GL_STREAM_DRAW);
+        //cell
+        Mat cv = step->getCellVec() * step->getCellDim();
+        gui.cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
+                             cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
+        glBindBuffer(GL_ARRAY_BUFFER, gui.cell_vbo);
+        glBufferData(GL_ARRAY_BUFFER, 24*sizeof(float), (void*)gui.cell_buffer.data(), GL_STREAM_DRAW);
     }
     // handle resize
     emscripten_get_canvas_size(&width, &height, &fullscreen);
@@ -228,26 +235,29 @@ void one_iter(){
         height==0?height=1:0;
         glViewport(0,0,width,height);
         float aspect = (float)width/height;
-        gui.pMat = guiMatMkOrtho(-10*aspect,10*aspect,-10, 10, 0, 1000);
+        gui.pMat = guiMatMkOrtho(-10*aspect,10*aspect,-10, 10, -100, 1000);
         gui.pMatChanged = true;
         localWidth = width;
         localHeight = height;
     }
     // update mvp-matrices if needed
     if(gui.rMatChanged){
-        glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "rMatrix"),
-                           1, true, gui.rMat.data());
-        glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "vpMatrix"),
-                           1, true, (gui.pMat*gui.vMat*gui.rMat).data());
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
+                        (gui.pMat*gui.vMat*gui.rMat).data());
+        glBufferSubData(GL_UNIFORM_BUFFER, 16*sizeof(float), 16*sizeof(float), gui.rMat.data());
         gui.pMatChanged = gui.vMatChanged = gui.rMatChanged = false;
     }else if(gui.pMatChanged || gui.vMatChanged){
-        glUniformMatrix4fv(glGetUniformLocation(gui.atom_program, "vpMatrix"),
-                           1, true, (gui.pMat*gui.vMat*gui.rMat).data());
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
+                        (gui.pMat*gui.vMat*gui.rMat).data());
         gui.pMatChanged = gui.vMatChanged = false;
     }
     // draw stuff
     glBindVertexArray(gui.atom_vao);
+    glUseProgram(gui.atom_program);
     glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,gui.atom_buffer.size());
+    glBindVertexArray(gui.cell_vao);
+    glUseProgram(gui.cell_program);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, NULL);
 }
 
 int main()
@@ -276,9 +286,13 @@ int main()
     gui.loadShader(gui.atom_program, "# version 300 es\nprecision highp float;\n",
                    readShader("/atom.vert"),
                    readShader("/atom.frag"));
-    glUseProgram(gui.atom_program);
+    gui.loadShader(gui.cell_program, "# version 300 es\nprecision highp float;\n",
+                   readShader("/cell.vert"),
+                   readShader("/cell.frag"));
 
+    gui.initUBO();
     gui.initAtomVAO();
+    gui.initCellVAO();
 
     gui.vMat = guiMatMkLookAt({{0,0,10}},{{0,0,0}},{{0,1,0}});
     gui.rMat = {{1,0,0,0,
@@ -286,10 +300,16 @@ int main()
                 0,0,1,0,
                 0,0,0,1}};
     gui.pMatChanged = gui.vMatChanged = gui.rMatChanged = true;
+
+    //TODO: remove temps
     Vec offset = {{0,0,0}};
+    glUseProgram(gui.atom_program);
     GLuint atfacLoc = glGetUniformLocation(gui.atom_program, "atom_fac");
     glUniform1f(atfacLoc, (GLfloat)0.5);
     GLuint offsetLoc = glGetUniformLocation(gui.atom_program, "offset");
+    glUniform3fv(offsetLoc, 1, offset.data());
+    glUseProgram(gui.cell_program);
+    offsetLoc = glGetUniformLocation(gui.cell_program, "offset");
     glUniform3fv(offsetLoc, 1, offset.data());
 
     gui.molecules.emplace_back("test");
@@ -298,7 +318,6 @@ int main()
     step->newAtom();
     step->newAtom({"O",{{1,0,0}}});
     step->newAtom({"F",{{0,1,0}}});
-
 
     emscripten_set_mousedown_callback("#canvas", nullptr, 1, mouse_event);
     emscripten_set_mouseup_callback(0, nullptr, 1, mouse_event);

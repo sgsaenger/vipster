@@ -307,6 +307,11 @@ const std::vector<Bond>& Step::getBondsCell(float cutfac) const
     return bonds;
 }
 
+size_t Step::getNbond() const noexcept
+{
+    return bonds.size();
+}
+
 void Step::setBonds(float cutfac) const
 {
     bonds.clear();

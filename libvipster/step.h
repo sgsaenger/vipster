@@ -47,6 +47,7 @@ public:
     const std::vector<Bond>& getBonds(float cutfac) const;
     const std::vector<Bond>& getBondsCell() const;
     const std::vector<Bond>& getBondsCell(float cutfac) const;
+    size_t  getNbond(void) const noexcept;
     std::shared_ptr<PseMap> pse;
 private:
     Atom formatAtom(Atom at, AtomFmt source, AtomFmt target) const;

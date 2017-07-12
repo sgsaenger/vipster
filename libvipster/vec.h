@@ -147,6 +147,24 @@ inline Vec operator*(const Mat &m, const Vec &v)
     return t;
 }
 
+inline Mat operator*=(Mat &m, const float &f)
+{
+    m[0]*=f;
+    m[1]*=f;
+    m[2]*=f;
+    return m;
+}
+
+inline Mat operator*(Mat m, const float &f)
+{
+    return m*=f;
+}
+
+inline Mat operator*(const float &f, Mat m)
+{
+    return m*=f;
+}
+
 inline Mat Mat_trans(const Mat &m)
 {
     return {{Vec{{m[0][0],m[1][0],m[2][0]}},

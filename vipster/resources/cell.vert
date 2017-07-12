@@ -1,7 +1,8 @@
-#version 330 core
-
 layout(location = 0) in vec3 vertex_modelspace;
-uniform mat4 vpMatrix;
+layout(std140, row_major) uniform viewMat{
+    mat4 vpMatrix;
+    mat4 rMatrix;
+};
 uniform vec3 offset;
 
 void main(void)
