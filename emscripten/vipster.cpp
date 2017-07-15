@@ -37,7 +37,7 @@ EMSCRIPTEN_KEEPALIVE
 void emReadFile(char* fn, IOFmt fmt){
     auto d = readFile(fn, fmt);
     gui.molecules.push_back(d.mol);
-    gui.curStep = &gui.molecules.back().getStep(0);
+    gui.updateBuffers(&gui.molecules.back().getStep(0), true);
 }
 
 }
@@ -60,8 +60,7 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
                 currentOp = OpMode::Translation;
                 break;
             case 2:
-                gui.rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
-                gui.rMatChanged = true;
+                gui.alignViewMat(GuiWrapper::alignDir::z);
             }
         }
         break;
@@ -112,17 +111,15 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
             local1Y = touchEvent->touches[0].canvasY;
             break;
         default:
-            gui.rMat = {{1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1}};
-            gui.rMatChanged = true;
+            gui.alignViewMat(GuiWrapper::alignDir::z);
             break;
         }
         break;
     case EMSCRIPTEN_EVENT_TOUCHMOVE:
         switch(touchEvent->numTouches){
         case 1:
-            guiMatRot(gui.rMat, touchEvent->touches[0].canvasX-local1X, 0, 1, 0);
-            guiMatRot(gui.rMat, touchEvent->touches[0].canvasY-local1Y, 1, 0, 0);
-            gui.rMatChanged = true;
+            gui.rotateViewMat(touchEvent->touches[0].canvasX-local1X,
+                    touchEvent->touches[0].canvasY-local1Y,0);
             local1X = touchEvent->touches[0].canvasX;
             local1Y = touchEvent->touches[0].canvasY;
             break;
@@ -176,29 +173,24 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
 
 EM_BOOL wheel_event(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
 {
-    guiMatScale(gui.vMat, wheelEvent->deltaY<0?1.1:0.9);
-    gui.vMatChanged = true;
+    gui.zoomViewMat(-wheelEvent->deltaY);
     return 1;
 }
 
 EM_BOOL key_event(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData)
 {
     switch(keyEvent->keyCode){
-        case 37:
-            guiMatRot(gui.rMat, -10, 0, 1, 0);
-            gui.rMatChanged = true;
+    case 37:
+        gui.rotateViewMat(-10, 0, 0);
         break;
-        case 39:
-            guiMatRot(gui.rMat, 10, 0, 1, 0);
-            gui.rMatChanged = true;
+    case 39:
+        gui.rotateViewMat(10, 0, 0);
         break;
-        case 38:
-            guiMatRot(gui.rMat, -10, 1, 0, 0);
-            gui.rMatChanged = true;
+    case 38:
+        gui.rotateViewMat(0, -10, 0);
         break;
-        case 40:
-            guiMatRot(gui.rMat, 10, 1, 0, 0);
-            gui.rMatChanged = true;
+    case 40:
+        gui.rotateViewMat(0, 10, 0);
         break;
     }
     return 1;
@@ -206,58 +198,18 @@ EM_BOOL key_event(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* 
 
 void one_iter(){
     int width, height, fullscreen;
-    static const Step* step{nullptr};
     static int localWidth, localHeight;
-    // update Step-data
-    if(step != gui.curStep){
-        //atoms
-        step = gui.curStep;
-        gui.atom_buffer.clear();
-        gui.atom_buffer.reserve(gui.curStep->getNat());
-        for(const Atom& at:gui.curStep->getAtoms()){
-            PseEntry &pse = (*gui.curStep->pse)[at.name];
-            gui.atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
-                                    pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
-        }
-        glBindBuffer(GL_ARRAY_BUFFER, gui.atom_vbo);
-        glBufferData(GL_ARRAY_BUFFER, gui.atom_buffer.size()*8*sizeof(float),
-                     (void*)gui.atom_buffer.data(), GL_STREAM_DRAW);
-        //cell
-        Mat cv = step->getCellVec() * step->getCellDim();
-        gui.cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
-                             cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
-        glBindBuffer(GL_ARRAY_BUFFER, gui.cell_vbo);
-        glBufferData(GL_ARRAY_BUFFER, 24*sizeof(float), (void*)gui.cell_buffer.data(), GL_STREAM_DRAW);
-    }
     // handle resize
     emscripten_get_canvas_size(&width, &height, &fullscreen);
     if( width != localWidth || height != localHeight){
-        height==0?height=1:0;
-        glViewport(0,0,width,height);
-        float aspect = (float)width/height;
-        gui.pMat = guiMatMkOrtho(-10*aspect,10*aspect,-10, 10, -100, 1000);
-        gui.pMatChanged = true;
+        gui.resizeViewMat(width, height);
         localWidth = width;
         localHeight = height;
     }
-    // update mvp-matrices if needed
-    if(gui.rMatChanged){
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
-                        (gui.pMat*gui.vMat*gui.rMat).data());
-        glBufferSubData(GL_UNIFORM_BUFFER, 16*sizeof(float), 16*sizeof(float), gui.rMat.data());
-        gui.pMatChanged = gui.vMatChanged = gui.rMatChanged = false;
-    }else if(gui.pMatChanged || gui.vMatChanged){
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
-                        (gui.pMat*gui.vMat*gui.rMat).data());
-        gui.pMatChanged = gui.vMatChanged = false;
-    }
-    // draw stuff
-    glBindVertexArray(gui.atom_vao);
-    glUseProgram(gui.atom_program);
-    glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,gui.atom_buffer.size());
-    glBindVertexArray(gui.cell_vao);
-    glUseProgram(gui.cell_program);
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, NULL);
+    // sync data and draw
+    gui.updateVBOs();
+    gui.updateUBO();
+    gui.draw();
 }
 
 int main()
@@ -283,23 +235,13 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    gui.loadShader(gui.atom_program, "# version 300 es\nprecision highp float;\n",
-                   readShader("/atom.vert"),
-                   readShader("/atom.frag"));
-    gui.loadShader(gui.cell_program, "# version 300 es\nprecision highp float;\n",
-                   readShader("/cell.vert"),
-                   readShader("/cell.frag"));
+    gui.initShaders("# version 300 es\nprecision highp float;\n", "");
 
-    gui.initUBO();
     gui.initAtomVAO();
+    gui.initBondVAO();
     gui.initCellVAO();
-
-    gui.vMat = guiMatMkLookAt({{0,0,10}},{{0,0,0}},{{0,1,0}});
-    gui.rMat = {{1,0,0,0,
-                0,1,0,0,
-                0,0,1,0,
-                0,0,0,1}};
-    gui.pMatChanged = gui.vMatChanged = gui.rMatChanged = true;
+    gui.initUBO();
+    gui.initViewMat();
 
     //TODO: remove temps
     Vec offset = {{0,0,0}};
@@ -313,11 +255,11 @@ int main()
     glUniform3fv(offsetLoc, 1, offset.data());
 
     gui.molecules.emplace_back("test");
-    gui.curStep = &gui.molecules[0].getStep(0);
-    Step* step = const_cast<Step*>(gui.curStep);
+    Step* step = &gui.molecules[0].getStep(0);
     step->newAtom();
     step->newAtom({"O",{{1,0,0}}});
     step->newAtom({"F",{{0,1,0}}});
+    gui.updateBuffers(step, true);
 
     emscripten_set_mousedown_callback("#canvas", nullptr, 1, mouse_event);
     emscripten_set_mouseup_callback(0, nullptr, 1, mouse_event);

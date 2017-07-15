@@ -288,7 +288,7 @@ const std::vector<Bond>& Step::getBonds(float cutfac) const
 {
     if(bonds_outdated or (cutfac!=bondcut_factor) or (bonds_level<BondLevel::Molecule))
     {
-//        Step::setBonds(cutfac);
+        Step::setBonds(cutfac);
     }
     return bonds;
 }

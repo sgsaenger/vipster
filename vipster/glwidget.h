@@ -33,10 +33,6 @@ public slots:
     void setMult(int i);
     void setCamera(int i);
 private:
-    const Vipster::Step* curStep{nullptr}; // Pointer to currently loaded Step
-    // Other data for rendering
-    std::array<int,3> mult{{1,1,1}}; //number of repetitions
-    float xshift{0.0}, yshift{0.0}, distance{1.0};
     // Input handling
     enum class MouseMode { Camera, Select, Modify };
     MouseMode mouseMode{MouseMode::Camera};

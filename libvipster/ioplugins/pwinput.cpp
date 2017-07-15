@@ -193,7 +193,6 @@ struct pwi_parse_grammar
                 << phx::val("\"")
                 << endl
         );
-        BOOST_SPIRIT_DEBUG_NODES((species)(pseentry)(positions));
     }
 
     rule<Iterator, IO::PWData(), blank_type> file;

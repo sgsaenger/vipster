@@ -26,7 +26,7 @@
    <string>Vipster</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources/vipster.qrc">
+   <iconset>
     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -317,7 +317,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -381,7 +381,7 @@
   </widget>
   <widget class="QDockWidget" name="molDock">
    <property name="windowTitle">
-    <string>Molecule</string>
+    <string>&amp;Molecule</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -559,9 +559,7 @@
   <tabstop>yMultBox</tabstop>
   <tabstop>zMultBox</tabstop>
  </tabstops>
- <resources>
-  <include location="resources/vipster.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>actionExit</sender>
@@ -586,12 +584,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1211</x>
-     <y>631</y>
+     <x>1206</x>
+     <y>630</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1159</x>
-     <y>626</y>
+     <x>1162</x>
+     <y>624</y>
     </hint>
    </hints>
   </connection>
@@ -676,54 +674,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>xMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1118</x>
-     <y>588</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1079</x>
-     <y>461</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1175</x>
-     <y>588</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1137</x>
-     <y>529</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1230</x>
-     <y>601</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1188</x>
-     <y>526</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionDelete_Atom_s</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -787,6 +737,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>yMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1175</x>
+     <y>588</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1137</x>
+     <y>529</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1083</x>
+     <y>585</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1083</x>
+     <y>411</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>openGLWidget</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1229</x>
+     <y>594</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1188</x>
+     <y>526</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -798,8 +796,8 @@
   <slot>setMol()</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="cameraGroup"/>
   <buttongroup name="modeGroup"/>
+  <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>

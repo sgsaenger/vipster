@@ -16,22 +16,41 @@ using namespace Vipster;
 typedef std::array<float,16> guiMat;
 
 #ifdef __EMSCRIPTEN__
-std::string readShader(std::string filePath);
-struct GuiWrapper{
+class GuiWrapper{
 #else
-#include <QString>
-std::string readShader(QString filePath);
-struct GuiWrapper: protected QOpenGLFunctions_3_3_Core{
+class GuiWrapper: protected QOpenGLFunctions_3_3_Core{
 #endif
     void loadShader(GLuint &program, std::string header, std::string vertShaderStr, std::string fragShaderStr);
-    void initUBO(void);
+public:
+    void initShaders(std::string header, std::string folder);
+    void deleteGLObjects(void);
+    void draw(void);
+    // atom/bond/cell-data
     void initAtomVAO(void);
     void initBondVAO(void);
     void initCellVAO(void);
-    void deleteGLObjects(void);
+    void updateBuffers(const Step* step, bool draw_bonds=true);
+    void updateVBOs(void);
+    // view/projection matrices
+    void initUBO(void);
+    void updateUBO(void);
+    void initViewMat(void);
+    void resizeViewMat(int w, int h);
+    void zoomViewMat(int i);
+    void rotateViewMat(float x, float y, float z);
+    void translateViewMat(float x, float y, float z);
+    enum class alignDir{x,y,z,mx,my,mz};
+    void alignViewMat(alignDir d);
     // molecule-store
     std::vector<Vipster::Molecule> molecules;
     const Step* curStep{nullptr};
+public:
+    // cpu-side data
+    std::array<int,3> mult{{1,1,1}};
+    std::vector<std::array<float,8>> atom_buffer;
+    std::vector<std::array<float,24>> bond_buffer;
+    std::array<Vec,8> cell_buffer;
+    bool atoms_changed, bonds_changed, cell_changed;
     // gpu-side data
     GLuint atom_program, bond_program, cell_program;
     GLuint atom_vao, bond_vao, cell_vao;
@@ -39,11 +58,7 @@ struct GuiWrapper: protected QOpenGLFunctions_3_3_Core{
     GLuint sphere_vbo, torus_vbo;
     GLuint cell_ibo;
     GLuint ubo;
-    // cpu-side data
-    std::vector<std::array<float,8>> atom_buffer;
-    std::vector<std::array<float,24>> bond_buffer;
-    std::array<Vec,8> cell_buffer;
-    bool atoms_changed, bonds_changed, cell_changed;
+public:
     // cpu-side uniforms
     guiMat vMat, pMat, rMat;
     bool vMatChanged, pMatChanged, rMatChanged;

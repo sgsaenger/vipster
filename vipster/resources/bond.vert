@@ -10,8 +10,8 @@ layout(std140, row_major) uniform viewMat{
     mat4 rMatrix;
 };
 uniform vec3 offset;
-uniform vec3 pbc_cell;
-uniform vec3 mult;
+uniform ivec3 pbc_cell;
+uniform ivec3 mult;
 
 out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -23,10 +23,11 @@ flat out int render;
 
 void main(void)
 {
-    if(pbc_crit.w != 0){
+    ivec4 crit_int = ivec4(pbc_crit);
+    if(crit_int.w != 0){
         render = 1;
     }else{
-        vec3 test = mult - pbc_crit.xyz;
+        ivec3 test = mult - crit_int.xyz;
         render = int((test.x > pbc_cell.x) && (test.y > pbc_cell.y) && (test.z > pbc_cell.z));
     }
     //standard vertex positioning:

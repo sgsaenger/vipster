@@ -10,6 +10,8 @@ QMAKE_LINK = emcc
 QMAKE_LFLAGS = --bind --embed-file $$PWD/../libvipster/default.json@vipster.json \
     --embed-file $$PWD/../vipster/resources/atom.frag@atom.frag \
     --embed-file $$PWD/../vipster/resources/atom.vert@atom.vert \
+    --embed-file $$PWD/../vipster/resources/bond.frag@bond.frag \
+    --embed-file $$PWD/../vipster/resources/bond.vert@bond.vert \
     --embed-file $$PWD/../vipster/resources/cell.frag@cell.frag \
     --embed-file $$PWD/../vipster/resources/cell.vert@cell.vert \
     -s USE_WEBGL2=1

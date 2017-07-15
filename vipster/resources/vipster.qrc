@@ -1,17 +1,13 @@
 <RCC>
-    <qresource prefix="/shaders/atom">
+    <qresource prefix="/shaders">
         <file>atom.frag</file>
         <file>atom.vert</file>
-    </qresource>
-    <qresource prefix="/shaders/bond">
         <file>bond.frag</file>
         <file>bond.vert</file>
+        <file>cell.frag</file>
+        <file>cell.vert</file>
     </qresource>
     <qresource prefix="/images">
         <file>icon.png</file>
-    </qresource>
-    <qresource prefix="/shaders/cell">
-        <file>cell.frag</file>
-        <file>cell.vert</file>
     </qresource>
 </RCC>

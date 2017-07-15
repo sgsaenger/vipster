@@ -20,15 +20,15 @@ namespace Vipster{
         float charge;
         FixVec fix;
         bool hidden;
-        bool operator ==(const Atom &a2) const{
-            return std::tie(name, coord, charge, fix, hidden)
-                    ==
-                   std::tie(a2.name, a2.coord, a2.charge, a2.fix, a2.hidden);
-        }
-        bool operator !=(const Atom &a2) const{
-            return !(*this == a2);
-        }
     };
+    inline bool operator ==(const Atom &a1, const Atom &a2){
+        return std::tie(a1.name, a1.coord, a1.charge, a1.fix, a1.hidden)
+                ==
+               std::tie(a2.name, a2.coord, a2.charge, a2.fix, a2.hidden);
+    }
+    inline bool operator !=(const Atom &a1, const Atom &a2){
+        return !(a1 == a2);
+    }
     inline std::ostream& operator<<(std::ostream &s, const Atom &a)
     {
         s << std::boolalpha

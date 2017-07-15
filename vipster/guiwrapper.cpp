@@ -3,6 +3,7 @@
 #include <iostream>
 #include <atom_model.h>
 #include <bond_model.h>
+#include <limits>
 
 #ifdef __EMSCRIPTEN__
 std::string readShader(std::string filePath)
@@ -17,10 +18,11 @@ std::string readShader(std::string filePath)
     return content;
 }
 #else
+#include <QString>
 #include <QFile>
-std::string readShader(QString filePath)
+std::string readShader(std::string filePath)
 {
-    QFile f(filePath);
+    QFile f(QString::fromStdString(filePath));
     f.open(QIODevice::ReadOnly);
     return f.readAll().toStdString();
 }
@@ -81,6 +83,19 @@ void GuiWrapper::loadShader(GLuint &program, std::string header, std::string ver
     glDeleteShader(vertShader);
     glDetachShader(program, fragShader);
     glDeleteShader(fragShader);
+}
+
+void GuiWrapper::initShaders(std::string header, std::string folder)
+{
+    loadShader(atom_program, header,
+               readShader(folder + "/atom.vert"),
+               readShader(folder + "/atom.frag"));
+    loadShader(bond_program, header,
+               readShader(folder + "/bond.vert"),
+               readShader(folder + "/bond.frag"));
+    loadShader(cell_program, header,
+               readShader(folder + "/cell.vert"),
+               readShader(folder + "/cell.frag"));
 }
 
 void guiMatScale(guiMat &m, float f)
@@ -207,17 +222,14 @@ guiMat operator *(guiMat a, const guiMat &b)
 
 void GuiWrapper::initUBO(void)
 {
-    GLuint atomLoc = glGetUniformBlockIndex(atom_program, "viewMat");
-    glUniformBlockBinding(atom_program, atomLoc, 0);
-//    GLuint bondLoc = glGetUniformBlockIndex(bond_program, "viewMat");
-//    glUniformBlockBinding(bond_program, bondLoc, 0);
-    GLuint cellLoc = glGetUniformBlockIndex(cell_program, "viewMat");
-    glUniformBlockBinding(cell_program, cellLoc, 0);
+    glUniformBlockBinding(atom_program, 0, 0);
+    glUniformBlockBinding(bond_program, 0, 0);
+    glUniformBlockBinding(cell_program, 0, 0);
 
     glGenBuffers(1, &ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
     glBufferData(GL_UNIFORM_BUFFER, 2*16*sizeof(float), NULL, GL_STATIC_DRAW);
-    glBindBufferRange(GL_UNIFORM_BUFFER, atomLoc, ubo, 0, 2*16*sizeof(float));
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 2*16*sizeof(float));
 }
 
 void GuiWrapper::initAtomVAO(void)
@@ -316,4 +328,264 @@ void GuiWrapper::deleteGLObjects(void)
     glDeleteBuffers(1, &cell_vbo);
     glDeleteBuffers(1, &cell_ibo);
     glDeleteVertexArrays(1, &cell_vao);
+}
+
+void GuiWrapper::draw(void)
+{
+    Vec off;
+    Vec center = curStep->getCenter();
+    Mat cv = curStep->getCellVec() * curStep->getCellDim();
+    center += (mult[0]-1)*cv[0]/2.;
+    center += (mult[1]-1)*cv[1]/2.;
+    center += (mult[2]-1)*cv[2]/2.;
+    // atoms
+    glBindVertexArray(atom_vao);
+    glUseProgram(atom_program);
+    //TODO: pull atom_fac from config
+    GLuint offLocA = glGetUniformLocation(atom_program, "offset");
+    GLuint facLoc = glGetUniformLocation(atom_program, "atom_fac");
+    glUniform1f(facLoc, 0.5);
+    for(int x=0;x!=mult[0];++x){
+        for(int y=0;y!=mult[1];++y){
+            for(int z=0;z!=mult[2];++z){
+                off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                glUniform3fv(offLocA, 1, off.data());
+                glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,atom_buffer.size());
+            }
+        }
+    }
+    glBindVertexArray(bond_vao);
+    glUseProgram(bond_program);
+    GLuint offLocB = glGetUniformLocation(bond_program, "offset");
+    GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
+    GLuint multLoc = glGetUniformLocation(bond_program, "mult");
+    glUniform3iv(multLoc, 1, mult.data());
+    for(int x=0;x!=mult[0];++x){
+        for(int y=0;y!=mult[1];++y){
+            for(int z=0;z!=mult[2];++z){
+                off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                // bonds
+                glUniform3fv(offLocB, 1, off.data());
+                glUniform3i(pbcLoc, x, y, z);
+                glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
+            }
+        }
+    }
+    glBindVertexArray(cell_vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
+    glUseProgram(cell_program);
+    GLuint offLocC = glGetUniformLocation(cell_program, "offset");
+    for(int x=0;x!=mult[0];++x){
+        for(int y=0;y!=mult[1];++y){
+            for(int z=0;z!=mult[2];++z){
+                off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                // cell
+                glUniform3fv(offLocC, 1, off.data());
+                glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, NULL);
+            }
+        }
+    }
+}
+
+void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
+{
+    curStep = step;
+    //cell
+    Mat cv = step->getCellVec() * step->getCellDim();
+    cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
+                     cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
+    cell_changed = true;
+    //atoms
+    const auto& atoms = step->getAtoms();
+    atom_buffer.clear();
+    atom_buffer.reserve(atoms.size());
+    for(const Atom& at:atoms){
+        PseEntry &pse = (*step->pse)[at.name];
+        atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
+                          pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
+    }
+    atoms_changed = true;
+    //bonds
+    if(draw_bonds){
+        constexpr Vec x_axis{{1,0,0}};
+        const auto& bonds = step->getBonds();
+        float c, s, ic;
+        float rad = 0.53; // TODO: pull bond-radius from config
+        bond_buffer.clear();
+        bond_buffer.reserve(bonds.size());
+        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
+        for(const Bond& bd:bonds){
+            const auto &at1 = atom_buffer[bd.at1];
+            const auto &at2 = atom_buffer[bd.at2];
+            at_pos1 = {{at1[0], at1[1], at1[2]}};
+            at_pos2 = {{at2[0], at2[1], at2[2]}};
+            if(bd.xdiff>0){at_pos2 += bd.xdiff*cv[0];}else if(bd.xdiff<0){at_pos1 -= bd.xdiff*cv[0];}
+            if(bd.ydiff>0){at_pos2 += bd.ydiff*cv[1];}else if(bd.ydiff<0){at_pos1 -= bd.ydiff*cv[1];}
+            if(bd.zdiff>0){at_pos2 += bd.zdiff*cv[2];}else if(bd.zdiff<0){at_pos1 -= bd.zdiff*cv[2];}
+            bond_axis = at_pos1 - at_pos2;
+            bond_pos = (at_pos1+at_pos2)/2;
+            if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
+               std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
+                c = std::copysign(1., bond_axis[0]);
+                bond_buffer.push_back({{
+                    bd.dist*c, 0, 0,
+                    0, rad, 0,
+                    0, 0, rad*c,
+                    bond_pos[0], bond_pos[1], bond_pos[2],
+                    (float)std::abs(bd.xdiff),
+                    (float)std::abs(bd.ydiff),
+                    (float)std::abs(bd.zdiff),
+                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
+                    at1[4], at1[5], at1[6], at1[7],
+                    at2[4], at2[5], at2[6], at2[7]}});
+            }else{
+                rot_axis = -Vec_cross(bond_axis, x_axis);
+                rot_axis /= Vec_length(rot_axis);
+                c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
+                ic = 1-c;
+                s = -std::sqrt(1-c*c);
+                bond_buffer.push_back({{
+                    //mat3 with rotation and scaling
+                    bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
+                    bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
+                    bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
+                    rad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
+                    rad*(ic*rot_axis[1]*rot_axis[1]+c),
+                    rad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
+                    rad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
+                    rad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
+                    rad*(ic*rot_axis[2]*rot_axis[2]+c),
+                    //vec3 with position in modelspace
+                    bond_pos[0],bond_pos[1],bond_pos[2],
+                    //faux vec4 with integral pbc information
+                    (float)std::abs(bd.xdiff),
+                    (float)std::abs(bd.ydiff),
+                    (float)std::abs(bd.zdiff),
+                    //padding float that tells if non-pbc bond
+                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
+                    //2*vec4 with colors
+                    at1[4], at1[5], at1[6], at1[7],
+                    at2[4], at2[5], at2[6], at2[7]}});
+            }
+        }
+        bonds_changed = true;
+    }
+}
+
+void GuiWrapper::updateVBOs(void)
+{
+    if(atoms_changed){
+        glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
+        glBufferData(GL_ARRAY_BUFFER, atom_buffer.size()*8*sizeof(float),
+                     (void*)atom_buffer.data(), GL_STREAM_DRAW);
+        atoms_changed = false;
+    }
+    if(bonds_changed){
+        glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
+        glBufferData(GL_ARRAY_BUFFER, bond_buffer.size()*24*sizeof(float),
+                     (void*)bond_buffer.data(), GL_STREAM_DRAW);
+        bonds_changed = false;
+    }
+    if(cell_changed){
+        glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
+        glBufferData(GL_ARRAY_BUFFER, 24*sizeof(float), (void*)cell_buffer.data(), GL_STREAM_DRAW);
+        cell_changed = false;
+    }
+}
+
+void GuiWrapper::updateUBO(void)
+{
+    if(rMatChanged){
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
+                        (pMat*vMat*rMat).data());
+        glBufferSubData(GL_UNIFORM_BUFFER, 16*sizeof(float), 16*sizeof(float), rMat.data());
+        rMatChanged = vMatChanged = pMatChanged = false;
+    }else if (pMatChanged || vMatChanged){
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
+                        (pMat*vMat*rMat).data());
+        vMatChanged = pMatChanged = false;
+    }
+}
+
+void GuiWrapper::initViewMat(void)
+{
+    pMat = guiMatMkOrtho(-15, 15, -10, 10, -100, 1000);
+    rMat = {{1,0,0,0,
+             0,1,0,0,
+             0,0,1,0,
+             0,0,0,1}};
+    vMat = guiMatMkLookAt({{0,0,10}}, {{0,0,0}}, {{0,1,0}});
+    pMatChanged = rMatChanged = vMatChanged = true;
+}
+
+void GuiWrapper::resizeViewMat(int w, int h)
+{
+    h==0?h=1:0;
+    glViewport(0,0,w,h);
+    float aspect = float(w)/h;
+    pMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, -100, 1000);
+    pMatChanged = true;
+}
+
+void GuiWrapper::zoomViewMat(int i)
+{
+    guiMatScale(vMat, i>0?1.1:0.9);
+    vMatChanged = true;
+}
+
+void GuiWrapper::rotateViewMat(float x, float y, float z)
+{
+    guiMatRot(rMat, x, 0, 1, 0);
+    guiMatRot(rMat, y, 1, 0, 0);
+    guiMatRot(rMat, z, 0, 0, 1);
+    rMatChanged = true;
+}
+
+void GuiWrapper::translateViewMat(float x, float y, float z)
+{
+    guiMatTranslate(vMat, x/10., y/10., z/10.);
+    vMatChanged = true;
+}
+
+void GuiWrapper::alignViewMat(alignDir d)
+{
+    switch (d) {
+    case alignDir::x:
+        rMat = {{ 0, 1, 0, 0,
+                  0, 0, 1, 0,
+                  1, 0, 0, 0,
+                  0, 0, 0, 1}};
+        break;
+    case alignDir::mx:
+        rMat = {{ 0,-1, 0, 0,
+                  0, 0, 1, 0,
+                 -1, 0, 0, 0,
+                  0, 0, 0, 1}};
+        break;
+    case alignDir::y:
+        rMat = {{-1, 0, 0, 0,
+                  0, 0, 1, 0,
+                  0, 1, 0, 0,
+                  0, 0, 0, 1}};
+        break;
+    case alignDir::my:
+        rMat = {{ 1, 0, 0, 0,
+                  0, 0, 1, 0,
+                  0,-1, 0, 0,
+                  0, 0, 0, 1}};
+        break;
+    case alignDir::z:
+        rMat = {{ 1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0, 1, 0,
+                  0, 0, 0, 1}};
+        break;
+    case alignDir::mz:
+        rMat = {{-1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0,-1, 0,
+                  0, 0, 0, 1}};
+        break;
+    }
+    rMatChanged = true;
 }
