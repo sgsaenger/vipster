@@ -47,6 +47,7 @@ public:
 public:
     // cpu-side data
     std::array<int,3> mult{{1,1,1}};
+private:
     std::vector<std::array<float,8>> atom_buffer;
     std::vector<std::array<float,24>> bond_buffer;
     std::array<Vec,8> cell_buffer;
@@ -58,7 +59,6 @@ public:
     GLuint sphere_vbo, torus_vbo;
     GLuint cell_ibo;
     GLuint ubo;
-public:
     // cpu-side uniforms
     guiMat vMat, pMat, rMat;
     bool vMatChanged, pMatChanged, rMatChanged;

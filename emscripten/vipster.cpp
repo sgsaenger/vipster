@@ -40,6 +40,11 @@ void emReadFile(char* fn, IOFmt fmt){
     gui.updateBuffers(&gui.molecules.back().getStep(0), true);
 }
 
+EMSCRIPTEN_KEEPALIVE
+void emSetMult(int x, int y, int z){
+    gui.mult = {{x,y,z}};
+}
+
 }
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
@@ -72,14 +77,12 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
         switch(currentOp){
         case OpMode::Rotation:
-            guiMatRot(gui.rMat, mouseEvent->canvasX-localX, 0, 1, 0);
-            guiMatRot(gui.rMat, mouseEvent->canvasY-localY, 1, 0, 0);
-            gui.rMatChanged = true;
+            gui.rotateViewMat(mouseEvent->canvasX-localX,
+                              mouseEvent->canvasY-localY, 0);
             break;
         case OpMode::Translation:
-            guiMatTranslate(gui.vMat, (mouseEvent->canvasX-localX)/10.,
-                           -(mouseEvent->canvasY-localY)/10.,0);
-            gui.vMatChanged = true;
+            gui.translateViewMat(mouseEvent->canvasX-localX,
+                                 -(mouseEvent->canvasY-localY), 0);
             break;
         }
         break;
@@ -145,14 +148,12 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
                                              touchEvent->touches[0].canvasX,2)+
                                     std::pow(touchEvent->touches[1].canvasY-
                                              touchEvent->touches[0].canvasY,2));
-                guiMatScale(gui.vMat, (tmp-distance)<0?1.1:0.9);
-                gui.vMatChanged = true;
+                gui.zoomViewMat(tmp-distance);
                 distance = tmp;
             }else if(ttMode == TwoTouch::Translate){
                 tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
                 tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
-                guiMatTranslate(gui.vMat, (tmp-transX)/10., (tmp-transY)/10., 0);
-                gui.vMatChanged = true;
+                gui.translateViewMat(tmp-transX, -(tmp2-transY), 0);
                 transX = tmp;
                 transY = tmp2;
             }
@@ -242,17 +243,6 @@ int main()
     gui.initCellVAO();
     gui.initUBO();
     gui.initViewMat();
-
-    //TODO: remove temps
-    Vec offset = {{0,0,0}};
-    glUseProgram(gui.atom_program);
-    GLuint atfacLoc = glGetUniformLocation(gui.atom_program, "atom_fac");
-    glUniform1f(atfacLoc, (GLfloat)0.5);
-    GLuint offsetLoc = glGetUniformLocation(gui.atom_program, "offset");
-    glUniform3fv(offsetLoc, 1, offset.data());
-    glUseProgram(gui.cell_program);
-    offsetLoc = glGetUniformLocation(gui.cell_program, "offset");
-    glUniform3fv(offsetLoc, 1, offset.data());
 
     gui.molecules.emplace_back("test");
     Step* step = &gui.molecules[0].getStep(0);

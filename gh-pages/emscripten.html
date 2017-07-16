@@ -21,6 +21,12 @@
     </head>
     <body>
         <input type="file" id="upload">
+        X:
+        <input type="number" id="xmult" min="1">
+        Y:
+        <input type="number" id="ymult" min="1">
+        Z:
+        <input type="number" id="zmult" min="1">
         <output id="output"></output>
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
         <script type="text/javascript">
@@ -40,7 +46,6 @@
                 var file = e.target.files[0];
                 var reader = new FileReader();
                 reader.onload = function(e){
-                    //document.getElementById('output').innerHTML = e.target.result;
                     Module.FS_createDataFile("/tmp","test.file", e.target.result, true);
                     Module.ccall("emReadFile", null, ['string', 'number'], ["/tmp/test.file", Module.IOFmt.XYZ.value]);
                     Module.FS_unlink("/tmp/test.file")
@@ -49,6 +54,15 @@
                 document.getElementById('output').innerHTML = "Success!";
             };
             document.getElementById('upload').addEventListener('change', readFile, false);
+            function setMult(e){
+                var x = document.getElementById('xmult').value;
+                var y = document.getElementById('ymult').value;
+                var z = document.getElementById('zmult').value;
+                Module.ccall("emSetMult", null, ['number', 'number', 'number'], [x,y,z]);
+            }
+            document.getElementById('xmult').addEventListener('change', setMult, false);
+            document.getElementById('ymult').addEventListener('change', setMult, false);
+            document.getElementById('zmult').addEventListener('change', setMult, false);
         </script>
         <script async type="text/javascript" src="js/vipster.js"></script>
     </body>
