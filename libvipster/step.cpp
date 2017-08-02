@@ -1,5 +1,7 @@
 #include <global.h>
 #include <step.h>
+//TODO: remove debug headers
+#include <iostream>
 
 using namespace Vipster;
 
@@ -151,12 +153,12 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atvec, AtomFmt source, Ato
     case AtomFmt::Bohr:
         break;
     case AtomFmt::Angstrom:
-        for(Atom& at:atvec) { at.coord*=invbohr; }
+        for(Atom& at:atvec) { at.coord *= invbohr; }
         break;
     case AtomFmt::Crystal:
         for(Atom& at:atvec) { at.coord = at.coord * cellvec; }
     case AtomFmt::Alat:
-        for(Atom& at:atvec) { at.coord*=celldim; }
+        for(Atom& at:atvec) { at.coord *= celldim; }
         break;
     }
     switch(target)
@@ -164,12 +166,12 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atvec, AtomFmt source, Ato
     case AtomFmt::Bohr:
         break;
     case AtomFmt::Angstrom:
-        for(Atom& at:atvec) { at.coord*=bohrrad; }
+        for(Atom& at:atvec) { at.coord *= bohrrad; }
         break;
     case AtomFmt::Crystal:
         for(Atom& at:atvec) { at.coord = at.coord * invvec; }
     case AtomFmt::Alat:
-        for(Atom& at:atvec) { at.coord/=celldim; }
+        for(Atom& at:atvec) { at.coord /= celldim; }
         break;
     }
     return atvec;
@@ -342,9 +344,38 @@ void Step::setBonds(float cutfac) const
     bonds_level = BondLevel::Molecule;
 }
 
+void Step::checkBond(std::size_t i, std::size_t j, float cutfac, Vec dist, std::array<int, 3> offset) const
+{
+    std::cout << "\n    checking: " << dist[0] << ", " << dist[1] << ", " << dist[2] << "\n    ";
+//    if (dist[0] > cutfac) return;
+//    if (dist[1] > cutfac) return;
+//    if (dist[2] > cutfac) return;
+    float dist_n = Vec_dot(dist, dist);
+    if((0.57 < dist_n) && (dist_n < cutfac*cutfac)){
+        bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
+        std::cout << "bond found" ;
+    }else{
+        std::cout << "no bond" ;
+    }
+}
+
 void Step::setBondsCell(float cutfac) const
 {
     bonds.clear();
+    Vec x = cellvec[0] * celldim;
+    Vec y = cellvec[1] * celldim;
+    Vec z = cellvec[2] * celldim;
+    Vec xy   = x+y;
+    Vec xmy  = x-y;
+    Vec xz   = x+z;
+    Vec xmz  = x-z;
+    Vec yz   = y+z;
+    Vec ymz  = y-z;
+    Vec xyz  = xy + z;
+    Vec xymz = xy - z;
+    Vec xmyz = xz - y;
+    Vec mxyz = yz - x;
+    std::array<int, 3> diff_v, crit_v;
     for(std::vector<Atom>::size_type i = 0; i != atoms.size(); ++i){
         float cut_i = (*pse)[atoms[i].name].bondcut;
         if (!cut_i) continue;
@@ -353,29 +384,164 @@ void Step::setBondsCell(float cutfac) const
             if (!cut_j) continue;
             float effcut = (cut_i + cut_j) * cutfac;
             Vec dist_v = atoms[i].coord - atoms[j].coord;
-            Vec ctemp;
-            ctemp[0] = dist_v[0]*invvec[0][0] + dist_v[1]*invvec[1][0] + dist_v[2]*invvec[2][0];
-            ctemp[1] = dist_v[0]*invvec[0][1] + dist_v[1]*invvec[1][1] + dist_v[2]*invvec[2][1];
-            ctemp[2] = dist_v[0]*invvec[0][2] + dist_v[1]*invvec[1][2] + dist_v[2]*invvec[2][2];
-            dist_v.swap(ctemp);
-            dist_v /= celldim;
-            dist_v += 0.5;
-            int xdiff = std::floor(dist_v[0]);
-            int ydiff = std::floor(dist_v[1]);
-            int zdiff = std::floor(dist_v[2]);
-            dist_v[0] = std::abs(std::fmod(dist_v[0], 1));
-            dist_v[1] = std::abs(std::fmod(dist_v[1], 1));
-            dist_v[2] = std::abs(std::fmod(dist_v[2], 1));
-            dist_v -= 0.5;
-            ctemp[0] = dist_v[0]*cellvec[0][0] + dist_v[1]*cellvec[1][0] + dist_v[2]*cellvec[2][0];
-            ctemp[1] = dist_v[0]*cellvec[0][1] + dist_v[1]*cellvec[1][1] + dist_v[2]*cellvec[2][1];
-            ctemp[2] = dist_v[0]*cellvec[0][2] + dist_v[1]*cellvec[1][2] + dist_v[2]*cellvec[2][2];
-            dist_v.swap(ctemp);
-            dist_v *= celldim;
-            float dist_n = Vec_length(dist_v);
-            if ((0.57 < dist_n) && (dist_n < effcut)){
-                bonds.push_back({i, j, std::sqrt(dist_n), xdiff, ydiff, zdiff});
+            if(format != AtomFmt::Crystal){
+                dist_v = dist_v * invvec / celldim;
             }
+            // TODO TODO TODO: vorzeichenfehler?! Bindungen werden teils falsch angezeigt!
+            diff_v[0] = std::copysign(dist_v[0], std::floor(std::abs(dist_v[0])));
+            diff_v[1] = std::copysign(dist_v[1], std::floor(std::abs(dist_v[1])));
+            diff_v[2] = std::copysign(dist_v[2], std::floor(std::abs(dist_v[2])));
+            dist_v[0] = std::fmod(dist_v[0], 1);
+            dist_v[1] = std::fmod(dist_v[1], 1);
+            dist_v[2] = std::fmod(dist_v[2], 1);
+            if(std::abs(dist_v[0]) < std::numeric_limits<float>::epsilon()){
+                crit_v[0] = 0;
+            }else{
+                crit_v[0] = dist_v[0] < 0 ? -1 : 1;
+            }
+            if(std::abs(dist_v[1]) < std::numeric_limits<float>::epsilon()){
+                crit_v[1] = 0;
+            }else{
+                crit_v[1] = dist_v[1] < 0 ? -1 : 1;
+            }
+            if(std::abs(dist_v[2]) < std::numeric_limits<float>::epsilon()){
+                crit_v[2] = 0;
+            }else{
+                crit_v[2] = dist_v[2] < 0 ? -1 : 1;
+            }
+            std::cout << "checking " << i << " and " << j << ":\n";
+            std::cout << "  diff: " << diff_v[0] << ", " << diff_v[1] << ", " << diff_v[2] << "\n";
+            std::cout << "  dist: " << dist_v[0] << ", " << dist_v[1] << ", " << dist_v[2] << "\n";
+            std::cout << "  crit: " << crit_v[0] << ", " << crit_v[1] << ", " << crit_v[2] << "\n";
+            if(!(crit_v[0]||crit_v[1]||crit_v[2])){
+                // TODO: fail here? set flag? overlapping atoms!
+                continue;
+            }
+            dist_v = dist_v * cellvec * celldim;
+            // 0-vector
+            std::cout << "  0-vec: ";
+            checkBond(i, j, effcut, dist_v, diff_v);
+            if(crit_v[0]){
+                // x, -x
+                std::cout << "  x: ";
+                checkBond(i, j, effcut, dist_v-crit_v[0]*x,
+                          {diff_v[0]+crit_v[0],diff_v[1],diff_v[2]});
+            }
+            if(crit_v[1]){
+                // y, -y
+                std::cout << "  y: ";
+                checkBond(i, j, effcut, dist_v-crit_v[1]*y,
+                          {diff_v[0],diff_v[1]+crit_v[1],diff_v[2]});
+                if(crit_v[0]){
+                    std::cout << "  xy: ";
+                    if(crit_v[0] == crit_v[1]){
+                        // x+y, -x-y
+                        checkBond(i, j, effcut, dist_v-crit_v[0]*xy,
+                                  {diff_v[0]+crit_v[0],
+                                   diff_v[1]+crit_v[1],
+                                   diff_v[2]});
+                    }else{
+                        // x-y, -x+y
+                        checkBond(i, j, effcut, dist_v-crit_v[0]*xmy,
+                                  {diff_v[0]+crit_v[0],
+                                   diff_v[1]+crit_v[1],
+                                   diff_v[2]});
+                    }
+                }
+            }
+            if(crit_v[2]){
+                // z, -z
+                std::cout << "  z: ";
+                checkBond(i, j, effcut, dist_v-crit_v[2]*z,
+                          {diff_v[0],diff_v[1],diff_v[2]+crit_v[2]});
+                if(crit_v[0]){
+                    std::cout << "  xz: ";
+                    if(crit_v[0] == crit_v[2]){
+                        // x+z, -x-z
+                        checkBond(i, j, effcut, dist_v-crit_v[0]*xz,
+                                  {diff_v[0]+crit_v[0],
+                                   diff_v[1],
+                                   diff_v[2]+crit_v[2]});
+                    }else{
+                        // x-z, -x+z
+                        checkBond(i, j, effcut, dist_v-crit_v[0]*xmz,
+                                  {diff_v[0]+crit_v[0],
+                                   diff_v[1],
+                                   diff_v[2]+crit_v[2]});
+                    }
+                }
+                if(crit_v[1]){
+                    std::cout << "  yz: ";
+                    if(crit_v[1] == crit_v[2]){
+                        // y+z, -y-z
+                        checkBond(i, j, effcut, dist_v-crit_v[1]*yz,
+                                  {diff_v[0],
+                                   diff_v[1]+crit_v[1],
+                                   diff_v[2]+crit_v[2]});
+                    }else{
+                        // y-z, -y+z
+                        checkBond(i, j, effcut, dist_v-crit_v[1]*ymz,
+                                  {diff_v[0],
+                                   diff_v[1]+crit_v[1],
+                                   diff_v[2]+crit_v[2]});
+                    }
+                    if(crit_v[0]){
+                        std::cout << "  xyz: ";
+                        if(crit_v[0] == crit_v[1]){
+                            if(crit_v[0] == crit_v[2]){
+                                // x+y+z, -x-y-z
+                                checkBond(i, j, effcut, dist_v-crit_v[0]*xyz,
+                                          {diff_v[0]+crit_v[0],
+                                           diff_v[1]+crit_v[1],
+                                           diff_v[2]+crit_v[2]});
+                            }else{
+                                // x+y-z, -x-y+z
+                                checkBond(i, j, effcut, dist_v-crit_v[0]*xymz,
+                                          {diff_v[0]+crit_v[0],
+                                           diff_v[1]+crit_v[1],
+                                           diff_v[2]+crit_v[2]});
+                            }
+                        }else{
+                            if(crit_v[0] == crit_v[2]){
+                                // x-y+z, -x+y-z
+                                checkBond(i, j, effcut, dist_v-crit_v[0]*xmyz,
+                                          {diff_v[0]+crit_v[0],
+                                           diff_v[1]+crit_v[1],
+                                           diff_v[2]+crit_v[2]});
+                            }else{
+                                // x-y-z, -x+y+z
+                                checkBond(i, j, effcut, dist_v-crit_v[1]*mxyz,
+                                          {diff_v[0]+crit_v[0],
+                                           diff_v[1]+crit_v[1],
+                                           diff_v[2]+crit_v[2]});
+                            }
+                        }
+                    }
+                }
+            }
+//            Vec ctemp;
+//            ctemp[0] = dist_v[0]*invvec[0][0] + dist_v[1]*invvec[1][0] + dist_v[2]*invvec[2][0];
+//            ctemp[1] = dist_v[0]*invvec[0][1] + dist_v[1]*invvec[1][1] + dist_v[2]*invvec[2][1];
+//            ctemp[2] = dist_v[0]*invvec[0][2] + dist_v[1]*invvec[1][2] + dist_v[2]*invvec[2][2];
+//            dist_v.swap(ctemp);
+//            dist_v /= celldim;
+//            dist_v += 0.5;
+//            int xdiff = std::floor(dist_v[0]);
+//            int ydiff = std::floor(dist_v[1]);
+//            int zdiff = std::floor(dist_v[2]);
+//            dist_v[0] = std::abs(std::fmod(dist_v[0], 1));
+//            dist_v[1] = std::abs(std::fmod(dist_v[1], 1));
+//            dist_v[2] = std::abs(std::fmod(dist_v[2], 1));
+//            dist_v -= 0.5;
+//            ctemp[0] = dist_v[0]*cellvec[0][0] + dist_v[1]*cellvec[1][0] + dist_v[2]*cellvec[2][0];
+//            ctemp[1] = dist_v[0]*cellvec[0][1] + dist_v[1]*cellvec[1][1] + dist_v[2]*cellvec[2][1];
+//            ctemp[2] = dist_v[0]*cellvec[0][2] + dist_v[1]*cellvec[1][2] + dist_v[2]*cellvec[2][2];
+//            dist_v.swap(ctemp);
+//            dist_v *= celldim;
+//            float dist_n = Vec_length(dist_v);
+//            if ((0.57 < dist_n) && (dist_n < effcut)){
+//                bonds.push_back({i, j, std::sqrt(dist_n), xdiff, ydiff, zdiff});
+//            }
         }
     }
     bonds_outdated = false;

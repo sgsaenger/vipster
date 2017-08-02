@@ -54,6 +54,7 @@ private:
     std::vector<Atom> formatAtoms(std::vector<Atom> atvec, AtomFmt source, AtomFmt target) const;
     void setBonds(float cutfac) const;
     void setBondsCell(float cutfac) const;
+    void checkBond(std::size_t i, std::size_t j, float cutfac, Vec dist, std::array<int, 3> offset) const;
     enum class BondLevel { None, Molecule, Cell };
     //DATA following:
     AtomFmt format=AtomFmt::Bohr;

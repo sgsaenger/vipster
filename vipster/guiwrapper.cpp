@@ -285,7 +285,7 @@ void GuiWrapper::initBondVAO(void)
     glVertexAttribDivisor(positionLoc,1);
     glEnableVertexAttribArray(positionLoc);
     GLuint critLoc = glGetAttribLocation(bond_program, "pbc_crit");
-    glVertexAttribPointer(critLoc,1,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(12*sizeof(float)));
+    glVertexAttribPointer(critLoc,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(12*sizeof(float)));
     glVertexAttribDivisor(critLoc,1);
     glEnableVertexAttribArray(critLoc);
     GLuint color1Loc = glGetAttribLocation(bond_program, "s1Color");
@@ -408,7 +408,7 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
     //bonds
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        const auto& bonds = step->getBonds();
+        const auto& bonds = step->getBondsCell();
         float c, s, ic;
         float rad = 0.53; // TODO: pull bond-radius from config
         bond_buffer.clear();
