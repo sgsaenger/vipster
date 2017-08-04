@@ -2,6 +2,7 @@
 vipster/vipster
 tests/tst_libvipstertest
 # C++ build files
+libvipster/json.hpp
 *.o
 *.so*
 # Emscripten
