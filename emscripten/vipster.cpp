@@ -47,7 +47,7 @@ void emSetMult(int x, int y, int z){
 
 }
 
-EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void* userData)
+EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*)
 {
     enum class MouseMode { Camera, Select, Modify};
     enum class OpMode { None, Rotation, Translation };
@@ -84,6 +84,8 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
             gui.translateViewMat(mouseEvent->canvasX-localX,
                                  -(mouseEvent->canvasY-localY), 0);
             break;
+        default:
+            break;
         }
         break;
     }
@@ -92,7 +94,7 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     return 1;
 }
 
-EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void* userData)
+EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*)
 {
     constexpr long translateDelta = 10, scaleDelta = 10;
     enum class TwoTouch { None, Scale, Translate};
@@ -172,13 +174,13 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
     return 1;
 }
 
-EM_BOOL wheel_event(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
+EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void*)
 {
     gui.zoomViewMat(-wheelEvent->deltaY);
     return 1;
 }
 
-EM_BOOL key_event(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData)
+EM_BOOL key_event(int, const EmscriptenKeyboardEvent* keyEvent, void*)
 {
     switch(keyEvent->keyCode){
     case 37:

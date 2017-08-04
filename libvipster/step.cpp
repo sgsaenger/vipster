@@ -415,89 +415,89 @@ void Step::setBondsCell(float cutfac) const
             if(crit_v[0]){
                 // x, -x
                 checkBond(i, j, effcut, dist_v-crit_v[0]*x,
-                          {diff_v[0]+crit_v[0],diff_v[1],diff_v[2]});
+                          {{diff_v[0]+crit_v[0],diff_v[1],diff_v[2]}});
             }
             if(crit_v[1]){
                 // y, -y
                 checkBond(i, j, effcut, dist_v-crit_v[1]*y,
-                          {diff_v[0],diff_v[1]+crit_v[1],diff_v[2]});
+                          {{diff_v[0],diff_v[1]+crit_v[1],diff_v[2]}});
                 if(crit_v[0]){
                     if(crit_v[0] == crit_v[1]){
                         // x+y, -x-y
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xy,
-                                  {diff_v[0]+crit_v[0],
-                                   diff_v[1]+crit_v[1],
-                                   diff_v[2]});
+                                  {{diff_v[0]+crit_v[0],
+                                    diff_v[1]+crit_v[1],
+                                    diff_v[2]}});
                     }else{
                         // x-y, -x+y
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xmy,
-                                  {diff_v[0]+crit_v[0],
-                                   diff_v[1]+crit_v[1],
-                                   diff_v[2]});
+                                  {{diff_v[0]+crit_v[0],
+                                    diff_v[1]+crit_v[1],
+                                    diff_v[2]}});
                     }
                 }
             }
             if(crit_v[2]){
                 // z, -z
                 checkBond(i, j, effcut, dist_v-crit_v[2]*z,
-                          {diff_v[0],diff_v[1],diff_v[2]+crit_v[2]});
+                          {{diff_v[0],diff_v[1],diff_v[2]+crit_v[2]}});
                 if(crit_v[0]){
                     if(crit_v[0] == crit_v[2]){
                         // x+z, -x-z
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xz,
-                                  {diff_v[0]+crit_v[0],
-                                   diff_v[1],
-                                   diff_v[2]+crit_v[2]});
+                                  {{diff_v[0]+crit_v[0],
+                                    diff_v[1],
+                                    diff_v[2]+crit_v[2]}});
                     }else{
                         // x-z, -x+z
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xmz,
-                                  {diff_v[0]+crit_v[0],
-                                   diff_v[1],
-                                   diff_v[2]+crit_v[2]});
+                                  {{diff_v[0]+crit_v[0],
+                                    diff_v[1],
+                                    diff_v[2]+crit_v[2]}});
                     }
                 }
                 if(crit_v[1]){
                     if(crit_v[1] == crit_v[2]){
                         // y+z, -y-z
                         checkBond(i, j, effcut, dist_v-crit_v[1]*yz,
-                                  {diff_v[0],
-                                   diff_v[1]+crit_v[1],
-                                   diff_v[2]+crit_v[2]});
+                                  {{diff_v[0],
+                                    diff_v[1]+crit_v[1],
+                                    diff_v[2]+crit_v[2]}});
                     }else{
                         // y-z, -y+z
                         checkBond(i, j, effcut, dist_v-crit_v[1]*ymz,
-                                  {diff_v[0],
-                                   diff_v[1]+crit_v[1],
-                                   diff_v[2]+crit_v[2]});
+                                  {{diff_v[0],
+                                    diff_v[1]+crit_v[1],
+                                    diff_v[2]+crit_v[2]}});
                     }
                     if(crit_v[0]){
                         if(crit_v[0] == crit_v[1]){
                             if(crit_v[0] == crit_v[2]){
                                 // x+y+z, -x-y-z
                                 checkBond(i, j, effcut, dist_v-crit_v[0]*xyz,
-                                          {diff_v[0]+crit_v[0],
-                                           diff_v[1]+crit_v[1],
-                                           diff_v[2]+crit_v[2]});
+                                          {{diff_v[0]+crit_v[0],
+                                            diff_v[1]+crit_v[1],
+                                            diff_v[2]+crit_v[2]}});
                             }else{
                                 // x+y-z, -x-y+z
                                 checkBond(i, j, effcut, dist_v-crit_v[0]*xymz,
-                                          {diff_v[0]+crit_v[0],
-                                           diff_v[1]+crit_v[1],
-                                           diff_v[2]+crit_v[2]});
+                                          {{diff_v[0]+crit_v[0],
+                                            diff_v[1]+crit_v[1],
+                                            diff_v[2]+crit_v[2]}});
                             }
                         }else{
                             if(crit_v[0] == crit_v[2]){
                                 // x-y+z, -x+y-z
                                 checkBond(i, j, effcut, dist_v-crit_v[0]*xmyz,
-                                          {diff_v[0]+crit_v[0],
-                                           diff_v[1]+crit_v[1],
-                                           diff_v[2]+crit_v[2]});
+                                          {{diff_v[0]+crit_v[0],
+                                            diff_v[1]+crit_v[1],
+                                            diff_v[2]+crit_v[2]}});
                             }else{
                                 // x-y-z, -x+y+z
                                 checkBond(i, j, effcut, dist_v-crit_v[1]*mxyz,
-                                          {diff_v[0]+crit_v[0],
-                                           diff_v[1]+crit_v[1],
-                                           diff_v[2]+crit_v[2]});
+                                          {{diff_v[0]+crit_v[0],
+                                            diff_v[1]+crit_v[1],
+                                            diff_v[2]+crit_v[2]}});
                             }
                         }
                     }
