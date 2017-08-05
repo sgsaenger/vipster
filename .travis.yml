@@ -23,7 +23,8 @@ install:
 script:
     - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
 after_success:
-    - cp emscripten/vipster.{js,wasm} gh-pages/js
+    - sed "s|vipster.wasm|js/vipster.wasm|" emscripten/vipster.js > gh-pages/js/vipster.js
+    - cp emscripten/vipster.wasm gh-pages/js
     - ./get_code_cov.sh
     - codecov
 deploy:
