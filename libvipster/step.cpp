@@ -219,14 +219,13 @@ float Step::getCellDim(AtomFmt fmt) const noexcept
 void Step::setCellVec(const Mat &mat, bool scale)
 {
     Mat inv = Mat_inv(mat);
-    std::vector<Atom> tatoms;
-    if(scale){
-        tatoms=formatAtoms(atoms,format,AtomFmt::Crystal);
+    if(scale && (format!=AtomFmt::Crystal)){
+        atoms = formatAtoms(atoms,format,AtomFmt::Crystal);
     }
     cellvec = mat;
     invvec.swap(inv);
-    if(scale){
-        atoms=formatAtoms(tatoms,AtomFmt::Crystal,format);
+    if(scale && (format!=AtomFmt::Crystal)){
+        atoms = formatAtoms(atoms,AtomFmt::Crystal,format);
     }
     bonds_outdated = true;
 }
@@ -383,7 +382,6 @@ void Step::setBondsCell(float cutfac) const
             if(format != AtomFmt::Crystal){
                 dist_v = dist_v * invvec / celldim;
             }
-            // TODO TODO TODO: vorzeichenfehler?! Bindungen werden teils falsch angezeigt!
             diff_v[0] = std::copysign(std::floor(std::abs(dist_v[0])), dist_v[0]);
             diff_v[1] = std::copysign(std::floor(std::abs(dist_v[1])), dist_v[1]);
             diff_v[2] = std::copysign(std::floor(std::abs(dist_v[2])), dist_v[2]);

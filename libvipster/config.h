@@ -33,6 +33,7 @@ struct PseEntry{
     float       bondcut;
     float       covr;
     float       vdwr;
+    //TODO: change this to array<float,4> when nlohmann::json reaches v3
     std::vector<float> col;
 };
 
@@ -45,7 +46,7 @@ public:
     using std::map<std::string,PseEntry>::emplace;
     using std::map<std::string,PseEntry>::find;
     using std::map<std::string,PseEntry>::size;
-    PseMap(bool r=false):root(r){};
+    PseMap(bool r=false):root(r){}
     PseEntry& operator [](const std::string &k);
 private:
     bool root;

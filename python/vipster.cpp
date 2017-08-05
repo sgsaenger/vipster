@@ -1,6 +1,7 @@
 #include <sstream>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
+//#include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 #include <molecule.h>
 #include <iowrapper.h>
@@ -53,7 +54,7 @@ PYBIND11_PLUGIN(vipster) {
     py::module m("vipster", "pybind11 example plugin");
 
     /*
-     * Step (Atoms + Cell)
+     * Step (Atoms, Bonds, Cell + PSE)
      */
 
     bind_array<Vec>(m, "Vec");
@@ -61,6 +62,7 @@ PYBIND11_PLUGIN(vipster) {
     bind_array<FixVec>(m,"FixVec");
     py::bind_vector<std::vector<Atom>>(m,"__AtomVector__");
     py::bind_vector<std::vector<Step>>(m,"__StepVector__");
+    py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
 
     py::enum_<AtomFmt>(m, "AtomFmt")
         .value("Bohr", AtomFmt::Bohr)
@@ -86,11 +88,38 @@ PYBIND11_PLUGIN(vipster) {
         .def(py::self != py::self)
     ;
 
+    py::class_<Bond>(m, "Bond")
+        .def_readwrite("at1", &Bond::at1)
+        .def_readwrite("at2", &Bond::at2)
+        .def_readwrite("dist", &Bond::dist)
+        .def_readwrite("xdiff", &Bond::xdiff)
+        .def_readwrite("ydiff", &Bond::ydiff)
+        .def_readwrite("zdiff", &Bond::zdiff)
+    ;
+
+    py::class_<PseMap, std::shared_ptr<PseMap>>(m, "PseMap")
+        .def("__getitem__", &PseMap::operator [])
+        .def("__setitem__", [](PseMap &pse, std::string n, PseEntry& e){pse[n] = e;})
+    ;
+
+    py::class_<PseEntry>(m, "PseEntry")
+        .def_readwrite("PWPP", &PseEntry::PWPP)
+        .def_readwrite("CPPP", &PseEntry::CPPP)
+        .def_readwrite("CPNL", &PseEntry::CPNL)
+        .def_readwrite("Z", &PseEntry::Z)
+        .def_readwrite("m", &PseEntry::m)
+        .def_readwrite("bondcut", &PseEntry::bondcut)
+        .def_readwrite("covr", &PseEntry::covr)
+        .def_readwrite("vdwr", &PseEntry::vdwr)
+// TODO: waiting for nlohmann/json v3
+//        .def_readwrite("col", &PseEntry::col)
+    ;
+
     py::class_<Step>(m, "Step")
         .def(py::init())
         .def("__repr__",[](const Step &a){std::ostringstream s;s<<a;return s.str();})
-        .def_property_readonly("nat", &Step::getNat)
-        .def_property_readonly("ntyp", &Step::getNtyp)
+        .def_readonly("pse", &Step::pse)
+        .def_property("comment", &Step::getComment, &Step::setComment)
         .def("newAtom", [](Step& s){s.newAtom();})
         .def("newAtom", py::overload_cast<const Atom&>(&Step::newAtom), "at"_a)
         .def("newAtom", py::overload_cast<Atom, AtomFmt>(&Step::newAtom), "at"_a, "fmt"_a)
@@ -101,6 +130,9 @@ PYBIND11_PLUGIN(vipster) {
         .def("getAtom", py::overload_cast<size_t, AtomFmt>(&Step::getAtom, py::const_), "i"_a, "fmt"_a)
         .def("getAtoms",py::overload_cast<>(&Step::getAtoms, py::const_))
         .def("getAtoms",py::overload_cast<AtomFmt>(&Step::getAtoms, py::const_), "fmt"_a)
+        .def_property_readonly("nat", &Step::getNat)
+        .def("getTypes", &Step::getTypes)
+        .def_property_readonly("ntyp", &Step::getNtyp)
         .def("getFmt", &Step::getFmt)
         .def("setFmt", &Step::setFmt, "fmt"_a, "scale"_a=false)
         .def("getCellDim", py::overload_cast<>(&Step::getCellDim, py::const_))
@@ -110,7 +142,11 @@ PYBIND11_PLUGIN(vipster) {
         .def("getCellVec", &Step::getCellVec)
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
         .def("getCenter", &Step::getCenter, "com"_a=false)
-        .def_property("comment", &Step::getComment, &Step::setComment)
+        .def("getBonds", py::overload_cast<>(&Step::getBonds, py::const_))
+        .def("getBonds", py::overload_cast<float>(&Step::getBonds, py::const_), "cutfac"_a)
+        .def("getBondsCell", py::overload_cast<>(&Step::getBondsCell, py::const_))
+        .def("getBondsCell", py::overload_cast<float>(&Step::getBondsCell, py::const_), "cutfac"_a)
+        .def_property_readonly("nbond", &Step::getNbond)
     ;
 
     /*
