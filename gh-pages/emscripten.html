@@ -13,22 +13,53 @@
             }
             canvas.emscripten{
                 border:0px none;
+                margin: 0px;
                 background-color: white;
-                width: 100vw;
-                height: 100vh;
+                width: 80vw;
+                height: 80vh;
+                display: inline-block;
+            }
+            ul#molList{
+                display: inline-block;
+                vertical-align: top;
+                list-style-type: none;
             }
         </style>
     </head>
+
     <body>
-        <input type="file" id="upload">
-        X:
-        <input type="number" id="xmult" min="1">
-        Y:
-        <input type="number" id="ymult" min="1">
-        Z:
-        <input type="number" id="zmult" min="1">
-        <output id="output"></output>
+        <div id="upload">
+            <input type="file" id="upfile" name="file">
+            <select id="uptype" name="type">
+                <option value="0">XYZ</option>
+                <option value="1">PWI</option>
+            </select>
+            <button type="button" id="upbut">Upload</button>
+        </div>
+
+        <div id="mult">
+            X: <input type="number" id="xmult" min="1" value="1">
+            Y: <input type="number" id="ymult" min="1" value="1">
+            Z: <input type="number" id="zmult" min="1" value="1">
+        </div>
+
+        <ul id="molList">
+            <li>Example</li>
+        </ul>
+
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+
+        <div id="stepSel">
+            <input type="range" id="stepSlider" min="1" max="1" value="1" step="1">
+            <span id="stepCur">1</span>
+            /
+            <span id="stepMax">1</span>
+        </div>
+
+        <output id="output"></output>
+
+        <script async type="text/javascript" src="js/vipster.js"></script>
+
         <script type="text/javascript">
             var Module = {
                 preRun: [],
@@ -36,34 +67,36 @@
                 canvas: (function() {
                   var canvas = document.getElementById('canvas');
                   canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
-                  canvas.width = window.innerWidth;
-                  canvas.height = window.innerHeight;
+                  canvas.width = canvas.clientWidth;
+                  canvas.height = canvas.clientHeight;
                   return canvas;
                 })(),
             };
-            window.addEventListener("resize", function(e){ Module.canvas.width=window.innerWidth; Module.canvas.height=window.innerHeight;}, false);
+            window.addEventListener("resize", function(e){ Module.canvas.width=Module.canvas.clientWidth; Module.canvas.height=Module.canvas.clientHeight;}, false);
+
             function readFile(e){
-                var file = e.target.files[0];
+                var file = document.getElementById('upfile').files[0];
                 var reader = new FileReader();
+                var molList = document.getElementById('molList');
                 reader.onload = function(e){
                     Module.FS_createDataFile("/tmp","test.file", e.target.result, true);
-                    Module.ccall("emReadFile", null, ['string', 'number'], ["/tmp/test.file", Module.IOFmt.XYZ.value]);
+                    //Module.ccall("emReadFile", null, ['string', 'number'], ["/tmp/test.file", file.name, document.getElementById('uptype').value]);
+                    Module.readFile("/tmp/test.file", file.name, parseInt(document.getElementById('uptype').value));
                     Module.FS_unlink("/tmp/test.file")
                 };
                 reader.readAsText(file);
+                molList.innerHTML += ("<li>"+file.name+"</li>");
                 document.getElementById('output').innerHTML = "Success!";
             };
-            document.getElementById('upload').addEventListener('change', readFile, false);
+            document.getElementById('upbut').addEventListener('click', readFile, false);
+
             function setMult(e){
                 var x = document.getElementById('xmult').value;
                 var y = document.getElementById('ymult').value;
                 var z = document.getElementById('zmult').value;
-                Module.ccall("emSetMult", null, ['number', 'number', 'number'], [x,y,z]);
+                Module.setMult(parseInt(x),parseInt(y),parseInt(z));
             }
-            document.getElementById('xmult').addEventListener('change', setMult, false);
-            document.getElementById('ymult').addEventListener('change', setMult, false);
-            document.getElementById('zmult').addEventListener('change', setMult, false);
+            document.getElementById('mult').addEventListener('change', setMult, false);
         </script>
-        <script async type="text/javascript" src="js/vipster.js"></script>
     </body>
 </html>

@@ -25,27 +25,26 @@ em::class_<std::array<T, 3>> register_array(const char* name) {
     ;
 }
 
-EMSCRIPTEN_BINDINGS(vipster) {
-    em::enum_<IOFmt>("IOFmt")
-            .value("XYZ", IOFmt::XYZ)
-            .value("PWI", IOFmt::PWI)
-            ;
-}
-
-extern "C" {
-EMSCRIPTEN_KEEPALIVE
-void emReadFile(char* fn, IOFmt fmt){
-    auto d = readFile(fn, fmt);
+int emGetNMol(void){ return gui.molecules.size();}
+int emGetMolNstep(int i){ return gui.molecules[i].getNstep();}
+std::string emGetMolName(int i){ return gui.molecules[i].getName();}
+void emSetStep(int m, int s){ gui.updateBuffers(&gui.molecules[m].getStep(s), true); }
+void emSetMult(int x, int y, int z){ gui.mult = {{x,y,z}}; }
+void emReadFile(std::string fn, std::string name, int fmt){
+    auto d = readFile(fn, (IOFmt)fmt, name);
     gui.molecules.push_back(d.mol);
     gui.updateBuffers(&gui.molecules.back().getStep(0), true);
 }
 
-EMSCRIPTEN_KEEPALIVE
-void emSetMult(int x, int y, int z){
-    gui.mult = {{x,y,z}};
+EMSCRIPTEN_BINDINGS(vipster){
+    em::function("getNMol", &emGetNMol);
+    em::function("getMolNStep", &emGetMolNstep);
+    em::function("getMolName", &emGetMolName);
+    em::function("setStep", &emSetStep);
+    em::function("setMult", &emSetMult);
+    em::function("readFile", &emReadFile);
 }
 
-}
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*)
 {
@@ -246,7 +245,7 @@ int main()
     gui.initUBO();
     gui.initViewMat();
 
-    gui.molecules.emplace_back("test");
+    gui.molecules.emplace_back("Example");
     Step* step = &gui.molecules[0].getStep(0);
     step->newAtom();
     step->newAtom({"O",{{1,0,0}}});

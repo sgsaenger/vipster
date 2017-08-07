@@ -18,7 +18,7 @@ namespace IO {
         std::string name;
         std::string extension;
         std::string argument;
-        IO::BaseData (*parser)(std::string fn, std::ifstream &file);
+        IO::BaseData (*parser)(std::string name, std::ifstream &file);
         bool   (*writer)(const IO::BaseData& d, std::ofstream &file);
     };
     class IOError: public std::runtime_error

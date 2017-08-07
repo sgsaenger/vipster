@@ -223,11 +223,11 @@ struct pwi_parse_grammar
     rule<Iterator, unused_type(Molecule&), blank_type> cell;
 };
 
-Vipster::IO::BaseData pwi_file_parser(std::string fn, std::ifstream &file)
+Vipster::IO::BaseData pwi_file_parser(std::string name, std::ifstream &file)
 {
     // set up data
     Vipster::IO::PWData d;
-    d.mol.setName(fn);
+    d.mol.setName(name);
     d.mol.newStep();
 
     // set up iterators

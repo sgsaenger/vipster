@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt)
+IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt, std::string name)
 {
     std::ifstream file{fn};
     try{
@@ -14,13 +14,18 @@ IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt)
         if(Vipster::IOPlugins.find(fmt)==Vipster::IOPlugins.end()){
             throw IOError("Unknown format");
         }else{
-            return Vipster::IOPlugins.at(fmt)->parser(fn,file);
+            return Vipster::IOPlugins.at(fmt)->parser(name, file);
         }
     }
     catch(IOError& e){
         std::cout << e.what() << std::endl;
         throw e;
     }
+}
+
+IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt)
+{
+    return readFile(fn, fmt, fn);
 }
 
 //bool  Vipster::writeFile(const IO::BaseData &d, std::string fn, IOFmt fmt)

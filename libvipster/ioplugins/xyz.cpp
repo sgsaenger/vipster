@@ -82,10 +82,10 @@ struct xyz_parse_grammar
     qi::rule<Iterator, std::string()> name;
 };
 
-Vipster::IO::BaseData xyz_file_parser(std::string fn, std::ifstream &file)
+Vipster::IO::BaseData xyz_file_parser(std::string name, std::ifstream &file)
 {
     Vipster::IO::BaseData d;
-    d.mol.setName(fn);
+    d.mol.setName(name);
 
     typedef std::istreambuf_iterator<char> iter;
     boost::spirit::multi_pass<iter> first = boost::spirit::make_default_multi_pass(iter(file));
