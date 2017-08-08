@@ -10,6 +10,8 @@
                 font-family: arial;
                 margin: 0;
                 padding: none;
+                -moz-user-select: none;
+                user-select: none;
             }
             canvas.emscripten{
                 border:0px none;
@@ -29,7 +31,8 @@
 
     <body>
         <div id="upload">
-            <input type="file" id="upfile" name="file">
+            <input type="file" id="upfile" name="file" style="display: none;">
+            <button type="button" id="upfilebut" onclick="document.getElementById('upfile').click()">Browse...</button>
             <select id="uptype" name="type">
                 <option value="0">XYZ</option>
                 <option value="1">PWI</option>
@@ -44,13 +47,13 @@
         </div>
 
         <ul id="molList">
-            <li>Example</li>
+            <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example</li>
         </ul>
 
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
         <div id="stepSel">
-            <input type="range" id="stepSlider" min="1" max="1" value="1" step="1">
+            <input type="range" id="stepSlider" min="0" max="0" value="0">
             <span id="stepCur">1</span>
             /
             <span id="stepMax">1</span>
@@ -64,6 +67,8 @@
             var Module = {
                 preRun: [],
                 postRun: [],
+                curMol: 0,
+                curStep: 0,
                 canvas: (function() {
                   var canvas = document.getElementById('canvas');
                   canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
@@ -79,13 +84,13 @@
                 var reader = new FileReader();
                 var molList = document.getElementById('molList');
                 reader.onload = function(e){
+                    molList.innerHTML += ('<li onclick="setMol(getMolListIdx(event.target))">'+file.name+"</li>");
                     Module.FS_createDataFile("/tmp","test.file", e.target.result, true);
-                    //Module.ccall("emReadFile", null, ['string', 'number'], ["/tmp/test.file", file.name, document.getElementById('uptype').value]);
                     Module.readFile("/tmp/test.file", file.name, parseInt(document.getElementById('uptype').value));
                     Module.FS_unlink("/tmp/test.file")
+                    setMol(molList.childElementCount-1);
                 };
                 reader.readAsText(file);
-                molList.innerHTML += ("<li>"+file.name+"</li>");
                 document.getElementById('output').innerHTML = "Success!";
             };
             document.getElementById('upbut').addEventListener('click', readFile, false);
@@ -97,6 +102,34 @@
                 Module.setMult(parseInt(x),parseInt(y),parseInt(z));
             }
             document.getElementById('mult').addEventListener('change', setMult, false);
+
+            function getMolListIdx(li){
+                var molList = li.parentElement.children;
+                for(i=0;i<li.parentElement.childElementCount;i++){
+                    if (li == molList[i]) break;
+                }
+                return i;
+            }
+
+            function setMol(i){
+                Module.curMol = i;
+                var nstep = Module.getMolNStep(i);
+                var slider = document.getElementById('stepSlider');
+                document.getElementById('stepMax').innerHTML = nstep;
+                document.getElementById('stepCur').innerHTML = 1;
+                slider.value = 0;
+                slider.max = nstep-1;
+                Module.curStep = 0;
+                Module.setStep(i, 0);
+            }
+
+            function setStep(e){
+                var i = parseInt(e.target.value);
+                document.getElementById('stepCur').innerHTML = i+1;
+                Module.curStep = i;
+                Module.setStep(Module.curMol, i);
+            }
+            document.getElementById('stepSlider').addEventListener('input', setStep, false);
         </script>
     </body>
 </html>

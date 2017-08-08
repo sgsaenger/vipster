@@ -33,7 +33,7 @@ void emSetMult(int x, int y, int z){ gui.mult = {{x,y,z}}; }
 void emReadFile(std::string fn, std::string name, int fmt){
     auto d = readFile(fn, (IOFmt)fmt, name);
     gui.molecules.push_back(d.mol);
-    gui.updateBuffers(&gui.molecules.back().getStep(0), true);
+//    gui.updateBuffers(&gui.molecules.back().getStep(0), true);
 }
 
 EMSCRIPTEN_BINDINGS(vipster){
@@ -73,6 +73,9 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
             currentOp = OpMode::None;
         }
         break;
+    case EMSCRIPTEN_EVENT_MOUSELEAVE:
+        currentOp = OpMode::None;
+        break;
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
         switch(currentOp){
         case OpMode::Rotation:
@@ -96,12 +99,13 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
 EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*)
 {
     constexpr long translateDelta = 10, scaleDelta = 10;
-    enum class TwoTouch { None, Scale, Translate};
-    static TwoTouch ttMode = TwoTouch::None;
+    enum class TouchMode { None, Rotate, Scale, Translate};
+    static TouchMode tMode = TouchMode::None;
     static long local1X, local2X, local1Y, local2Y, distance, transX, transY;
     long tmp=0, tmp2=0;
     switch (eventType) {
     case EMSCRIPTEN_EVENT_TOUCHSTART:
+        if(tMode != TouchMode::None) break;
         switch(touchEvent->numTouches){
         case 2:
             local2X = touchEvent->touches[1].canvasX;
@@ -111,6 +115,7 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
             transX = (local2X + touchEvent->touches[0].canvasX)/2;
             transY = (local2Y + touchEvent->touches[0].canvasY)/2;
         case 1:
+            tMode = TouchMode::Rotate;
             local1X = touchEvent->touches[0].canvasX;
             local1Y = touchEvent->touches[0].canvasY;
             break;
@@ -122,28 +127,29 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
     case EMSCRIPTEN_EVENT_TOUCHMOVE:
         switch(touchEvent->numTouches){
         case 1:
+            if(tMode != TouchMode::Rotate) break;
             gui.rotateViewMat(touchEvent->touches[0].canvasX-local1X,
                     touchEvent->touches[0].canvasY-local1Y,0);
             local1X = touchEvent->touches[0].canvasX;
             local1Y = touchEvent->touches[0].canvasY;
             break;
         case 2:
-            if(ttMode == TwoTouch::None){
+            if(tMode < TouchMode::Scale){
                 tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
                                          touchEvent->touches[0].canvasX,2)+
                                 std::pow(touchEvent->touches[1].canvasY-
                                          touchEvent->touches[0].canvasY,2));
                 if (std::abs(tmp-distance)>scaleDelta){
-                    ttMode = TwoTouch::Scale;
+                    tMode = TouchMode::Scale;
                 }else if(local1X-touchEvent->touches[0].canvasX > translateDelta||
                          local1Y-touchEvent->touches[0].canvasY > translateDelta||
                          local2X-touchEvent->touches[1].canvasX > translateDelta||
                          local2Y-touchEvent->touches[1].canvasY > translateDelta){
-                    ttMode = TwoTouch::Translate;
+                    tMode = TouchMode::Translate;
                 }
             }
-            if(ttMode == TwoTouch::None) break;
-            if(ttMode == TwoTouch::Scale){
+            if(tMode < TouchMode::Scale) break;
+            if(tMode == TouchMode::Scale){
                 if(!tmp)
                     tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
                                              touchEvent->touches[0].canvasX,2)+
@@ -151,7 +157,7 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
                                              touchEvent->touches[0].canvasY,2));
                 gui.zoomViewMat(tmp-distance);
                 distance = tmp;
-            }else if(ttMode == TwoTouch::Translate){
+            }else if(tMode == TouchMode::Translate){
                 tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
                 tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
                 gui.translateViewMat(tmp-transX, -(tmp2-transY), 0);
@@ -167,7 +173,7 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
         break;
     case EMSCRIPTEN_EVENT_TOUCHEND:
     case EMSCRIPTEN_EVENT_TOUCHCANCEL:
-        ttMode = TwoTouch::None;
+        tMode = TouchMode::None;
         break;
     }
     return 1;
@@ -252,14 +258,15 @@ int main()
     step->newAtom({"F",{{0,1,0}}});
     gui.updateBuffers(step, true);
 
-    emscripten_set_mousedown_callback("#canvas", nullptr, 1, mouse_event);
-    emscripten_set_mouseup_callback(0, nullptr, 1, mouse_event);
-    emscripten_set_mousemove_callback(0, nullptr, 1, mouse_event);
-    emscripten_set_wheel_callback("#canvas", nullptr, 1, wheel_event);
-    emscripten_set_keypress_callback(0, nullptr, 1, key_event);
-    emscripten_set_touchstart_callback("#canvas", nullptr, 1, touch_event);
-    emscripten_set_touchmove_callback("#canvas", nullptr, 1, touch_event);
-    emscripten_set_touchend_callback("#canvas", nullptr, 1, touch_event);
+    emscripten_set_mousedown_callback("#canvas", nullptr, 0, mouse_event);
+    emscripten_set_mouseup_callback("#canvas", nullptr, 0, mouse_event);
+    emscripten_set_mousemove_callback("#canvas", nullptr, 0, mouse_event);
+    emscripten_set_mouseleave_callback("#canvas", nullptr, 0, mouse_event);
+    emscripten_set_wheel_callback("#canvas", nullptr, 0, wheel_event);
+    emscripten_set_keypress_callback(0, nullptr, 0, key_event);
+    emscripten_set_touchstart_callback("#canvas", nullptr, 0, touch_event);
+    emscripten_set_touchmove_callback("#canvas", nullptr, 0, touch_event);
+    emscripten_set_touchend_callback("#canvas", nullptr, 0, touch_event);
     emscripten_set_main_loop(one_iter, 0, 1);
     gui.deleteGLObjects();
     return 1;
