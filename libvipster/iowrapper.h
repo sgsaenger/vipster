@@ -13,9 +13,9 @@ namespace Vipster{
                     {IOFmt::XYZ, &IO::XYZ},
                     {IOFmt::PWI, &IO::PWInput}
                 };
-    IO::BaseData      readFile(std::string fn, IOFmt fmt);
-    IO::BaseData      readFile(std::string fn, IOFmt fmt, std::string name);
-//    bool        writeFile(const IO::BaseData &d, std::string fn, IOFmt fmt);
+    std::shared_ptr<IO::BaseData> readFile(std::string fn, IOFmt fmt);
+    std::shared_ptr<IO::BaseData> readFile(std::string fn, IOFmt fmt, std::string name);
+    bool        writeFile(std::string fn, IOFmt fmt, const Molecule &m, const IO::BaseParam* const p=nullptr);
 }
 
 #endif // IOWRAPPER

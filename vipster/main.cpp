@@ -21,11 +21,11 @@ int main(int argc, char *argv[])
     }
     p.process(a);
     if(p.isSet("xyz")){
-        MainWindow w(Vipster::readFile(p.values("xyz").at(0).toStdString(),Vipster::IOFmt::XYZ).mol);
+        MainWindow w(Vipster::readFile(p.values("xyz").at(0).toStdString(),Vipster::IOFmt::XYZ)->mol);
         w.show();
         return a.exec();
     }else if(p.isSet("pwi")){
-        MainWindow w(Vipster::readFile(p.values("pwi").at(0).toStdString(),Vipster::IOFmt::PWI).mol);
+        MainWindow w(Vipster::readFile(p.values("pwi").at(0).toStdString(),Vipster::IOFmt::PWI)->mol);
         w.show();
         return a.exec();
     }else{

@@ -218,7 +218,7 @@ PYBIND11_PLUGIN(vipster) {
         .value("PWI",IOFmt::PWI)
     ;
 
-    m.def("readFile",[](std::string fn, IOFmt fmt){return readFile(fn,fmt).mol;},"fn"_a,"fmt"_a);
+    m.def("readFile",[](std::string fn, IOFmt fmt){return readFile(fn,fmt)->mol;},"fn"_a,"fmt"_a);
 
     return m.ptr();
 }

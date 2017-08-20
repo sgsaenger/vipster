@@ -32,8 +32,7 @@ void emSetStep(int m, int s){ gui.updateBuffers(&gui.molecules[m].getStep(s), tr
 void emSetMult(int x, int y, int z){ gui.mult = {{x,y,z}}; }
 void emReadFile(std::string fn, std::string name, int fmt){
     auto d = readFile(fn, (IOFmt)fmt, name);
-    gui.molecules.push_back(d.mol);
-//    gui.updateBuffers(&gui.molecules.back().getStep(0), true);
+    gui.molecules.push_back(d->mol);
 }
 
 EMSCRIPTEN_BINDINGS(vipster){

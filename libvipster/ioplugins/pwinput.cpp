@@ -1,4 +1,5 @@
 #include "ioplugins/pwinput.h"
+#include <iomanip>
 #define BOOST_SPIRIT_DEBUG
 #define BOOST_SPIRIT_USE_PHOENIX_V3
 #include <boost/spirit/include/qi.hpp>
@@ -7,6 +8,8 @@
 #include <boost/fusion/include/adapt_adt.hpp>
 #include <boost/fusion/adapted/std_array.hpp>
 #include <boost/fusion/include/std_pair.hpp>
+
+// TODO: make sure atomfmt is handled right!
 
 namespace qi = boost::spirit::qi;
 namespace phx = boost::phoenix;
@@ -21,33 +24,33 @@ namespace boost { namespace spirit { namespace traits {
 } } }
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::IO::PWData,
+        IO::PWData,
         data,
         mol
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::PseEntry,
+        PseEntry,
         m,
         PWPP
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::Atom,
+        Atom,
         name,
         coord,
         fix
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::KPoints,
+        KPoints,
         active,
         mpg,
         discrete
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::KPoints::MPG,
+        KPoints::MPG,
         x,
         y,
         z,
@@ -57,13 +60,13 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::KPoints::Discrete,
+        KPoints::Discrete,
         properties,
         kpoints
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        Vipster::DiscreteKPoint,
+        DiscreteKPoint,
         pos,
         weight
 )
@@ -142,10 +145,13 @@ struct pwi_parse_grammar
         ;
         // K-Points
         kpoints     = no_case["k_points"] > (
-                      no_case["gamma"] |
+                      no_case["gamma"] | qi::as<KPoints>()[
                       (no_case["automatic"] > attr(KPointFmt::MPG) > kmpg) |
                       (attr(KPointFmt::Discrete) > attr(KPoints::MPG{}) > kdisc)
-                      ) > *eol;
+                      ][phx::bind(
+                        [](Molecule& mol, KPoints k){
+                            mol.setKPoints(k);
+                        }, _r1, _1)]) > *eol;
         kmpg        = eol > int_ > int_ > int_ > float_ > float_ > float_;
         kdisc       = (no_case[kdiscfmt]|attr(KPoints::Discrete::none))
                       > eol > omit[int_]
@@ -223,12 +229,12 @@ struct pwi_parse_grammar
     rule<Iterator, unused_type(Molecule&), blank_type> cell;
 };
 
-Vipster::IO::BaseData pwi_file_parser(std::string name, std::ifstream &file)
+std::shared_ptr<IO::BaseData> pwi_file_parser(std::string name, std::ifstream &file)
 {
     // set up data
-    Vipster::IO::PWData d;
-    d.mol.setName(name);
-    d.mol.newStep();
+    auto d = std::make_shared<IO::PWData>();
+    d->mol.setName(name);
+    d->mol.newStep();
 
     // set up iterators
     typedef std::istreambuf_iterator<char> iter;
@@ -237,23 +243,98 @@ Vipster::IO::BaseData pwi_file_parser(std::string name, std::ifstream &file)
 
     pwi_parse_grammar<boost::spirit::multi_pass<iter>> grammar;
 
-    phrase_parse(first, last, grammar, blank, d);
-    auto cdm = d.data.system.find("celldm(1)");
-    if (cdm != d.data.system.end()){
-        d.mol.getStep(0).setCellDim(stof(cdm->second));
-        d.data.system.erase(cdm);
+    phrase_parse(first, last, grammar, blank, *d);
+    auto cdm = d->data.system.find("celldm(1)");
+    if (cdm != d->data.system.end()){
+        d->mol.getStep(0).setCellDim(stof(cdm->second));
+        d->data.system.erase(cdm);
     }
-    d.data.system.erase("nat");
-    d.data.system.erase("ntyp");
+    d->data.system.erase("nat");
+    d->data.system.erase("ntyp");
 
     return d;
 }
 
-const Vipster::IOPlugin Vipster::IO::PWInput =
+bool pwi_file_writer(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
+{
+    const Step& s = m.getStep(0);
+    const IO::PWParam *pp = dynamic_cast<const IO::PWParam*>(p);
+    if(!pp) throw IOError("PWI-Writer needs PWScf parameter set");
+    std::vector<std::pair<std::string, const std::map<std::string,std::string>*>>
+            outNL = {{"control", &pp->control},
+                     {"system", &pp->system},
+                     {"electrons", &pp->electrons}};
+    auto c = pp->control.find("calculation");
+    if(c != pp->control.end()){
+        if(c->second == "'vc-relax'"){
+            outNL.push_back({"ions", &pp->ions});
+            outNL.push_back({"cell", &pp->cell});
+        }else if(c->second == "'relax'"){
+            outNL.push_back({"ions", &pp->ions});
+        }
+    }
+    for(auto &nl: outNL){
+        file << '&' << nl.first << '\n';
+        if(nl.second == &pp->system){
+            file << " nat = " << s.getNat() << '\n';
+            file << " ntyp = " << s.getNtyp() << '\n';
+            file << " celldm(1) = " << s.getCellDim() << '\n';
+        }
+        for(auto& e: *nl.second){
+            file << ' ' << e.first << " = " << e.second << '\n';
+        }
+        file << "/\n\n";
+    }
+    file << "ATOMIC_SPECIES\n"
+         << std::fixed << std::setprecision(5);
+    for(auto &t: s.getTypes()){
+        auto e = (*s.pse)[t];
+        file << std::left << std::setw(3) << t << ' '
+             << std::right << std::setw(9) << e.m << ' '
+             << e.PWPP << '\n';
+    }
+    const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
+    file << "\nATOMIC_POSITION " << atfmt[(int)s.getFmt()] << '\n'
+         << std::fixed << std::setprecision(5);
+    for(const Atom& at: s.getAtoms()){
+        file << std::left << std::setw(3) << at.name << ' '
+             << std::right << std::setw(10) << at.coord[0] << ' '
+             << std::right << std::setw(10) << at.coord[1] << ' '
+             << std::right << std::setw(10) << at.coord[2] << '\n';
+    }
+    file << "\nK_POINTS " << std::defaultfloat;
+    const KPoints& k = m.getKPoints();
+    const std::array<std::string, 6> kdprop =
+        {{"tpiba", "crystal", "tpiba_b", "crystal_b", "tpiba_c", "crystal_c"}};
+    switch(k.active){
+    case KPointFmt::Gamma:
+        file << "gamma\n";
+        break;
+    case KPointFmt::MPG:
+        file << "automatic\n"
+             << k.mpg.x << ' ' << k.mpg.y << ' ' << k.mpg.z << ' '
+             << k.mpg.sx << ' ' << k.mpg.sy << ' ' << k.mpg.sz << '\n';
+        break;
+    case KPointFmt::Discrete:
+        file << kdprop[k.discrete.properties] << '\n'
+             << k.discrete.kpoints.size() << '\n';
+        for(auto &kd: k.discrete.kpoints){
+            file << kd.pos[0] << ' ' << kd.pos[1] << ' '
+                 << kd.pos[2] << ' ' << kd.weight << '\n';
+        }
+    }
+    file << "\nCELL_PARAMETERS\n" << std::fixed << std::setprecision(5);
+    for(auto &v: s.getCellVec()){
+        file << v[0] << ' ' << v[1] << ' ' << v[2] << '\n';
+    }
+    return true;
+}
+
+const IOPlugin IO::PWInput =
 {
     "pwi",
     "pwi",
     "pwi",
     &pwi_file_parser,
-    nullptr
+    &pwi_file_writer
 };

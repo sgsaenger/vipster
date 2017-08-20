@@ -18,8 +18,8 @@ namespace IO {
         std::string name;
         std::string extension;
         std::string argument;
-        IO::BaseData (*parser)(std::string name, std::ifstream &file);
-        bool   (*writer)(const IO::BaseData& d, std::ofstream &file);
+        std::shared_ptr<IO::BaseData> (*parser)(std::string name, std::ifstream &file);
+        bool   (*writer)(const Molecule& m, std::ofstream &file, const IO::BaseParam* p);
     };
     class IOError: public std::runtime_error
     {
