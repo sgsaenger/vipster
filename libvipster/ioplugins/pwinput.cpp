@@ -101,8 +101,8 @@ struct pwi_parse_grammar
                         [](pwmap IO::PWParam::* v, IO::PWParam& p, pwmap m)
                         { p.*v = m; }, _a, _val, _1)]
                       > eol > '/') % *eol;
-        nl          = nl_entry % (eol|',');
-        nl_entry    = key > qi::lit('=') > value;
+        nl          = nl_entry % eol;
+        nl_entry    = key > qi::lit('=') > value >> -lit(',');
         value       = fstr | key;
         key         = +(qi::graph - qi::char_("=/,'"));
         fstr        = qi::char_('\'')
