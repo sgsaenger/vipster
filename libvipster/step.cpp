@@ -1,7 +1,4 @@
-#include <global.h>
-#include <step.h>
-//TODO: remove debug headers
-#include <iostream>
+#include "step.h"
 
 using namespace Vipster;
 
@@ -13,19 +10,6 @@ Step::Step():
 Step::Step(const std::shared_ptr<PseMap> &pse):
     pse{pse}
 {
-}
-
-std::ostream& Vipster::operator<< (std::ostream& s, const Step& st)
-{
-    const Mat &v = st.cellvec;
-    s << "Step:\n Atoms: " << st.getNat()
-      <<"\n Types: " << st.getNtyp()
-      << "\n Cell dimension: " << st.getCellDim()
-      << "\n Vectors:\n [[" << v[0][0] << ", " << v[0][1] << ", " << v[0][2]
-      << "]\n  [" << v[1][0] << ", " << v[1][1] << ", " << v[1][2]
-      << "]\n  [" << v[2][0] << ", " << v[2][1] << ", " << v[2][2] << "]]"
-      << "\n Comment: " << st.comment;
-    return s;
 }
 
 void Step::newAtom(const Atom& at)
@@ -43,6 +27,12 @@ void Step::newAtom(Atom &&at)
 void Step::newAtom(Atom at, AtomFmt fmt)
 {
     atoms.push_back(formatAtom(at,fmt,format));
+    bonds_outdated = true;
+}
+
+void Step::newAtoms(size_t i)
+{
+    atoms.resize(atoms.size() + i);
     bonds_outdated = true;
 }
 
@@ -83,7 +73,13 @@ const Atom& Step::getAtom(size_t idx) const
     return atoms.at(idx);
 }
 
-Atom Step::getAtom(size_t idx, AtomFmt fmt) const
+Atom& Step::getAtomMod(size_t idx)
+{
+    bonds_outdated = true;
+    return atoms.at(idx);
+}
+
+Atom Step::getAtomFmt(size_t idx, AtomFmt fmt) const
 {
     return formatAtom(atoms.at(idx),format,fmt);
 }
@@ -93,7 +89,13 @@ const std::vector<Atom>& Step::getAtoms() const
     return atoms;
 }
 
-std::vector<Atom> Step::getAtoms(AtomFmt fmt) const
+std::vector<Atom>& Step::getAtomsMod()
+{
+    bonds_outdated = true;
+    return atoms;
+}
+
+std::vector<Atom> Step::getAtomsFmt(AtomFmt fmt) const
 {
     return formatAtoms(atoms,format,fmt);
 }
@@ -126,6 +128,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
         break;
     case AtomFmt::Crystal:
         at.coord = at.coord * cellvec;
+        [[fallthrough]];
     case AtomFmt::Alat:
         at.coord *= celldim;
         break;
@@ -138,6 +141,7 @@ Atom Step::formatAtom(Atom at, AtomFmt source, AtomFmt target) const
         break;
     case AtomFmt::Crystal:
         at.coord = at.coord * invvec;
+        [[fallthrough]];
     case AtomFmt::Alat:
         at.coord /= celldim;
         break;
@@ -157,6 +161,7 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atvec, AtomFmt source, Ato
         break;
     case AtomFmt::Crystal:
         for(Atom& at:atvec) { at.coord = at.coord * cellvec; }
+        [[fallthrough]];
     case AtomFmt::Alat:
         for(Atom& at:atvec) { at.coord *= celldim; }
         break;
@@ -170,6 +175,7 @@ std::vector<Atom> Step::formatAtoms(std::vector<Atom> atvec, AtomFmt source, Ato
         break;
     case AtomFmt::Crystal:
         for(Atom& at:atvec) { at.coord = at.coord * invvec; }
+        [[fallthrough]];
     case AtomFmt::Alat:
         for(Atom& at:atvec) { at.coord /= celldim; }
         break;
@@ -206,14 +212,13 @@ float Step::getCellDim() const noexcept
 float Step::getCellDim(AtomFmt fmt) const noexcept
 {
     if(fmt!=format){
-        if(fmt==AtomFmt::Angstrom){
+        if(fmt == AtomFmt::Angstrom){
             return celldim * bohrrad;
-        }else{
+        }else if(format == AtomFmt::Angstrom){
             return celldim * invbohr;
         }
-    }else{
-        return celldim;
     }
+    return celldim;
 }
 
 void Step::setCellVec(const Mat &mat, bool scale)

@@ -1,9 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2016-08-03T17:38:47
-#
-#-------------------------------------------------
-
 QT       -= core gui
 
 TARGET = vipster
@@ -19,7 +13,9 @@ SOURCES += \
     step.cpp \
     iowrapper.cpp \
     ioplugins/xyz.cpp \
-    ioplugins/pwinput.cpp
+    ioplugins/pwinput.cpp \
+    ioplugins/lmpinput.cpp \
+    ioplugins/lmptrajec.cpp
 
 HEADERS += \
     config.h \
@@ -31,10 +27,13 @@ HEADERS += \
     atom.h \
     bond.h \
     vec.h \
+    kpoints.h \
     ioplugins/xyz.h \
     ioplugins/pwinput.h \
-    kpoints.h
+    ioplugins/lmpinput.h \
+    ioplugins/lmptrajec.h
 
+win32: CONFIG += staticlib
 unix {
     target.path = /usr/lib
     INSTALLS += target

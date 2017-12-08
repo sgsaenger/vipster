@@ -2,10 +2,9 @@
 #define MOLWIDGET_H
 
 #include <QWidget>
-#include <mainwindow.h>
-#include <step.h>
-#include <molecule.h>
 #include <vector>
+#include "mainwindow.h"
+#include "molecule.h"
 
 namespace Ui {
 class MolWidget;

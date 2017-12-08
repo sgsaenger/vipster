@@ -1,9 +1,10 @@
-#include "guiwrapper.h"
 #include <fstream>
 #include <iostream>
-#include <atom_model.h>
-#include <bond_model.h>
 #include <limits>
+
+#include "guiwrapper.h"
+#include "atom_model.h"
+#include "bond_model.h"
 
 #ifdef __EMSCRIPTEN__
 std::string readShader(std::string filePath)
@@ -220,16 +221,19 @@ guiMat operator *(guiMat a, const guiMat &b)
     return a*=b;
 }
 
-void GuiWrapper::initUBO(void)
+void GuiWrapper::initViewUBO(void)
 {
-    glUniformBlockBinding(atom_program, 0, 0);
-    glUniformBlockBinding(bond_program, 0, 0);
-    glUniformBlockBinding(cell_program, 0, 0);
+    glGenBuffers(1, &view_ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(guiMat), NULL, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
-    glGenBuffers(1, &ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferData(GL_UNIFORM_BUFFER, 2*16*sizeof(float), NULL, GL_STATIC_DRAW);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 2*16*sizeof(float));
+    GLuint atom_loc = glGetUniformBlockIndex(atom_program, "viewMat");
+    glUniformBlockBinding(atom_program, 0, atom_loc);
+    GLuint bond_loc = glGetUniformBlockIndex(bond_program, "viewMat");
+    glUniformBlockBinding(bond_program, 0, bond_loc);
+    GLuint cell_loc = glGetUniformBlockIndex(cell_program, "viewMat");
+    glUniformBlockBinding(cell_program, 0, cell_loc);
 }
 
 void GuiWrapper::initAtomVAO(void)
@@ -315,7 +319,7 @@ void GuiWrapper::initCellVAO(void)
 
 void GuiWrapper::deleteGLObjects(void)
 {
-    glDeleteBuffers(1, &ubo);
+    glDeleteBuffers(1, &view_ubo);
     glDeleteProgram(atom_program);
     glDeleteBuffers(1, &atom_vbo);
     glDeleteBuffers(1, &sphere_vbo);
@@ -344,7 +348,9 @@ void GuiWrapper::draw(void)
     //TODO: pull atom_fac from config
     GLuint offLocA = glGetUniformLocation(atom_program, "offset");
     GLuint facLoc = glGetUniformLocation(atom_program, "atom_fac");
+    GLuint cellLocA = glGetUniformLocation(atom_program, "position_scale");
     glUniform1f(facLoc, 0.5);
+    glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     for(int x=0;x!=mult[0];++x){
         for(int y=0;y!=mult[1];++y){
             for(int z=0;z!=mult[2];++z){
@@ -359,7 +365,9 @@ void GuiWrapper::draw(void)
     GLuint offLocB = glGetUniformLocation(bond_program, "offset");
     GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
     GLuint multLoc = glGetUniformLocation(bond_program, "mult");
+    GLuint cellLocB = glGetUniformLocation(atom_program, "position_scale");
     glUniform3iv(multLoc, 1, mult.data());
+    glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
     for(int x=0;x!=mult[0];++x){
         for(int y=0;y!=mult[1];++y){
             for(int z=0;z!=mult[2];++z){
@@ -391,10 +399,31 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
 {
     curStep = step;
     //cell
-    Mat cv = step->getCellVec() * step->getCellDim();
+    Mat cv = step->getCellVec() * step->getCellDim(AtomFmt::Bohr);
     cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
                      cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
     cell_changed = true;
+    Mat tmp_mat;
+    if(step->getFmt() == AtomFmt::Crystal){
+        tmp_mat = step->getCellVec();
+    }else{
+        tmp_mat = {{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
+    }
+    switch(step->getFmt()){
+    case AtomFmt::Angstrom:
+        tmp_mat *= Vipster::invbohr;
+        break;
+    case AtomFmt::Crystal:
+    case AtomFmt::Alat:
+        tmp_mat *= step->getCellDim();
+        break;
+    default:
+        break;
+    }
+    cell_mat = {{tmp_mat[0][0], tmp_mat[0][1], tmp_mat[0][2],
+                 tmp_mat[1][0], tmp_mat[1][1], tmp_mat[1][2],
+                 tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
+    cell_mat_changed = true;
     //atoms
     const auto& atoms = step->getAtoms();
     atom_buffer.clear();
@@ -469,6 +498,11 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
             }
         }
         bonds_changed = true;
+        bonds_drawn = true;
+    }else if(bonds_drawn){
+        bond_buffer.clear();
+        bonds_changed = true;
+        bonds_drawn = false;
     }
 }
 
@@ -488,20 +522,22 @@ void GuiWrapper::updateVBOs(void)
     }
     if(cell_changed){
         glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-        glBufferData(GL_ARRAY_BUFFER, 24*sizeof(float), (void*)cell_buffer.data(), GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 8*sizeof(Vec), (void*)cell_buffer.data(), GL_STREAM_DRAW);
         cell_changed = false;
     }
 }
 
-void GuiWrapper::updateUBO(void)
+void GuiWrapper::updateViewUBO(void)
 {
     if(rMatChanged){
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
+        glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(guiMat),
                         (pMat*vMat*rMat).data());
-        glBufferSubData(GL_UNIFORM_BUFFER, 16*sizeof(float), 16*sizeof(float), rMat.data());
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(guiMat), sizeof(guiMat), rMat.data());
         rMatChanged = vMatChanged = pMatChanged = false;
     }else if (pMatChanged || vMatChanged){
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, 16*sizeof(float),
+        glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(guiMat),
                         (pMat*vMat*rMat).data());
         vMatChanged = pMatChanged = false;
     }

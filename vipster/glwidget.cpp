@@ -44,13 +44,13 @@ void GLWidget::initializeGL()
     initAtomVAO();
     initBondVAO();
     initCellVAO();
-    initUBO();
+    initViewUBO();
     initViewMat();
 }
 
 void GLWidget::paintGL()
 {
-    updateUBO();
+    updateViewUBO();
     //
     updateVBOs();
     //
@@ -77,7 +77,7 @@ void GLWidget::setMult(int i)
 
 void GLWidget::setStep(const Step* step)
 {
-    updateBuffers(step, true);
+    updateBuffers(step, false);
     update();
 }
 

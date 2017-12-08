@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <vector>
-#include <molecule.h>
+#include "molecule.h"
 
 namespace Ui {
 class MainWindow;

@@ -1,12 +1,27 @@
 #ifndef STEP_H
 #define STEP_H
 
-#include <config.h>
-#include <vec.h>
-#include <atom.h>
-#include <bond.h>
+#include "config.h"
+#include "vec.h"
+#include "atom.h"
+#include "bond.h"
+#include "global.h"
 #include <set>
 #include <memory>
+
+/*
+ * TODO:
+ *
+ * create AtomView/AtomListView classes that map
+ * access to atom-properties onto step and set
+ * bonds_outdated if changed. or destroyed. or something.
+ * and can be implicitely converted to Atoms?!
+ *
+ * ALSO need a list of pse-pointers.
+ *
+ * Maybe just convert AoS to SoA in the process.
+ */
+
 
 namespace Vipster{
 class Molecule;
@@ -15,20 +30,23 @@ class Step
 public:
     Step();
     Step(const std::shared_ptr<PseMap> &pse);
-    friend Molecule;
-    friend std::ostream& operator<< (std::ostream& s, const Step& st);
+    friend class Molecule;
+
     void    newAtom(const Atom &at);
-    void    newAtom(Atom&& at={"C",{{0,0,0}},0,{{false,false,false}},false});
+    void    newAtom(Atom&& at={});
     void    newAtom(Atom at, AtomFmt fmt);
+    void    newAtoms(size_t i);
     void    newAtoms(const std::vector<Atom> &v);
     void    delAtom(size_t idx);
     void    setAtom(size_t idx,const Atom& at);
     void    setAtom(size_t idx,Atom&& at);
     void    setAtom(size_t idx,Atom at,AtomFmt fmt);
     const Atom& getAtom(size_t idx) const;
-    Atom    getAtom(size_t idx, AtomFmt fmt) const;
+    Atom&   getAtomMod(size_t idx);
+    Atom    getAtomFmt(size_t idx, AtomFmt fmt) const;
     const std::vector<Atom>& getAtoms() const;
-    std::vector<Atom> getAtoms(AtomFmt fmt) const;
+    std::vector<Atom>& getAtomsMod();
+    std::vector<Atom> getAtomsFmt(AtomFmt fmt) const;
     size_t  getNat(void) const noexcept;
     AtomFmt getFmt() const noexcept;
     void    setFmt(AtomFmt fmt, bool scale=false);
@@ -48,7 +66,9 @@ public:
     const std::vector<Bond>& getBondsCell() const;
     const std::vector<Bond>& getBondsCell(float cutfac) const;
     size_t  getNbond(void) const noexcept;
+
     std::shared_ptr<PseMap> pse;
+
 private:
     Atom formatAtom(Atom at, AtomFmt source, AtomFmt target) const;
     std::vector<Atom> formatAtoms(std::vector<Atom> atvec, AtomFmt source, AtomFmt target) const;
@@ -56,8 +76,9 @@ private:
     void setBondsCell(float cutfac) const;
     void checkBond(std::size_t i, std::size_t j, float cutfac, Vec dist, std::array<int, 3> offset) const;
     enum class BondLevel { None, Molecule, Cell };
+
     //DATA following:
-    AtomFmt format=AtomFmt::Bohr;
+    AtomFmt format = AtomFmt::Bohr;
     std::string comment;
     std::vector<Atom> atoms;
     float celldim {1.};
@@ -68,7 +89,6 @@ private:
     mutable float bondcut_factor{1.1};
     mutable std::vector<Bond> bonds;
 };
-std::ostream& operator<< (std::ostream& s, const Step& st);
 
 }
 #endif // STEP_H

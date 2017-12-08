@@ -1,9 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2016-10-08T14:48:06
-#
-#-------------------------------------------------
-
 QT       += testlib
 
 QT       -= gui
@@ -17,8 +11,8 @@ TEMPLATE = app
 
 
 SOURCES += tst_libvipstertest.cpp
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
+win32: CONFIG += static
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libvipster/release/ -lvipster
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libvipster/debug/ -lvipster
 else:unix: LIBS += -L$$OUT_PWD/../libvipster/ -lvipster

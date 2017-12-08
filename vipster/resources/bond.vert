@@ -9,6 +9,7 @@ layout(std140, row_major) uniform viewMat{
     mat4 vpMatrix;
     mat4 rMatrix;
 };
+uniform mat3 position_scale;
 uniform vec3 offset;
 uniform ivec3 pbc_cell;
 uniform ivec3 mult;
@@ -31,7 +32,7 @@ void main(void)
         render = int((test.x > pbc_cell.x) && (test.y > pbc_cell.y) && (test.z > pbc_cell.z));
     }
     //standard vertex positioning:
-    gl_Position = vpMatrix * vec4(mMatrix * vertex_modelspace + position_modelspace + offset, 1);
+    gl_Position = vpMatrix * vec4(mMatrix * vertex_modelspace + position_modelspace * position_scale + offset, 1);
     //pass coordinate and colors to fragment shader
     vertex_side = vertex_modelspace.x;
     s1Cpass = s1Color;

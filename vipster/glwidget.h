@@ -9,8 +9,8 @@
 #include <iostream>
 #include <vector>
 #include <array>
-#include <step.h>
-#include <guiwrapper.h>
+#include "step.h"
+#include "guiwrapper.h"
 
 class GLWidget: public QOpenGLWidget, private GuiWrapper
 {

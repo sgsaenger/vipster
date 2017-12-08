@@ -6,12 +6,13 @@
 namespace Vipster{
 namespace IO{
 extern const IOPlugin PWInput;
+using PWNamelist = std::map<std::string, std::string>;
 struct PWParam: BaseParam{
-    std::map<std::string, std::string> control;
-    std::map<std::string, std::string> system;
-    std::map<std::string, std::string> electrons;
-    std::map<std::string, std::string> ions;
-    std::map<std::string, std::string> cell;
+    PWNamelist control;
+    PWNamelist system;
+    PWNamelist electrons;
+    PWNamelist ions;
+    PWNamelist cell;
 };
 struct PWData: Vipster::IO::BaseData{
     PWParam data;

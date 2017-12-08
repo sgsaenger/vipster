@@ -1,11 +1,12 @@
 #ifndef IOPLUGIN_H
 #define IOPLUGIN_H
 
-#include <molecule.h>
+#include "molecule.h"
 #include <fstream>
 
 namespace Vipster{
 namespace IO {
+    constexpr int linelen = 256;
     struct BaseParam{
         virtual ~BaseParam() = default;
     };

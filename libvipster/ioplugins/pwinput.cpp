@@ -1,264 +1,233 @@
 #include "ioplugins/pwinput.h"
+
+#include <cstring>
+#include <algorithm>
+#include <sstream>
+//TODO: REWORK
 #include <iomanip>
-#define BOOST_SPIRIT_DEBUG
-#define BOOST_SPIRIT_USE_PHOENIX_V3
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/support_multi_pass.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/fusion/include/adapt_adt.hpp>
-#include <boost/fusion/adapted/std_array.hpp>
-#include <boost/fusion/include/std_pair.hpp>
 
-// TODO: make sure atomfmt is handled right!
-
-namespace qi = boost::spirit::qi;
-namespace phx = boost::phoenix;
-using namespace std;
 using namespace Vipster;
-using namespace qi;
-using pwmap = std::map<std::string,std::string>;
 
-namespace boost { namespace spirit { namespace traits {
-    template <typename T, size_t N>
-        struct is_container<std::array<T, N>, void> : mpl::false_ { };
-} } }
+enum class CellFmt{None, Alat, Bohr, Angstrom};
 
-BOOST_FUSION_ADAPT_STRUCT(
-        IO::PWData,
-        data,
-        mol
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-        PseEntry,
-        m,
-        PWPP
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-        Atom,
-        name,
-        coord,
-        fix
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-        KPoints,
-        active,
-        mpg,
-        discrete
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-        KPoints::MPG,
-        x,
-        y,
-        z,
-        sx,
-        sy,
-        sz
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-        KPoints::Discrete,
-        properties,
-        kpoints
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-        DiscreteKPoint,
-        pos,
-        weight
-)
-
-template<typename Iterator>
-struct pwi_parse_grammar
-        : grammar<Iterator, IO::PWData(), blank_type>
+void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 {
-    pwi_parse_grammar(): pwi_parse_grammar::base_type(file)
-    {
-        //TODO: ignore comments
-        //TODO: change skipper to remove eols
-        //TODO: honor CellFmt
-        file = param > *eol > mol;
+    const std::map<std::string, IO::PWNamelist IO::PWParam::*> nlmap = {
+        {"&CONTROL", &IO::PWParam::control},
+        {"&SYSTEM", &IO::PWParam::system},
+        {"&ELECTRONS", &IO::PWParam::electrons},
+        {"&IONS", &IO::PWParam::ions},
+        {"&CELL", &IO::PWParam::cell},
+    };
+    auto nlp = nlmap.find(name);
+    if (nlp == nlmap.end()) throw IOError("Unknown namelist");
+    IO::PWNamelist &nl = p.*(nlp->second);
 
-        /* Namelists:
-         * &NAME
-         * key=value, key=value
-         * key=value
-         * !comment
-         * /
-         */
-        nl_names.add
-              ("control", &IO::PWParam::control)
-              ("system", &IO::PWParam::system)
-              ("electrons", &IO::PWParam::electrons)
-              ("ions", &IO::PWParam::ions)
-              ("cell", &IO::PWParam::cell)
-        ;
-        param       = ('&' > no_case[nl_names[_a = _1]] > eol
-                      > nl[phx::bind(
-                        [](pwmap IO::PWParam::* v, IO::PWParam& p, pwmap m)
-                        { p.*v = m; }, _a, _val, _1)]
-                      > eol > '/') % *eol;
-        nl          = nl_entry % eol;
-        nl_entry    = key > qi::lit('=') > value >> -lit(',');
-        value       = fstr | key;
-        key         = +(qi::graph - qi::char_("=/,'"));
-        fstr        = qi::char_('\'')
-                      >> qi::lexeme[*(qi::char_ - '\'')]
-                      > qi::char_('\'');
+    std::string line, key;
+    size_t beg, end, quote_end;
+    const std::string keysep{"= "};
+    const std::string valsep{"=, "};
+    while (std::getline(file, line)) {
+        if (line[0] == '/') return;
+        if (line[0] == '!') continue;
+        beg = 0;
+        end = 0;
+        while((beg = line.find_first_not_of(keysep, end)) != line.npos) {
+            end = line.find_first_of(keysep, beg);
+            key = std::string{line, beg, end-1};
+            beg = line.find_first_not_of(valsep, end);
+            end = line.find_first_of(valsep, beg);
+            quote_end = (end == line.npos) ? line.length()-1 : end;
+            while ((line[beg] == '"' && line[quote_end] != '"') ||
+                   (line[beg] == '\'' && line[quote_end] != '\'')) {
+                line = std::string{line, end};
+                end = line.find_first_of(valsep, end);
+            }
+            nl[key] = std::string{line, beg, end};
+        }
+    }
+    throw IOError("Error in Namelist-parsing");
+}
 
-        /* Cards:
-         * NAME {options}
-         * #comment
-         * !comment
-         * <content>
-         */
-        mol         = species(phx::ref(_val))
-                      ^ positions(phx::ref(_val))
-                      ^ kpoints(phx::ref(_val))
-                      ^ cell(phx::ref(_val));
-        // Atomic species
-        species     = no_case["atomic_species"] > eol
-                      > (pseentry(phx::ref(_r1)) % eol) > *eol;
-        pseentry    = (key >> float_ >> key)
-                      [phx::bind(
-                       [](Molecule& mol, std::string k, float m, std::string p){
-                         PseEntry& e = (*mol.pse)[k]; e.m = m; e.PWPP = p;
-                        }, _r1, _1, _2, _3)];
-        // Atomic positions
-        //TODO: parse fix-bools (0=true,1=false)
-        positions   = (no_case["atomic_positions"] >
-                      no_case[atomfmt] > eol >
-                      (atom % eol) > *eol)
-                      [phx::bind(
-                       [](Molecule& mol, AtomFmt f, vector<Atom> at){
-                          Step& s = mol.getStep(0); s.setFmt(f); s.newAtoms(at);
-                       }, _r1, _1, _2)];
-        atom        = key >> as<Vec>()[float_ > float_ > float_];
-        atomfmt.add
-            ("angstrom", AtomFmt::Angstrom)
-            ("alat", AtomFmt::Alat)
-            ("bohr", AtomFmt::Bohr)
-            ("crystal", AtomFmt::Crystal)
-        ;
-        // K-Points
-        kpoints     = no_case["k_points"] > (
-                      no_case["gamma"] | qi::as<KPoints>()[
-                      (no_case["automatic"] > attr(KPointFmt::MPG) > kmpg) |
-                      (attr(KPointFmt::Discrete) > attr(KPoints::MPG{}) > kdisc)
-                      ][phx::bind(
-                        [](Molecule& mol, KPoints k){
-                            mol.setKPoints(k);
-                        }, _r1, _1)]) > *eol;
-        kmpg        = eol > int_ > int_ > int_ > float_ > float_ > float_;
-        kdisc       = (no_case[kdiscfmt]|attr(KPoints::Discrete::none))
-                      > eol > omit[int_]
-                      > eol > (disckpoint % eol);
-        kdiscfmt.add
-            ("tpiba", KPoints::Discrete::none)
-            ("tpiba_b", KPoints::Discrete::band)
-            ("tpiba_c", KPoints::Discrete::contour)
-            ("crystal", KPoints::Discrete::crystal)
-            ("crystal_b", (KPoints::Discrete::Properties)(
-                 KPoints::Discrete::crystal|KPoints::Discrete::band))
-            ("crystal_c", (KPoints::Discrete::Properties)(
-                 KPoints::Discrete::crystal|KPoints::Discrete::contour))
-        ;
-        disckpoint  = as<Vec>()[float_ > float_ > float_] > float_;
-        // Cell
-        cell        = as<Mat>()[no_case["cell_parameters"]
-                      > -omit[no_case[atomfmt]] > eol
-                      > as<Vec>()[float_ > float_ > float_] > eol
-                      > as<Vec>()[float_ > float_ > float_] > eol
-                      > as<Vec>()[float_ > float_ > float_] > *eol]
-                      [phx::bind([](Molecule& m, Mat v){
-                        m.getStep(0).setCellVec(v);
-                        },_r1,_1)];
+void parseSpecies(std::ifstream& file, IO::PWData& d)
+{
+    auto dataentry = d.data.system.find("ntyp");
+    if (dataentry == d.data.system.end()) throw IOError("ntyp not specified");
+    int ntyp = std::stoi(dataentry->second);
+    d.data.system.erase(dataentry);
 
-        //DEBUG
-        file.name("PWScf input file");
-        mol.name("Molecule");
-        species.name("atomic_species");
-        pseentry.name("PSE Entry");
-        positions.name("atomic_positions");
-        atom.name("Atom");
-        kpoints.name("k_points");
-        kmpg.name("MPG");
-        kdisc.name("Discrete KPoints");
-        disckpoint.name("Discrete KPoint");
-        cell.name("Cell parameters");
-        on_error<fail>(
-                file,
-                cout
-                << phx::val("Error! Expecting ")
-                << _4
-                << phx::val(" here: \"")
-                << phx::construct<std::string>(_3, _2)
-                << phx::val("\"")
-                << endl
-        );
+    std::string line;
+    for(int i=0; i<ntyp; ++i) {
+        std::getline(file, line);
+        while (line[0] == '!' || line[0] == '#') std::getline(file, line);
+        std::string name, mass, pwpp;
+        std::stringstream linestream{line};
+        linestream >> name >> mass >> pwpp;
+        if(linestream.fail()) throw IOError("Failed to parse species");
+        PseEntry &type = (*d.mol.pse)[name];
+        type.m = std::stof(mass);
+        type.PWPP = pwpp;
+    }
+}
+
+void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
+{
+    auto dataentry = d.data.system.find("nat");
+    if (dataentry == d.data.system.end()) throw IOError("nat not specified");
+    int nat = std::stoi(dataentry->second);
+    d.data.system.erase(dataentry);
+    Step &s = d.mol.getStep(0);
+    s.newAtoms(nat);
+
+    const std::map<std::string, AtomFmt> fmtmap = {
+        {"ALAT", AtomFmt::Alat},
+        {"BOHR", AtomFmt::Bohr},
+        {"CRYSTAL", AtomFmt::Crystal},
+        {"ANGSTROM", AtomFmt::Angstrom},
+        {"CRYSTAL_SG", AtomFmt::Crystal}
+    };
+    size_t pos = name.find_first_of(' ');
+    pos = name.find_first_not_of(' ', pos);
+    size_t pos2 = name.find_last_not_of(' ');
+    if (pos2 != (pos-1)) {
+        auto fmt = std::string{name, pos, pos2};
+        if (fmt == "CRYSTAL_SG") throw IOError("CRYSTAL_SG format not implemented");
+        auto atfmt = fmtmap.find(fmt);
+        if (atfmt == fmtmap.end()) throw IOError("Unknown atom format");
+        s.setFmt(atfmt->second);
+    } else {
+        s.setFmt(AtomFmt::Alat);
     }
 
-    rule<Iterator, IO::PWData(), blank_type> file;
-    //PWParam
-    rule<Iterator, IO::PWParam(), locals<pwmap IO::PWParam::*>, blank_type> param;
-    rule<Iterator, pwmap(), blank_type> nl;
-    symbols<char, pwmap IO::PWParam::*> nl_names;
-    rule<Iterator, pair<std::string,std::string>(), blank_type> nl_entry;
-    rule<Iterator, std::string()> key;
-    rule<Iterator, std::string()> value;
-    rule<Iterator, std::string()> fstr;
-    //Molecule
-    rule<Iterator, Molecule(), blank_type> mol;
-    //
-    rule<Iterator, unused_type(Molecule&), blank_type> species;
-    rule<Iterator, unused_type(Molecule&), locals<PseEntry*>, blank_type> pseentry;
-    //
-    rule<Iterator, unused_type(Molecule&), blank_type> positions;
-    rule<Iterator, Atom(), blank_type> atom;
-    symbols<char, AtomFmt> atomfmt;
-    //
-    rule<Iterator, unused_type(Molecule&), blank_type> kpoints;
-    rule<Iterator, KPoints::MPG(), blank_type> kmpg;
-    rule<Iterator, KPoints::Discrete(), blank_type> kdisc;
-    symbols<char, KPoints::Discrete::Properties> kdiscfmt;
-    rule<Iterator, DiscreteKPoint(), blank_type> disckpoint;
-    //
-    rule<Iterator, unused_type(Molecule&), blank_type> cell;
-};
+    std::string line;
+    for (int i=0; i<nat; ++i) {
+        std::getline(file, line);
+        while(line[0]=='!' || line[0]=='#') std::getline(file, line);
+        Atom &at = s.getAtomMod(i);
+        std::stringstream linestream{line};
+        linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
+        if (linestream.fail()) throw IOError{"Failed to parse atom"};
+        linestream >> at.fix[0] >> at.fix[1] >> at.fix[2];
+    }
+}
 
-std::shared_ptr<IO::BaseData> pwi_file_parser(std::string name, std::ifstream &file)
+void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
 {
-    // set up data
+    if (name.find("GAMMA") != name.npos) {
+        return;
+    } else if (name.find("AUTOMATIC") != name.npos) {
+        std::string line;
+        std::getline(file, line);
+        while(line[0]=='!' || line[0]=='#') std::getline(file, line);
+        KPoints::MPG &mpg = m.getKPoints().mpg;
+        std::stringstream linestream{line};
+        linestream >> mpg.x >> mpg.y >> mpg.z >> mpg.sx >> mpg.sy >> mpg.sz;
+        if (linestream.fail()) throw IOError("Failed to parse automatic K-Points");
+    } else {
+        throw IOError("Discrete K-Points not implemented");
+    }
+}
+
+void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &cellFmt)
+{
+    auto ibrav = d.data.system.find("ibrav");
+    if (ibrav == d.data.system.end()) throw IOError{"ibrav not specified"};
+    if(!std::stoi(ibrav->second)) {
+        std::string line;
+        Mat cell;
+        for(int i=0; i<3; ++i){
+            std::getline(file, line);
+            while(line[0]=='!' || line[0]=='#') std::getline(file, line);
+            std::stringstream linestream{line};
+            linestream >> cell[i][0] >> cell[i][1] >> cell[i][2];
+            if (linestream.fail()) throw IOError("Failed to parse CELL_PARAMETERS");
+        }
+        d.mol.getStep(0).setCellVec(cell);
+        if (name.find("BOHR") != name.npos) cellFmt = CellFmt::Bohr;
+        else if (name.find("ANGSTROM") != name.npos) cellFmt = CellFmt::Angstrom;
+        else cellFmt = CellFmt::Alat;
+    }
+}
+
+void createCell(IO::PWData &d, CellFmt &cellFmt)
+{
+    Step &s = d.mol.getStep(0);
+    enum class CdmFmt{None, Bohr, Angstrom};
+    auto cdmFmt = CdmFmt::None;
+    auto celldm = d.data.system.find("celldm(1)");
+    auto cellA = d.data.system.find("A");
+    if ((celldm != d.data.system.end()) && (cellA != d.data.system.end())) {
+        throw IOError("Do not specify both celldm and A,B,C");
+    } else if (celldm != d.data.system.end()) {
+        cdmFmt = CdmFmt::Bohr;
+    } else {
+        cdmFmt = CdmFmt::Angstrom;
+    }
+    switch (cellFmt) {
+    case CellFmt::Bohr:
+        s.setCellDim(1, false, AtomFmt::Bohr);
+        break;
+    case CellFmt::Angstrom:
+        s.setCellDim(1, false, AtomFmt::Angstrom);
+        break;
+    case CellFmt::Alat:
+        switch (cdmFmt) {
+        case CdmFmt::None:
+            throw IOError("ibrav=0, but neither celldm nor A given");
+        case CdmFmt::Angstrom:
+            s.setCellDim(std::stof(cellA->second), false, AtomFmt::Angstrom);
+            break;
+        case CdmFmt::Bohr:
+            s.setCellDim(std::stof(celldm->second), false, AtomFmt::Bohr);
+            break;
+        }
+        break;
+    case CellFmt::None:
+        auto ibrav = d.data.system.find("ibrav");
+        if (ibrav == d.data.system.end()) throw IOError{"ibrav not specified"};
+        if(!std::stoi(ibrav->second)) throw IOError("ibrav=0, but no CELL_PARAMETERS were given");
+        throw IOError("Creating Cells based on ibrav not supported yet");
+        break;
+    }
+}
+
+void parseCard(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &cellFmt)
+{
+    if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, d);
+    else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, d);
+    else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, d.mol);
+    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, d, cellFmt);
+    else if (name.find("OCCUPATIONS") != name.npos) throw IOError("OCCUPATIONS not implemented");
+    else if (name.find("CONSTRAINTS") != name.npos) throw IOError("CONSTRAINTS not implemented");
+    else if (name.find("ATOMIC_FORCES") != name.npos) throw IOError("ATOMIC_FORCES not implemented");
+}
+
+std::shared_ptr<IO::BaseData> PWInpParser(std::string name, std::ifstream &file)
+{
     auto d = std::make_shared<IO::PWData>();
-    d->mol.setName(name);
-    d->mol.newStep();
+    Molecule &m = d->mol;
+    m.setName(name);
+    m.newStep();
+    IO::PWParam &p = d->data;
+    CellFmt cellFmt = CellFmt::None;
 
-    // set up iterators
-    typedef std::istreambuf_iterator<char> iter;
-    boost::spirit::multi_pass<iter> first = boost::spirit::make_default_multi_pass(iter(file));
-    boost::spirit::multi_pass<iter> last = boost::spirit::make_default_multi_pass(iter());
-
-    pwi_parse_grammar<boost::spirit::multi_pass<iter>> grammar;
-
-    phrase_parse(first, last, grammar, blank, *d);
-    auto cdm = d->data.system.find("celldm(1)");
-    if (cdm != d->data.system.end()){
-        d->mol.getStep(0).setCellDim(stof(cdm->second));
-        d->data.system.erase(cdm);
+    std::string line;
+    while (std::getline(file, line)) {
+        if (!line[0] || line[0] == ' ' || line[0] == '!' || line[0] == '#') continue;
+        for (auto &c: line) c = std::toupper(c);
+        if (line[0] == '&') parseNamelist(line, file, p);
+        else parseCard(line, file, *d, cellFmt);
     }
-    d->data.system.erase("nat");
-    d->data.system.erase("ntyp");
+
+    createCell(*d, cellFmt);
 
     return d;
 }
 
-bool pwi_file_writer(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
+bool PWInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
 {
-    const Step& s = m.getStep(0);
-    const IO::PWParam *pp = dynamic_cast<const IO::PWParam*>(p);
+    auto& s = m.getStep(0);
+    auto *pp = dynamic_cast<const IO::PWParam*>(p);
     if(!pp) throw IOError("PWI-Writer needs PWScf parameter set");
     std::vector<std::pair<std::string, const std::map<std::string,std::string>*>>
             outNL = {{"control", &pp->control},
@@ -332,9 +301,9 @@ bool pwi_file_writer(const Molecule& m, std::ofstream &file, const IO::BaseParam
 
 const IOPlugin IO::PWInput =
 {
+    "PWScf Input File",
     "pwi",
     "pwi",
-    "pwi",
-    &pwi_file_parser,
-    &pwi_file_writer
+    &PWInpParser,
+    &PWInpWriter
 };

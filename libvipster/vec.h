@@ -4,17 +4,10 @@
 #include <array>
 #include <cmath>
 #include <limits>
-#include <ostream>
 
 namespace Vipster{
 typedef std::array<float,3> Vec;
 typedef std::array<Vec,3> Mat;
-
-inline std::ostream& operator<<(std::ostream &s, const Vec &v)
-{
-    s << "Vec[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
-    return s;
-}
 
 inline bool  operator==(const Vec &v1, const Vec &v2)
 {
@@ -165,6 +158,24 @@ inline Mat operator*(const float &f, Mat m)
     return m*=f;
 }
 
+inline Mat operator/=(Mat &m, const float&f)
+{
+    m[0]/=f;
+    m[1]/=f;
+    m[2]/=f;
+    return m;
+}
+
+inline Mat operator/(Mat m, const float &f)
+{
+    return m/=f;
+}
+
+inline Mat operator/(const float &f, Mat m)
+{
+    return m/=f;
+}
+
 inline Mat Mat_trans(const Mat &m)
 {
     return {{Vec{{m[0][0],m[1][0],m[2][0]}},
@@ -208,14 +219,6 @@ inline Mat Mat_inv(const Mat &m)
     inv[1][2] =-(m[0][0]*m[1][2]-m[1][0]*m[0][2])*d;
     inv[2][2] = (m[0][0]*m[1][1]-m[1][0]*m[0][1])*d;
     return inv;
-}
-
-inline std::ostream& operator<<(std::ostream &s, const Mat &v)
-{
-    s << "Mat[[" << v[0][0] << ", " << v[0][1] << ", " << v[0][2] << "]\n"
-      << "    [" << v[1][0] << ", " << v[1][1] << ", " << v[1][2] << "]\n"
-      << "    [" << v[2][0] << ", " << v[2][1] << ", " << v[2][2] << "]]";
-    return s;
 }
 
 }

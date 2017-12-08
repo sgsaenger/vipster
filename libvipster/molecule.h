@@ -1,9 +1,9 @@
 #ifndef MOLECULE_H
 #define MOLECULE_H
 
-#include <step.h>
-#include <config.h>
-#include <kpoints.h>
+#include "step.h"
+#include "config.h"
+#include "kpoints.h"
 
 namespace Vipster {
 class Molecule
@@ -11,15 +11,14 @@ class Molecule
 public:
     Molecule(std::string name="New Molecule",unsigned long s=1);
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
-    friend std::ostream& operator<< (std::ostream& s, const Molecule& st);
 
     void setCellDimAll(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
     void setCellVecAll(const Mat &mat, bool scale=false);
     void setFmtAll(AtomFmt fmt, bool scale=false);
 
-    void newStep(const Step& step);
-    void newStep(Step&& step={});
-    void newSteps(const std::vector<Step> &v);
+    Step& newStep(const Step& step);
+    Step& newStep(Step&& step={});
+    std::vector<Step>& newSteps(const std::vector<Step> &v);
     Step& getStep(size_t idx);
     const Step& getStep(size_t idx) const;
     std::vector<Step>& getSteps(void) noexcept;
@@ -37,6 +36,5 @@ private:
     std::string name;
     KPoints kpoints;
 };
-std::ostream& operator<< (std::ostream& s, const Molecule& st);
 }
 #endif // MOLECULE_H

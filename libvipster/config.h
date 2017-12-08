@@ -7,7 +7,9 @@
 
 namespace Vipster{
 
-#ifdef __linux__
+#ifdef __EMSCRIPTEN__
+const std::string user_config = "/vipster.json";
+#elif __linux__
 #ifndef PREFIX
 #define PREFIX /usr/share/
 #endif
@@ -20,8 +22,6 @@ const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json
 //GetModuleFileNameW(hModule,path,MAX_PATH);
 //const std::string sys_config = "./vipster.json";
 const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipster.json";
-#elif __EMSCRIPTEN__
-const std::string user_config = "/vipster.json";
 #endif
 
 struct PseEntry{

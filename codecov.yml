@@ -2,6 +2,3 @@ ignore:
     - "tests"
     - "python"
     - "vipster"
-    - "json.hpp"
-    - "boost*"
-    - "pybind*"

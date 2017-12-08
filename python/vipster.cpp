@@ -18,11 +18,6 @@ py::class_<Array, holder_type> bind_array(py::module &m, std::string const &name
 
     Class_ cl(m, name.c_str(), std::forward<Args>(args)...);
     cl.def(py::init());
-    cl.def("__repr__",[name](const Array &v){
-        std::ostringstream s;
-        s << v;
-        return s.str();
-    });
     cl.def("__getitem__",[](const Array &v, SizeType i){
         if(i<0 || i>= v.size())
             throw py::index_error();
@@ -83,7 +78,6 @@ PYBIND11_PLUGIN(vipster) {
         .def_readwrite("fix",&Atom::fix)
         .def_readwrite("hidden",&Atom::hidden)
         .def("__bool__",[](const Atom &a){return !a.name.empty();})
-        .def("__repr__",[](const Atom &a){std::ostringstream s;s<<a;return s.str();})
         .def(py::self == py::self)
         .def(py::self != py::self)
     ;
@@ -112,12 +106,11 @@ PYBIND11_PLUGIN(vipster) {
         .def_readwrite("covr", &PseEntry::covr)
         .def_readwrite("vdwr", &PseEntry::vdwr)
 // TODO: waiting for nlohmann/json v3
-//        .def_readwrite("col", &PseEntry::col)
+        .def_readwrite("col", &PseEntry::col)
     ;
 
     py::class_<Step>(m, "Step")
         .def(py::init())
-        .def("__repr__",[](const Step &a){std::ostringstream s;s<<a;return s.str();})
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
         .def("newAtom", [](Step& s){s.newAtom();})
@@ -127,9 +120,9 @@ PYBIND11_PLUGIN(vipster) {
         .def("setAtom", py::overload_cast<size_t, const Atom&>(&Step::setAtom), "i"_a, "at"_a)
         .def("setAtom", py::overload_cast<size_t, Atom, AtomFmt>(&Step::setAtom), "i"_a, "at"_a, "fmt"_a)
         .def("getAtom", py::overload_cast<size_t>(&Step::getAtom, py::const_), "i"_a)
-        .def("getAtom", py::overload_cast<size_t, AtomFmt>(&Step::getAtom, py::const_), "i"_a, "fmt"_a)
-        .def("getAtoms",py::overload_cast<>(&Step::getAtoms, py::const_))
-        .def("getAtoms",py::overload_cast<AtomFmt>(&Step::getAtoms, py::const_), "fmt"_a)
+        .def("getAtomFmt", py::overload_cast<size_t, AtomFmt>(&Step::getAtomFmt, py::const_), "i"_a, "fmt"_a)
+        .def("getAtoms", py::overload_cast<>(&Step::getAtoms, py::const_))
+        .def("getAtomsFmt", py::overload_cast<AtomFmt>(&Step::getAtomsFmt, py::const_), "fmt"_a)
         .def_property_readonly("nat", &Step::getNat)
         .def("getTypes", &Step::getTypes)
         .def_property_readonly("ntyp", &Step::getNtyp)
@@ -162,7 +155,6 @@ PYBIND11_PLUGIN(vipster) {
 
     py::class_<KPoints> k(m, "KPoints");
     k.def(py::init())
-        .def("__repr__",[](const KPoints &k){std::ostringstream s;s<<k;return s.str();})
         .def_readwrite("active", &KPoints::active)
         .def_readwrite("mpg", &KPoints::mpg)
         .def_readwrite("discrete", &KPoints::discrete)
@@ -201,7 +193,6 @@ PYBIND11_PLUGIN(vipster) {
      */
     py::class_<Molecule>(m, "Molecule")
         .def(py::init())
-        .def("__repr__",[](const Molecule &m){std::ostringstream s;s<<m;return s.str();})
         .def("newStep", py::overload_cast<const Step&>(&Molecule::newStep), "step"_a=Step{})
         .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a)
         .def("getSteps",py::overload_cast<>(&Molecule::getSteps))

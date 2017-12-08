@@ -215,7 +215,7 @@ void one_iter(){
     }
     // sync data and draw
     gui.updateVBOs();
-    gui.updateUBO();
+    gui.updateViewUBO();
     gui.draw();
 }
 
@@ -247,7 +247,7 @@ int main()
     gui.initAtomVAO();
     gui.initBondVAO();
     gui.initCellVAO();
-    gui.initUBO();
+    gui.initViewUBO();
     gui.initViewMat();
 
     gui.molecules.emplace_back("Example");

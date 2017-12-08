@@ -32,8 +32,8 @@ public:
     void updateBuffers(const Step* step, bool draw_bonds=true);
     void updateVBOs(void);
     // view/projection matrices
-    void initUBO(void);
-    void updateUBO(void);
+    void initViewUBO(void);
+    void updateViewUBO(void);
     void initViewMat(void);
     void resizeViewMat(int w, int h);
     void zoomViewMat(int i);
@@ -52,14 +52,16 @@ private:
     std::vector<std::array<float,8>> atom_buffer;
     std::vector<std::array<float,24>> bond_buffer;
     std::array<Vec,8> cell_buffer;
-    bool atoms_changed, bonds_changed, cell_changed;
+    std::array<float, 9>  cell_mat;
+    bool atoms_changed, bonds_changed, cell_changed, cell_mat_changed;
+    bool bonds_drawn = false;
     // gpu-side data
     GLuint atom_program, bond_program, cell_program;
     GLuint atom_vao, bond_vao, cell_vao;
     GLuint atom_vbo, bond_vbo, cell_vbo;
     GLuint sphere_vbo, torus_vbo;
     GLuint cell_ibo;
-    GLuint ubo;
+    GLuint view_ubo;
     // cpu-side uniforms
     guiMat vMat, pMat, rMat;
     bool vMatChanged, pMatChanged, rMatChanged;

@@ -12,13 +12,6 @@ Molecule::Molecule(std::string name, unsigned long s):
     }
 }
 
-std::ostream& Vipster::operator<< (std::ostream& s, const Molecule& m)
-{
-    s << "Molecule:\n Name: " << m.getName() << "\n Steps: " << m.getNstep()
-      << "\n Active K-Point: " << m.getKPoints();
-    return s;
-}
-
 
 void Molecule::setCellDimAll(float cdm, bool scale, AtomFmt fmt)
 {
@@ -54,19 +47,21 @@ void Molecule::setFmtAll(AtomFmt fmt, bool scale)
     }
 }
 
-void Molecule::newStep(const Step &step)
+Step& Molecule::newStep(const Step &step)
 {
     steps.push_back(step);
     steps.back().pse = pse;
+    return steps.back();
 }
 
-void Molecule::newStep(Step &&step)
+Step& Molecule::newStep(Step &&step)
 {
     steps.push_back(std::move(step));
     steps.back().pse = pse;
+    return steps.back();
 }
 
-void Molecule::newSteps(const std::vector<Step> &v)
+std::vector<Step>& Molecule::newSteps(const std::vector<Step> &v)
 {
     steps.reserve(steps.size()+v.size());
     std::vector<Step>::iterator pos = steps.end();
@@ -75,6 +70,7 @@ void Molecule::newSteps(const std::vector<Step> &v)
     {
         pos->pse = pse;
     }
+    return steps;
 }
 
 Step& Molecule::getStep(size_t idx)
