@@ -36,9 +36,9 @@ install:
     - qmake "INCLUDEPATH+=$INCLUDEPATH" CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 -spec linux-g++ $TRAVIS_BUILD_DIR/vipster.pro
     - make
     # CLANG
-    - cd ~/clang
-    - qmake "INCLUDEPATH+=$INCLUDEPATH" -spec linux-clang $TRAVIS_BUILD_DIR/vipster.pro
-    - make
+    #- cd ~/clang
+    #- qmake "INCLUDEPATH+=$INCLUDEPATH" -spec linux-clang $TRAVIS_BUILD_DIR/vipster.pro
+    #- make
     # EMSCRIPTEN
     - cd ~/emscripten
     - qmake "INCLUDEPATH+=$INCLUDEPATH" -spec $TRAVIS_BUILD_DIR/emscriptenmkspec $TRAVIS_BUILD_DIR/vipster.pro
@@ -52,8 +52,8 @@ script:
     - cd ~/gcc
     - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
     # CLANG
-    - cd ~/clang
-    - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
+    #- cd ~/clang
+    #- LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
     # MINGW
     - cd ~/mingw
     - wine tests/release/tst_libvipstertest.exe
