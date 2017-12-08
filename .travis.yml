@@ -10,6 +10,7 @@ before_install:
     - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D43A795B73B16ABE9643FE1AFD8FFF16DB45C6AB
     - sudo apt-get update -y -qq
     - sudo apt-get install -y -q --no-install-recommends mxe-x86-64-w64-mingw32.static-qtbase
+    - export PATH=/usr/lib/mxe/usr/bin:$PATH
     - sudo apt-get install -y -qq --no-install-recommends g++-5
     - sudo apt-get install -y -qq --no-install-recommends qt57-meta-minimal
     - sudo apt-get install -y -qq --no-install-recommends wine
