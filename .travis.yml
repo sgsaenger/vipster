@@ -50,6 +50,7 @@ install:
     - make
 script:
     # GCC
+    - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.vipster.json
     - cd ~/gcc
     - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
     # CLANG
