@@ -57,6 +57,7 @@ script:
     #- cd ~/clang
     #- LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
     # MINGW
+    - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.wine/drive_c/users/$USER/vipster.json
     - cd ~/mingw
     - wine tests/release/tst_libvipstertest.exe
 after_success:
