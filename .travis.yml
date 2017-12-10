@@ -10,6 +10,7 @@ before_install:
     - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D43A795B73B16ABE9643FE1AFD8FFF16DB45C6AB
     - sudo apt-get update -y -qq
     - sudo apt-get install -y -q --no-install-recommends mxe-x86-64-w64-mingw32.static-qtbase
+    - export PATH=/usr/lib/mxe/usr/bin:$PATH
     - sudo apt-get install -y -qq --no-install-recommends g++-5
     - sudo apt-get install -y -qq --no-install-recommends qt57-meta-minimal
     - sudo apt-get install -y -qq --no-install-recommends wine
@@ -36,9 +37,9 @@ install:
     - qmake "INCLUDEPATH+=$INCLUDEPATH" CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 -spec linux-g++ $TRAVIS_BUILD_DIR/vipster.pro
     - make
     # CLANG
-    - cd ~/clang
-    - qmake "INCLUDEPATH+=$INCLUDEPATH" -spec linux-clang $TRAVIS_BUILD_DIR/vipster.pro
-    - make
+    #- cd ~/clang
+    #- qmake "INCLUDEPATH+=$INCLUDEPATH" -spec linux-clang $TRAVIS_BUILD_DIR/vipster.pro
+    #- make
     # EMSCRIPTEN
     - cd ~/emscripten
     - qmake "INCLUDEPATH+=$INCLUDEPATH" -spec $TRAVIS_BUILD_DIR/emscriptenmkspec $TRAVIS_BUILD_DIR/vipster.pro
@@ -49,12 +50,15 @@ install:
     - make
 script:
     # GCC
+    - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.vipster.json
     - cd ~/gcc
     - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
     # CLANG
-    - cd ~/clang
-    - LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
+    #- cd ~/clang
+    #- LD_LIBRARY_PATH=libvipster tests/tst_libvipstertest
     # MINGW
+    - mkdir -p ~/.wine/drive_c/users/$USER
+    - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.wine/drive_c/users/$USER/vipster.json
     - cd ~/mingw
     - wine tests/release/tst_libvipstertest.exe
 after_success:
