@@ -88,7 +88,7 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
     return data;
 }
 
-bool LmpInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
+bool LmpInpWriter(const Molecule&, std::ofstream &, const IO::BaseParam* p)
 {
     auto *lp = dynamic_cast<const IO::LmpParam*>(p);
     if(!lp) throw IOError("Lammps-Writer needs parameter set");

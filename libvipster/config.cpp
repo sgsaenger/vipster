@@ -16,7 +16,7 @@ PseMap Vipster::readPse()
     PseMap temp{true};
     if(user_file){
         json loc_file;
-        loc_file << user_file;
+        user_file >> loc_file;
         for(auto it=loc_file["PSE"].begin();it!=loc_file["PSE"].end();++it)
         {
             auto v = it.value();

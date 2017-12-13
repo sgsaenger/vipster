@@ -59,8 +59,6 @@ public:
     Vec   getCenter(bool com=false) const noexcept;
     std::set<std::string> getTypes(void)const noexcept;
     size_t  getNtyp(void) const noexcept;
-    void  setComment(const std::string &s);
-    const std::string& getComment(void) const noexcept;
     const std::vector<Bond>& getBonds() const;
     const std::vector<Bond>& getBonds(float cutfac) const;
     const std::vector<Bond>& getBondsCell() const;
@@ -68,6 +66,7 @@ public:
     size_t  getNbond(void) const noexcept;
 
     std::shared_ptr<PseMap> pse;
+    std::string comment;
 
 private:
     Atom formatAtom(Atom at, AtomFmt source, AtomFmt target) const;
@@ -79,7 +78,6 @@ private:
 
     //DATA following:
     AtomFmt format = AtomFmt::Bohr;
-    std::string comment;
     std::vector<Atom> atoms;
     float celldim {1.};
     Mat cellvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};

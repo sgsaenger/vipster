@@ -24,6 +24,8 @@ const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json
 const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipster.json";
 #endif
 
+using ColVec = std::array<float, 4>;
+
 struct PseEntry{
     std::string PWPP;
     std::string CPPP;
@@ -33,8 +35,7 @@ struct PseEntry{
     float       bondcut;
     float       covr;
     float       vdwr;
-    //TODO: change this to array<float,4> when nlohmann::json reaches v3
-    std::vector<float> col;
+    ColVec col;
 };
 
 class PseMap:private std::map<std::string,PseEntry>

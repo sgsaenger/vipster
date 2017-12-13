@@ -44,7 +44,7 @@ bool XYZWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam*)
 {
     const Step& s = m.getStep(0);
     file << s.getNat() << '\n';
-    file << s.getComment() << '\n';
+    file << s.comment << '\n';
     file << std::fixed << std::setprecision(5);
     for(const Atom& at: s.getAtoms()){
         file << std::left << std::setw(3) << at.name << " "

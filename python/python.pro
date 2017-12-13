@@ -13,7 +13,7 @@ DEFINES += LIBVIPSTER_PYTHON
 CONFIG += c++14 plugin no_plugin_name_prefix
 
 SOURCES += \
-    vipster.cpp
+    pyvipster.cpp
 
 HEADERS +=
 

@@ -54,7 +54,8 @@ PYBIND11_PLUGIN(vipster) {
 
     bind_array<Vec>(m, "Vec");
     bind_array<Mat>(m, "Mat");
-    bind_array<FixVec>(m,"FixVec");
+    bind_array<FixVec>(m, "FixVec");
+    bind_array<ColVec>(m, "ColVec");
     py::bind_vector<std::vector<Atom>>(m,"__AtomVector__");
     py::bind_vector<std::vector<Step>>(m,"__StepVector__");
     py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
@@ -105,14 +106,13 @@ PYBIND11_PLUGIN(vipster) {
         .def_readwrite("bondcut", &PseEntry::bondcut)
         .def_readwrite("covr", &PseEntry::covr)
         .def_readwrite("vdwr", &PseEntry::vdwr)
-// TODO: waiting for nlohmann/json v3
         .def_readwrite("col", &PseEntry::col)
     ;
 
     py::class_<Step>(m, "Step")
         .def(py::init())
         .def_readonly("pse", &Step::pse)
-        .def_property("comment", &Step::getComment, &Step::setComment)
+        .def_readwrite("comment", &Step::comment)
         .def("newAtom", [](Step& s){s.newAtom();})
         .def("newAtom", py::overload_cast<const Atom&>(&Step::newAtom), "at"_a)
         .def("newAtom", py::overload_cast<Atom, AtomFmt>(&Step::newAtom), "at"_a, "fmt"_a)

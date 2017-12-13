@@ -275,16 +275,6 @@ size_t Step::getNtyp() const noexcept
     return getTypes().size();
 }
 
-void  Step::setComment(const std::string &s)
-{
-    comment = s;
-}
-
-const std::string& Step::getComment() const noexcept
-{
-    return comment;
-}
-
 const std::vector<Bond>& Step::getBonds() const
 {
     return getBonds(bondcut_factor);

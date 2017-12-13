@@ -101,11 +101,10 @@ void LibVipsterTest::testStep()
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, true, false}, true};
     Step step;
     /*
-     * getComment,setComment
+     * comment
      */
-    QVERIFY2(step.getComment() == "", "Step: getComment");
-    step.setComment("Testäößą☭");
-    QVERIFY2(step.getComment() == "Testäößą☭", "Step: getComment");
+    step.comment = "Testäößą☭";
+    QVERIFY2(step.comment == "Testäößą☭", "Step: comment");
     /*
      * newAtom, getAtom, getNat
      */
