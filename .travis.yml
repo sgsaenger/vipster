@@ -33,9 +33,9 @@ before_install:
     - mkdir -p ~/headers/include
     - cd ~/headers
     - export INCLUDEPATH=$(pwd)/include
-    - curl -fsS -o include/json.hpp -L https://github.com/nlohmann/json/releases/download/v2.1.1/json.hpp
-    - wget https://github.com/pybind/pybind11/archive/v2.1.1.tar.gz && tar -xf v2.1.1.tar.gz
-    - mv pybind11-2.1.1/include/pybind11 include
+    - curl -fsS -o include/json.hpp -L https://github.com/nlohmann/json/releases/download/v3.0.0/json.hpp
+    - wget https://github.com/pybind/pybind11/archive/v2.2.1.tar.gz && tar -xf v2.2.1.tar.gz
+    - mv pybind11-2.2.1/include/pybind11 include
     # Target folders:
     - mkdir ~/gcc ~/clang ~/mingw ~/emscripten
 install:
