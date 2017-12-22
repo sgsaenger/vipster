@@ -251,7 +251,7 @@ int main()
     gui.initViewMat();
 
     gui.molecules.emplace_back("Example");
-    Step* step = &gui.molecules[0].getStep(0);
+    StepProper* step = &gui.molecules[0].getStep(0);
     step->newAtom();
     step->newAtom({"O",{{1,0,0}}});
     step->newAtom({"F",{{0,1,0}}});

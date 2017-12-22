@@ -17,7 +17,7 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
     auto mode = ParseMode::Header;
     int nat, count;
     char line[IO::linelen], type[10];
-    Step *sp = nullptr;
+    StepProper *sp = nullptr;
     while(file.getline(line, IO::linelen)){
         if(mode == ParseMode::Header){
             int test = sscanf(line, "%d", &nat);
@@ -27,10 +27,10 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
             sp->newAtoms(nat);
             count = 0;
             file.getline(line, IO::linelen);
-            sp->setComment(line);
+            *sp->comment = line;
             mode = ParseMode::Atoms;
         }else if(mode == ParseMode::Atoms){
-            Atom& at = sp->getAtomMod(count);
+            Atom at = (*sp)[count];
             sscanf(line, "%s %f %f %f", type, &at.coord[0], &at.coord[1], &at.coord[2]);
             at.name = std::string(type);
             count++;
@@ -42,16 +42,16 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
 
 bool XYZWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam*)
 {
-    const Step& s = m.getStep(0);
+    const StepProper& s = m.getStep(0);
     file << s.getNat() << '\n';
     file << s.comment << '\n';
     file << std::fixed << std::setprecision(5);
-    for(const Atom& at: s.getAtoms()){
-        file << std::left << std::setw(3) << at.name << " "
-             << std::right << std::setw(10) << at.coord[0] << " "
-             << std::right << std::setw(10) << at.coord[1] << " "
-             << std::right << std::setw(10) << at.coord[2] << '\n';
-    }
+//    for(auto at: s.getAtoms()){
+//        file << std::left << std::setw(3) << at.name << " "
+//             << std::right << std::setw(10) << at.coord[0] << " "
+//             << std::right << std::setw(10) << at.coord[1] << " "
+//             << std::right << std::setw(10) << at.coord[2] << '\n';
+//    }
     return true;
 }
 

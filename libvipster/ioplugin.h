@@ -25,7 +25,7 @@ namespace IO {
     class IOError: public std::runtime_error
     {
         public:
-            IOError(std::string reason):std::runtime_error(reason){};
+            IOError(std::string reason):std::runtime_error(reason){}
     };
 }
 

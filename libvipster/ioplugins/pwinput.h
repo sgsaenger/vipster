@@ -14,7 +14,7 @@ struct PWParam: BaseParam{
     PWNamelist ions;
     PWNamelist cell;
 };
-struct PWData: Vipster::IO::BaseData{
+struct PWData: BaseData{
     PWParam data;
 };
 }

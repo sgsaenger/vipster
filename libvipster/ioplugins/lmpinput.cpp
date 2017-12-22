@@ -12,7 +12,7 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
     auto data = std::make_shared<IO::BaseData>();
     Molecule& m = data->mol;
     m.setName(name);
-    Step& s = m.newStep();
+    StepProper& s = m.newStep();
 
     char line[IO::linelen];
     char* tok;
@@ -51,11 +51,12 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
             }
         }else if(mode == ParseMode::Atoms){
             if(!count) file.getline(line, IO::linelen);
-            Atom& at = s.getAtomMod(count-1);
+            auto at = s[count-1];
             const char* fullfmt = "%*d %*d %d %f %f %f %f\n";
-            sscanf(line, fullfmt, &typemap[count-1], &at.charge, &at.coord[0], &at.coord[1], &at.coord[2]);
+            sscanf(line, fullfmt, &typemap[count-1], &at.charge,
+                   &at.coord[0], &at.coord[1], &at.coord[2]);
             count++;
-            if(count==nat){
+            if(count == nat){
                 mode = ParseMode::Header;
             }
         }else if(mode == ParseMode::Types){
@@ -80,7 +81,7 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
         }
     }
     for(size_t i = 0; i < s.getNat(); ++i){
-        s.getAtomMod(i).name = types[typemap[i]];
+        s[i].name = types[typemap[i]];
     }
     s.setFmt(AtomFmt::Angstrom);
     s.setCellDim(1);

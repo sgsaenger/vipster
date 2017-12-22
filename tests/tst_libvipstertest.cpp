@@ -89,7 +89,7 @@ void LibVipsterTest::testPse()
     }
     QVERIFY2(pseComp(p["Zzyzzyx"], Vipster::pse.at("X")), "pse miss mismatch");
     Molecule m;
-    Step &s = m.getStep(0);
+    StepProper &s = m.getStep(0);
     QVERIFY2(pseComp((*m.pse)["C"], Vipster::pse.at("C")), "mol mismatch");
     QVERIFY2(pseComp((*s.pse)["C"], Vipster::pse.at("C")), "step existing mismatch");
     QVERIFY2(pseComp((*s.pse)["H"], Vipster::pse.at("H")), "step new mismatch");
@@ -99,7 +99,7 @@ void LibVipsterTest::testStep()
 {
     Atom atom{"C"};
     Atom atom2{"H", {0.5,0.5,0.5}, 0.5, {false, true, false}, true};
-    Step step;
+    StepProper step;
     /*
      * comment
      */
@@ -207,7 +207,7 @@ void LibVipsterTest::testStep()
 
 void LibVipsterTest::testMolecule()
 {
-    Step step;
+    StepProper step;
     Molecule mol;
     /*
      * default constructor, name, Nstep
@@ -228,16 +228,16 @@ void LibVipsterTest::testMolecule()
     mol.newStep();
     mol.newStep(step);
     QVERIFY2(mol.getNstep() == 5, "Molecule: newStep");
-    mol.newSteps({Step{},Step{},Step{}});
+    mol.newSteps({StepProper{},StepProper{},StepProper{}});
     QVERIFY2(mol.getNstep() == 8, "Molecule: newSteps");
     /*
      * Batch modify steps
      */
-    for(Step &s: mol.getSteps()){
+    for(StepProper &s: mol.getSteps()){
         QVERIFY2(floatComp(s.getCellDim(), 1), "Molecule: getSteps");
     }
     mol.setCellDimAll(2);
-    for(Step& s:mol.getSteps()){
+    for(StepProper& s:mol.getSteps()){
         QVERIFY2(floatComp(s.getCellDim(), 2), "Molecule: setCellDim");
     }
     /*

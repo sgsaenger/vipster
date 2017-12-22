@@ -22,7 +22,7 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::setStep(Vipster::Step *step)
+void MolWidget::setStep(Vipster::StepProper *step)
 {
     curStep = step;
     //Fill atom list
@@ -31,7 +31,6 @@ void MolWidget::setStep(Vipster::Step *step)
     QSignalBlocker blockDim(ui->cellDimBox);
     int oldCount = ui->atomTable->rowCount();
     int nat = curStep->getNat();
-    const std::vector<Vipster::Atom> &atoms = curStep->getAtoms();
     ui->atomTable->setRowCount(nat);
     if( oldCount < nat){
         for(int j=oldCount;j!=nat;++j){
@@ -44,7 +43,8 @@ void MolWidget::setStep(Vipster::Step *step)
         }
     }
     for(int j=0;j!=nat;++j){
-        const Vipster::Atom &at = atoms.at(j);
+        const Vipster::Atom at = (*curStep)[j];
+        //TODO
         ui->atomTable->item(j,0)->setText(at.name.c_str());
         ui->atomTable->item(j,0)->setCheckState(Qt::CheckState(at.hidden*2));
         for(int k=0;k!=3;++k){
@@ -79,8 +79,8 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
-    Vipster::Atom at = curStep->getAtom(row);
-    QTableWidgetItem *cell = ui->atomTable->item(row,column);
+    Vipster::Atom at = (*curStep)[row];
+    const QTableWidgetItem *cell = ui->atomTable->item(row,column);
     switch(column){
     case 0:
         at.name = cell->text().toStdString();
@@ -90,6 +90,5 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
         at.coord[column-1] = locale().toDouble(cell->text());
         at.fix[column-1] = cell->checkState()/2;
     }
-    curStep->setAtom(row, at);
     emit stepChanged();
 }

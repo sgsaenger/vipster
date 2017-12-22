@@ -30,7 +30,6 @@ void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
     while (std::getline(file, line)) {
         if (line[0] == '/') return;
         if (line[0] == '!') continue;
-        beg = 0;
         end = 0;
         while((beg = line.find_first_not_of(keysep, end)) != line.npos) {
             end = line.find_first_of(keysep, beg);
@@ -76,7 +75,7 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
     if (dataentry == d.data.system.end()) throw IOError("nat not specified");
     int nat = std::stoi(dataentry->second);
     d.data.system.erase(dataentry);
-    Step &s = d.mol.getStep(0);
+    StepProper &s = d.mol.getStep(0);
     s.newAtoms(nat);
 
     const std::map<std::string, AtomFmt> fmtmap = {
@@ -103,7 +102,7 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
     for (int i=0; i<nat; ++i) {
         std::getline(file, line);
         while(line[0]=='!' || line[0]=='#') std::getline(file, line);
-        Atom &at = s.getAtomMod(i);
+        auto at = s[i];
         std::stringstream linestream{line};
         linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
         if (linestream.fail()) throw IOError{"Failed to parse atom"};
@@ -151,7 +150,7 @@ void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &ce
 
 void createCell(IO::PWData &d, CellFmt &cellFmt)
 {
-    Step &s = d.mol.getStep(0);
+    StepProper &s = d.mol.getStep(0);
     enum class CdmFmt{None, Bohr, Angstrom};
     auto cdmFmt = CdmFmt::None;
     auto celldm = d.data.system.find("celldm(1)");
@@ -164,21 +163,22 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
         cdmFmt = CdmFmt::Angstrom;
     }
     switch (cellFmt) {
+    //TODO
     case CellFmt::Bohr:
-        s.setCellDim(1, false, AtomFmt::Bohr);
+//        s.setCellDim(1, false, AtomFmt::Bohr);
         break;
     case CellFmt::Angstrom:
-        s.setCellDim(1, false, AtomFmt::Angstrom);
+//        s.setCellDim(1, false, AtomFmt::Angstrom);
         break;
     case CellFmt::Alat:
         switch (cdmFmt) {
         case CdmFmt::None:
             throw IOError("ibrav=0, but neither celldm nor A given");
         case CdmFmt::Angstrom:
-            s.setCellDim(std::stof(cellA->second), false, AtomFmt::Angstrom);
+//            s.setCellDim(std::stof(cellA->second), false, AtomFmt::Angstrom);
             break;
         case CdmFmt::Bohr:
-            s.setCellDim(std::stof(celldm->second), false, AtomFmt::Bohr);
+//            s.setCellDim(std::stof(celldm->second), false, AtomFmt::Bohr);
             break;
         }
         break;
@@ -265,12 +265,12 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
     const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
     file << "\nATOMIC_POSITION " << atfmt[(int)s.getFmt()] << '\n'
          << std::fixed << std::setprecision(5);
-    for(const Atom& at: s.getAtoms()){
-        file << std::left << std::setw(3) << at.name << ' '
-             << std::right << std::setw(10) << at.coord[0] << ' '
-             << std::right << std::setw(10) << at.coord[1] << ' '
-             << std::right << std::setw(10) << at.coord[2] << '\n';
-    }
+//    for(const Atom& at: s.getAtoms()){
+//        file << std::left << std::setw(3) << at.name << ' '
+//             << std::right << std::setw(10) << at.coord[0] << ' '
+//             << std::right << std::setw(10) << at.coord[1] << ' '
+//             << std::right << std::setw(10) << at.coord[2] << '\n';
+//    }
     file << "\nK_POINTS " << std::defaultfloat;
     const KPoints& k = m.getKPoints();
     const std::array<std::string, 6> kdprop =

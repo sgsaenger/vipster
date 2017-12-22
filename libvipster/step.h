@@ -12,80 +12,135 @@
 /*
  * TODO:
  *
- * create AtomView/AtomListView classes that map
- * access to atom-properties onto step and set
- * bonds_outdated if changed. or destroyed. or something.
- * and can be implicitely converted to Atoms?!
+ * need a list of pse-pointers.
  *
- * ALSO need a list of pse-pointers.
- *
- * Maybe just convert AoS to SoA in the process.
  */
 
-
 namespace Vipster{
-class Molecule;
-class Step
+class Step{
+public:
+    virtual ~Step() = default;
+    // Atoms
+    size_t          getNat() const noexcept;
+    void            newAtom(const Atom &at=AtomProper{});
+    void            newAtoms(size_t i);
+    void            delAtom(size_t idx);
+    Atom            operator[](size_t idx);
+    const Atom      operator[](size_t idx) const;
+
+    // Atom-iterator
+    class iterator{
+    public:
+        iterator(const Step*, size_t);
+        iterator&   operator++();
+        iterator    operator++(int);
+        Atom&       operator*();
+        bool        operator!=(const iterator&);
+    private:
+        //TODO: weak_ptr to properties?
+        Step*   step;
+        size_t  idx;
+        Atom    at;
+    };
+    iterator                begin();
+    const iterator          begin() const;
+    iterator                end();
+    const iterator          end() const;
+
+    // Types
+    std::set<std::string>   getTypes(void)const noexcept;
+    size_t                  getNtyp(void) const noexcept;
+
+    // Format
+    AtomFmt                 getFmt() const noexcept;
+
+    // Cell
+    virtual void            setCellDim(float cdm, bool scale=false) = 0;
+    virtual float           getCellDim() const noexcept = 0;
+            void            setCellVec(const Mat &vec, bool scale=false);
+            Mat             getCellVec(void) const noexcept;
+            Vec             getCenter(bool com=false) const noexcept;
+
+    // Bonds
+    const std::vector<Bond>&    getBonds() const;
+    const std::vector<Bond>&    getBonds(float cutfac) const;
+    const std::vector<Bond>&    getBondsCell() const;
+    const std::vector<Bond>&    getBondsCell(float cutfac) const;
+    size_t                      getNbond(void) const noexcept;
+
+    // Public data
+    std::shared_ptr<PseMap>         pse;
+    std::shared_ptr<std::string>    comment;
+
+protected:
+    enum class BondLevel { None, Molecule, Cell };
+    Step(const std::shared_ptr<PseMap>& pse,
+         const std::shared_ptr<std::string>& comment,
+         const std::shared_ptr<std::vector<std::string>>& at_name,
+         const std::shared_ptr<std::vector<Vec>>& at_coord,
+         const std::shared_ptr<std::vector<float>>& at_charge,
+         const std::shared_ptr<std::vector<FixVec>>& at_fix,
+         const std::shared_ptr<std::vector<char>>& at_hidden,
+         const std::shared_ptr<float>& celldim,
+         const std::shared_ptr<Mat>& cellvec,
+         const std::shared_ptr<Mat>& invvec,
+         const std::shared_ptr<BondLevel>& bonds_level,
+         const std::shared_ptr<float>& bondcut_factor,
+         const std::shared_ptr<std::vector<Bond>>& bonds);
+    // Atoms
+    bool                                        at_changed{false};
+    std::shared_ptr<std::vector<std::string>>   at_name;
+    std::shared_ptr<std::vector<Vec>>           at_coord;
+    std::shared_ptr<std::vector<float>>         at_charge;
+    std::shared_ptr<std::vector<FixVec>>        at_fix;
+    std::shared_ptr<std::vector<char>>          at_hidden;
+    // Format
+    AtomFmt             fmt;
+    Vec                 formatVec(Vec in, AtomFmt source, AtomFmt target) const;
+    std::vector<Vec>    formatAll(const std::vector<Vec>& in, AtomFmt source,
+                                  AtomFmt target) const;
+    std::vector<Vec>&   formatInPlace(std::vector<Vec>& in, AtomFmt source,
+                                      AtomFmt target);
+    // Cell
+    std::shared_ptr<float>  celldim;
+    std::shared_ptr<Mat>    cellvec;
+    std::shared_ptr<Mat>    invvec;
+    // Bonds
+    bool                                bonds_outdated{false};
+    std::shared_ptr<BondLevel>          bonds_level;
+    std::shared_ptr<float>              bondcut_factor;
+    std::shared_ptr<std::vector<Bond>>  bonds;
+    void                                setBonds(float cutfac) const;
+    void                                setBondsCell(float cutfac) const;
+    void                                checkBond(std::size_t i, std::size_t j,
+                                                  float cutfac, Vec dist,
+                                                  std::array<int, 3> offset) const;
+};
+
+class StepProper: public Step
 {
 public:
-    Step();
-    Step(const std::shared_ptr<PseMap> &pse);
-    friend class Molecule;
+    StepProper();
+    StepProper(const std::shared_ptr<PseMap> &pse);
+//    Step(const Step&);
+//    Step& operator=(const Step&);
 
-    void    newAtom(const Atom &at);
-    void    newAtom(Atom&& at={});
-    void    newAtom(Atom at, AtomFmt fmt);
-    void    newAtoms(size_t i);
-    void    newAtoms(const std::vector<Atom> &v);
-    void    delAtom(size_t idx);
-    void    setAtom(size_t idx,const Atom& at);
-    void    setAtom(size_t idx,Atom&& at);
-    void    setAtom(size_t idx,Atom at,AtomFmt fmt);
-    const Atom& getAtom(size_t idx) const;
-    Atom&   getAtomMod(size_t idx);
-    Atom    getAtomFmt(size_t idx, AtomFmt fmt) const;
-    const std::vector<Atom>& getAtoms() const;
-    std::vector<Atom>& getAtomsMod();
-    std::vector<Atom> getAtomsFmt(AtomFmt fmt) const;
-    size_t  getNat(void) const noexcept;
-    AtomFmt getFmt() const noexcept;
-    void    setFmt(AtomFmt fmt, bool scale=false);
-    void    setCellDim(float cdm, bool scale=false);
-    void    setCellDim(float cdm, bool scale, AtomFmt fmt);
-    float   getCellDim() const noexcept;
-    float   getCellDim(AtomFmt fmt) const noexcept;
-    void    setCellVec(const Mat &vec, bool scale=false);
-    const Mat& getCellVec(void) const noexcept;
-    Vec   getCenter(bool com=false) const noexcept;
-    std::set<std::string> getTypes(void)const noexcept;
-    size_t  getNtyp(void) const noexcept;
-    const std::vector<Bond>& getBonds() const;
-    const std::vector<Bond>& getBonds(float cutfac) const;
-    const std::vector<Bond>& getBondsCell() const;
-    const std::vector<Bond>& getBondsCell(float cutfac) const;
-    size_t  getNbond(void) const noexcept;
-
-    std::shared_ptr<PseMap> pse;
-    std::string comment;
-
-private:
-    Atom formatAtom(Atom at, AtomFmt source, AtomFmt target) const;
-    std::vector<Atom> formatAtoms(std::vector<Atom> atvec, AtomFmt source, AtomFmt target) const;
-    void setBonds(float cutfac) const;
-    void setBondsCell(float cutfac) const;
-    void checkBond(std::size_t i, std::size_t j, float cutfac, Vec dist, std::array<int, 3> offset) const;
-    enum class BondLevel { None, Molecule, Cell };
-
-    //DATA following:
-    AtomFmt format = AtomFmt::Bohr;
-    std::vector<Atom> atoms;
-    float celldim {1.};
-    Mat cellvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
-    Mat invvec {{ {{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
-    mutable bool bonds_outdated{true};
-    mutable BondLevel bonds_level{BondLevel::None};
-    mutable float bondcut_factor{1.1};
-    mutable std::vector<Bond> bonds;
+    // FMT
+    void                        setFmt(AtomFmt fmt, bool scale=false);
+//    class StepFormatter: public Step{
+//    public:
+//        StepFormatter(StepProper *, AtomFmt);
+////        Atom operator[](size_t idx);
+//    private:
+//        StepProper    *step;
+//    };
+//    const StepFormatter asAlat{this, AtomFmt::Alat};
+//    const StepFormatter asAngstrom{this, AtomFmt::Angstrom};
+//    const StepFormatter asBohr{this, AtomFmt::Bohr};
+//    const StepFormatter asCrystal{this, AtomFmt::Crystal};
+    // CELL
+    void                        setCellDim(float cdm, bool scale=false);
+    float                       getCellDim() const noexcept;
 };
 
 }

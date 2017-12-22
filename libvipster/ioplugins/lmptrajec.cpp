@@ -34,7 +34,7 @@ std::shared_ptr<IO::BaseData> LmpTrajecParser(std::string name, std::ifstream &f
     auto data = std::make_shared<IO::BaseData>();
     Molecule& m = data->mol;
     m.setName(name);
-    Step* s = nullptr;
+    StepProper* s = nullptr;
 
     char line[IO::linelen];
     Mat cell;
@@ -85,7 +85,7 @@ std::shared_ptr<IO::BaseData> LmpTrajecParser(std::string name, std::ifstream &f
                 mode = ParseMode::Header;
             }
         }else if(mode == ParseMode::Atoms){
-            Atom &at = s->getAtomMod(count);
+            auto at = (*s)[count];
             parseTable[0](strtok(line, " "), at);
             int i = 0;
             char *tok;

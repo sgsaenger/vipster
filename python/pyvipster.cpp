@@ -56,8 +56,8 @@ PYBIND11_PLUGIN(vipster) {
     bind_array<Mat>(m, "Mat");
     bind_array<FixVec>(m, "FixVec");
     bind_array<ColVec>(m, "ColVec");
-    py::bind_vector<std::vector<Atom>>(m,"__AtomVector__");
-    py::bind_vector<std::vector<Step>>(m,"__StepVector__");
+    py::bind_vector<std::vector<AtomProper>>(m,"__AtomVector__");
+    py::bind_vector<std::vector<StepProper>>(m,"__StepVector__");
     py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
 
     py::enum_<AtomFmt>(m, "AtomFmt")
@@ -67,18 +67,23 @@ PYBIND11_PLUGIN(vipster) {
         .value("Alat", AtomFmt::Alat)
     ;
 
-    py::class_<Atom>(m, "Atom")
+    py::class_<AtomProper>(m, "Atom")
         .def("__init__",
-             [](Atom &a, std::string n, Vec coord, float charge, FixVec fix, bool hidden)
-             { new (&a) Atom{n,coord,charge,fix,hidden};  },
+             [](AtomProper &a, std::string n, Vec coord, float charge, FixVec fix, bool hidden)
+             { new (&a) AtomProper{n,coord,charge,fix,hidden};  },
              "name"_a="C", "coord"_a=Vec{{0,0,0}}, "charge"_a=0,
              "fix"_a=FixVec{{false,false,false}}, "hidden"_a=false )
-        .def_readwrite("name",&Atom::name)
-        .def_readwrite("coord",&Atom::coord)
-        .def_readwrite("charge",&Atom::charge)
-        .def_readwrite("fix",&Atom::fix)
-        .def_readwrite("hidden",&Atom::hidden)
-        .def("__bool__",[](const Atom &a){return !a.name.empty();})
+        .def_property("name", [](const AtomProper &a){return a.name;},
+                      [](AtomProper &a, std::string s){a.name = s;})
+        .def_property("coord", [](const AtomProper &a){return a.coord;},
+                      [](AtomProper &a, Vec c){a.coord = c;})
+        .def_property("charge", [](const AtomProper &a){return a.charge;},
+                      [](AtomProper &a, float c){a.charge = c;})
+        .def_property("fix", [](const AtomProper &a){return a.fix;},
+                      [](AtomProper &a, FixVec f){a.fix = f;})
+        .def_property("hidden", [](const AtomProper &a){return a.hidden;},
+                      [](AtomProper &a, bool h){a.hidden = h;})
+        .def("__bool__",[](const AtomProper &a){return !a.name.empty();})
         .def(py::self == py::self)
         .def(py::self != py::self)
     ;
@@ -114,32 +119,32 @@ PYBIND11_PLUGIN(vipster) {
         .def_readonly("pse", &Step::pse)
         .def_readwrite("comment", &Step::comment)
         .def("newAtom", [](Step& s){s.newAtom();})
-        .def("newAtom", py::overload_cast<const Atom&>(&Step::newAtom), "at"_a)
-        .def("newAtom", py::overload_cast<Atom, AtomFmt>(&Step::newAtom), "at"_a, "fmt"_a)
+        .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
+        .def("newAtom", py::overload_cast<AtomProper, AtomFmt>(&StepProper::newAtom), "at"_a, "fmt"_a)
         .def("delAtom", &Step::delAtom, "i"_a)
-        .def("setAtom", py::overload_cast<size_t, const Atom&>(&Step::setAtom), "i"_a, "at"_a)
-        .def("setAtom", py::overload_cast<size_t, Atom, AtomFmt>(&Step::setAtom), "i"_a, "at"_a, "fmt"_a)
-        .def("getAtom", py::overload_cast<size_t>(&Step::getAtom, py::const_), "i"_a)
-        .def("getAtomFmt", py::overload_cast<size_t, AtomFmt>(&Step::getAtomFmt, py::const_), "i"_a, "fmt"_a)
+        .def("setAtom", py::overload_cast<size_t, const AtomProper&>(&StepProper::setAtom), "i"_a, "at"_a)
+        .def("setAtom", py::overload_cast<size_t, AtomProper, AtomFmt>(&StepProper::setAtom), "i"_a, "at"_a, "fmt"_a)
+        .def("getAtom", py::overload_cast<size_t>(&StepProper::getAtom, py::const_), "i"_a)
+        .def("getAtomFmt", py::overload_cast<size_t, AtomFmt>(&StepProper::getAtomFmt, py::const_), "i"_a, "fmt"_a)
         .def("getAtoms", py::overload_cast<>(&Step::getAtoms, py::const_))
-        .def("getAtomsFmt", py::overload_cast<AtomFmt>(&Step::getAtomsFmt, py::const_), "fmt"_a)
+        .def("getAtomsFmt", py::overload_cast<AtomFmt>(&StepProper::getAtomsFmt, py::const_), "fmt"_a)
         .def_property_readonly("nat", &Step::getNat)
         .def("getTypes", &Step::getTypes)
         .def_property_readonly("ntyp", &Step::getNtyp)
         .def("getFmt", &Step::getFmt)
         .def("setFmt", &Step::setFmt, "fmt"_a, "scale"_a=false)
         .def("getCellDim", py::overload_cast<>(&Step::getCellDim, py::const_))
-        .def("getCellDim", py::overload_cast<AtomFmt>(&Step::getCellDim, py::const_), "fmt"_a)
-        .def("setCellDim", py::overload_cast<float,bool>(&Step::setCellDim), "dim"_a, "scale"_a=false)
-        .def("setCellDim", py::overload_cast<float,bool,AtomFmt>(&Step::setCellDim), "dim"_a, "scale"_a, "fmt"_a)
+        .def("getCellDim", py::overload_cast<AtomFmt>(&StepProper::getCellDim, py::const_), "fmt"_a)
+        .def("setCellDim", py::overload_cast<float,bool>(&StepProper::setCellDim), "dim"_a, "scale"_a=false)
+        .def("setCellDim", py::overload_cast<float,bool,AtomFmt>(&StepProper::setCellDim), "dim"_a, "scale"_a, "fmt"_a)
         .def("getCellVec", &Step::getCellVec)
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
         .def("getCenter", &Step::getCenter, "com"_a=false)
         .def("getBonds", py::overload_cast<>(&Step::getBonds, py::const_))
-        .def("getBonds", py::overload_cast<float>(&Step::getBonds, py::const_), "cutfac"_a)
+        .def("getBonds", py::overload_cast<float>(&StepProper::getBonds, py::const_), "cutfac"_a)
         .def("getBondsCell", py::overload_cast<>(&Step::getBondsCell, py::const_))
-        .def("getBondsCell", py::overload_cast<float>(&Step::getBondsCell, py::const_), "cutfac"_a)
-        .def_property_readonly("nbond", &Step::getNbond)
+        .def("getBondsCell", py::overload_cast<float>(&StepProper::getBondsCell, py::const_), "cutfac"_a)
+        .def_property_readonly("nbond", &StepProper::getNbond)
     ;
 
     /*
@@ -193,7 +198,7 @@ PYBIND11_PLUGIN(vipster) {
      */
     py::class_<Molecule>(m, "Molecule")
         .def(py::init())
-        .def("newStep", py::overload_cast<const Step&>(&Molecule::newStep), "step"_a=Step{})
+        .def("newStep", py::overload_cast<const StepProper&>(&Molecule::newStep), "step"_a=Step{})
         .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a)
         .def("getSteps",py::overload_cast<>(&Molecule::getSteps))
         .def_property_readonly("nstep", &Molecule::getNstep)

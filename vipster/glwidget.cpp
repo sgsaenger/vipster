@@ -75,7 +75,7 @@ void GLWidget::setMult(int i)
     update();
 }
 
-void GLWidget::setStep(const Step* step)
+void GLWidget::setStep(const StepProper* step)
 {
     updateBuffers(step, false);
     update();

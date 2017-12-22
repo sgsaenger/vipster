@@ -6,8 +6,9 @@
 #include <limits>
 
 namespace Vipster{
-typedef std::array<float,3> Vec;
-typedef std::array<Vec,3> Mat;
+
+using Vec = std::array<float, 3>;
+using Mat = std::array<Vec, 3>;
 
 inline bool  operator==(const Vec &v1, const Vec &v2)
 {

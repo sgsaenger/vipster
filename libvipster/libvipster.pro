@@ -8,9 +8,9 @@ DEFINES += LIBVIPSTER_LIBRARY
 CONFIG += c++14
 
 SOURCES += \
-    config.cpp \
-    molecule.cpp \
     step.cpp \
+    molecule.cpp \
+    config.cpp \
     iowrapper.cpp \
     ioplugins/xyz.cpp \
     ioplugins/pwinput.cpp \

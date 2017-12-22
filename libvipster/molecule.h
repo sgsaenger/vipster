@@ -12,17 +12,13 @@ public:
     Molecule(std::string name="New Molecule",unsigned long s=1);
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
 
-    void setCellDimAll(float cdm, bool scale=false, AtomFmt fmt=AtomFmt::Bohr);
-    void setCellVecAll(const Mat &mat, bool scale=false);
-    void setFmtAll(AtomFmt fmt, bool scale=false);
-
-    Step& newStep(const Step& step);
-    Step& newStep(Step&& step={});
-    std::vector<Step>& newSteps(const std::vector<Step> &v);
-    Step& getStep(size_t idx);
-    const Step& getStep(size_t idx) const;
-    std::vector<Step>& getSteps(void) noexcept;
-    const std::vector<Step>& getSteps(void) const noexcept;
+    StepProper& newStep(const StepProper& step);
+    StepProper& newStep(StepProper&& step={});
+    std::vector<StepProper>& newSteps(const std::vector<StepProper> &v);
+    StepProper& getStep(size_t idx);
+    const StepProper& getStep(size_t idx) const;
+    std::vector<StepProper>& getSteps(void) noexcept;
+    const std::vector<StepProper>& getSteps(void) const noexcept;
     size_t getNstep(void) const noexcept;
 
     void setName(const std::string &s);
@@ -32,7 +28,7 @@ public:
     KPoints& getKPoints(void) noexcept;
     const KPoints& getKPoints(void) const noexcept;
 private:
-    std::vector<Step> steps;
+    std::vector<StepProper> steps;
     std::string name;
     KPoints kpoints;
 };

@@ -9,6 +9,7 @@
 #include "ioplugins/lmpinput.h"
 #include "ioplugins/lmptrajec.h"
 
+//TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
     enum class  IOFmt{XYZ, PWI, LMP, DMP};
     const       std::map<IOFmt, IOPlugin const *const> IOPlugins{

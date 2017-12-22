@@ -395,11 +395,12 @@ void GuiWrapper::draw(void)
     }
 }
 
-void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
+void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
 {
     curStep = step;
     //cell
-    Mat cv = step->getCellVec() * step->getCellDim(AtomFmt::Bohr);
+    //TODO
+    Mat cv = step->getCellVec();// * step->getCellDim(AtomFmt::Bohr);
     cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
                      cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
     cell_changed = true;
@@ -425,10 +426,10 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
                  tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
     cell_mat_changed = true;
     //atoms
-    const auto& atoms = step->getAtoms();
+//    const auto& atoms = step->getAtoms();
     atom_buffer.clear();
-    atom_buffer.reserve(atoms.size());
-    for(const Atom& at:atoms){
+    atom_buffer.reserve(step->getNat());
+    for(auto&& at:*step){
         PseEntry &pse = (*step->pse)[at.name];
         atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
                           pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});

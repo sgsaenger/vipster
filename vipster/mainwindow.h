@@ -19,7 +19,7 @@ public:
     explicit MainWindow(Vipster::Molecule &&m, QWidget *parent = 0);
     ~MainWindow();
     Vipster::Molecule *curMol = nullptr;
-    Vipster::Step *curStep = nullptr;
+    Vipster::StepProper *curStep = nullptr;
 
 public slots:
     void setMol(void);
