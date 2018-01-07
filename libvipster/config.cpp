@@ -26,8 +26,8 @@ PseMap Vipster::readPse()
                     v["vdwr"],v["col"]});
         }
     }
-    if(temp.find("X")==temp.end()){
-        temp.emplace("X", PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}});
+    if(temp.find("")==temp.end()){
+        temp.emplace("", PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}});
     }
     return temp;
 }

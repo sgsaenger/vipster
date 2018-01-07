@@ -1,8 +1,6 @@
-QT       += testlib
-
 QT       -= gui
 
-TARGET = tst_libvipstertest
+TARGET = test_libvipster
 CONFIG   += console\
             c++14
 CONFIG   -= app_bundle
@@ -10,7 +8,10 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += tst_libvipstertest.cpp
+SOURCES += \
+    catch_main.cpp \
+    vec.cpp \
+    step.cpp
 
 win32: CONFIG += static
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libvipster/release/ -lvipster

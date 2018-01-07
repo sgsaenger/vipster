@@ -7,6 +7,23 @@
 #include "vec.h"
 
 /*
+ * use const where possible!
+ * non-const-access may trigger reevaluation of step-properties depending
+ * on atom-properties (Bonds!)
+ *
+ * current architecture may prove problematic when only few atoms in step
+ * need to be modified
+ * - non-const reading triggers unnecessary mod-flag-setting
+ * - but needs to be non-const for real modifications
+ * workaround: const-iteration with non-const Step::operator[] access?
+ * needs user-awareness -> bad!
+ *
+ * TODO TODO TODO
+ *
+ * but will stay like this for now...
+ */
+
+/*
  * TODO:
  *
  * Benchmark performance, can references reduce overhead?
@@ -20,41 +37,45 @@ namespace Vipster{
 
     using FixVec = std::array<bool, 3>;
 
-    /*
-     * Access wrapper for atom properties
-     */
     template<typename T, bool Name = false>
     class PropRef {
     public:
         PropRef(const T *prop, const bool *mod)
             : p_prop{const_cast<T*>(prop)},
               p_mod{const_cast<bool*>(mod)} {}
-        operator T&() const { return *p_prop; }
-        PropRef<T>& operator=(const T& prop){
+        // TODO! EXPENSIVE! use const Atom for read-only access!
+        operator T&() {*p_mod = true; return *p_prop; }
+        operator const T&() const { return *p_prop; }
+        PropRef<T>& operator=(const T& prop)
+        {
             *p_prop = prop;
             *p_mod = true;
             return *this;
         }
         template <typename R=T, typename = std::enable_if<Name>>
         const typename R::value_type* c_str() const {return p_prop->c_str();}
+        // TODO! EXPENSIVE! use const Atom for read-only access!
         template <typename R=T, typename = std::enable_if<std::is_array<T>::value>>
-        typename R::reference operator [](size_t i) {return (*p_prop)[i];}
+        typename R::reference operator [](size_t i) {*p_mod = true; return (*p_prop)[i];}
         template <typename R=T, typename = std::enable_if<std::is_array<T>::value>>
         typename R::const_reference operator [](size_t i) const {return (*p_prop)[i];}
+        bool operator==(const PropRef<T>&rhs) const noexcept
+        {
+            return *p_prop == *(rhs.p_prop);
+        }
     private:
         T* p_prop;
         bool* p_mod;
     };
-    template<typename T>
-    std::ostream& operator<<(std::ostream& s, const PropRef<T>& pr)
+    //string may fail to be converted implicitely
+    inline std::ostream& operator<<(std::ostream& s, const PropRef<std::string>& pr)
     {
-        s << (T)pr;
+        s << static_cast<const std::string &>(pr);
         return s;
     }
-    template<typename T>
-    std::istream& operator>>(std::istream& s, const PropRef<T>& pr)
+    inline std::istream& operator>> (std::istream& s, PropRef<std::string>& pr)
     {
-        s >> (T&)pr;
+        s >> static_cast<std::string&>(pr);
         return s;
     }
 
@@ -75,6 +96,7 @@ namespace Vipster{
         PropRef<FixVec> fix;
         PropRef<char> hidden;
     };
+
 
     /*
      * Atom that owns its data
@@ -106,8 +128,15 @@ namespace Vipster{
         bool mod;
     };
 
-    bool operator ==(const Vipster::Atom &a1, const Vipster::Atom &a2);
-    bool operator !=(const Vipster::Atom &a1, const Vipster::Atom &a2);
+    //TODO: maybe ignore fix/hidden?
+    inline bool operator==(const Atom &a1, const Atom &a2) {
+        return std::tie(a1.name, a1.coord, a1.charge, a1.fix, a1.hidden)
+               ==
+               std::tie(a2.name, a2.coord, a2.charge, a2.fix, a2.hidden);
+    }
+    inline bool operator!=(const Atom &a1, const Atom &a2) {
+        return !(a1==a2);
+    }
 }
 
 #endif // ATOM_H

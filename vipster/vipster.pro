@@ -3,6 +3,8 @@ CONFIG += c++14
 
 INCLUDEPATH += $$PWD/../libvipster
 DEPENDPATH += $$PWD/../libvipster
+ICON = resources/vipster.icns
+RC_ICONS = resources/vipster.ico
 
 wasm {
     QT -= gui
@@ -50,7 +52,6 @@ wasm {
 win32: CONFIG += static no_smart_library_merge
 win32:CONFIG(release, debug|release) {
     LIBS += -L$$OUT_PWD/../libvipster/release/ -lvipster
-    RC_ICONS = resources/vipster.ico
 } else:win32:CONFIG(debug, debug|release) {
     LIBS += -L$$OUT_PWD/../libvipster/debug/ -lvipster
 } else:unix|wasm {

@@ -9,6 +9,8 @@ CONFIG += c++14
 
 SOURCES += \
     step.cpp \
+    stepproper.cpp \
+    stepformatter.cpp \
     molecule.cpp \
     config.cpp \
     iowrapper.cpp \
@@ -19,15 +21,17 @@ SOURCES += \
 
 HEADERS += \
     config.h \
-    molecule.h \
-    step.h \
-    iowrapper.h \
-    ioplugin.h \
     global.h \
     atom.h \
     bond.h \
     vec.h \
     kpoints.h \
+    molecule.h \
+    step.h \
+    stepproper.h \
+    stepformatter.h \
+    iowrapper.h \
+    ioplugin.h \
     ioplugins/xyz.h \
     ioplugins/pwinput.h \
     ioplugins/lmpinput.h \

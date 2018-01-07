@@ -17,7 +17,7 @@ class MolWidget : public QWidget
 public:
     explicit MolWidget(QWidget *parent = 0);
     ~MolWidget();
-    void setStep(Vipster::StepProper *step);
+    void setStep(Vipster::Step *step);
 
 signals:
     void stepChanged();
@@ -31,7 +31,7 @@ private slots:
 private:
     MainWindow *parent;
     Ui::MolWidget *ui;
-    Vipster::StepProper *curStep{nullptr};
+    Vipster::Step *curStep{nullptr};
 };
 
 #endif // MOLWIDGET_H

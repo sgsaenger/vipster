@@ -22,7 +22,7 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::setStep(Vipster::StepProper *step)
+void MolWidget::setStep(Vipster::Step *step)
 {
     curStep = step;
     //Fill atom list

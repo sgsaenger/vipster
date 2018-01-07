@@ -1,6 +1,6 @@
 # Binaries
 vipster/vipster
-tests/tst_libvipstertest
+tests/test_libvipstertest
 # C++ build files
 libvipster/json.hpp
 *.o

@@ -2,8 +2,8 @@
 #define CONFIG
 
 #include <string>
-#include <vector>
 #include <map>
+#include <array>
 
 namespace Vipster{
 
@@ -22,6 +22,10 @@ const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json
 //GetModuleFileNameW(hModule,path,MAX_PATH);
 //const std::string sys_config = "./vipster.json";
 const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipster.json";
+#elif __APPLE__
+//TODO: should be something like ~/Library/Application Support/vipster/vipster.json
+//TODO: sys_config maybe Library/Application Support/vipster/vipster.json
+const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
 #endif
 
 using ColVec = std::array<float, 4>;
@@ -35,7 +39,7 @@ struct PseEntry{
     float       bondcut;
     float       covr;
     float       vdwr;
-    ColVec col;
+    ColVec      col;
 };
 
 class PseMap:private std::map<std::string,PseEntry>

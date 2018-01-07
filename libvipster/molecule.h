@@ -1,7 +1,7 @@
 #ifndef MOLECULE_H
 #define MOLECULE_H
 
-#include "step.h"
+#include "stepproper.h"
 #include "config.h"
 #include "kpoints.h"
 

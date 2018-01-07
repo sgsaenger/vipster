@@ -395,7 +395,7 @@ void GuiWrapper::draw(void)
     }
 }
 
-void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
+void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
 {
     curStep = step;
     //cell
@@ -426,7 +426,6 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
                  tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
     cell_mat_changed = true;
     //atoms
-//    const auto& atoms = step->getAtoms();
     atom_buffer.clear();
     atom_buffer.reserve(step->getNat());
     for(auto&& at:*step){
@@ -438,7 +437,9 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     //bonds
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        const auto& bonds = step->getBondsCell();
+        //TODO
+//        const auto& bonds = step->getBondsCell();
+        std::vector<Bond> bonds{};
         float c, s, ic;
         float rad = 0.53; // TODO: pull bond-radius from config
         bond_buffer.clear();

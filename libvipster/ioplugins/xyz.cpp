@@ -27,7 +27,7 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
             sp->newAtoms(nat);
             count = 0;
             file.getline(line, IO::linelen);
-            *sp->comment = line;
+            sp->setComment(line);
             mode = ParseMode::Atoms;
         }else if(mode == ParseMode::Atoms){
             Atom at = (*sp)[count];
@@ -44,7 +44,7 @@ bool XYZWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam*)
 {
     const StepProper& s = m.getStep(0);
     file << s.getNat() << '\n';
-    file << s.comment << '\n';
+    file << s.getComment() << '\n';
     file << std::fixed << std::setprecision(5);
 //    for(auto at: s.getAtoms()){
 //        file << std::left << std::setw(3) << at.name << " "

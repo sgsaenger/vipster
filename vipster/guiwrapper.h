@@ -29,7 +29,7 @@ public:
     void initAtomVAO(void);
     void initBondVAO(void);
     void initCellVAO(void);
-    void updateBuffers(const StepProper* step, bool draw_bonds=true);
+    void updateBuffers(const Step* step, bool draw_bonds=true);
     void updateVBOs(void);
     // view/projection matrices
     void initViewUBO(void);
@@ -44,7 +44,7 @@ public:
     // molecule-store
     //TODO: is this needed here?
     std::vector<Vipster::Molecule> molecules;
-    const StepProper* curStep{nullptr};
+    const Step* curStep{nullptr};
 public:
     // cpu-side data
     std::array<int,3> mult{{1,1,1}};

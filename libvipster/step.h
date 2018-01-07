@@ -1,5 +1,5 @@
-#ifndef STEP_H
-#define STEP_H
+#ifndef STEPINTERFACE_H
+#define STEPINTERFACE_H
 
 #include "config.h"
 #include "vec.h"
@@ -13,20 +13,27 @@
  * TODO:
  *
  * need a list of pse-pointers.
- *
+ * think about noexcept?
+ * Make operator[] return something different than atom
+ * (should be reworked to AtomInterface or something...)
  */
+namespace Vipster {
 
-namespace Vipster{
-class Step{
+class Step {
 public:
     virtual ~Step() = default;
+
+    // Format
+    AtomFmt                 getFmt() const noexcept;
+
     // Atoms
-    size_t          getNat() const noexcept;
-    void            newAtom(const Atom &at=AtomProper{});
-    void            newAtoms(size_t i);
-    void            delAtom(size_t idx);
-    Atom            operator[](size_t idx);
-    const Atom      operator[](size_t idx) const;
+    size_t              getNat() const noexcept;
+    virtual void        newAtom() = 0;
+    virtual void        newAtom(const Atom &at) = 0;
+    virtual void        newAtoms(size_t i) = 0;
+    virtual void        delAtom(size_t idx) = 0;
+    virtual Atom        operator[](size_t idx) = 0;
+    virtual const Atom  operator[](size_t idx) const = 0;
 
     // Atom-iterator
     class iterator{
@@ -37,63 +44,48 @@ public:
         Atom&       operator*();
         bool        operator!=(const iterator&);
     private:
-        //TODO: weak_ptr to properties?
+        //TODO: make child of Atom-interface?
         Step*   step;
         size_t  idx;
         Atom    at;
     };
-    iterator                begin();
-    const iterator          begin() const;
-    iterator                end();
-    const iterator          end() const;
+    iterator        begin();
+    iterator        end();
+    const iterator  begin() const;
+    const iterator  end() const;
+    const iterator  cbegin() const;
+    const iterator  cend() const;
 
     // Types
-    std::set<std::string>   getTypes(void)const noexcept;
+    std::set<std::string>   getTypes(void) const noexcept;
     size_t                  getNtyp(void) const noexcept;
-
-    // Format
-    AtomFmt                 getFmt() const noexcept;
 
     // Cell
     virtual void            setCellDim(float cdm, bool scale=false) = 0;
     virtual float           getCellDim() const noexcept = 0;
-            void            setCellVec(const Mat &vec, bool scale=false);
-            Mat             getCellVec(void) const noexcept;
-            Vec             getCenter(bool com=false) const noexcept;
+    virtual void            setCellVec(const Mat &vec, bool scale=false) = 0;
+    virtual Mat             getCellVec(void) const noexcept = 0;
+    virtual Vec             getCenter(bool com=false) const noexcept = 0;
+
+    // Comment
+    virtual void                setComment(const std::string& s) = 0;
+    virtual const std::string&  getComment() const noexcept = 0;
 
     // Bonds
-    const std::vector<Bond>&    getBonds() const;
-    const std::vector<Bond>&    getBonds(float cutfac) const;
-    const std::vector<Bond>&    getBondsCell() const;
-    const std::vector<Bond>&    getBondsCell(float cutfac) const;
-    size_t                      getNbond(void) const noexcept;
+//    virtual const std::vector<Bond>&    getBonds() const = 0;
+//    virtual const std::vector<Bond>&    getBonds(float cutfac) const = 0;
+//    virtual const std::vector<Bond>&    getBondsCell() const = 0;
+//    virtual const std::vector<Bond>&    getBondsCell(float cutfac) const = 0;
+//    virtual size_t                      getNbond(void) const noexcept = 0;
 
     // Public data
     std::shared_ptr<PseMap>         pse;
-    std::shared_ptr<std::string>    comment;
 
 protected:
-    enum class BondLevel { None, Molecule, Cell };
-    Step(const std::shared_ptr<PseMap>& pse,
-         const std::shared_ptr<std::string>& comment,
-         const std::shared_ptr<std::vector<std::string>>& at_name,
-         const std::shared_ptr<std::vector<Vec>>& at_coord,
-         const std::shared_ptr<std::vector<float>>& at_charge,
-         const std::shared_ptr<std::vector<FixVec>>& at_fix,
-         const std::shared_ptr<std::vector<char>>& at_hidden,
-         const std::shared_ptr<float>& celldim,
-         const std::shared_ptr<Mat>& cellvec,
-         const std::shared_ptr<Mat>& invvec,
-         const std::shared_ptr<BondLevel>& bonds_level,
-         const std::shared_ptr<float>& bondcut_factor,
-         const std::shared_ptr<std::vector<Bond>>& bonds);
+    Step(std::shared_ptr<PseMap> pse, AtomFmt fmt);
     // Atoms
-    bool                                        at_changed{false};
-    std::shared_ptr<std::vector<std::string>>   at_name;
-    std::shared_ptr<std::vector<Vec>>           at_coord;
-    std::shared_ptr<std::vector<float>>         at_charge;
-    std::shared_ptr<std::vector<FixVec>>        at_fix;
-    std::shared_ptr<std::vector<char>>          at_hidden;
+    bool                                at_changed{false};
+    std::shared_ptr<std::vector<Vec>>   at_coord;
     // Format
     AtomFmt             fmt;
     Vec                 formatVec(Vec in, AtomFmt source, AtomFmt target) const;
@@ -101,47 +93,19 @@ protected:
                                   AtomFmt target) const;
     std::vector<Vec>&   formatInPlace(std::vector<Vec>& in, AtomFmt source,
                                       AtomFmt target);
-    // Cell
-    std::shared_ptr<float>  celldim;
-    std::shared_ptr<Mat>    cellvec;
-    std::shared_ptr<Mat>    invvec;
     // Bonds
-    bool                                bonds_outdated{false};
-    std::shared_ptr<BondLevel>          bonds_level;
-    std::shared_ptr<float>              bondcut_factor;
-    std::shared_ptr<std::vector<Bond>>  bonds;
-    void                                setBonds(float cutfac) const;
-    void                                setBondsCell(float cutfac) const;
-    void                                checkBond(std::size_t i, std::size_t j,
-                                                  float cutfac, Vec dist,
-                                                  std::array<int, 3> offset) const;
-};
-
-class StepProper: public Step
-{
-public:
-    StepProper();
-    StepProper(const std::shared_ptr<PseMap> &pse);
-//    Step(const Step&);
-//    Step& operator=(const Step&);
-
-    // FMT
-    void                        setFmt(AtomFmt fmt, bool scale=false);
-//    class StepFormatter: public Step{
-//    public:
-//        StepFormatter(StepProper *, AtomFmt);
-////        Atom operator[](size_t idx);
-//    private:
-//        StepProper    *step;
-//    };
-//    const StepFormatter asAlat{this, AtomFmt::Alat};
-//    const StepFormatter asAngstrom{this, AtomFmt::Angstrom};
-//    const StepFormatter asBohr{this, AtomFmt::Bohr};
-//    const StepFormatter asCrystal{this, AtomFmt::Crystal};
-    // CELL
-    void                        setCellDim(float cdm, bool scale=false);
-    float                       getCellDim() const noexcept;
+//    enum class BondLevel { None, Molecule, Cell };
+//    bool                                bonds_outdated{false};
+//    std::shared_ptr<BondLevel>          bonds_level;
+//    std::shared_ptr<float>              bondcut_factor;
+//    std::shared_ptr<std::vector<Bond>>  bonds;
+//    void                                setBonds(float cutfac) const;
+//    void                                setBondsCell(float cutfac) const;
+//    void                                checkBond(std::size_t i, std::size_t j,
+//                                                  float cutfac, Vec dist,
+//                                                  std::array<int, 3> offset) const;
 };
 
 }
-#endif // STEP_H
+
+#endif // STEPINTERFACE_H
