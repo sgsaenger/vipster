@@ -337,8 +337,8 @@ void GuiWrapper::deleteGLObjects(void)
 void GuiWrapper::draw(void)
 {
     Vec off;
-    Vec center = curStep->getCenter();
-    Mat cv = curStep->getCellVec() * curStep->getCellDim();
+    Vec center = curStep->getCenter(CdmFmt::Bohr);
+    Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
     center += (mult[0]-1)*cv[0]/2.;
     center += (mult[1]-1)*cv[1]/2.;
     center += (mult[2]-1)*cv[2]/2.;
@@ -399,8 +399,7 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
 {
     curStep = step;
     //cell
-    //TODO
-    Mat cv = step->getCellVec();// * step->getCellDim(AtomFmt::Bohr);
+    Mat cv = step->getCellVec() * step->getCellDim(CdmFmt::Bohr);
     cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
                      cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
     cell_changed = true;
@@ -416,7 +415,7 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
         break;
     case AtomFmt::Crystal:
     case AtomFmt::Alat:
-        tmp_mat *= step->getCellDim();
+        tmp_mat *= step->getCellDim(CdmFmt::Bohr);
         break;
     default:
         break;
@@ -428,8 +427,8 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
     //atoms
     atom_buffer.clear();
     atom_buffer.reserve(step->getNat());
-    for(auto&& at:*step){
-        PseEntry &pse = (*step->pse)[at.name];
+    for(auto& at:*step){
+        PseEntry &pse = (*(step->pse))[at.name];
         atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
                           pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
     }

@@ -12,15 +12,7 @@
 using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent):
-    QOpenGLWidget(parent)
-{
-    QSurfaceFormat format;
-    format.setVersion(3,3);
-    format.setSamples(8);
-    format.setAlphaBufferSize(8);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    this->setFormat(format);
-}
+    QOpenGLWidget(parent) {}
 
 GLWidget::~GLWidget()
 {

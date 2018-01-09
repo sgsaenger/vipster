@@ -8,6 +8,7 @@
 #include "global.h"
 #include <set>
 #include <memory>
+#include <functional>
 
 /*
  * TODO:
@@ -16,8 +17,11 @@
  * think about noexcept?
  * Make operator[] return something different than atom
  * (should be reworked to AtomInterface or something...)
+ * think about splitting bohr/angstrom from alat/crystal(/absolute?)
  */
 namespace Vipster {
+
+enum class CdmFmt{Bohr, Angstrom};
 
 class Step {
 public:
@@ -61,11 +65,12 @@ public:
     size_t                  getNtyp(void) const noexcept;
 
     // Cell
-    virtual void            setCellDim(float cdm, bool scale=false) = 0;
-    virtual float           getCellDim() const noexcept = 0;
+    virtual void            setCellDim(float cdm, CdmFmt fmt, bool scale=false) = 0;
+    virtual float           getCellDim(CdmFmt fmt) const noexcept = 0;
     virtual void            setCellVec(const Mat &vec, bool scale=false) = 0;
     virtual Mat             getCellVec(void) const noexcept = 0;
-    virtual Vec             getCenter(bool com=false) const noexcept = 0;
+    virtual Mat             getInvVec(void) const noexcept = 0;
+    virtual Vec             getCenter(CdmFmt fmt, bool com=false) const noexcept = 0;
 
     // Comment
     virtual void                setComment(const std::string& s) = 0;
@@ -84,26 +89,16 @@ public:
 protected:
     Step(std::shared_ptr<PseMap> pse, AtomFmt fmt);
     // Atoms
-    bool                                at_changed{false};
+    mutable bool                        at_changed{false};
     std::shared_ptr<std::vector<Vec>>   at_coord;
     // Format
-    AtomFmt             fmt;
-    Vec                 formatVec(Vec in, AtomFmt source, AtomFmt target) const;
-    std::vector<Vec>    formatAll(const std::vector<Vec>& in, AtomFmt source,
-                                  AtomFmt target) const;
-    std::vector<Vec>&   formatInPlace(std::vector<Vec>& in, AtomFmt source,
-                                      AtomFmt target);
-    // Bonds
-//    enum class BondLevel { None, Molecule, Cell };
-//    bool                                bonds_outdated{false};
-//    std::shared_ptr<BondLevel>          bonds_level;
-//    std::shared_ptr<float>              bondcut_factor;
-//    std::shared_ptr<std::vector<Bond>>  bonds;
-//    void                                setBonds(float cutfac) const;
-//    void                                setBondsCell(float cutfac) const;
-//    void                                checkBond(std::size_t i, std::size_t j,
-//                                                  float cutfac, Vec dist,
-//                                                  std::array<int, 3> offset) const;
+    AtomFmt                 fmt;
+    std::function<Vec(Vec)> getFormatter(AtomFmt source, AtomFmt target) const noexcept;
+    Vec                     formatVec(Vec in, AtomFmt source, AtomFmt target) const;
+    std::vector<Vec>        formatAll(std::vector<Vec> in, AtomFmt source,
+                                      AtomFmt target) const;
+    std::vector<Vec>&       formatInPlace(std::vector<Vec>& in, AtomFmt source,
+                                          AtomFmt target);
 };
 
 }

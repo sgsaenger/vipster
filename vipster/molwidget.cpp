@@ -53,7 +53,8 @@ void MolWidget::setStep(Vipster::Step *step)
         }
     }
     //Fill cell view
-    ui->cellDimBox->setValue(curStep->getCellDim());
+    //TODO: switch format?
+    ui->cellDimBox->setValue(curStep->getCellDim(Vipster::CdmFmt::Bohr));
     Vipster::Mat vec = curStep->getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
@@ -64,7 +65,8 @@ void MolWidget::setStep(Vipster::Step *step)
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
-    curStep->setCellDim(cdm, ui->cellScaleBox->isChecked());
+    //TODO: switch format?
+    curStep->setCellDim(cdm, Vipster::CdmFmt::Bohr, ui->cellScaleBox->isChecked());
     emit stepChanged();
 }
 

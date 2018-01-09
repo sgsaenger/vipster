@@ -6,6 +6,8 @@
 #include <type_traits>
 #include "vec.h"
 
+//TODO: track changes in hidden-char (rename it, obviously)
+
 /*
  * use const where possible!
  * non-const-access may trigger reevaluation of step-properties depending

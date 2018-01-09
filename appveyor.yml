@@ -7,8 +7,6 @@ environment:
   PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
 build_script:
 - cmd: >-
-    curl -fsS -o libvipster/json.hpp -L https://github.com/nlohmann/json/releases/download/v3.0.0/json.hpp
-
     qmake.exe vipster.pro -spec win32-g++
 
     mingw32-make.exe

@@ -35,7 +35,8 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
     REQUIRE( s.getComment() == "" );
     s.setComment("test");
     REQUIRE( s.getComment() == "test" );
-    REQUIRE( s.getCellDim() == 1 );
+    REQUIRE( s.getCellDim(CdmFmt::Bohr) == 1 );
+    REQUIRE( s.getCellDim(CdmFmt::Angstrom) == bohrrad );
     REQUIRE( s.getCellVec() == Mat{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}});
     REQUIRE( s.getNtyp() == 0 );
 

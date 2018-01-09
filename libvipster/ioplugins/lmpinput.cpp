@@ -84,7 +84,7 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
         s[i].name = types[typemap[i]];
     }
     s.setFmt(AtomFmt::Angstrom);
-    s.setCellDim(1);
+    s.setCellDim(1, CdmFmt::Angstrom);
     s.setCellVec(cell);
     return data;
 }

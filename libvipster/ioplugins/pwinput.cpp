@@ -151,34 +151,31 @@ void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &ce
 void createCell(IO::PWData &d, CellFmt &cellFmt)
 {
     StepProper &s = d.mol.getStep(0);
-    enum class CdmFmt{None, Bohr, Angstrom};
-    auto cdmFmt = CdmFmt::None;
-    auto celldm = d.data.system.find("celldm(1)");
-    auto cellA = d.data.system.find("A");
-    if ((celldm != d.data.system.end()) && (cellA != d.data.system.end())) {
-        throw IOError("Do not specify both celldm and A,B,C");
-    } else if (celldm != d.data.system.end()) {
+    CdmFmt cdmFmt;
+    const IO::PWNamelist& sys = d.data.system;
+    auto celldm = sys.find("celldm(1)");
+    auto cellA = sys.find("A");
+    if ((celldm != sys.end()) && (cellA == sys.end())) {
         cdmFmt = CdmFmt::Bohr;
-    } else {
+    } else if ((celldm == sys.end()) && (cellA != sys.end())) {
         cdmFmt = CdmFmt::Angstrom;
+    } else {
+        throw IOError("Specify either celldm or A,B,C, but not both!");
     }
     switch (cellFmt) {
-    //TODO
     case CellFmt::Bohr:
-//        s.setCellDim(1, false, AtomFmt::Bohr);
+        s.setCellDim(1, CdmFmt::Bohr, false);
         break;
     case CellFmt::Angstrom:
-//        s.setCellDim(1, false, AtomFmt::Angstrom);
+        s.setCellDim(1, CdmFmt::Angstrom, false);
         break;
     case CellFmt::Alat:
         switch (cdmFmt) {
-        case CdmFmt::None:
-            throw IOError("ibrav=0, but neither celldm nor A given");
         case CdmFmt::Angstrom:
-//            s.setCellDim(std::stof(cellA->second), false, AtomFmt::Angstrom);
+            s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, false);
             break;
         case CdmFmt::Bohr:
-//            s.setCellDim(std::stof(celldm->second), false, AtomFmt::Bohr);
+            s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, false);
             break;
         }
         break;
@@ -247,7 +244,8 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
         if(nl.second == &pp->system){
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
-            file << " celldm(1) = " << s.getCellDim() << '\n';
+            //TODO: decide for A when ...?
+            file << " celldm(1) = " << s.getCellDim(CdmFmt::Bohr) << '\n';
         }
         for(auto& e: *nl.second){
             file << ' ' << e.first << " = " << e.second << '\n';

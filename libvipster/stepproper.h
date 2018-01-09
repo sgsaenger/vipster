@@ -42,11 +42,12 @@ public:
     const Atom  operator[](size_t idx) const;
 
     // Cell
-    void    setCellDim(float cdm, bool scale=false);
-    float   getCellDim() const noexcept;
+    void    setCellDim(float cdm, CdmFmt fmt, bool scale=false);
+    float   getCellDim(CdmFmt fmt) const noexcept;
     void    setCellVec(const Mat &vec, bool scale=false);
     Mat     getCellVec() const noexcept;
-    Vec     getCenter(bool com=false) const noexcept;
+    Mat     getInvVec(void) const noexcept;
+    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept;
 
     // Comment
     void                setComment(const std::string &s);
@@ -57,13 +58,25 @@ private:
     std::vector<float>          at_charge;
     std::vector<FixVec>         at_fix;
     std::vector<char>           at_hidden;
-    void                        evaluateChanges();
+    void                        evaluateChanges() const;
     //Cell
-    float       celldim{1};
+    float       celldimB{1};
+    float       celldimA{bohrrad};
     Mat         cellvec{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
     Mat         invvec{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
     //Comment
     std::string comment;
+    // Bonds
+//    enum class BondLevel { None, Molecule, Cell };
+//    bool                                bonds_outdated{false};
+//    std::shared_ptr<BondLevel>          bonds_level;
+//    std::shared_ptr<float>              bondcut_factor;
+//    std::shared_ptr<std::vector<Bond>>  bonds;
+//    void                                setBonds(float cutfac) const;
+//    void                                setBondsCell(float cutfac) const;
+//    void                                checkBond(std::size_t i, std::size_t j,
+//                                                  float cutfac, Vec dist,
+//                                                  std::array<int, 3> offset) const;
 };
 
 }

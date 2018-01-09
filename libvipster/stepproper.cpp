@@ -14,18 +14,24 @@ StepProper::StepProper(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::string com
       asCrystal{this, AtomFmt::Crystal},
       comment{comment}
 {
-    setFmt(fmt);
+    at_coord = (this->*(fmtmap[(int)fmt])).at_coord;
 }
 
-StepProper::StepProper(const StepProper &s)
-    : Step{s.pse, s.fmt},
-      asAlat{this, s.asAlat},
-      asAngstrom{this, s.asAngstrom},
-      asBohr{this, s.asBohr},
-      asCrystal{this, s.asCrystal},
-      comment{s.comment}
+//TODO: move-assignment, copy-and-swap-idiom, constructable from Step&
+
+StepProper::StepProper(const StepProper &rhs)
+    : Step{rhs.pse, rhs.fmt},
+      asAlat{this, rhs.asAlat},
+      asAngstrom{this, rhs.asAngstrom},
+      asBohr{this, rhs.asBohr},
+      asCrystal{this, rhs.asCrystal},
+      at_name{rhs.at_name}, at_charge{rhs.at_charge},
+      at_fix{rhs.at_fix}, at_hidden{rhs.at_hidden},
+      celldimB{rhs.celldimB}, celldimA{rhs.celldimA},
+      cellvec{rhs.cellvec}, invvec{rhs.invvec},
+      comment{rhs.comment}
 {
-    setFmt(s.fmt);
+    at_coord = (this->*(fmtmap[(int)fmt])).at_coord;
 }
 
 StepProper& StepProper::operator=(const StepProper& rhs)
@@ -41,7 +47,7 @@ StepProper& StepProper::operator=(const StepProper& rhs)
     return *this;
 }
 
-void StepProper::evaluateChanges()
+void StepProper::evaluateChanges() const
 {
     auto cft = fmtmap[(int)fmt];
     // if there are (only) local changes, invalidate format-caches
@@ -72,13 +78,14 @@ void StepProper::evaluateChanges()
                 }
             }
         }
-        //TODO: reenable
-//        *at_coord = formatAll(*((this->*nft).at_coord), (this->*nft).fmt, fmt);
-        (this->*nft).at_changed = false;
-        (this->*nft).at_outdated = false;
-        for(auto sft: fmtmap) {
-            if (sft != nft && sft != cft) {
-                (this->*sft).at_outdated = true;
+        if(nft != nullptr) {
+            *at_coord = formatAll(*((this->*nft).at_coord), (this->*nft).fmt, fmt);
+            (this->*nft).at_changed = false;
+            (this->*nft).at_outdated = false;
+            for(auto sft: fmtmap) {
+                if (sft != nft && sft != cft) {
+                    (this->*sft).at_outdated = true;
+                }
             }
         }
     }
@@ -98,7 +105,6 @@ void StepProper::setFmt(AtomFmt format, bool scale)
             } else if (sft == nft) {
                 // new formatter points to data of old formatter
                 (this->*sft).at_coord = at_coord;
-                (this->*sft).at_changed = false;
                 (this->*sft).at_outdated = false;
             } else {
                 // other formatters will be renewed when needed
@@ -127,6 +133,7 @@ void StepProper::newAtom()
 
 void StepProper::newAtom(const Atom &at)
 {
+    evaluateChanges();
     at_name.push_back(at.name);
     at_coord->push_back(at.coord);
     at_charge.push_back(at.charge);
@@ -137,6 +144,7 @@ void StepProper::newAtom(const Atom &at)
 
 void StepProper::newAtoms(size_t i)
 {
+    evaluateChanges();
     size_t oldNat = getNat();
     size_t nat = oldNat + i;
     at_name.resize(nat);
@@ -149,6 +157,7 @@ void StepProper::newAtoms(size_t i)
 
 void StepProper::delAtom(size_t idx)
 {
+    evaluateChanges();
     at_name.erase(at_name.begin()+idx);
     at_coord->erase(at_coord->begin()+idx);
     at_charge.erase(at_charge.begin()+idx);
@@ -159,47 +168,95 @@ void StepProper::delAtom(size_t idx)
 
 Atom StepProper::operator[](size_t idx)
 {
+    evaluateChanges();
     return {&at_name[idx], &(*at_coord)[idx], &at_charge[idx],
             &at_fix[idx], &at_hidden[idx], &at_changed};
 }
 
 const Atom StepProper::operator[](size_t idx) const
 {
+    evaluateChanges();
     return {&at_name[idx], &(*at_coord)[idx], &at_charge[idx],
             &at_fix[idx], &at_hidden[idx], &at_changed};
 }
 
-void StepProper::setCellDim(float cdm, bool scale)
+void StepProper::setCellDim(float cdm, CdmFmt fmt, bool scale)
 {
     if(!(cdm>0))throw Error("Step::setCellDim(): "
                             "cell-dimension needs to be positive");
+    evaluateChanges();
     if(scale)
     {
-        float ratio = cdm / celldim;
-        for(auto& at:*this) {at.coord *= ratio;}
+        float ratio = cdm / getCellDim(fmt);
+        for(auto& c:*at_coord) {c *= ratio;}
     }
-    celldim = cdm;
+    switch(fmt){
+    case CdmFmt::Bohr:
+        celldimB = cdm;
+        celldimA = cdm*bohrrad;
+        break;
+    case CdmFmt::Angstrom:
+        celldimA = cdm;
+        celldimB = cdm*invbohr;
+        break;
+    }
     at_changed = true;
 }
 
-float StepProper::getCellDim() const noexcept
+float StepProper::getCellDim(CdmFmt fmt) const noexcept
 {
-    return celldim;
+    if (fmt == CdmFmt::Bohr) {
+        return celldimB;
+    } else {
+        return celldimA;
+    }
 }
 
 void StepProper::setCellVec(const Mat &mat, bool scale)
 {
     Mat inv = Mat_inv(mat);
-    //TODO
-//    if(scale && (format!=AtomFmt::Crystal)){
-//        atoms = formatAtoms(atoms,format,AtomFmt::Crystal);
-//    }
-    cellvec = mat;
-    invvec.swap(inv);
-//    if(scale && (format!=AtomFmt::Crystal)){
-//        atoms = formatAtoms(atoms,AtomFmt::Crystal,format);
-//    }
-    at_changed = true;
+    if (scale) {
+        // crystal stays the same
+        // other will be updated from updated crystal
+        asCrystal.evaluateChanges();
+        cellvec = mat;
+        invvec = inv;
+        if (fmt != AtomFmt::Crystal) {
+            *at_coord = formatAll(*(asCrystal.at_coord), AtomFmt::Crystal, fmt);
+        }
+        at_changed = true;
+    } else {
+        // keep non-crystal same, invalidate crystal
+        evaluateChanges();
+        if (fmt != AtomFmt::Crystal) {
+            asCrystal.at_outdated = true;
+            cellvec = mat;
+            invvec = inv;
+        } else {
+            bool updated{false};
+            // if one cache is valid, use it
+            for(auto nft:fmtmap) {
+                if (nft == &StepProper::asCrystal) continue;
+                if ((this->*nft).at_outdated == false) {
+                    cellvec = mat;
+                    invvec = inv;
+                    *at_coord = formatAll(*((this->*nft).at_coord),
+                                          (this->*nft).fmt, AtomFmt::Crystal);
+                    updated = true;
+                    break;
+                }
+            }
+            // else use Alat
+            if (!updated) {
+                asAlat.evaluateChanges();
+                cellvec = mat;
+                invvec = inv;
+                *at_coord = formatAll(*(asAlat.at_coord),
+                                      asAlat.fmt, AtomFmt::Crystal);
+            }
+            at_changed = true;
+        }
+    }
 }
 
 Mat StepProper::getCellVec() const noexcept
@@ -207,7 +264,12 @@ Mat StepProper::getCellVec() const noexcept
     return cellvec;
 }
 
-Vec StepProper::getCenter(bool com) const noexcept
+Mat StepProper::getInvVec() const noexcept
+{
+    return invvec;
+}
+
+Vec StepProper::getCenter(CdmFmt fmt, bool com) const noexcept
 {
     if(com && getNat()){
         Vec min{{std::numeric_limits<float>::max(),
@@ -224,11 +286,10 @@ Vec StepProper::getCenter(bool com) const noexcept
             max[1]=std::max(max[1],at.coord[1]);
             max[2]=std::max(max[2],at.coord[2]);
         }
-        return (min+max)/2;
+        return formatVec((min+max)/2, this->fmt, (AtomFmt)fmt);
     }else{
-        return (cellvec[0]+cellvec[1]+cellvec[2]) * celldim / 2;
+        return (cellvec[0]+cellvec[1]+cellvec[2]) * getCellDim(fmt) / 2;
     }
-    //TODO: format return value!
 }
 
 void StepProper::setComment(const std::string &s)
@@ -240,72 +301,6 @@ const std::string& StepProper::getComment() const noexcept
 {
     return comment;
 }
-
-//AtomProper Step::formatAtom(AtomProper at, AtomFmt source, AtomFmt target) const
-//{
-//    if (source == target) return at;
-//    switch(source){
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        at.coord = at.coord * invbohr;
-//        break;
-//    case AtomFmt::Crystal:
-//        at.coord = at.coord * cellvec;
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        at.coord = at.coord * celldim;
-//        break;
-//    }
-//    switch(target){
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        at.coord = at.coord * bohrrad;
-//        break;
-//    case AtomFmt::Crystal:
-//        at.coord = at.coord * invvec;
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        at.coord = at.coord / celldim;
-//        break;
-//    }
-//    return at;
-//}
-
-//std::vector<AtomProper> Step::formatAtoms(std::vector<AtomProper> atvec, AtomFmt source, AtomFmt target) const
-//{
-//    if(source==target) return atvec;
-//    switch(source)
-//    {
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        for(AtomProper& at:atvec) { at.coord *= invbohr; }
-//        break;
-//    case AtomFmt::Crystal:
-//        for(AtomProper& at:atvec) { at.coord = at.coord * cellvec; }
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        for(AtomProper& at:atvec) { at.coord *= celldim; }
-//        break;
-//    }
-//    switch(target)
-//    {
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        for(AtomProper& at:atvec) { at.coord *= bohrrad; }
-//        break;
-//    case AtomFmt::Crystal:
-//        for(AtomProper& at:atvec) { at.coord = at.coord * invvec; }
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        for(AtomProper& at:atvec) { at.coord /= celldim; }
-//        break;
-//    }
-//    return atvec;
-//}
 
 //const std::vector<Bond>& StepInterface::getBonds() const
 //{

@@ -1,12 +1,19 @@
 #include "mainwindow.h"
+#include "iowrapper.h"
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QSurfaceFormat>
 #include <iostream>
-#include <iowrapper.h>
 
 int main(int argc, char *argv[])
 {
     bool parseFile = false;
+    QSurfaceFormat format;
+    format.setVersion(3,3);
+    format.setSamples(8);
+    format.setAlphaBufferSize(8);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
     QApplication a(argc, argv);
     a.setApplicationName("Vipster");
     a.setApplicationVersion("1.9a");
