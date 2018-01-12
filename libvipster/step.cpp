@@ -4,30 +4,34 @@
 using namespace Vipster;
 
 Step::Step(std::shared_ptr<PseMap> pse, AtomFmt fmt)
-    : pse{pse}, fmt{fmt} {}
+    : pse{pse}, at_fmt{fmt} {}
 
 AtomFmt Step::getFmt() const noexcept
 {
-    return fmt;
+    return at_fmt;
 }
 
 size_t Step::getNat() const noexcept
 {
+    evaluateCache();
     return at_coord->size();
 }
 
 Step::iterator Step::begin()
 {
+    evaluateCache();
     return Step::iterator(this, 0);
 }
 
 const Step::iterator Step::begin() const
 {
+    evaluateCache();
     return Step::iterator(this, 0);
 }
 
 const Step::iterator Step::cbegin() const
 {
+    evaluateCache();
     return Step::iterator(this, 0);
 }
 
@@ -48,8 +52,11 @@ const Step::iterator Step::cend() const
 
 std::set<std::string> Step::getTypes() const noexcept
 {
+    evaluateCache();
     std::set<std::string> types;
-    for(const auto& at:*this) { types.insert(at.name); }
+    for(const auto& at:*this) {
+        types.insert(at.name);
+    }
     return types;
 }
 
@@ -59,62 +66,41 @@ size_t Step::getNtyp() const noexcept
 }
 
 Step::iterator::iterator(const Step *step, size_t idx)
-    :step{const_cast<Step*>(step)}, idx{idx}, at{(*step)[idx]} {}
+    : AtomRef{(*step)[idx]}, step{const_cast<Step*>(step)}, idx{idx} {}
 
 Step::iterator& Step::iterator::operator++()
 {
-    at = (*step)[++idx];
+    idx++;
+    Atom::operator ++();
     return *this;
 }
 
 Step::iterator Step::iterator::operator++(int)
 {
-    Step::iterator tmp(*this);
-    operator++();
+    Step::iterator tmp{*this};
+    Atom::operator++();
     return tmp;
 }
 
-Atom& Step::iterator::operator*()
+AtomRef& Step::iterator::operator*()
 {
-    return at;
+    return static_cast<AtomRef&>(*this);
 }
 
-bool Step::iterator::operator!=(const Step::iterator& rhs)
+const AtomRef& Step::iterator::operator*() const
+{
+    return static_cast<const AtomRef&>(*this);
+}
+
+bool Step::iterator::operator==(const Step::iterator& rhs) const
+{
+    return ((step == rhs.step) || (idx == rhs.idx));
+}
+
+bool Step::iterator::operator!=(const Step::iterator& rhs) const
 {
     return ((step != rhs.step) || (idx != rhs.idx));
 }
-
-//AtomProper Step::formatAtom(AtomProper at, AtomFmt source, AtomFmt target) const
-//{
-//    if (source == target) return at;
-//    switch(source){
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        at.coord = at.coord * invbohr;
-//        break;
-//    case AtomFmt::Crystal:
-//        at.coord = at.coord * cellvec;
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        at.coord = at.coord * celldim;
-//        break;
-//    }
-//    switch(target){
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        at.coord = at.coord * bohrrad;
-//        break;
-//    case AtomFmt::Crystal:
-//        at.coord = at.coord * invvec;
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        at.coord = at.coord / celldim;
-//        break;
-//    }
-//    return at;
-//}
 
 std::function<Vec(Vec)> Step::getFormatter(AtomFmt source, AtomFmt target) const noexcept
 {
@@ -183,37 +169,3 @@ std::vector<Vec> Step::formatAll(std::vector<Vec> in, AtomFmt source, AtomFmt ta
     std::transform(in.begin(), in.end(), in.begin(), op);
     return in;
 }
-
-//std::vector<AtomProper> Step::formatAtoms(std::vector<AtomProper> atvec, AtomFmt source, AtomFmt target) const
-//{
-//    if(source==target) return atvec;
-//    switch(source)
-//    {
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        for(AtomProper& at:atvec) { at.coord *= invbohr; }
-//        break;
-//    case AtomFmt::Crystal:
-//        for(AtomProper& at:atvec) { at.coord = at.coord * cellvec; }
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        for(AtomProper& at:atvec) { at.coord *= celldim; }
-//        break;
-//    }
-//    switch(target)
-//    {
-//    case AtomFmt::Bohr:
-//        break;
-//    case AtomFmt::Angstrom:
-//        for(AtomProper& at:atvec) { at.coord *= bohrrad; }
-//        break;
-//    case AtomFmt::Crystal:
-//        for(AtomProper& at:atvec) { at.coord = at.coord * invvec; }
-//        [[fallthrough]];
-//    case AtomFmt::Alat:
-//        for(AtomProper& at:atvec) { at.coord /= celldim; }
-//        break;
-//    }
-//    return atvec;
-//}

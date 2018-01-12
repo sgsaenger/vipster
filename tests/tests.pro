@@ -1,4 +1,4 @@
-QT       -= gui
+QT       -= gui core
 
 TARGET = test_libvipster
 CONFIG   += console\

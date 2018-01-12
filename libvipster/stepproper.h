@@ -13,18 +13,18 @@ public:
     friend class StepFormatter;
     //TODO: reorder arguments
     StepProper(std::shared_ptr<PseMap> pse = std::make_shared<PseMap>(),
-         AtomFmt fmt=AtomFmt::Bohr,
+         AtomFmt at_fmt=AtomFmt::Bohr,
          std::string comment="");
     StepProper(const StepProper& s);
     StepProper& operator=(const StepProper& s);
 
     // Format
-    void            setFmt(AtomFmt fmt, bool scale=false);
+    void            setFmt(AtomFmt at_fmt, bool scale=false);
     StepFormatter   asAlat;
     StepFormatter   asAngstrom;
     StepFormatter   asBohr;
     StepFormatter   asCrystal;
-    StepFormatter&  asFmt(AtomFmt fmt);
+    StepFormatter&  asFmt(AtomFmt at_fmt);
     static constexpr StepFormatter StepProper::* fmtmap[] = {
         &StepProper::asBohr,
         &StepProper::asAngstrom,
@@ -32,34 +32,35 @@ public:
         &StepProper::asAlat,
     };
 
-
     // Atoms
-    void        newAtom();
-    void        newAtom(const Atom& at);
-    void        newAtoms(size_t i);
-    void        delAtom(size_t idx);
-    Atom        operator[](size_t idx);
-    const Atom  operator[](size_t idx) const;
+    void            newAtom();
+    void            newAtom(const Atom& at);
+    void            newAtoms(size_t i);
+    void            delAtom(size_t idx);
+    AtomRef         operator[](size_t idx);
+    const AtomRef   operator[](size_t idx) const;
 
     // Cell
-    void    setCellDim(float cdm, CdmFmt fmt, bool scale=false);
-    float   getCellDim(CdmFmt fmt) const noexcept;
+    void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
+    float   getCellDim(CdmFmt at_fmt) const noexcept;
     void    setCellVec(const Mat &vec, bool scale=false);
     Mat     getCellVec() const noexcept;
     Mat     getInvVec(void) const noexcept;
-    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept;
+    Vec     getCenter(CdmFmt at_fmt, bool com=false) const noexcept;
 
     // Comment
     void                setComment(const std::string &s);
     const std::string&  getComment() const noexcept;
+protected:
+    void                        evaluateCache() const;
 private:
     //Atoms
     std::vector<std::string>    at_name;
     std::vector<float>          at_charge;
     std::vector<FixVec>         at_fix;
     std::vector<char>           at_hidden;
-    void                        evaluateChanges() const;
     //Cell
+    bool        cell_enabled{true};
     float       celldimB{1};
     float       celldimA{bohrrad};
     Mat         cellvec{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
@@ -67,16 +68,17 @@ private:
     //Comment
     std::string comment;
     // Bonds
-//    enum class BondLevel { None, Molecule, Cell };
-//    bool                                bonds_outdated{false};
-//    std::shared_ptr<BondLevel>          bonds_level;
-//    std::shared_ptr<float>              bondcut_factor;
-//    std::shared_ptr<std::vector<Bond>>  bonds;
-//    void                                setBonds(float cutfac) const;
-//    void                                setBondsCell(float cutfac) const;
-//    void                                checkBond(std::size_t i, std::size_t j,
-//                                                  float cutfac, Vec dist,
-//                                                  std::array<int, 3> offset) const;
+    enum class BondLevel { None, Molecule, Cell };
+    mutable bool                bonds_outdated{false};
+    mutable BondLevel           bonds_level;
+    mutable float               bondcut_factor;
+    mutable std::vector<Bond>   bonds;
+    void                setBonds(BondLevel l, float cutfac) const;
+    void                setBondsMol(float cutfac) const;
+    void                setBondsCell(float cutfac) const;
+    void                checkBond(std::size_t i, std::size_t j,
+                                  float cutfac, const Vec& dist,
+                                  const std::array<int,3> &offset) const;
 };
 
 }

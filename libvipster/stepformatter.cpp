@@ -1,5 +1,6 @@
 #include "stepformatter.h"
 #include "stepproper.h"
+#include "atomproper.h"
 
 using namespace Vipster;
 
@@ -10,18 +11,18 @@ StepFormatter::StepFormatter(StepProper *s, AtomFmt fmt)
 }
 
 StepFormatter::StepFormatter(StepProper *s, const StepFormatter &rhs)
-    : Step{s->pse, rhs.fmt}, step{s}
+    : Step{s->pse, rhs.at_fmt}, step{s}
 {
     at_coord = std::make_shared<std::vector<Vec>>(*rhs.at_coord);
 }
 
-void StepFormatter::evaluateChanges() const
+void StepFormatter::evaluateCache() const
 {
     // let Step sort out overall situation
-    step->evaluateChanges();
+    step->evaluateCache();
     // if still outdated, pull in changes from Step
     if (at_outdated) {
-        *at_coord = formatAll(*step->at_coord, step->fmt, fmt);
+        *at_coord = formatAll(*step->at_coord, step->at_fmt, at_fmt);
     }
 }
 
@@ -42,7 +43,7 @@ void StepFormatter::newAtom()
 
 void StepFormatter::newAtom(const Atom &at)
 {
-    evaluateChanges();
+    evaluateCache();
     step->at_name.push_back(at.name);
     at_coord->push_back(at.coord);
     step->at_charge.push_back(at.charge);
@@ -53,7 +54,7 @@ void StepFormatter::newAtom(const Atom &at)
 
 void StepFormatter::newAtoms(size_t i)
 {
-    evaluateChanges();
+    evaluateCache();
     size_t oldNat = getNat();
     size_t nat = oldNat + i;
     step->at_name.resize(nat);
@@ -66,7 +67,7 @@ void StepFormatter::newAtoms(size_t i)
 
 void StepFormatter::delAtom(size_t idx)
 {
-    evaluateChanges();
+    evaluateCache();
     step->at_name.erase(step->at_name.begin()+idx);
     at_coord->erase(at_coord->begin()+idx);
     step->at_charge.erase(step->at_charge.begin()+idx);
@@ -75,16 +76,16 @@ void StepFormatter::delAtom(size_t idx)
     at_changed = true;
 }
 
-Atom StepFormatter::operator[](size_t idx)
+AtomRef StepFormatter::operator[](size_t idx)
 {
-    evaluateChanges();
+    evaluateCache();
     return {&step->at_name[idx], &(*at_coord)[idx], &step->at_charge[idx],
             &step->at_fix[idx], &step->at_hidden[idx], &at_changed};
 }
 
-const Atom StepFormatter::operator[](size_t idx) const
+const AtomRef StepFormatter::operator[](size_t idx) const
 {
-    evaluateChanges();
+    evaluateCache();
     return {&step->at_name[idx], &(*at_coord)[idx], &step->at_charge[idx],
             &step->at_fix[idx], &step->at_hidden[idx], &at_changed};
 }
@@ -93,10 +94,12 @@ void StepFormatter::setCellDim(float cdm, CdmFmt fmt, bool scale)
 {
     if(!(cdm>0))throw Error("Step::setCellDim(): "
                             "cell-dimension needs to be positive");
-    evaluateChanges();
-    if(scale)
-    {
+    evaluateCache();
+    if (scale && (at_fmt != AtomFmt::Crystal)) {
         float ratio = cdm / getCellDim(fmt);
+        for(auto& c:*at_coord) {c *= ratio;}
+    }else if (!scale && (at_fmt == AtomFmt::Crystal)) {
+        float ratio = getCellDim(fmt) / cdm;
         for(auto& c:*at_coord) {c *= ratio;}
     }
     switch(fmt){
@@ -120,9 +123,9 @@ float StepFormatter::getCellDim(CdmFmt fmt) const noexcept
 void StepFormatter::setCellVec(const Mat &vec, bool scale)
 {
     Mat inv = Mat_inv(vec);
-    evaluateChanges();
+    evaluateCache();
     if (scale) {
-        if (fmt == AtomFmt::Crystal) {
+        if (at_fmt == AtomFmt::Crystal) {
             // do nothing but set at_changed
             step->cellvec = vec;
             step->invvec = inv;
@@ -133,32 +136,32 @@ void StepFormatter::setCellVec(const Mat &vec, bool scale)
              * will set asCrystal.at_outdated unnecessarily
              * because of this.at_changed
              */
-            step->asCrystal.evaluateChanges();
+            step->asCrystal.evaluateCache();
             step->cellvec = vec;
             step->invvec = inv;
             *at_coord = formatAll(*(step->asCrystal.at_coord),
-                                  AtomFmt::Crystal, fmt);
+                                  AtomFmt::Crystal, at_fmt);
             at_changed = true;
         }
     } else {
-        if (fmt != AtomFmt::Crystal) {
+        if (at_fmt != AtomFmt::Crystal) {
             // do nothing but set at_changed
             step->cellvec = vec;
             step->invvec = inv;
             at_changed = true;
         } else {
             // copy from StepProper or StepProper::asAlat
-            if (fmt != step->fmt) {
+            if (at_fmt != step->at_fmt) {
                 step->cellvec = vec;
                 step->invvec = inv;
                 *at_coord = formatAll(*(step->at_coord),
-                                      step->fmt, AtomFmt::Crystal);
+                                      step->at_fmt, AtomFmt::Crystal);
             } else {
-                step->asAlat.evaluateChanges();
+                step->asAlat.evaluateCache();
                 step->cellvec = vec;
                 step->invvec = inv;
                 *at_coord = formatAll(*(step->asAlat.at_coord),
-                                      step->asAlat.fmt, AtomFmt::Crystal);
+                                      step->asAlat.at_fmt, AtomFmt::Crystal);
             }
             at_changed = true;
         }

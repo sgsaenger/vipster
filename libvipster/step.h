@@ -3,7 +3,7 @@
 
 #include "config.h"
 #include "vec.h"
-#include "atom.h"
+#include "atomref.h"
 #include "bond.h"
 #include "global.h"
 #include <set>
@@ -31,27 +31,27 @@ public:
     AtomFmt                 getFmt() const noexcept;
 
     // Atoms
-    size_t              getNat() const noexcept;
-    virtual void        newAtom() = 0;
-    virtual void        newAtom(const Atom &at) = 0;
-    virtual void        newAtoms(size_t i) = 0;
-    virtual void        delAtom(size_t idx) = 0;
-    virtual Atom        operator[](size_t idx) = 0;
-    virtual const Atom  operator[](size_t idx) const = 0;
+    size_t                  getNat() const noexcept;
+    virtual void            newAtom() = 0;
+    virtual void            newAtom(const Atom &at) = 0;
+    virtual void            newAtoms(size_t i) = 0;
+    virtual void            delAtom(size_t idx) = 0;
+    virtual AtomRef         operator[](size_t idx) = 0;
+    virtual const AtomRef   operator[](size_t idx) const = 0;
 
     // Atom-iterator
-    class iterator{
+    class iterator: private AtomRef{
     public:
         iterator(const Step*, size_t);
-        iterator&   operator++();
-        iterator    operator++(int);
-        Atom&       operator*();
-        bool        operator!=(const iterator&);
+        iterator&       operator++();
+        iterator        operator++(int);
+        AtomRef&        operator*();
+        const AtomRef&  operator*() const;
+        bool            operator==(const iterator&) const;
+        bool            operator!=(const iterator&) const;
     private:
-        //TODO: make child of Atom-interface?
-        Step*   step;
-        size_t  idx;
-        Atom    at;
+        Step* step;
+        size_t idx;
     };
     iterator        begin();
     iterator        end();
@@ -65,12 +65,12 @@ public:
     size_t                  getNtyp(void) const noexcept;
 
     // Cell
-    virtual void            setCellDim(float cdm, CdmFmt fmt, bool scale=false) = 0;
-    virtual float           getCellDim(CdmFmt fmt) const noexcept = 0;
+    virtual void            setCellDim(float cdm, CdmFmt at_fmt, bool scale=false) = 0;
+    virtual float           getCellDim(CdmFmt at_fmt) const noexcept = 0;
     virtual void            setCellVec(const Mat &vec, bool scale=false) = 0;
     virtual Mat             getCellVec(void) const noexcept = 0;
     virtual Mat             getInvVec(void) const noexcept = 0;
-    virtual Vec             getCenter(CdmFmt fmt, bool com=false) const noexcept = 0;
+    virtual Vec             getCenter(CdmFmt at_fmt, bool com=false) const noexcept = 0;
 
     // Comment
     virtual void                setComment(const std::string& s) = 0;
@@ -87,18 +87,20 @@ public:
     std::shared_ptr<PseMap>         pse;
 
 protected:
-    Step(std::shared_ptr<PseMap> pse, AtomFmt fmt);
+    Step(std::shared_ptr<PseMap> pse, AtomFmt at_fmt);
     // Atoms
     mutable bool                        at_changed{false};
     std::shared_ptr<std::vector<Vec>>   at_coord;
+    virtual void                        evaluateCache() const = 0;
     // Format
-    AtomFmt                 fmt;
+    AtomFmt                 at_fmt;
     std::function<Vec(Vec)> getFormatter(AtomFmt source, AtomFmt target) const noexcept;
     Vec                     formatVec(Vec in, AtomFmt source, AtomFmt target) const;
     std::vector<Vec>        formatAll(std::vector<Vec> in, AtomFmt source,
                                       AtomFmt target) const;
-    std::vector<Vec>&       formatInPlace(std::vector<Vec>& in, AtomFmt source,
-                                          AtomFmt target);
+    //TODO: benchmark:
+//    std::vector<Vec>&       formatInPlace(std::vector<Vec>& in, AtomFmt source,
+//                                          AtomFmt target);
 };
 
 }

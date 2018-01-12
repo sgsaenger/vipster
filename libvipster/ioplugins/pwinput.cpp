@@ -162,20 +162,21 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
     } else {
         throw IOError("Specify either celldm or A,B,C, but not both!");
     }
+    bool scale = (s.getFmt() == AtomFmt::Crystal);
     switch (cellFmt) {
     case CellFmt::Bohr:
-        s.setCellDim(1, CdmFmt::Bohr, false);
+        s.setCellDim(1, CdmFmt::Bohr, scale);
         break;
     case CellFmt::Angstrom:
-        s.setCellDim(1, CdmFmt::Angstrom, false);
+        s.setCellDim(1, CdmFmt::Angstrom, scale);
         break;
     case CellFmt::Alat:
         switch (cdmFmt) {
         case CdmFmt::Angstrom:
-            s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, false);
+            s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
             break;
         case CdmFmt::Bohr:
-            s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, false);
+            s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
             break;
         }
         break;
@@ -263,12 +264,12 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
     const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
     file << "\nATOMIC_POSITION " << atfmt[(int)s.getFmt()] << '\n'
          << std::fixed << std::setprecision(5);
-//    for(const Atom& at: s.getAtoms()){
-//        file << std::left << std::setw(3) << at.name << ' '
-//             << std::right << std::setw(10) << at.coord[0] << ' '
-//             << std::right << std::setw(10) << at.coord[1] << ' '
-//             << std::right << std::setw(10) << at.coord[2] << '\n';
-//    }
+    for (const Atom& at: s) {
+        file << std::left << std::setw(3) << at.name << ' '
+             << std::right << std::setw(10) << at.coord[0] << ' '
+             << std::right << std::setw(10) << at.coord[1] << ' '
+             << std::right << std::setw(10) << at.coord[2] << '\n';
+    }
     file << "\nK_POINTS " << std::defaultfloat;
     const KPoints& k = m.getKPoints();
     const std::array<std::string, 6> kdprop =

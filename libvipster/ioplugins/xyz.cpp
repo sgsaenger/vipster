@@ -46,12 +46,12 @@ bool XYZWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam*)
     file << s.getNat() << '\n';
     file << s.getComment() << '\n';
     file << std::fixed << std::setprecision(5);
-//    for(auto at: s.getAtoms()){
-//        file << std::left << std::setw(3) << at.name << " "
-//             << std::right << std::setw(10) << at.coord[0] << " "
-//             << std::right << std::setw(10) << at.coord[1] << " "
-//             << std::right << std::setw(10) << at.coord[2] << '\n';
-//    }
+    for(auto& at: s){
+        file << std::left << std::setw(3) << at.name << " "
+             << std::right << std::setw(10) << at.coord[0] << " "
+             << std::right << std::setw(10) << at.coord[1] << " "
+             << std::right << std::setw(10) << at.coord[2] << '\n';
+    }
     return true;
 }
 

@@ -10,14 +10,14 @@ namespace Vipster{
 using Vec = std::array<float, 3>;
 using Mat = std::array<Vec, 3>;
 
-inline bool  operator==(const Vec &v1, const Vec &v2)
+inline bool operator==(const Vec &v1, const Vec &v2)
 {
     return std::abs(v1[0]-v2[0]) < std::numeric_limits<float>::epsilon()&&
            std::abs(v1[1]-v2[1]) < std::numeric_limits<float>::epsilon()&&
            std::abs(v1[2]-v2[2]) < std::numeric_limits<float>::epsilon();
 }
 
-inline bool  operator!=(const Vec &v1, const Vec &v2)
+inline bool operator!=(const Vec &v1, const Vec &v2)
 {
     return !(v1==v2);
 }

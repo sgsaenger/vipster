@@ -58,7 +58,7 @@ win32:CONFIG(release, debug|release) {
     LIBS += -L$$OUT_PWD/../libvipster/ -lvipster
 }
 
-unix:CONFIG(debug, debug|release) {
+unix|!macx:CONFIG(debug, debug|release) {
     LIBS += -lgcov
     QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage -O0
     QMAKE_LFLAGS += -fprofile-arcs -ftest-coverage -O0
