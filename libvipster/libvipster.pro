@@ -47,7 +47,7 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
-unix:CONFIG(debug, debug|release) {
+unix:!macx:CONFIG(debug, debug|release) {
     LIBS += -lgcov
     QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage -O0
     QMAKE_LFLAGS += -fprofile-arcs -ftest-coverage -O0

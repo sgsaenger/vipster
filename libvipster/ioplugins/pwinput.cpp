@@ -1,7 +1,5 @@
 #include "ioplugins/pwinput.h"
 
-#include <cstring>
-#include <algorithm>
 #include <sstream>
 //TODO: REWORK
 #include <iomanip>

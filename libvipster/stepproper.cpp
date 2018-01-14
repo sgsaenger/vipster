@@ -433,7 +433,7 @@ void StepProper::setBondsCell(float cutfac) const
             if (!cut_j) continue;
             float effcut = (cut_i + cut_j) * cutfac;
             Vec dist_v = (*asCrystal.at_coord)[i] - (*asCrystal.at_coord)[j];
-            std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), ::trunc);
+            std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
             std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
                 [](float f){return std::fmod(f,1);});
             std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),

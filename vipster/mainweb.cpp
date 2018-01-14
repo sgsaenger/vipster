@@ -4,10 +4,11 @@
 
 #include <iostream>
 
-#include <guiwrapper.h>
-#include <molecule.h>
-#include <iowrapper.h>
-#include <atom_model.h>
+#include "guiwrapper.h"
+#include "molecule.h"
+#include "atomproper.h"
+#include "iowrapper.h"
+#include "atom_model.h"
 
 namespace em = emscripten;
 using namespace Vipster;

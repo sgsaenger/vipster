@@ -1,40 +1,39 @@
 #include "ioplugins/xyz.h"
 
-//TODO: REWORK C-STRINGS, WRITER
-#include <iostream>
 #include <iomanip>
 
 using namespace Vipster;
 
 std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
 {
-    enum class ParseMode{Header, Atoms};
-
     auto data = std::make_shared<IO::BaseData>();
     Molecule &m = data->mol;
     m.setName(name);
 
-    auto mode = ParseMode::Header;
-    int nat, count;
-    char line[IO::linelen], type[10];
-    StepProper *sp = nullptr;
-    while(file.getline(line, IO::linelen)){
-        if(mode == ParseMode::Header){
-            int test = sscanf(line, "%d", &nat);
-            if(test != 1) continue;
-            sp = &m.newStep();
-            sp->setFmt(AtomFmt::Angstrom);
-            sp->newAtoms(nat);
-            count = 0;
-            file.getline(line, IO::linelen);
-            sp->setComment(line);
-            mode = ParseMode::Atoms;
-        }else if(mode == ParseMode::Atoms){
-            Atom at = (*sp)[count];
-            sscanf(line, "%s %f %f %f", type, &at.coord[0], &at.coord[1], &at.coord[2]);
-            at.name = std::string(type);
-            count++;
-            if(count == nat) mode = ParseMode::Header;
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream natline{line};
+        int nat;
+        natline >> nat;
+        if (natline.fail()) {
+            if (m.getNstep()) throw IOError("XYZ: Failed to parse nat");
+            else {
+                while ((natline>>nat).fail()) {
+                    if (natline.eof())
+                        throw IOError("XYZ: Non-standard data after XYZ-file");
+                }
+            }
+        }
+        StepProper &sp = m.newStep();
+        sp.setFmt(AtomFmt::Angstrom);
+        sp.newAtoms(nat);
+        std::getline(file, line);
+        sp.setComment(line);
+        for (auto& at: sp) {
+            std::getline(file, line);
+            std::stringstream atline{line};
+            atline >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
+            if(atline.fail()) throw IOError("XYZ: failed to parse atom");
         }
     }
     return data;
@@ -42,7 +41,7 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
 
 bool XYZWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam*)
 {
-    const StepProper& s = m.getStep(0);
+    const Step& s = m.getStep(0).asAngstrom;
     file << s.getNat() << '\n';
     file << s.getComment() << '\n';
     file << std::fixed << std::setprecision(5);
