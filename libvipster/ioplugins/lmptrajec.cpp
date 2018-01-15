@@ -1,6 +1,5 @@
 #include "ioplugins/lmptrajec.h"
 
-//TODO: REWORK
 #include <cstring>
 
 using namespace Vipster;

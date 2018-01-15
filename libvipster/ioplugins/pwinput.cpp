@@ -1,7 +1,6 @@
 #include "ioplugins/pwinput.h"
 
 #include <sstream>
-//TODO: REWORK
 #include <iomanip>
 
 using namespace Vipster;

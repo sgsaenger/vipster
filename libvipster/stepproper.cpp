@@ -189,10 +189,10 @@ void StepProper::setCellDim(float cdm, CdmFmt fmt, bool scale)
     if(!(cdm>0))throw Error("Step::setCellDim(): "
                             "cell-dimension needs to be positive");
     evaluateCache();
-    if (scale && (at_fmt != AtomFmt::Crystal)) {
+    if (scale && (at_fmt < AtomFmt::Crystal)) {
         float ratio = cdm / getCellDim(fmt);
         for(auto& c:*at_coord) {c *= ratio;}
-    }else if (!scale && (at_fmt == AtomFmt::Crystal)) {
+    }else if (!scale && !(at_fmt < AtomFmt::Crystal)) {
         float ratio = getCellDim(fmt) / cdm;
         for(auto& c:*at_coord) {c *= ratio;}
     }

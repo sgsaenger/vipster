@@ -1,7 +1,7 @@
 #include "ioplugins/lmpinput.h"
 
 //TODO: REWORK, WRITER
-#include <cstring>
+#include <sstream>
 
 using namespace Vipster;
 
@@ -13,79 +13,109 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
     Molecule& m = data->mol;
     m.setName(name);
     StepProper& s = m.newStep();
+    s.setFmt(AtomFmt::Angstrom);
 
-    char line[IO::linelen];
-    char* tok;
-    size_t nat, ntyp, count;
+    std::string line;
+    size_t nat, ntype;
+    float t1, t2;
     Mat cell;
-    std::vector<int> typemap;
-    std::vector<std::string> types;
-    float t1,t2;
-    auto mode = ParseMode::Header;
-    while(file.getline(line, IO::linelen)){
-        if(mode == ParseMode::Header){
-            if(strstr(line, "atoms")){
-                sscanf(line, "%ld", &nat);
+    std::map<std::string, std::string> types;
+    bool hasNames{false};
+    while (std::getline(file, line)) {
+        if (line.find("atoms") != line.npos) {
+            std::stringstream ss{line};
+            ss >> nat;
+            if (ss.fail()) {
+                throw IOError("Lammps Input: failed to"
+                              "parse number of atoms");
+            } else {
                 s.newAtoms(nat);
-                typemap.resize(nat);
-            }else if(strstr(line, "atom types")){
-                sscanf(line, "%ld", &ntyp);
-                types.reserve(ntyp);
-            }else if(strstr(line, "xlo xhi")){
-                sscanf(line, "%g %g", &t1, &t2);
+            }
+        } else if (line.find("atom types") != line.npos) {
+            std::stringstream ss{line};
+            ss >> ntype;
+            if (ss.fail()) {
+                throw IOError("Lammps Input: failed to"
+                              "parse number of types");
+            }
+        } else if (line.find("xlo xhi") != line.npos) {
+            std::stringstream ss{line};
+            ss >> t1 >> t2;
+            if (ss.fail()) {
+                throw IOError("Lammps Input: failed to"
+                              "parse cell X dimension");
+            } else {
                 cell[0][0] = t2 - t1;
-            }else if(strstr(line, "ylo yhi")){
-                sscanf(line, "%g %g", &t1, &t2);
+            }
+        } else if (line.find("ylo yhi") != line.npos) {
+            std::stringstream ss{line};
+            ss >> t1 >> t2;
+            if (ss.fail()) {
+                throw IOError("Lammps Input: failed to"
+                              "parse cell Y dimension");
+            } else {
                 cell[1][1] = t2 - t1;
-            }else if(strstr(line, "zlo zhi")){
-                sscanf(line, "%g %g", &t1, &t2);
+            }
+        } else if (line.find("zlo zhi") != line.npos) {
+            std::stringstream ss{line};
+            ss >> t1 >> t2;
+            if (ss.fail()) {
+                throw IOError("Lammps Input: failed to"
+                              "parse cell Z dimension");
+            } else {
                 cell[2][2] = t2 - t1;
-            }else if(strstr(line, "xy xz yz")){
-                sscanf(line, "%g %g %g", &cell[0][1], &cell[0][2], &cell[1][2]);
-            }else if(strstr(line, "Atoms")){
-                mode = ParseMode::Atoms;
-                count = -1;
-            }else if(strstr(line, "Masses")){
-                mode = ParseMode::Types;
-                count = -1;
             }
-        }else if(mode == ParseMode::Atoms){
-            if(!count) file.getline(line, IO::linelen);
-            auto at = s[count-1];
-            const char* fullfmt = "%*d %*d %d %f %f %f %f\n";
-            sscanf(line, fullfmt, &typemap[count-1], &at.charge,
-                   &at.coord[0], &at.coord[1], &at.coord[2]);
-            count++;
-            if(count == nat){
-                mode = ParseMode::Header;
+        } else if (line.find("xy xz yz") != line.npos) {
+            std::stringstream ss{line};
+            ss >> cell[1][0] >> cell[2][0] >> cell[2][1];
+            if (ss.fail()) {
+                throw IOError("Lammps Input: failed to"
+                              "parse cell tilt factors");
             }
-        }else if(mode == ParseMode::Types){
-            if(!count){
-                types.push_back("X");
-                file.getline(line, IO::linelen);
-            }
-            tok = strstr(line, "#");
-            if(tok){
-                tok++;
-                while(isblank(tok[0])){
-                    tok++;
+        } else if (line.find("Masses") != line.npos) {
+            std::getline(file, line);
+            std::string id, name;
+            for (size_t i=0; i<ntype; ++i) {
+                std::getline(file, line);
+                std::stringstream ss{line};
+                if (line.find("#") != line.npos) {
+                    // if there's a comment, extract the typename from it
+                    hasNames = true;
+                    ss >> id >> t1 >> name;
+                    name.erase(0, 1);
+                    types[id] = name;
+                } else {
+                    // else just number the types accordingly
+                    ss >> name >> t1;
                 }
-                types.push_back(std::string(tok));
-            }else{
-                throw IOError("Lammps data files must specify atom types in comment to masses :(");
+                if (ss.fail())
+                    throw IOError("Lammps Input: failed to parse atom type");
+                (*s.pse)[name].m = t1;
             }
-            count++;
-            if(count==ntyp){
-                mode = ParseMode::Header;
+        } else if (line.find("Atoms") != line.npos) {
+            //TODO: format-support
+            std::getline(file, line);
+            // full-fmt parser only atm
+            auto parse = [](std::string& s, AtomRef at){
+                int d1, d2;
+                std::stringstream ss{s};
+                ss >> d1 >> d2 >> at.name >> at.charge
+                   >> at.coord[0] >> at.coord[1] >> at.coord[2];
+                if (ss.fail())
+                    throw IOError("Lammps Input: failed to parse atom");
+            };
+            for (size_t i=0; i<nat; ++i) {
+                std::getline(file, line);
+                parse(line, s[i]);
             }
         }
     }
-    for(size_t i = 0; i < s.getNat(); ++i){
-        s[i].name = types[typemap[i]];
+    if (hasNames) {
+        for (size_t i=0; i<nat; ++i) {
+            auto at = s[i];
+            at.name = types[at.name];
+        }
     }
-    s.setFmt(AtomFmt::Angstrom);
-    s.setCellDim(1, CdmFmt::Angstrom);
-    s.setCellVec(cell);
     return data;
 }
 

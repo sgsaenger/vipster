@@ -16,11 +16,12 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
         int nat;
         natline >> nat;
         if (natline.fail()) {
-            if (m.getNstep()) throw IOError("XYZ: Failed to parse nat");
+            if (!m.getNstep()) throw IOError("XYZ: Failed to parse nat");
             else {
                 while ((natline>>nat).fail()) {
-                    if (natline.eof())
+                    if (file.eof())
                         throw IOError("XYZ: Non-standard data after XYZ-file");
+                    natline = std::stringstream{line};
                 }
             }
         }
