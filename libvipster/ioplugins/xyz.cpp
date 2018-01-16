@@ -1,5 +1,6 @@
 #include "ioplugins/xyz.h"
 
+#include <sstream>
 #include <iomanip>
 
 using namespace Vipster;

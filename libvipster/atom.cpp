@@ -1,4 +1,5 @@
 #include <tuple>
+#include <iostream>
 #include "atom.h"
 
 namespace Vipster{
@@ -19,7 +20,7 @@ Atom& Atom::operator++()
 
 std::ostream& operator<<(std::ostream& s, const Atom::PropRef<std::string>& pr)
 {
-    s << static_cast<const std::string &>(pr);
+    s << static_cast<const std::string&>(pr);
     return s;
 }
 std::istream& operator>>(std::istream& s, Atom::PropRef<std::string>& pr)
