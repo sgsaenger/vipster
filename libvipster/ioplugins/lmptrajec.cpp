@@ -1,100 +1,146 @@
 #include "ioplugins/lmptrajec.h"
 
-#include <cstring>
+#include <sstream>
+#include <functional>
 
 using namespace Vipster;
-using parseFunc = void (*)(const char*, Atom& at);
 
-parseFunc IdentifyColumn(const char *const tok){
-    constexpr char const* names[] = {
-        "element",
-        "x", "y", "z",
-//        "xs", "ys", "zs",
-        "q"
-    };
-    const parseFunc funcMap[] = {
-        [](const char* c, Atom& at){at.name = c;},
-        [](const char* c, Atom& at){at.coord[0] = atof(c);},
-        [](const char* c, Atom& at){at.coord[1] = atof(c);},
-        [](const char* c, Atom& at){at.coord[2] = atof(c);},
-        [](const char* c, Atom& at){at.charge = atof(c);},
-    };
-    for(size_t i=0; i<5; ++i){
-        if(tok[0] == names[i][0]) return funcMap[i];
+auto IdentifyColumns(std::string& line)
+{
+    std::stringstream ss{line};
+    std::string tok;
+    //throw away "ITEM: ATOMS"
+    ss >> tok >> tok;
+    enum coordstate{none=0, unscaled=1, scaled=2, unwrapped=4};
+    coordstate cs{};
+    auto xparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.coord[0];};
+    auto yparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.coord[1];};
+    auto zparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.coord[2];};
+    auto nparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.name;};
+    auto qparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.charge;};
+    auto dparser = [](std::stringstream& ss, AtomRef&) {static std::string dummy{}; ss >> dummy;};
+    std::vector<void(*)(std::stringstream&, AtomRef&)> funvec{};
+    while ( !(ss >> tok).fail() ) {
+        if (tok[0] == 'x' || tok[0] == 'y' || tok[0] == 'z') {
+            if ((tok.length() == 1) || (tok[1] != 's')) {
+                cs = (coordstate)(cs | unscaled);
+            } else if (tok[1] == 's') {
+                cs = (coordstate)(cs | scaled);
+            }
+            if (((tok.length() == 2) && (tok[1] == 'u')) || (tok.length() == 3))
+                cs = (coordstate)(cs | unwrapped);
+            if(tok[0] == 'x') funvec.push_back(xparser);
+            else if(tok[0] == 'y') funvec.push_back(yparser);
+            else if(tok[0] == 'z') funvec.push_back(zparser);
+        } else if (tok == "q") {
+            funvec.push_back(qparser);
+        } else if (tok == "element") {
+            funvec.push_back(nparser);
+        } else {
+            funvec.push_back(dparser);
+        }
     }
-    return [](const char*, Atom&){};
+    switch ((size_t)cs) {
+    case unscaled:
+        [[fallthrough]];
+    case scaled:
+        return [=](std::ifstream &file, StepProper& s){
+            if(cs == scaled) s.setFmt(AtomFmt::Crystal);
+            else s.setFmt(AtomFmt::Angstrom);
+            std::string line;
+            for (auto& at:s) {
+                std::getline(file, line);
+                std::stringstream ss{line};
+                for (auto& fun:funvec) {
+                    fun(ss, at);
+                }
+                if(ss.fail())
+                    throw IOError("Lammps Dump: failed to parse atom");
+            }
+        };
+    case unscaled|scaled:
+        throw IOError("Lammps Dump: mixed coordinates not supported");
+    case none:
+        [[fallthrough]];
+    default:
+        throw IOError("Lammps Dump: no coordinates present");
+    }
 }
 
-std::shared_ptr<IO::BaseData> LmpTrajecParser(std::string name, std::ifstream &file)
+std::shared_ptr<IO::BaseData>
+LmpTrajecParser(std::string name, std::ifstream &file)
 {
     enum class ParseMode{Header, Cell, Atoms};
-    constexpr int xl[]={0,0,1}, yl[]={1,2,2};
 
     auto data = std::make_shared<IO::BaseData>();
     Molecule& m = data->mol;
     m.setName(name);
     StepProper* s = nullptr;
 
-    char line[IO::linelen];
+    std::string line;
+    size_t nat;
+    bool triclinic;
+    float t1, t2;
     Mat cell;
-    float t1, t2, t3;
-    int nat, count;
-    bool firstpass = true;
-    ParseMode mode = ParseMode::Header;
-    auto atomfmt = AtomFmt::Angstrom;
-    std::vector<parseFunc> parseTable;
-    while(file.getline(line, IO::linelen)){
-        if(mode == ParseMode::Header){
-            if(strstr(line, "TIMESTEP")){
-                file.getline(line, IO::linelen);
-                s = &m.newStep();
-                s->setFmt(atomfmt);
-            }else if(strstr(line, "NUM")){
-                file.getline(line, IO::linelen);
-                sscanf(line, "%d", &nat);
-                s->newAtoms(nat);
-            }else if(strstr(line, "BOX")){
-                mode = ParseMode::Cell;
-                count = 0;
-                cell = Mat{};
-            }else if(strstr(line, "ATOMS")){
-                mode = ParseMode::Atoms;
-                count = 0;
-                if (firstpass) {
-                    if(strstr(line, "xs")){
-                        atomfmt = AtomFmt::Crystal;
-                        s->setFmt(atomfmt);
-                    }
-                    strtok(line, " ");
-                    strtok(nullptr, " ");
-                    char* tok;
-                    while((tok = strtok(nullptr, " "))){
-                        parseTable.push_back(IdentifyColumn(tok));
-                    }
-                    firstpass = false;
-                }
+    while (std::getline(file, line)) {
+        if (line.find("TIMESTEP") != line.npos) {
+            s = &m.newStep();
+            // skip 2 lines
+            std::getline(file, line);
+            std::getline(file, line);
+            // Number of Atoms
+            std::getline(file, line);
+            std::stringstream ss{line};
+            ss >> nat;
+            if (ss.fail())
+                throw IOError("Lammps Dump: failed to parse nat");
+            s->newAtoms(nat);
+            s->setCellDim(1, CdmFmt::Angstrom);
+            // Cell
+            cell = Mat{};
+            std::getline(file, line);
+            if ((line.length() > 17) && (line[17] == 'x'))
+                triclinic = true;
+            if (triclinic) {
+                // xlo, xhi, xy
+                std::getline(file, line);
+                ss = std::stringstream{line};
+                ss >> t1 >> t2 >> cell[1][0];
+                cell[0][0] = t2 - t1;
+                // ylo, yhi, xz
+                std::getline(file, line);
+                ss = std::stringstream{line};
+                ss >> t1 >> t2 >> cell[2][0];
+                cell[1][1] = t2 - t1;
+                // zlo, zhi, yz
+                std::getline(file, line);
+                ss = std::stringstream{line};
+                ss >> t1 >> t2 >> cell[2][1];
+                cell[2][2] = t2 - t1;
+            } else {
+                // xlo, xhi
+                std::getline(file, line);
+                ss = std::stringstream{line};
+                ss >> t1 >> t2;
+                cell[0][0] = t2 - t1;
+                // ylo, yhi
+                std::getline(file, line);
+                ss = std::stringstream{line};
+                ss >> t1 >> t2;
+                cell[1][1] = t2 - t1;
+                // zlo, zhi
+                std::getline(file, line);
+                ss = std::stringstream{line};
+                ss >> t1 >> t2;
+                cell[2][2] = t2 - t1;
             }
-        }else if(mode == ParseMode::Cell){
-            int test = sscanf(line, "%f %f %f", &t1, &t2, &t3);
-            cell[count][count] = t2 - t1;
-            if (test == 3) cell[xl[count]][yl[count]] = t3;
-            count++;
-            if (count == 3){
-                s->setCellVec(cell);
-                mode = ParseMode::Header;
-            }
-        }else if(mode == ParseMode::Atoms){
-            auto at = (*s)[count];
-            parseTable[0](strtok(line, " "), at);
-            int i = 0;
-            char *tok;
-            while((tok = strtok(nullptr," "))){
-                parseTable[++i](tok, at);
-            }
-            count++;
-            if (count == nat){
-                mode = ParseMode::Header;
-            }
+            if (ss.fail())
+                throw IOError("Lammps Dump: failed to parse box");
+            s->setCellVec(cell);
+            // Atoms
+            std::getline(file, line);
+            auto atomParser = IdentifyColumns(line);
+            atomParser(file, *s);
         }
     }
     return data;
