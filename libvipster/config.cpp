@@ -26,8 +26,9 @@ PseMap Vipster::readPse()
                     v["vdwr"],v["col"]});
         }
     }
+    // ensure fallback-value is present
     if(temp.find("")==temp.end()){
-        temp.emplace("", PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0.,0.,0.,1.}}});
+        temp.emplace("", PseEntry{"","","",0,0.,1.46,1.46,3.21,{{0,0,0,255}}});
     }
     return temp;
 }
@@ -52,7 +53,7 @@ PseEntry& PseMap::operator [](const std::string& k)
                 }
             }
         }
-        emplace(k,pse.at("X"));
+        emplace(k,pse.at(""));
         return at(k);
     }
 }

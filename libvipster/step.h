@@ -8,6 +8,7 @@
 #include "global.h"
 #include <set>
 #include <memory>
+// TODO: use decltype instead of wrapper
 #include <functional>
 
 /*
@@ -19,6 +20,7 @@
  * (should be reworked to AtomInterface or something...)
  * think about splitting bohr/angstrom from alat/crystal(/absolute?)
  */
+class GuiWrapper;
 namespace Vipster {
 
 enum class CdmFmt{Bohr, Angstrom};
@@ -26,6 +28,7 @@ enum class CdmFmt{Bohr, Angstrom};
 class Step {
 public:
     virtual ~Step() = default;
+    friend class ::GuiWrapper;
 
     // Format
     AtomFmt                 getFmt() const noexcept;
@@ -65,6 +68,10 @@ public:
     size_t                  getNtyp(void) const noexcept;
 
     // Cell
+    //TODO: make not virtual by putting cell-info into base via shared-ptrs?
+    // also make cell optional!
+    //virtual bool            hasCell() = 0;
+    //virtual void            enableCell(bool) = 0;
     virtual void            setCellDim(float cdm, CdmFmt at_fmt, bool scale=false) = 0;
     virtual float           getCellDim(CdmFmt at_fmt) const noexcept = 0;
     virtual void            setCellVec(const Mat &vec, bool scale=false) = 0;

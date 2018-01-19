@@ -5,7 +5,7 @@
 namespace Vipster{
 
 Atom::Atom(const std::string *n, const Vec *co, const float *ch,
-           const FixVec *f, const char *h, const bool *m)
+           const FixVec *f, const uint8_t *h, const bool *m)
     : name{n,m}, coord{co,m}, charge{ch,m}, fix{f,m}, hidden{h,m} {}
 
 Atom& Atom::operator++()

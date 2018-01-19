@@ -6,7 +6,7 @@
 #include <type_traits>
 #include "vec.h"
 
-//TODO: track changes in hidden-char (rename it, obviously)
+//TODO: track changes in hidden (rename it, obviously)
 
 /*
  * use const where possible!
@@ -88,10 +88,10 @@ namespace Vipster{
         PropRef<Vec> coord;
         PropRef<float> charge;
         PropRef<FixVec> fix;
-        PropRef<char> hidden;
+        PropRef<uint8_t> hidden;
     protected:
         Atom(const std::string *n, const Vec *co, const float *ch,
-             const FixVec *f, const char *h, const bool *m);
+             const FixVec *f, const uint8_t *h, const bool *m);
         Atom& operator++();
     };
     //string may fail to be converted implicitely

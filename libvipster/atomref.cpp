@@ -3,7 +3,7 @@
 using namespace Vipster;
 
 AtomRef::AtomRef(const std::string *n, const Vec *co, const float *ch,
-                const FixVec *f, const char *h, const bool *m)
+                const FixVec *f, const uint8_t *h, const bool *m)
     : Atom{n, co, ch, f, h, m} {}
 
 // like a real reference, constructing makes it point to the origin of rhs

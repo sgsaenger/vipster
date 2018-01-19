@@ -58,7 +58,7 @@ private:
     std::vector<std::string>    at_name;
     std::vector<float>          at_charge;
     std::vector<FixVec>         at_fix;
-    std::vector<char>           at_hidden;
+    std::vector<uint8_t>           at_hidden;
     //Cell
     bool        cell_enabled{true};
     float       celldimB{1};

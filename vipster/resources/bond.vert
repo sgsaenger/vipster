@@ -1,7 +1,7 @@
 layout(location = 0) in vec3 vertex_modelspace;
 layout(location = 1) in mat3 mMatrix;
 layout(location = 4) in vec3 position_modelspace;
-layout(location = 5) in vec4 pbc_crit;
+layout(location = 5) in uvec4 pbc_crit;
 layout(location = 6) in vec4 s1Color;
 layout(location = 7) in vec4 s2Color;
 
@@ -11,8 +11,8 @@ layout(std140, row_major) uniform viewMat{
 };
 uniform mat3 position_scale;
 uniform vec3 offset;
-uniform ivec3 pbc_cell;
-uniform ivec3 mult;
+uniform uvec3 pbc_cell;
+uniform uvec3 mult;
 
 out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -20,16 +20,15 @@ out vec3 LightDirection_cameraspace;
 out float vertex_side;
 out vec4 s1Cpass;
 out vec4 s2Cpass;
-flat out int render;
+flat out uint render;
 
 void main(void)
 {
-    ivec4 crit_int = ivec4(pbc_crit);
-    if(crit_int.w != 0){
-        render = 1;
+    if(pbc_crit.w != uint(0)){
+        render = uint(1);
     }else{
-        ivec3 test = mult - crit_int.xyz;
-        render = int((test.x > pbc_cell.x) && (test.y > pbc_cell.y) && (test.z > pbc_cell.z));
+        uvec3 test = mult - pbc_crit.xyz;
+        render = uint((test.x > pbc_cell.x) && (test.y > pbc_cell.y) && (test.z > pbc_cell.z));
     }
     //standard vertex positioning:
     gl_Position = vpMatrix * vec4(mMatrix * vertex_modelspace + position_modelspace * position_scale + offset, 1);

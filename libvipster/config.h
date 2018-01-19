@@ -14,7 +14,7 @@ const std::string user_config = "/vipster.json";
 #define PREFIX /usr/share/
 #endif
 const std::string sys_config = "PREFIXvipster.json";
-const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
+const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster2.json";
 #elif _WIN32
 //WIP
 //HMODULE hModule = GetModuleHandleW(nullptr);
@@ -28,18 +28,18 @@ const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipste
 const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
 #endif
 
-using ColVec = std::array<float, 4>;
+using ColVec = std::array<uint8_t, 4>;
 
 struct PseEntry{
-    std::string PWPP;
-    std::string CPPP;
-    std::string CPNL;
-    unsigned int        Z;
-    float       m;
-    float       bondcut;
-    float       covr;
-    float       vdwr;
-    ColVec      col;
+    std::string     PWPP;
+    std::string     CPPP;
+    std::string     CPNL;
+    unsigned int    Z;
+    float           m;
+    float           bondcut;
+    float           covr;
+    float           vdwr;
+    ColVec          col;
 };
 
 class PseMap:private std::map<std::string,PseEntry>

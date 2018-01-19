@@ -240,25 +240,39 @@ void GuiWrapper::initAtomVAO(void)
 {
     glGenVertexArrays(1, &atom_vao);
     glBindVertexArray(atom_vao);
+    // upload and link sphere-mesh
     glGenBuffers(1, &sphere_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
-    glBufferData(GL_ARRAY_BUFFER, atom_model_npoly*3*sizeof(float), (void*)&atom_model, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(atom_model),
+                 (void*)&atom_model, GL_STATIC_DRAW);
     GLuint vertexLoc = glGetAttribLocation(atom_program, "vertex_modelspace");
-    glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,0);
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(vertexLoc);
-    glGenBuffers(1, &atom_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
+    // link atom positions
+    glGenBuffers(1, &atom_pos_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     GLuint positionLoc = glGetAttribLocation(atom_program, "position_modelspace");
-    glVertexAttribPointer(positionLoc,3,GL_FLOAT,GL_FALSE,8*sizeof(float),0);
-    glVertexAttribDivisor(positionLoc,1);
+    glVertexAttribPointer(positionLoc, 3,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(Vec), 0);
+    glVertexAttribDivisor(positionLoc, 1);
     glEnableVertexAttribArray(positionLoc);
+    // link atom properties
+    glGenBuffers(1, &atom_prop_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
     GLuint scaleLoc = glGetAttribLocation(atom_program, "scale_modelspace");
-    glVertexAttribPointer(scaleLoc,1,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(3*sizeof(float)));
-    glVertexAttribDivisor(scaleLoc,1);
+    glVertexAttribPointer(scaleLoc, 1,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(atom_prop),
+                          (const GLvoid*)(offsetof(atom_prop, rad)));
+    glVertexAttribDivisor(scaleLoc, 1);
     glEnableVertexAttribArray(scaleLoc);
     GLuint colorLoc = glGetAttribLocation(atom_program, "color_input");
-    glVertexAttribPointer(colorLoc,4,GL_FLOAT,GL_FALSE,8*sizeof(float),(const GLvoid*)(4*sizeof(float)));
-    glVertexAttribDivisor(colorLoc,1);
+    glVertexAttribPointer(colorLoc, 4,
+                          GL_UNSIGNED_BYTE, GL_TRUE,
+                          sizeof(atom_prop),
+                          (const GLvoid*)(offsetof(atom_prop, col)));
+    glVertexAttribDivisor(colorLoc, 1);
     glEnableVertexAttribArray(colorLoc);
 }
 
@@ -268,37 +282,58 @@ void GuiWrapper::initBondVAO(void)
     glBindVertexArray(bond_vao);
     glGenBuffers(1, &torus_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, torus_vbo);
-    glBufferData(GL_ARRAY_BUFFER, bond_model_npoly*3*sizeof(float), (void*)&bond_model, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(bond_model),
+                 (void*)&bond_model, GL_STATIC_DRAW);
     GLuint vertexLoc = glGetAttribLocation(bond_program, "vertex_modelspace");
     glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,0);
     glEnableVertexAttribArray(vertexLoc);
     glGenBuffers(1, &bond_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
     GLuint mMatLoc = glGetAttribLocation(bond_program, "mMatrix");
-    glVertexAttribPointer(mMatLoc  ,3,GL_FLOAT,GL_FALSE,24*sizeof(float),0);
-    glVertexAttribPointer(mMatLoc+1,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(3*sizeof(float)));
-    glVertexAttribPointer(mMatLoc+2,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(6*sizeof(float)));
-    glVertexAttribDivisor(mMatLoc,1);
-    glVertexAttribDivisor(mMatLoc+1,1);
-    glVertexAttribDivisor(mMatLoc+2,1);
+    glVertexAttribPointer(mMatLoc, 3,
+                          GL_FLOAT,GL_FALSE,
+                          sizeof(bond_prop), 0);
+    glVertexAttribDivisor(mMatLoc, 1);
+    glVertexAttribPointer(mMatLoc+1, 3,
+                          GL_FLOAT,GL_FALSE,
+                          sizeof(bond_prop),
+                          (const GLvoid*)offsetof(bond_prop, mat[3]));
+    glVertexAttribDivisor(mMatLoc+1, 1);
+    glVertexAttribPointer(mMatLoc+2, 3,
+                          GL_FLOAT,GL_FALSE,
+                          sizeof(bond_prop),
+                          (const GLvoid*)offsetof(bond_prop, mat[6]));
+    glVertexAttribDivisor(mMatLoc+2, 1);
     glEnableVertexAttribArray(mMatLoc);
     glEnableVertexAttribArray(mMatLoc+1);
     glEnableVertexAttribArray(mMatLoc+2);
     GLuint positionLoc = glGetAttribLocation(bond_program, "position_modelspace");
-    glVertexAttribPointer(positionLoc,3,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(9*sizeof(float)));
-    glVertexAttribDivisor(positionLoc,1);
+    glVertexAttribPointer(positionLoc, 3,
+                          GL_FLOAT,GL_FALSE,
+                          sizeof(bond_prop),
+                          (const GLvoid*)offsetof(bond_prop, pos));
+    glVertexAttribDivisor(positionLoc, 1);
     glEnableVertexAttribArray(positionLoc);
     GLuint critLoc = glGetAttribLocation(bond_program, "pbc_crit");
-    glVertexAttribPointer(critLoc,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(12*sizeof(float)));
-    glVertexAttribDivisor(critLoc,1);
+    glVertexAttribIPointer(critLoc, 4,
+                          GL_UNSIGNED_BYTE,
+                          sizeof(bond_prop),
+                          (const GLvoid*)offsetof(bond_prop, mult));
+    glVertexAttribDivisor(critLoc, 1);
     glEnableVertexAttribArray(critLoc);
     GLuint color1Loc = glGetAttribLocation(bond_program, "s1Color");
-    glVertexAttribPointer(color1Loc,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(16*sizeof(float)));
-    glVertexAttribDivisor(color1Loc,1);
+    glVertexAttribPointer(color1Loc, 4,
+                          GL_UNSIGNED_BYTE,GL_TRUE,
+                          sizeof(bond_prop),
+                          (const GLvoid*)offsetof(bond_prop, col_a));
+    glVertexAttribDivisor(color1Loc, 1);
     glEnableVertexAttribArray(color1Loc);
     GLuint color2Loc = glGetAttribLocation(bond_program, "s2Color");
-    glVertexAttribPointer(color2Loc,4,GL_FLOAT,GL_FALSE,24*sizeof(float),(const GLvoid*)(20*sizeof(float)));
-    glVertexAttribDivisor(color2Loc,1);
+    glVertexAttribPointer(color2Loc, 4,
+                          GL_UNSIGNED_BYTE,GL_TRUE,
+                          sizeof(bond_prop),
+                          (const GLvoid*)offsetof(bond_prop, col_b));
+    glVertexAttribDivisor(color2Loc, 1);
     glEnableVertexAttribArray(color2Loc);
 }
 
@@ -321,7 +356,8 @@ void GuiWrapper::deleteGLObjects(void)
 {
     glDeleteBuffers(1, &view_ubo);
     glDeleteProgram(atom_program);
-    glDeleteBuffers(1, &atom_vbo);
+    glDeleteBuffers(1, &atom_pos_vbo);
+    glDeleteBuffers(1, &atom_prop_vbo);
     glDeleteBuffers(1, &sphere_vbo);
     glDeleteVertexArrays(1, &atom_vao);
     glDeleteProgram(bond_program);
@@ -356,7 +392,9 @@ void GuiWrapper::draw(void)
             for(int z=0;z!=mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocA, 1, off.data());
-                glDrawArraysInstanced(GL_TRIANGLES,0,atom_model_npoly,atom_buffer.size());
+                glDrawArraysInstanced(GL_TRIANGLES, 0,
+                                      atom_model_npoly,
+                                      atom_prop_buffer.size());
             }
         }
     }
@@ -366,7 +404,7 @@ void GuiWrapper::draw(void)
     GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
     GLuint multLoc = glGetUniformLocation(bond_program, "mult");
     GLuint cellLocB = glGetUniformLocation(atom_program, "position_scale");
-    glUniform3iv(multLoc, 1, mult.data());
+    glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
     glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
     for(int x=0;x!=mult[0];++x){
         for(int y=0;y!=mult[1];++y){
@@ -374,8 +412,10 @@ void GuiWrapper::draw(void)
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 // bonds
                 glUniform3fv(offLocB, 1, off.data());
-                glUniform3i(pbcLoc, x, y, z);
-                glDrawArraysInstanced(GL_TRIANGLES,0,bond_model_npoly,bond_buffer.size());
+                glUniform3ui(pbcLoc, x, y, z);
+                glDrawArraysInstanced(GL_TRIANGLES, 0,
+                                      bond_model_npoly,
+                                      bond_buffer.size());
             }
         }
     }
@@ -395,7 +435,7 @@ void GuiWrapper::draw(void)
     }
 }
 
-void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
+void GuiWrapper::updateBuffers(const Step* step, bool)// draw_bonds)
 {
     curStep = step;
     //cell
@@ -425,103 +465,121 @@ void GuiWrapper::updateBuffers(const Step* step, bool draw_bonds)
                  tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
     cell_mat_changed = true;
     //atoms
-    atom_buffer.clear();
-    atom_buffer.reserve(step->getNat());
-    for(auto& at:*step){
+    atom_prop_buffer.clear();
+    atom_prop_buffer.reserve(step->getNat());
+    for (auto& at:*step) {
         PseEntry &pse = (*(step->pse))[at.name];
-        atom_buffer.push_back({{at.coord[0],at.coord[1],at.coord[2],pse.covr,
-                          pse.col[0],pse.col[1],pse.col[2],pse.col[3]}});
+        atom_prop_buffer.push_back({pse.covr, pse.col});
     }
     atoms_changed = true;
     //bonds
-    if(draw_bonds){
-        constexpr Vec x_axis{{1,0,0}};
-        //TODO
-//        const auto& bonds = step->getBondsCell();
-        std::vector<Bond> bonds{};
-        float c, s, ic;
-        float rad = 0.53; // TODO: pull bond-radius from config
-        bond_buffer.clear();
-        bond_buffer.reserve(bonds.size());
-        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
-        for(const Bond& bd:bonds){
-            const auto &at1 = atom_buffer[bd.at1];
-            const auto &at2 = atom_buffer[bd.at2];
-            at_pos1 = {{at1[0], at1[1], at1[2]}};
-            at_pos2 = {{at2[0], at2[1], at2[2]}};
-            if(bd.xdiff>0){at_pos2 += bd.xdiff*cv[0];}else if(bd.xdiff<0){at_pos1 -= bd.xdiff*cv[0];}
-            if(bd.ydiff>0){at_pos2 += bd.ydiff*cv[1];}else if(bd.ydiff<0){at_pos1 -= bd.ydiff*cv[1];}
-            if(bd.zdiff>0){at_pos2 += bd.zdiff*cv[2];}else if(bd.zdiff<0){at_pos1 -= bd.zdiff*cv[2];}
-            bond_axis = at_pos1 - at_pos2;
-            bond_pos = (at_pos1+at_pos2)/2;
-            if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
-               std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
-                c = std::copysign(1., bond_axis[0]);
-                bond_buffer.push_back({{
-                    bd.dist*c, 0, 0,
-                    0, rad, 0,
-                    0, 0, rad*c,
-                    bond_pos[0], bond_pos[1], bond_pos[2],
-                    (float)std::abs(bd.xdiff),
-                    (float)std::abs(bd.ydiff),
-                    (float)std::abs(bd.zdiff),
-                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
-                    at1[4], at1[5], at1[6], at1[7],
-                    at2[4], at2[5], at2[6], at2[7]}});
-            }else{
-                rot_axis = -Vec_cross(bond_axis, x_axis);
-                rot_axis /= Vec_length(rot_axis);
-                c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
-                ic = 1-c;
-                s = -std::sqrt(1-c*c);
-                bond_buffer.push_back({{
-                    //mat3 with rotation and scaling
-                    bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
-                    bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
-                    bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
-                    rad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
-                    rad*(ic*rot_axis[1]*rot_axis[1]+c),
-                    rad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
-                    rad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
-                    rad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
-                    rad*(ic*rot_axis[2]*rot_axis[2]+c),
-                    //vec3 with position in modelspace
-                    bond_pos[0],bond_pos[1],bond_pos[2],
-                    //faux vec4 with integral pbc information
-                    (float)std::abs(bd.xdiff),
-                    (float)std::abs(bd.ydiff),
-                    (float)std::abs(bd.zdiff),
-                    //padding float that tells if non-pbc bond
-                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
-                    //2*vec4 with colors
-                    at1[4], at1[5], at1[6], at1[7],
-                    at2[4], at2[5], at2[6], at2[7]}});
-            }
-        }
-        bonds_changed = true;
-        bonds_drawn = true;
-    }else if(bonds_drawn){
-        bond_buffer.clear();
-        bonds_changed = true;
-        bonds_drawn = false;
-    }
+//    if(draw_bonds){
+//        constexpr Vec x_axis{{1,0,0}};
+//        //TODO
+////        const auto& bonds = step->getBondsCell();
+//        std::vector<Bond> bonds{};
+//        float c, s, ic;
+//        float rad = 0.53; // TODO: pull bond-radius from config
+//        bond_buffer.clear();
+//        bond_buffer.reserve(bonds.size());
+//        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
+//        for(const Bond& bd:bonds){
+//            const auto &at1 = atom_buffer[bd.at1];
+//            const auto &at2 = atom_buffer[bd.at2];
+//            at_pos1 = {{at1[0], at1[1], at1[2]}};
+//            at_pos2 = {{at2[0], at2[1], at2[2]}};
+//            if (bd.xdiff>0)     { at_pos2 += bd.xdiff*cv[0]; }
+//            else if (bd.xdiff<0){ at_pos1 -= bd.xdiff*cv[0]; }
+//            if (bd.ydiff>0)     { at_pos2 += bd.ydiff*cv[1]; }
+//            else if (bd.ydiff<0){ at_pos1 -= bd.ydiff*cv[1]; }
+//            if (bd.zdiff>0)     { at_pos2 += bd.zdiff*cv[2]; }
+//            else if (bd.zdiff<0){ at_pos1 -= bd.zdiff*cv[2]; }
+//            bond_axis = at_pos1 - at_pos2;
+//            bond_pos = (at_pos1+at_pos2)/2;
+//            if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
+//               std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
+//                c = std::copysign(1., bond_axis[0]);
+//                bond_buffer.push_back({{
+//                    bd.dist*c, 0, 0,
+//                    0, rad, 0,
+//                    0, 0, rad*c,
+//                    bond_pos[0], bond_pos[1], bond_pos[2],
+//                    (float)std::abs(bd.xdiff),
+//                    (float)std::abs(bd.ydiff),
+//                    (float)std::abs(bd.zdiff),
+//                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
+//                    at1[4], at1[5], at1[6], at1[7],
+//                    at2[4], at2[5], at2[6], at2[7]}});
+//            }else{
+//                rot_axis = -Vec_cross(bond_axis, x_axis);
+//                rot_axis /= Vec_length(rot_axis);
+//                c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
+//                ic = 1-c;
+//                s = -std::sqrt(1-c*c);
+//                bond_buffer.push_back({{
+//                    //mat3 with rotation and scaling
+//                    bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
+//                    bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
+//                    bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
+//                    rad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
+//                    rad*(ic*rot_axis[1]*rot_axis[1]+c),
+//                    rad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
+//                    rad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
+//                    rad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
+//                    rad*(ic*rot_axis[2]*rot_axis[2]+c),
+//                    //vec3 with position in modelspace
+//                    bond_pos[0],bond_pos[1],bond_pos[2],
+//                    //faux vec4 with integral pbc information
+//                    (float)std::abs(bd.xdiff),
+//                    (float)std::abs(bd.ydiff),
+//                    (float)std::abs(bd.zdiff),
+//                    //padding float that tells if non-pbc bond
+//                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
+//                    //2*vec4 with colors
+//                    at1[4], at1[5], at1[6], at1[7],
+//                    at2[4], at2[5], at2[6], at2[7]}});
+//            }
+//        }
+//        bonds_changed = true;
+//        bonds_drawn = true;
+//    }else if(bonds_drawn){
+//        bond_buffer.clear();
+//        bonds_changed = true;
+//        bonds_drawn = false;
+//    }
 }
 
 void GuiWrapper::updateVBOs(void)
 {
-    if(atoms_changed){
-        glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
-        glBufferData(GL_ARRAY_BUFFER, atom_buffer.size()*8*sizeof(float),
-                     (void*)atom_buffer.data(), GL_STREAM_DRAW);
+    if (atoms_changed) {
+        glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
+        auto nat = atom_prop_buffer.size();
+        if (nat) {
+            glBufferData(GL_ARRAY_BUFFER, nat*sizeof(Vec),
+                         (void*)curStep->at_coord->data(), GL_STREAM_DRAW);
+        } else {
+            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+        if (nat) {
+            glBufferData(GL_ARRAY_BUFFER, nat*sizeof(atom_prop),
+                         (void*)atom_prop_buffer.data(), GL_STREAM_DRAW);
+        } else {
+            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
+        }
         atoms_changed = false;
     }
-    if(bonds_changed){
+    if (bonds_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
-        glBufferData(GL_ARRAY_BUFFER, bond_buffer.size()*24*sizeof(float),
-                     (void*)bond_buffer.data(), GL_STREAM_DRAW);
+        if (bond_buffer.size()) {
+            glBufferData(GL_ARRAY_BUFFER, bond_buffer.size()*8*sizeof(float),
+                         (void*)bond_buffer.data(), GL_STREAM_DRAW);
+        } else {
+            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
+        }
         bonds_changed = false;
     }
-    if(cell_changed){
+    if (cell_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
         glBufferData(GL_ARRAY_BUFFER, 8*sizeof(Vec), (void*)cell_buffer.data(), GL_STREAM_DRAW);
         cell_changed = false;

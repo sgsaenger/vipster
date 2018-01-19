@@ -3,7 +3,7 @@
 using namespace Vipster;
 
 AtomProper::AtomProper(std::string name, Vec coord, float charge,
-                       FixVec fix, char hidden)
+                       FixVec fix, uint8_t hidden)
     : Atom{&val_name, &val_coord, &val_charge, &val_fix, &val_hidden, &mod},
       val_name{name}, val_coord{coord}, val_charge{charge},
       val_fix{fix}, val_hidden{hidden} {}

@@ -6,11 +6,11 @@ in vec3 LightDirection_cameraspace;
 in float vertex_side;
 in vec4 s1Cpass;
 in vec4 s2Cpass;
-flat in int  render;
+flat in uint  render;
 
 void main(void)
 {
-    if(render==0){discard;}
+    if(render==uint(0)){discard;}
     //determine color:
     vec4 MaterialDiffuseColor = vec4(0,0,0,1);
     if (vertex_side > 0.0)
