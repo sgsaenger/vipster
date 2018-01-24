@@ -70,14 +70,15 @@ Step::iterator::iterator(const Step *step, size_t idx)
 
 Step::iterator& Step::iterator::operator++()
 {
-    idx++;
-    Atom::operator ++();
+    ++idx;
+    Atom::operator++();
     return *this;
 }
 
 Step::iterator Step::iterator::operator++(int)
 {
     Step::iterator tmp{*this};
+    ++idx;
     Atom::operator++();
     return tmp;
 }
@@ -102,19 +103,23 @@ bool Step::iterator::operator!=(const Step::iterator& rhs) const
     return ((step != rhs.step) || (idx != rhs.idx));
 }
 
-std::function<Vec(Vec)> Step::getFormatter(AtomFmt source, AtomFmt target) const noexcept
+std::function<Vec (const Vec &)> Step::getFormatter(AtomFmt source, AtomFmt target) const noexcept
 {
     //TODO: getInvDim?
     //TODO: save/catch variables?
+    float fac{};
+    Mat fmat{};
     switch(source) {
     case AtomFmt::Bohr:
         switch(target){
         case AtomFmt::Angstrom:
-            return [](Vec v){v*Vipster::bohrrad;return v;};
+            return [](const Vec& v){return v*Vipster::bohrrad;};
         case AtomFmt::Alat:
-            return [this](Vec v){v/getCellDim(CdmFmt::Bohr);return v;};
+            fac = 1/getCellDim(CdmFmt::Bohr);
+            return [fac](const Vec& v){return v*fac;};
         case AtomFmt::Crystal:
-            return [this](Vec v){v*getInvVec()/getCellDim(CdmFmt::Bohr);return v;};
+            fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Bohr);
+            return [fmat](const Vec& v){return v*fmat;};
         default:
             break;
         }
@@ -122,11 +127,13 @@ std::function<Vec(Vec)> Step::getFormatter(AtomFmt source, AtomFmt target) const
     case AtomFmt::Angstrom:
         switch(target){
         case AtomFmt::Bohr:
-            return [](Vec v){v*Vipster::invbohr;return v;};
+            return [](const Vec& v){return v*Vipster::invbohr;};
         case AtomFmt::Alat:
-            return [this](Vec v){v/getCellDim(CdmFmt::Angstrom);return v;};
+            fac = 1/getCellDim(CdmFmt::Angstrom);
+            return [fac](const Vec& v){return v*fac;};
         case AtomFmt::Crystal:
-            return [this](Vec v){v*getInvVec()/getCellDim(CdmFmt::Angstrom);return v;};
+            fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Angstrom);
+            return [fmat](const Vec& v){return v*fmat;};
         default:
             break;
         }
@@ -134,11 +141,14 @@ std::function<Vec(Vec)> Step::getFormatter(AtomFmt source, AtomFmt target) const
     case AtomFmt::Alat:
         switch(target){
         case AtomFmt::Angstrom:
-            return [this](Vec v){v*getCellDim(CdmFmt::Angstrom);return v;};
+            fac = getCellDim(CdmFmt::Angstrom);
+            return [fac](const Vec& v){return v*fac;};
         case AtomFmt::Bohr:
-            return [this](Vec v){v*getCellDim(CdmFmt::Bohr);return v;};
+            fac = getCellDim(CdmFmt::Bohr);
+            return [fac](const Vec& v){return v*fac;};
         case AtomFmt::Crystal:
-            return [this](Vec v){v*getInvVec();return v;};
+            fmat = Mat_inv(getCellVec());
+            return [fmat](const Vec& v){return v*fmat;};
         default:
             break;
         }
@@ -146,16 +156,19 @@ std::function<Vec(Vec)> Step::getFormatter(AtomFmt source, AtomFmt target) const
     case AtomFmt::Crystal:
         switch(target){
         case AtomFmt::Angstrom:
-            return [this](Vec v){v*getCellVec()*getCellDim(CdmFmt::Angstrom); return v;};
+            fmat = getCellVec()*getCellDim(CdmFmt::Angstrom);
+            return [fmat](const Vec& v){return v*fmat;};
         case AtomFmt::Alat:
-            return [this](Vec v){v*getCellVec(); return v;};
+            fmat = getCellVec();
+            return [fmat](const Vec& v){return v*fmat;};
         case AtomFmt::Bohr:
-            return [this](Vec v){v*getCellVec()*getCellDim(CdmFmt::Bohr); return v;};
+            fmat = getCellVec()*getCellDim(CdmFmt::Bohr);
+            return [fmat](const Vec& v){return v*fmat;};
         default:
             break;
         }
     }
-    return [](Vec v){return v;};
+    return [](const Vec& v){return v;};
 }
 
 Vec Step::formatVec(Vec in, AtomFmt source, AtomFmt target) const

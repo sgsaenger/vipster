@@ -70,10 +70,9 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
 {
     auto dataentry = d.data.system.find("nat");
     if (dataentry == d.data.system.end()) throw IOError("nat not specified");
-    int nat = std::stoi(dataentry->second);
+    size_t nat = std::stoul(dataentry->second);
     d.data.system.erase(dataentry);
     StepProper &s = d.mol.getStep(0);
-    s.newAtoms(nat);
 
     const std::map<std::string, AtomFmt> fmtmap = {
         {"ALAT", AtomFmt::Alat},
@@ -95,8 +94,9 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
         s.setFmt(AtomFmt::Alat);
     }
 
+    s.newAtoms(nat);
     std::string line;
-    for (int i=0; i<nat; ++i) {
+    for (size_t i=0; i<nat; ++i) {
         std::getline(file, line);
         while(line[0]=='!' || line[0]=='#') std::getline(file, line);
         auto at = s[i];
@@ -138,7 +138,8 @@ void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &ce
             linestream >> cell[i][0] >> cell[i][1] >> cell[i][2];
             if (linestream.fail()) throw IOError("Failed to parse CELL_PARAMETERS");
         }
-        d.mol.getStep(0).setCellVec(cell);
+        Step& step = d.mol.getStep(0);
+        step.setCellVec(cell, (step.getFmt()==AtomFmt::Crystal));
         if (name.find("BOHR") != name.npos) cellFmt = CellFmt::Bohr;
         else if (name.find("ANGSTROM") != name.npos) cellFmt = CellFmt::Angstrom;
         else cellFmt = CellFmt::Alat;
@@ -159,7 +160,7 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
     } else {
         throw IOError("Specify either celldm or A,B,C, but not both!");
     }
-    bool scale = (s.getFmt() == AtomFmt::Crystal);
+    bool scale = (s.getFmt() >= AtomFmt::Crystal);
     switch (cellFmt) {
     case CellFmt::Bohr:
         s.setCellDim(1, CdmFmt::Bohr, scale);
@@ -181,6 +182,7 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
         auto ibrav = d.data.system.find("ibrav");
         if (ibrav == d.data.system.end()) throw IOError{"ibrav not specified"};
         if(!std::stoi(ibrav->second)) throw IOError("ibrav=0, but no CELL_PARAMETERS were given");
+        //TODO
         throw IOError("Creating Cells based on ibrav not supported yet");
         break;
     }

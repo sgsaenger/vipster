@@ -1,7 +1,6 @@
 #include "ioplugins/lmptrajec.h"
 
 #include <sstream>
-#include <functional>
 
 using namespace Vipster;
 
@@ -45,8 +44,8 @@ auto IdentifyColumns(std::string& line)
         [[fallthrough]];
     case scaled:
         return [=](std::ifstream &file, StepProper& s){
-            if(cs == scaled) s.setFmt(AtomFmt::Crystal);
-            else s.setFmt(AtomFmt::Angstrom);
+            if(cs == scaled) s.setFmt(AtomFmt::Crystal, true);
+            else s.setFmt(AtomFmt::Angstrom, true);
             std::string line;
             for (auto& at:s) {
                 std::getline(file, line);
@@ -79,7 +78,6 @@ LmpTrajecParser(std::string name, std::ifstream &file)
 
     std::string line;
     size_t nat;
-    bool triclinic;
     float t1, t2;
     Mat cell;
     while (std::getline(file, line)) {
@@ -99,9 +97,7 @@ LmpTrajecParser(std::string name, std::ifstream &file)
             // Cell
             cell = Mat{};
             std::getline(file, line);
-            if ((line.length() > 17) && (line[17] == 'x'))
-                triclinic = true;
-            if (triclinic) {
+            if ((line.length() > 17) && (line[17] == 'x')) {
                 // xlo, xhi, xy
                 std::getline(file, line);
                 ss = std::stringstream{line};
@@ -136,7 +132,7 @@ LmpTrajecParser(std::string name, std::ifstream &file)
             }
             if (ss.fail())
                 throw IOError("Lammps Dump: failed to parse box");
-            s->setCellVec(cell);
+            s->setCellVec(cell, (s->getFmt()==AtomFmt::Crystal));
             // Atoms
             std::getline(file, line);
             auto atomParser = IdentifyColumns(line);

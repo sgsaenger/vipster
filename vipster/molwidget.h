@@ -2,7 +2,6 @@
 #define MOLWIDGET_H
 
 #include <QWidget>
-#include <vector>
 #include "mainwindow.h"
 #include "molecule.h"
 

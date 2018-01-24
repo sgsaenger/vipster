@@ -5,12 +5,13 @@
 #include "stepformatter.h"
 
 namespace Vipster{
+class GuiWrapper;
 
-class StepFormatter;
 class StepProper: public Step
 {
 public:
     friend class StepFormatter;
+    friend class GuiWrapper;
     //TODO: reorder arguments
     StepProper(std::shared_ptr<PseMap> pse = std::make_shared<PseMap>(),
          AtomFmt at_fmt=AtomFmt::Bohr,
@@ -41,24 +42,33 @@ public:
     const AtomRef   operator[](size_t idx) const;
 
     // Cell
+    bool    hasCell() const noexcept;
+    void    enableCell(bool) noexcept;
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
     float   getCellDim(CdmFmt at_fmt) const noexcept;
     void    setCellVec(const Mat &vec, bool scale=false);
     Mat     getCellVec() const noexcept;
-    Mat     getInvVec(void) const noexcept;
     Vec     getCenter(CdmFmt at_fmt, bool com=false) const noexcept;
 
     // Comment
     void                setComment(const std::string &s);
     const std::string&  getComment() const noexcept;
+
+    // Bonds
+    virtual const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell) const;
+    virtual const std::vector<Bond>&    getBonds(float cutfac,
+                                                 BondLevel l=BondLevel::Cell) const;
+    virtual size_t                      getNbond() const noexcept;
 protected:
     void                        evaluateCache() const;
 private:
     //Atoms
-    std::vector<std::string>    at_name;
-    std::vector<float>          at_charge;
-    std::vector<FixVec>         at_fix;
-    std::vector<uint8_t>           at_hidden;
+    std::vector<std::string>        at_name;
+    std::vector<float>              at_charge;
+    std::vector<FixVec>             at_fix;
+    std::vector<uint8_t>            at_hidden;
+    mutable std::vector<PseEntry*>  at_pse;
+    mutable bool                    at_prop_changed{false};
     //Cell
     bool        cell_enabled{true};
     float       celldimB{1};
@@ -68,17 +78,17 @@ private:
     //Comment
     std::string comment;
     // Bonds
-    enum class BondLevel { None, Molecule, Cell };
-    mutable bool                bonds_outdated{false};
-    mutable BondLevel           bonds_level;
-    mutable float               bondcut_factor;
+    mutable bool                bonds_outdated{true};
+    mutable BondLevel           bonds_level{BondLevel::None};
+    //TODO: read from default
+    mutable float               bondcut_factor{1.1};
     mutable std::vector<Bond>   bonds;
     void                setBonds(BondLevel l, float cutfac) const;
     void                setBondsMol(float cutfac) const;
     void                setBondsCell(float cutfac) const;
     void                checkBond(std::size_t i, std::size_t j,
                                   float cutfac, const Vec& dist,
-                                  const std::array<int,3> &offset) const;
+                                  const std::array<int16_t, 3> &offset) const;
 };
 
 }

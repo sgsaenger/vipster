@@ -13,7 +13,8 @@ StepFormatter::StepFormatter(StepProper *s, AtomFmt fmt)
 StepFormatter::StepFormatter(StepProper *s, const StepFormatter &rhs)
     : Step{s->pse, rhs.at_fmt}, step{s}
 {
-    at_coord = std::make_shared<std::vector<Vec>>(*rhs.at_coord);
+    at_coord = std::make_shared<std::vector<Vec>>(
+                   formatAll(*rhs.at_coord, rhs.at_fmt, at_fmt));
 }
 
 void StepFormatter::evaluateCache() const
@@ -49,6 +50,7 @@ void StepFormatter::newAtom(const Atom &at)
     step->at_charge.push_back(at.charge);
     step->at_fix.push_back(at.fix);
     step->at_hidden.push_back(at.hidden);
+    step->at_pse.push_back(&(*pse)[at.name]);
     at_changed = true;
 }
 
@@ -62,6 +64,7 @@ void StepFormatter::newAtoms(size_t i)
     step->at_charge.resize(nat);
     step->at_fix.resize(nat);
     step->at_hidden.resize(nat);
+    step->at_pse.resize(nat);
     at_changed = true;
 }
 
@@ -73,6 +76,7 @@ void StepFormatter::delAtom(size_t idx)
     step->at_charge.erase(step->at_charge.begin()+idx);
     step->at_fix.erase(step->at_fix.begin()+idx);
     step->at_hidden.erase(step->at_hidden.begin()+idx);
+    step->at_pse.erase(step->at_pse.begin()+idx);
     at_changed = true;
 }
 
@@ -80,14 +84,26 @@ AtomRef StepFormatter::operator[](size_t idx)
 {
     evaluateCache();
     return {&step->at_name[idx], &(*at_coord)[idx], &step->at_charge[idx],
-            &step->at_fix[idx], &step->at_hidden[idx], &at_changed};
+            &step->at_fix[idx], &step->at_hidden[idx],
+            &at_changed, &step->at_prop_changed};
 }
 
 const AtomRef StepFormatter::operator[](size_t idx) const
 {
     evaluateCache();
     return {&step->at_name[idx], &(*at_coord)[idx], &step->at_charge[idx],
-            &step->at_fix[idx], &step->at_hidden[idx], &at_changed};
+            &step->at_fix[idx], &step->at_hidden[idx],
+            &at_changed, &step->at_prop_changed};
+}
+
+bool StepFormatter::hasCell() const noexcept
+{
+    return step->cell_enabled;
+}
+
+void StepFormatter::enableCell(bool b) noexcept
+{
+    step->cell_enabled = b;
 }
 
 void StepFormatter::setCellDim(float cdm, CdmFmt fmt, bool scale)
@@ -173,12 +189,22 @@ Mat StepFormatter::getCellVec() const noexcept
     return step->cellvec;
 }
 
-Mat StepFormatter::getInvVec() const noexcept
-{
-    return step->invvec;
-}
-
 Vec StepFormatter::getCenter(CdmFmt fmt, bool com) const noexcept
 {
     return step->getCenter(fmt, com);
+}
+
+const std::vector<Bond>& StepFormatter::getBonds(BondLevel l) const
+{
+    return step->getBonds(l);
+}
+
+const std::vector<Bond>& StepFormatter::getBonds(float cutfac, BondLevel l) const
+{
+    return step->getBonds(cutfac, l);
+}
+
+size_t StepFormatter::getNbond() const noexcept
+{
+    return step->bonds.size();
 }

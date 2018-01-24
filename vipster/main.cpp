@@ -3,7 +3,6 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
-#include <iostream>
 
 int main(int argc, char *argv[])
 {

@@ -6,6 +6,8 @@
 #include "atom_model.h"
 #include "bond_model.h"
 
+using namespace Vipster;
+
 #ifdef __EMSCRIPTEN__
 std::string readShader(std::string filePath)
 {
@@ -21,6 +23,7 @@ std::string readShader(std::string filePath)
 #else
 #include <QString>
 #include <QFile>
+
 std::string readShader(std::string filePath)
 {
     QFile f(QString::fromStdString(filePath));
@@ -99,7 +102,7 @@ void GuiWrapper::initShaders(std::string header, std::string folder)
                readShader(folder + "/cell.frag"));
 }
 
-void guiMatScale(guiMat &m, float f)
+void Vipster::guiMatScale(guiMat &m, float f)
 {
     for(int i=0;i<4;i++){
         m[i*4+0]*=f;
@@ -108,7 +111,7 @@ void guiMatScale(guiMat &m, float f)
     }
 }
 
-void guiMatTranslate(guiMat &m, float x, float y, float z)
+void Vipster::guiMatTranslate(guiMat &m, float x, float y, float z)
 {
     //assuming 0 0 0 1 in last row of m
     m[3]+=x;
@@ -116,7 +119,7 @@ void guiMatTranslate(guiMat &m, float x, float y, float z)
     m[11]+=z;
 }
 
-void guiMatRot(guiMat &m, float a, float x, float y, float z)
+void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
 {
     if(a==0){
         return;
@@ -174,7 +177,7 @@ void guiMatRot(guiMat &m, float a, float x, float y, float z)
     }
 }
 
-guiMat guiMatMkOrtho(float l, float r, float b, float t, float n, float f)
+guiMat Vipster::guiMatMkOrtho(float l, float r, float b, float t, float n, float f)
 {
     return guiMat{{2/(r-l), 0, 0, (r+l)/(l-r),
                    0, 2/(t-b), 0, (t+b)/(b-t),
@@ -182,7 +185,7 @@ guiMat guiMatMkOrtho(float l, float r, float b, float t, float n, float f)
                    0, 0, 0, 1}};
 }
 
-guiMat guiMatMkLookAt(Vec eye, Vec target, Vec up)
+guiMat Vipster::guiMatMkLookAt(Vec eye, Vec target, Vec up)
 {
     Vec dir = target - eye;
     dir /= Vec_length(dir);
@@ -195,7 +198,7 @@ guiMat guiMatMkLookAt(Vec eye, Vec target, Vec up)
                   0, 0, 0, 1}};
 }
 
-guiMat operator *=(guiMat &a, const guiMat &b)
+guiMat Vipster::operator *=(guiMat &a, const guiMat &b)
 {
     a = guiMat{{a[0]*b[0]+a[1]*b[4]+a[2]*b[ 8]+a[3]*b[12],
                a[0]*b[1]+a[1]*b[5]+a[2]*b[ 9]+a[3]*b[13],
@@ -216,7 +219,7 @@ guiMat operator *=(guiMat &a, const guiMat &b)
     return a;
 }
 
-guiMat operator *(guiMat a, const guiMat &b)
+guiMat Vipster::operator *(guiMat a, const guiMat &b)
 {
     return a*=b;
 }
@@ -316,7 +319,7 @@ void GuiWrapper::initBondVAO(void)
     glEnableVertexAttribArray(positionLoc);
     GLuint critLoc = glGetAttribLocation(bond_program, "pbc_crit");
     glVertexAttribIPointer(critLoc, 4,
-                          GL_UNSIGNED_BYTE,
+                          GL_UNSIGNED_SHORT,
                           sizeof(bond_prop),
                           (const GLvoid*)offsetof(bond_prop, mult));
     glVertexAttribDivisor(critLoc, 1);
@@ -385,7 +388,7 @@ void GuiWrapper::draw(void)
     GLuint offLocA = glGetUniformLocation(atom_program, "offset");
     GLuint facLoc = glGetUniformLocation(atom_program, "atom_fac");
     GLuint cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    glUniform1f(facLoc, 0.5);
+    glUniform1f(facLoc, 0.4);
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     for(int x=0;x!=mult[0];++x){
         for(int y=0;y!=mult[1];++y){
@@ -398,19 +401,19 @@ void GuiWrapper::draw(void)
             }
         }
     }
+    // bonds
     glBindVertexArray(bond_vao);
     glUseProgram(bond_program);
     GLuint offLocB = glGetUniformLocation(bond_program, "offset");
     GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
     GLuint multLoc = glGetUniformLocation(bond_program, "mult");
-    GLuint cellLocB = glGetUniformLocation(atom_program, "position_scale");
+    GLuint cellLocB = glGetUniformLocation(bond_program, "position_scale");
     glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
     glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
     for(int x=0;x!=mult[0];++x){
         for(int y=0;y!=mult[1];++y){
             for(int z=0;z!=mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
-                // bonds
                 glUniform3fv(offLocB, 1, off.data());
                 glUniform3ui(pbcLoc, x, y, z);
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
@@ -419,6 +422,7 @@ void GuiWrapper::draw(void)
             }
         }
     }
+    // cell
     glBindVertexArray(cell_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     glUseProgram(cell_program);
@@ -427,7 +431,6 @@ void GuiWrapper::draw(void)
         for(int y=0;y!=mult[1];++y){
             for(int z=0;z!=mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
-                // cell
                 glUniform3fv(offLocC, 1, off.data());
                 glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, NULL);
             }
@@ -435,7 +438,7 @@ void GuiWrapper::draw(void)
     }
 }
 
-void GuiWrapper::updateBuffers(const Step* step, bool)// draw_bonds)
+void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
 {
     curStep = step;
     //cell
@@ -464,89 +467,105 @@ void GuiWrapper::updateBuffers(const Step* step, bool)// draw_bonds)
                  tmp_mat[1][0], tmp_mat[1][1], tmp_mat[1][2],
                  tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
     cell_mat_changed = true;
+
     //atoms
     atom_prop_buffer.clear();
     atom_prop_buffer.reserve(step->getNat());
-    for (auto& at:*step) {
-        PseEntry &pse = (*(step->pse))[at.name];
-        atom_prop_buffer.push_back({pse.covr, pse.col});
+    for (const PseEntry* at:step->at_pse) {
+        atom_prop_buffer.push_back({at->covr, at->col});
     }
     atoms_changed = true;
+
     //bonds
-//    if(draw_bonds){
-//        constexpr Vec x_axis{{1,0,0}};
-//        //TODO
-////        const auto& bonds = step->getBondsCell();
-//        std::vector<Bond> bonds{};
-//        float c, s, ic;
-//        float rad = 0.53; // TODO: pull bond-radius from config
-//        bond_buffer.clear();
-//        bond_buffer.reserve(bonds.size());
-//        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
-//        for(const Bond& bd:bonds){
-//            const auto &at1 = atom_buffer[bd.at1];
-//            const auto &at2 = atom_buffer[bd.at2];
-//            at_pos1 = {{at1[0], at1[1], at1[2]}};
-//            at_pos2 = {{at2[0], at2[1], at2[2]}};
-//            if (bd.xdiff>0)     { at_pos2 += bd.xdiff*cv[0]; }
-//            else if (bd.xdiff<0){ at_pos1 -= bd.xdiff*cv[0]; }
-//            if (bd.ydiff>0)     { at_pos2 += bd.ydiff*cv[1]; }
-//            else if (bd.ydiff<0){ at_pos1 -= bd.ydiff*cv[1]; }
-//            if (bd.zdiff>0)     { at_pos2 += bd.zdiff*cv[2]; }
-//            else if (bd.zdiff<0){ at_pos1 -= bd.zdiff*cv[2]; }
-//            bond_axis = at_pos1 - at_pos2;
-//            bond_pos = (at_pos1+at_pos2)/2;
-//            if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
-//               std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
-//                c = std::copysign(1., bond_axis[0]);
-//                bond_buffer.push_back({{
-//                    bd.dist*c, 0, 0,
-//                    0, rad, 0,
-//                    0, 0, rad*c,
-//                    bond_pos[0], bond_pos[1], bond_pos[2],
-//                    (float)std::abs(bd.xdiff),
-//                    (float)std::abs(bd.ydiff),
-//                    (float)std::abs(bd.zdiff),
-//                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
-//                    at1[4], at1[5], at1[6], at1[7],
-//                    at2[4], at2[5], at2[6], at2[7]}});
-//            }else{
-//                rot_axis = -Vec_cross(bond_axis, x_axis);
-//                rot_axis /= Vec_length(rot_axis);
-//                c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
-//                ic = 1-c;
-//                s = -std::sqrt(1-c*c);
-//                bond_buffer.push_back({{
-//                    //mat3 with rotation and scaling
-//                    bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
-//                    bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
-//                    bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
-//                    rad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
-//                    rad*(ic*rot_axis[1]*rot_axis[1]+c),
-//                    rad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
-//                    rad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
-//                    rad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
-//                    rad*(ic*rot_axis[2]*rot_axis[2]+c),
-//                    //vec3 with position in modelspace
-//                    bond_pos[0],bond_pos[1],bond_pos[2],
-//                    //faux vec4 with integral pbc information
-//                    (float)std::abs(bd.xdiff),
-//                    (float)std::abs(bd.ydiff),
-//                    (float)std::abs(bd.zdiff),
-//                    //padding float that tells if non-pbc bond
-//                    (float)!(bd.xdiff||bd.ydiff||bd.zdiff),
-//                    //2*vec4 with colors
-//                    at1[4], at1[5], at1[6], at1[7],
-//                    at2[4], at2[5], at2[6], at2[7]}});
-//            }
-//        }
-//        bonds_changed = true;
-//        bonds_drawn = true;
-//    }else if(bonds_drawn){
-//        bond_buffer.clear();
-//        bonds_changed = true;
-//        bonds_drawn = false;
-//    }
+    if(draw_bonds){
+        constexpr Vec x_axis{{1,0,0}};
+        //TODO: pull cutfac from config
+        const auto& bonds = step->getBonds(BondLevel::Cell);
+        const auto& pse = step->at_pse;
+        float c, s, ic;
+        float rad = 0.53; // TODO: pull bond-radius from config
+        bond_buffer.clear();
+        bond_buffer.reserve(bonds.size());
+        const std::vector<Vec>& at_coord = *step->at_coord;
+        AtomFmt fmt = step->getFmt();
+        auto fmt_fun = step->getFormatter(fmt, AtomFmt::Bohr);
+        switch(fmt){
+        case AtomFmt::Crystal:
+            cv = Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
+            break;
+        case AtomFmt::Alat:
+            cv = step->getCellVec();
+            break;
+        case AtomFmt::Angstrom:
+            cv = step->getCellVec() * step->getCellDim(CdmFmt::Angstrom);
+            break;
+        default:
+            break;
+        }
+        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
+        for(const Bond& bd:bonds){
+            at_pos1 = at_coord[bd.at1];
+            at_pos2 = at_coord[bd.at2];
+            if (bd.xdiff>0)     { at_pos2 += bd.xdiff*cv[0]; }
+            else if (bd.xdiff<0){ at_pos1 -= bd.xdiff*cv[0]; }
+            if (bd.ydiff>0)     { at_pos2 += bd.ydiff*cv[1]; }
+            else if (bd.ydiff<0){ at_pos1 -= bd.ydiff*cv[1]; }
+            if (bd.zdiff>0)     { at_pos2 += bd.zdiff*cv[2]; }
+            else if (bd.zdiff<0){ at_pos1 -= bd.zdiff*cv[2]; }
+            bond_axis = at_pos1 - at_pos2;
+            if(fmt == AtomFmt::Crystal){
+                bond_axis = fmt_fun(bond_axis);
+            }
+            bond_pos = (at_pos1+at_pos2)/2;
+            if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
+               std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
+                c = std::copysign(1., bond_axis[0]);
+                bond_buffer.push_back({
+                    {bd.dist*c, 0., 0.,
+                     0., rad, 0.,
+                     0., 0., rad*c},
+                    bond_pos,
+                    {(uint16_t)std::abs(bd.xdiff),
+                     (uint16_t)std::abs(bd.ydiff),
+                     (uint16_t)std::abs(bd.zdiff),
+                    !(bd.xdiff||bd.ydiff||bd.zdiff)},
+                    pse[bd.at1]->col, pse[bd.at2]->col});
+            }else{
+                rot_axis = -Vec_cross(bond_axis, x_axis);
+                rot_axis /= Vec_length(rot_axis);
+                c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
+                ic = 1-c;
+                s = -std::sqrt(1-c*c);
+                bond_buffer.push_back({
+                    //mat3 with rotation and scaling
+                    {bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
+                     bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
+                     bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
+                     rad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
+                     rad*(ic*rot_axis[1]*rot_axis[1]+c),
+                     rad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
+                     rad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
+                     rad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
+                     rad*(ic*rot_axis[2]*rot_axis[2]+c)},
+                    //vec3 with position in modelspace
+                    bond_pos,
+                    //faux uvec4 with integral pbc information
+                    {(uint16_t)std::abs(bd.xdiff),
+                     (uint16_t)std::abs(bd.ydiff),
+                     (uint16_t)std::abs(bd.zdiff),
+                    //padding that tells if non-pbc bond
+                    !(bd.xdiff||bd.ydiff||bd.zdiff)},
+                    //2*vec4 with colors
+                    pse[bd.at1]->col, pse[bd.at2]->col});
+            }
+        }
+        bonds_changed = true;
+        bonds_drawn = true;
+    }else if(bonds_drawn){
+        bond_buffer.clear();
+        bonds_changed = true;
+        bonds_drawn = false;
+    }
 }
 
 void GuiWrapper::updateVBOs(void)
@@ -572,7 +591,7 @@ void GuiWrapper::updateVBOs(void)
     if (bonds_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
         if (bond_buffer.size()) {
-            glBufferData(GL_ARRAY_BUFFER, bond_buffer.size()*8*sizeof(float),
+            glBufferData(GL_ARRAY_BUFFER, bond_buffer.size()*sizeof(bond_prop),
                          (void*)bond_buffer.data(), GL_STREAM_DRAW);
         } else {
             glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);

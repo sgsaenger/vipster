@@ -8,32 +8,6 @@
 
 //TODO: track changes in hidden (rename it, obviously)
 
-/*
- * use const where possible!
- * non-const-access may trigger reevaluation of step-properties depending
- * on atom-properties (Bonds!)
- *
- * current architecture may prove problematic when only few atoms in step
- * need to be modified
- * - non-const reading triggers unnecessary mod-flag-setting
- * - but needs to be non-const for real modifications
- * workaround: const-iteration with non-const Step::operator[] access?
- * needs user-awareness -> bad!
- *
- * TODO TODO TODO
- *
- * but will stay like this for now...
- */
-
-/*
- * TODO:
- *
- * Benchmark performance, can references reduce overhead?
- * Or virtual functions after all?
- * References prohibit copy-construction (or just assignment?), problem?
- * Move-assign/construct PropRef should be possible
- */
-
 namespace Vipster{
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };
 
@@ -53,7 +27,9 @@ namespace Vipster{
             PropRef(const T *prop, const bool *mod)
                 : p_prop{const_cast<T*>(prop)},
                   p_mod{const_cast<bool*>(mod)} {}
+            // like a real reference, constructing makes it point to the origin
             PropRef(const PropRef&) = default;
+            // also like a real reference, assigning changes the origin
             PropRef& operator=(const PropRef& rhs){
                 *p_prop = *(rhs.p_prop);
                 *p_mod = true;
@@ -91,7 +67,8 @@ namespace Vipster{
         PropRef<uint8_t> hidden;
     protected:
         Atom(const std::string *n, const Vec *co, const float *ch,
-             const FixVec *f, const uint8_t *h, const bool *m);
+             const FixVec *f, const uint8_t *h,
+             const bool *c_m, const bool *p_m);
         Atom& operator++();
     };
     //string may fail to be converted implicitely

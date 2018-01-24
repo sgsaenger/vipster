@@ -14,12 +14,13 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
     m.setName(name);
     StepProper& s = m.newStep();
     s.setFmt(AtomFmt::Angstrom);
+    s.setCellDim(1, CdmFmt::Angstrom);
 
     std::string line;
     size_t nat, ntype;
     float t1, t2;
-    Mat cell;
-    std::map<std::string, std::string> types;
+    Mat cell{};
+    std::map<std::string, std::string> types{};
     bool hasNames{false};
     while (std::getline(file, line)) {
         if (line.find("atoms") != line.npos) {
@@ -110,6 +111,7 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
             }
         }
     }
+    s.setCellVec(cell);
     if (hasNames) {
         for (size_t i=0; i<nat; ++i) {
             auto at = s[i];

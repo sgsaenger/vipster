@@ -5,8 +5,8 @@
 namespace Vipster{
 
 Atom::Atom(const std::string *n, const Vec *co, const float *ch,
-           const FixVec *f, const uint8_t *h, const bool *m)
-    : name{n,m}, coord{co,m}, charge{ch,m}, fix{f,m}, hidden{h,m} {}
+           const FixVec *f, const uint8_t *h, const bool *c_m, const bool *p_m)
+    : name{n,p_m}, coord{co,c_m}, charge{ch,p_m}, fix{f,p_m}, hidden{h,p_m} {}
 
 Atom& Atom::operator++()
 {

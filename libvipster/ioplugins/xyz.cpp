@@ -20,6 +20,7 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
             if (!m.getNstep()) throw IOError("XYZ: Failed to parse nat");
             else {
                 while ((natline>>nat).fail()) {
+                    std::getline(file, line);
                     if (file.eof())
                         throw IOError("XYZ: Non-standard data after XYZ-file");
                     natline = std::stringstream{line};

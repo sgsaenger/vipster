@@ -2,8 +2,6 @@
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
 
-#include <iostream>
-
 #include "guiwrapper.h"
 #include "molecule.h"
 #include "atomproper.h"
@@ -30,7 +28,7 @@ int emGetNMol(void){ return gui.molecules.size();}
 int emGetMolNstep(int i){ return gui.molecules[i].getNstep();}
 std::string emGetMolName(int i){ return gui.molecules[i].getName();}
 void emSetStep(int m, int s){ gui.updateBuffers(&gui.molecules[m].getStep(s), true); }
-void emSetMult(int x, int y, int z){ gui.mult = {{x,y,z}}; }
+void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 void emReadFile(std::string fn, std::string name, int fmt){
     auto d = readFile(fn, (IOFmt)fmt, name);
     gui.molecules.push_back(d->mol);
@@ -252,7 +250,7 @@ int main()
     gui.initViewMat();
 
     gui.molecules.emplace_back("Example");
-    Step* step = &gui.molecules[0].getStep(0);
+    StepProper* step = &gui.molecules[0].getStep(0);
     step->newAtom();
     step->newAtom(AtomProper{"O",{{1,0,0}}});
     step->newAtom(AtomProper{"F",{{0,1,0}}});

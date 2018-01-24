@@ -3,13 +3,15 @@
 #include <algorithm>
 #include <cmath>
 
+#include <iostream>
 using namespace Vipster;
 
 //TODO: think about synchronization points for formatted caches
 
 constexpr StepFormatter StepProper::* StepProper::fmtmap[];
 
-StepProper::StepProper(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::string comment)
+StepProper::StepProper(std::shared_ptr<PseMap> pse,
+                       AtomFmt fmt, std::string comment)
     : Step{pse, fmt},
       asAlat{this, AtomFmt::Alat},
       asAngstrom{this, AtomFmt::Angstrom},
@@ -21,6 +23,7 @@ StepProper::StepProper(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::string com
 }
 
 //TODO: move-assignment, copy-and-swap-idiom, constructable from Step&
+//TODO: default all of this if possible! impossible to keep track of all properties...
 
 StepProper::StepProper(const StepProper &rhs)
     : Step{rhs.pse, rhs.at_fmt},
@@ -28,17 +31,22 @@ StepProper::StepProper(const StepProper &rhs)
       asAngstrom{this, rhs.asAngstrom},
       asBohr{this, rhs.asBohr},
       asCrystal{this, rhs.asCrystal},
+      at_prop_changed{rhs.at_prop_changed},
       at_name{rhs.at_name}, at_charge{rhs.at_charge},
       at_fix{rhs.at_fix}, at_hidden{rhs.at_hidden},
+      at_pse{rhs.at_pse},
       celldimB{rhs.celldimB}, celldimA{rhs.celldimA},
       cellvec{rhs.cellvec}, invvec{rhs.invvec},
-      comment{rhs.comment}
+      comment{rhs.comment},
+      bonds_outdated{rhs.bonds_outdated}, bonds_level{rhs.bonds_level},
+      bondcut_factor{rhs.bondcut_factor}, bonds{rhs.bonds}
 {
     at_coord = (this->*(fmtmap[(int)at_fmt])).at_coord;
 }
 
 StepProper& StepProper::operator=(const StepProper& rhs)
 {
+    //TODO: can switch to default-implementation when stepformatter allows
     pse = rhs.pse;
     at_fmt = rhs.at_fmt;
     comment = rhs.comment;
@@ -46,6 +54,22 @@ StepProper& StepProper::operator=(const StepProper& rhs)
     asBohr = StepFormatter{this, rhs.asBohr};
     asAngstrom = StepFormatter{this, rhs.asAngstrom};
     asCrystal = StepFormatter{this, rhs.asCrystal};
+    at_changed = rhs.at_changed;
+    at_prop_changed = rhs.at_prop_changed;
+    at_name = rhs.at_name;
+    at_charge = rhs.at_charge;
+    at_fix = rhs.at_fix;
+    at_hidden = rhs.at_hidden;
+    at_pse = rhs.at_pse;
+    bonds_outdated = rhs.bonds_outdated;
+    bonds_level = rhs.bonds_level;
+    bondcut_factor = rhs.bondcut_factor;
+    bonds = rhs.bonds;
+    cell_enabled = rhs.cell_enabled;
+    celldimA = rhs.celldimA;
+    celldimB = rhs.celldimB;
+    cellvec = rhs.cellvec;
+    invvec = rhs.invvec;
     setFmt(at_fmt);
     return *this;
 }
@@ -66,7 +90,7 @@ void StepProper::evaluateCache() const
             }
         }
         at_changed = false;
-        //TODO: mark bonds outdated and similar stuff.
+        bonds_outdated = true;
     } else {
         // if there are changes in (only one) formatter,
         // pull them in and invalidate the others
@@ -92,6 +116,16 @@ void StepProper::evaluateCache() const
                 }
             }
         }
+    }
+    // if some atom-types changed, update pse pointers
+    if(at_prop_changed){
+        if(size_t nat = at_name.size()){
+            for(size_t i=0; i<nat; ++i){
+                at_pse[i] = &(*pse)[at_name[i]];
+            }
+        }
+        at_prop_changed = false;
+        bonds_outdated = true;
     }
 }
 
@@ -143,6 +177,7 @@ void StepProper::newAtom(const Atom &at)
     at_charge.push_back(at.charge);
     at_fix.push_back(at.fix);
     at_hidden.push_back(at.hidden);
+    at_pse.push_back(&(*pse)[at.name]);
     at_changed = true;
 }
 
@@ -156,6 +191,7 @@ void StepProper::newAtoms(size_t i)
     at_charge.resize(nat);
     at_fix.resize(nat);
     at_hidden.resize(nat);
+    at_pse.resize(nat);
     at_changed = true;
 }
 
@@ -167,6 +203,7 @@ void StepProper::delAtom(size_t idx)
     at_charge.erase(at_charge.begin()+idx);
     at_fix.erase(at_fix.begin()+idx);
     at_hidden.erase(at_hidden.begin()+idx);
+    at_pse.erase(at_pse.begin()+idx);
     at_changed = true;
 }
 
@@ -174,14 +211,24 @@ AtomRef StepProper::operator[](size_t idx)
 {
     evaluateCache();
     return {&at_name[idx], &(*at_coord)[idx], &at_charge[idx],
-            &at_fix[idx], &at_hidden[idx], &at_changed};
+            &at_fix[idx], &at_hidden[idx], &at_changed, &at_prop_changed};
 }
 
 const AtomRef StepProper::operator[](size_t idx) const
 {
     evaluateCache();
     return {&at_name[idx], &(*at_coord)[idx], &at_charge[idx],
-            &at_fix[idx], &at_hidden[idx], &at_changed};
+            &at_fix[idx], &at_hidden[idx], &at_changed, &at_prop_changed};
+}
+
+bool StepProper::hasCell() const noexcept
+{
+    return cell_enabled;
+}
+
+void StepProper::enableCell(bool b) noexcept
+{
+    cell_enabled = b;
 }
 
 void StepProper::setCellDim(float cdm, CdmFmt fmt, bool scale)
@@ -270,11 +317,6 @@ Mat StepProper::getCellVec() const noexcept
     return cellvec;
 }
 
-Mat StepProper::getInvVec() const noexcept
-{
-    return invvec;
-}
-
 Vec StepProper::getCenter(CdmFmt fmt, bool com) const noexcept
 {
     if(com && getNat()){
@@ -308,45 +350,29 @@ const std::string& StepProper::getComment() const noexcept
     return comment;
 }
 
-//const std::vector<Bond>& StepInterface::getBonds() const
-//{
-//    return getBonds(*bondcut_factor);
-//}
+const std::vector<Bond>& StepProper::getBonds(BondLevel l) const
+{
+    return getBonds(bondcut_factor, l);
+}
 
-//const std::vector<Bond>& StepInterface::getBonds(float cutfac) const
-//{
-//    //TODO
-////    if(bonds_outdated or (cutfac!=bondcut_factor) or (bonds_level<BondLevel::Molecule))
-////    {
-////        Step::setBonds(cutfac);
-////    }
-//    return *bonds;
-//}
+const std::vector<Bond>& StepProper::getBonds(float cutfac, BondLevel l) const
+{
+    if(bonds_outdated or (cutfac != bondcut_factor) or (bonds_level < l))
+    {
+        setBonds(l, cutfac);
+    }
+    return bonds;
+}
 
-//const std::vector<Bond>& StepInterface::getBondsCell() const
-//{
-//    return getBondsCell(*bondcut_factor);
-//}
-
-//const std::vector<Bond>& StepInterface::getBondsCell(float cutfac) const
-//{
-//    //TODO
-////    if(bonds_outdated or (cutfac!=bondcut_factor) or (bonds_level<BondLevel::Cell))
-////    {
-////        Step::setBondsCell(cutfac);
-////    }
-//    return *bonds;
-//}
-
-//size_t StepInterface::getNbond() const noexcept
-//{
-//    return bonds->size();
-//}
+size_t StepProper::getNbond() const noexcept
+{
+    return bonds.size();
+}
 
 void StepProper::setBonds(BondLevel l, float cutfac) const
 {
     bonds.clear();
-    if (!getNat()) return;
+    if (!getNat()) l = BondLevel::None;
     switch(l){
     case BondLevel::None:
         break;
@@ -354,7 +380,11 @@ void StepProper::setBonds(BondLevel l, float cutfac) const
         setBondsMol(cutfac);
         break;
     case BondLevel::Cell:
-        setBondsCell(cutfac);
+        if (hasCell()) {
+            setBondsCell(cutfac);
+        } else {
+            setBondsMol(cutfac);
+        }
         break;
     }
     bonds_outdated = false;
@@ -372,24 +402,25 @@ void StepProper::setBondsMol(float cutfac) const
     case AtomFmt::Crystal:
         [[fallthrough]];
     case AtomFmt::Alat:
-        asBohr.evaluateCache();
         [[fallthrough]];
     case AtomFmt::Bohr:
         sf = &asBohr;
         break;
     }
-    float fmtscale{(at_fmt == AtomFmt::Angstrom) ? bohrrad : 1};
-    for (size_t i=0; i<getNat(); ++i) {
-        float cut_i = (*pse)[at_name[i]].bondcut;
+    float fmtscale{(at_fmt == AtomFmt::Angstrom) ? invbohr : 1};
+    size_t nat = sf->getNat();
+    const auto& coord = *sf->at_coord;
+    for (size_t i=0; i<nat; ++i) {
+        float cut_i = at_pse[i]->bondcut;
         if (!cut_i) continue;
-        for (size_t j=i+1; j<getNat(); ++j) {
-            float cut_j = (*pse)[at_name[j]].bondcut;
+        for (size_t j=i+1; j<nat; ++j) {
+            float cut_j = at_pse[j]->bondcut;
             if (!cut_j) continue;
             float effcut = (cut_i + cut_j) * cutfac;
-            Vec dist_v = (*sf->at_coord)[i] - (*sf->at_coord)[j];
+            Vec dist_v = coord[i] - coord[j];
             if (((dist_v[0] *= fmtscale) > effcut) ||
                 ((dist_v[1] *= fmtscale) > effcut) ||
-                ((dist_v[2] *= fmtscale) > effcut)) return;
+                ((dist_v[2] *= fmtscale) > effcut)) continue;
             float dist_n = Vec_dot(dist_v, dist_v);
             if ((0.57 < dist_n) && (dist_n < effcut*effcut)) {
                 bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
@@ -399,7 +430,7 @@ void StepProper::setBondsMol(float cutfac) const
 }
 
 void StepProper::checkBond(std::size_t i, std::size_t j, float effcut,
-                           const Vec& dist, const std::array<int, 3>& offset) const
+                           const Vec& dist, const std::array<int16_t, 3>& offset) const
 {
     if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) return;
     float dist_n = Vec_dot(dist, dist);
@@ -411,6 +442,7 @@ void StepProper::checkBond(std::size_t i, std::size_t j, float effcut,
 void StepProper::setBondsCell(float cutfac) const
 {
     asCrystal.evaluateCache();
+    std::vector<Vec>& coord = *asCrystal.at_coord;
     const Vec x = cellvec[0] * celldimB;
     const Vec y = cellvec[1] * celldimB;
     const Vec z = cellvec[2] * celldimB;
@@ -424,7 +456,7 @@ void StepProper::setBondsCell(float cutfac) const
     const Vec xymz = xy - z;
     const Vec xmyz = xz - y;
     const Vec mxyz = yz - x;
-    std::array<int, 3> diff_v, crit_v;
+    std::array<int16_t, 3> diff_v, crit_v;
     for (size_t i=0; i<getNat(); ++i) {
         float cut_i = (*pse)[at_name[i]].bondcut;
         if (!cut_i) continue;
@@ -432,7 +464,7 @@ void StepProper::setBondsCell(float cutfac) const
             float cut_j = (*pse)[at_name[j]].bondcut;
             if (!cut_j) continue;
             float effcut = (cut_i + cut_j) * cutfac;
-            Vec dist_v = (*asCrystal.at_coord)[i] - (*asCrystal.at_coord)[j];
+            Vec dist_v = coord[i] - coord[j];
             std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
             std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
                 [](float f){return std::fmod(f,1);});
@@ -451,24 +483,24 @@ void StepProper::setBondsCell(float cutfac) const
             if(crit_v[0]){
                 // x, -x
                 checkBond(i, j, effcut, dist_v-crit_v[0]*x,
-                          {{diff_v[0]+crit_v[0],diff_v[1],diff_v[2]}});
+                          {{(int16_t)(diff_v[0]+crit_v[0]),diff_v[1],diff_v[2]}});
             }
             if(crit_v[1]){
                 // y, -y
                 checkBond(i, j, effcut, dist_v-crit_v[1]*y,
-                          {{diff_v[0],diff_v[1]+crit_v[1],diff_v[2]}});
+                          {{diff_v[0],(int16_t)(diff_v[1]+crit_v[1]),diff_v[2]}});
                 if(crit_v[0]){
                     if(crit_v[0] == crit_v[1]){
                         // x+y, -x-y
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xy,
-                                  {{diff_v[0]+crit_v[0],
-                                    diff_v[1]+crit_v[1],
+                                  {{(int16_t)(diff_v[0]+crit_v[0]),
+                                    (int16_t)(diff_v[1]+crit_v[1]),
                                     diff_v[2]}});
                     }else{
                         // x-y, -x+y
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xmy,
-                                  {{diff_v[0]+crit_v[0],
-                                    diff_v[1]+crit_v[1],
+                                  {{(int16_t)(diff_v[0]+crit_v[0]),
+                                    (int16_t)(diff_v[1]+crit_v[1]),
                                     diff_v[2]}});
                     }
                 }
@@ -476,20 +508,20 @@ void StepProper::setBondsCell(float cutfac) const
             if(crit_v[2]){
                 // z, -z
                 checkBond(i, j, effcut, dist_v-crit_v[2]*z,
-                          {{diff_v[0],diff_v[1],diff_v[2]+crit_v[2]}});
+                          {{diff_v[0],diff_v[1],(int16_t)(diff_v[2]+crit_v[2])}});
                 if(crit_v[0]){
                     if(crit_v[0] == crit_v[2]){
                         // x+z, -x-z
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xz,
-                                  {{diff_v[0]+crit_v[0],
+                                  {{(int16_t)(diff_v[0]+crit_v[0]),
                                     diff_v[1],
-                                    diff_v[2]+crit_v[2]}});
+                                    (int16_t)(diff_v[2]+crit_v[2])}});
                     }else{
                         // x-z, -x+z
                         checkBond(i, j, effcut, dist_v-crit_v[0]*xmz,
-                                  {{diff_v[0]+crit_v[0],
+                                  {{(int16_t)(diff_v[0]+crit_v[0]),
                                     diff_v[1],
-                                    diff_v[2]+crit_v[2]}});
+                                    (int16_t)(diff_v[2]+crit_v[2])}});
                     }
                 }
                 if(crit_v[1]){
@@ -497,43 +529,43 @@ void StepProper::setBondsCell(float cutfac) const
                         // y+z, -y-z
                         checkBond(i, j, effcut, dist_v-crit_v[1]*yz,
                                   {{diff_v[0],
-                                    diff_v[1]+crit_v[1],
-                                    diff_v[2]+crit_v[2]}});
+                                    (int16_t)(diff_v[1]+crit_v[1]),
+                                    (int16_t)(diff_v[2]+crit_v[2])}});
                     }else{
                         // y-z, -y+z
                         checkBond(i, j, effcut, dist_v-crit_v[1]*ymz,
                                   {{diff_v[0],
-                                    diff_v[1]+crit_v[1],
-                                    diff_v[2]+crit_v[2]}});
+                                    (int16_t)(diff_v[1]+crit_v[1]),
+                                    (int16_t)(diff_v[2]+crit_v[2])}});
                     }
                     if(crit_v[0]){
                         if(crit_v[0] == crit_v[1]){
                             if(crit_v[0] == crit_v[2]){
                                 // x+y+z, -x-y-z
                                 checkBond(i, j, effcut, dist_v-crit_v[0]*xyz,
-                                          {{diff_v[0]+crit_v[0],
-                                            diff_v[1]+crit_v[1],
-                                            diff_v[2]+crit_v[2]}});
+                                          {{(int16_t)(diff_v[0]+crit_v[0]),
+                                            (int16_t)(diff_v[1]+crit_v[1]),
+                                            (int16_t)(diff_v[2]+crit_v[2])}});
                             }else{
                                 // x+y-z, -x-y+z
                                 checkBond(i, j, effcut, dist_v-crit_v[0]*xymz,
-                                          {{diff_v[0]+crit_v[0],
-                                            diff_v[1]+crit_v[1],
-                                            diff_v[2]+crit_v[2]}});
+                                          {{(int16_t)(diff_v[0]+crit_v[0]),
+                                            (int16_t)(diff_v[1]+crit_v[1]),
+                                            (int16_t)(diff_v[2]+crit_v[2])}});
                             }
                         }else{
                             if(crit_v[0] == crit_v[2]){
                                 // x-y+z, -x+y-z
                                 checkBond(i, j, effcut, dist_v-crit_v[0]*xmyz,
-                                          {{diff_v[0]+crit_v[0],
-                                            diff_v[1]+crit_v[1],
-                                            diff_v[2]+crit_v[2]}});
+                                          {{(int16_t)(diff_v[0]+crit_v[0]),
+                                            (int16_t)(diff_v[1]+crit_v[1]),
+                                            (int16_t)(diff_v[2]+crit_v[2])}});
                             }else{
                                 // x-y-z, -x+y+z
                                 checkBond(i, j, effcut, dist_v-crit_v[1]*mxyz,
-                                          {{diff_v[0]+crit_v[0],
-                                            diff_v[1]+crit_v[1],
-                                            diff_v[2]+crit_v[2]}});
+                                          {{(int16_t)(diff_v[0]+crit_v[0]),
+                                            (int16_t)(diff_v[1]+crit_v[1]),
+                                            (int16_t)(diff_v[2]+crit_v[2])}});
                             }
                         }
                     }

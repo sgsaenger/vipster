@@ -11,7 +11,7 @@
 #include <array>
 #include "molecule.h"
 
-using namespace Vipster;
+namespace Vipster {
 
 typedef std::array<float,16> guiMat;
 
@@ -29,7 +29,7 @@ public:
     void initAtomVAO(void);
     void initBondVAO(void);
     void initCellVAO(void);
-    void updateBuffers(const Step* step, bool draw_bonds=true);
+    void updateBuffers(const StepProper* step, bool draw_bonds=true);
     void updateVBOs(void);
     // view/projection matrices
     void initViewUBO(void);
@@ -44,24 +44,22 @@ public:
     // molecule-store
     //TODO: is this needed here?
     std::vector<Vipster::Molecule> molecules;
-    const Step* curStep{nullptr};
+    const StepProper* curStep{nullptr};
 public:
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
 private:
-    //TODO: use atom-coords directly, create vbo that saves type-information (size, color)
-    // color as char[4]
     // separate change-flag in step for coord and rest!
     struct atom_prop{ // 8 bytes + 12 bytes directly from step
         float rad;  // 4 bytes
         ColVec col; // 4 bytes
     };
     std::vector<atom_prop> atom_prop_buffer;
-    struct bond_prop{ // 60 bytes
+    struct bond_prop{ // 64 bytes
         float mat[9]; // 9*4 = 36 bytes
-        float pos[3]; // 3*4 = 12 bytes
-        uint8_t mult[3];  // 3*1 = 3 bytes
-        uint8_t pbc;   // 1 byte
+        Vec pos; // 3*4 = 12 bytes
+//        float pos[3];
+        uint16_t mult[4];  // 4*2 = 6 bytes
         ColVec col_a, col_b; // 2*4 = 8 bytes
     };
     std::vector<bond_prop> bond_buffer{};
@@ -90,5 +88,7 @@ guiMat guiMatMkOrtho(float left, float right, float bottom, float top, float nea
 guiMat guiMatMkLookAt(Vec eye, Vec target, Vec up);
 guiMat operator *=(guiMat &a, const guiMat &b);
 guiMat operator *(guiMat a, const guiMat &b);
+
+}
 
 #endif // GLWRAPPER_H

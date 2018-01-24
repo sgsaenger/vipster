@@ -1,8 +1,7 @@
 #include "molwidget.h"
 #include "ui_molwidget.h"
-#include <atom.h>
+#include "atom.h"
 #include <QTableWidgetItem>
-#include <iostream>
 
 MolWidget::MolWidget(QWidget *parent) :
     QWidget(parent),
@@ -53,7 +52,6 @@ void MolWidget::setStep(Vipster::Step *step)
         }
     }
     //Fill cell view
-    //TODO: switch format?
     ui->cellDimBox->setValue(curStep->getCellDim(Vipster::CdmFmt::Bohr));
     Vipster::Mat vec = curStep->getCellVec();
     for(int j=0;j!=3;++j){

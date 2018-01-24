@@ -21,16 +21,23 @@ public:
     const AtomRef   operator[](size_t idx) const;
 
     // Cell
+    bool    hasCell() const noexcept;
+    void    enableCell(bool) noexcept;
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
     float   getCellDim(CdmFmt at_fmt) const noexcept;
     void    setCellVec(const Mat &vec, bool scale=false);
     Mat     getCellVec() const noexcept;
-    Mat     getInvVec(void) const noexcept;
     Vec     getCenter(CdmFmt at_fmt, bool com=false) const noexcept;
 
     // Comment
     void                setComment(const std::string &s);
     const std::string&  getComment() const noexcept;
+
+    // Bonds
+    virtual const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell) const;
+    virtual const std::vector<Bond>&    getBonds(float cutfac,
+                                                 BondLevel l=BondLevel::Cell) const;
+    virtual size_t                      getNbond() const noexcept;
 private:
     StepProper*     step;
     mutable bool    at_outdated{true};

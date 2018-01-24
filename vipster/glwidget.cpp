@@ -2,12 +2,6 @@
 #include <QKeyEvent>
 #include "atom_model.h"
 #include "bond_model.h"
-#include <tuple>
-#include <limits>
-#include <cmath>
-//DEBUGGING:
-#include <iostream>
-#include <chrono>
 
 using namespace Vipster;
 
@@ -67,9 +61,9 @@ void GLWidget::setMult(int i)
     update();
 }
 
-void GLWidget::setStep(const Step* step)
+void GLWidget::setStep(const StepProper* step)
 {
-    updateBuffers(step, false);
+    updateBuffers(step, true);
     update();
 }
 

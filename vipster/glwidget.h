@@ -2,17 +2,10 @@
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
-#include <QApplication>
-#include <iostream>
-#include <vector>
-#include <array>
 #include "step.h"
 #include "guiwrapper.h"
 
-class GLWidget: public QOpenGLWidget, private GuiWrapper
+class GLWidget: public QOpenGLWidget, private Vipster::GuiWrapper
 {
     Q_OBJECT
 
@@ -27,7 +20,7 @@ public:
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
-    void setStep(const Vipster::Step* step);
+    void setStep(const Vipster::StepProper* step);
 public slots:
     void setMode(int i,bool t);
     void setMult(int i);
