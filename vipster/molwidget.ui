@@ -86,6 +86,31 @@
        <number>0</number>
       </property>
       <item>
+       <layout class="QHBoxLayout" name="cellFmtLayout">
+        <item>
+         <widget class="QCheckBox" name="cellEnabled">
+          <property name="text">
+           <string>Has Cell</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cellFmt">
+          <item>
+           <property name="text">
+            <string>Bohr</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Angstrom</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="cellDimLayout">
         <item>
          <widget class="QLabel" name="cellVecLabel">
@@ -223,6 +248,9 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page"/>
      <widget class="QWidget" name="page_2"/>

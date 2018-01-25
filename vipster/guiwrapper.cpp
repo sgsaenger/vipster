@@ -423,6 +423,7 @@ void GuiWrapper::draw(void)
         }
     }
     // cell
+    if(!curStep->hasCell()) return;
     glBindVertexArray(cell_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     glUseProgram(cell_program);

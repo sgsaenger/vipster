@@ -63,6 +63,7 @@ void GLWidget::setMult(int i)
 
 void GLWidget::setStep(const StepProper* step)
 {
+    //TODO optional bond-drawing
     updateBuffers(step, true);
     update();
 }

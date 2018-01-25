@@ -28,6 +28,7 @@ void MolWidget::setStep(Vipster::Step *step)
     QSignalBlocker blockTable(ui->atomTable);
     QSignalBlocker blockCell(ui->cellVecTable);
     QSignalBlocker blockDim(ui->cellDimBox);
+    QSignalBlocker blockEnabled(ui->cellEnabled);
     int oldCount = ui->atomTable->rowCount();
     int nat = curStep->getNat();
     ui->atomTable->setRowCount(nat);
@@ -52,7 +53,9 @@ void MolWidget::setStep(Vipster::Step *step)
         }
     }
     //Fill cell view
-    ui->cellDimBox->setValue(curStep->getCellDim(Vipster::CdmFmt::Bohr));
+    ui->cellEnabled->setChecked(curStep->hasCell());
+    ui->cellDimBox->setValue( curStep->getCellDim(
+            (Vipster::CdmFmt)ui->cellFmt->currentIndex()));
     Vipster::Mat vec = curStep->getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
@@ -61,10 +64,21 @@ void MolWidget::setStep(Vipster::Step *step)
     }
 }
 
+void MolWidget::on_cellEnabled_toggled(bool checked)
+{
+    curStep->enableCell(checked);
+    emit stepChanged();
+}
+
+void MolWidget::on_cellFmt_currentIndexChanged(int idx)
+{
+    QSignalBlocker blockCDB(ui->cellDimBox);
+    ui->cellDimBox->setValue(curStep->getCellDim((Vipster::CdmFmt)idx));
+}
+
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
-    //TODO: switch format?
-    curStep->setCellDim(cdm, Vipster::CdmFmt::Bohr, ui->cellScaleBox->isChecked());
+    curStep->setCellDim(cdm, (Vipster::CdmFmt)ui->cellFmt->currentIndex(), ui->cellScaleBox->isChecked());
     emit stepChanged();
 }
 

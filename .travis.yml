@@ -74,10 +74,11 @@ after_success:
 before_deploy:
     - sed "s|vipster.wasm|js/vipster.wasm|" ~/emscripten/vipster/vipster.js > $TRAVIS_BUILD_DIR/gh-pages/js/vipster.js
     - cp ~/emscripten/vipster/vipster.wasm $TRAVIS_BUILD_DIR/gh-pages/js
+    - cd $TRAVIS_BUILD_DIR
 deploy:
     - provider: pages
       skip_cleanup: true
       github_token: $GH_TOKEN
-      local_dir: $TRAVIS_BUILD_DIR/gh-pages
+      local_dir: gh-pages
       on:
           branch: testing

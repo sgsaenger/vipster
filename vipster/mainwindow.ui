@@ -26,7 +26,7 @@
    <string>Vipster</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="resources/vipster.qrc">
     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -317,7 +317,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -559,7 +559,9 @@
   <tabstop>yMultBox</tabstop>
   <tabstop>zMultBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources/vipster.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>
@@ -760,8 +762,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1083</x>
-     <y>585</y>
+     <x>1130</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>1083</x>
@@ -785,6 +787,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>stepSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>stepEdit</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1130</x>
+     <y>621</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1191</x>
+     <y>621</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -797,7 +815,7 @@
  </slots>
  <buttongroups>
   <buttongroup name="cameraGroup"/>
-  <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
+  <buttongroup name="modeGroup"/>
  </buttongroups>
 </ui>

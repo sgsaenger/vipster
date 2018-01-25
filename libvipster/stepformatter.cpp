@@ -111,6 +111,7 @@ void StepFormatter::setCellDim(float cdm, CdmFmt fmt, bool scale)
     if(!(cdm>0))throw Error("Step::setCellDim(): "
                             "cell-dimension needs to be positive");
     evaluateCache();
+    enableCell(true);
     if (scale && (at_fmt != AtomFmt::Crystal)) {
         float ratio = cdm / getCellDim(fmt);
         for(auto& c:*at_coord) {c *= ratio;}
@@ -140,6 +141,7 @@ void StepFormatter::setCellVec(const Mat &vec, bool scale)
 {
     Mat inv = Mat_inv(vec);
     evaluateCache();
+    enableCell(true);
     if (scale) {
         if (at_fmt == AtomFmt::Crystal) {
             // do nothing but set at_changed

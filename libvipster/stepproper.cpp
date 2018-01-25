@@ -34,7 +34,7 @@ StepProper::StepProper(const StepProper &rhs)
       at_prop_changed{rhs.at_prop_changed},
       at_name{rhs.at_name}, at_charge{rhs.at_charge},
       at_fix{rhs.at_fix}, at_hidden{rhs.at_hidden},
-      at_pse{rhs.at_pse},
+      at_pse{rhs.at_pse}, cell_enabled{rhs.cell_enabled},
       celldimB{rhs.celldimB}, celldimA{rhs.celldimA},
       cellvec{rhs.cellvec}, invvec{rhs.invvec},
       comment{rhs.comment},
@@ -156,6 +156,7 @@ void StepProper::setFmt(AtomFmt format, bool scale)
         // let local coordinates point to new formatter
         at_coord = (this->*nft).at_coord;
     }
+    if(format >= AtomFmt::Crystal) cell_enabled = true;
     at_fmt = format;
 }
 
@@ -236,6 +237,7 @@ void StepProper::setCellDim(float cdm, CdmFmt fmt, bool scale)
     if(!(cdm>0))throw Error("Step::setCellDim(): "
                             "cell-dimension needs to be positive");
     evaluateCache();
+    enableCell(true);
     if (scale && (at_fmt < AtomFmt::Crystal)) {
         float ratio = cdm / getCellDim(fmt);
         for(auto& c:*at_coord) {c *= ratio;}
@@ -267,6 +269,7 @@ float StepProper::getCellDim(CdmFmt fmt) const noexcept
 
 void StepProper::setCellVec(const Mat &mat, bool scale)
 {
+    enableCell(true);
     Mat inv = Mat_inv(mat);
     if (scale) {
         // crystal stays the same
@@ -357,6 +360,7 @@ const std::vector<Bond>& StepProper::getBonds(BondLevel l) const
 
 const std::vector<Bond>& StepProper::getBonds(float cutfac, BondLevel l) const
 {
+    if((l==BondLevel::Cell) && !cell_enabled) l = BondLevel::Molecule;
     if(bonds_outdated or (cutfac != bondcut_factor) or (bonds_level < l))
     {
         setBonds(l, cutfac);
@@ -380,11 +384,7 @@ void StepProper::setBonds(BondLevel l, float cutfac) const
         setBondsMol(cutfac);
         break;
     case BondLevel::Cell:
-        if (hasCell()) {
-            setBondsCell(cutfac);
-        } else {
-            setBondsMol(cutfac);
-        }
+        setBondsCell(cutfac);
         break;
     }
     bonds_outdated = false;

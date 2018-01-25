@@ -23,6 +23,8 @@ signals:
     void molChanged();
 
 private slots:
+    void on_cellEnabled_toggled(bool checked);
+    void on_cellFmt_currentIndexChanged(int idx);
     void on_cellDimBox_valueChanged(double cdm);
     void on_cellVecTable_cellChanged(int row, int column);
     void on_atomTable_cellChanged(int row, int column);

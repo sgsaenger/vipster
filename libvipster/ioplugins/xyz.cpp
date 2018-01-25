@@ -29,6 +29,7 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
         }
         StepProper &sp = m.newStep();
         sp.setFmt(AtomFmt::Angstrom);
+        sp.enableCell(false);
         sp.newAtoms(nat);
         std::getline(file, line);
         sp.setComment(line);
