@@ -322,7 +322,7 @@ Mat StepProper::getCellVec() const noexcept
 
 Vec StepProper::getCenter(CdmFmt fmt, bool com) const noexcept
 {
-    if(com && getNat()){
+    if((com && getNat()) || !cell_enabled){
         Vec min{{std::numeric_limits<float>::max(),
                  std::numeric_limits<float>::max(),
                  std::numeric_limits<float>::max()}};
@@ -338,8 +338,10 @@ Vec StepProper::getCenter(CdmFmt fmt, bool com) const noexcept
             max[2]=std::max(max[2],at.coord[2]);
         }
         return formatVec((min+max)/2, this->at_fmt, (AtomFmt)fmt);
-    }else{
+    }else if(cell_enabled){
         return (cellvec[0]+cellvec[1]+cellvec[2]) * getCellDim(fmt) / 2;
+    }else{
+        return Vec{{0,0,0}};
     }
 }
 

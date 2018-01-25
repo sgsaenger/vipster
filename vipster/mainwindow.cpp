@@ -112,5 +112,21 @@ void MainWindow::newMol(Vipster::Molecule &&m)
 
 void MainWindow::about()
 {
-    QMessageBox::about(this,QString("About Vipster"),QString("aha?"));
+    QMessageBox::about(this,QString("About Vipster"),
+    QString("<h2>Vipster</h2>"
+            "<p>"
+            "©Sebastian Gsänger, 2018"
+            "<br>"
+            "<a href='https://hein09.github.io/vipster'>Homepage</a>"
+            "<br>"
+            "<a href='https://github.com/hein09/vipster'>Source</a>"
+            "</p>"
+            "<p>"
+            "This program is provided under the GPLv3."
+            "<br>"
+            "It uses"
+            "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>, "
+            "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
+            "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
+            "</p>"));
 }
