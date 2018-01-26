@@ -36,7 +36,7 @@ public:
     public:
         iterator(const Step* step, size_t idx);
         iterator&       operator++();
-        iterator        operator++(int);
+//        iterator        operator++(int);
         AtomRef&        operator*();
         const AtomRef&  operator*() const;
         bool            operator==(const iterator&) const;

@@ -75,14 +75,6 @@ Step::iterator& Step::iterator::operator++()
     return *this;
 }
 
-Step::iterator Step::iterator::operator++(int)
-{
-    Step::iterator tmp{*this};
-    ++idx;
-    Atom::operator++();
-    return tmp;
-}
-
 AtomRef& Step::iterator::operator*()
 {
     return static_cast<AtomRef&>(*this);

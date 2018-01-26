@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en-us">
+    <head>
+        <title>Vipster</title>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width,user-scalable=no">
+        <link href="vipster.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <div id="upload">
+            <input type="file" id="upfile" name="file" style="display: none;">
+            <button type="button" id="upfilebut" onclick="document.getElementById('upfile').click()">Browse...</button>
+            <select id="uptype" name="type">
+                <option value="0">XYZ</option>
+                <option value="1">PWScf Input</option>
+                <option value="2">Lammps Input</option>
+                <option value="3">Lammps Trajectory</option>
+            </select>
+            <button type="button" id="upbut">Upload</button>
+        </div>
+
+        <div id="mult">
+            X: <input type="number" id="xmult" min="1" value="1" max="255">
+            Y: <input type="number" id="ymult" min="1" value="1" max="255">
+            Z: <input type="number" id="zmult" min="1" value="1" max="255">
+        </div>
+
+        <ul id="molList">
+            <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Molecule</li>
+            <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Crystal</li>
+        </ul>
+
+        <table id="atList">
+        </table>
+
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+
+        <div id="stepSel">
+            <input type="range" id="stepSlider" min="0" max="0" value="0">
+            <span id="stepCur">1</span>
+            /
+            <span id="stepMax">1</span>
+        </div>
+
+        <output id="output"></output>
+
+        <script type="text/javascript" src="vipster_setup.js"></script>
+
+        <script type="text/javascript">
+            window.addEventListener("resize", function(e){ Module.canvas.width=Module.canvas.clientWidth; Module.canvas.height=Module.canvas.clientHeight;}, false);
+            document.getElementById('upbut').addEventListener('click', readFile, false);
+            document.getElementById('mult').addEventListener('change', setMult, false);
+            document.getElementById('stepSlider').addEventListener('input', setStep, false);
+        </script>
+
+        <script async type="text/javascript" src="vipster.js"></script>
+    </body>
+</html>

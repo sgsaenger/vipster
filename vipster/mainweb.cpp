@@ -14,35 +14,26 @@ using namespace Vipster;
 static GuiWrapper gui;
 
 template<typename T>
-em::class_<std::array<T, 3>> register_array(const char* name) {
-    typedef std::array<T, 3> ArrType;
-    return em::class_<std::array<T, 3>>(name)
+em::class_<T> register_array(const char* name) {
+    return em::class_<T>(name)
         .template constructor<>()
-        .function("size", &ArrType::size)
-        .function("get", &em::internal::VectorAccess<ArrType>::get)
-        .function("set", &em::internal::VectorAccess<ArrType>::set)
+        .function("size", &T::size)
+        .function("get", &em::internal::VectorAccess<T>::get)
+        .function("set", &em::internal::VectorAccess<T>::set)
     ;
 }
 
 int emGetNMol(void){ return gui.molecules.size();}
-int emGetMolNstep(int i){ return gui.molecules[i].getNstep();}
-std::string emGetMolName(int i){ return gui.molecules[i].getName();}
+int emGetMolNstep(int m){ return gui.molecules[m].getNstep();}
+std::string emGetMolName(int m){ return gui.molecules[m].getName();}
 void emSetStep(int m, int s){ gui.updateBuffers(&gui.molecules[m].getStep(s), true); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 void emReadFile(std::string fn, std::string name, int fmt){
     auto d = readFile(fn, (IOFmt)fmt, name);
     gui.molecules.push_back(d->mol);
 }
-
-EMSCRIPTEN_BINDINGS(vipster){
-    em::function("getNMol", &emGetNMol);
-    em::function("getMolNStep", &emGetMolNstep);
-    em::function("getMolName", &emGetMolName);
-    em::function("setStep", &emSetStep);
-    em::function("setMult", &emSetMult);
-    em::function("readFile", &emReadFile);
-}
-
+int emGetNAtoms(int m, int s){ return gui.molecules[m].getStep(s).getNat(); }
+Step::iterator emGetAtoms(int m, int s){ return gui.molecules[m].getStep(s).begin(); }
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*)
 {
@@ -203,10 +194,10 @@ EM_BOOL key_event(int, const EmscriptenKeyboardEvent* keyEvent, void*)
 }
 
 void one_iter(){
-    int width, height, fullscreen;
+    int width, height;
     static int localWidth, localHeight;
     // handle resize
-    emscripten_get_canvas_size(&width, &height, &fullscreen);
+    emscripten_get_canvas_element_size("#canvas", &width, &height);
     if( width != localWidth || height != localHeight){
         gui.resizeViewMat(width, height);
         localWidth = width;
@@ -218,15 +209,38 @@ void one_iter(){
     gui.draw();
 }
 
+std::string emGetAtName(const Step::iterator& it){return (*it).name;}
+void emSetAtName(Step::iterator& it, std::string name){(*it).name = name; gui.updateBuffers(nullptr, true);}
+Vec emGetAtCoord(const Step::iterator& it){return (*it).coord;}
+void emSetAtCoord(Step::iterator& it, Vec v){(*it).coord = v; gui.updateBuffers(nullptr, true);}
+
+EMSCRIPTEN_BINDINGS(vipster){
+    em::function("getNMol", &emGetNMol);
+    em::function("getMolNStep", &emGetMolNstep);
+    em::function("getMolName", &emGetMolName);
+    em::function("setStep", &emSetStep);
+    em::function("setMult", &emSetMult);
+    em::function("readFile", &emReadFile);
+    em::function("getAtoms", &emGetAtoms);
+    em::function("getNAtoms", &emGetNAtoms);
+    em::value_array<Vec>("Vec")
+            .element(em::index<0>())
+            .element(em::index<1>())
+            .element(em::index<2>());
+    em::class_<Step::iterator>("Step_iterator")
+            .function("increment", &Step::iterator::operator++)
+            .property("name", &emGetAtName, &emSetAtName)
+            .property("coord", &emGetAtCoord, &emSetAtCoord);
+}
+
 int main()
 {
+    // create WebGL2 context
     EmscriptenWebGLContextAttributes attrs;
     emscripten_webgl_init_context_attributes(&attrs);
-
     attrs.enableExtensionsByDefault = 1;
     attrs.majorVersion = 2;
     attrs.minorVersion = 0;
-
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context( 0, &attrs );
     if (!context)
     {
@@ -234,28 +248,47 @@ int main()
         return 0;
     }
 
+    // init GL
     emscripten_webgl_make_context_current(context);
     glClearColor(1,1,1,1);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     gui.initShaders("# version 300 es\nprecision highp float;\n", "");
-
     gui.initAtomVAO();
     gui.initBondVAO();
     gui.initCellVAO();
     gui.initViewUBO();
     gui.initViewMat();
 
-    gui.molecules.emplace_back("Example");
-    StepProper* step = &gui.molecules[0].getStep(0);
-    step->newAtom();
-    step->newAtom(AtomProper{"O",{{1,0,0}}});
-    step->newAtom(AtomProper{"F",{{0,1,0}}});
-    gui.updateBuffers(step, true);
+    // init examples (something needs to be displayed for the renderer to not fail
+    StepProper* step;
+    //example H2O-vibration (crude approximation)
+    gui.molecules.emplace_back("Example Molecule", 0);
+    float vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};
+    for(float f:vibdist){
+        step = &gui.molecules[0].newStep();
+        step->enableCell(false);
+        step->setFmt(AtomFmt::Angstrom);
+        step->newAtom(AtomProper{"H",{{(float)(-0.756+f),(float)(-0.591+f),0}}});
+        step->newAtom(AtomProper{"O",{{0,0,0}}});
+        step->newAtom(AtomProper{"H",{{(float)(0.756-f),(float)(-0.591+f),0}}});
+    }
+    gui.molecules.emplace_back("Example Crystal");
+    step = &gui.molecules[1].getStep(0);
+    step->setCellDim(5.64, CdmFmt::Angstrom);
+    step->setFmt(AtomFmt::Crystal);
+    step->newAtom(AtomProper{"Na",{{0.0,0.0,0.0}}});
+    step->newAtom(AtomProper{"Cl",{{0.5,0.0,0.0}}});
+    step->newAtom(AtomProper{"Na",{{0.5,0.5,0.0}}});
+    step->newAtom(AtomProper{"Cl",{{0.0,0.5,0.0}}});
+    step->newAtom(AtomProper{"Na",{{0.5,0.0,0.5}}});
+    step->newAtom(AtomProper{"Cl",{{0.0,0.0,0.5}}});
+    step->newAtom(AtomProper{"Na",{{0.0,0.5,0.5}}});
+    step->newAtom(AtomProper{"Cl",{{0.5,0.5,0.5}}});
 
+    // handle input
     emscripten_set_mousedown_callback("#canvas", nullptr, 0, mouse_event);
     emscripten_set_mouseup_callback("#canvas", nullptr, 0, mouse_event);
     emscripten_set_mousemove_callback("#canvas", nullptr, 0, mouse_event);
@@ -265,7 +298,11 @@ int main()
     emscripten_set_touchstart_callback("#canvas", nullptr, 0, touch_event);
     emscripten_set_touchmove_callback("#canvas", nullptr, 0, touch_event);
     emscripten_set_touchend_callback("#canvas", nullptr, 0, touch_event);
+
+    //start
+    EM_ASM(setMol(0));
     emscripten_set_main_loop(one_iter, 0, 1);
     gui.deleteGLObjects();
+    emscripten_webgl_destroy_context(context);
     return 1;
 }

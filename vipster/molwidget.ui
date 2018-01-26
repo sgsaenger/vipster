@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,2,0,0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
    <item>
     <widget class="QPushButton" name="atomTableButton">
      <property name="text">
@@ -28,27 +28,93 @@
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="atomTable">
-     <column>
-      <property name="text">
-       <string>Type</string>
+    <widget class="QWidget" name="atomContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
+      <property name="leftMargin">
+       <number>0</number>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>x</string>
+      <property name="topMargin">
+       <number>0</number>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>y</string>
+      <property name="rightMargin">
+       <number>0</number>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>z</string>
+      <property name="bottomMargin">
+       <number>0</number>
       </property>
-     </column>
+      <item>
+       <layout class="QHBoxLayout" name="atomFmtLabel_2">
+        <item>
+         <widget class="QLabel" name="atomFmtLabel">
+          <property name="text">
+           <string>Display Format:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="atomFmtBox">
+          <item>
+           <property name="text">
+            <string>Bohr</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Angstrom</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Crystal</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Angstrom</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="atomFmtButton">
+          <property name="text">
+           <string>Set Format</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="atomTable">
+        <column>
+         <property name="text">
+          <string>Type</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>y</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>z</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -279,7 +345,7 @@
   <connection>
    <sender>atomTableButton</sender>
    <signal>toggled(bool)</signal>
-   <receiver>atomTable</receiver>
+   <receiver>atomContainer</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -287,8 +353,8 @@
      <y>28</y>
     </hint>
     <hint type="destinationlabel">
-     <x>191</x>
-     <y>198</y>
+     <x>181</x>
+     <y>139</y>
     </hint>
    </hints>
   </connection>
@@ -315,12 +381,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>209</x>
-     <y>447</y>
+     <x>217</x>
+     <y>489</y>
     </hint>
     <hint type="destinationlabel">
-     <x>198</x>
-     <y>528</y>
+     <x>206</x>
+     <y>510</y>
     </hint>
    </hints>
   </connection>

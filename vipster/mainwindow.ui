@@ -803,6 +803,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>stepGroup</sender>
+   <signal>buttonClicked(QAbstractButton*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>stepBut(QAbstractButton*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nextStepButton</sender>
+   <signal>clicked()</signal>
+   <receiver>stepEdit</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>293</x>
+     <y>627</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1189</x>
+     <y>622</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>preStepButton</sender>
+   <signal>clicked()</signal>
+   <receiver>stepEdit</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>626</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1188</x>
+     <y>619</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -812,6 +860,7 @@
   <slot>newMol()</slot>
   <slot>setStep()</slot>
   <slot>setMol()</slot>
+  <slot>stepBut(QAbstractButton*)</slot>
  </slots>
  <buttongroups>
   <buttongroup name="cameraGroup"/>

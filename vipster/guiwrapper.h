@@ -25,6 +25,8 @@ public:
     void initShaders(std::string header, std::string folder);
     void deleteGLObjects(void);
     void draw(void);
+    void drawCell(void);
+    void drawMol(void);
     // atom/bond/cell-data
     void initAtomVAO(void);
     void initBondVAO(void);

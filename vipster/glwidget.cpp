@@ -70,7 +70,7 @@ void GLWidget::setStep(const StepProper* step)
 
 void GLWidget::setCamera(int i)
 {
-    alignViewMat((alignDir)(-i-2));
+    alignViewMat((alignDir)((-i)-2));
     update();
 }
 

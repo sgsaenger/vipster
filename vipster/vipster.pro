@@ -19,12 +19,21 @@ wasm {
 
     QMAKE_LFLAGS += \
         --embed-file $$PWD/../libvipster/default.json@vipster.json \
-        --embed-file $$PWD/../vipster/resources/atom.frag@atom.frag \
-        --embed-file $$PWD/../vipster/resources/atom.vert@atom.vert \
-        --embed-file $$PWD/../vipster/resources/bond.frag@bond.frag \
-        --embed-file $$PWD/../vipster/resources/bond.vert@bond.vert \
-        --embed-file $$PWD/../vipster/resources/cell.frag@cell.frag \
-        --embed-file $$PWD/../vipster/resources/cell.vert@cell.vert
+        --embed-file $$PWD/resources/atom.frag@atom.frag \
+        --embed-file $$PWD/resources/atom.vert@atom.vert \
+        --embed-file $$PWD/resources/bond.frag@bond.frag \
+        --embed-file $$PWD/resources/bond.vert@bond.vert \
+        --embed-file $$PWD/resources/cell.frag@cell.frag \
+        --embed-file $$PWD/resources/cell.vert@cell.vert
+
+    copydata.files = $$PWD/vipster.html\
+                     $$PWD/vipster.css\
+                     $$PWD/vipster_setup.js
+    copydata.commands = $(COPY_DIR) $$copydata.files $$OUT_PWD
+    first.depends = $(first) copydata
+    export(first.depends)
+    export(copydata.commands)
+    QMAKE_EXTRA_TARGETS += first copydata
 
 } else {
     QT += core gui widgets
@@ -63,3 +72,8 @@ unix:!macx:CONFIG(debug, debug|release) {
     QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage -O0
     QMAKE_LFLAGS += -fprofile-arcs -ftest-coverage -O0
 }
+
+DISTFILES += \
+    vipster.html \
+    vipster_setup.js \
+    vipster.css

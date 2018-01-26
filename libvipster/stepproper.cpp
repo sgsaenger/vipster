@@ -280,7 +280,6 @@ void StepProper::setCellVec(const Mat &mat, bool scale)
         if (at_fmt != AtomFmt::Crystal) {
             *at_coord = formatAll(*(asCrystal.at_coord), AtomFmt::Crystal, at_fmt);
         }
-        at_changed = true;
     } else {
         // keep non-crystal same, invalidate crystal
         evaluateCache();
@@ -310,9 +309,9 @@ void StepProper::setCellVec(const Mat &mat, bool scale)
                 *at_coord = formatAll(*(asAlat.at_coord),
                                       asAlat.at_fmt, AtomFmt::Crystal);
             }
-            at_changed = true;
         }
     }
+    at_changed = true;
 }
 
 Mat StepProper::getCellVec() const noexcept

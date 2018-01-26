@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent):
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
     newMol();
+    setupUI();
 }
 
 MainWindow::MainWindow(const Vipster::Molecule &m, QWidget *parent):
@@ -18,6 +19,7 @@ MainWindow::MainWindow(const Vipster::Molecule &m, QWidget *parent):
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
     newMol(m);
+    setupUI();
 }
 
 MainWindow::MainWindow(Vipster::Molecule &&m, QWidget *parent):
@@ -27,11 +29,21 @@ MainWindow::MainWindow(Vipster::Molecule &&m, QWidget *parent):
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
     newMol(std::move(m));
+    setupUI();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::setupUI()
+{
+    ui->firstStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
+    ui->preStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekBackward));
+    ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
+    ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
 }
 
 void MainWindow::setMol(void)
@@ -75,9 +87,27 @@ void MainWindow::setStep(int i)
         ui->preStepButton->setEnabled(true);
         ui->firstStepButton->setEnabled(true);
     }
+    if(i == curMol->getNstep()){
+        ui->nextStepButton->setDisabled(true);
+        ui->lastStepButton->setDisabled(true);
+    }else{
+        ui->nextStepButton->setEnabled(true);
+        ui->lastStepButton->setEnabled(true);
+    }
     //Update child widgets
     ui->openGLWidget->setStep(curStep);
     ui->molWidget->setStep(curStep);
+}
+
+void MainWindow::stepBut(QAbstractButton* but)
+{
+    if(but == ui->firstStepButton){
+        setStep(1);
+    }else if(but == ui->lastStepButton){
+        setStep(curMol->getNstep());
+    }else if(but == ui->playButton){
+        //TODO
+    }
 }
 
 void MainWindow::editAtoms()

@@ -375,6 +375,46 @@ void GuiWrapper::deleteGLObjects(void)
 
 void GuiWrapper::draw(void)
 {
+    if(curStep->hasCell()){
+        drawCell();
+    }else{
+        drawMol();
+    }
+}
+
+void GuiWrapper::drawMol(void)
+{
+    Vec center = -curStep->getCenter(CdmFmt::Bohr);
+    // atoms
+    glBindVertexArray(atom_vao);
+    glUseProgram(atom_program);
+    GLuint offLocA = glGetUniformLocation(atom_program, "offset");
+    GLuint facLoc = glGetUniformLocation(atom_program, "atom_fac");
+    GLuint cellLocA = glGetUniformLocation(atom_program, "position_scale");
+    glUniform1f(facLoc, 0.4);
+    glUniform3fv(offLocA, 1, center.data());
+    glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+    glDrawArraysInstanced(GL_TRIANGLES, 0,
+                          atom_model_npoly,
+                          atom_prop_buffer.size());
+    // bonds
+    glBindVertexArray(bond_vao);
+    glUseProgram(bond_program);
+    GLuint offLocB = glGetUniformLocation(bond_program, "offset");
+    GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
+    GLuint multLoc = glGetUniformLocation(bond_program, "mult");
+    GLuint cellLocB = glGetUniformLocation(bond_program, "position_scale");
+    glUniform3ui(multLoc, 1, 1, 1);
+    glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
+    glUniform3fv(offLocB, 1, center.data());
+    glUniform3ui(pbcLoc, 0, 0, 0);
+    glDrawArraysInstanced(GL_TRIANGLES, 0,
+                          bond_model_npoly,
+                          bond_buffer.size());
+}
+
+void GuiWrapper::drawCell(void)
+{
     Vec off;
     Vec center = curStep->getCenter(CdmFmt::Bohr);
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -390,9 +430,9 @@ void GuiWrapper::draw(void)
     GLuint cellLocA = glGetUniformLocation(atom_program, "position_scale");
     glUniform1f(facLoc, 0.4);
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
-    for(int x=0;x!=mult[0];++x){
-        for(int y=0;y!=mult[1];++y){
-            for(int z=0;z!=mult[2];++z){
+    for(int x=0;x<mult[0];++x){
+        for(int y=0;y<mult[1];++y){
+            for(int z=0;z<mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocA, 1, off.data());
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
@@ -410,9 +450,9 @@ void GuiWrapper::draw(void)
     GLuint cellLocB = glGetUniformLocation(bond_program, "position_scale");
     glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
     glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
-    for(int x=0;x!=mult[0];++x){
-        for(int y=0;y!=mult[1];++y){
-            for(int z=0;z!=mult[2];++z){
+    for(int x=0;x<mult[0];++x){
+        for(int y=0;y<mult[1];++y){
+            for(int z=0;z<mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocB, 1, off.data());
                 glUniform3ui(pbcLoc, x, y, z);
@@ -423,14 +463,13 @@ void GuiWrapper::draw(void)
         }
     }
     // cell
-    if(!curStep->hasCell()) return;
     glBindVertexArray(cell_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     glUseProgram(cell_program);
     GLuint offLocC = glGetUniformLocation(cell_program, "offset");
-    for(int x=0;x!=mult[0];++x){
-        for(int y=0;y!=mult[1];++y){
-            for(int z=0;z!=mult[2];++z){
+    for(int x=0;x<mult[0];++x){
+        for(int y=0;y<mult[1];++y){
+            for(int z=0;z<mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocC, 1, off.data());
                 glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, NULL);
@@ -441,25 +480,25 @@ void GuiWrapper::draw(void)
 
 void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
 {
-    curStep = step;
+    if(step!=nullptr) curStep = step;
     //cell
-    Mat cv = step->getCellVec() * step->getCellDim(CdmFmt::Bohr);
+    Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
     cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
                      cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
     cell_changed = true;
     Mat tmp_mat;
-    if(step->getFmt() == AtomFmt::Crystal){
-        tmp_mat = step->getCellVec();
+    if(curStep->getFmt() == AtomFmt::Crystal){
+        tmp_mat = curStep->getCellVec();
     }else{
         tmp_mat = {{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
     }
-    switch(step->getFmt()){
+    switch(curStep->getFmt()){
     case AtomFmt::Angstrom:
         tmp_mat *= Vipster::invbohr;
         break;
     case AtomFmt::Crystal:
     case AtomFmt::Alat:
-        tmp_mat *= step->getCellDim(CdmFmt::Bohr);
+        tmp_mat *= curStep->getCellDim(CdmFmt::Bohr);
         break;
     default:
         break;
@@ -471,8 +510,8 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
 
     //atoms
     atom_prop_buffer.clear();
-    atom_prop_buffer.reserve(step->getNat());
-    for (const PseEntry* at:step->at_pse) {
+    atom_prop_buffer.reserve(curStep->getNat());
+    for (const PseEntry* at:curStep->at_pse) {
         atom_prop_buffer.push_back({at->covr, at->col});
     }
     atoms_changed = true;
@@ -481,24 +520,24 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
         //TODO: pull cutfac from config
-        const auto& bonds = step->getBonds(BondLevel::Cell);
-        const auto& pse = step->at_pse;
+        const auto& bonds = curStep->getBonds(BondLevel::Cell);
+        const auto& pse = curStep->at_pse;
         float c, s, ic;
         float rad = 0.53; // TODO: pull bond-radius from config
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
-        const std::vector<Vec>& at_coord = *step->at_coord;
-        AtomFmt fmt = step->getFmt();
-        auto fmt_fun = step->getFormatter(fmt, AtomFmt::Bohr);
+        const std::vector<Vec>& at_coord = *curStep->at_coord;
+        AtomFmt fmt = curStep->getFmt();
+        auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         switch(fmt){
         case AtomFmt::Crystal:
             cv = Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
             break;
         case AtomFmt::Alat:
-            cv = step->getCellVec();
+            cv = curStep->getCellVec();
             break;
         case AtomFmt::Angstrom:
-            cv = step->getCellVec() * step->getCellDim(CdmFmt::Angstrom);
+            cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Angstrom);
             break;
         default:
             break;
