@@ -174,25 +174,6 @@ EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void*)
     return 1;
 }
 
-EM_BOOL key_event(int, const EmscriptenKeyboardEvent* keyEvent, void*)
-{
-    switch(keyEvent->keyCode){
-    case 37:
-        gui.rotateViewMat(-10, 0, 0);
-        break;
-    case 39:
-        gui.rotateViewMat(10, 0, 0);
-        break;
-    case 38:
-        gui.rotateViewMat(0, -10, 0);
-        break;
-    case 40:
-        gui.rotateViewMat(0, 10, 0);
-        break;
-    }
-    return 1;
-}
-
 void one_iter(){
     int width, height;
     static int localWidth, localHeight;
@@ -294,7 +275,6 @@ int main()
     emscripten_set_mousemove_callback("#canvas", nullptr, 0, mouse_event);
     emscripten_set_mouseleave_callback("#canvas", nullptr, 0, mouse_event);
     emscripten_set_wheel_callback("#canvas", nullptr, 0, wheel_event);
-    emscripten_set_keypress_callback(0, nullptr, 0, key_event);
     emscripten_set_touchstart_callback("#canvas", nullptr, 0, touch_event);
     emscripten_set_touchmove_callback("#canvas", nullptr, 0, touch_event);
     emscripten_set_touchend_callback("#canvas", nullptr, 0, touch_event);
