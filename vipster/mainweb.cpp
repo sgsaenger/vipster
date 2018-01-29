@@ -33,6 +33,7 @@ void emReadFile(std::string fn, std::string name, int fmt){
     gui.molecules.push_back(d->mol);
 }
 int emGetNAtoms(int m, int s){ return gui.molecules[m].getStep(s).getNat(); }
+AtomRef emGetAtom(int m, int s, int at){ return gui.molecules[m].getStep(s)[at]; }
 Step::iterator emGetAtoms(int m, int s){ return gui.molecules[m].getStep(s).begin(); }
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*)
@@ -190,10 +191,14 @@ void one_iter(){
     gui.draw();
 }
 
-std::string emGetAtName(const Step::iterator& it){return (*it).name;}
-void emSetAtName(Step::iterator& it, std::string name){(*it).name = name; gui.updateBuffers(nullptr, true);}
-Vec emGetAtCoord(const Step::iterator& it){return (*it).coord;}
-void emSetAtCoord(Step::iterator& it, Vec v){(*it).coord = v; gui.updateBuffers(nullptr, true);}
+std::string emGetAtName(const AtomRef& at){return at.name;}
+void emSetAtName(AtomRef& at, std::string name){at.name = name; gui.updateBuffers(nullptr, true);}
+Vec emGetAtCoord(const AtomRef& at){return at.coord;}
+void emSetAtCoord(AtomRef& at, Vec v){at.coord = v; gui.updateBuffers(nullptr, true);}
+std::string emGetItName(const Step::iterator& it){return (*it).name;}
+void emSetItName(Step::iterator& it, std::string name){(*it).name = name; gui.updateBuffers(nullptr, true);}
+Vec emGetItCoord(const Step::iterator& it){return (*it).coord;}
+void emSetItCoord(Step::iterator& it, Vec v){(*it).coord = v; gui.updateBuffers(nullptr, true);}
 
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("getNMol", &emGetNMol);
@@ -202,16 +207,20 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("setStep", &emSetStep);
     em::function("setMult", &emSetMult);
     em::function("readFile", &emReadFile);
+    em::function("getAtom", &emGetAtom);
     em::function("getAtoms", &emGetAtoms);
     em::function("getNAtoms", &emGetNAtoms);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
             .element(em::index<2>());
-    em::class_<Step::iterator>("Step_iterator")
-            .function("increment", &Step::iterator::operator++)
+    em::class_<AtomRef>("AtomRef")
             .property("name", &emGetAtName, &emSetAtName)
             .property("coord", &emGetAtCoord, &emSetAtCoord);
+    em::class_<Step::iterator>("Step_iterator")
+            .function("increment", &Step::iterator::operator++)
+            .property("name", &emGetItName, &emSetItName)
+            .property("coord", &emGetItCoord, &emSetItCoord);
 }
 
 int main()

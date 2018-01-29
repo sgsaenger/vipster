@@ -10,7 +10,7 @@ var Module = {
       canvas.height = canvas.clientHeight;
       return canvas;
     })(),
-};
+}
 
 function fillAtoms(){
     var at = Module.getAtoms(Module.curMol, Module.curStep);
@@ -18,11 +18,25 @@ function fillAtoms(){
     var atList = document.getElementById('atList')
     atList.innerHTML = "<tr><th>Type</th><th>X</th><th>Y</th><th>Z</th></tr>";
     for(i=0; i<nat; ++i){
-        atList.innerHTML += "<tr><td>" + at.name + "</td><td>"
-                                       + at.coord[0] + "</td><td>"
-                                       + at.coord[1] + "</td><td>"
-                                       + at.coord[2] + "</td></tr>";
+        atList.innerHTML += "<tr> \
+<td contenteditable onInput=nameChanged("+i+",this.innerText)>" + at.name + "</td> \
+<td contenteditable onInput=coordChanged("+i+",this.parentElement)>" + at.coord[0] + "</td> \
+<td contenteditable onInput=coordChanged("+i+",this.parentElement)>" + at.coord[1] + "</td> \
+<td contenteditable onInput=coordChanged("+i+",this.parentElement)>" + at.coord[2] + "</td></tr>";
         at.increment();
+    }
+}
+
+function nameChanged(idx, name){
+    Module.getAtom(Module.curMol, Module.curStep, idx).name = name;
+}
+
+function coordChanged(idx, line){
+    var x = parseFloat(line.children[1].innerText);
+    var y = parseFloat(line.children[2].innerText);
+    var z = parseFloat(line.children[3].innerText);
+    if(!isNaN(x)&&!isNaN(y)&&!isNaN(z)){
+        Module.getAtom(Module.curMol, Module.curStep, idx).coord = [x,y,z];
     }
 }
 
@@ -39,7 +53,7 @@ function readFile(e){
     };
     reader.readAsText(file);
     document.getElementById('output').innerHTML = "Success!";
-};
+}
 
 function setMult(e){
     var x = document.getElementById('xmult').value;
