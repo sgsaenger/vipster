@@ -35,7 +35,6 @@ namespace Vipster{
                 *p_mod = true;
                 return *this;
             }
-            // TODO! EXPENSIVE! use const Atom for read-only access!
             operator T&() {*p_mod = true; return *p_prop; }
             operator const T&() const { return *p_prop; }
             PropRef<T>& operator=(const T& prop)
@@ -46,7 +45,6 @@ namespace Vipster{
             }
             template <typename R=T, typename = std::enable_if<Name>>
             const typename R::value_type* c_str() const {return p_prop->c_str();}
-            // TODO! EXPENSIVE! use const Atom for read-only access!
             template <typename R=T, typename = std::enable_if<std::is_array<T>::value>>
             typename R::reference operator [](size_t i) {*p_mod = true; return (*p_prop)[i];}
             template <typename R=T, typename = std::enable_if<std::is_array<T>::value>>

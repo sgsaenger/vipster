@@ -116,6 +116,7 @@ void MainWindow::editAtoms()
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
     }
+    //TODO:
 //    }else if ( sender == ui->actionDelete_Atom_s){
 //        curMol->curStep().delAtom();
 //    }

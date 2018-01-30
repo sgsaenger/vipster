@@ -44,8 +44,6 @@ public:
     enum class alignDir{x,y,z,mx,my,mz};
     void alignViewMat(alignDir d);
     // molecule-store
-    //TODO: is this needed here?
-    std::vector<Vipster::Molecule> molecules;
     const StepProper* curStep{nullptr};
 public:
     // cpu-side data

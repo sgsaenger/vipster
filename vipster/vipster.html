@@ -32,7 +32,33 @@
             <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Crystal</li>
         </ul>
 
-        <table id="atList">
+        <table id="atList" onInput="atomChanged(event.target)"></table>
+
+        <div>
+        Cell Dimension:
+        <input type="number" id="cellDim" min="0.0001" value="1" max="100" step="any" onChange="cellDimChanged(this)">
+        </div>
+
+        <table id="cellVec" onInput="cellVecChanged(event.target)">
+        <tr><th></th><th>X</th><th>Y</th><th>Z</th></tr>
+        <tr data-idx=0>
+            <td>1</td>
+            <td contenteditable data-idx=0>1</td>
+            <td contenteditable data-idx=1>0</td>
+            <td contenteditable data-idx=2>0</td>
+        </tr>
+        <tr data-idx=1>
+            <td>2</td>
+            <td contenteditable data-idx=0>0</td>
+            <td contenteditable data-idx=1>1</td>
+            <td contenteditable data-idx=2>0</td>
+        </tr>
+        <tr data-idx=2>
+            <td>3</td>
+            <td contenteditable data-idx=0>0</td>
+            <td contenteditable data-idx=1>0</td>
+            <td contenteditable data-idx=2>1</td>
+        </tr>
         </table>
 
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>

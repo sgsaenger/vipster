@@ -269,6 +269,7 @@ float StepProper::getCellDim(CdmFmt fmt) const noexcept
 
 void StepProper::setCellVec(const Mat &mat, bool scale)
 {
+    //TODO: test crystal!
     enableCell(true);
     Mat inv = Mat_inv(mat);
     if (scale) {

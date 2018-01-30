@@ -12,29 +12,70 @@ namespace em = emscripten;
 using namespace Vipster;
 
 static GuiWrapper gui;
+static std::vector<Molecule> molecules;
 
-template<typename T>
-em::class_<T> register_array(const char* name) {
-    return em::class_<T>(name)
-        .template constructor<>()
-        .function("size", &T::size)
-        .function("get", &em::internal::VectorAccess<T>::get)
-        .function("set", &em::internal::VectorAccess<T>::set)
-    ;
-}
-
-int emGetNMol(void){ return gui.molecules.size();}
-int emGetMolNstep(int m){ return gui.molecules[m].getNstep();}
-std::string emGetMolName(int m){ return gui.molecules[m].getName();}
-void emSetStep(int m, int s){ gui.updateBuffers(&gui.molecules[m].getStep(s), true); }
-void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 void emReadFile(std::string fn, std::string name, int fmt){
     auto d = readFile(fn, (IOFmt)fmt, name);
-    gui.molecules.push_back(d->mol);
+    molecules.push_back(d->mol);
 }
-int emGetNAtoms(int m, int s){ return gui.molecules[m].getStep(s).getNat(); }
-AtomRef emGetAtom(int m, int s, int at){ return gui.molecules[m].getStep(s)[at]; }
-Step::iterator emGetAtoms(int m, int s){ return gui.molecules[m].getStep(s).begin(); }
+// Molecules
+int emGetNMol(void){ return molecules.size();}
+int emGetMolNstep(int m){ return molecules[m].getNstep();}
+std::string emGetMolName(int m){ return molecules[m].getName();}
+// Steps
+void emSetStep(int m, int s){ gui.updateBuffers(&molecules[m].getStep(s), true); }
+void emUpdate(void){ gui.updateBuffers(nullptr, true); }
+void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
+int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
+AtomRef emGetAtom(int m, int s, int at){ return molecules[m].getStep(s)[at]; }
+Step::iterator emGetAtomIt(int m, int s){ return molecules[m].getStep(s).begin(); }
+// Atom
+std::string emGetAtName(const AtomRef& at){return at.name;}
+void emSetAtName(AtomRef& at, std::string name){at.name = name;}
+Vec emGetAtCoord(const AtomRef& at){return at.coord;}
+void emSetAtCoord(AtomRef& at, Vec v){at.coord = v;}
+// Iterator
+std::string emGetItName(const Step::iterator& it){return (*it).name;}
+void emSetItName(Step::iterator& it, std::string name){(*it).name = name;}
+Vec emGetItCoord(const Step::iterator& it){return (*it).coord;}
+void emSetItCoord(Step::iterator& it, Vec v){(*it).coord = v;}
+// Cell
+float emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCellDim((CdmFmt)fmt);}
+void emSetCellDim(int m, int s, float cdm, int fmt){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt);}
+Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
+void emSetCellVec(int m, int s, Mat vec){molecules[m].getStep(s).setCellVec(vec, false);}
+
+EMSCRIPTEN_BINDINGS(vipster){
+    em::function("getNMol", &emGetNMol);
+    em::function("getMolNStep", &emGetMolNstep);
+    em::function("getMolName", &emGetMolName);
+    em::function("setStep", &emSetStep);
+    em::function("setMult", &emSetMult);
+    em::function("readFile", &emReadFile);
+    em::function("getAtom", &emGetAtom);
+    em::function("getAtomIt", &emGetAtomIt);
+    em::function("getNAtoms", &emGetNAtoms);
+    em::function("getCellDim", &emGetCellDim);
+    em::function("setCellDim", &emSetCellDim);
+    em::function("getCellVec", &emGetCellVec);
+    em::function("setCellVec", &emSetCellVec);
+    em::function("update", &emUpdate);
+    em::value_array<Vec>("Vec")
+            .element(em::index<0>())
+            .element(em::index<1>())
+            .element(em::index<2>());
+    em::value_array<Mat>("Mat")
+            .element(em::index<0>())
+            .element(em::index<1>())
+            .element(em::index<2>());
+    em::class_<AtomRef>("AtomRef")
+            .property("name", &emGetAtName, &emSetAtName)
+            .property("coord", &emGetAtCoord, &emSetAtCoord);
+    em::class_<Step::iterator>("Step_iterator")
+            .function("increment", &Step::iterator::operator++)
+            .property("name", &emGetItName, &emSetItName)
+            .property("coord", &emGetItCoord, &emSetItCoord);
+}
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*)
 {
@@ -191,38 +232,6 @@ void one_iter(){
     gui.draw();
 }
 
-std::string emGetAtName(const AtomRef& at){return at.name;}
-void emSetAtName(AtomRef& at, std::string name){at.name = name; gui.updateBuffers(nullptr, true);}
-Vec emGetAtCoord(const AtomRef& at){return at.coord;}
-void emSetAtCoord(AtomRef& at, Vec v){at.coord = v; gui.updateBuffers(nullptr, true);}
-std::string emGetItName(const Step::iterator& it){return (*it).name;}
-void emSetItName(Step::iterator& it, std::string name){(*it).name = name; gui.updateBuffers(nullptr, true);}
-Vec emGetItCoord(const Step::iterator& it){return (*it).coord;}
-void emSetItCoord(Step::iterator& it, Vec v){(*it).coord = v; gui.updateBuffers(nullptr, true);}
-
-EMSCRIPTEN_BINDINGS(vipster){
-    em::function("getNMol", &emGetNMol);
-    em::function("getMolNStep", &emGetMolNstep);
-    em::function("getMolName", &emGetMolName);
-    em::function("setStep", &emSetStep);
-    em::function("setMult", &emSetMult);
-    em::function("readFile", &emReadFile);
-    em::function("getAtom", &emGetAtom);
-    em::function("getAtoms", &emGetAtoms);
-    em::function("getNAtoms", &emGetNAtoms);
-    em::value_array<Vec>("Vec")
-            .element(em::index<0>())
-            .element(em::index<1>())
-            .element(em::index<2>());
-    em::class_<AtomRef>("AtomRef")
-            .property("name", &emGetAtName, &emSetAtName)
-            .property("coord", &emGetAtCoord, &emSetAtCoord);
-    em::class_<Step::iterator>("Step_iterator")
-            .function("increment", &Step::iterator::operator++)
-            .property("name", &emGetItName, &emSetItName)
-            .property("coord", &emGetItCoord, &emSetItCoord);
-}
-
 int main()
 {
     // create WebGL2 context
@@ -255,18 +264,18 @@ int main()
     // init examples (something needs to be displayed for the renderer to not fail
     StepProper* step;
     //example H2O-vibration (crude approximation)
-    gui.molecules.emplace_back("Example Molecule", 0);
+    molecules.emplace_back("Example Molecule", 0);
     float vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};
     for(float f:vibdist){
-        step = &gui.molecules[0].newStep();
+        step = &molecules[0].newStep();
         step->enableCell(false);
         step->setFmt(AtomFmt::Angstrom);
         step->newAtom(AtomProper{"H",{{(float)(-0.756+f),(float)(-0.591+f),0}}});
         step->newAtom(AtomProper{"O",{{0,0,0}}});
         step->newAtom(AtomProper{"H",{{(float)(0.756-f),(float)(-0.591+f),0}}});
     }
-    gui.molecules.emplace_back("Example Crystal");
-    step = &gui.molecules[1].getStep(0);
+    molecules.emplace_back("Example Crystal");
+    step = &molecules[1].getStep(0);
     step->setCellDim(5.64, CdmFmt::Angstrom);
     step->setFmt(AtomFmt::Crystal);
     step->newAtom(AtomProper{"Na",{{0.0,0.0,0.0}}});

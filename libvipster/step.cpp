@@ -97,8 +97,6 @@ bool Step::iterator::operator!=(const Step::iterator& rhs) const
 
 std::function<Vec (const Vec &)> Step::getFormatter(AtomFmt source, AtomFmt target) const noexcept
 {
-    //TODO: getInvDim?
-    //TODO: save/catch variables?
     float fac{};
     Mat fmat{};
     switch(source) {

@@ -44,7 +44,7 @@ void MolWidget::setStep(Vipster::Step *step)
     }
     for(int j=0;j!=nat;++j){
         const Vipster::Atom at = (*curStep)[j];
-        //TODO
+        //TODO: Fmt
         ui->atomTable->item(j,0)->setText(at.name.c_str());
         ui->atomTable->item(j,0)->setCheckState(Qt::CheckState(at.hidden*2));
         for(int k=0;k!=3;++k){
