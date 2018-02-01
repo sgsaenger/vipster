@@ -1,3 +1,13 @@
+var Change = {
+    atoms: 1,
+    cell: 2,
+    fmt: 4,
+    //
+    kpoints: 32,
+};
+Change.step =  Change.atoms | Change.cell | Change.fmt;
+Change.mol = Change.kpoints;
+
 var Module = {
     preRun: [],
     postRun: [],
@@ -15,8 +25,16 @@ var Module = {
     })()
 }
 
-function fillData() {
-    var at = Module.getAtomIt(Module.curMol, Module.curStep);
+function update(change) {
+    if (change & (Change.atoms | Change.cell))
+        fillAtoms();
+    if (change & Change.cell)
+        fillCell();
+}
+
+function fillAtoms() {
+    var fmt = parseInt(document.getElementById('atFmtSel').value);
+    var at = Module.getAtomIt(Module.curMol, Module.curStep, fmt);
     var nat = Module.getNAtoms(Module.curMol, Module.curStep);
     var atList = document.getElementById('atList');
     atList.innerHTML = "<tr><th>Type</th><th>X</th><th>Y</th><th>Z</th></tr>";
@@ -28,8 +46,12 @@ function fillData() {
 <td contenteditable data-idx='2'>" + at.coord[2] + "</td></tr>";
         at.increment();
     }
+}
+
+function fillCell() {
     var cdm = document.getElementById("cellDim");
-    cdm.value = Module.getCellDim(Module.curMol, Module.curStep, 0);
+    var fmt = parseInt(document.getElementById("cdmFmtSel").value);
+    cdm.value = Module.getCellDim(Module.curMol, Module.curStep, fmt);
     var mat = Module.getCellVec(Module.curMol, Module.curStep);
     var vec = document.getElementById("cellVec");
     for(row=0; row<3; ++row){
@@ -40,7 +62,8 @@ function fillData() {
 }
 
 function atomChanged(tgt) {
-    var at = Module.getAtom(Module.curMol, Module.curStep,
+    var fmt = parseInt(document.getElementById('atFmtSel').value);
+    var at = Module.getAtom(Module.curMol, Module.curStep, fmt,
                             parseInt(tgt.parentElement.dataset.idx));
     if (tgt.dataset.idx === 'name') {
         at.name = tgt.innerText;
@@ -58,15 +81,31 @@ function atomChanged(tgt) {
 
 function cellDimChanged(tgt) {
     var newVal = parseFloat(tgt.value);
-    if (!isNaN(newVal)) {
-        Module.setCellDim(Module.curMol, Module.curStep, newVal, 0);
+    if (isNaN(newVal))
+        return;
+    var fmt = parseInt(document.getElementById("cdmFmtSel").value);
+    var scale = document.getElementById("cellScale").checked;
+    var trajec = document.getElementById("cellToMol").checked;
+    if (trajec) {
+        for (var i=0;i<Module.getMolNStep(Module.curMol);++i) {
+            Module.setCellDim(Module.curMol, i, newVal, fmt, scale);
+        }
+    } else {
+        Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
     }
     Module.updateView();
-    fillData();
+    update(Change.cell);
 }
 
 function cellEnabled(val) {
-    Module.enableCell(Module.curMol, Module.curStep, val);
+    var trajec = document.getElementById("cellToMol").checked;
+    if (trajec) {
+        for (var i=0;i<Module.getMolNStep(Module.curMol);++i) {
+            Module.enableCell(Module.curMol, i, val);
+        }
+    } else {
+        Module.enableCell(Module.curMol, Module.curStep, val);
+    }
     Module.updateView();
 }
 
@@ -78,9 +117,17 @@ function cellVecChanged(tgt) {
     var row = tgt.parentElement.dataset.idx;
     var vec = Module.getCellVec(Module.curMol, Module.curStep);
     vec[row][col] = newVal;
-    Module.setCellVec(Module.curMol, Module.curStep, vec);
+    var trajec = document.getElementById("cellToMol").checked;
+    var scale = document.getElementById("cellScale").checked;
+    if (trajec) {
+        for (var i=0;i<Module.getMolNStep(Module.curMol);++i) {
+            Module.setCellVec(Module.curMol, i, vec, scale);
+        }
+    } else {
+        Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
+    }
     Module.updateView();
-    fillData();
+    update(Change.cell);
 }
 
 function readFile(e) {
@@ -120,18 +167,14 @@ function setMol(i) {
     var nstep = Module.getMolNStep(i);
     var slider = document.getElementById('stepSlider');
     document.getElementById('stepMax').innerHTML = nstep;
-    document.getElementById('stepCur').innerHTML = 1;
-    slider.value = 0;
     slider.max = nstep - 1;
-    Module.curStep = 0;
-    Module.setStep(i, 0);
-    fillData();
+    slider.value = nstep - 1;
+    setStep(nstep - 1);
 }
 
-function setStep(e) {
-    var i = parseInt(e.target.value);
+function setStep(i) {
     document.getElementById('stepCur').innerHTML = i + 1;
     Module.curStep = i;
     Module.setStep(Module.curMol, i);
-    fillData();
+    update(Change.step);
 }

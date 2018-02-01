@@ -42,7 +42,7 @@
         </ul>
 
         <div id="atoms">
-            <select id="atFmtSel">
+            <select id="atFmtSel" onChange="update(Change.atoms)">
                 <option value="0">Bohr</option>
                 <option value="1">Angstrom</option>
                 <option value="2">Crystal</option>
@@ -61,7 +61,7 @@
                 Cell Dimension:
                 <input type="number" id="cellDim" min="0.0001" value="1" max="100" step="any" onChange="cellDimChanged(this)">
             </label>
-            <select id="cdmFmtSel">
+            <select id="cdmFmtSel" onchange="update(Change.cell)">
                 <option value="0">Bohr</option>
                 <option value="1">Angstrom</option>
             </select>
@@ -98,7 +98,10 @@
         </div>
 
         <div id="stepSel">
-            <input type="range" id="stepSlider" min="0" max="0" value="0">
+            <label>
+                Step:
+                <input type="range" id="stepSlider" min="0" max="0" value="0" onInput="setStep(parseInt(this.value))">
+            </label>
             <span id="stepCur">1</span>
             /
             <span id="stepMax">1</span>
@@ -110,7 +113,6 @@
 
         <script type="text/javascript">
             window.addEventListener("resize", function(e){ Module.canvas.width=Module.canvas.clientWidth; Module.canvas.height=Module.canvas.clientHeight;}, false);
-            document.getElementById('stepSlider').addEventListener('input', setStep, false);
         </script>
 
         <script async type="text/javascript" src="vipster.js"></script>
