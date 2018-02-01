@@ -23,9 +23,9 @@ function fillData() {
     for (i = 0; i < nat; ++i) {
         atList.innerHTML += "<tr data-idx=" + i + "> \
 <td contenteditable data-idx='name'>" + at.name + "</td> \
-<td contenteditable data-idx='1'>" + at.coord[0] + "</td> \
-<td contenteditable data-idx='2'>" + at.coord[1] + "</td> \
-<td contenteditable data-idx='3'>" + at.coord[2] + "</td></tr>";
+<td contenteditable data-idx='0'>" + at.coord[0] + "</td> \
+<td contenteditable data-idx='1'>" + at.coord[1] + "</td> \
+<td contenteditable data-idx='2'>" + at.coord[2] + "</td></tr>";
         at.increment();
     }
     var cdm = document.getElementById("cellDim");
@@ -53,7 +53,7 @@ function atomChanged(tgt) {
             at.coord = coord;
         }
     }
-    Module.update();
+    Module.updateView();
 }
 
 function cellDimChanged(tgt) {
@@ -61,8 +61,13 @@ function cellDimChanged(tgt) {
     if (!isNaN(newVal)) {
         Module.setCellDim(Module.curMol, Module.curStep, newVal, 0);
     }
-    Module.update();
+    Module.updateView();
     fillData();
+}
+
+function cellEnabled(val) {
+    Module.enableCell(Module.curMol, Module.curStep, val);
+    Module.updateView();
 }
 
 function cellVecChanged(tgt) {
@@ -74,25 +79,24 @@ function cellVecChanged(tgt) {
     var vec = Module.getCellVec(Module.curMol, Module.curStep);
     vec[row][col] = newVal;
     Module.setCellVec(Module.curMol, Module.curStep, vec);
-    Module.update();
+    Module.updateView();
     fillData();
 }
 
 function readFile(e) {
     var file = document.getElementById('upfile').files[0];
-    var reader = new FileReader();
     var molList = document.getElementById('molList');
+    var reader = new FileReader();
     reader.onload = function (e) {
-        molList.innerHTML += '<li onclick="setMol(getMolListIdx(event.target))">'
-                + file.name + "</li>";
         Module.FS_createDataFile("/tmp", "test.file", e.target.result, true);
         Module.readFile("/tmp/test.file", file.name,
                         parseInt(document.getElementById('uptype').value));
         Module.FS_unlink("/tmp/test.file");
+        molList.innerHTML += '<li onclick="setMol(getMolListIdx(event.target))">'
+                + file.name + "</li>";
         setMol(molList.childElementCount - 1);
     }
     reader.readAsText(file);
-    document.getElementById('output').innerHTML = "Success!";
 }
 
 function setMult(e) {

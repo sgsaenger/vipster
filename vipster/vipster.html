@@ -12,19 +12,28 @@
         <div id="upload">
             <input type="file" id="upfile" name="file" style="display: none;">
             <button type="button" id="upfilebut" onclick="document.getElementById('upfile').click()">Browse...</button>
-            <select id="uptype" name="type">
+            <select id="uptype" title="Input filetype">
                 <option value="0">XYZ</option>
                 <option value="1">PWScf Input</option>
                 <option value="2">Lammps Input</option>
                 <option value="3">Lammps Trajectory</option>
             </select>
-            <button type="button" id="upbut">Upload</button>
+            <button type="button" id="upbut" onClick="readFile()">Upload</button>
         </div>
 
-        <div id="mult">
-            X: <input type="number" id="xmult" min="1" value="1" max="255">
-            Y: <input type="number" id="ymult" min="1" value="1" max="255">
-            Z: <input type="number" id="zmult" min="1" value="1" max="255">
+        <div id="mult" onchange="setMult()">
+            <label>
+                X:
+                <input type="number" id="xmult" min="1" value="1" max="255">
+            </label>
+            <label>
+                Y:
+                <input type="number" id="ymult" min="1" value="1" max="255">
+            </label>
+            <label>
+                Z:
+                <input type="number" id="zmult" min="1" value="1" max="255">
+            </label>
         </div>
 
         <ul id="molList">
@@ -32,36 +41,61 @@
             <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Crystal</li>
         </ul>
 
-        <table id="atList" onInput="atomChanged(event.target)"></table>
-
-        <div>
-        Cell Dimension:
-        <input type="number" id="cellDim" min="0.0001" value="1" max="100" step="any" onChange="cellDimChanged(this)">
+        <div id="atoms">
+            <select id="atFmtSel">
+                <option value="0">Bohr</option>
+                <option value="1">Angstrom</option>
+                <option value="2">Crystal</option>
+                <option value="3">Alat</option>
+            </select>
+            <button type="button" id="atFmtBut">Set Format</button>
+            <table id="atList" onInput="atomChanged(event.target)"></table>
         </div>
 
-        <table id="cellVec" onInput="cellVecChanged(event.target)">
-        <tr><th></th><th>X</th><th>Y</th><th>Z</th></tr>
-        <tr data-idx=0>
-            <td>1</td>
-            <td contenteditable data-idx=0>1</td>
-            <td contenteditable data-idx=1>0</td>
-            <td contenteditable data-idx=2>0</td>
-        </tr>
-        <tr data-idx=1>
-            <td>2</td>
-            <td contenteditable data-idx=0>0</td>
-            <td contenteditable data-idx=1>1</td>
-            <td contenteditable data-idx=2>0</td>
-        </tr>
-        <tr data-idx=2>
-            <td>3</td>
-            <td contenteditable data-idx=0>0</td>
-            <td contenteditable data-idx=1>0</td>
-            <td contenteditable data-idx=2>1</td>
-        </tr>
-        </table>
+        <div id="cell">
+            <label>
+                Cell enabled:
+                <input type="checkbox" id="cellEnabled" onChange="cellEnabled(this.checked)">
+            </label>
+            <label>
+                Cell Dimension:
+                <input type="number" id="cellDim" min="0.0001" value="1" max="100" step="any" onChange="cellDimChanged(this)">
+            </label>
+            <select id="cdmFmtSel">
+                <option value="0">Bohr</option>
+                <option value="1">Angstrom</option>
+            </select>
 
-        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+            <table id="cellVec" onInput="cellVecChanged(event.target)">
+            <tr><th></th><th>X</th><th>Y</th><th>Z</th></tr>
+            <tr data-idx=0>
+                <td>1</td>
+                <td contenteditable data-idx=0>1</td>
+                <td contenteditable data-idx=1>0</td>
+                <td contenteditable data-idx=2>0</td>
+            </tr>
+            <tr data-idx=1>
+                <td>2</td>
+                <td contenteditable data-idx=0>0</td>
+                <td contenteditable data-idx=1>1</td>
+                <td contenteditable data-idx=2>0</td>
+            </tr>
+            <tr data-idx=2>
+                <td>3</td>
+                <td contenteditable data-idx=0>0</td>
+                <td contenteditable data-idx=1>0</td>
+                <td contenteditable data-idx=2>1</td>
+            </tr>
+            </table>
+            <label>
+                Apply to all steps:
+                <input type="checkbox" id="cellToMol">
+            </label>
+            <label>
+                Scale coordinates with cell:
+                <input type="checkbox" id="cellScale">
+            </label>
+        </div>
 
         <div id="stepSel">
             <input type="range" id="stepSlider" min="0" max="0" value="0">
@@ -70,14 +104,12 @@
             <span id="stepMax">1</span>
         </div>
 
-        <output id="output"></output>
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
         <script type="text/javascript" src="vipster_setup.js"></script>
 
         <script type="text/javascript">
             window.addEventListener("resize", function(e){ Module.canvas.width=Module.canvas.clientWidth; Module.canvas.height=Module.canvas.clientHeight;}, false);
-            document.getElementById('upbut').addEventListener('click', readFile, false);
-            document.getElementById('mult').addEventListener('change', setMult, false);
             document.getElementById('stepSlider').addEventListener('input', setStep, false);
         </script>
 

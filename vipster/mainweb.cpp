@@ -24,7 +24,7 @@ int emGetMolNstep(int m){ return molecules[m].getNstep();}
 std::string emGetMolName(int m){ return molecules[m].getName();}
 // Steps
 void emSetStep(int m, int s){ gui.updateBuffers(&molecules[m].getStep(s), true); }
-void emUpdate(void){ gui.updateBuffers(nullptr, true); }
+void emUpdateView(void){ gui.updateBuffers(nullptr, true); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
 AtomRef emGetAtom(int m, int s, int at){ return molecules[m].getStep(s)[at]; }
@@ -44,6 +44,7 @@ float emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCell
 void emSetCellDim(int m, int s, float cdm, int fmt){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt);}
 Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
 void emSetCellVec(int m, int s, Mat vec){molecules[m].getStep(s).setCellVec(vec, false);}
+void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
 
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("getNMol", &emGetNMol);
@@ -59,7 +60,8 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("setCellDim", &emSetCellDim);
     em::function("getCellVec", &emGetCellVec);
     em::function("setCellVec", &emSetCellVec);
-    em::function("update", &emUpdate);
+    em::function("enableCell", &emEnableCell);
+    em::function("updateView", &emUpdateView);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
