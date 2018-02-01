@@ -8,14 +8,14 @@ addons:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
             - sourceline: "ppa:beineri/opt-qt571-trusty"
-            - sourceline: "deb http://pkg.mxe.cc/repos/apt/debian wheezy main"
-              key_url: "http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xD43A795B73B16ABE9643FE1AFD8FFF16DB45C6AB"
+            # sourceline: "deb http://pkg.mxe.cc/repos/apt/debian wheezy main"
+            # key_url: "http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xD43A795B73B16ABE9643FE1AFD8FFF16DB45C6AB"
         packages:
             - g++-5
             - clang-3.7
-            - mxe-x86-64-w64-mingw32.static-qtbase
+            # mxe-x86-64-w64-mingw32.static-qtbase
             - qt57-meta-minimal
-            - wine
+            # wine
 before_install:
     # Compilers:
     - export PATH=/usr/lib/mxe/usr/bin:$PATH
@@ -51,9 +51,9 @@ install:
     - qmake "INCLUDEPATH+=$INCLUDEPATH" -spec $TRAVIS_BUILD_DIR/emscriptenmkspec $TRAVIS_BUILD_DIR/vipster.pro
     - make
     # MINGW
-    - cd ~/mingw
-    - /usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static-qmake-qt5 "INCLUDEPATH+=$INCLUDEPATH" $TRAVIS_BUILD_DIR/vipster.pro
-    - make
+    # cd ~/mingw
+    # /usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static-qmake-qt5 "INCLUDEPATH+=$INCLUDEPATH" $TRAVIS_BUILD_DIR/vipster.pro
+    # make
 script:
     # GCC
     - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.vipster.json
@@ -63,10 +63,10 @@ script:
     - cd ~/clang
     - LD_LIBRARY_PATH=libvipster tests/test_libvipster
     # MINGW
-    - mkdir -p ~/.wine/drive_c/users/$USER
-    - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.wine/drive_c/users/$USER/vipster.json
-    - cd ~/mingw
-    - WINEDLLOVERRIDES="mscoree,mshtml=" wine tests/release/test_libvipster.exe
+    # mkdir -p ~/.wine/drive_c/users/$USER
+    # cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.wine/drive_c/users/$USER/vipster.json
+    # cd ~/mingw
+    # WINEDLLOVERRIDES="mscoree,mshtml=" wine tests/release/test_libvipster.exe
 after_success:
     # get coverage
     - cd ~/gcc
