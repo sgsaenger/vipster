@@ -5,6 +5,7 @@
 #include <QAbstractButton>
 #include <vector>
 #include "molecule.h"
+#include "guiwrapper.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,11 +20,14 @@ public:
     explicit MainWindow(const Vipster::Molecule &m, QWidget *parent = 0);
     explicit MainWindow(Vipster::Molecule &&m, QWidget *parent = 0);
     ~MainWindow();
+    Vipster::Molecule *curMol{nullptr};
+    Vipster::StepProper *curStep{nullptr};
+    Vipster::AtomFmt getFmt();
+    void setFmt(int i, bool apply, bool scale);
+    void updateWidgets(Vipster::Change change);
 
-public slots:
-    void setMol(void);
+private slots:
     void setMol(int i);
-    void setStep(void);
     void setStep(int i);
     void stepBut(QAbstractButton *but);
     void about(void);
@@ -35,10 +39,9 @@ public slots:
 private:
     void setupUI(void);
 
+    Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
     std::vector<Vipster::Molecule> molecules;
-    Vipster::Molecule *curMol = nullptr;
-    Vipster::StepProper *curStep = nullptr;
 };
 
 #endif // MAINWINDOW_H

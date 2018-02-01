@@ -6,6 +6,7 @@
 #include <GLES3/gl3.h>
 #else
 #include <QOpenGLFunctions_3_3_Core>
+class MainWindow;
 #endif
 #include <vector>
 #include <array>
@@ -14,6 +15,22 @@
 namespace Vipster {
 
 typedef std::array<float,16> guiMat;
+
+enum Change{atoms=1, cell=2, fmt=4, kpoints=32};
+const Change stepChanged = (Change)(Change::atoms | Change::cell | Change::fmt);
+const Change molChanged = Change::kpoints;
+
+#ifndef __EMSCRIPTEN__
+class BaseWidget{
+public:
+    BaseWidget();
+    void triggerUpdate(Change change);
+    virtual void updateWidget(Change){}
+protected:
+    bool updateTriggered{false};
+    MainWindow* master;
+};
+#endif
 
 #ifdef __EMSCRIPTEN__
 class GuiWrapper{
@@ -58,7 +75,6 @@ private:
     struct bond_prop{ // 64 bytes
         float mat[9]; // 9*4 = 36 bytes
         Vec pos; // 3*4 = 12 bytes
-//        float pos[3];
         uint16_t mult[4];  // 4*2 = 6 bytes
         ColVec col_a, col_b; // 2*4 = 8 bytes
     };

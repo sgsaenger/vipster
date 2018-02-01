@@ -7,6 +7,9 @@
 #include "vec.h"
 
 //TODO: track changes in hidden (rename it, obviously)
+//TODO: make sure atom can only be used as an interface!
+//TODO: PropRef take member-pointer as argument, move pointers to Atom
+//      -> allows for Step*::iterators to directly access them!
 
 namespace Vipster{
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };

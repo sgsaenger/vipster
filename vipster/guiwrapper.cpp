@@ -6,6 +6,11 @@
 #include "atom_model.h"
 #include "bond_model.h"
 
+#ifndef __EMSCRIPTEN__
+#include "mainwindow.h"
+#include <QApplication>
+#endif
+
 using namespace Vipster;
 
 #ifdef __EMSCRIPTEN__
@@ -29,6 +34,25 @@ std::string readShader(std::string filePath)
     QFile f(QString::fromStdString(filePath));
     f.open(QIODevice::ReadOnly);
     return f.readAll().toStdString();
+}
+#endif
+
+#ifndef __EMSCRIPTEN__
+BaseWidget::BaseWidget()
+{
+    for(auto *w: qApp->topLevelWidgets()){
+        if(auto *t = qobject_cast<MainWindow*>(w)){
+            master = t;
+            return;
+        }
+    }
+    throw Error("Could not determine MainWindow-instance.");
+}
+
+void BaseWidget::triggerUpdate(Change change)
+{
+    updateTriggered = true;
+    master->updateWidgets(change);
 }
 #endif
 

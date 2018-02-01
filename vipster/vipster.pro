@@ -35,6 +35,11 @@ wasm {
     export(copydata.commands)
     QMAKE_EXTRA_TARGETS += first copydata
 
+    DISTFILES += \
+        vipster.html \
+        vipster_setup.js \
+        vipster.css
+
 } else {
     QT += core gui widgets
     TARGET = vipster
@@ -42,7 +47,7 @@ wasm {
     SOURCES += main.cpp\
         mainwindow.cpp \
         glwidget.cpp \
-        guiwrapper.cpp\
+        guiwrapper.cpp \
         molwidget.cpp
 
     HEADERS += mainwindow.h \
@@ -72,8 +77,3 @@ unix:!macx:CONFIG(debug, debug|release) {
     QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage -O0
     QMAKE_LFLAGS += -fprofile-arcs -ftest-coverage -O0
 }
-
-DISTFILES += \
-    vipster.html \
-    vipster_setup.js \
-    vipster.css

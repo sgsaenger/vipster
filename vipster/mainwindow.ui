@@ -708,38 +708,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>molWidget</sender>
-   <signal>stepChanged()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>setStep()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>48</x>
-     <y>167</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>110</x>
-     <y>33</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>molWidget</sender>
-   <signal>molChanged()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>setMol()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>48</x>
-     <y>239</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>99</x>
-     <y>92</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>yMultBox</sender>
    <signal>valueChanged(int)</signal>
    <receiver>openGLWidget</receiver>

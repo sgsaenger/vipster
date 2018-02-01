@@ -3,6 +3,8 @@
 #include "atom.h"
 #include <QTableWidgetItem>
 
+using namespace Vipster;
+
 MolWidget::MolWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MolWidget)
@@ -21,14 +23,49 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::setStep(Vipster::Step *step)
+void MolWidget::updateWidget(Change change)
 {
-    curStep = step;
-    //Fill atom list
-    QSignalBlocker blockTable(ui->atomTable);
+    if (updateTriggered) {
+        updateTriggered = false;
+        return;
+    }
+    QSignalBlocker blockAtFmt(ui->atomFmtBox);
+    if ((change & stepChanged) == stepChanged) {
+        curStep = master->curStep;
+        ui->atomFmtBox->setCurrentIndex((int)curStep->getFmt());
+    }else if(change & Change::fmt){
+        curStep = &master->curStep->asFmt(master->getFmt());
+        ui->atomFmtBox->setCurrentIndex((int)master->getFmt());
+    }
+    if (change & (Change::atoms | Change::fmt))
+        fillAtomTable();
+    if (change & Change::cell)
+        fillCell();
+    if (change & Change::kpoints)
+        fillKPoints();
+}
+
+void MolWidget::fillCell()
+{
+    //Fill cell view
     QSignalBlocker blockCell(ui->cellVecTable);
     QSignalBlocker blockDim(ui->cellDimBox);
     QSignalBlocker blockEnabled(ui->cellEnabled);
+    ui->cellEnabled->setChecked(curStep->hasCell());
+    ui->cellDimBox->setValue( curStep->getCellDim(
+            (CdmFmt)ui->cellFmt->currentIndex()));
+    Mat vec = curStep->getCellVec();
+    for(int j=0;j!=3;++j){
+        for(int k=0;k!=3;++k){
+            ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
+        }
+    }
+}
+
+void MolWidget::fillAtomTable(void)
+{
+    //Fill atom list
+    QSignalBlocker blockTable(ui->atomTable);
     int oldCount = ui->atomTable->rowCount();
     int nat = curStep->getNat();
     ui->atomTable->setRowCount(nat);
@@ -43,7 +80,7 @@ void MolWidget::setStep(Vipster::Step *step)
         }
     }
     for(int j=0;j!=nat;++j){
-        const Vipster::Atom at = (*curStep)[j];
+        const AtomRef at = (*curStep)[j];
         //TODO: Fmt
         ui->atomTable->item(j,0)->setText(at.name.c_str());
         ui->atomTable->item(j,0)->setCheckState(Qt::CheckState(at.hidden*2));
@@ -52,48 +89,43 @@ void MolWidget::setStep(Vipster::Step *step)
             ui->atomTable->item(j,k+1)->setCheckState(Qt::CheckState(at.fix[k]*2));
         }
     }
-    //Fill cell view
-    ui->cellEnabled->setChecked(curStep->hasCell());
-    ui->cellDimBox->setValue( curStep->getCellDim(
-            (Vipster::CdmFmt)ui->cellFmt->currentIndex()));
-    Vipster::Mat vec = curStep->getCellVec();
-    for(int j=0;j!=3;++j){
-        for(int k=0;k!=3;++k){
-            ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
-        }
-    }
+}
+
+void MolWidget::fillKPoints()
+{
+
 }
 
 void MolWidget::on_cellEnabled_toggled(bool checked)
 {
     curStep->enableCell(checked);
-    emit stepChanged();
+    triggerUpdate(Change::cell);
 }
 
 void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 {
     QSignalBlocker blockCDB(ui->cellDimBox);
-    ui->cellDimBox->setValue(curStep->getCellDim((Vipster::CdmFmt)idx));
+    ui->cellDimBox->setValue(curStep->getCellDim((CdmFmt)idx));
 }
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
-    curStep->setCellDim(cdm, (Vipster::CdmFmt)ui->cellFmt->currentIndex(), ui->cellScaleBox->isChecked());
-    emit stepChanged();
+    curStep->setCellDim(cdm, (CdmFmt)ui->cellFmt->currentIndex(), ui->cellScaleBox->isChecked());
+    triggerUpdate(Change::cell);
 }
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 {
-    Vipster::Mat vec;
+    Mat vec;
     vec = curStep->getCellVec();
     vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
     curStep->setCellVec(vec, ui->cellScaleBox->isChecked());
-    emit stepChanged();
+    triggerUpdate(Change::cell);
 }
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
-    Vipster::Atom at = (*curStep)[row];
+    AtomRef at = (*curStep)[row];
     const QTableWidgetItem *cell = ui->atomTable->item(row,column);
     switch(column){
     case 0:
@@ -104,5 +136,15 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
         at.coord[column-1] = locale().toDouble(cell->text());
         at.fix[column-1] = cell->checkState()/2;
     }
-    emit stepChanged();
+    triggerUpdate(Change::atoms);
+}
+
+void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
+{
+    master->setFmt(index, false, false);
+}
+
+void MolWidget::on_atomFmtButton_clicked()
+{
+    master->setFmt(ui->atomFmtBox->currentIndex(), true, false);
 }
