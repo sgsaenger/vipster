@@ -176,5 +176,6 @@ function setStep(i) {
     document.getElementById('stepCur').innerHTML = i + 1;
     Module.curStep = i;
     Module.setStep(Module.curMol, i);
+    document.getElementById('atFmtSel').value = Module.getFmt(Module.curMol, Module.curStep);
     update(Change.step);
 }

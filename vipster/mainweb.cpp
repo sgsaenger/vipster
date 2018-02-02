@@ -29,6 +29,7 @@ void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
 AtomRef emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
 Step::iterator emGetAtomIt(int m, int s, int fmt){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt).begin(); }
+int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
 // Atom
 std::string emGetAtName(const AtomRef& at){return at.name;}
 void emSetAtName(AtomRef& at, std::string name){at.name = name;}
@@ -55,6 +56,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("readFile", &emReadFile);
     em::function("getAtom", &emGetAtom);
     em::function("getAtomIt", &emGetAtomIt);
+    em::function("getFmt", &emGetFmt);
     em::function("getNAtoms", &emGetNAtoms);
     em::function("getCellDim", &emGetCellDim);
     em::function("setCellDim", &emSetCellDim);
