@@ -2,8 +2,8 @@ version: 1.0.{build}
 clone_depth: 30
 clone_folder: c:\projects\vipster
 environment:
-  QTDIR: C:\Qt\5.9\mingw53_32
-  MWDIR: C:\Qt\Tools\mingw530_32\bin
+  QTDIR: C:\Qt\5.10.0\mingw53_32
+  MWDIR: C:\MinGW\bin
   PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
 build_script:
 - cmd: >-
