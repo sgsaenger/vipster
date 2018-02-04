@@ -1,7 +1,8 @@
 QT       -= gui core
 
 TARGET = test_libvipster
-CONFIG   += c++14
+CONFIG   += console \
+            c++14
 CONFIG   -= app_bundle
 
 TEMPLATE = app
