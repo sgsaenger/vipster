@@ -62,8 +62,8 @@ $colors: map-merge((
   "gray-dark":  $gray-800
 ), $colors);
 
-$primary:       #37474f; // Teal[800]
-$secondary:     #00bcd4; // Cyan[500]
+$primary:       hsl(185, 100%, 28%);
+$secondary:     hsl(200, 18%, 20%);
 $success:       $green !default;
 $info:          $cyan !default;
 $warning:       $yellow !default;

@@ -1,10 +1,24 @@
+$sidebar-bg: theme-color('secondary');
+
 #sidebar {
-  flex: 0 0 25rem;
+  flex: 0 0 26rem;
   max-width: 100%;
   height: 100vh;
-  padding: 1.25rem;
+  padding: 2rem 1.5rem;
   overflow-y: auto;
-  background: theme-color('primary');
-  border-right: 1px solid darken(theme-color('primary'), 6%);
+  background: $sidebar-bg;
+  border-right: 1px solid darken($sidebar-bg, 6%);
   box-shadow: -4px 0 8px 6px rgba(0, 0, 0, .65);
+
+  .title {
+    display: inline-block;
+    margin-bottom: .8rem;
+    padding: .3rem .6rem;
+    border: .2rem solid $body-color;
+  }
+
+  small {
+    display: block;
+    color: hsl(hue($sidebar-bg), 7%, 46%);
+  }
 }

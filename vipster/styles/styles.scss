@@ -1,13 +1,17 @@
 // Required for _variables.scss
 @import "_bootstrap/functions";
 
-// Load variables overrides and afterwards Boootstrap
+// Import variable overrides and then Boootstrap
 @import "_components/variables";
 @import "_bootstrap/bootstrap";
 
-@import "_components/overrides";
+// Own component styling
+@import "_components/typo";
+@import "_components/btn";
 @import "_components/canvas";
 @import "_components/sidebar";
+@import "_components/widget";
+
 @import "_components/widgets/load-file";
 @import "_components/widgets/dimensions";
 @import "_components/widgets/molecule-list";
@@ -17,4 +21,10 @@
 
 body {
   overflow: hidden;
+}
+
+// TODO: add autoprefixer
+.custom-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }

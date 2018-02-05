@@ -1,0 +1,13 @@
+.widget {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 3px solid lighten(theme-color('secondary'), 10%);
+
+  .input-group {
+    flex-grow: 1;
+  }
+}
+
+#sidebar article:last-of-type {
+  border-bottom: none;
+}
