@@ -6,8 +6,6 @@
 #include <iostream>
 using namespace Vipster;
 
-//TODO: think about synchronization points for formatted caches
-
 constexpr StepFormatter StepProper::* StepProper::fmtmap[];
 
 StepProper::StepProper(std::shared_ptr<PseMap> pse,
@@ -23,7 +21,6 @@ StepProper::StepProper(std::shared_ptr<PseMap> pse,
 }
 
 //TODO: move-assignment, copy-and-swap-idiom, constructable from Step&
-//TODO: default all of this if possible! impossible to keep track of all properties...
 
 StepProper::StepProper(const StepProper &rhs)
     : Step{rhs.pse, rhs.at_fmt},
@@ -46,7 +43,6 @@ StepProper::StepProper(const StepProper &rhs)
 
 StepProper& StepProper::operator=(const StepProper& rhs)
 {
-    //TODO: can switch to default-implementation when stepformatter allows
     pse = rhs.pse;
     at_fmt = rhs.at_fmt;
     comment = rhs.comment;
@@ -269,7 +265,6 @@ float StepProper::getCellDim(CdmFmt fmt) const noexcept
 
 void StepProper::setCellVec(const Mat &mat, bool scale)
 {
-    //TODO: test crystal!
     enableCell(true);
     Mat inv = Mat_inv(mat);
     if (scale) {

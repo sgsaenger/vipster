@@ -85,7 +85,7 @@ protected:
     virtual void                        evaluateCache() const = 0;
     // Format
     AtomFmt                 at_fmt;
-    std::function<Vec(const Vec&)> getFormatter(AtomFmt source, AtomFmt target) const noexcept;
+    std::function<Vec(const Vec&)> getFormatter(AtomFmt source, AtomFmt target) const;
     Vec                     formatVec(Vec in, AtomFmt source, AtomFmt target) const;
     std::vector<Vec>        formatAll(std::vector<Vec> in, AtomFmt source,
                                       AtomFmt target) const;

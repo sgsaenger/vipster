@@ -95,7 +95,7 @@ bool Step::iterator::operator!=(const Step::iterator& rhs) const
     return ((step != rhs.step) || (idx != rhs.idx));
 }
 
-std::function<Vec (const Vec &)> Step::getFormatter(AtomFmt source, AtomFmt target) const noexcept
+std::function<Vec (const Vec &)> Step::getFormatter(AtomFmt source, AtomFmt target) const
 {
     float fac{};
     Mat fmat{};
