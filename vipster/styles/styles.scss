@@ -1,0 +1,12 @@
+// Required for _variables.scss
+@import "_bootstrap/functions";
+
+// Load variables overrides and afterwards Boootstrap
+@import "variables";
+@import "_bootstrap/bootstrap";
+
+#canvas {
+    width: 100%;
+    height: 100%;
+    outline: solid 1px #ccc;
+}

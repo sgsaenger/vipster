@@ -26,10 +26,15 @@ wasm {
         --embed-file $$PWD/resources/cell.frag@cell.frag \
         --embed-file $$PWD/resources/cell.vert@cell.vert
 
-    copydata.files = $$PWD/vipster.html\
-                     $$PWD/vipster.css\
-                     $$PWD/vipster_setup.js
-    copydata.commands = $(COPY_DIR) $$copydata.files $$OUT_PWD
+    copydata.files  = $$PWD/vipster.html\
+                      $$PWD/vipster_setup.js
+    copydata.styles = $$PWD/styles/*
+
+    copydata.commands  = $(COPY_DIR) $$copydata.files $$OUT_PWD ;
+    copydata.commands += $$PWD/build-scss.sh; \
+                         mkdir -p $$OUT_PWD/styles; \
+                         $(COPY_DIR) $$copydata.styles $$OUT_PWD/styles/;
+
     first.depends = $(first) copydata
     export(first.depends)
     export(copydata.commands)
@@ -38,7 +43,7 @@ wasm {
     DISTFILES += \
         vipster.html \
         vipster_setup.js \
-        vipster.css
+        styles/vipster.css
 
 } else {
     QT += core gui widgets
