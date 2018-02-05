@@ -527,9 +527,9 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     default:
         break;
     }
-    cell_mat = {{tmp_mat[0][0], tmp_mat[0][1], tmp_mat[0][2],
-                 tmp_mat[1][0], tmp_mat[1][1], tmp_mat[1][2],
-                 tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
+    cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
+                 tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
+                 tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
     cell_mat_changed = true;
 
     //atoms
