@@ -1,0 +1,10 @@
+#sidebar {
+  flex: 0 0 25rem;
+  max-width: 100%;
+  height: 100vh;
+  padding: 1.25rem;
+  overflow-y: auto;
+  background: theme-color('primary');
+  border-right: 1px solid darken(theme-color('primary'), 6%);
+  box-shadow: -4px 0 8px 6px rgba(0, 0, 0, .65);
+}

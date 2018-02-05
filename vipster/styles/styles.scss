@@ -2,11 +2,19 @@
 @import "_bootstrap/functions";
 
 // Load variables overrides and afterwards Boootstrap
-@import "variables";
+@import "_components/variables";
 @import "_bootstrap/bootstrap";
 
-#canvas {
-    width: 100%;
-    height: 100%;
-    outline: solid 1px #ccc;
+@import "_components/overrides";
+@import "_components/canvas";
+@import "_components/sidebar";
+@import "_components/widgets/load-file";
+@import "_components/widgets/dimensions";
+@import "_components/widgets/molecule-list";
+@import "_components/widgets/format";
+@import "_components/widgets/cell";
+@import "_components/widgets/step";
+
+body {
+  overflow: hidden;
 }
