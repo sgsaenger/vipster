@@ -2,22 +2,15 @@
 @import "_bootstrap/functions";
 
 // Import variable overrides and then Boootstrap
-@import "_components/variables";
+@import "variables";
 @import "_bootstrap/bootstrap";
 
 // Own component styling
-@import "_components/typo";
+@import "_components/type";
 @import "_components/btn";
 @import "_components/canvas";
 @import "_components/sidebar";
 @import "_components/widget";
-
-@import "_components/widgets/load-file";
-@import "_components/widgets/dimensions";
-@import "_components/widgets/molecule-list";
-@import "_components/widgets/format";
-@import "_components/widgets/cell";
-@import "_components/widgets/step";
 
 body {
   overflow: hidden;
@@ -27,4 +20,12 @@ body {
 .custom-select {
   -webkit-appearance: none;
   -moz-appearance: none;
+}
+
+table {
+  border-radius: .25rem;
+}
+
+.dropdown-menu {
+  max-width: 100%;
 }

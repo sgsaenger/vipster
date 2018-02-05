@@ -10,157 +10,207 @@
 </head>
 
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <aside id="sidebar">
-        <h1>
-          <span class="title">Vipster</span>
-          <small>
-            Visual Periodic STructure EditoR
-          </small>
-        </h1>
+<div class="container-fluid">
+  <div class="row">
+    <aside id="sidebar">
+      <h1>
+        <span class="title">Vipster</span>
+        <small class="text-muted">
+          Visual Periodic STructure EditoR
+        </small>
+      </h1>
 
-        <article class="widget" id="widget-upload">
-          <form class="form-inline">
-            <button type="button" class="btn btn-default mr-3" onclick="document.getElementById('upfile').click()">Browse...</button>
-            <div class="input-group">
-              <select class="custom-select" id="uptype" title="Input filetype">
-                <option value="0">XYZ</option>
-                <option value="1">PWScf Input</option>
-                <option value="2">Lammps Input</option>
-                <option value="3">Lammps Trajectory</option>
-              </select>
-              <div class="input-group-append">
-                <button class="btn btn-primary" type="button" onClick="readFile()">Load file</button>
-              </div>
+      <article class="widget" id="widget-upload">
+        <form class="form-inline">
+          <button type="button" class="btn btn-default mr-3"
+                  onclick="document.getElementById('upfile').click()">Browse …
+          </button>
+          <div class="input-group">
+            <select class="custom-select" id="uptype" title="Input filetype">
+              <option value="0">XYZ</option>
+              <option value="1">PWScf Input</option>
+              <option value="2">Lammps Input</option>
+              <option value="3">Lammps Trajectory</option>
+            </select>
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="button" onClick="readFile()">Load file</button>
             </div>
-            <input class="hidden" type="file" id="upfile" name="file" hidden>
-          </form>
-        </article>
-
-
-        <!-- TODO: move to according widget -->
-        <div>
-          <div id="mult" onchange="setMult()">
-            <label>
-              X:
-              <input type="number" id="xmult" min="1" value="1" max="255">
-            </label>
-            <label>
-              Y:
-              <input type="number" id="ymult" min="1" value="1" max="255">
-            </label>
-            <label>
-              Z:
-              <input type="number" id="zmult" min="1" value="1" max="255">
-            </label>
           </div>
+          <input class="hidden" type="file" id="upfile" name="file" hidden>
+        </form>
+      </article>
 
-          <ul id="molList">
-            <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Molecule</li>
-            <li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Crystal</li>
-          </ul>
-
-          <div id="atoms">
-            <select id="atFmtSel" onInput="update(change.atoms)">
-              <option value="0">Bohr</option>
-              <option value="1">Angstrom</option>
-              <option value="2">Crystal</option>
-              <option value="3">Alat</option>
-            </select>
-            <button type="button" id="atFmtBut">Set Format</button>
-            <table id="atList" onInput="atomChanged(event.target)"></table>
-          </div>
-
-          <div id="cell">
-            <label>
-              Cell enabled:
-              <input type="checkbox" id="cellEnabled" onChange="cellEnabled(this.checked)">
-            </label>
-            <label>
-              Cell Dimension:
-              <input type="number" id="cellDim" min="0.0001" value="1" max="100" step="any" onChange="cellDimChanged(this)">
-            </label>
-            <select id="cdmFmtSel" onchange="update(change.cell)">
-              <option value="0">Bohr</option>
-              <option value="1">Angstrom</option>
-            </select>
-
-            <table id="cellVec" onInput="cellVecChanged(event.target)">
-              <tr>
-                <th></th>
-                <th>X</th>
-                <th>Y</th>
-                <th>Z</th>
-              </tr>
-              <tr data-idx=0>
-                <td>1</td>
-                <td contenteditable data-idx=0>1</td>
-                <td contenteditable data-idx=1>0</td>
-                <td contenteditable data-idx=2>0</td>
-              </tr>
-              <tr data-idx=1>
-                <td>2</td>
-                <td contenteditable data-idx=0>0</td>
-                <td contenteditable data-idx=1>1</td>
-                <td contenteditable data-idx=2>0</td>
-              </tr>
-              <tr data-idx=2>
-                <td>3</td>
-                <td contenteditable data-idx=0>0</td>
-                <td contenteditable data-idx=1>0</td>
-                <td contenteditable data-idx=2>1</td>
-              </tr>
-            </table>
-            <label>
-              Apply to all steps:
-              <input type="checkbox" id="cellToMol">
-            </label>
-            <label>
-              Scale coordinates with cell:
-              <input type="checkbox" id="cellScale">
-            </label>
-          </div>
-
-          <div id="stepSel">
-            <label>
-              Step:
-              <input type="range" id="stepSlider" min="0" max="0" value="0" onInput="setStep(parseInt(this.value))">
-            </label>
-            <span id="stepCur">1</span>
-            /
-            <span id="stepMax">1</span>
+      <article class="widget widget-molecule-list">
+        <div class="dropdown">
+          <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false">
+            Open loaded molecule
+          </button>
+          <div class="dropdown-menu" aria-labelledby="mol-list-button">
+            <a class="dropdown-item" href="#" data-idx="0">Example Molecule</a>
+            <a class="dropdown-item" href="#" data-idx="1">Example Crystal</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#" data-idx="2">A longer molecule title</a>
           </div>
         </div>
 
-      </aside>
 
-      <main class="col">
-        <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-      </main>
-    </div>
+
+        <!--<ul id="molList">-->
+          <!--<li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Molecule</li>-->
+          <!--<li class="molBut" onclick="setMol(getMolListIdx(event.target))">Example Crystal</li>-->
+        <!--</ul>-->
+      </article>
+
+      <article class="widget widget-dimensions">
+        <header>
+          <h2>Crystal repetitions</h2>
+        </header>
+
+        <form class="form-inline">
+          <label class="sr-only" for="xmult">X Dimension</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <div class="input-group-text">X</div>
+            </div>
+            <input type="number" class="form-control" id="xmult" min="1" value="1" max="255" placeholder="X"
+                   onchange="setMult()">
+          </div>
+
+          <label class="sr-only" for="ymult">Y Dimension</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <div class="input-group-text">Y</div>
+            </div>
+            <input type="number" class="form-control" id="ymult" min="1" value="1" max="255" placeholder="Y"
+                   onchange="setMult()">
+          </div>
+
+          <label class="sr-only" for="zmult">Z Dimension</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <div class="input-group-text">Z</div>
+            </div>
+            <input type="number" class="form-control" id="zmult" min="1" value="1" max="255" placeholder="Z"
+                   onchange="setMult()">
+          </div>
+        </form>
+      </article>
+
+
+      <!-- TODO: move to according widget -->
+      <div>
+
+
+        <div id="atoms">
+          <select id="atFmtSel" onInput="update(change.atoms)">
+            <option value="0">Bohr</option>
+            <option value="1">Angstrom</option>
+            <option value="2">Crystal</option>
+            <option value="3">Alat</option>
+          </select>
+          <button type="button" class="btn btn-primary" id="atFmtBut">Set Format</button>
+
+          <table class="table" id="atList" onInput="atomChanged(event.target)"></table>
+        </div>
+
+        <div id="cell">
+          <label>
+            Cell enabled:
+            <input type="checkbox" id="cellEnabled" onChange="cellEnabled(this.checked)">
+          </label>
+          <label>
+            Cell Dimension:
+            <input type="number" id="cellDim" min="0.0001" value="1" max="100" step="any"
+                   onChange="cellDimChanged(this)">
+          </label>
+          <select id="cdmFmtSel" onchange="update(change.cell)">
+            <option value="0">Bohr</option>
+            <option value="1">Angstrom</option>
+          </select>
+
+          <table class="table table-sm table-dark" id="cellVec" onInput="cellVecChanged(event.target)">
+            <caption>Dimensions</caption>
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>X</th>
+              <th>Y</th>
+              <th>Z</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr data-idx=0>
+              <td>1</td>
+              <td contenteditable data-idx=0>1</td>
+              <td contenteditable data-idx=1>0</td>
+              <td contenteditable data-idx=2>0</td>
+            </tr>
+            <tr data-idx=1>
+              <td>2</td>
+              <td contenteditable data-idx=0>0</td>
+              <td contenteditable data-idx=1>1</td>
+              <td contenteditable data-idx=2>0</td>
+            </tr>
+            <tr data-idx=2>
+              <td>3</td>
+              <td contenteditable data-idx=0>0</td>
+              <td contenteditable data-idx=1>0</td>
+              <td contenteditable data-idx=2>1</td>
+            </tr>
+            </tbody>
+          </table>
+          <label>
+            Apply to all steps:
+            <input type="checkbox" id="cellToMol">
+          </label>
+          <label>
+            Scale coordinates with cell:
+            <input type="checkbox" id="cellScale">
+          </label>
+        </div>
+
+        <div id="stepSel">
+          <label>
+            Step:
+            <input type="range" id="stepSlider" min="0" max="0" value="0"
+                   onInput="setStep(parseInt(this.value))">
+          </label>
+          <span id="stepCur">1</span>
+          /
+          <span id="stepMax">1</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <main class="col">
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </main>
   </div>
+</div>
 
 
 
+<script type="text/javascript">
+  window.addEventListener('resize', function (e) {
+    Module.canvas.width = Module.canvas.clientWidth;
+    Module.canvas.height = Module.canvas.clientHeight;
+  });
+</script>
 
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
 
-  <script type="text/javascript" src="vipster_setup.js"></script>
-
-  <script type="text/javascript">
-    window.addEventListener("resize", function (e) {
-      Module.canvas.width = Module.canvas.clientWidth;
-      Module.canvas.height = Module.canvas.clientHeight;
-    });
-  </script>
-
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-    crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
-  <script async type="text/javascript" src="vipster.js"></script>
+<script type="text/javascript" src="vipster_setup.js"></script>
+<script type="text/javascript" src="vipster.js"></script>
 </body>
 
 </html>
