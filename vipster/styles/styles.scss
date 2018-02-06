@@ -6,27 +6,14 @@
 @import "_bootstrap/bootstrap";
 
 // Own component styling
+@import "_components/overrides";
 @import "_components/type";
-@import "_components/btn";
 @import "_components/canvas";
 @import "_components/sidebar";
 @import "_components/widget";
+@import "_components/input-range";
 
 
 body {
   overflow: hidden;
-}
-
-// TODO: add autoprefixer
-.custom-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-table {
-  border-radius: .25rem;
-}
-
-.dropdown-menu {
-  max-width: 100%;
 }

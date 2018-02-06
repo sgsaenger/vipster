@@ -212,11 +212,16 @@ function setMol(idx) {
 
 $(document).ready(function () {
   const widgets = {
-    moleculeList: $('.widget-molecule-list:first'),
+    load: $('#widget-load'),
   };
 
-  widgets.moleculeList.find('a').click(function () {
+  widgets.load.find('a').click(function () {
     const idx = $(this).data('idx') || 0;
     setMol(idx);
+  });
+
+  window.addEventListener('resize', function () {
+    Module.canvas.width = Module.canvas.clientWidth;
+    Module.canvas.height = Module.canvas.clientHeight;
   });
 });
