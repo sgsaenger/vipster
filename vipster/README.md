@@ -10,7 +10,7 @@ npm install
 
 ```
 VIPSTER_SOURCE=~/git/vipster
-WEB_BUILD=~/foo
+WEB_BUILD=~/vipster-web
 mkdir -p $WEB_BUILD && cd $_
 qmake -spec $VIPSTER_SOURCE/emscriptenmkspec $VIPSTER_SOURCE/vipster.pro
 make
@@ -30,4 +30,4 @@ The following NPM scripts are available:
 
     Starts the watch-mode: As soon as one of the SCSS files under `styles/` is changed, a CSS rebuild is triggered automatically.
 
-**Don't forget to run the `make` command in the `$WEB_BUILD` directory to copy the CSS and such to the build directory finally!**
+**Don't forget to run the `make` command in the `$WEB_BUILD` directory after every CSS change to copy the updates files to the build directory!**
