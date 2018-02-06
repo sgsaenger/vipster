@@ -1,9 +1,9 @@
 // Required for _variables.scss
-@import "_bootstrap/functions";
+@import "../node_modules/bootstrap/scss/functions";
 
 // Import variable overrides and then Boootstrap
 @import "variables";
-@import "_bootstrap/bootstrap";
+@import "../node_modules/bootstrap/scss/bootstrap";
 
 // Own component styling
 @import "_components/overrides";
@@ -12,7 +12,6 @@
 @import "_components/sidebar";
 @import "_components/widget";
 @import "_components/input-range";
-
 
 body {
   overflow: hidden;

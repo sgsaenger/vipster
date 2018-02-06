@@ -28,11 +28,10 @@ wasm {
 
     copydata.files  = $$PWD/vipster.html\
                       $$PWD/vipster_setup.js
-    copydata.styles = $$PWD/styles/*
+    copydata.styles = $$PWD/styles/styles.css
 
     copydata.commands  = $(COPY_DIR) $$copydata.files $$OUT_PWD ;
-    copydata.commands += $$PWD/build-scss.sh; \
-                         mkdir -p $$OUT_PWD/styles; \
+    copydata.commands += mkdir -p $$OUT_PWD/styles; \
                          $(COPY_DIR) $$copydata.styles $$OUT_PWD/styles/;
 
     first.depends = $(first) copydata

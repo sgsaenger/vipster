@@ -37,3 +37,6 @@ moc_*
 # IDEs / editors
 .idea/
 .vscode/
+
+# NPM packages
+node_modules/
