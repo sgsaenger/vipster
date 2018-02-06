@@ -46,6 +46,7 @@ void emSetCellDim(int m, int s, float cdm, int fmt, bool scale){molecules[m].get
 Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
 void emSetCellVec(int m, int s, Mat vec, bool scale){molecules[m].getStep(s).setCellVec(vec, scale);}
 void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
+bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
 
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("getNMol", &emGetNMol);
@@ -63,6 +64,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("getCellVec", &emGetCellVec);
     em::function("setCellVec", &emSetCellVec);
     em::function("enableCell", &emEnableCell);
+    em::function("hasCell", &emHasCell);
     em::function("updateView", &emUpdateView);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
