@@ -1,7 +1,7 @@
 {
   "name": "vipster-web-frontend",
-  "version": "0.0.1",
-  "description": "Visual Periodic STructure EditoR",
+  "version": "0.8.0",
+  "description": "Visual Periodic STructure EditoR Web Frontend",
   "author": "Sebastian Gsänger, Jonathan Gruber <gruberjonathan@gmail.com>",
   "license": "BSD-2-Clause",
   "scripts": {

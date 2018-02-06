@@ -1,5 +1,5 @@
 const dom = {};
-[ 'canvas', 'atList', 'atFmtSel', 'cdmFmtSel', 'cellDim', 'cellVec',
+['canvas', 'atList', 'atFmtSel', 'cdmFmtSel', 'cellDim', 'cellVec',
   'cellToMol', 'cellScale', 'stepCur', 'stepMax', 'stepSlider',
 ].forEach(id => {
   dom[id] = document.getElementById(id);
@@ -15,15 +15,15 @@ var Module = {
   canvas: setupCanvas(dom.canvas),
 };
 
-const change = {
+const Change = {
   atoms: 1,
   cell: 2,
   fmt: 4,
   kpoints: 32,
 };
 
-change.step = change.atoms | change.cell | change.fmt;
-change.mol = change.kpoints;
+Change.step = Change.atoms | Change.cell | Change.fmt;
+Change.mol = Change.kpoints;
 
 function setupCanvas(canvas) {
   canvas.width = canvas.clientWidth;
@@ -60,9 +60,9 @@ function fillAtoms() {
     html += `
       <tr data-idx=${i}>
         <td contenteditable data-idx='name' scope="row">${at.name}</td>
-        <td contenteditable data-idx='0'>${at.coord[0]}</td>
-        <td contenteditable data-idx='1'>${at.coord[1]}</td>
-        <td contenteditable data-idx='2'>${at.coord[2]}</td>
+        <td contenteditable data-idx='0'>${at.coord[0].toFixed(7)}</td>
+        <td contenteditable data-idx='1'>${at.coord[1].toFixed(7)}</td>
+        <td contenteditable data-idx='2'>${at.coord[2].toFixed(7)}</td>
       </tr>
     `;
     at.increment();
@@ -73,7 +73,6 @@ function fillAtoms() {
 }
 
 function fillCell() {
-  console.log(dom.cdmFmtSel);
   const fmt = parseInt(dom.cdmFmtSel.value);
   const mat = Module.getCellVec(Module.curMol, Module.curStep);
 
@@ -122,7 +121,7 @@ function cellDimChanged(tgt) {
     Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
   }
   Module.updateView();
-  update(change.cell);
+  update(Change.cell);
 }
 
 function cellEnabled(val) {
@@ -156,7 +155,7 @@ function cellVecChanged(tgt) {
     Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
   }
   Module.updateView();
-  update(change.cell);
+  update(Change.cell);
 }
 
 function readFile() {
@@ -184,11 +183,11 @@ function setMult() {
 }
 
 function update(change) {
-  if (change & (change.atoms | change.cell)) {
+  if (change & (Change.atoms | Change.cell)) {
     fillAtoms();
   }
 
-  if (change & change.cell) {
+  if (change & Change.cell) {
     fillCell();
   }
 }
@@ -198,7 +197,7 @@ function setStep(i) {
   Module.curStep = i;
   Module.setStep(Module.curMol, i);
   dom.atFmtSel.value = Module.getFmt(Module.curMol, Module.curStep);
-  update(change.step);
+  update(Change.step);
 }
 
 function setMol(idx) {
@@ -224,4 +223,8 @@ $(document).ready(function () {
     Module.canvas.width = Module.canvas.clientWidth;
     Module.canvas.height = Module.canvas.clientHeight;
   });
+
+  // $('.widget').click(function () {
+  //   $(this).slideToggle();
+  // })
 });

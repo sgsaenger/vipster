@@ -7,6 +7,10 @@
   .input-group {
     flex-grow: 1;
   }
+
+  .table {
+    margin-bottom: 0;
+  }
 }
 
 #widget-load {
@@ -19,6 +23,14 @@
       position: absolute;
       right: .75rem;
       margin-top: .6em;
+    }
+  }
+}
+
+#widget-cell {
+  .widget-cell__properties {
+    .input-group-text {
+      min-width: 5.85rem;
     }
   }
 }
