@@ -26,7 +26,7 @@ wasm {
         --embed-file $$PWD/resources/cell.frag@cell.frag \
         --embed-file $$PWD/resources/cell.vert@cell.vert
 
-    copydata.files  = $$PWD/vipster.html\
+    copydata.files  = $$PWD/index.html\
                       $$PWD/vipster_setup.js
     copydata.styles = $$PWD/styles/styles.css
 
