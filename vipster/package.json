@@ -8,7 +8,7 @@
     "postinstall": "npm run build",
     "css:compile": "node-sass -q --output-style=compressed ./styles/styles.scss ./styles/styles.css",
     "css:postcss": "postcss ./styles/styles.css --use autoprefixer --no-map -r",
-    "css:watch": "nodemon -e scss -x \"npm run build\"",
+    "watch": "nodemon -e scss -x \"npm run build\"",
     "build": "npm run css:compile && npm run css:postcss"
   },
   "repository": {
