@@ -4,6 +4,43 @@
     padding: 1rem;
     border-radius: $border-radius;
 
+    &.closed {
+        .widget__toggle-btn {
+            transform: rotate(180deg);
+        }
+    }
+
+    > header {
+        position: relative;
+
+        h2 {
+            margin-bottom: 0;
+        }
+    }
+
+    .widget__toggle-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        cursor: pointer;
+        transition: all .3s ease-in-out;
+        border: none;
+        background-color: transparent;
+        color: inherit;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:hover {
+            color: theme-color-level(primary, -4);
+        }
+    }
+
+    .widget__body {
+        margin-top: 1rem;
+    }
+
     .input-group {
         flex-grow: 1;
     }

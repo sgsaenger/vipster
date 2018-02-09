@@ -225,7 +225,10 @@ $(document).ready(function () {
         Module.canvas.height = Module.canvas.clientHeight;
     });
 
-    // $('.widget').click(function () {
-    //   $(this).slideToggle();
-    // })
+    $('.widget__toggle-btn').click(function () {
+        $(this)
+            .stop()
+            .parents('.widget:first').toggleClass('closed')
+            .find('.widget__body').slideToggle();
+    });
 });

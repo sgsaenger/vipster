@@ -8,6 +8,9 @@
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
     <link href="styles/styles.css" rel="stylesheet">
+
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
 </head>
 
 <body>
@@ -24,42 +27,48 @@
                 <article class="widget" id="widget-load">
                     <header>
                         <h2>Load molecule</h2>
+                        <button type="button" title="Toggle" class="widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </header>
 
-                    <form class="form-inline mb-3">
-                        <button type="button" class="btn btn-default mr-3"
-                                onclick="document.getElementById('upfile').click()">
-                            Browse …
-                        </button>
+                    <div class="widget__body">
+                        <form class="form-inline mb-3">
+                            <button type="button" class="btn btn-default mr-3"
+                                    onclick="document.getElementById('upfile').click()">
+                                Browse …
+                            </button>
 
-                        <div class="input-group">
-                            <select class="custom-select" id="uptype" title="Input filetype">
-                                <option value="0">XYZ</option>
-                                <option value="1">PWScf Input</option>
-                                <option value="2">Lammps Input</option>
-                                <option value="3">Lammps Trajectory</option>
-                            </select>
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button" onClick="readFile()">Load file</button>
+                            <div class="input-group">
+                                <select class="custom-select" id="uptype" title="Input filetype">
+                                    <option value="0">XYZ</option>
+                                    <option value="1">PWScf Input</option>
+                                    <option value="2">Lammps Input</option>
+                                    <option value="3">Lammps Trajectory</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" onClick="readFile()">Load file
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        <input class="hidden" type="file" id="upfile" name="file" hidden>
-                    </form>
+                            <input class="hidden" type="file" id="upfile" name="file" hidden>
+                        </form>
 
-                    <h3>Current molecule</h3>
-                    <div class="dropdown">
-                        <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            Example Molecule
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="mol-list-button">
-                            <a class="dropdown-item" href="#" data-idx="0">Example Molecule</a>
-                            <a class="dropdown-item" href="#" data-idx="1">Example Crystal</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#" data-idx="2">A longer molecule title</a>
+                        <h3>Current molecule</h3>
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                Example Molecule
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="mol-list-button">
+                                <a class="dropdown-item" href="#" data-idx="0">Example Molecule</a>
+                                <a class="dropdown-item" href="#" data-idx="1">Example Crystal</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-idx="2">A longer molecule title</a>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -67,31 +76,40 @@
                 <article class="widget" id="widget-atom-format">
                     <header>
                         <h2>Atoms</h2>
+                        <button type="button" title="Toggle" class="widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </header>
-                    <form class="mb-3">
-                        <div class="input-group">
-                            <select class="custom-select" id="atFmtSel" onInput="update(Change.atoms)"
-                                    title="Atom format">
-                                <option value="0">Bohr</option>
-                                <option value="1">Angstrom</option>
-                                <option value="2">Crystal</option>
-                                <option value="3">Alat</option>
-                            </select>
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button" id="atFmtBut">Set format</button>
+                    <div class="widget__body">
+                        <form class="mb-3">
+                            <div class="input-group">
+                                <select class="custom-select" id="atFmtSel" onInput="update(Change.atoms)"
+                                        title="Atom format">
+                                    <option value="0">Bohr</option>
+                                    <option value="1">Angstrom</option>
+                                    <option value="2">Crystal</option>
+                                    <option value="3">Alat</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" id="atFmtBut">Set format</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
 
-                    <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
+                        <table class="table table-sm table-dark" id="atList"
+                               onInput="atomChanged(event.target)"></table>
+                    </div>
                 </article>
 
                 <article class="widget mt-3" id="widget-cell">
                     <header>
                         <h2>Cell</h2>
+                        <button type="button" title="Toggle" class="widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </header>
 
-                    <form>
+                    <form class="widget__body">
                         <div class="custom-control custom-checkbox mb-1">
                             <input type="checkbox" class="custom-control-input" id="cell_cell-enabled"
                                    onChange="cellEnabled(this.checked)">
@@ -202,9 +220,12 @@
                 <article class="widget" id="widget-step">
                     <header>
                         <h2>Step</h2>
+                        <button type="button" title="Toggle" class="widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </header>
 
-                    <form>
+                    <form class="widget__body">
                         <input type="range" class="custom-range mb-3" id="stepSlider" min="0" max="0" value="0"
                                onInput="setStep(parseInt(this.value))">
                         <div>
