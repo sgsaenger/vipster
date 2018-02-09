@@ -1,17 +1,17 @@
 h1, .h1 {
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
 
-  small {
-    text-transform: none;
-    font-size: 70%;
-  }
+    small {
+        text-transform: none;
+        font-size: 70%;
+    }
 }
 
 h2, .h2 {
-  color: theme-color-level(primary, -8);
+    color: theme-color-level(primary, -8);
 }
 
 h3, .h3 {
-  margin-bottom: .5rem;
+    margin-bottom: .5rem;
 }

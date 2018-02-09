@@ -1,42 +1,42 @@
 .widget {
-  margin-bottom: 1.5rem;
-  background: lighten(theme-color('secondary'), 6%);
-  padding: 1rem;
-  border-radius: $border-radius;
+    margin-bottom: 1.5rem;
+    background: lighten(theme-color('secondary'), 6%);
+    padding: 1rem;
+    border-radius: $border-radius;
 
-  .input-group {
-    flex-grow: 1;
-  }
+    .input-group {
+        flex-grow: 1;
+    }
 
-  .table {
-    margin-bottom: 0;
-  }
+    .table {
+        margin-bottom: 0;
+    }
 }
 
 #widget-load {
-  .dropdown-toggle {
-    position: relative;
-    width: 100%;
-    text-align: left;
+    .dropdown-toggle {
+        position: relative;
+        width: 100%;
+        text-align: left;
 
-    &:after {
-      position: absolute;
-      right: .75rem;
-      margin-top: .6em;
+        &:after {
+            position: absolute;
+            right: .75rem;
+            margin-top: .6em;
+        }
     }
-  }
 }
 
 #widget-cell {
-  .widget-cell__properties {
-    .input-group-text {
-      min-width: 5.85rem;
+    .widget-cell__properties {
+        .input-group-text {
+            min-width: 5.85rem;
+        }
     }
-  }
 }
 
 #widget-step {
-  input[type=range] {
-    width: 100%;
-  }
+    input[type=range] {
+        width: 100%;
+    }
 }
