@@ -2,6 +2,7 @@ const dom = {};
 [
     'canvas', 'atList', 'atFmtSel', 'cdmFmtSel', 'cellDim', 'cellVec',
     'cellToMol', 'cellScale', 'stepCur', 'stepMax', 'stepSlider',
+    'moleculeDropdown'
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -196,6 +197,9 @@ function update(change) {
 function setStep(i) {
     dom.stepCur.innerHTML = i + 1;
     Module.curStep = i;
+
+    console.log(Module.hasCell(Module.curMol, Module.curStep));
+
     Module.setStep(Module.curMol, i);
     dom.atFmtSel.value = Module.getFmt(Module.curMol, Module.curStep);
     update(Change.step);
@@ -204,6 +208,11 @@ function setStep(i) {
 function setMol(idx) {
     Module.curMol = idx;
     const nstep = Module.getMolNStep(idx);
+    const molName = Module.getMolName(Module.curMol)
+
+    // update molecule dropdown
+    $(dom.moleculeDropdown).find('.dropdown-toggle:first').text(molName);
+
     dom.stepMax.innerHTML = nstep;
     dom.stepSlider.max = nstep - 1;
     dom.stepSlider.value = nstep - 1;
@@ -215,7 +224,7 @@ $(document).ready(function () {
         load: $('#widget-load'),
     };
 
-    widgets.load.find('a').click(function () {
+    $(dom.moleculeDropdown).find('a').click(function () {
         const idx = $(this).data('idx') || 0;
         setMol(idx);
     });
