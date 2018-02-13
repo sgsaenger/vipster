@@ -14,9 +14,14 @@ using namespace Vipster;
 static GuiWrapper gui;
 static std::vector<Molecule> molecules;
 
-void emReadFile(std::string fn, std::string name, int fmt){
-    auto d = readFile(fn, (IOFmt)fmt, name);
-    molecules.push_back(d->mol);
+std::string emReadFile(std::string fn, std::string name, int fmt){
+    try {
+        auto d = readFile(fn, (IOFmt)fmt, name);
+        molecules.push_back(d->mol);
+        return "";
+    } catch (std::exception &e) {
+        return e.what();
+    }
 }
 // Molecules
 int emGetNMol(void){ return molecules.size();}

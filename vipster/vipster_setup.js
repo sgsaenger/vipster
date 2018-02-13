@@ -1,8 +1,8 @@
 const dom = {};
 [
-    'canvas', 'atList', 'atFmtSel', 'cdmFmtSel', 'cellDim', 'cellVec',
-    'cellToMol', 'cellScale', 'stepCur', 'stepMax', 'stepSlider',
-    'moleculeDropdown'
+    'canvas', 'inputFile', 'fileType', 'btnBrowse', 'btnUpload', 'atList', 'selectAtomFormat',
+    'cdmFmtSel', 'cellDim', 'cellVec', 'cellToMol', 'cellScale', 'stepCur',
+    'stepMax', 'stepSlider', 'moleculeDropdown', 'checkboxCellEnabled',
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -42,7 +42,7 @@ function setupCanvas(canvas) {
 }
 
 function fillAtoms() {
-    const fmt = parseInt(dom.atFmtSel.value);
+    const fmt = parseInt(dom.selectAtomFormat.value);
     const at = Module.getAtomIt(Module.curMol, Module.curStep, fmt);
     const nat = Module.getNAtoms(Module.curMol, Module.curStep);
 
@@ -88,7 +88,7 @@ function fillCell() {
 }
 
 function atomChanged(tgt) {
-    const fmt = parseInt(dom.atFmtSel.value);
+    const fmt = parseInt(dom.selectAtomFormat.value);
     const at = Module.getAtom(
         Module.curMol, Module.curStep, fmt,
         parseInt(tgt.parentElement.dataset.idx),
@@ -161,20 +161,40 @@ function cellVecChanged(tgt) {
 }
 
 function readFile() {
-    const file = document.getElementById('upfile').files[0];
-    const molList = document.getElementById('molList');
+    if (dom.inputFile.files.length !== 1) {
+        return;
+    }
+
+    const file = dom.inputFile.files[0];
     const reader = new FileReader();
+
     reader.onload = (e) => {
-        Module.FS_createDataFile('/tmp', 'test.file', e.target.result, true);
-        Module.readFile(
-            '/tmp/test.file', file.name,
-            Number.parseInt(document.getElementById('uptype').value),
-        );
-        Module.FS_unlink('/tmp/test.file');
-        molList.innerHTML += `<li onclick="setMol(getMolListIdx(event.target))">${file.name}</li>`;
-        setMol(molList.childElementCount - 1);
+        Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
+
+        const readError = Module.readFile('/tmp/vipster.file', file.name, parseInt(dom.fileType.value));
+        if (readError.length) {
+            // TODO: show an error alert
+            return false;
+        }
+
+        Module.FS_unlink('/tmp/vipster.file');
+
+        const idx = parseInt($(dom.moleculeDropdown).find('a:last').data('idx')) + 1;
+        const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`
+
+        $(dom.moleculeDropdown)
+            .find('.dropdown-divider')
+            .show()
+            .parent()
+            .append(link);
+
+        setMol(idx);
     };
     reader.readAsText(file);
+}
+
+function openFileDialogue() {
+    dom.inputFile.click();
 }
 
 function setMult() {
@@ -195,13 +215,16 @@ function update(change) {
 }
 
 function setStep(i) {
-    dom.stepCur.innerHTML = i + 1;
     Module.curStep = i;
 
-    console.log(Module.hasCell(Module.curMol, Module.curStep));
+    const hasCell = Module.hasCell(Module.curMol, Module.curStep);
+    $('.if-cell').toggle(hasCell);
+
+    dom.stepCur.innerHTML = i + 1;
+    dom.selectAtomFormat.value = Module.getFmt(Module.curMol, Module.curStep);
+    dom.checkboxCellEnabled.checked = hasCell;
 
     Module.setStep(Module.curMol, i);
-    dom.atFmtSel.value = Module.getFmt(Module.curMol, Module.curStep);
     update(Change.step);
 }
 
@@ -224,9 +247,22 @@ $(document).ready(function () {
         load: $('#widget-load'),
     };
 
-    $(dom.moleculeDropdown).find('a').click(function () {
+    // File loading
+    $(dom.btnBrowse).click(openFileDialogue);
+    $(dom.btnUpload).click(readFile);
+    $(dom.inputFile).change(function () {
+        dom.btnUpload.disabled = (this.files.length !== 1);
+    });
+
+    // Molecule loading
+    $(document.body).on('click', `#${dom.moleculeDropdown.id} a`, function () {
         const idx = $(this).data('idx') || 0;
         setMol(idx);
+    })
+
+    // Hide specific cell properties if no cell present
+    $(dom.checkboxCellEnabled).change(function () {
+        $('.if-cell').toggle($(this).get(0).checked);
     });
 
     window.addEventListener('resize', function () {

@@ -34,40 +34,35 @@
 
                     <div class="widget__body">
                         <form class="form-inline mb-3">
-                            <button type="button" class="btn btn-default mr-3"
-                                    onclick="document.getElementById('upfile').click()">
+                            <button id="btnBrowse" type="button" class="btn btn-default mr-3">
                                 Browse …
                             </button>
 
                             <div class="input-group">
-                                <select class="custom-select" id="uptype" title="Input filetype">
+                                <select class="custom-select" id="fileType" title="Input filetype">
                                     <option value="0">XYZ</option>
                                     <option value="1">PWScf Input</option>
                                     <option value="2">Lammps Input</option>
                                     <option value="3">Lammps Trajectory</option>
                                 </select>
                                 <div class="input-group-append">
-                                    <button class="btn btn-primary" type="button" onClick="readFile()">Load file
-                                    </button>
+                                    <button id="btnUpload" class="btn btn-primary" type="button" disabled>Load file</button>
                                 </div>
                             </div>
 
-                            <input class="hidden" type="file" id="upfile" name="file" hidden>
+                            <input class="hidden" type="file" id="inputFile" name="file" hidden>
                         </form>
 
                         <h3>Current molecule</h3>
                         <div class="dropdown" id="moleculeDropdown">
-                            <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
+                            <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
                                 Example Molecule
                             </button>
                             <div class="dropdown-menu" aria-labelledby="mol-list-button">
                                 <a class="dropdown-item" href="#" data-idx="0">Example Molecule</a>
                                 <a class="dropdown-item" href="#" data-idx="1">Example Crystal</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-idx="2">A longer molecule title</a>
+                                <div class="dropdown-divider" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
@@ -83,8 +78,7 @@
                     <div class="widget__body">
                         <form class="mb-3">
                             <div class="input-group">
-                                <select class="custom-select" id="atFmtSel" onInput="update(Change.atoms)"
-                                        title="Atom format">
+                                <select class="custom-select" id="selectAtomFormat" onInput="update(Change.atoms)" title="Atom format">
                                     <option value="0">Bohr</option>
                                     <option value="1">Angstrom</option>
                                     <option value="2">Crystal</option>
@@ -96,8 +90,7 @@
                             </div>
                         </form>
 
-                        <table class="table table-sm table-dark" id="atList"
-                               onInput="atomChanged(event.target)"></table>
+                        <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
                     </div>
                 </article>
 
@@ -111,108 +104,100 @@
 
                     <form class="widget__body">
                         <div class="custom-control custom-checkbox mb-1">
-                            <input type="checkbox" class="custom-control-input" id="cell_cell-enabled"
-                                   onChange="cellEnabled(this.checked)">
-                            <label class="custom-control-label" for="cell_cell-enabled">Cell enabled</label>
+                            <input type="checkbox" class="custom-control-input" id="checkboxCellEnabled" onChange="cellEnabled(this.checked)">
+                            <label class="custom-control-label" for="checkboxCellEnabled">Cell enabled</label>
                         </div>
 
-                        <div class="custom-control custom-checkbox mb-3">
+                        <div class="custom-control custom-checkbox">
                             <input type="checkbox" class="custom-control-input" id="cellToMol">
                             <label class="custom-control-label" for="cellToMol">Apply to all steps</label>
                         </div>
 
-                        <h3>Cell repetitions</h3>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <div class="input-group" title="Repetition in x direction">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">X</div>
+                        <div class="if-cell mt-3" style="display: none;">
+                            <h3>Cell repetitions</h3>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <div class="input-group" title="Repetition in x direction">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">X</div>
+                                        </div>
+                                        <input type="number" class="form-control" id="xmult" min="1" value="1" max="255" placeholder="X" onchange="setMult()">
                                     </div>
-                                    <input type="number" class="form-control" id="xmult" min="1" value="1" max="255"
-                                           placeholder="X"
-                                           onchange="setMult()">
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="input-group" title="Repetition in y direction">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Y</div>
+                                <div class="col">
+                                    <div class="input-group" title="Repetition in y direction">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">Y</div>
+                                        </div>
+                                        <input type="number" class="form-control" id="ymult" min="1" value="1" max="255" placeholder="Y" onchange="setMult()">
                                     </div>
-                                    <input type="number" class="form-control" id="ymult" min="1" value="1" max="255"
-                                           placeholder="Y"
-                                           onchange="setMult()">
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="input-group" title="Repetition in z direction">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Z</div>
+                                <div class="col">
+                                    <div class="input-group" title="Repetition in z direction">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">Z</div>
+                                        </div>
+                                        <input type="number" class="form-control" id="zmult" min="1" value="1" max="255" placeholder="Z" onchange="setMult()">
                                     </div>
-                                    <input type="number" class="form-control" id="zmult" min="1" value="1" max="255"
-                                           placeholder="Z"
-                                           onchange="setMult()">
                                 </div>
                             </div>
-                        </div>
 
-                        <h3>Cell properties</h3>
-                        <div class="widget-cell__properties">
-                            <div class="input-group mb-2">
-                                <div class="input-group-prepend">
-                                    <div class="input-group-text">Dimension</div>
+                            <h3>Cell properties</h3>
+                            <div class="widget-cell__properties">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Dimension</div>
+                                    </div>
+                                    <input type="number" class="form-control" id="cellDim" min="0.0001" value="1" max="100" step="any" onchange="cellDimChanged(this)">
                                 </div>
-                                <input type="number" class="form-control" id="cellDim" min="0.0001" value="1" max="100"
-                                       step="any"
-                                       onchange="cellDimChanged(this)">
+
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Format</div>
+                                    </div>
+                                    <select class="custom-select" id="cdmFmtSel" onchange="update(Change.cell)">
+                                        <option value="0">Bohr</option>
+                                        <option value="1">Angstrom</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <div class="input-group-text">Format</div>
-                                </div>
-                                <select class="custom-select" id="cdmFmtSel" onchange="update(Change.cell)">
-                                    <option value="0">Bohr</option>
-                                    <option value="1">Angstrom</option>
-                                </select>
+                            <h3>Cell vectors</h3>
+                            <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors" onInput="cellVecChanged(event.target)">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>X</th>
+                                        <th>Y</th>
+                                        <th>Z</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-idx=0>
+                                        <td>1</td>
+                                        <td contenteditable data-idx=0>1</td>
+                                        <td contenteditable data-idx=1>0</td>
+                                        <td contenteditable data-idx=2>0</td>
+                                    </tr>
+                                    <tr data-idx=1>
+                                        <td>2</td>
+                                        <td contenteditable data-idx=0>0</td>
+                                        <td contenteditable data-idx=1>1</td>
+                                        <td contenteditable data-idx=2>0</td>
+                                    </tr>
+                                    <tr data-idx=2>
+                                        <td>3</td>
+                                        <td contenteditable data-idx=0>0</td>
+                                        <td contenteditable data-idx=1>0</td>
+                                        <td contenteditable data-idx=2>1</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="cellScale">
+                                <label class="custom-control-label" for="cellScale">Scale coordinates with cell</label>
                             </div>
-                        </div>
-
-                        <h3>Cell vectors</h3>
-                        <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors"
-                               onInput="cellVecChanged(event.target)">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>X</th>
-                                <th>Y</th>
-                                <th>Z</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr data-idx=0>
-                                <td>1</td>
-                                <td contenteditable data-idx=0>1</td>
-                                <td contenteditable data-idx=1>0</td>
-                                <td contenteditable data-idx=2>0</td>
-                            </tr>
-                            <tr data-idx=1>
-                                <td>2</td>
-                                <td contenteditable data-idx=0>0</td>
-                                <td contenteditable data-idx=1>1</td>
-                                <td contenteditable data-idx=2>0</td>
-                            </tr>
-                            <tr data-idx=2>
-                                <td>3</td>
-                                <td contenteditable data-idx=0>0</td>
-                                <td contenteditable data-idx=1>0</td>
-                                <td contenteditable data-idx=2>1</td>
-                            </tr>
-                            </tbody>
-                        </table>
-
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="cellScale">
-                            <label class="custom-control-label" for="cellScale">Scale coordinates with cell</label>
                         </div>
                     </form>
                 </article>
@@ -226,8 +211,7 @@
                     </header>
 
                     <form class="widget__body">
-                        <input type="range" class="custom-range mb-3" id="stepSlider" min="0" max="0" value="0"
-                               onInput="setStep(parseInt(this.value))">
+                        <input type="range" class="custom-range mb-3" id="stepSlider" min="0" max="0" value="0" onInput="setStep(parseInt(this.value))">
                         <div>
                             <span id="stepCur">1</span> /
                             <span id="stepMax">1</span>
@@ -242,15 +226,12 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="vipster_setup.js"></script>
     <script type="text/javascript" src="vipster.js"></script>
