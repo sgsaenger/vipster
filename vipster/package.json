@@ -3,7 +3,7 @@
   "version": "0.8.0",
   "description": "Visual Periodic STructure EditoR Web Frontend",
   "author": "Sebastian Gsänger, Jonathan Gruber <gruberjonathan@gmail.com>",
-  "license": "BSD-2-Clause",
+  "license": "GPL-3.0-only",
   "scripts": {
     "postinstall": "npm run build",
     "css:compile": "node-sass -q --output-style=compressed ./styles/styles.scss ./styles/styles.css",
