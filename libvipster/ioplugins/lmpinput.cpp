@@ -233,10 +233,11 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
                 std::getline(file, line);
                 std::stringstream ss{line};
                 ss >> id >> t1;
-                if (line.find('#') != line.npos) {
+                std::size_t cpos = line.find('#');
+                if(cpos != line.npos) {
                     // if there's a comment, extract the typename from it
                     hasNames = true;
-                    std::stringstream ss{line.substr(line.find('#')+1)};
+                    std::stringstream ss{line.substr(cpos+1)};
                     ss >> name;
                     types[id] = name;
                 } else {
@@ -250,9 +251,10 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
         } else if (line.find("Atoms") != line.npos) {
             std::vector<lmpTok> fmt{};
             // lookup fixed parser if format is given
-            if (line.find('#') != line.npos) {
+            std::size_t cpos = line.find('#');
+            if (cpos != line.npos) {
                 std::string f{};
-                std::stringstream{line.substr(line.find('#')+1)} >> f;
+                std::stringstream{line.substr(cpos+1)} >> f;
                 fmt = fmtmap.at(f);
             }
             std::getline(file, line);

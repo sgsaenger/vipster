@@ -179,3 +179,8 @@ function setStep(i) {
     document.getElementById('atFmtSel').value = Module.getFmt(Module.curMol, Module.curStep);
     update(Change.step);
 }
+
+function addParser(idx, name) {
+    document.getElementById('uptype').innerHTML +=
+            '<option value='+idx+'>'+UTF8ToString(name)+'</option>';
+}

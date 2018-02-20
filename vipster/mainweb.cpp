@@ -302,6 +302,10 @@ int main()
     emscripten_set_touchend_callback("#canvas", nullptr, 0, touch_event);
 
     //start
+    int i{0};
+    for(auto& fmt: IOPlugins){
+        EM_ASM_({addParser($0, $1)}, i++, fmt.second->name.c_str());
+    }
     EM_ASM(setMol(0));
     emscripten_set_main_loop(one_iter, 0, 1);
     gui.deleteGLObjects();

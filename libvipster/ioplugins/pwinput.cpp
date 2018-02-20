@@ -96,13 +96,16 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
 
     s.newAtoms(nat);
     std::string line;
-    for (size_t i=0; i<nat; ++i) {
+    for (auto& at: s) {
         std::getline(file, line);
-        while(line[0]=='!' || line[0]=='#') std::getline(file, line);
-        auto at = s[i];
+        while(line[0]=='!' || line[0]=='#'){
+             std::getline(file, line);
+        }
         std::stringstream linestream{line};
         linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
-        if (linestream.fail()) throw IOError{"Failed to parse atom"};
+        if (linestream.fail()) {
+            throw IOError{"Failed to parse atom"};
+        }
         linestream >> at.fix[0] >> at.fix[1] >> at.fix[2];
     }
 }

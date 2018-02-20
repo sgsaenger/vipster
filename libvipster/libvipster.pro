@@ -20,7 +20,8 @@ SOURCES += \
     ioplugins/lmptrajec.cpp \
     atom.cpp \
     atomproper.cpp \
-    atomref.cpp
+    atomref.cpp \
+    ioplugins/pwoutput.cpp
 
 HEADERS += \
     config.h \
@@ -40,7 +41,8 @@ HEADERS += \
     ioplugins/lmpinput.h \
     ioplugins/lmptrajec.h \
     atomproper.h \
-    atomref.h
+    atomref.h \
+    ioplugins/pwoutput.h
 
 win32: CONFIG += staticlib
 unix {
