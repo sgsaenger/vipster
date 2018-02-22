@@ -1,8 +1,11 @@
+const VERBOSE = true;
+
 const dom = {};
 [
-    'canvas', 'inputFile', 'fileType', 'btnBrowse', 'btnUpload', 'atList', 'selectAtomFormat',
-    'cdmFmtSel', 'cellDim', 'cellVec', 'cellToMol', 'cellScale', 'stepCur',
-    'stepMax', 'stepSlider', 'moleculeDropdown', 'checkboxCellEnabled',
+    'canvas', 'alerts', 'inputFile', 'fileType', 'btnBrowse', 'btnUpload',
+    'atList', 'selectAtomFormat', 'cdmFmtSel', 'cellDim', 'cellVec',
+    'cellToMol', 'cellScale', 'stepCur', 'stepMax', 'stepSlider',
+    'moleculeDropdown', 'checkboxCellEnabled',
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -17,15 +20,15 @@ var Module = {
     canvas: setupCanvas(dom.canvas),
 };
 
-const Change = {
+const change = {
     atoms: 1,
     cell: 2,
     fmt: 4,
     kpoints: 32,
 };
 
-Change.step = Change.atoms | Change.cell | Change.fmt;
-Change.mol = Change.kpoints;
+change.step = change.atoms | change.cell | change.fmt;
+change.mol = change.kpoints;
 
 function setupCanvas(canvas) {
     canvas.width = canvas.clientWidth;
@@ -123,7 +126,7 @@ function cellDimChanged(tgt) {
         Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
     }
     Module.updateView();
-    update(Change.cell);
+    update(change.cell);
 }
 
 function cellEnabled(val) {
@@ -157,7 +160,7 @@ function cellVecChanged(tgt) {
         Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
     }
     Module.updateView();
-    update(Change.cell);
+    update(change.cell);
 }
 
 function readFile() {
@@ -165,22 +168,27 @@ function readFile() {
         return;
     }
 
+    $('.alert').alert('close');
+
     const file = dom.inputFile.files[0];
     const reader = new FileReader();
 
     reader.onload = (e) => {
         Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
-
         const readError = Module.readFile('/tmp/vipster.file', file.name, parseInt(dom.fileType.value));
+        Module.FS_unlink('/tmp/vipster.file');
+
         if (readError.length) {
-            // TODO: show an error alert
+            $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));
+            if (VERBOSE) {
+                console.warn(readError);
+            }
             return false;
         }
 
-        Module.FS_unlink('/tmp/vipster.file');
-
+        // noinspection JSCheckFunctionSignatures
         const idx = parseInt($(dom.moleculeDropdown).find('a:last').data('idx')) + 1;
-        const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`
+        const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`;
 
         $(dom.moleculeDropdown)
             .find('.dropdown-divider')
@@ -204,12 +212,12 @@ function setMult() {
     Module.setMult(parseInt(x), parseInt(y), parseInt(z));
 }
 
-function update(change) {
-    if (change & (Change.atoms | Change.cell)) {
+function update(arg) {
+    if (arg & (change.atoms | change.cell)) {
         fillAtoms();
     }
 
-    if (change & Change.cell) {
+    if (arg & change.cell) {
         fillCell();
     }
 }
@@ -225,13 +233,13 @@ function setStep(i) {
     dom.checkboxCellEnabled.checked = hasCell;
 
     Module.setStep(Module.curMol, i);
-    update(Change.step);
+    update(change.step);
 }
 
 function setMol(idx) {
     Module.curMol = idx;
     const nstep = Module.getMolNStep(idx);
-    const molName = Module.getMolName(Module.curMol)
+    const molName = Module.getMolName(Module.curMol);
 
     // update molecule dropdown
     $(dom.moleculeDropdown).find('.dropdown-toggle:first').text(molName);
@@ -242,11 +250,18 @@ function setMol(idx) {
     setStep(nstep - 1);
 }
 
-$(document).ready(function () {
-    const widgets = {
-        load: $('#widget-load'),
-    };
+function createAlert(msg, type, dismissable = true) {
+    return `
+        <div class="alert alert-${type} ${dismissable ? 'alert-dismissible fade show' : ''}" role="alert">
+            ${msg}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+}
 
+$(document).ready(function () {
     // File loading
     $(dom.btnBrowse).click(openFileDialogue);
     $(dom.btnUpload).click(readFile);
@@ -258,7 +273,7 @@ $(document).ready(function () {
     $(document.body).on('click', `#${dom.moleculeDropdown.id} a`, function () {
         const idx = $(this).data('idx') || 0;
         setMol(idx);
-    })
+    });
 
     // Hide specific cell properties if no cell present
     $(dom.checkboxCellEnabled).change(function () {
