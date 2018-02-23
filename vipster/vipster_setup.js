@@ -48,26 +48,31 @@ function fillAtoms() {
     const fmt = parseInt(dom.selectAtomFormat.value);
     const at = Module.getAtomIt(Module.curMol, Module.curStep, fmt);
     const nat = Module.getNAtoms(Module.curMol, Module.curStep);
+    const nbsp = '&nbsp;';
 
     let html = `
         <thead>
             <tr>
                 <th scope="col">Type</th>
-                <th scope="col">X</th>
-                <th scope="col">Y</th>
-                <th scope="col">Z</th>
+                <th scope="col">${nbsp}X</th>
+                <th scope="col">${nbsp}Y</th>
+                <th scope="col">${nbsp}Z</th>
             </tr>
         </thead>
     `;
 
     html += '<tbody>';
     for (let i = 0; i < nat; ++i) {
+        const x = at.coord[0];
+        const y = at.coord[1];
+        const z = at.coord[2];
+
         html += `
             <tr data-idx=${i}>
                 <td contenteditable data-idx='name' scope="row">${at.name}</td>
-                <td contenteditable data-idx='0'>${at.coord[0].toFixed(7)}</td>
-                <td contenteditable data-idx='1'>${at.coord[1].toFixed(7)}</td>
-                <td contenteditable data-idx='2'>${at.coord[2].toFixed(7)}</td>
+                <td contenteditable data-idx='0'>${x < 0 ? '' : nbsp}${x.toFixed(7)}</td>
+                <td contenteditable data-idx='1'>${y < 0 ? '' : nbsp}${y.toFixed(7)}</td>
+                <td contenteditable data-idx='2'>${z < 0 ? '' : nbsp}${z.toFixed(7)}</td>
             </tr>
         `;
         at.increment();
