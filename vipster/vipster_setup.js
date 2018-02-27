@@ -252,6 +252,8 @@ function setMol(idx) {
     dom.stepMax.innerHTML = nstep;
     dom.stepSlider.max = nstep - 1;
     dom.stepSlider.value = nstep - 1;
+
+    $('#widget-step').toggle(nstep > 1);
     setStep(nstep - 1);
 }
 

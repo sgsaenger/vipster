@@ -22,10 +22,11 @@
         position: absolute;
         top: 0;
         right: 0;
-        cursor: pointer;
-        transition: all .3s ease-in-out;
+        padding-right: 0;
         border: none;
         background-color: transparent;
+        cursor: pointer;
+        transition: all .3s ease-in-out;
         color: inherit;
 
         &:focus {
@@ -73,7 +74,15 @@
 }
 
 #widget-step {
-    input[type=range] {
-        width: 100%;
+    .col {
+        width: auto;
+    }
+
+    .col:first-of-type {
+        flex: 1 1 auto;
+    }
+
+    .col:last-of-type {
+        flex: 0 0 auto;
     }
 }

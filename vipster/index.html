@@ -68,6 +68,26 @@
                     </div>
                 </article>
 
+                <article class="widget" id="widget-step" style="display: none;">
+                    <header>
+                        <h2>Step</h2>
+                        <button type="button" title="Toggle" class="widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </header>
+
+                    <form class="widget__body">
+                        <div class="row">
+                            <div class="col">
+                                <input type="range" class="custom-range" id="stepSlider" min="0" max="0" value="0" onInput="setStep(parseInt(this.value))">
+                            </div>
+                            <div class="col text-right">
+                                <span id="stepCur">1</span> / <span id="stepMax">1</span>
+                            </div>
+                        </div>
+                    </form>
+                </article>
+
                 <article class="widget" id="widget-atom-format">
                     <header>
                         <h2>Atoms</h2>
@@ -198,23 +218,6 @@
                                 <input type="checkbox" class="custom-control-input" id="cellScale">
                                 <label class="custom-control-label" for="cellScale">Scale coordinates with cell</label>
                             </div>
-                        </div>
-                    </form>
-                </article>
-
-                <article class="widget" id="widget-step">
-                    <header>
-                        <h2>Step</h2>
-                        <button type="button" title="Toggle" class="widget__toggle-btn">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                    </header>
-
-                    <form class="widget__body">
-                        <input type="range" class="custom-range mb-3" id="stepSlider" min="0" max="0" value="0" onInput="setStep(parseInt(this.value))">
-                        <div>
-                            <span id="stepCur">1</span> /
-                            <span id="stepMax">1</span>
                         </div>
                     </form>
                 </article>
