@@ -9,8 +9,6 @@ CONFIG += c++14
 
 SOURCES += \
     step.cpp \
-    stepproper.cpp \
-    stepformatter.cpp \
     molecule.cpp \
     config.cpp \
     iowrapper.cpp \
@@ -18,31 +16,28 @@ SOURCES += \
     ioplugins/pwinput.cpp \
     ioplugins/lmpinput.cpp \
     ioplugins/lmptrajec.cpp \
-    atom.cpp \
-    atomproper.cpp \
-    atomref.cpp \
     ioplugins/pwoutput.cpp
 
 HEADERS += \
     config.h \
     global.h \
     atom.h \
+    atompropref.h \
+    atomsel.h \
     bond.h \
     vec.h \
     kpoints.h \
     molecule.h \
     step.h \
-    stepproper.h \
-    stepformatter.h \
     iowrapper.h \
     ioplugin.h \
     ioplugins/xyz.h \
     ioplugins/pwinput.h \
     ioplugins/lmpinput.h \
     ioplugins/lmptrajec.h \
-    atomproper.h \
-    atomref.h \
-    ioplugins/pwoutput.h
+    ioplugins/pwoutput.h \
+    cell.h \
+    stepbase.h
 
 win32: CONFIG += staticlib
 unix {
@@ -56,4 +51,5 @@ unix:!macx:CONFIG(debug, debug|release) {
 }
 
 DISTFILES += \
-    default.json
+    default.json \
+    libvipster.qmodel

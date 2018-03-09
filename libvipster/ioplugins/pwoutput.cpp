@@ -12,8 +12,8 @@ std::shared_ptr<IO::BaseData> PWOutParser(std::string name, std::ifstream &file)
     StepProper *s = &m.newStep();
 
     std::string line, dummy_s;
-    std::size_t nat, ntype;
-    float celldim;
+    size_t nat{}, ntype{};
+    float celldim{};
     Mat cellvec;
     bool gamma{false};
     CdmFmt cdmfmt{CdmFmt::Bohr};
@@ -30,7 +30,7 @@ std::shared_ptr<IO::BaseData> PWOutParser(std::string name, std::ifstream &file)
                 continue;
             }
             KPoints kpts{};
-            std::size_t nk = std::stoi(line.substr(line.find('=')+1));
+            size_t nk = static_cast<size_t>(std::stoi(line.substr(line.find('=')+1)));
             // skip header
             std::getline(file, line);
             if (line.find("cart. coord.") == line.npos){
@@ -58,7 +58,7 @@ std::shared_ptr<IO::BaseData> PWOutParser(std::string name, std::ifstream &file)
             std::getline(file, line);
             std::getline(file, line);
             std::getline(file, line);
-            for(int i=0; i<3; ++i){
+            for(size_t i=0; i<3; ++i){
                 std::getline(file, line);
                 std::stringstream{line} >> dummy_s >> dummy_s >> dummy_s
                         >> cellvec[i][0] >> cellvec[i][1] >> cellvec[i][2];

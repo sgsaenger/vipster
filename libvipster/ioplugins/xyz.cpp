@@ -14,7 +14,7 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
     std::string line;
     while (std::getline(file, line)) {
         std::stringstream natline{line};
-        int nat;
+        size_t nat;
         natline >> nat;
         if (natline.fail()) {
             if (!m.getNstep()) throw IOError("XYZ: Failed to parse nat");

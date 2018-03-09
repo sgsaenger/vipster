@@ -4,8 +4,6 @@
 
 using namespace Vipster;
 
-using ParserFunc = void(*)(std::string&, AtomRef);
-
 enum class lmpTok{
     type,
     pos,
@@ -53,7 +51,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
     std::vector<std::vector<std::string>> atoms;
     std::string line, tok;
     // store tokenized atom-lines
-    nat = std::min(nat, (size_t)20);
+    nat = std::min(nat, static_cast<size_t>(20));
     atoms.resize(nat);
     for(auto& at: atoms) {
         std::getline(file, line);
@@ -73,7 +71,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         try{
             for (auto& at: atoms){
                 auto f = stof(at[col]);
-                if(f != (int)f)
+                if(f != static_cast<int>(f))
                     return false;
             }
             return true;
@@ -114,7 +112,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
             col++;
         }
         parser.push_back(lmpTok::type);
-        for(size_t img=narg-1; img>=std::min(narg-3,(size_t)5); ++img){
+        for(size_t img=narg-1; img>=std::min(narg-3,static_cast<size_t>(5)); ++img){
             if (!checkInt(img))
                 break;
             --poscoord;
@@ -170,7 +168,7 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
     s.setCellDim(1, CdmFmt::Angstrom);
 
     std::string line;
-    size_t nat, ntype;
+    size_t nat{}, ntype{};
     float t1, t2;
     Mat cell{};
     std::map<std::string, std::string> types{};

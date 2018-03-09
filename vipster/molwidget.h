@@ -13,7 +13,7 @@ class MolWidget : public QWidget, public Vipster::BaseWidget
     Q_OBJECT
 
 public:
-    explicit MolWidget(QWidget *parent = 0);
+    explicit MolWidget(QWidget *parent = nullptr);
     ~MolWidget();
     void updateWidget(Vipster::Change change);
 

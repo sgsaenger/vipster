@@ -16,9 +16,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    explicit MainWindow(const Vipster::Molecule &m, QWidget *parent = 0);
-    explicit MainWindow(Vipster::Molecule &&m, QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(const Vipster::Molecule &m, QWidget *parent = nullptr);
+    explicit MainWindow(Vipster::Molecule &&m, QWidget *parent = nullptr);
     ~MainWindow();
     Vipster::Molecule *curMol{nullptr};
     Vipster::StepProper *curStep{nullptr};

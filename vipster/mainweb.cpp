@@ -4,7 +4,6 @@
 
 #include "guiwrapper.h"
 #include "molecule.h"
-#include "atomproper.h"
 #include "iowrapper.h"
 #include "atom_model.h"
 
@@ -27,14 +26,14 @@ void emSetStep(int m, int s){ gui.updateBuffers(&molecules[m].getStep(s), true);
 void emUpdateView(void){ gui.updateBuffers(nullptr, true); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
-AtomRef emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
+Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
 Step::iterator emGetAtomIt(int m, int s, int fmt){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt).begin(); }
 int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
 // Atom
-std::string emGetAtName(const AtomRef& at){return at.name;}
-void emSetAtName(AtomRef& at, std::string name){at.name = name;}
-Vec emGetAtCoord(const AtomRef& at){return at.coord;}
-void emSetAtCoord(AtomRef& at, Vec v){at.coord = v;}
+std::string emGetAtName(const Atom& at){return at.name;}
+void emSetAtName(Atom& at, std::string name){at.name = name;}
+Vec emGetAtCoord(const Atom& at){return at.coord;}
+void emSetAtCoord(Atom& at, Vec v){at.coord = v;}
 // Iterator
 std::string emGetItName(const Step::iterator& it){return (*it).name;}
 void emSetItName(Step::iterator& it, std::string name){(*it).name = name;}
@@ -72,7 +71,7 @@ EMSCRIPTEN_BINDINGS(vipster){
             .element(em::index<0>())
             .element(em::index<1>())
             .element(em::index<2>());
-    em::class_<AtomRef>("AtomRef")
+    em::class_<Atom>("Atom")
             .property("name", &emGetAtName, &emSetAtName)
             .property("coord", &emGetAtCoord, &emSetAtCoord);
     em::class_<Step::iterator>("Step_iterator")
@@ -274,22 +273,22 @@ int main()
         step = &molecules[0].newStep();
         step->enableCell(false);
         step->setFmt(AtomFmt::Angstrom);
-        step->newAtom(AtomProper{"H",{{(float)(-0.756+f),(float)(-0.591+f),0}}});
-        step->newAtom(AtomProper{"O",{{0,0,0}}});
-        step->newAtom(AtomProper{"H",{{(float)(0.756-f),(float)(-0.591+f),0}}});
+        step->newAtom("H",{{(float)(-0.756+f),(float)(-0.591+f),0}});
+        step->newAtom("O",{{0,0,0}});
+        step->newAtom("H",{{(float)(0.756-f),(float)(-0.591+f),0}});
     }
     molecules.emplace_back("Example Crystal");
     step = &molecules[1].getStep(0);
     step->setCellDim(5.64, CdmFmt::Angstrom);
     step->setFmt(AtomFmt::Crystal);
-    step->newAtom(AtomProper{"Na",{{0.0,0.0,0.0}}});
-    step->newAtom(AtomProper{"Cl",{{0.5,0.0,0.0}}});
-    step->newAtom(AtomProper{"Na",{{0.5,0.5,0.0}}});
-    step->newAtom(AtomProper{"Cl",{{0.0,0.5,0.0}}});
-    step->newAtom(AtomProper{"Na",{{0.5,0.0,0.5}}});
-    step->newAtom(AtomProper{"Cl",{{0.0,0.0,0.5}}});
-    step->newAtom(AtomProper{"Na",{{0.0,0.5,0.5}}});
-    step->newAtom(AtomProper{"Cl",{{0.5,0.5,0.5}}});
+    step->newAtom("Na",{{0.0,0.0,0.0}});
+    step->newAtom("Cl",{{0.5,0.0,0.0}});
+    step->newAtom("Na",{{0.5,0.5,0.0}});
+    step->newAtom("Cl",{{0.0,0.5,0.0}});
+    step->newAtom("Na",{{0.5,0.0,0.5}});
+    step->newAtom("Cl",{{0.0,0.0,0.5}});
+    step->newAtom("Na",{{0.0,0.5,0.5}});
+    step->newAtom("Cl",{{0.5,0.5,0.5}});
 
     // handle input
     emscripten_set_mousedown_callback("#canvas", nullptr, 0, mouse_event);

@@ -79,15 +79,18 @@ void MolWidget::fillAtomTable(void)
             }
         }
     }
+    auto at = curStep->begin();
     for(int j=0;j!=nat;++j){
-        const AtomRef at = (*curStep)[j];
         //TODO: Fmt
-        ui->atomTable->item(j,0)->setText(at.name.c_str());
-        ui->atomTable->item(j,0)->setCheckState(Qt::CheckState(at.hidden*2));
+        ui->atomTable->item(j,0)->setText(at->name.c_str());
+        ui->atomTable->item(j,0)->setCheckState(
+                    Qt::CheckState(at->properties[Hidden]*2));
         for(int k=0;k!=3;++k){
-            ui->atomTable->item(j,k+1)->setText(QString::number(at.coord[k]));
-            ui->atomTable->item(j,k+1)->setCheckState(Qt::CheckState(at.fix[k]*2));
+            ui->atomTable->item(j,k+1)->setText(QString::number(at->coord[k]));
+            ui->atomTable->item(j,k+1)->setCheckState(
+                        Qt::CheckState(at->properties[k]*2));
         }
+        ++at;
     }
 }
 
@@ -125,16 +128,14 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
-    AtomRef at = (*curStep)[row];
+    Atom at = (*curStep)[row];
     const QTableWidgetItem *cell = ui->atomTable->item(row,column);
-    switch(column){
-    case 0:
+    if (column == 0){
         at.name = cell->text().toStdString();
-        at.hidden = cell->checkState()/2;
-        break;
-    default:
+        at.properties[Hidden] = cell->checkState()/2;
+    } else {
         at.coord[column-1] = locale().toDouble(cell->text());
-        at.fix[column-1] = cell->checkState()/2;
+        at.properties[column-1] = cell->checkState()/2;
     }
     triggerUpdate(Change::atoms);
 }

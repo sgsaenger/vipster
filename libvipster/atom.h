@@ -3,83 +3,82 @@
 
 #include <string>
 #include <vector>
-#include <type_traits>
-#include "vec.h"
+#include <tuple>
+#include <bitset>
 
-//TODO: track changes in hidden (rename it, obviously)
-//TODO: make sure atom can only be used as an interface!
-//TODO: PropRef take member-pointer as argument, move pointers to Atom
-//      -> allows for Step*::iterators to directly access them!
+#include "vec.h"
+#include "atompropref.h"
+#include "config.h"
+
+//TODO: track changes in properties?
 
 namespace Vipster{
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };
-
-    using FixVec = std::array<bool, 3>;
+    constexpr size_t nAtFmt = 4;
+    enum AtomProperty: uint8_t {FixX, FixY, FixZ, Hidden};
+    constexpr size_t nAtProp = 4;
 
     /*
      * Basic atom interface
      *
      * Provides access-wrappers to properties
+     * TODO: properties as bitset?
      */
     class Atom{
-    public:
-        template<typename T, bool Name = false>
-        class PropRef {
-            friend class Atom;
-        public:
-            PropRef(const T *prop, const bool *mod)
-                : p_prop{const_cast<T*>(prop)},
-                  p_mod{const_cast<bool*>(mod)} {}
-            // like a real reference, constructing makes it point to the origin
-            PropRef(const PropRef&) = default;
-            // also like a real reference, assigning changes the origin
-            PropRef& operator=(const PropRef& rhs){
-                *p_prop = *(rhs.p_prop);
-                *p_mod = true;
-                return *this;
-            }
-            operator T&() {*p_mod = true; return *p_prop; }
-            operator const T&() const { return *p_prop; }
-            PropRef<T>& operator=(const T& prop)
-            {
-                *p_prop = prop;
-                *p_mod = true;
-                return *this;
-            }
-            template <typename R=T, typename = std::enable_if<Name>>
-            const typename R::value_type* c_str() const {return p_prop->c_str();}
-            template <typename R=T, typename = std::enable_if<std::is_array<T>::value>>
-            typename R::reference operator [](size_t i) {*p_mod = true; return (*p_prop)[i];}
-            template <typename R=T, typename = std::enable_if<std::is_array<T>::value>>
-            typename R::const_reference operator [](size_t i) const {return (*p_prop)[i];}
-            bool operator==(const PropRef<T>&rhs) const noexcept
-            {
-                return *p_prop == *(rhs.p_prop);
-            }
-        private:
-            T* p_prop;
-            bool* p_mod;
-        };
-        virtual ~Atom() = default;
-        PropRef<std::string> name;
-        PropRef<Vec> coord;
-        PropRef<float> charge;
-        PropRef<FixVec> fix;
-        PropRef<uint8_t> hidden;
     protected:
-        Atom(const std::string *n, const Vec *co, const float *ch,
-             const FixVec *f, const uint8_t *h,
-             const bool *c_m, const bool *p_m);
-        Atom& operator++();
+        Atom(Vec *co, bool *c_m, std::string *n,
+             float *ch, std::bitset<nAtProp> *p, PseEntry** pse, bool *p_m)
+            : coord_ptr{co}, coord_changed{c_m}, name_ptr{n},
+              charge_ptr{ch}, prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
+        {}
+        Vec                     *coord_ptr;
+        bool                    *coord_changed;
+        std::string             *name_ptr;
+        float                   *charge_ptr;
+        std::bitset<nAtProp>    *prop_ptr;
+        PseEntry*               *pse_ptr;
+        bool                    *prop_changed;
+    public:
+        PropRef<std::string, &Atom::name_ptr, &Atom::prop_changed>
+            name{*this};
+        PropRef<Vec, &Atom::coord_ptr, &Atom::coord_changed>
+            coord{*this};
+        PropRef<float, &Atom::charge_ptr, &Atom::prop_changed>
+            charge{*this};
+        PropRef<std::bitset<nAtProp>, &Atom::prop_ptr, &Atom::prop_changed>
+            properties{*this};
+        const PropRef<PseEntry*, &Atom::pse_ptr, nullptr>
+            pse{*this};
+        virtual ~Atom() = default;
+        Atom() = delete;
+        inline Atom(const Atom& at)
+            : coord_ptr{at.coord_ptr},
+              coord_changed{at.coord_changed},
+              name_ptr{at.name_ptr},
+              charge_ptr{at.charge_ptr},
+              prop_ptr{at.prop_ptr},
+              pse_ptr{at.pse_ptr},
+              prop_changed{at.prop_changed} {}
+        inline Atom& operator=(const Atom& at)
+        {
+            name = at.name;
+            coord = at.coord;
+            charge = at.charge;
+            properties = at.properties;
+            pse_ptr = at.pse_ptr;
+            return *this;
+        }
     };
-    //string may fail to be converted implicitely
-    std::ostream& operator<<(std::ostream& s, const Atom::PropRef<std::string>& pr);
-    std::istream& operator>>(std::istream& s, Atom::PropRef<std::string>& pr);
-    bool operator==(const std::string& s, const Atom::PropRef<std::string>& pr);
-    bool operator==(const Atom::PropRef<std::string>& pr, const std::string& s);
 
-    bool operator==(const Atom &a1, const Atom &a2);
-    bool operator!=(const Atom &a1, const Atom &a2);
+    inline bool operator==(const Atom &a1, const Atom &a2){
+        return std::tie(a1.name, a1.coord, a1.charge, a1.properties)
+               ==
+               std::tie(a2.name, a2.coord, a2.charge, a2.properties);
+    }
+    inline bool operator!=(const Atom &a1, const Atom &a2){
+        return !(a1==a2);
+    }
+
 }
 
 #endif // ATOM_H

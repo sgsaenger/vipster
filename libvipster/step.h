@@ -1,99 +1,182 @@
-#ifndef STEPINTERFACE_H
-#define STEPINTERFACE_H
+#ifndef STEPNEW_H
+#define STEPNEW_H
 
-#include "config.h"
+#include "atom.h"
+#include "cell.h"
+#include "stepbase.h"
 #include "vec.h"
-#include "atomref.h"
-#include "bond.h"
-#include "global.h"
-#include <set>
+
+#include <vector>
 #include <memory>
-#include <functional>
 
 namespace Vipster {
 
-enum class BondLevel { None, Molecule, Cell };
-enum class CdmFmt { Bohr, Angstrom };
-
-class Step {
-public:
-    virtual ~Step() = default;
-
-    // Format
-    AtomFmt                 getFmt() const noexcept;
-
-    // Atoms
-    size_t                  getNat() const noexcept;
-    virtual void            newAtom() = 0;
-    virtual void            newAtom(const Atom &at) = 0;
-    virtual void            newAtoms(size_t i) = 0;
-    virtual void            delAtom(size_t idx) = 0;
-    virtual AtomRef         operator[](size_t idx) = 0;
-    virtual const AtomRef   operator[](size_t idx) const = 0;
-
-    // Atom-iterator
-    class iterator: private AtomRef{
-    public:
-        iterator(const Step* step, size_t idx);
-        iterator&       operator++();
-        AtomRef&        operator*();
-        const AtomRef&  operator*() const;
-        bool            operator==(const iterator&) const;
-        bool            operator!=(const iterator&) const;
-    private:
-        Step* step;
-        size_t idx;
-    };
-    iterator        begin();
-    iterator        end();
-    const iterator  begin() const;
-    const iterator  end() const;
-    const iterator  cbegin() const;
-    const iterator  cend() const;
-
-    // Types
-    std::set<std::string>   getTypes(void) const noexcept;
-    size_t                  getNtyp(void) const noexcept;
-
-    // Cell
-    virtual bool            hasCell() const noexcept = 0;
-    virtual void            enableCell(bool) noexcept = 0;
-    virtual void            setCellDim(float cdm, CdmFmt at_fmt, bool scale=false) = 0;
-    virtual float           getCellDim(CdmFmt at_fmt) const noexcept = 0;
-    virtual void            setCellVec(const Mat &vec, bool scale=false) = 0;
-    virtual Mat             getCellVec(void) const noexcept = 0;
-    virtual Vec             getCenter(CdmFmt at_fmt, bool com=false) const noexcept = 0;
-
-    // Comment
-    virtual void                setComment(const std::string& s) = 0;
-    virtual const std::string&  getComment() const noexcept = 0;
-
-    // Bonds
-    virtual const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell) const = 0;
-    virtual const std::vector<Bond>&    getBonds(float cutfac,
-                                                 BondLevel l=BondLevel::Cell) const = 0;
-    virtual size_t                      getNbond(void) const noexcept = 0;
-
-    // Public data
-    std::shared_ptr<PseMap>         pse;
-
-protected:
-    Step(std::shared_ptr<PseMap> pse, AtomFmt at_fmt);
-    // Atoms
-    mutable bool                        at_changed{false};
-    std::shared_ptr<std::vector<Vec>>   at_coord;
-    virtual void                        evaluateCache() const = 0;
-    // Format
-    AtomFmt                 at_fmt;
-    std::function<Vec(const Vec&)> getFormatter(AtomFmt source, AtomFmt target) const;
-    Vec                     formatVec(Vec in, AtomFmt source, AtomFmt target) const;
-    std::vector<Vec>        formatAll(std::vector<Vec> in, AtomFmt source,
-                                      AtomFmt target) const;
-    //TODO: benchmark:
-//    std::vector<Vec>&       formatInPlace(std::vector<Vec>& in, AtomFmt source,
-//                                          AtomFmt target);
+/*
+ * Basic serial Atom container
+ *
+ * Stores atom in separate vectors
+ */
+struct AtomList{
+    // Coordinates
+    std::array<std::vector<Vec>, 4> coordinates;
+    std::array<bool,4>              coord_changed;
+    std::array<bool,4>              coord_outdated;
+    // Properties
+    std::vector<std::string>        names;
+    std::vector<float>              charges;
+    std::vector<std::bitset<nAtProp>>            properties;
+    std::vector<PseEntry*>          pse;
+    bool                            prop_changed;
 };
 
+/*
+ * Iterator for serial Atom container
+ */
+template<typename T>
+class AtomListIterator: private T
+{
+public:
+    AtomListIterator(std::shared_ptr<AtomList> atoms,
+                     AtomFmt fmt, size_t idx)
+        : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
+            &atoms->coord_changed[static_cast<uint8_t>(fmt)],
+            &atoms->names[idx],
+            &atoms->charges[idx],
+            &atoms->properties[idx],
+            &atoms->pse[idx],
+            &atoms->prop_changed,
+        }, atoms{atoms}, fmt{fmt}, idx{idx}
+    {}
+    AtomListIterator& operator++(){
+        ++idx;
+        ++(this->coord_ptr);
+        ++(this->name_ptr);
+        ++(this->charge_ptr);
+        ++(this->prop_ptr);
+        ++(this->pse_ptr);
+        return *this;
+    }
+    AtomListIterator& operator+=(size_t i){
+        idx += i;
+        this->coord_ptr += i;
+        this->name_ptr += i;
+        this->charge_ptr += i;
+        this->prop_ptr += i;
+        this->pse_ptr += i;
+        return *this;
+    }
+    T&      operator*() const {
+        return static_cast<T&>(*const_cast<AtomListIterator*>(this));
+    }
+    T*      operator->() const {
+        return &(operator*());
+    }
+    bool    operator==(const AtomListIterator& rhs) const noexcept{
+        return (atoms == rhs.atoms) && (fmt == rhs.fmt) && (idx == rhs.idx);
+    }
+    bool    operator!=(const AtomListIterator& rhs) const noexcept{
+        return !(*this == rhs);
+    }
+private:
+    std::shared_ptr<AtomList> atoms;
+    AtomFmt fmt;
+    size_t idx;
+};
+
+/*
+ * Basic Step-class
+ *
+ * Instantiation of Bond- and Cell-getters with AtomList as Atom-source
+ */
+class Step: public StepBase<Step>
+{
+    friend class StepBase<Step>;
+public:
+    Step& operator=(const Step& s);
+    // Atoms
+    size_t          getNat() const noexcept;
+    void            newAtom();
+    void            newAtom(std::string name,
+                            Vec coord=Vec{},
+                            float charge=float{},
+                            std::bitset<nAtProp> prop=std::bitset<nAtProp>{});
+    void            newAtom(const Atom& at);
+    void            newAtoms(size_t i);
+    void            delAtom(long i);
+    using           iterator = AtomListIterator<Atom>;
+    using           constIterator = AtomListIterator<const Atom>;
+    Atom            operator[](size_t i);
+    iterator        begin() noexcept;
+    constIterator   begin() const noexcept;
+    constIterator   cbegin() const noexcept;
+    iterator        end() noexcept;
+    constIterator   end() const noexcept;
+    constIterator   cend() const noexcept;
+
+    // Cell-setters
+    void    enableCell(bool) noexcept;
+    void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
+    void    setCellVec(const Mat &vec, bool scale=false);
+
+protected:
+    Step(std::shared_ptr<PseMap>, AtomFmt, std::shared_ptr<BondList>,
+         std::shared_ptr<CellData>, std::shared_ptr<std::string>,
+         std::shared_ptr<AtomList>);
+    Step(const Step& s);
+    std::shared_ptr<AtomList>       atoms;
+};
+
+/*
+ * Wrapper to access AtomFmt-cache
+ */
+class StepProper;
+class StepFormatter: public Step
+{
+public:
+    StepFormatter(StepProper& step, AtomFmt at_fmt);
+    Step&       asFmt(AtomFmt) override;
+    const Step& asFmt(AtomFmt) const override;
+protected:
+    void evaluateCache() const override;
+private:
+    StepProper& step;
+};
+
+/*
+ * Concrete Step
+ *
+ * main owner of all data
+ * contains static formatter instances
+ */
+class StepProper: public Step
+{
+    friend class StepFormatter;
+    friend class GuiWrapper;
+public:
+    StepProper(std::shared_ptr<PseMap> pse = std::make_shared<PseMap>(),
+               AtomFmt at_fmt=AtomFmt::Bohr,
+               std::string comment="");
+    StepProper(const StepProper& s);
+    StepProper& operator=(const StepProper& s);
+
+    // Format
+    void            setFmt(AtomFmt at_fmt, bool scale=false);
+    StepFormatter   asBohr{*this, AtomFmt::Bohr};
+    StepFormatter   asAngstrom{*this, AtomFmt::Angstrom};
+    StepFormatter   asCrystal{*this, AtomFmt::Crystal};
+    StepFormatter   asAlat{*this, AtomFmt::Alat};
+    Step&           asFmt(AtomFmt at_fmt) override;
+    const Step&     asFmt(AtomFmt at_fmt) const override;
+protected:
+    void evaluateCache() const override;
+private:
+    static constexpr StepFormatter StepProper::* fmtmap[] = {
+        &StepProper::asBohr,
+        &StepProper::asAngstrom,
+        &StepProper::asCrystal,
+        &StepProper::asAlat,
+    };
+};
 }
 
-#endif // STEPINTERFACE_H
+#endif // STEPNEW_H
