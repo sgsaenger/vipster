@@ -301,6 +301,6 @@ $(document).ready(function () {
 });
 
 function addParser(idx, name) {
-    document.getElementById('uptype').innerHTML +=
+    document.getElementById('fileType').innerHTML +=
             '<option value='+idx+'>'+UTF8ToString(name)+'</option>';
 }
