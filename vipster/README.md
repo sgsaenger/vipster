@@ -1,24 +1,38 @@
-# Vipster Web Frontend
+# Vipster Frontend
 
-## Install
+## Qt-Frontend (Win, Lin)
 
-In current directory `vipster/vipster`:
-
-```
-npm install
-```
+This frontend works on every pc with OpenGL3.3 capabilities (MacOS X postponed due to unknown problems).
+To build the frontend, run:
 
 ```
-VIPSTER_SOURCE=~/git/vipster
-WEB_BUILD=~/vipster-web
-mkdir -p $WEB_BUILD && cd $_
+cd $WHEREVER
+mkdir build-vipster && cd build-vipster
+qmake $VIPSTER_SOURCE/vipster.pro
+make
+```
+where `VIPSTER_SOURCE` shall be the directory you cloned the git/unpacked the archive in.
+
+## Web-Frontend
+
+This frontend works in every browser with WebGL2 and WebAssembly support.
+To build the frontend, run:
+
+```
+cd $WHEREVER
+mkdir build-webvipster && cd build-webvipster
 qmake -spec $VIPSTER_SOURCE/emscriptenmkspec $VIPSTER_SOURCE/vipster.pro
 make
 ```
+where `VIPSTER_SOURCE` shall be the directory you cloned the git/unpacked the archive in.
 
-(Adapt `VIPSTER_SOURCE` and `WEB_BUILD` to your needs.)
+### Rebuild CSS (optional)
 
-## Usage
+To rebuild the css, run
+```
+npm install
+```
+in this directory. This will pull in dependencies and rebuild `styles/styles.css`.
 
 The following NPM scripts are available:
 
