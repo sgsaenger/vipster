@@ -27,12 +27,10 @@ wasm {
         --embed-file $$PWD/resources/cell.vert@cell.vert
 
     copydata.files  = $$PWD/index.html\
-                      $$PWD/vipster_setup.js
-    copydata.styles = $$PWD/styles/styles.css
+                      $$PWD/vipster_setup.js\
+                      $$PWD/styles/styles.css
 
     copydata.commands  = $(COPY_DIR) $$copydata.files $$OUT_PWD ;
-    copydata.commands += mkdir -p $$OUT_PWD/styles; \
-                         $(COPY_DIR) $$copydata.styles $$OUT_PWD/styles/;
 
     first.depends = $(first) copydata
     export(first.depends)
@@ -40,9 +38,9 @@ wasm {
     QMAKE_EXTRA_TARGETS += first copydata
 
     DISTFILES += \
-        vipster.html \
+        index.html \
         vipster_setup.js \
-        styles/vipster.css
+        styles/styles.css
 
 } else {
     QT += core gui widgets

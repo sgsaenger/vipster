@@ -37,6 +37,7 @@ moc_*
 # IDEs / editors
 .idea/
 .vscode/
+.eslintrc.json
 
 # NPM packages
 node_modules/
