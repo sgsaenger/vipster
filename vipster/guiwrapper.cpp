@@ -468,15 +468,15 @@ void GuiWrapper::drawCell(void)
     // bonds
     glBindVertexArray(bond_vao);
     glUseProgram(bond_program);
-    GLuint offLocB = glGetUniformLocation(bond_program, "offset");
-    GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
-    GLuint multLoc = glGetUniformLocation(bond_program, "mult");
-    GLuint cellLocB = glGetUniformLocation(bond_program, "position_scale");
+    GLint offLocB = glGetUniformLocation(bond_program, "offset");
+    GLint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
+    GLint multLoc = glGetUniformLocation(bond_program, "mult");
+    GLint cellLocB = glGetUniformLocation(bond_program, "position_scale");
     glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
     glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
-    for(int x=0;x<mult[0];++x){
-        for(int y=0;y<mult[1];++y){
-            for(int z=0;z<mult[2];++z){
+    for(GLuint x=0;x<mult[0];++x){
+        for(GLuint y=0;y<mult[1];++y){
+            for(GLuint z=0;z<mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocB, 1, off.data());
                 glUniform3ui(pbcLoc, x, y, z);
@@ -527,15 +527,15 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     default:
         break;
     }
-    cell_mat = {{tmp_mat[0][0], tmp_mat[0][1], tmp_mat[0][2],
-                 tmp_mat[1][0], tmp_mat[1][1], tmp_mat[1][2],
-                 tmp_mat[2][0], tmp_mat[2][1], tmp_mat[2][2]}};
+    cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
+                 tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
+                 tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
     cell_mat_changed = true;
 
     //atoms
     atom_prop_buffer.clear();
     atom_prop_buffer.reserve(curStep->getNat());
-    for (const PseEntry* at:curStep->at_pse) {
+    for (const PseEntry* at:curStep->atoms->pse) {
         atom_prop_buffer.push_back({at->covr, at->col});
     }
     atoms_changed = true;
@@ -545,12 +545,14 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
         constexpr Vec x_axis{{1,0,0}};
         //TODO: pull cutfac from config
         const auto& bonds = curStep->getBonds(BondLevel::Cell);
-        const auto& pse = curStep->at_pse;
+        //TODO: reduce map-lookups somehow
+        const auto& pse = curStep->atoms->pse;
         float c, s, ic;
-        float rad = 0.53; // TODO: pull bond-radius from config
+        float rad = 0.53f; // TODO: pull bond-radius from config
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
-        const std::vector<Vec>& at_coord = *curStep->at_coord;
+        const std::vector<Vec>& at_coord = curStep->atoms->coordinates[
+                static_cast<size_t>(curStep->getFmt())];
         AtomFmt fmt = curStep->getFmt();
         auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         switch(fmt){
@@ -614,9 +616,9 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
                     //vec3 with position in modelspace
                     bond_pos,
                     //faux uvec4 with integral pbc information
-                    {(uint16_t)std::abs(bd.xdiff),
-                     (uint16_t)std::abs(bd.ydiff),
-                     (uint16_t)std::abs(bd.zdiff),
+                    {static_cast<uint16_t>(std::abs(bd.xdiff)),
+                     static_cast<uint16_t>(std::abs(bd.ydiff)),
+                     static_cast<uint16_t>(std::abs(bd.zdiff)),
                     //padding that tells if non-pbc bond
                     !(bd.xdiff||bd.ydiff||bd.zdiff)},
                     //2*vec4 with colors
@@ -639,7 +641,8 @@ void GuiWrapper::updateVBOs(void)
         auto nat = atom_prop_buffer.size();
         if (nat) {
             glBufferData(GL_ARRAY_BUFFER, nat*sizeof(Vec),
-                         (void*)curStep->at_coord->data(), GL_STREAM_DRAW);
+                         static_cast<void*>(curStep->atoms->coordinates[
+                             static_cast<size_t>(curStep->getFmt())].data()), GL_STREAM_DRAW);
         } else {
             glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
         }

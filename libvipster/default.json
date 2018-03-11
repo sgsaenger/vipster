@@ -1,6 +1,6 @@
 {
   "PSE": {
-    "":      { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": 0,    "covr": 1.46, "vdwr": 3.21, "col": [   0,   0,   0, 255 ] },
+    "":      { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,    "covr": 1.46, "vdwr": 3.21, "col": [   0,   0,   0, 255 ] },
     "H":     { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 1,   "m": 1.0079,    "bondcut": 0.72, "covr": 0.72, "vdwr": 2.27, "col": [ 190, 190, 190, 255 ] },
     "He":    { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 2,   "m": 4.0026,    "bondcut": 0.6,  "covr": 0.6,  "vdwr": 2.65, "col": [ 215, 255, 255, 255 ] },
     "Li":    { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 3,   "m": 6.941,     "bondcut": 2.53, "covr": 2.53, "vdwr": 3.44, "col": [ 204, 126, 255, 255 ] },
@@ -119,10 +119,10 @@
     "Lv":    { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 116, "m": 293,       "bondcut": 1.46, "covr": 1.46, "vdwr": 3.21, "col": [ 252,   0,  19, 255 ] },
     "Uus":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 117, "m": 294,       "bondcut": 1.46, "covr": 1.46, "vdwr": 3.21, "col": [ 252,   0,  17, 255 ] },
     "Uuo":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 118, "m": 294,       "bondcut": 1.46, "covr": 1.46, "vdwr": 3.21, "col": [ 252,   0,  15, 255 ] },
-    "BCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": 0.0,  "covr": 0.72, "vdwr": 2.27, "col": [   0, 255,   0, 255 ] },
-    "RCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": 0.0,  "covr": 0.72, "vdwr": 2.27, "col": [ 255,   0,   0, 255 ] },
-    "CCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": 0.0,  "covr": 0.72, "vdwr": 2.27, "col": [ 255, 255,   0, 255 ] },
-    "NNACP": { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": 0.0,  "covr": 0.72, "vdwr": 2.27, "col": [   0,   0, 255, 255 ] }
+    "BCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,  "covr": 0.72, "vdwr": 2.27, "col": [   0, 255,   0, 255 ] },
+    "RCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,  "covr": 0.72, "vdwr": 2.27, "col": [ 255,   0,   0, 255 ] },
+    "CCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,  "covr": 0.72, "vdwr": 2.27, "col": [ 255, 255,   0, 255 ] },
+    "NNACP": { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,  "covr": 0.72, "vdwr": 2.27, "col": [   0,   0, 255, 255 ] }
   },
   "General": {
     "Atom radius VdW": false,

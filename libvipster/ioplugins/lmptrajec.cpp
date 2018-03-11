@@ -12,22 +12,22 @@ auto IdentifyColumns(std::string& line)
     ss >> tok >> tok;
     enum coordstate{none=0, unscaled=1, scaled=2, unwrapped=4};
     coordstate cs{};
-    auto xparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.coord[0];};
-    auto yparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.coord[1];};
-    auto zparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.coord[2];};
-    auto nparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.name;};
-    auto qparser = [](std::stringstream& ss, AtomRef& at) {ss >> at.charge;};
-    auto dparser = [](std::stringstream& ss, AtomRef&) {static std::string dummy{}; ss >> dummy;};
-    std::vector<void(*)(std::stringstream&, AtomRef&)> funvec{};
+    auto xparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[0];};
+    auto yparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[1];};
+    auto zparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[2];};
+    auto nparser = [](std::stringstream& ss, Atom& at) {ss >> at.name;};
+    auto qparser = [](std::stringstream& ss, Atom& at) {ss >> at.charge;};
+    auto dparser = [](std::stringstream& ss, Atom&) {static std::string dummy{}; ss >> dummy;};
+    std::vector<void(*)(std::stringstream&, Atom&)> funvec{};
     while ( !(ss >> tok).fail() ) {
         if (tok[0] == 'x' || tok[0] == 'y' || tok[0] == 'z') {
             if ((tok.length() == 1) || (tok[1] != 's')) {
-                cs = (coordstate)(cs | unscaled);
+                cs = static_cast<coordstate>(cs | unscaled);
             } else if (tok[1] == 's') {
-                cs = (coordstate)(cs | scaled);
+                cs = static_cast<coordstate>(cs | scaled);
             }
             if (((tok.length() == 2) && (tok[1] == 'u')) || (tok.length() == 3))
-                cs = (coordstate)(cs | unwrapped);
+                cs = static_cast<coordstate>(cs | unwrapped);
             if(tok[0] == 'x') funvec.push_back(xparser);
             else if(tok[0] == 'y') funvec.push_back(yparser);
             else if(tok[0] == 'z') funvec.push_back(zparser);
@@ -39,7 +39,7 @@ auto IdentifyColumns(std::string& line)
             funvec.push_back(dparser);
         }
     }
-    switch ((size_t)cs) {
+    switch (static_cast<size_t>(cs)) {
     case unscaled:
         [[fallthrough]];
     case scaled:

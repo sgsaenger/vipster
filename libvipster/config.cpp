@@ -28,7 +28,7 @@ PseMap Vipster::readPse()
     }
     // ensure fallback-value is present
     if(temp.find("")==temp.end()){
-        temp.emplace("", PseEntry{"","","",0,0.,0.,1.46,3.21,{{0,0,0,255}}});
+        temp.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
     }
     return temp;
 }

@@ -96,14 +96,22 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
 
     s.newAtoms(nat);
     std::string line;
-    for (size_t i=0; i<nat; ++i) {
+    for (auto& at: s) {
         std::getline(file, line);
-        while(line[0]=='!' || line[0]=='#') std::getline(file, line);
-        auto at = s[i];
+        while(line[0]=='!' || line[0]=='#'){
+             std::getline(file, line);
+        }
         std::stringstream linestream{line};
         linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
-        if (linestream.fail()) throw IOError{"Failed to parse atom"};
-        linestream >> at.fix[0] >> at.fix[1] >> at.fix[2];
+        if (linestream.fail()) {
+            throw IOError{"Failed to parse atom"};
+        }
+        uint8_t x{0},y{0},z{0};
+        linestream >> x >> y >> z;
+        at.properties[FixX] = x;
+        at.properties[FixY] = y;
+        at.properties[FixZ] = z;
+//        at.properties = x*FixX | y*FixY | z*FixZ;
     }
 }
 
@@ -131,7 +139,7 @@ void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &ce
     if(!std::stoi(ibrav->second)) {
         std::string line;
         Mat cell;
-        for(int i=0; i<3; ++i){
+        for(size_t i=0; i<3; ++i){
             std::getline(file, line);
             while(line[0]=='!' || line[0]=='#') std::getline(file, line);
             std::stringstream linestream{line};
@@ -184,7 +192,7 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
         if(!std::stoi(ibrav->second)) throw IOError("ibrav=0, but no CELL_PARAMETERS were given");
         //TODO
         throw IOError("Creating Cells based on ibrav not supported yet");
-        break;
+//        break;
     }
 }
 
@@ -211,7 +219,7 @@ std::shared_ptr<IO::BaseData> PWInpParser(std::string name, std::ifstream &file)
     std::string line;
     while (std::getline(file, line)) {
         if (!line[0] || line[0] == ' ' || line[0] == '!' || line[0] == '#') continue;
-        for (auto &c: line) c = std::toupper(c);
+        for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if (line[0] == '&') parseNamelist(line, file, p);
         else parseCard(line, file, *d, cellFmt);
     }
@@ -261,7 +269,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
              << e.PWPP << '\n';
     }
     const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
-    file << "\nATOMIC_POSITION " << atfmt[(int)s.getFmt()] << '\n'
+    file << "\nATOMIC_POSITION " << atfmt[static_cast<size_t>(s.getFmt())] << '\n'
          << std::fixed << std::setprecision(5);
     for (const Atom& at: s) {
         file << std::left << std::setw(3) << at.name << ' '

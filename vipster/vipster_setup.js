@@ -299,3 +299,8 @@ $(document).ready(function () {
             .find('.widget__body').slideToggle();
     });
 });
+
+function addParser(idx, name) {
+    document.getElementById('uptype').innerHTML +=
+            '<option value='+idx+'>'+UTF8ToString(name)+'</option>';
+}

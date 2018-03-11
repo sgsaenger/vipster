@@ -1,16 +1,18 @@
 #ifndef MOLECULE_H
 #define MOLECULE_H
 
-#include "stepproper.h"
+#include "step.h"
 #include "config.h"
 #include "kpoints.h"
 
 namespace Vipster {
+
 class Molecule
 {
 public:
     Molecule(std::string name="New Molecule",unsigned long s=1);
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
+
 
     StepProper& newStep(const StepProper& step);
     StepProper& newStep(StepProper&& step={});
