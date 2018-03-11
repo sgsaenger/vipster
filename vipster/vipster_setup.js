@@ -10,8 +10,6 @@ const dom = {};
     dom[id] = document.getElementById(id);
 });
 
-const loadedMolecules = {};
-
 // NOTE: `Module` needs to be declared as `var` to work with emscripten!
 // noinspection ES6ConvertVarToLetConst
 var Module = {
@@ -184,14 +182,6 @@ function readFile() {
         Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
         const readError = Module.readFile('/tmp/vipster.file', file.name, parseInt(dom.fileType.value));
         Module.FS_unlink('/tmp/vipster.file');
-
-        const fileKey = file.name + file.size + file.lastModified;
-        if (loadedMolecules[fileKey]) {
-            // abort if this file has already been loaded
-            return false;
-        } else {
-            loadedMolecules[fileKey] = true;
-        }
 
         if (readError.length) {
             $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));
