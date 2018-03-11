@@ -1,0 +1,27 @@
+.btn-default {
+    background-color: $theme-gray;
+}
+
+.dropdown-menu {
+    max-width: 100%;
+}
+
+.custom-checkbox {
+    .custom-control-label {
+        line-height: 1.65rem;
+    }
+}
+
+.table {
+    border-radius: $border-radius;
+
+    thead th {
+        border-top: none;
+    }
+}
+
+.alert {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+}

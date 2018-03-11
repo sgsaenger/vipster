@@ -1,4 +1,4 @@
-# Binaries
+
 vipster/vipster
 tests/test_libvipstertest
 # C++ build files
@@ -33,3 +33,11 @@ moc_*
 # qt-creator stuff
 *.pro.user
 *.autosave
+
+# IDEs / editors
+.idea/
+.vscode/
+.eslintrc.json
+
+# NPM packages
+node_modules/

@@ -1,77 +1,113 @@
-var Change = {
-    atoms: 1,
-    cell: 2,
-    fmt: 4,
-    //
-    kpoints: 32,
-};
-Change.step =  Change.atoms | Change.cell | Change.fmt;
-Change.mol = Change.kpoints;
+const VERBOSE = true;
 
+const dom = {};
+[
+    'canvas', 'alerts', 'inputFile', 'fileType', 'btnBrowse', 'btnUpload',
+    'atList', 'selectAtomFormat', 'cdmFmtSel', 'cellDim', 'cellVec',
+    'cellToMol', 'cellScale', 'stepCur', 'stepMax', 'stepSlider',
+    'moleculeDropdown', 'checkboxCellEnabled',
+].forEach(id => {
+    dom[id] = document.getElementById(id);
+});
+
+// NOTE: `Module` needs to be declared as `var` to work with emscripten!
+// noinspection ES6ConvertVarToLetConst
 var Module = {
     preRun: [],
     postRun: [],
     curMol: 0,
     curStep: 0,
-    canvas: (function () {
-        var canvas = document.getElementById('canvas');
-        canvas.addEventListener("webglcontextlost", function (e) {
-            alert('WebGL context lost. You will need to reload the page.');
-            e.preventDefault();
-        }, false);
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        return canvas;
-    })()
-}
+    canvas: setupCanvas(dom.canvas),
+};
 
-function update(change) {
-    if (change & (Change.atoms | Change.cell))
-        fillAtoms();
-    if (change & Change.cell)
-        fillCell();
+const change = {
+    atoms: 1,
+    cell: 2,
+    fmt: 4,
+    kpoints: 32,
+};
+
+change.step = change.atoms | change.cell | change.fmt;
+change.mol = change.kpoints;
+
+function setupCanvas(canvas) {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
+    dom.canvas.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        if (window.confirm('Lost WebGL context. Reload page?')) {
+            window.location.reload();
+        }
+    });
+
+    return canvas;
 }
 
 function fillAtoms() {
-    var fmt = parseInt(document.getElementById('atFmtSel').value);
-    var at = Module.getAtomIt(Module.curMol, Module.curStep, fmt);
-    var nat = Module.getNAtoms(Module.curMol, Module.curStep);
-    var atList = document.getElementById('atList');
-    atList.innerHTML = "<tr><th>Type</th><th>X</th><th>Y</th><th>Z</th></tr>";
-    for (i = 0; i < nat; ++i) {
-        atList.innerHTML += "<tr data-idx=" + i + "> \
-<td contenteditable data-idx='name'>" + at.name + "</td> \
-<td contenteditable data-idx='0'>" + at.coord[0] + "</td> \
-<td contenteditable data-idx='1'>" + at.coord[1] + "</td> \
-<td contenteditable data-idx='2'>" + at.coord[2] + "</td></tr>";
+    const fmt = parseInt(dom.selectAtomFormat.value);
+    const at = Module.getAtomIt(Module.curMol, Module.curStep, fmt);
+    const nat = Module.getNAtoms(Module.curMol, Module.curStep);
+    const nbsp = '&nbsp;';
+
+    let html = `
+        <thead>
+            <tr>
+                <th scope="col">Type</th>
+                <th scope="col">${nbsp}X</th>
+                <th scope="col">${nbsp}Y</th>
+                <th scope="col">${nbsp}Z</th>
+            </tr>
+        </thead>
+    `;
+
+    html += '<tbody>';
+    for (let i = 0; i < nat; ++i) {
+        const x = at.coord[0];
+        const y = at.coord[1];
+        const z = at.coord[2];
+
+        html += `
+            <tr data-idx=${i}>
+                <td contenteditable data-idx='name' scope="row">${at.name}</td>
+                <td contenteditable data-idx='0'>${x < 0 ? '' : nbsp}${x.toFixed(7)}</td>
+                <td contenteditable data-idx='1'>${y < 0 ? '' : nbsp}${y.toFixed(7)}</td>
+                <td contenteditable data-idx='2'>${z < 0 ? '' : nbsp}${z.toFixed(7)}</td>
+            </tr>
+        `;
         at.increment();
     }
+    html += '</tbody>';
+
+    dom.atList.innerHTML = html;
 }
 
 function fillCell() {
-    var cdm = document.getElementById("cellDim");
-    var fmt = parseInt(document.getElementById("cdmFmtSel").value);
-    cdm.value = Module.getCellDim(Module.curMol, Module.curStep, fmt);
-    var mat = Module.getCellVec(Module.curMol, Module.curStep);
-    var vec = document.getElementById("cellVec");
-    for(row=0; row<3; ++row){
-        for(col=0; col<3; ++col){
-            vec.rows[row+1].cells[col+1].innerText = mat[row][col];
+    const fmt = parseInt(dom.cdmFmtSel.value);
+    const mat = Module.getCellVec(Module.curMol, Module.curStep);
+
+    dom.cellDim.value = Module.getCellDim(Module.curMol, Module.curStep, fmt);
+
+    for (let row = 0; row < 3; ++row) {
+        for (let col = 0; col < 3; ++col) {
+            dom.cellVec.rows[row + 1].cells[col + 1].innerText = mat[row][col];
         }
     }
 }
 
 function atomChanged(tgt) {
-    var fmt = parseInt(document.getElementById('atFmtSel').value);
-    var at = Module.getAtom(Module.curMol, Module.curStep, fmt,
-                            parseInt(tgt.parentElement.dataset.idx));
+    const fmt = parseInt(dom.selectAtomFormat.value);
+    const at = Module.getAtom(
+        Module.curMol, Module.curStep, fmt,
+        parseInt(tgt.parentElement.dataset.idx),
+    );
     if (tgt.dataset.idx === 'name') {
         at.name = tgt.innerText;
     } else {
-        var dir = parseInt(tgt.dataset.idx);
-        var newVal = parseFloat(tgt.innerText);
-        if (!isNaN(newVal)) {
-            var coord = at.coord;
+        const dir = parseInt(tgt.dataset.idx);
+        const newVal = parseFloat(tgt.innerText);
+        if (!Number.isNaN(newVal)) {
+            const { coord } = at;
             coord[dir] = newVal;
             at.coord = coord;
         }
@@ -80,27 +116,28 @@ function atomChanged(tgt) {
 }
 
 function cellDimChanged(tgt) {
-    var newVal = parseFloat(tgt.value);
-    if (isNaN(newVal))
+    const newVal = parseFloat(tgt.value);
+    if (Number.isNaN(newVal)) {
         return;
-    var fmt = parseInt(document.getElementById("cdmFmtSel").value);
-    var scale = document.getElementById("cellScale").checked;
-    var trajec = document.getElementById("cellToMol").checked;
+    }
+    const fmt = parseInt(dom.cdmFmtSel.value);
+    const scale = dom.cellScale.checked;
+    const trajec = dom.cellToMol.checked;
     if (trajec) {
-        for (var i=0;i<Module.getMolNStep(Module.curMol);++i) {
+        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
             Module.setCellDim(Module.curMol, i, newVal, fmt, scale);
         }
     } else {
         Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
     }
     Module.updateView();
-    update(Change.cell);
+    update(change.cell);
 }
 
 function cellEnabled(val) {
-    var trajec = document.getElementById("cellToMol").checked;
+    const trajec = dom.cellToMol.checked;
     if (trajec) {
-        for (var i=0;i<Module.getMolNStep(Module.curMol);++i) {
+        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
             Module.enableCell(Module.curMol, i, val);
         }
     } else {
@@ -110,75 +147,158 @@ function cellEnabled(val) {
 }
 
 function cellVecChanged(tgt) {
-    var newVal = parseFloat(tgt.innerText);
-    if (isNaN(newVal))
+    const newVal = parseFloat(tgt.innerText);
+    if (isNaN(newVal)) {
         return;
-    var col = tgt.dataset.idx;
-    var row = tgt.parentElement.dataset.idx;
-    var vec = Module.getCellVec(Module.curMol, Module.curStep);
+    }
+    const col = tgt.dataset.idx;
+    const row = tgt.parentElement.dataset.idx;
+    const vec = Module.getCellVec(Module.curMol, Module.curStep);
     vec[row][col] = newVal;
-    var trajec = document.getElementById("cellToMol").checked;
-    var scale = document.getElementById("cellScale").checked;
+    const trajec = document.getElementById('cellToMol').checked;
+    const scale = document.getElementById('cellScale').checked;
     if (trajec) {
-        for (var i=0;i<Module.getMolNStep(Module.curMol);++i) {
+        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
             Module.setCellVec(Module.curMol, i, vec, scale);
         }
     } else {
         Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
     }
     Module.updateView();
-    update(Change.cell);
+    update(change.cell);
 }
 
-function readFile(e) {
-    var file = document.getElementById('upfile').files[0];
-    var molList = document.getElementById('molList');
-    var reader = new FileReader();
-    reader.onload = function (e) {
-        Module.FS_createDataFile("/tmp", "test.file", e.target.result, true);
-        Module.readFile("/tmp/test.file", file.name,
-                        parseInt(document.getElementById('uptype').value));
-        Module.FS_unlink("/tmp/test.file");
-        molList.innerHTML += '<li onclick="setMol(getMolListIdx(event.target))">'
-                + file.name + "</li>";
-        setMol(molList.childElementCount - 1);
+function readFile() {
+    if (dom.inputFile.files.length !== 1) {
+        return;
     }
+
+    $('.alert').alert('close');
+
+    const file = dom.inputFile.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
+        const readError = Module.readFile('/tmp/vipster.file', file.name, parseInt(dom.fileType.value));
+        Module.FS_unlink('/tmp/vipster.file');
+
+        if (readError.length) {
+            $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));
+            if (VERBOSE) {
+                console.warn(readError);
+            }
+            return false;
+        }
+
+        // noinspection JSCheckFunctionSignatures
+        const idx = parseInt($(dom.moleculeDropdown).find('a:last').data('idx')) + 1;
+        const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`;
+
+        $(dom.moleculeDropdown)
+            .find('.dropdown-divider')
+            .show()
+            .parent()
+            .append(link);
+
+        setMol(idx);
+    };
     reader.readAsText(file);
 }
 
-function setMult(e) {
-    var x = document.getElementById('xmult').value;
-    var y = document.getElementById('ymult').value;
-    var z = document.getElementById('zmult').value;
+function openFileDialogue() {
+    dom.inputFile.click();
+}
+
+function setMult() {
+    const x = document.getElementById('xmult').value;
+    const y = document.getElementById('ymult').value;
+    const z = document.getElementById('zmult').value;
     Module.setMult(parseInt(x), parseInt(y), parseInt(z));
 }
 
-function getMolListIdx(li) {
-    var molList = li.parentElement.children;
-    for (i = 0; i < li.parentElement.childElementCount; i++) {
-        if (li === molList[i])
-            break;
+function update(arg) {
+    if (arg & (change.atoms | change.cell)) {
+        fillAtoms();
     }
-    return i;
-}
 
-function setMol(i) {
-    Module.curMol = i;
-    var nstep = Module.getMolNStep(i);
-    var slider = document.getElementById('stepSlider');
-    document.getElementById('stepMax').innerHTML = nstep;
-    slider.max = nstep - 1;
-    slider.value = nstep - 1;
-    setStep(nstep - 1);
+    if (arg & change.cell) {
+        fillCell();
+    }
 }
 
 function setStep(i) {
-    document.getElementById('stepCur').innerHTML = i + 1;
     Module.curStep = i;
+
+    const hasCell = Module.hasCell(Module.curMol, Module.curStep);
+    $('.if-cell').toggle(hasCell);
+
+    dom.stepCur.innerHTML = i + 1;
+    dom.selectAtomFormat.value = Module.getFmt(Module.curMol, Module.curStep);
+    dom.checkboxCellEnabled.checked = hasCell;
+
     Module.setStep(Module.curMol, i);
-    document.getElementById('atFmtSel').value = Module.getFmt(Module.curMol, Module.curStep);
-    update(Change.step);
+    update(change.step);
 }
+
+function setMol(idx) {
+    Module.curMol = idx;
+    const nstep = Module.getMolNStep(idx);
+    const molName = Module.getMolName(Module.curMol);
+
+    // update molecule dropdown
+    $(dom.moleculeDropdown).find('.dropdown-toggle:first').text(molName);
+
+    dom.stepMax.innerHTML = nstep;
+    dom.stepSlider.max = nstep - 1;
+    dom.stepSlider.value = nstep - 1;
+
+    $('#widget-step').toggle(nstep > 1);
+    setStep(nstep - 1);
+}
+
+function createAlert(msg, type, dismissable = true) {
+    return `
+        <div class="alert alert-${type} ${dismissable ? 'alert-dismissible fade show' : ''}" role="alert">
+            ${msg}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `;
+}
+
+$(document).ready(function () {
+    // File loading
+    $(dom.btnBrowse).click(openFileDialogue);
+    $(dom.btnUpload).click(readFile);
+    $(dom.inputFile).change(function () {
+        dom.btnUpload.disabled = (this.files.length !== 1);
+    });
+
+    // Molecule loading
+    $(document.body).on('click', `#${dom.moleculeDropdown.id} a`, function () {
+        const idx = $(this).data('idx') || 0;
+        setMol(idx);
+    });
+
+    // Hide specific cell properties if no cell present
+    $(dom.checkboxCellEnabled).change(function () {
+        $('.if-cell').toggle($(this).get(0).checked);
+    });
+
+    window.addEventListener('resize', function () {
+        Module.canvas.width = Module.canvas.clientWidth;
+        Module.canvas.height = Module.canvas.clientHeight;
+    });
+
+    $('.widget__toggle-btn').click(function () {
+        $(this)
+            .stop()
+            .parents('.widget:first').toggleClass('closed')
+            .find('.widget__body').slideToggle();
+    });
+});
 
 function addParser(idx, name) {
     document.getElementById('uptype').innerHTML +=

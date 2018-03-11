@@ -13,14 +13,20 @@ using namespace Vipster;
 static GuiWrapper gui;
 static std::vector<Molecule> molecules;
 
-void emReadFile(std::string fn, std::string name, int fmt){
-    auto d = readFile(fn, (IOFmt)fmt, name);
-    molecules.push_back(d->mol);
+std::string emReadFile(std::string fn, std::string name, int fmt){
+    try {
+        auto d = readFile(fn, (IOFmt)fmt, name);
+        molecules.push_back(d->mol);
+        return "";
+    } catch (std::exception &e) {
+        return e.what();
+    }
 }
 // Molecules
 int emGetNMol(void){ return molecules.size();}
 int emGetMolNstep(int m){ return molecules[m].getNstep();}
 std::string emGetMolName(int m){ return molecules[m].getName();}
+
 // Steps
 void emSetStep(int m, int s){ gui.updateBuffers(&molecules[m].getStep(s), true); }
 void emUpdateView(void){ gui.updateBuffers(nullptr, true); }
@@ -29,22 +35,26 @@ int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
 Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
 Step::iterator emGetAtomIt(int m, int s, int fmt){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt).begin(); }
 int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
+
 // Atom
 std::string emGetAtName(const Atom& at){return at.name;}
 void emSetAtName(Atom& at, std::string name){at.name = name;}
 Vec emGetAtCoord(const Atom& at){return at.coord;}
 void emSetAtCoord(Atom& at, Vec v){at.coord = v;}
+
 // Iterator
-std::string emGetItName(const Step::iterator& it){return (*it).name;}
-void emSetItName(Step::iterator& it, std::string name){(*it).name = name;}
-Vec emGetItCoord(const Step::iterator& it){return (*it).coord;}
-void emSetItCoord(Step::iterator& it, Vec v){(*it).coord = v;}
+std::string emGetItName(const Step::iterator& it){return it->name;}
+void emSetItName(Step::iterator& it, std::string name){it->name = name;}
+Vec emGetItCoord(const Step::iterator& it){return it->coord;}
+void emSetItCoord(Step::iterator& it, Vec v){it->coord = v;}
+
 // Cell
 float emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCellDim((CdmFmt)fmt);}
 void emSetCellDim(int m, int s, float cdm, int fmt, bool scale){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt, scale);}
 Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
 void emSetCellVec(int m, int s, Mat vec, bool scale){molecules[m].getStep(s).setCellVec(vec, scale);}
 void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
+bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
 
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("getNMol", &emGetNMol);
@@ -62,6 +72,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("getCellVec", &emGetCellVec);
     em::function("setCellVec", &emSetCellVec);
     em::function("enableCell", &emEnableCell);
+    em::function("hasCell", &emHasCell);
     em::function("updateView", &emUpdateView);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())

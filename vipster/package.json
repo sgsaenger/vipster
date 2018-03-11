@@ -1,0 +1,29 @@
+{
+  "name": "vipster-web-frontend",
+  "version": "0.8.0",
+  "description": "Visual Periodic STructure EditoR Web Frontend",
+  "author": "Sebastian Gsänger, Jonathan Gruber <gruberjonathan@gmail.com>",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "postinstall": "npm run build",
+    "css:compile": "node-sass -q --output-style=compressed ./styles/styles.scss ./styles/styles.css",
+    "css:postcss": "postcss ./styles/styles.css --use autoprefixer --no-map -r",
+    "watch": "nodemon -e scss -x \"npm run build\"",
+    "build": "npm run css:compile && npm run css:postcss"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hein09/vipster.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hein09/vipster/issues"
+  },
+  "homepage": "https://hein09.github.io/vipster/",
+  "devDependencies": {
+    "autoprefixer": "^7.2.5",
+    "bootstrap": "^4.0.0",
+    "node-sass": "^4.7.2",
+    "nodemon": "^1.14.12",
+    "postcss-cli": "^4.1.1"
+  }
+}
