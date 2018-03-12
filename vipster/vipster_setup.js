@@ -101,17 +101,19 @@ function atomChanged(tgt) {
         Module.curMol, Module.curStep, fmt,
         parseInt(tgt.parentElement.dataset.idx),
     );
+
     if (tgt.dataset.idx === 'name') {
         at.name = tgt.innerText;
     } else {
         const dir = parseInt(tgt.dataset.idx);
         const newVal = parseFloat(tgt.innerText);
         if (!Number.isNaN(newVal)) {
-            const { coord } = at;
+            const {coord} = at;
             coord[dir] = newVal;
             at.coord = coord;
         }
     }
+
     Module.updateView();
 }
 
@@ -120,9 +122,11 @@ function cellDimChanged(tgt) {
     if (Number.isNaN(newVal)) {
         return;
     }
+
     const fmt = parseInt(dom.cdmFmtSel.value);
     const scale = dom.cellScale.checked;
     const trajec = dom.cellToMol.checked;
+
     if (trajec) {
         for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
             Module.setCellDim(Module.curMol, i, newVal, fmt, scale);
@@ -130,6 +134,7 @@ function cellDimChanged(tgt) {
     } else {
         Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
     }
+
     Module.updateView();
     update(change.cell);
 }
@@ -143,6 +148,7 @@ function cellEnabled(val) {
     } else {
         Module.enableCell(Module.curMol, Module.curStep, val);
     }
+
     Module.updateView();
 }
 
@@ -151,12 +157,15 @@ function cellVecChanged(tgt) {
     if (isNaN(newVal)) {
         return;
     }
+
     const col = tgt.dataset.idx;
     const row = tgt.parentElement.dataset.idx;
     const vec = Module.getCellVec(Module.curMol, Module.curStep);
-    vec[row][col] = newVal;
     const trajec = document.getElementById('cellToMol').checked;
     const scale = document.getElementById('cellScale').checked;
+
+    vec[row][col] = newVal;
+
     if (trajec) {
         for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
             Module.setCellVec(Module.curMol, i, vec, scale);
@@ -164,6 +173,7 @@ function cellVecChanged(tgt) {
     } else {
         Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
     }
+
     Module.updateView();
     update(change.cell);
 }
@@ -177,6 +187,8 @@ function readFile() {
 
     const file = dom.inputFile.files[0];
     const reader = new FileReader();
+
+    reader.readAsText(file);
 
     reader.onload = (e) => {
         Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
@@ -300,7 +312,8 @@ $(document).ready(function () {
     });
 });
 
+// noinspection JSUnusedGlobalSymbols
 function addParser(idx, name) {
-    document.getElementById('fileType').innerHTML +=
-            '<option value='+idx+'>'+UTF8ToString(name)+'</option>';
+    // eslint-disable-next-line no-undef
+    $(dom.fileType).append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
 }
