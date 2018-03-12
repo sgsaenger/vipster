@@ -10,6 +10,14 @@
         }
     }
 
+    &:first-of-type {
+        margin-top: .25rem;
+
+        @include media-breakpoint-up(lg) {
+            margin-top: 0;
+        }
+    }
+
     > header {
         position: relative;
 

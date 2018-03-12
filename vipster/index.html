@@ -14,16 +14,24 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <aside id="sidebar">
-                <h1>
-                    <span class="title">Vipster</span>
-                    <small class="text-muted">
-                        Visual Periodic STructure EditoR
-                    </small>
-                </h1>
 
+<div class="container-fluid">
+    <div class="row">
+        <aside id="controls">
+            <button id="controls__toggle-btn" class="btn btn-lg" type="button" data-toggle="collapse"
+                    data-target="#controls__collapse" aria-expanded="false" aria-controls="controls__collapse"
+                    title="Toggle controls">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <h1>
+                <span class="title">Vipster</span>
+                <small class="text-muted">
+                    Visual Periodic STructure EditoR
+                </small>
+            </h1>
+
+            <div id="controls__collapse" class="collapse">
                 <article class="widget" id="widget-load">
                     <header>
                         <h2>Load molecule</h2>
@@ -42,7 +50,8 @@
                                 <select class="custom-select" id="fileType" title="Input filetype">
                                 </select>
                                 <div class="input-group-append">
-                                    <button id="btnUpload" class="btn btn-primary" type="button" disabled>Load file</button>
+                                    <button id="btnUpload" class="btn btn-primary" type="button" disabled>Load file
+                                    </button>
                                 </div>
                             </div>
 
@@ -51,8 +60,9 @@
 
                         <h3>Current molecule</h3>
                         <div class="dropdown" id="moleculeDropdown">
-                            <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button" data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
+                            <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
                                 Example Molecule
                             </button>
                             <div class="dropdown-menu" aria-labelledby="mol-list-button">
@@ -75,7 +85,8 @@
                     <form class="widget__body">
                         <div class="row">
                             <div class="col">
-                                <input type="range" class="custom-range" id="stepSlider" min="0" max="0" value="0" onInput="setStep(parseInt(this.value))">
+                                <input type="range" class="custom-range" id="stepSlider" min="0" max="0" value="0"
+                                       onInput="setStep(parseInt(this.value))">
                             </div>
                             <div class="col text-right">
                                 <span id="stepCur">1</span> / <span id="stepMax">1</span>
@@ -94,7 +105,8 @@
                     <div class="widget__body">
                         <form class="mb-3">
                             <div class="input-group">
-                                <select class="custom-select" id="selectAtomFormat" onInput="update(change.atoms)" title="Atom format">
+                                <select class="custom-select" id="selectAtomFormat" onInput="update(change.atoms)"
+                                        title="Atom format">
                                     <option value="0">Bohr</option>
                                     <option value="1">Ångström</option>
                                     <option value="2">Crystal</option>
@@ -106,7 +118,8 @@
                             </div>
                         </form>
 
-                        <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
+                        <table class="table table-sm table-dark" id="atList"
+                               onInput="atomChanged(event.target)"></table>
                     </div>
                 </article>
 
@@ -120,7 +133,8 @@
 
                     <form class="widget__body">
                         <div class="custom-control custom-checkbox mb-1">
-                            <input type="checkbox" class="custom-control-input" id="checkboxCellEnabled" onChange="cellEnabled(this.checked)">
+                            <input type="checkbox" class="custom-control-input" id="checkboxCellEnabled"
+                                   onChange="cellEnabled(this.checked)">
                             <label class="custom-control-label" for="checkboxCellEnabled">Cell enabled</label>
                         </div>
 
@@ -137,7 +151,9 @@
                                         <div class="input-group-prepend">
                                             <div class="input-group-text">X</div>
                                         </div>
-                                        <input type="number" class="form-control" id="xmult" min="1" value="1" max="255" placeholder="X" onchange="setMult()">
+                                        <input type="number" class="form-control" id="xmult" min="1" value="1" max="255"
+                                               placeholder="X"
+                                               onchange="setMult()">
                                     </div>
                                 </div>
                                 <div class="col">
@@ -145,7 +161,9 @@
                                         <div class="input-group-prepend">
                                             <div class="input-group-text">Y</div>
                                         </div>
-                                        <input type="number" class="form-control" id="ymult" min="1" value="1" max="255" placeholder="Y" onchange="setMult()">
+                                        <input type="number" class="form-control" id="ymult" min="1" value="1" max="255"
+                                               placeholder="Y"
+                                               onchange="setMult()">
                                     </div>
                                 </div>
                                 <div class="col">
@@ -153,7 +171,9 @@
                                         <div class="input-group-prepend">
                                             <div class="input-group-text">Z</div>
                                         </div>
-                                        <input type="number" class="form-control" id="zmult" min="1" value="1" max="255" placeholder="Z" onchange="setMult()">
+                                        <input type="number" class="form-control" id="zmult" min="1" value="1" max="255"
+                                               placeholder="Z"
+                                               onchange="setMult()">
                                     </div>
                                 </div>
                             </div>
@@ -164,7 +184,9 @@
                                     <div class="input-group-prepend">
                                         <div class="input-group-text">Dimension</div>
                                     </div>
-                                    <input type="number" class="form-control" id="cellDim" min="0.0001" value="1" max="100" step="any" onchange="cellDimChanged(this)">
+                                    <input type="number" class="form-control" id="cellDim" min="0.0001" value="1"
+                                           max="100" step="any"
+                                           onchange="cellDimChanged(this)">
                                 </div>
 
                                 <div class="input-group mb-3">
@@ -179,7 +201,8 @@
                             </div>
 
                             <h3>Cell vectors</h3>
-                            <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors" onInput="cellVecChanged(event.target)">
+                            <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors"
+                                   onInput="cellVecChanged(event.target)">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -217,23 +240,27 @@
                         </div>
                     </form>
                 </article>
-            </aside>
+            </div>
+        </aside>
 
-            <main class="col">
-                <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-            </main>
-        </div>
+        <main class="col-lg">
+            <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+        </main>
     </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 
-    <script type="text/javascript" src="vipster_setup.js"></script>
-    <script type="text/javascript" src="vipster.js"></script>
+<script type="text/javascript" src="vipster_setup.js"></script>
+<script type="text/javascript" src="vipster.js"></script>
 </body>
 
 </html>

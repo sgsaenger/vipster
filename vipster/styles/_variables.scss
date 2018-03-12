@@ -1,10 +1,8 @@
-// Own variables
-$icon-font-path: '../fonts/';
-
 // Variables
 //
 // Variables should follow the `$component-state-property-size` formula for
 // consistent naming. Ex: $nav-link-disabled-color and $modal-content-box-shadow-xs.
+
 
 //
 // Color system
@@ -241,7 +239,7 @@ $font-weight-bold: 700 !default;
 $font-weight-base: $font-weight-normal !default;
 $line-height-base: 1.5 !default;
 
-$h1-font-size: $font-size-base * 2.25;
+$h1-font-size: $font-size-base * 2;
 $h2-font-size: $font-size-base * 1.25;
 $h3-font-size: $font-size-base * 1.1;
 
@@ -867,3 +865,12 @@ $pre-scrollable-max-height: 340px !default;
 // Printing
 $print-page-size: a3 !default;
 $print-body-min-width: map-get($grid-breakpoints, "lg") !default;
+
+
+// ------
+// Own variables
+
+$icon-font-path: '../fonts/';
+
+$controls-bg: theme-color('secondary');
+$controls-bar-height: 56px;

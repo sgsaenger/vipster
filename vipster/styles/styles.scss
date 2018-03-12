@@ -7,12 +7,9 @@
 
 // Own component styling
 @import "_components/overrides";
+@import "_components/layout";
 @import "_components/type";
 @import "_components/canvas";
-@import "_components/sidebar";
+@import "_components/controls";
 @import "_components/widget";
 @import "_components/input-range";
-
-body {
-  overflow: hidden;
-}
