@@ -40,10 +40,6 @@
 
                             <div class="input-group">
                                 <select class="custom-select" id="fileType" title="Input filetype">
-                                    <option value="0">XYZ</option>
-                                    <option value="1">PWScf Input</option>
-                                    <option value="2">Lammps Input</option>
-                                    <option value="3">Lammps Trajectory</option>
                                 </select>
                                 <div class="input-group-append">
                                     <button id="btnUpload" class="btn btn-primary" type="button" disabled>Load file</button>
@@ -99,6 +95,10 @@
                         <form class="mb-3">
                             <div class="input-group">
                                 <select class="custom-select" id="selectAtomFormat" onInput="update(change.atoms)" title="Atom format">
+                                    <option value="0">Bohr</option>
+                                    <option value="1">Ångström</option>
+                                    <option value="2">Crystal</option>
+                                    <option value="3">Alat</option>
                                 </select>
                                 <div class="input-group-append">
                                     <button class="btn btn-primary" type="button" id="atFmtBut">Set format</button>
