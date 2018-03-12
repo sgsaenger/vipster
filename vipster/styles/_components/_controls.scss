@@ -74,6 +74,9 @@
 
     #controls__collapse {
         display: block;
-        height: auto;
+
+        &.show {
+            height: auto;
+        }
     }
 }
