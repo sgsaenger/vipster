@@ -14,6 +14,7 @@ const std::string user_config = "/vipster.json";
 #define PREFIX /usr/share/
 #endif
 const std::string sys_config = "PREFIXvipster.json";
+//TODO: rename when stable
 const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster2.json";
 #elif _WIN32
 //WIP

@@ -70,6 +70,7 @@ public:
     const std::vector<Bond>&    getBonds(float cutfac,
                                          BondLevel l=BondLevel::Cell) const
     {
+        evaluateCache();
         if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
         if(bonds->outdated or (cutfac != bonds->cutoff_factor) or (bonds->level < l))
         {
@@ -238,23 +239,18 @@ private:
     }
     void    setBondsMolecule(float cutfac) const
     {
-        //TODO: remove pse-lookups when at_pse-vector is reintroduced
         AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         const T& asFmt = static_cast<const T*>(this)->asFmt(fmt);
         asFmt.evaluateCache();
-        PseMap& pse = *this->pse;
-        size_t nat = static_cast<const T*>(this)->getNat();
-        std::vector<Bond> bonds = this->bonds->bonds;
+        std::vector<Bond>& bonds = this->bonds->bonds;
         auto at_i = asFmt.begin();
-        for (size_t i=0; i<nat; ++i)
+        for (auto at_i=asFmt.begin(); at_i!=asFmt.end(); ++at_i)
         {
-            float cut_i = pse[at_i->name].bondcut;
+            float cut_i = (*at_i->pse).bondcut;
             if (cut_i<0) continue;
-            auto at_j = asFmt.begin();
-            at_j += i+1;
-            for (size_t j=i+1; j<nat; ++j){
-                float cut_j = pse[at_j->name].bondcut;
+            for (auto at_j=asFmt.begin()+at_i.getIdx()+1; at_j != asFmt.end(); ++at_j){
+                float cut_j = (*at_j->pse).bondcut;
                 if (cut_j<0) continue;
                 float effcut = (cut_i + cut_j) * cutfac;
                 Vec dist_v = at_i->coord - at_j->coord;
@@ -263,11 +259,9 @@ private:
                     ((dist_v[2] *= fmtscale) > effcut)) continue;
                 float dist_n = Vec_dot(dist_v, dist_v);
                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                    bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                    bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), 0, 0, 0});
                 }
-                ++at_j;
             }
-            ++at_i;
         }
         this->bonds->outdated = false;
         this->bonds->level = BondLevel::Molecule;
@@ -284,7 +278,6 @@ private:
     }
     void    setBondsCell(float cutfac) const
     {
-        //TODO: remove pse-lookups when at_pse-vector is reintroduced
         const T& asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
         const Vec x = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
@@ -302,14 +295,13 @@ private:
         const Vec mxyz = yz - x;
         std::array<int16_t, 3> diff_v, crit_v;
         size_t nat = static_cast<const T*>(this)->getNat();
-        PseMap& pse = *this->pse;
         auto at_i = asCrystal.begin();
         for (size_t i=0; i<nat; ++i) {
-            float cut_i = pse[at_i->name].bondcut;
+            float cut_i = (*at_i->pse).bondcut;
             if (cut_i<0) continue;
             auto at_j = asCrystal.begin();
             for (size_t j=0; j<nat; ++j) {
-                float cut_j = pse[at_j->name].bondcut;
+                float cut_j = (*at_j->pse).bondcut;
                 if (cut_j<0) continue;
                 float effcut = (cut_i + cut_j) * cutfac;
                 Vec dist_v = at_i->coord - at_j->coord;

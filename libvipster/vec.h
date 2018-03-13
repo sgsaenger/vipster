@@ -22,7 +22,7 @@ inline bool operator!=(const Vec &v1, const Vec &v2)
     return !(v1==v2);
 }
 
-inline Vec operator +=(Vec &v1, const Vec &v2)
+inline Vec& operator +=(Vec &v1, const Vec &v2)
 {
     v1[0]+=v2[0];
     v1[1]+=v2[1];
@@ -35,7 +35,7 @@ inline Vec operator +(Vec v1, const Vec &v2)
     return v1+=v2;
 }
 
-inline Vec operator +=(Vec &v, const float &f)
+inline Vec& operator +=(Vec &v, const float &f)
 {
     v[0]+=f;
     v[1]+=f;
@@ -58,7 +58,7 @@ inline Vec operator -(const Vec &v)
     return {{-v[0],-v[1],-v[2]}};
 }
 
-inline Vec operator -=(Vec &v1, const Vec &v2)
+inline Vec& operator -=(Vec &v1, const Vec &v2)
 {
     v1[0]-=v2[0];
     v1[1]-=v2[1];
@@ -71,7 +71,7 @@ inline Vec operator -(Vec v1, const Vec &v2)
     return v1-=v2;
 }
 
-inline Vec operator -=(Vec &v, const float &f)
+inline Vec& operator -=(Vec &v, const float &f)
 {
     v[0]-=f;
     v[1]-=f;
@@ -84,7 +84,7 @@ inline Vec operator -(Vec v, const float &f)
     return v-=f;
 }
 
-inline Vec operator *=(Vec &v, const float &f)
+inline Vec& operator *=(Vec &v, const float &f)
 {
     v[0]*=f;
     v[1]*=f;
@@ -102,7 +102,7 @@ inline Vec operator *(const float &f, Vec v)
     return v*=f;
 }
 
-inline Vec operator /=(Vec &v, const float &f)
+inline Vec& operator /=(Vec &v, const float &f)
 {
     v[0]/=f;
     v[1]/=f;
@@ -141,7 +141,7 @@ inline Vec operator*(const Mat &m, const Vec &v)
     return t;
 }
 
-inline Mat operator*=(Mat &m, const float &f)
+inline Mat& operator*=(Mat &m, const float &f)
 {
     m[0]*=f;
     m[1]*=f;
@@ -159,7 +159,7 @@ inline Mat operator*(const float &f, Mat m)
     return m*=f;
 }
 
-inline Mat operator/=(Mat &m, const float&f)
+inline Mat& operator/=(Mat &m, const float&f)
 {
     m[0]/=f;
     m[1]/=f;
@@ -194,7 +194,7 @@ inline Vec operator*(const Vec &v, const Mat&m)
     return t;
 }
 
-inline Mat operator*=(Mat &lhs, const Mat &rhs)
+inline Mat& operator*=(Mat &lhs, const Mat &rhs)
 {
     Mat mt = Mat_trans(rhs);
     lhs[0][0] = Vec_dot(lhs[0],mt[0]);

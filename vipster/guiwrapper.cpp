@@ -543,7 +543,7 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     //bonds
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        //TODO: pull cutfac from config
+        //TODO: pull cutfac and level from config
         const auto& bonds = curStep->getBonds(BondLevel::Cell);
         //TODO: reduce map-lookups somehow
         const auto& pse = curStep->atoms->pse;

@@ -52,8 +52,9 @@ void MolWidget::fillCell()
     QSignalBlocker blockDim(ui->cellDimBox);
     QSignalBlocker blockEnabled(ui->cellEnabled);
     ui->cellEnabled->setChecked(curStep->hasCell());
-    ui->cellDimBox->setValue( curStep->getCellDim(
-            (CdmFmt)ui->cellFmt->currentIndex()));
+    ui->cellDimBox->setValue(static_cast<double>(
+                                 curStep->getCellDim(
+            static_cast<CdmFmt>(ui->cellFmt->currentIndex()))));
     Mat vec = curStep->getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
@@ -108,13 +109,22 @@ void MolWidget::on_cellEnabled_toggled(bool checked)
 void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 {
     QSignalBlocker blockCDB(ui->cellDimBox);
-    ui->cellDimBox->setValue(curStep->getCellDim((CdmFmt)idx));
+    ui->cellDimBox->setValue(static_cast<double>(curStep->getCellDim(static_cast<CdmFmt>(idx))));
 }
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
-    curStep->setCellDim(cdm, (CdmFmt)ui->cellFmt->currentIndex(), ui->cellScaleBox->isChecked());
-    triggerUpdate(Change::cell);
+    curStep->setCellDim(static_cast<float>(cdm),
+                        static_cast<CdmFmt>(ui->cellFmt->currentIndex()),
+                        ui->cellScaleBox->isChecked());
+    // if needed, trigger atom update
+    Change change = Change::cell;
+    if(ui->cellScaleBox->isChecked() != (curStep->getFmt()>=AtomFmt::Crystal)){
+        change = static_cast<Change>(Change::cell | Change::atoms);
+        fillAtomTable();
+    }
+    ui->cellEnabled->setCheckState(Qt::CheckState::Checked);
+    triggerUpdate(change);
 }
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
@@ -123,7 +133,14 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     vec = curStep->getCellVec();
     vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
     curStep->setCellVec(vec, ui->cellScaleBox->isChecked());
-    triggerUpdate(Change::cell);
+    // if needed, trigger atom update
+    Change change = Change::cell;
+    if(ui->cellScaleBox->isChecked() != (curStep->getFmt()==AtomFmt::Crystal)){
+        change = static_cast<Change>(Change::cell | Change::atoms);
+        fillAtomTable();
+    }
+    ui->cellEnabled->setCheckState(Qt::CheckState::Checked);
+    triggerUpdate(change);
 }
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)

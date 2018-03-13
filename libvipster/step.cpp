@@ -105,23 +105,23 @@ Atom Step::operator[](size_t i) {
 
 void Step::setCellVec(const Mat &vec, bool scale)
 {
+    //TODO: make evaluateCache public? getNat to validate is bullshit...
     Mat inv = Mat_inv(vec);
     enableCell(true);
+    evaluateCache();
     if (scale) {
         if (at_fmt == AtomFmt::Crystal) {
             /*
              * Crystal coordinates stay as-is
-             * but bonds should be reevaluated
              */
             cell->cellvec = vec;
             cell->invvec = inv;
-            bonds->outdated = true;
         } else {
             /*
              * All other cases need to be reformatted
              *
              * calculates crystal-coordinates as intermediate
-             * -> setting state manually in order to keep crystal valid
+             * TODO: manually validate buffer
              */
             asFmt(AtomFmt::Crystal).getNat();
             cell->cellvec = vec;
@@ -131,29 +131,27 @@ void Step::setCellVec(const Mat &vec, bool scale)
             atoms->coordinates[target] =
                     formatAll(atoms->coordinates[crystal],
                               AtomFmt::Crystal, at_fmt);
-            for (size_t i=0; i<nAtFmt; ++i){
-                if ((i == crystal) || (i == target)) continue;
-                atoms->coord_outdated[i] = true;
-            }
         }
     } else {
         if (at_fmt == AtomFmt::Crystal) {
             /*
              * Crystal needs to be reformatted
              *
-             * Determine a valid buffer or use Bohr
-             * -> setting state manually in order to keep valid
+             * Determine a valid buffer or use Alat
+             * TODO: manually validate buffer
              */
-            evaluateCache();
             size_t buf = nAtFmt;
             for (size_t i=0; i<nAtFmt; ++i){
+                if (i == static_cast<size_t>(AtomFmt::Crystal)){
+                    continue;
+                }
                 if (atoms->coord_outdated[i] == false){
                     buf = i;
                 }
             }
             if (buf == nAtFmt) {
-                buf = static_cast<size_t>(AtomFmt::Bohr);
-                asFmt(AtomFmt::Bohr).getNat();
+                buf = static_cast<size_t>(AtomFmt::Alat);
+                asFmt(AtomFmt::Alat).getNat();
             }
             cell->cellvec = vec;
             cell->invvec = inv;
@@ -161,42 +159,41 @@ void Step::setCellVec(const Mat &vec, bool scale)
             atoms->coordinates[target] =
                     formatAll(atoms->coordinates[buf],
                               static_cast<AtomFmt>(buf), AtomFmt::Crystal);
-            for (size_t i=0; i<nAtFmt; ++i){
-                if ((i == target) || (i == buf)) continue;
-                atoms->coord_outdated[i] = true;
-            }
         } else {
             /*
              * All but crystal stay as-is
-             * bonds should be reevaluated
              */
             cell->cellvec = vec;
             cell->invvec = inv;
-            bonds->outdated = true;
         }
     }
+    atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
 }
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
 {
     if(!(cdm>0))throw Error("Step::setCellDim(): "
                             "cell-dimension must be positive");
+    /*
+     * 'scaling' means the systems grows/shrinks with the cell
+     * => relative coordinates stay the same
+     */
     enableCell(true);
-    float ratio = -1;
-    if (scale && (at_fmt < AtomFmt::Crystal)) {
-        ratio = cdm / getCellDim(fmt);
-    } else if (!scale && (at_fmt >= AtomFmt::Crystal)) {
-        ratio = getCellDim(fmt) / cdm;
-    }
-    if (ratio > 0) {
-        evaluateCache();
-        for(auto& c: atoms->coordinates[static_cast<size_t>(at_fmt)]){
+    evaluateCache();
+    size_t int_fmt = static_cast<size_t>(at_fmt);
+    bool relative = at_fmt>=AtomFmt::Crystal;
+    if (scale != relative){
+        float ratio;
+        if (relative) {
+            ratio = getCellDim(fmt) / cdm;
+        } else {
+            ratio = cdm / getCellDim(fmt);
+        }
+        for(auto& c: atoms->coordinates[int_fmt]){
             c *= ratio;
         }
-        atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
-    } else if (bonds->level == BondLevel::Cell) {
-        bonds->outdated = true;
     }
+    atoms->coord_changed[int_fmt] = true;
     if (fmt == CdmFmt::Bohr) {
         cell->dimBohr = cdm;
         cell->dimAngstrom = cdm*bohrrad;

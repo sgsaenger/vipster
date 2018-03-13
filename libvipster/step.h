@@ -65,6 +65,10 @@ public:
         this->pse_ptr += i;
         return *this;
     }
+    AtomListIterator operator+(size_t i){
+        AtomListIterator copy{*this};
+        return copy+=i;
+    }
     T&      operator*() const {
         return static_cast<T&>(*const_cast<AtomListIterator*>(this));
     }
@@ -76,6 +80,9 @@ public:
     }
     bool    operator!=(const AtomListIterator& rhs) const noexcept{
         return !(*this == rhs);
+    }
+    size_t getIdx() const noexcept{
+        return idx;
     }
 private:
     std::shared_ptr<AtomList> atoms;
