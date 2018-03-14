@@ -58,7 +58,7 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
     }
 
     SECTION( "Linear algebra ops" ) {
-        REQUIRE( Vec_dot(v1,v2) == 4.5 );
+        REQUIRE( Vec_dot(v1,v2) == 4.5f );
         REQUIRE( Vec_length(v1) == sqrtf(3) );
         REQUIRE( Vec_cross(v1, v2) == Vec{{0,0,0}} );
         Vec v3{{1,0,0}};
@@ -90,13 +90,13 @@ TEST_CASE( "Vipster::Mat operators", "[mat]" ) {
         REQUIRE( v1*m2 == Vec{{1,4,6}} );
         REQUIRE( m1*m2 == m2 );
         REQUIRE( m2*m2 == Mat{{{{1,4,6}},{{0,1,0}},{{0,0,1}}}} );
-        REQUIRE( Mat_det(m2) == 1 );
+        REQUIRE( Mat_det(m2) == 1.f );
         REQUIRE( Mat_inv(m2) == Mat{{{{1,-2,-3}},{{0,1,0}},{{0,0,1}}}} );
         REQUIRE( m2*Mat_inv(m2) == m1 );
         m2*=Mat_inv(m2);
         REQUIRE( m2 == m1 );
         Mat m3{{{{1,2,3}}, {{4,5,6}}, {{7,8,9}}}};
-        REQUIRE( Mat_det(m3) == 0 );
+        REQUIRE( Mat_det(m3) == 0.f );
         REQUIRE_THROWS( Mat_inv(m3) );
     }
 }

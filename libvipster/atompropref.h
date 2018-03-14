@@ -54,7 +54,7 @@ namespace Vipster{
         }
         bool operator==(const PropRef &rhs) const
         {
-            return *(at.*p_prop) == static_cast<T>(rhs);
+            return *(at.*p_prop) == static_cast<const T&>(rhs);
         }
     private:
         Atom& at;

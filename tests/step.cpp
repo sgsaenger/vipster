@@ -23,61 +23,233 @@ static std::ostream& operator<<(std::ostream& os, const Atom& at)
 #include "catch.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
-    StepProper s{};
+    Mat cv = {{{{1,2,3}},{{0,1,0}},{{0,0,1.5}}}};
+    std::string fmtNames[nAtFmt] = {"Bohr", "Angstrom", "Crystal", "Alat"};
+    // s will be checked
 
-    SECTION( "Step-basics" ) {
+    SECTION( "Defaults, Format, Cell" ) {
+        StepProper s{};
+        // basic fmt-query
         REQUIRE( s.getFmt() == AtomFmt::Bohr );
-        REQUIRE( s.getNat() == 0);
+        s.setFmt(AtomFmt::Crystal);
+        REQUIRE( s.getFmt() == AtomFmt::Crystal );
+        // comment
         REQUIRE( s.getComment() == "" );
         s.setComment("test");
         REQUIRE( s.getComment() == "test" );
+        // basic cell-functionality
         REQUIRE( s.getCellDim(CdmFmt::Bohr) == 1 );
         REQUIRE( s.getCellDim(CdmFmt::Angstrom) == bohrrad );
+        s.setCellDim(1, CdmFmt::Angstrom);
+        REQUIRE( s.getCellDim(CdmFmt::Bohr) == invbohr );
+        REQUIRE( s.getCellDim(CdmFmt::Angstrom) == 1 );
         REQUIRE( s.getCellVec() == Mat{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}});
+        s.setCellVec(cv);
+        REQUIRE( s.getCellVec() == cv );
+        // no atom-based properties yet
+        REQUIRE( s.getNat() == 0);
         REQUIRE( s.getNtyp() == 0 );
+        REQUIRE( s.getNbond() == 0 );
     }
 
-    auto testStep = [](Step& s){
-        s.newAtom();
-//        s.newAtom(at1);
-//        s.newAtom(at2);
-//        REQUIRE( s[0] == at1 );
-//        REQUIRE( s[1] == at1 );
-//        REQUIRE( s[2] != at1 );
-//        REQUIRE( s[2] == at2 );
+    SECTION( "Basic atom-access" ){
+        // empty coordinates don't care for format
+        StepProper s{};
+        s.newAtoms(3);
         REQUIRE( s.getNat() == 3 );
-        REQUIRE( s.getNtyp() == 2 );
-        REQUIRE( s.getTypes() == std::set<std::string>{"","H"} );
-        s.delAtom(2);
-        REQUIRE( s.getNat() == 2 );
         REQUIRE( s.getNtyp() == 1 );
         REQUIRE( s.getTypes() == std::set<std::string>{""} );
         for(auto& at: s) {
-//            REQUIRE( at == at1 );
+            REQUIRE( at == s[0] );
         }
-//        [at1](const Step& s){
-//            for(auto& at: s){
-//                REQUIRE( at == at1 );
-//            }
-//        }(s);
-        s.newAtoms(3);
-        REQUIRE( s.getNat() == 5 );
-        REQUIRE( s.getNtyp() == 1 );
-        REQUIRE( s.getTypes() == std::set<std::string>{""} );
-//        s[0] = at2;
-//        REQUIRE(s[0] == at2);
-    };
-
-    SECTION( "Vipster::StepProper: basic Step class" ) {
-        testStep(s);
     }
 
-    SECTION( "Vipster::StepFormatter: formatted interface to StepProper") {
-        std::string fmtNames[] = {"asBohr", "asAngstrom", "asCrystal", "asAlat"};
-        for(size_t i=0; i<4; ++i){
-            SECTION( fmtNames[i] ){
-                testStep(s.asFmt((AtomFmt)i));
+    SECTION( "Formatted coordinates") {
+        StepProper s{};
+        s.setCellDim(5, CdmFmt::Bohr);
+        s.setCellVec(cv);
+        s.newAtom();
+        s.newAtom("H", {{1,2,3}});
+        // s_comp will be checked against
+        StepProper s_comp[nAtFmt];
+        for(size_t i=0; i<nAtFmt; ++i){
+            s_comp[i].setFmt(static_cast<AtomFmt>(i));
+            s_comp[i].setCellDim(5, CdmFmt::Bohr);
+            s_comp[i].setCellVec(cv);
+            // generic comparison targets
+            s_comp[i].newAtom();
+            s_comp[i].newAtom("H", {{1,2,3}});
+        }
+        // Bohr:
+        s_comp[0].newAtom("H", {{1,2,3}});
+        s_comp[0].newAtom("H", {{1*bohrrad, 2*bohrrad, 3*bohrrad}});
+        s_comp[0].newAtom("H", {{1/5.f, 0, 0}});
+        s_comp[0].newAtom("H", {{1/5.f, 2/5.f, 3/5.f}});
+        // Angstrom:
+        s_comp[1].newAtom("H", {{1*invbohr, 2*invbohr, 3*invbohr}});
+        s_comp[1].newAtom("H", {{1, 2, 3}});
+        s_comp[1].newAtom("H", {{1*invbohr/5.f, 0, 0}});
+        s_comp[1].newAtom("H", {{1*invbohr/5.f, 2*invbohr/5.f, 3*invbohr/5.f}});
+        // Crystal:
+        s_comp[2].newAtom("H", {{5, 20, 37.5f}});
+        s_comp[2].newAtom("H", {{5*bohrrad, 20*bohrrad, 37.5f*bohrrad}});
+        s_comp[2].newAtom("H", {{1, 2, 3}});
+        s_comp[2].newAtom("H", {{1, 4, 7.5f}});
+        // Alat:
+        s_comp[3].newAtom("H", {{5, 10, 15}});
+        s_comp[3].newAtom("H", {{5*bohrrad, 10*bohrrad, 15*bohrrad}});
+        s_comp[3].newAtom("H", {{1, 0, 0}});
+        s_comp[3].newAtom("H", {{1, 2, 3}});
+
+        for(size_t i=0; i<nAtFmt; ++i){
+        SECTION( fmtNames[i] ){
+            auto fmt_i = static_cast<AtomFmt>(i);
+            s.setFmt(fmt_i, true);
+
+            REQUIRE( s[0] == s_comp[i][0] );
+            REQUIRE( s[1] == s_comp[i][1] );
+            REQUIRE( s[0] != s_comp[i][1] );
+            REQUIRE( s[1] != s_comp[i][0] );
+            REQUIRE( s.getNat() == 2 );
+            REQUIRE( s.getNtyp() == 2 );
+            REQUIRE( s.getTypes() == std::set<std::string>{"","H"} );
+            s[0] = s[1];
+            for (auto& at: s) {
+                REQUIRE( at == s[0]);
             }
+            for (size_t j=0; j<nAtFmt; ++j){
+                auto fmt_j = static_cast<AtomFmt>(j);
+                auto& f = s.asFmt(fmt_j);
+                if(fmt_j != fmt_i){
+                    REQUIRE( f[1] != s[1] );
+                } else {
+                    REQUIRE( f[1] == s[1] );
+                }
+                CHECK( f[1] == s_comp[i][2+j]);
+            }
+            s.delAtom(1);
+            s.delAtom(0);
+            REQUIRE( s.getNat() == 0 );
+            REQUIRE( s.getNtyp() == 0 );
+            REQUIRE( s.getTypes() == std::set<std::string>{} );
+        }
+        }
+    }
+
+    SECTION( "Cell modification" ){
+        Vec v = {{1,2,3}};
+        StepProper s{};
+        s.setCellDim(5, CdmFmt::Bohr);
+        s.setCellVec(cv);
+        s.newAtom("H", v);
+        for(size_t i=0; i<nAtFmt; ++i){
+        SECTION( fmtNames[i] ){
+            auto fmt_i = static_cast<AtomFmt>(i);
+            s.setFmt(fmt_i, true);
+            SECTION("CellDim"){
+                StepProper sd{}; // alternating unscaled and scaled for each format
+                sd.setCellDim(5, CdmFmt::Bohr);
+                sd.setCellVec(cv);
+                // Bohr:
+                sd.newAtom("H", v);
+                sd.newAtom("H", v*1.2f);
+                // Angstrom:
+                sd.newAtom("H", v*bohrrad);
+                sd.newAtom("H", v*1.2f*bohrrad);
+                // Crystal:
+                sd.newAtom("H", Vec{{1,0,0}}/5);
+                sd.newAtom("H", Vec{{1,0,0}}/6);
+                // Alat:
+                sd.newAtom("H", v/5);
+                sd.newAtom("H", v/6);
+                // scale it so `v` is at the position of proper fmt
+                sd.setFmt(fmt_i, true);
+                sd.setFmt(AtomFmt::Bohr, false);
+                for(size_t j=0; j<nAtFmt; ++j){
+                    INFO(fmtNames[j]);
+                    auto fmt_j = static_cast<AtomFmt>(j);
+                    auto& f = s.asFmt(fmt_j);
+                    bool rel_i = fmt_i>=AtomFmt::Crystal;
+                    bool abs_i = !rel_i;
+                    bool rel_j = fmt_j>=AtomFmt::Crystal;
+                    bool abs_j = !rel_j;
+                    CHECK(s[0] == sd[2*i]);
+                    CHECK(f[0] == sd[2*j]);
+                    f.setCellDim(6, CdmFmt::Bohr, false);
+                    CHECK(s[0] == sd[2*i+rel_i]);
+                    CHECK(f[0] == sd[2*j+rel_j]);
+                    f.setCellDim(5, CdmFmt::Bohr, false);
+                    CHECK(s[0] == sd[2*i]);
+                    CHECK(f[0] == sd[2*j]);
+                    f.setCellDim(6, CdmFmt::Bohr, true);
+                    CHECK(s[0] == sd[2*i+abs_i]);
+                    CHECK(f[0] == sd[2*j+abs_j]);
+                    f.setCellDim(5, CdmFmt::Bohr, true);
+                    CHECK(s[0] == sd[2*i]);
+                    CHECK(f[0] == sd[2*j]);
+                }
+            }
+            SECTION("CellVec"){
+                StepProper sv{}; // alternating unscaled and scaled for each format
+                bool rel_i = fmt_i == AtomFmt::Crystal;
+                bool abs_i = !rel_i;
+                Mat cv2 = {{{{1,0,4}},{{0,1,0}},{{0,0,2}}}};
+                Vec v2 = {{1,0,4}};
+                sv.setCellDim(5, CdmFmt::Bohr);
+                sv.setCellVec(cv);
+                if(abs_i){
+                    sv.setFmt(fmt_i);
+                    // Bohr:
+                    sv.newAtom("H", v);
+                    sv.newAtom("H", v2);
+                    // Angstrom:
+                    sv.newAtom("H", v*bohrrad);
+                    sv.newAtom("H", v2*bohrrad);
+                    // Crystal:
+                    sv.newAtom("H", Vec{{1,0,0}}/5);
+                    sv.newAtom("H", Vec{{1,2,-0.5}}/5);
+                    // Alat:
+                    sv.newAtom("H", v/5);
+                    sv.newAtom("H", v2/5);
+                    // scale it so `v` is at the position of proper fmt
+                    sv.setFmt(AtomFmt::Bohr);
+                } else {
+                    // Bohr:
+                    sv.newAtom("H", {{5,20,37.5}});
+                    sv.newAtom("H", {{5,10,50}});
+                    // Angstrom:
+                    sv.newAtom("H", Vec{{5,20,37.5}}*bohrrad);
+                    sv.newAtom("H", Vec{{5,10,50}}*bohrrad);
+                    // Crystal:
+                    sv.newAtom("H", {{1,2,3}});
+                    sv.newAtom("H", {{1,4,1.75}});
+                    // Alat:
+                    sv.newAtom("H", {{1,4,7.5}});
+                    sv.newAtom("H", {{1,2,10}});
+                }
+                for(size_t j=0; j<nAtFmt; ++j){
+                    INFO(fmtNames[j]);
+                    auto fmt_j = static_cast<AtomFmt>(j);
+                    auto &f = s.asFmt(fmt_j);
+                    bool rel_j = fmt_j == AtomFmt::Crystal;
+                    bool abs_j = !rel_j;
+                    CHECK(s[0] == sv[2*i]);
+                    CHECK(f[0] == sv[2*j]);
+                    f.setCellVec(cv2, false);
+                    CHECK(s[0] == sv[2*i+rel_i]);
+                    CHECK(f[0] == sv[2*j+rel_j]);
+                    f.setCellVec(cv, false);
+                    CHECK(s[0] == sv[2*i]);
+                    CHECK(f[0] == sv[2*j]);
+                    f.setCellVec(cv2, true);
+                    CHECK(s[0] == sv[2*i+abs_i]);
+                    CHECK(f[0] == sv[2*j+abs_j]);
+                    f.setCellVec(cv, true);
+                    CHECK(s[0] == sv[2*i]);
+                    CHECK(f[0] == sv[2*j]);
+                }
+            }
+        }
         }
     }
 }

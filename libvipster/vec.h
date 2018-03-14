@@ -4,17 +4,23 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 namespace Vipster{
 
 using Vec = std::array<float, 3>;
 using Mat = std::array<Vec, 3>;
 
+inline bool float_comp(float a, float b)
+{
+    return std::abs(a-b) <=
+            std::numeric_limits<float>::epsilon() * 5 *
+            std::max({1.f, std::abs(a), std::abs(b)});
+}
+
 inline bool operator==(const Vec &v1, const Vec &v2)
 {
-    return std::abs(v1[0]-v2[0]) < std::numeric_limits<float>::epsilon()&&
-           std::abs(v1[1]-v2[1]) < std::numeric_limits<float>::epsilon()&&
-           std::abs(v1[2]-v2[2]) < std::numeric_limits<float>::epsilon();
+    return float_comp(v1[0], v2[0]) && float_comp(v1[1], v2[1]) && float_comp(v1[2], v2[2]);
 }
 
 inline bool operator!=(const Vec &v1, const Vec &v2)
