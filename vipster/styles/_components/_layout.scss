@@ -1,21 +1,19 @@
-body {
-    height: 100vh;
-    overflow: hidden;
-}
-
-main {
-    position: relative;
+main.col-lg {
+    position: fixed;
     top: $controls-bar-height;
+    left: 0;
     height: calc(100vh - #{$controls-bar-height});
-
-    &.col-lg {
-        padding: 0;
-    }
+    padding: 0;
 }
 
 @include media-breakpoint-up(lg) {
-    main {
-        top: 0;
+    body {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    main.col-lg {
+        position: static;
         height: 100vh;
     }
 }

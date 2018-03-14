@@ -18,18 +18,20 @@
 <div class="container-fluid">
     <div class="row">
         <aside id="controls">
-            <button id="controls__toggle-btn" class="btn btn-lg" type="button" data-toggle="collapse"
-                    data-target="#controls__collapse" aria-expanded="false" aria-controls="controls__collapse"
-                    title="Toggle controls">
-                <i class="fas fa-bars"></i>
-            </button>
+            <div id="controls__bar">
+                <button id="controls__toggle-btn" class="btn btn-lg" type="button" data-toggle="collapse"
+                        data-target="#controls__collapse" aria-expanded="false" aria-controls="controls__collapse"
+                        title="Toggle controls">
+                    <i class="fas fa-bars"></i>
+                </button>
 
-            <h1>
-                <span class="title">Vipster</span>
-                <small class="text-muted">
-                    Visual Periodic STructure EditoR
-                </small>
-            </h1>
+                <h1>
+                    <span class="title">Vipster</span>
+                    <small class="text-muted">
+                        Visual Periodic STructure EditoR
+                    </small>
+                </h1>
+            </div>
 
             <div id="controls__collapse" class="collapse">
                 <article class="widget" id="widget-load">
@@ -60,9 +62,12 @@
 
                         <h3>Current molecule</h3>
                         <div class="dropdown" id="moleculeDropdown">
-                            <button class="btn btn-primary dropdown-toggle" id="mol-list-button" type="button"
+                            <button class="btn btn-primary dropdown-toggle"
+                                    id="mol-list-button"
+                                    type="button"
                                     data-toggle="dropdown"
-                                    aria-haspopup="true" aria-expanded="false">
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
                                 Example Molecule
                             </button>
                             <div class="dropdown-menu" aria-labelledby="mol-list-button">

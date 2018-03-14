@@ -1,7 +1,4 @@
 #controls {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 100%;
     max-width: 100%;
     padding: 0 .75rem;
@@ -13,13 +10,22 @@
     }
 
     h1 {
-        margin-top: .75rem;
-        margin-bottom: .75rem;
+        margin: .75rem;
 
         small {
             display: none;
         }
     }
+}
+
+#controls__bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: darken($controls-bg, 6%);
+    box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.5);
+    z-index: $zindex-fixed + 10;
 }
 
 #controls__toggle-btn {
@@ -37,14 +43,12 @@
     }
 }
 
-#controls__collapse.show {
-    height: calc(100vh - #{$controls-bar-height});
-    overflow: auto;
+#controls__collapse {
+    padding-top: $controls-bar-height * 1.25;
 }
 
 @include media-breakpoint-up(lg) {
     #controls {
-        position: static;
         flex: 0 0 28rem;
         height: 100vh;
         overflow-y: auto;
@@ -59,13 +63,18 @@
         }
 
         h1 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
+            margin: 0 0 1.5rem;
 
             small {
                 display: block;
             }
         }
+    }
+
+    #controls__bar {
+        position: static;
+        background-color: $controls-bg;
+        box-shadow: none;
     }
 
     #controls__toggle-btn {
@@ -74,9 +83,6 @@
 
     #controls__collapse {
         display: block;
-
-        &.show {
-            height: auto;
-        }
+        padding-top: 0;
     }
 }

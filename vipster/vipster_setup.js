@@ -1,4 +1,5 @@
 const VERBOSE = true;
+const DESKTOP_BREAKPOINT = 992;
 
 const dom = {};
 [
@@ -280,7 +281,21 @@ function createAlert(msg, type, dismissable = true) {
     `;
 }
 
+function resizeCanvas() {
+    Module.canvas.width = Module.canvas.clientWidth;
+    Module.canvas.height = Module.canvas.clientHeight;
+
+    // Might be hidden right now after resizing back into desktop viewport
+    // because of mobile menu logic
+    if ($(window).width() >= DESKTOP_BREAKPOINT) {
+        $('main').show();
+    }
+}
+
 $(document).ready(function () {
+    // Set correc canvas size on resize
+    window.addEventListener('resize', resizeCanvas);
+
     // File loading
     $(dom.btnBrowse).click(openFileDialogue);
     $(dom.btnUpload).click(readFile);
@@ -299,17 +314,21 @@ $(document).ready(function () {
         $('.if-cell').toggle($(this).get(0).checked);
     });
 
-    window.addEventListener('resize', function () {
-        Module.canvas.width = Module.canvas.clientWidth;
-        Module.canvas.height = Module.canvas.clientHeight;
-    });
-
     $('.widget__toggle-btn').click(function () {
         $(this)
             .stop()
             .parents('.widget:first').toggleClass('closed')
             .find('.widget__body').slideToggle();
     });
+
+    const main = $('main');
+    $('#controls__collapse')
+        .on('show.bs.collapse', () => main.hide())
+        .on('hide.bs.collapse', () => {
+            main.show();
+            resizeCanvas();
+        });
+
 });
 
 // noinspection JSUnusedGlobalSymbols
