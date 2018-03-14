@@ -72,6 +72,7 @@ after_success:
     - cd ~/gcc
     - bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
 before_deploy:
+    - mkdir $TRAVIS_BUILD_DIR/gh-pages/emscripten
     - cp ~/emscripten/vipster/vipster{.js,.wasm,_setup.js}  $TRAVIS_BUILD_DIR/gh-pages/emscripten
     - cp ~/emscripten/vipster/styles.css $TRAVIS_BUILD_DIR/gh-pages/emscripten
     - cp ~/emscripten/vipster/index.html $TRAVIS_BUILD_DIR/gh-pages/emscripten
