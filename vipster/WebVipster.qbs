@@ -1,20 +1,23 @@
 import qbs 1.0
 
-CppApplication {
+//CppApplication {
+Product{
     name: "WebVipster"
     targetName: "vipster.js"
     condition: web
+    type: "emapplication"
+    Depends {name: "cpp"}
     Depends {name: "libvipster"}
 
     Rule {
         id: emscriptenHelper
-        inputs: []
+        inputs: ["application"]
         multiplex: true
-        outputFileTags: ["application"]
+        outputFileTags: ["emapplication"]
         outputArtifacts: [{
                 filePath: product.destinationDirectory.concat('/').concat(
                               product.targetName.replace('js','wasm')),
-                fileTags: ["application"]
+                fileTags: ["emapplication"]
             }]
         prepare: {
             var cmd = new Command('echo');
@@ -49,7 +52,7 @@ CppApplication {
 
     Group {
         name: "binaries"
-        fileTagsFilter: ["application"]
+        fileTagsFilter: ["application", "emapplication"]
         qbs.install: true
     }
 
