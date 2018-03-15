@@ -5,7 +5,7 @@
 #include <QAbstractButton>
 #include <vector>
 #include "molecule.h"
-#include "guiwrapper.h"
+#include "../common/guiwrapper.h"
 
 namespace Ui {
 class MainWindow;

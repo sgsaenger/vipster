@@ -1,13 +1,15 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include "guiwrapper.h"
 #include "atom_model.h"
 #include "bond_model.h"
 
 #ifndef __EMSCRIPTEN__
-#include "mainwindow.h"
+#include "../qt/mainwindow.h"
 #include <QApplication>
 #endif
 

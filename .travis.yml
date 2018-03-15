@@ -7,18 +7,13 @@ addons:
         sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
-            - sourceline: "ppa:beineri/opt-qt571-trusty"
-            # sourceline: "deb http://pkg.mxe.cc/repos/apt/debian wheezy main"
-            # key_url: "http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xD43A795B73B16ABE9643FE1AFD8FFF16DB45C6AB"
+            - sourceline: "ppa:beineri/opt-qt-5.10.1-trusty"
         packages:
             - g++-5
             - clang-3.7
-            # mxe-x86-64-w64-mingw32.static-qtbase
             - qt57-meta-minimal
-            # wine
 before_install:
     # Compilers:
-    - export PATH=/usr/lib/mxe/usr/bin:$PATH
     - alias clang=clang-3.7
     - alias clang++=clang++-3.7
     # Emscripten:
@@ -29,53 +24,37 @@ before_install:
     # Qt:
     - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
     - source $QT_ENV_SCRIPT
-    # Header-only dependencies:
-    - mkdir -p ~/headers/include
-    - cd ~/headers
-    - export INCLUDEPATH=$(pwd)/include
-    - wget https://github.com/pybind/pybind11/archive/v2.2.1.tar.gz && tar -xf v2.2.1.tar.gz
-    - mv pybind11-2.2.1/include/pybind11 include
+    - qbs setup-toolchains `which clang` clang
+    - qbs setup-qt `which qmake` qt-clang
+    - qbs config profiles.qt-clang.baseProfile clang
+    - qbs setup-toolchains `which gcc` gcc
+    - qbs setup-qt `which qmake` qt-gcc
+    - qbs config profiles.qt-gcc.baseProfile gcc
     # Target folders:
-    - mkdir ~/gcc ~/clang ~/mingw ~/emscripten
+    - mkdir ~/gcc ~/clang ~/emscripten
 install:
     # GCC
     - cd ~/gcc
-    - qmake "INCLUDEPATH+=$INCLUDEPATH" CONFIG+=debug QMAKE_CXX=g++-5 QMAKE_LINK=g++-5 QMAKE_CC=gcc-5 -spec linux-g++ $TRAVIS_BUILD_DIR/vipster.pro
-    - make
+    - qbs build -f $TRAVIS_BUILD_DIR profile:qt-gcc qbs.buildVariant:profile
     # CLANG
     - cd ~/clang
-    - qmake "INCLUDEPATH+=$INCLUDEPATH" QMAKE_CXX=clang++-3.7 QMAKE_LINK=clang++-3.7 QMAKE_CC=clang-3.7 -spec linux-clang $TRAVIS_BUILD_DIR/vipster.pro
-    - make
+    - qbs build -f $TRAVIS_BUILD_DIR profile:qt-clang
     # EMSCRIPTEN
     - cd ~/emscripten
-    - qmake "INCLUDEPATH+=$INCLUDEPATH" -spec $TRAVIS_BUILD_DIR/emscriptenmkspec $TRAVIS_BUILD_DIR/vipster.pro
-    - make
-    # MINGW
-    # cd ~/mingw
-    # /usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static-qmake-qt5 "INCLUDEPATH+=$INCLUDEPATH" $TRAVIS_BUILD_DIR/vipster.pro
-    # make
+    - qbs build -f $TRAVIS_BUILD_DIR profile:emscripten
 script:
     # GCC
-    - cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.vipster.json
     - cd ~/gcc
-    - LD_LIBRARY_PATH=libvipster tests/test_libvipster
+    - qbs run --products test_libvipster
     # CLANG
     - cd ~/clang
-    - LD_LIBRARY_PATH=libvipster tests/test_libvipster
-    # MINGW
-    # mkdir -p ~/.wine/drive_c/users/$USER
-    # cp $TRAVIS_BUILD_DIR/libvipster/default.json ~/.wine/drive_c/users/$USER/vipster.json
-    # cd ~/mingw
-    # WINEDLLOVERRIDES="mscoree,mshtml=" wine tests/release/test_libvipster.exe
+    - qbs run --products test_libvipster
 after_success:
     # get coverage
     - cd ~/gcc
     - bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
 before_deploy:
-    - mkdir $TRAVIS_BUILD_DIR/gh-pages/emscripten
-    - cp ~/emscripten/vipster/vipster{.js,.wasm,_setup.js}  $TRAVIS_BUILD_DIR/gh-pages/emscripten
-    - cp ~/emscripten/vipster/styles.css $TRAVIS_BUILD_DIR/gh-pages/emscripten
-    - cp ~/emscripten/vipster/index.html $TRAVIS_BUILD_DIR/gh-pages/emscripten
+    - mv ~/emscripten/install-root $TRAVIS_BUILD_DIR/gh-pages/emscripten
     - cd $TRAVIS_BUILD_DIR
 deploy:
     - provider: pages

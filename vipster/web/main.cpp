@@ -2,10 +2,9 @@
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
 
-#include "guiwrapper.h"
+#include "../common/guiwrapper.h"
 #include "molecule.h"
 #include "iowrapper.h"
-#include "atom_model.h"
 
 namespace em = emscripten;
 using namespace Vipster;

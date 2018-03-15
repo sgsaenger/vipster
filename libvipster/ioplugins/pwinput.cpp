@@ -1,4 +1,4 @@
-#include "ioplugins/pwinput.h"
+#include "pwinput.h"
 
 #include <sstream>
 #include <iomanip>

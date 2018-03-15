@@ -26,7 +26,7 @@
    <string>Vipster</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources/vipster.qrc">
+   <iconset resource="../resources/vipster.qrc">
     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -521,7 +521,7 @@
   <customwidget>
    <class>GLWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>glwidget.h</header>
+   <header>qt/glwidget.h</header>
    <slots>
     <slot>setMode(int,bool)</slot>
     <slot>setMult(int)</slot>
@@ -531,7 +531,7 @@
   <customwidget>
    <class>MolWidget</class>
    <extends>QWidget</extends>
-   <header>molwidget.h</header>
+   <header>qt/molwidget.h</header>
    <container>1</container>
    <slots>
     <signal>stepChanged()</signal>
@@ -560,7 +560,7 @@
   <tabstop>zMultBox</tabstop>
  </tabstops>
  <resources>
-  <include location="resources/vipster.qrc"/>
+  <include location="../resources/vipster.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -831,8 +831,8 @@
   <slot>stepBut(QAbstractButton*)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="cameraGroup"/>
   <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
+  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

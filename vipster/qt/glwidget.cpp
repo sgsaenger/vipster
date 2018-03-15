@@ -1,7 +1,7 @@
 #include "glwidget.h"
 #include <QKeyEvent>
-#include "atom_model.h"
-#include "bond_model.h"
+#include "../common/atom_model.h"
+#include "../common/bond_model.h"
 
 using namespace Vipster;
 

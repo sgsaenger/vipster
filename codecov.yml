@@ -1,4 +1,5 @@
 ignore:
+    - "libvipster/json.hpp"
     - "tests"
     - "python"
     - "vipster"

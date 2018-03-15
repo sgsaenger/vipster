@@ -1,4 +1,4 @@
-#include "ioplugins/lmpinput.h"
+#include "lmpinput.h"
 
 #include <sstream>
 

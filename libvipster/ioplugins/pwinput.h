@@ -1,7 +1,7 @@
 #ifndef PWINPUT_H
 #define PWINPUT_H
 
-#include "ioplugin.h"
+#include "../ioplugin.h"
 
 namespace Vipster{
 namespace IO{

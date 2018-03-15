@@ -1,4 +1,4 @@
-#include "ioplugins/xyz.h"
+#include "xyz.h"
 
 #include <sstream>
 #include <iomanip>

@@ -1,7 +1,7 @@
 #ifndef LMPTRAJEC_H
 #define LMPTRAJEC_H
 
-#include "ioplugin.h"
+#include "../ioplugin.h"
 
 namespace Vipster{
 namespace IO{

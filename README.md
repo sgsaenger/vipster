@@ -41,7 +41,7 @@ Visualization and editing framework for atomistic simulations.
 ## Dependencies:
 
 - [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
-- [Qt5 >= 5.7](https://www.qt.io)
+- [Qt5 >= 5.7](https://www.qt.io) including QBS
 - and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
 - optional:
     - [Catch2](https://github.com/catchorg/Catch2) (testing, included)
@@ -52,9 +52,10 @@ Visualization and editing framework for atomistic simulations.
 
 - standard xyz
 - PWscf input
+- PWScf output
+- Lammps data
+- Lammps dump
 - ~~Empire-xyz~~
-- ~~PWScf output~~
-- ~~Lammps data/custom-dump~~
 - ~~Gaussian cube~~
 - ~~AIMALL output~~
 - ~~CPMD input~~
