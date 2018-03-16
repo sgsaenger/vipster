@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic|Satisfy' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/styles.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="index.html">
+                            Vipster
+                    </a>
+                    <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="about.html">About</a></li>
+                        <li class="active"><a href="#">GUI</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="cli.html">Vipster</a></li>
+                                <li><a href="molecule.html">Molecule</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="download.html">Get It!</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <main class="container">
+            <p>Two sets of widgets are keen to serve your every needs:</p>
+            <div id="accordion" class="panel-group" role="tablist">
+                <div class="panel">
+                    <div id="headleft" class="panel-heading" role="tab">
+                        <h3 class="panel-title">
+                            <a href="#collleft" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collapse1">
+                                Basic functions
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collleft" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headleft">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Molecules.png" alt="Molecule/Cell settings"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Molecule/Cell settings</h4>
+                                    <p>Edit basic properties of a Molecule/Cell/Trajectory.</p>
+                                    <ul>
+                                        <li>Coordinates are accessible in multiple formats</li>
+                                        <li>Cell modifications can keep either the real or the crystal-coordinates intact</li>
+                                        <li>Multiple ways of expressing the k-point grid</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Parameters.png" alt="Parameter sets"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Parameter sets</h4>
+                                    <p>Parameter sets for PWScf or CPMD can be saved/passed through/edited.</p>
+                                    <p>Additionally, preference for a LAMMPS data file can be managed</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/PSE.png" alt="Periodic table"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Periodic table</h4>
+                                    <p>Manage global or file-specific settings for your atom-types.</p>
+                                    <ul>
+                                        <li>Graphical representation</li>
+                                        <li>Physical properties</li>
+                                        <li>PWScf/CPMD properties</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Settings.png" alt="Settings"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Settings</h4>
+                                    <p>Change everything that's not specific to a file/species.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div id="headright" class="panel-heading" role="tab">
+                        <h3 class="panel-title">
+                            <a href="#collright" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collright">
+                                Additional tools
+                            </a>
+                        </h3>
+                    </div>
+                    <div id="collright" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headright">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Pick.png" alt="Picker"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Picker</h4>
+                                    <p>View/analyze your selection of atoms.</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Cellmod.png" alt="Cell Modifications"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Cell Modifications</h4>
+                                    <ul>
+                                        <li>Wrap/crop</li>
+                                        <li>Multiply</li>
+                                        <li>Reshape</li>
+                                        <li>Align to axis</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Script.png" alt="Script"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Script</h4>
+                                    <p>Modify the structure programmatically:</p>
+                                    <ul>
+                                        <li>Rotation</li>
+                                        <li>Shift</li>
+                                        <li>Mirroring</li>
+                                        <li>Select</li>
+                                        <li>Align to surface</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Plane.png" alt="Plane"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Plane</h4>
+                                    <p>Display crystal-planes according to their miller-indices or
+                                    visualize a slice of volume data.</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-lg-6"><img src="images/Volume.png" alt="Volume"></div>
+                                <div class="col-md-8 col-lg-6">
+                                    <h4>Volume</h4>
+                                    <p>Display isosurfaces of some volume data.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https://github.com/hein09/vipster">GitHub</a></p>
+            </div>
+        </footer>
+    </body>
+</html>

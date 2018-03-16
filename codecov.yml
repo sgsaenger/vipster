@@ -1,3 +1,5 @@
 ignore:
+    - "libvipster/json.hpp"
     - "tests"
-    - "vipster/gui"
+    - "python"
+    - "vipster"

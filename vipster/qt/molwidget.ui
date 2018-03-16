@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MolWidget</class>
+ <widget class="QWidget" name="MolWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>364</width>
+    <height>544</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
+   <item>
+    <widget class="QPushButton" name="atomTableButton">
+     <property name="text">
+      <string>Atoms</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="atomContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="atomFmtLabel_2">
+        <item>
+         <widget class="QLabel" name="atomFmtLabel">
+          <property name="text">
+           <string>Display Format:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="atomFmtBox">
+          <item>
+           <property name="text">
+            <string>Bohr</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Angstrom</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Crystal</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Alat</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="atomFmtButton">
+          <property name="text">
+           <string>Set Format</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="atomTable">
+        <column>
+         <property name="text">
+          <string>Type</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>y</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>z</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="cellWidgetButton">
+     <property name="text">
+      <string>Cell Geometry</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="cellContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="cellFmtLayout">
+        <item>
+         <widget class="QCheckBox" name="cellEnabled">
+          <property name="text">
+           <string>Has Cell</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cellFmt">
+          <item>
+           <property name="text">
+            <string>Bohr</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Angstrom</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="cellDimLayout">
+        <item>
+         <widget class="QLabel" name="cellVecLabel">
+          <property name="text">
+           <string>Cell vectors:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="cellDimSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="cellDimLabel">
+          <property name="text">
+           <string>Cell dimension:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="cellDimBox">
+          <property name="minimum">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="cellVecTable">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>110</height>
+         </size>
+        </property>
+        <row>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>3</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string>x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>y</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>z</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="cellEditLayout">
+        <item>
+         <widget class="QCheckBox" name="cellAllBox">
+          <property name="text">
+           <string>Apply to all Steps</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="cellEditSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cellScaleBox">
+          <property name="text">
+           <string>Scale coordinates with cell</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="kpointStackButton">
+     <property name="text">
+      <string>K-Points</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="kpointStack">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="page"/>
+     <widget class="QWidget" name="page_2"/>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>atomTableButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>atomContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>199</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>181</x>
+     <y>139</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cellWidgetButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cellContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>187</x>
+     <y>251</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>172</x>
+     <y>326</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>kpointStackButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>kpointStack</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>217</x>
+     <y>489</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>206</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

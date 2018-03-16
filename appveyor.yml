@@ -1,0 +1,15 @@
+version: 1.0.{build}
+clone_depth: 30
+clone_folder: c:\projects\vipster
+environment:
+  QTDIR: C:\Qt\5.10.1\mingw53_32
+  MWDIR: C:\Qt\Tools\mingw530_32\bin
+  PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
+install:
+    - choco install -y qbs --version 1.10.1
+build_script:
+    - qbs.exe setup-toolchains --type mingw %MWDIR%\g++.exe gcc
+    - qbs.exe setup-qt %QTDIR%\bin\qmake.exe qt-gcc
+    - qbs.exe build profile:qt-gcc
+test_script:
+    - qbs.exe run --products test_libvipster

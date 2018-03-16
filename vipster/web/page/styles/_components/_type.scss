@@ -1,0 +1,22 @@
+h1, .h1 {
+    text-transform: uppercase;
+    margin-bottom: 0;
+
+    small {
+        text-transform: none;
+        font-size: 70%;
+    }
+
+    @include media-breakpoint-up(lg) {
+        font-size: $font-size-base * 2.25;
+        margin-bottom: 1.5rem;
+    }
+}
+
+h2, .h2 {
+    color: theme-color-level(primary, -8);
+}
+
+h3, .h3 {
+    margin-bottom: .5rem;
+}

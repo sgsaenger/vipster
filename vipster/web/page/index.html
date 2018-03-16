@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Vipster TEST</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <aside id="controls">
+            <div id="controls__bar">
+                <button id="controls__toggle-btn" class="btn btn-lg" type="button" data-toggle="collapse"
+                        data-target="#controls__collapse" aria-expanded="false" aria-controls="controls__collapse"
+                        title="Toggle controls">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <h1>
+                    <span class="title">Vipster</span>
+                    <small class="text-muted">
+                        Visual Periodic STructure EditoR
+                    </small>
+                </h1>
+            </div>
+
+            <div id="controls__collapse" class="collapse">
+                <article class="widget" id="widget-load">
+                    <header>
+                        <h2 class="widget_toggle">Load molecule</h2>
+                        <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </header>
+
+                    <div class="widget__body">
+                        <form class="form-inline flex-nowrap mb-3">
+                            <button id="btnBrowse" type="button" class="btn btn-default mr-3">
+                                Browse …
+                            </button>
+
+                            <div class="input-group">
+                                <select class="custom-select" id="fileType" title="Input filetype">
+                                </select>
+                                <div class="input-group-append">
+                                    <button id="btnUpload" class="btn btn-primary" type="button" disabled>Load file
+                                    </button>
+                                </div>
+                            </div>
+
+                            <input class="hidden" type="file" id="inputFile" name="file" hidden>
+                        </form>
+
+                        <h3>Current molecule</h3>
+                        <div class="dropdown" id="moleculeDropdown">
+                            <button class="btn btn-primary dropdown-toggle"
+                                    id="mol-list-button"
+                                    type="button"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                Example Molecule
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="mol-list-button">
+                                <a class="dropdown-item" href="#" data-idx="0">Example Molecule</a>
+                                <a class="dropdown-item" href="#" data-idx="1">Example Crystal</a>
+                                <div class="dropdown-divider" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="widget" id="widget-step" style="display: none;">
+                    <header>
+                        <h2 class="widget_toggle">Step</h2>
+                        <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </header>
+
+                    <form class="widget__body">
+                        <div class="row">
+                            <div class="col">
+                                <input type="range" class="custom-range" id="stepSlider" min="0" max="0" value="0"
+                                       onInput="setStep(parseInt(this.value))">
+                            </div>
+                            <div class="col text-right">
+                                <span id="stepCur">1</span> / <span id="stepMax">1</span>
+                            </div>
+                        </div>
+                    </form>
+                </article>
+
+                <article class="widget" id="widget-atom-format">
+                    <header>
+                        <h2 class="widget_toggle">Atoms</h2>
+                        <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </header>
+                    <div class="widget__body">
+                        <form class="mb-3">
+                            <div class="input-group">
+                                <select class="custom-select" id="selectAtomFormat" onInput="update(change.atoms)"
+                                        title="Atom format">
+                                    <option value="0">Bohr</option>
+                                    <option value="1">Ångström</option>
+                                    <option value="2">Crystal</option>
+                                    <option value="3">Alat</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" id="atFmtBut">Set format</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <table class="table table-sm table-dark" id="atList"
+                               onInput="atomChanged(event.target)"></table>
+                    </div>
+                </article>
+
+                <article class="widget mt-3" id="widget-cell">
+                    <header>
+                        <h2 class="widget_toggle">Cell</h2>
+                        <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </header>
+
+                    <form class="widget__body">
+                        <div class="custom-control custom-checkbox mb-1">
+                            <input type="checkbox" class="custom-control-input" id="checkboxCellEnabled"
+                                   onChange="cellEnabled(this.checked)">
+                            <label class="custom-control-label" for="checkboxCellEnabled">Cell enabled</label>
+                        </div>
+
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="cellToMol">
+                            <label class="custom-control-label" for="cellToMol">Apply to all steps</label>
+                        </div>
+
+                        <div class="if-cell mt-3" style="display: none;">
+                            <h3>Cell repetitions</h3>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <div class="input-group" title="Repetition in x direction">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">X</div>
+                                        </div>
+                                        <input type="number" class="form-control" id="xmult" min="1" value="1" max="255"
+                                               placeholder="X"
+                                               onchange="setMult()">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="input-group" title="Repetition in y direction">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">Y</div>
+                                        </div>
+                                        <input type="number" class="form-control" id="ymult" min="1" value="1" max="255"
+                                               placeholder="Y"
+                                               onchange="setMult()">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="input-group" title="Repetition in z direction">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">Z</div>
+                                        </div>
+                                        <input type="number" class="form-control" id="zmult" min="1" value="1" max="255"
+                                               placeholder="Z"
+                                               onchange="setMult()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3>Cell properties</h3>
+                            <div class="widget-cell__properties">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Dimension</div>
+                                    </div>
+                                    <input type="number" class="form-control" id="cellDim" min="0.0001" value="1"
+                                           max="100" step="any"
+                                           onchange="cellDimChanged(this)">
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Format</div>
+                                    </div>
+                                    <select class="custom-select" id="cdmFmtSel" onchange="update(change.cell)">
+                                        <option value="0">Bohr</option>
+                                        <option value="1">Angstrom</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <h3>Cell vectors</h3>
+                            <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors"
+                                   onInput="cellVecChanged(event.target)">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>X</th>
+                                        <th>Y</th>
+                                        <th>Z</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-idx=0>
+                                        <td>1</td>
+                                        <td contenteditable data-idx=0>1</td>
+                                        <td contenteditable data-idx=1>0</td>
+                                        <td contenteditable data-idx=2>0</td>
+                                    </tr>
+                                    <tr data-idx=1>
+                                        <td>2</td>
+                                        <td contenteditable data-idx=0>0</td>
+                                        <td contenteditable data-idx=1>1</td>
+                                        <td contenteditable data-idx=2>0</td>
+                                    </tr>
+                                    <tr data-idx=2>
+                                        <td>3</td>
+                                        <td contenteditable data-idx=0>0</td>
+                                        <td contenteditable data-idx=1>0</td>
+                                        <td contenteditable data-idx=2>1</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="cellScale">
+                                <label class="custom-control-label" for="cellScale">Scale coordinates with cell</label>
+                            </div>
+                        </div>
+                    </form>
+                </article>
+            </div>
+        </aside>
+
+        <main class="col-lg">
+            <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+        </main>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+<script type="text/javascript" src="vipster_setup.js"></script>
+<script type="text/javascript" src="vipster.js"></script>
+</body>
+
+</html>

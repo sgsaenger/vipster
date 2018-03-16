@@ -1,11 +1,60 @@
-language: python
-python:
-    - "3.3"
-    - "3.4"
-    - "3.5"
+sudo: required
+language: cpp
+git:
+    depth: 3
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: "ppa:beineri/opt-qt-5.10.1-trusty"
+        packages:
+            - g++-5
+            - qt510-meta-minimal
+            - qt510script
+before_install:
+    # Toolchains:
+    - git clone --depth 1 --branch incoming https://github.com/urho3d/emscripten-sdk.git ~/emscripten-sdk
+    - ~/emscripten-sdk/emsdk activate --build=Release sdk-incoming-64bit binaryen-master-64bit
+    - source ~/emscripten-sdk/emsdk_env.sh
+    - for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+    - sudo update-alternatives --set gcc /usr/bin/gcc-5
+    # Qt:
+    - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
+    - source $QT_ENV_SCRIPT
+    # Qbs:
+    - git clone --depth 1 -b v1.10.1 https://github.com/qbs/qbs.git qbs-build
+    - pushd qbs-build
+    - qmake -r qbs.pro "CONFIG+=qbs_no_dev_install qbs_no_man_install" && make
+    - export PATH=$PATH:$PWD/bin
+    - popd
+    - qbs setup-toolchains `which g++` gcc
+    - qbs setup-qt `which qmake` qt-gcc
+    - qbs config profiles.qt-gcc.baseProfile gcc
+    # Target folders:
+    - mkdir ~/gcc ~/emscripten
 install:
-    - pip install numpy coverage codecov
-    - pip install .
+    # GCC
+    - cd ~/gcc
+    - qbs build -f $TRAVIS_BUILD_DIR profile:qt-gcc qbs.buildVariant:profile
+    # EMSCRIPTEN
+    - cd ~/emscripten
+    - qbs build -f $TRAVIS_BUILD_DIR profile:emscripten
 script:
-    - nosetests -w tests --with-coverage
-    - codecov
+    # GCC
+    - cd ~/gcc
+    - qbs run --products test_libvipster
+after_success:
+    # get coverage
+    - cd ~/gcc
+    - bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
+before_deploy:
+    - mv ~/emscripten/default/install-root $TRAVIS_BUILD_DIR/gh-pages/emscripten
+    - cd $TRAVIS_BUILD_DIR
+deploy:
+    - provider: pages
+      skip_cleanup: true
+      github_token: $GH_TOKEN
+      local_dir: gh-pages
+      on:
+          branch: master

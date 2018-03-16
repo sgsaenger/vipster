@@ -1,153 +1,71 @@
-# ![vipster](vipster-icon.png) VIsual Periodic STructure EditoR
+# [![vipster](vipster-icon.png)](https://hein09.github.io/vipster) VIsual Periodic STructure EditoR
+
 Master:
 [![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=master)](https://travis-ci.org/hein09/vipster)
+[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/master)
 [![codecov](https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 
 Testing:
 [![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=testing)](https://travis-ci.org/hein09/vipster)
+[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/testing)
 [![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 
-Visualization of various molecular structure files.
+Visualization and editing framework for atomistic simulations.
 
-Depends on Python2.7/3, Numpy, PyQT4 and the Python OpenGL bindings.
+For more information, please visit the [Homepage](https://hein09.github.io/vipster),
+installation instructions can be found [here](vipster/README.md).
+
+Most importantly, [try it in your browser!](https://hein09.github.io/vipster/emscripten/index.html)
+
+<table align="center">
+  <tr>
+    <th colspan=3>
+      <img src="vipster-icon.png" height=16>
+      Libvipster
+    </th>
+  </tr>
+  <tr>
+    <td colspan=3>C++14 based backbone: Powerful container-classes and I/O</td>
+  </tr>
+  <tr>
+    <th>
+      <img src="https://s3-eu-west-1.amazonaws.com/qt-files/logos/built-with-Qt_Horizontal_Small.png" alt="Qt GUI" height=18>
+    </th>
+    <th>
+      <img src="https://github.com/kripken/emscripten/blob/master/media/switch_logo.png" alt="Emscripten port" height=60>
+    <th>
+      <img src="https://www.python.org/static/community_logos/python-logo-master-v3-TM.png" alt="Python bindings" height=36>
+    </th>
+  </tr>
+  <tr>
+    <td>Fast and native GUI with OGL3.3 based rendering</td>
+    <td>Portable browser-based GUI, shared render-code</td>
+    <td>Scripting interface for batch-processing</td>
+  </tr>
+</table>
+
+## Dependencies:
+
+- [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
+- [Qt5 >= 5.7](https://www.qt.io) including QBS >= 1.10
+- and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
+- optional:
+    - [Catch2](https://github.com/catchorg/Catch2) (testing, included)
+    - [pybind11](https://github.com/pybind/pybind11) (script-interface)
+    - [emscripten](http://kripken.github.io/emscripten-site) (web-interface)
 
 ## Supported file types:
 
 - standard xyz
-- Empire-xyz
-- PWScf input/output
-- Lammps data/custom-dump
-- Gaussian cube
-- AIMALL output
-- CPMD input
-- Mol2
-- XSF/AXSF
-- Turbomole
+- PWscf input
+- PWScf output
+- Lammps data
+- Lammps dump
+- ~~Empire-xyz~~
+- ~~Gaussian cube~~
+- ~~AIMALL output~~
+- ~~CPMD input~~
+- ~~Mol2~~
+- ~~XSF/AXSF~~
+- ~~Turbomole~~
 
-## Installation:
-
-Install globally (requires root):
-```
-python setup.py install
-```
-Install only for yourself:
-```
-python setup.py install --user
-```
-Don't install, just prepare to work in directory:
-```
-python setup.py build_ext -i
-```
-
-## Usage (GUI):
-
-Start without loading:
-```
-vipster
-```
-Supported cli-options:
-```
-vipster -h
-```
-
-The GUI should be pretty self-explanatory (or will be at some point...)
-
-### Mouse:
-
-**Camera mode** (R):
-Left-click: Rotate rotate
-Middle-click: Move camera
-Right-click: Align camera to z-axis
-
-**Select mode** (S):
-Left-click: Add/Remove atom to selection
-Right-click: Clear selection
-
-**Modify mode** (M):
-Left-click: Rotate atoms around center of selection/center of molecule/clicked atom
-Middle-click: Shift atoms in xy-plane (camera)
-Right-click: Shift atoms along z-axis (camera)
-
-### Tools:
-
-**Pick:**
-
-Displays information for selected atoms
-
-
-**Script:**
-
-Interface for more complex actions:
-
-- `define name list filter`: define a named group of atoms
-- `select list filter`: select given atoms
-- `shift list vec factor`: shift the given list of atoms along a given direction
-- `rotate list angle vec shift`: rotates around vector vec with offset shift
-- `mirror list vec1 vec2 shift`: mirrors at a plane given by the vectors 1 and 2, offset by shift
-- `parallelize list1 list2 list3`: list2 defines plane in list1, rotate list1 so that planes defined by l2 and l3 are parallel
-- `pshift list1 vec list2`: shift list1 according to vec over surface/plane list2
-
-The keywords can be shortened to the first three letters.
-Arguments can be given as follows:
-
-`list` of atoms can be either:
-- `all`
-- `sel`: selected atoms
-- defined name
-- single index: `5`/`[13]`
-- range: `7-9`/`[1-73]`
-- explicit list: `[2,3,9,13-15]`
-
-mandatory vector `vec` or optional vector `shift` can be one of:
-- position vector of atom: `5`/`-13`
-- path between atoms: `3-9`
-- explicit vector in bohr: `(0,3,4.5)`
-- explicit vector in other formats: `(1,2,7.8,format)`
-  with `format` being one of `['bohr','angstrom','crystal','alat']`
-
-`filter` can be up to three of:
-- by type: `tCl`
-- by position: `x>0`, `y<1.5`
-- by coordination number: c8
-
-**Cell Mod.:**
-
-- Wrap Atoms back to cell
-- Crop Atoms outside of cell
-- Permanently multiply unit cell
-- Reshape the cell (BEWARE! Can mess up the structure! It´s your responsibility to choose correct vectors!)
-- Align cell vectors with coordinate axes
-
-**Plane:**
-
-Display either:
-
-- Crystal Plane: Plane given by miller indices. Cell is (fixed) reference frame.
-- Volume Slice: Heatmap visualization of volume data
-
-**Volume:**
-
-Display isosurface generated by chosen threshold.
-
-## Usage (CLI,Scripts):
-
-Import in Python:
-```
-from vipster import *
-```
-
-Main interface then consists of:
-- Molecule: Main data-container, all methods to modify structure/cell, trajectories
-- readFile/writeFile: load/save Data according to inFormats, outFormats
-
-Gui can be interfaced through:
-- launchVipster: launch GUI, takes molecule/parameter lists as arguments
-- GuiMolecules/GuiParameters: fallback if launchVipster receives no arguments
-
-Advanced interface:
-- config/pse: active settings/global-pse (from ~/.vipster.json if present)
-- default: fallback values (from distributed default.json)
-- saveConfig: save current config to ~/.vipster.json
-- newParam: create new parameter sets (PWScf/Lammps)
-
-See also `help()` and `dir()` functions in python
