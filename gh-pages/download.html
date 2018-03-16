@@ -5,21 +5,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Vipster</title>
         <link rel="icon" type="image/png" href="favicon.png">
-        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,700italic,400italic|Satisfy' rel='stylesheet' type='text/css'>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/styles.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
+
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
+
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
     </head>
     <body>
         <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
             <div class="container-fluid">
                 <div class="navbar-header">
                     <a class="navbar-brand" href="index.html">
-                            Vipster
+                            VIPSTER
                     </a>
                     <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
                         <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://ci.appveyor.com/project/hein09/vipster" class="navbar-text">
+                        <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true" alt="AppVeyor build status" height="17">
                     </a>
                     <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
                           <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
@@ -35,40 +47,44 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="about.html">About</a></li>
-                        <li><a href="gui.html">GUI</a></li>
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="cli.html">Vipster</a></li>
-                                <li><a href="molecule.html">Molecule</a></li>
-                            </ul>
-                        </li>
-                        <li class="active"><a href="#">Get It!</a></li>
+                        <li class="active"><a href="#">Get it!</a></li>
+                        <li><a href="emscripten/index.html">Try it!</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
         <main class="container">
-            <h3>Installation:</h3>
-            <p><a href="#dl">Download it!</a></p>
-            <p>Depends on Python2.7/3, Numpy, PyQT4/5 and the Python OpenGL bindings.</p>
-            <ul class="list-unstyled">
-                <li>Install globally (requires root):</li>
-                <li><code>python setup.py install</code></li>
-                <li>Install only for yourself:</li>
-                <li><code>python setup.py install --user</code></li>
-                <li>Don't install, just prepare to work in directory:</li>
-                <li><code>python setup.py build_ext -i</code></li>
-            </ul>
-            <h3 id="dl">Download:</h3>
-            <h4>Version 1.0</h4>
-            <p><a href="https://github.com/hein09/vipster/archive/V1.0.tar.gz">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/hein09/vipster/archive/V1.0.zip">Download as .zip</a></p>
-            <h4>Development version</h4>
+            <h3> New C++ version </h3>
+            <p>
+                Due to some architectural difficulties with the first python-based incarnation,
+                I decided to rewrite Vipster in C++.
+                Unfortunately, still quite some functionalities are missing so for productive use,
+                please consider trying the old version first!
+            </p>
+            <p>
+                Thanks to <a href="http://kripken.github.io/emscripten-site">emscripten</a>
+                and the brilliant <a href="https://grubersjoe.de">Jonathan Gruber</a>, this rewrite is available for you to 
+                <a class="btn btn-default" href="emscripten/index.html">try in your browser!</a>
+            </p>
+            <p> Depends on <a href="https://www.qt.io">Qt5</a> (&gt=5.7), QBS (&gt=1.10)
+                and a C++14-capable compiler (G++/MinGW &gt 5, Clang &gt 3.4) </p>
+            <p> For build informations, please consult the README.md </p>
+            <h4> Master-branch </h4>
+            <p>
+                Status:
+                    <a href="https://travis-ci.org/hein09/vipster">
+                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status">
+                    </a>
+                    <a href="https://ci.appveyor.com/project/hein09/vipster">
+                        <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true" alt="Appveyor build status">
+                    </a>
+                    <a href="https://codecov.io/gh/hein09/vipster">
+                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov">
+                    </a>
+            </p>
             <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
             <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
-            <h4>New: C++-rewrite</h4>
-            <p>Careful, this is neither stable nor has it reached feature-parity!</p>
+            <h4> Testing-branch </h4>
             <p>
                 Status:
                     <a href="https://travis-ci.org/hein09/vipster">
@@ -77,13 +93,32 @@
                     <a href="https://ci.appveyor.com/project/hein09/vipster">
                         <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true" alt="Appveyor build status">
                     </a>
-                    <a href="https://codecov.io/gh/hein09/vipster/branch/testing">
+                    <a href="https://codecov.io/gh/hein09/vipster">
                           <img src="https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg" alt="Codecov">
                     </a>
             </p>
             <p><a href="https://github.com/hein09/vipster/tarball/testing">Download as .tar.gz</a></p>
             <p><a href="https://github.com/hein09/vipster/zipball/testing">Download as .zip</a></p>
-            <p><a href="emscripten/index.html">Try it in your browser!</a></p>
+            <h3> Old python version </h3>
+            <p> 
+                The first version of vipster was written in Python.
+                It is quite mature and feature-complete, but not devoid of bugs. 
+                Use it as a fallback for QM calculations, as it contains
+                many features not yet reproduced in the rewrite.
+                Unfortunately doesn't scale too well in the order of more than a few thousand atoms,
+                so use with care when performing larger Lammps calculations!
+            </p>
+            <p> Depends on Python2.7/3, Numpy, PyQT4/5 and the Python OpenGL bindings. </p>
+            <p><a href="https://github.com/hein09/vipster/archive/V1.0.tar.gz">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/hein09/vipster/archive/V1.0.zip">Download as .zip</a></p>
+            <ul class="list-unstyled">
+                <li>Install globally (requires root):</li>
+                <li><code>python setup.py install</code></li>
+                <li>Install only for yourself:</li>
+                <li><code>python setup.py install --user</code></li>
+                <li>Don't install, just prepare to work in directory:</li>
+                <li><code>python setup.py build_ext -i</code></li>
+            </ul>
 
         </main>
         <footer class="footer">

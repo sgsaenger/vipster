@@ -1,15 +1,21 @@
-# ![vipster](vipster-icon.png) VIsual Periodic STructure EditoR
+# [![vipster](vipster-icon.png)](https://hein09.github.io/vipster) VIsual Periodic STructure EditoR
 
 Master:
 [![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=master)](https://travis-ci.org/hein09/vipster)
+[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/master)
 [![codecov](https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 
 Testing:
 [![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=testing)](https://travis-ci.org/hein09/vipster)
-[![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 [![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/testing)
+[![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
 
 Visualization and editing framework for atomistic simulations.
+
+For more information, please visit the [Homepage](https://hein09.github.io/vipster),
+installation instructions can be found [here](vipster/README.md).
+
+Most importantly, [try it in your browser!](https://hein09.github.io/vipster/emscripten/index.html)
 
 <table align="center">
   <tr>
@@ -41,7 +47,7 @@ Visualization and editing framework for atomistic simulations.
 ## Dependencies:
 
 - [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
-- [Qt5 >= 5.7](https://www.qt.io) including QBS
+- [Qt5 >= 5.7](https://www.qt.io) including QBS >= 1.10
 - and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
 - optional:
     - [Catch2](https://github.com/catchorg/Catch2) (testing, included)
