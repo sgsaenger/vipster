@@ -151,13 +151,13 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
     case EMSCRIPTEN_EVENT_TOUCHSTART:
         if(tMode != TouchMode::None) break;
         switch(touchEvent->numTouches){
-        case 2:
-            local2X = touchEvent->touches[1].canvasX;
-            local2Y = touchEvent->touches[1].canvasY;
-            distance = std::sqrt(std::pow(local2X-touchEvent->touches[0].canvasX,2)+
-                                 std::pow(local2Y-touchEvent->touches[0].canvasY,2));
-            transX = (local2X + touchEvent->touches[0].canvasX)/2;
-            transY = (local2Y + touchEvent->touches[0].canvasY)/2;
+//        case 2:
+//            local2X = touchEvent->touches[1].canvasX;
+//            local2Y = touchEvent->touches[1].canvasY;
+//            distance = std::sqrt(std::pow(local2X-touchEvent->touches[0].canvasX,2)+
+//                                 std::pow(local2Y-touchEvent->touches[0].canvasY,2));
+//            transX = (local2X + touchEvent->touches[0].canvasX)/2;
+//            transY = (local2Y + touchEvent->touches[0].canvasY)/2;
         case 1:
             tMode = TouchMode::Rotate;
             local1X = touchEvent->touches[0].canvasX;
@@ -177,42 +177,44 @@ EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*
             local1X = touchEvent->touches[0].canvasX;
             local1Y = touchEvent->touches[0].canvasY;
             break;
-        case 2:
-            if(tMode < TouchMode::Scale){
-                tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
-                                         touchEvent->touches[0].canvasX,2)+
-                                std::pow(touchEvent->touches[1].canvasY-
-                                         touchEvent->touches[0].canvasY,2));
-                if (std::abs(tmp-distance)>scaleDelta){
-                    tMode = TouchMode::Scale;
-                }else if(local1X-touchEvent->touches[0].canvasX > translateDelta||
-                         local1Y-touchEvent->touches[0].canvasY > translateDelta||
-                         local2X-touchEvent->touches[1].canvasX > translateDelta||
-                         local2Y-touchEvent->touches[1].canvasY > translateDelta){
-                    tMode = TouchMode::Translate;
-                }
-            }
-            if(tMode < TouchMode::Scale) break;
-            if(tMode == TouchMode::Scale){
-                if(!tmp)
-                    tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
-                                             touchEvent->touches[0].canvasX,2)+
-                                    std::pow(touchEvent->touches[1].canvasY-
-                                             touchEvent->touches[0].canvasY,2));
-                gui.zoomViewMat(tmp-distance);
-                distance = tmp;
-            }else if(tMode == TouchMode::Translate){
-                tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
-                tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
-                gui.translateViewMat(tmp-transX, -(tmp2-transY), 0);
-                transX = tmp;
-                transY = tmp2;
-            }
-            local1X = touchEvent->touches[0].canvasX;
-            local1Y = touchEvent->touches[0].canvasY;
-            local2X = touchEvent->touches[1].canvasX;
-            local2Y = touchEvent->touches[1].canvasY;
+        default:
             break;
+//        case 2:
+//            if(tMode < TouchMode::Scale){
+//                tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
+//                                         touchEvent->touches[0].canvasX,2)+
+//                                std::pow(touchEvent->touches[1].canvasY-
+//                                         touchEvent->touches[0].canvasY,2));
+//                if (std::abs(tmp-distance)>scaleDelta){
+//                    tMode = TouchMode::Scale;
+//                }else if(local1X-touchEvent->touches[0].canvasX > translateDelta||
+//                         local1Y-touchEvent->touches[0].canvasY > translateDelta||
+//                         local2X-touchEvent->touches[1].canvasX > translateDelta||
+//                         local2Y-touchEvent->touches[1].canvasY > translateDelta){
+//                    tMode = TouchMode::Translate;
+//                }
+//            }
+//            if(tMode < TouchMode::Scale) break;
+//            if(tMode == TouchMode::Scale){
+//                if(!tmp)
+//                    tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
+//                                             touchEvent->touches[0].canvasX,2)+
+//                                    std::pow(touchEvent->touches[1].canvasY-
+//                                             touchEvent->touches[0].canvasY,2));
+//                gui.zoomViewMat(tmp-distance);
+//                distance = tmp;
+//            }else if(tMode == TouchMode::Translate){
+//                tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
+//                tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
+//                gui.translateViewMat(tmp-transX, -(tmp2-transY), 0);
+//                transX = tmp;
+//                transY = tmp2;
+//            }
+//            local1X = touchEvent->touches[0].canvasX;
+//            local1Y = touchEvent->touches[0].canvasY;
+//            local2X = touchEvent->touches[1].canvasX;
+//            local2Y = touchEvent->touches[1].canvasY;
+//            break;
         }
         break;
     case EMSCRIPTEN_EVENT_TOUCHEND:
