@@ -43,10 +43,6 @@
     }
 }
 
-#controls__collapse {
-    padding-top: $controls-bar-height * 1.25;
-}
-
 @include media-breakpoint-up(lg) {
     #controls {
         flex: 0 0 28rem;
@@ -83,6 +79,5 @@
 
     #controls__collapse {
         display: block;
-        padding-top: 0;
     }
 }

@@ -11,7 +11,7 @@
     }
 
     &:first-of-type {
-        margin-top: .25rem;
+        margin-top: $controls-bar-height + 24px;
 
         @include media-breakpoint-up(lg) {
             margin-top: 0;
