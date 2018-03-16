@@ -1,10 +1,8 @@
-// Own variables
-$icon-font-path: '../fonts/';
-
 // Variables
 //
 // Variables should follow the `$component-state-property-size` formula for
 // consistent naming. Ex: $nav-link-disabled-color and $modal-content-box-shadow-xs.
+
 
 //
 // Color system
@@ -241,7 +239,7 @@ $font-weight-bold: 700 !default;
 $font-weight-base: $font-weight-normal !default;
 $line-height-base: 1.5 !default;
 
-$h1-font-size: $font-size-base * 2.25;
+$h1-font-size: $font-size-base * 2;
 $h2-font-size: $font-size-base * 1.25;
 $h3-font-size: $font-size-base * 1.1;
 
@@ -316,7 +314,7 @@ $table-dark-color: $body-bg !default;
 //
 // Shared variables that are reassigned to `$input-` and `$btn-` specific variables.
 
-$input-btn-padding-y: .4rem;
+$input-btn-padding-y: .6rem;
 $input-btn-padding-x: .75rem !default;
 $input-btn-line-height: $line-height-base !default;
 
@@ -520,7 +518,7 @@ $form-feedback-invalid-color: theme-color("danger") !default;
 // Dropdown menu container and contents.
 
 $dropdown-min-width: 10rem !default;
-$dropdown-padding-y: .8rem !default;
+$dropdown-padding-y: .5rem;
 $dropdown-spacer: .125rem !default;
 $dropdown-bg: $white !default;
 $dropdown-border-color: rgba($black, .15) !default;
@@ -538,8 +536,8 @@ $dropdown-link-active-bg: $component-active-bg !default;
 
 $dropdown-link-disabled-color: $gray-600 !default;
 
-$dropdown-item-padding-y: .25rem !default;
-$dropdown-item-padding-x: 1.5rem !default;
+$dropdown-item-padding-y: .75rem;
+$dropdown-item-padding-x: 1.25rem !default;
 
 $dropdown-header-color: $gray-600 !default;
 
@@ -867,3 +865,12 @@ $pre-scrollable-max-height: 340px !default;
 // Printing
 $print-page-size: a3 !default;
 $print-body-min-width: map-get($grid-breakpoints, "lg") !default;
+
+
+// ------
+// Own variables
+
+$icon-font-path: '../fonts/';
+
+$controls-bg: theme-color('secondary');
+$controls-bar-height: 56px;

@@ -10,11 +10,25 @@
         }
     }
 
+    &:first-of-type {
+        margin-top: $controls-bar-height + 24px;
+
+        @include media-breakpoint-up(lg) {
+            margin-top: 0;
+        }
+    }
+    @include media-breakpoint-up(lg) {
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+    }
+
     > header {
         position: relative;
 
         h2 {
             margin-bottom: 0;
+            cursor: pointer;
         }
     }
 
