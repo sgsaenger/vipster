@@ -314,7 +314,7 @@ $(document).ready(function () {
         $('.if-cell').toggle($(this).get(0).checked);
     });
 
-    $('.widget__toggle-btn').click(function () {
+    $('.widget_toggle').click(function () {
         $(this)
             .stop()
             .parents('.widget:first').toggleClass('closed')
