@@ -1,10 +1,9 @@
 import qbs 1.0
 
-//CppApplication {
 Product{
     name: "WebVipster"
     targetName: "vipster.js"
-    condition: web
+    condition: project.webBuild
     type: "emapplication"
     Depends {name: "cpp"}
     Depends {name: "libvipster"}

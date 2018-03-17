@@ -5,17 +5,15 @@ Project {
 
     references: [
         "libvipster/libvipster.qbs",
+        "vipster/QtVipster.qbs",
+        "vipster/WebVipster.qbs",
 //        "python/python.qbs",
-        "tests/tests.qbs"
+        "tests/tests.qbs",
+        "dist/dist.qbs"
     ]
 
-    SubProject {
-        filePath: "vipster/frontend.qbs"
-        inheritProperties: true
-        Properties {
-            web: profile.contains("mscript")
-        }
-    }
+    property bool webBuild: false
+    property bool winInstall: false
 
     Profile {
         name: "emscripten"

@@ -39,7 +39,7 @@ install:
     - qbs build -f $TRAVIS_BUILD_DIR profile:qt-gcc qbs.buildVariant:profile
     # EMSCRIPTEN
     - cd ~/emscripten
-    - qbs build -f $TRAVIS_BUILD_DIR profile:emscripten
+    - qbs build -f $TRAVIS_BUILD_DIR profile:emscripten project.webBuild:true
 script:
     # GCC
     - cd ~/gcc

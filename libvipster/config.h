@@ -4,6 +4,9 @@
 #include <string>
 #include <map>
 #include <array>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace Vipster{
 
@@ -14,14 +17,16 @@ const std::string user_config = "/vipster.json";
 #define PREFIX /usr/share/
 #endif
 const std::string sys_config = "PREFIXvipster.json";
-//TODO: rename when stable
-const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster2.json";
+const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
 #elif _WIN32
-//WIP
-//HMODULE hModule = GetModuleHandleW(nullptr);
-//WCHAR path[MAX_PATH];
-//GetModuleFileNameW(hModule,path,MAX_PATH);
-//const std::string sys_config = "./vipster.json";
+const std::string sys_config = [](){
+    const HMODULE hModule = GetModuleHandleA(nullptr);
+    CHAR path[MAX_PATH];
+    GetModuleFileNameA(hModule, path, MAX_PATH);
+    std::string temp{path};
+    auto pos = temp.find_last_of('\\');
+    return temp.substr(0, pos).append("\\default.json");
+}();
 const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipster.json";
 #elif __APPLE__
 //TODO: should be something like ~/Library/Application Support/vipster/vipster.json

@@ -151,6 +151,7 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
         at.name = cell->text().toStdString();
         at.properties[Hidden] = cell->checkState()/2;
     } else {
+        // TODO: property assignment toggles pse-reevaluation in evaluateCache!
         at.coord[column-1] = locale().toDouble(cell->text());
         at.properties[column-1] = cell->checkState()/2;
     }

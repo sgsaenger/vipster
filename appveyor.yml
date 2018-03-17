@@ -10,6 +10,28 @@ install:
 build_script:
     - qbs.exe setup-toolchains --type mingw %MWDIR%\g++.exe gcc
     - qbs.exe setup-qt %QTDIR%\bin\qmake.exe qt-gcc
-    - qbs.exe build profile:qt-gcc
+    - qbs.exe build release profile:qt-gcc products.test_libvipster.qbsfix:true
 test_script:
-    - qbs.exe run --products test_libvipster
+    - qbs.exe run --products test_libvipster release
+before_deploy:
+    - del release\install-root\test_libvipster
+    - qbs.exe resolve project.winInstall:true release
+    - qbs.exe build release
+    - cd release
+    - if defined APPVEYOR_REPO_TAG_NAME move Vipster*.7z %APPVEYOR_BUILD_FOLDER%
+    - if defined APPVEYOR_REPO_TAG_NAME move Vipster*-install.exe %APPVEYOR_BUILD_FOLDER%
+artifacts:
+    - name: Installer
+      path: 'Vipster*-install.exe'
+    - name: Archive
+      path: 'Vipster*.7z'
+deploy:
+    - provider: Github
+      release: Vipster %APPVEYOR_REPO_TAG_NAME%
+      auth_token:
+        secure: B7byrQs5wuFQdK1ws3GCmTGI/0YCLZ3TUN+h3UxP9nl/uOlZX1jS1kO+AMWhprA5
+      draft: true
+      artifacts: /.*\.(exe|7z)/
+      on:
+        branch: master
+        appveyor_repo_tag: true

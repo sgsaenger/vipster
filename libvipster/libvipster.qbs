@@ -4,13 +4,9 @@ Product {
     name: "libvipster"
     targetName: "vipster"
 
-    property bool isUnix: !qbs.targetOS.contains("windows") && !cpp.architecture.contains("wasm")
+    property bool isUnix: !qbs.targetOS.contains("windows") && !project.webBuild
 
     type: "dynamiclibrary"
-    Properties {
-        condition: !isUnix
-        type: "staticlibrary"
-    }
 
     files: ["json.hpp",
             "libvipster.qmodel"]
@@ -30,8 +26,11 @@ Product {
     Group {
         name: "library"
         fileTagsFilter: product.type
-        qbs.install: isUnix
-        qbs.installDir: "lib"
+        qbs.install: true
+        Properties {
+            condition: isUnix
+            qbs.installDir: "lib"
+        }
     }
 
     // C++ settings (rest of project will inherit)

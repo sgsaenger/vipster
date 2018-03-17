@@ -12,11 +12,14 @@ namespace Vipster{
 
 PseMap Vipster::readPse()
 {
-    std::ifstream user_file{user_config};
     PseMap temp{true};
-    if(user_file){
+    std::ifstream conf_file{user_config};
+    if(!conf_file){
+        conf_file = std::ifstream{sys_config};
+    }
+    if(conf_file){
         json loc_file;
-        user_file >> loc_file;
+        conf_file >> loc_file;
         for(auto it=loc_file["PSE"].begin();it!=loc_file["PSE"].end();++it)
         {
             auto v = it.value();
