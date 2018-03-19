@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <array>
+#include <cstdlib>
 #ifdef _WIN32
 #include <windows.h>
 #endif

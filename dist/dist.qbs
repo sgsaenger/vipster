@@ -47,7 +47,7 @@ Project {
     InstallPackage {
         name: "winArchive"
         targetName: project.baseName
-        archiver.type: "7zip"
+        archiver.type: "zip"
         Depends {name: "libvipster"}
         Depends {name: "QtVipster"}
         Depends {name: "Qt DLLs"}

@@ -13,18 +13,18 @@ build_script:
     - qbs.exe build release profile:qt-gcc products.test_libvipster.qbsfix:true
 test_script:
     - qbs.exe run --products test_libvipster release
-before_deploy:
-    - del release\install-root\test_libvipster
-    - qbs.exe resolve project.winInstall:true release
-    - qbs.exe build release
-    - cd release
-    - if defined APPVEYOR_REPO_TAG_NAME move Vipster*.7z %APPVEYOR_BUILD_FOLDER%
-    - if defined APPVEYOR_REPO_TAG_NAME move Vipster*-install.exe %APPVEYOR_BUILD_FOLDER%
+after_test:
+    - ps: |
+        if ($env:APPVEYOR_REPO_TAG -eq "true") {
+            Remove-Item release\install-root\test_libvipster.exe
+            qbs.exe resolve project.winInstall:true release
+            qbs.exe build release
+        }
 artifacts:
     - name: Installer
-      path: 'Vipster*-install.exe'
+      path: 'release\Vipster-Win-32-install.exe'
     - name: Archive
-      path: 'Vipster*.7z'
+      path: 'release\Vipster-Win-32.zip'
 deploy:
     - provider: Github
       release: Vipster %APPVEYOR_REPO_TAG_NAME%
