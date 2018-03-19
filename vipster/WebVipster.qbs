@@ -35,8 +35,7 @@ Product{
         // will be embedded in emscripten-product
         name: "resources"
         files: ["resources/*frag",
-                "resources/*vert",
-                "default.json"]
+                "resources/*vert"]
     }
 
     Group {
@@ -62,6 +61,6 @@ Product{
         "--embed-file", sourceDirectory.concat("/resources/atom.vert@atom.vert"),
         "--embed-file", sourceDirectory.concat("/resources/bond.vert@bond.vert"),
         "--embed-file", sourceDirectory.concat("/resources/cell.vert@cell.vert"),
-        "--embed-file", sourceDirectory.concat("/default.json@vipster.json")
+        "--embed-file", sourceDirectory.concat("/../libvipster/default.json@vipster.json")
     ]
 }

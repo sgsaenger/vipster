@@ -11,27 +11,37 @@
 namespace Vipster{
 
 #ifdef __EMSCRIPTEN__
-const std::string user_config = "/vipster.json";
+const std::string sys_path = "/";
+const std::string sys_config = "/vipster.json";
+const std::string user_path{};
+const std::string user_config{};
 #elif __linux__
 #ifndef PREFIX
 #define PREFIX /usr/share/
 #endif
-const std::string sys_config = "PREFIXvipster.json";
-const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
+const std::string sys_path = "PREFIXvipster";
+const std::string sys_config = sys_path + "/default.json";
+const std::string user_path = std::getenv("HOME");
+const std::string user_config = user_path + "/.vipster.json";
 #elif _WIN32
-const std::string sys_config = [](){
+const std::string sys_path = [](){
     const HMODULE hModule = GetModuleHandleA(nullptr);
     CHAR path[MAX_PATH];
     GetModuleFileNameA(hModule, path, MAX_PATH);
     std::string temp{path};
     auto pos = temp.find_last_of('\\');
-    return temp.substr(0, pos).append("\\default.json");
+    return temp.substr(0, pos);
 }();
-const std::string user_config = std::string(std::getenv("USERPROFILE"))+"/vipster.json";
+const std::string sys_config = sys_path + "\\default.json";
+const std::string user_path = std::string{std::getenv("APPDATA")} + "\\vipster";
+const std::string user_config = user_path + "\\vipster.json";
 #elif __APPLE__
+//TODO: maybe Library/Application Support/vipster/vipster.json? or in bundle?
+const std::string sys_path = "";
+const std::string sys_config = "";
 //TODO: should be something like ~/Library/Application Support/vipster/vipster.json
-//TODO: sys_config maybe Library/Application Support/vipster/vipster.json
-const std::string user_config = std::string(std::getenv("HOME"))+"/.vipster.json";
+const std::string user_path = std::string{std::getenv("HOME")} + "/Library/Application Support/vipster";
+const std::string user_config = user_path + "/.vipster.json";
 #endif
 
 using ColVec = std::array<uint8_t, 4>;

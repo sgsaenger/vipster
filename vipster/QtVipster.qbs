@@ -23,16 +23,6 @@ QtGuiApplication {
     }
 
     Group {
-        name: "distfiles"
-        files: "default.json"
-        qbs.install: true
-        Properties {
-            condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: "share/vipster"
-        }
-    }
-
-    Group {
         name: "WinIcon"
         files: ["resources/vipster.ico",
                 "resources/win.rc"]

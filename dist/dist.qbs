@@ -2,6 +2,7 @@ import qbs 1.0
 import qbs.FileInfo
 
 Project {
+    condition: project.winInstall
     property string baseName:{
             var base = "Vipster-Win-";
             if (qbs.debugInformation)
@@ -15,7 +16,6 @@ Project {
         }
     Product {
         name: "Qt DLLs"
-        builtByDefault: project.winInstall
         Depends {name: "Qt.core"}
         property string suffix: {
             if (qbs.debugInformation) {
@@ -45,7 +45,6 @@ Project {
     }
 
     InstallPackage {
-        builtByDefault: project.winInstall
         name: "winArchive"
         targetName: project.baseName
         archiver.type: "7zip"
@@ -56,7 +55,6 @@ Project {
     }
 
     NSISSetup {
-        builtByDefault: project.winInstall
         name: "winSetup"
         targetName: project.baseName + "-install"
         Depends {name: "libvipster"}

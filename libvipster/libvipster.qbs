@@ -4,8 +4,6 @@ Product {
     name: "libvipster"
     targetName: "vipster"
 
-    property bool isUnix: !qbs.targetOS.contains("windows") && !project.webBuild
-
     type: "dynamiclibrary"
 
     files: ["json.hpp",
@@ -14,7 +12,7 @@ Product {
     Group {
         name: "headers"
         files: ["*.h","*/*.h"]
-        qbs.install: isUnix
+        qbs.install: !qbs.targetOS.contains("windows") && !project.webBuild
         qbs.installDir: "include/vipster"
     }
 
@@ -26,10 +24,20 @@ Product {
     Group {
         name: "library"
         fileTagsFilter: product.type
-        qbs.install: true
+        qbs.install: !project.webBuild
         Properties {
-            condition: isUnix
+            condition: !qbs.targetOS.contains("windows")
             qbs.installDir: "lib"
+        }
+    }
+
+    Group {
+        name: "distfiles"
+        files: "default.json"
+        qbs.install: !project.webBuild
+        Properties {
+            condition: !qbs.targetOS.contains("windows")
+            qbs.installDir: "share/vipster"
         }
     }
 
