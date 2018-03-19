@@ -46,6 +46,7 @@ Project {
 
     InstallPackage {
         name: "winArchive"
+        builtByDefault: true
         targetName: project.baseName
         archiver.type: "zip"
         Depends {name: "libvipster"}
