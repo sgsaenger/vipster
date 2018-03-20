@@ -9,7 +9,7 @@ namespace Vipster {
     enum class CdmFmt { Bohr, Angstrom };
 
     struct CellData {
-        bool                            enabled{true};
+        bool                            enabled{false};
         float                           dimBohr{1};
         float                           dimAngstrom{bohrrad};
         Mat                             cellvec{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}};

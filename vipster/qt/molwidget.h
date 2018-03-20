@@ -32,6 +32,7 @@ private:
     void fillKPoints(void);
     Ui::MolWidget *ui;
     Vipster::Step* curStep;
+    Vipster::Molecule* curMol;
 };
 
 #endif // MOLWIDGET_H

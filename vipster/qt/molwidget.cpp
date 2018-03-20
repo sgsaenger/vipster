@@ -29,6 +29,9 @@ void MolWidget::updateWidget(Change change)
         updateTriggered = false;
         return;
     }
+    if ((change & molChanged) == molChanged) {
+        curMol = master->curMol;
+    }
     QSignalBlocker blockAtFmt(ui->atomFmtBox);
     if ((change & stepChanged) == stepChanged) {
         curStep = master->curStep;
@@ -82,7 +85,6 @@ void MolWidget::fillAtomTable(void)
     }
     auto at = curStep->begin();
     for(int j=0;j!=nat;++j){
-        //TODO: Fmt
         ui->atomTable->item(j,0)->setText(at->name.c_str());
         ui->atomTable->item(j,0)->setCheckState(
                     Qt::CheckState(at->properties[Hidden]*2));
@@ -97,7 +99,43 @@ void MolWidget::fillAtomTable(void)
 
 void MolWidget::fillKPoints()
 {
-
+    auto& kpoints = curMol->getKPoints();
+    ui->activeKpoint->setCurrentIndex(static_cast<int>(kpoints.active));
+    // fill mpg
+    ui->mpg_x->setValue(kpoints.mpg.x);
+    ui->mpg_y->setValue(kpoints.mpg.y);
+    ui->mpg_z->setValue(kpoints.mpg.z);
+    ui->mpg_x_off->setValue(kpoints.mpg.sx);
+    ui->mpg_y_off->setValue(kpoints.mpg.sy);
+    ui->mpg_z_off->setValue(kpoints.mpg.sz);
+    // fill discrete
+    auto discToCheckstate = [](const KPoints::Discrete&k, KPoints::Discrete::Properties p){
+        if(k.properties&p){
+            return Qt::CheckState::Checked;
+        }else{
+            return Qt::CheckState::Unchecked;
+        }
+    };
+    ui->crystal->setCheckState(discToCheckstate(kpoints.discrete, kpoints.discrete.crystal));
+    ui->bands->setCheckState(discToCheckstate(kpoints.discrete, kpoints.discrete.band));
+    auto& discretetable = *(ui->discretetable);
+    int oldCount = discretetable.rowCount();
+    int newCount = kpoints.discrete.kpoints.size();
+    discretetable.setRowCount(newCount);
+    if (oldCount < newCount) {
+        for (int j=oldCount; j!=newCount; ++j) {
+            for (int k=0; k!=4; ++k) {
+                discretetable.setItem(j,k, new QTableWidgetItem());
+            }
+        }
+    }
+    auto kpoint = kpoints.discrete.kpoints.begin();
+    for (int j=0; j!=newCount; ++j) {
+        discretetable.item(j,0)->setText(QString::number(kpoint->pos[0]));
+        discretetable.item(j,1)->setText(QString::number(kpoint->pos[1]));
+        discretetable.item(j,2)->setText(QString::number(kpoint->pos[2]));
+        discretetable.item(j,3)->setText(QString::number(kpoint->weight));
+    }
 }
 
 void MolWidget::on_cellEnabled_toggled(bool checked)

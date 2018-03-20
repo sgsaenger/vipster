@@ -18,7 +18,7 @@ typedef std::array<float,16> guiMat;
 
 enum Change{atoms=1, cell=2, fmt=4, kpoints=32};
 const Change stepChanged = (Change)(Change::atoms | Change::cell | Change::fmt);
-const Change molChanged = Change::kpoints;
+const Change molChanged = (Change)(stepChanged | Change::kpoints);
 
 #ifndef __EMSCRIPTEN__
 class BaseWidget{

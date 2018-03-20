@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(format);
     QApplication a(argc, argv);
     a.setApplicationName("Vipster");
-    a.setApplicationVersion("1.9a");
+    a.setApplicationVersion("1.8a");
     QCommandLineParser p;
     p.setApplicationDescription("Vipster");
     p.addHelpOption();

@@ -4,6 +4,7 @@ using namespace Vipster;
 
 void Step::enableCell(bool b) noexcept
 {
+    //TODO: create minimum containing cell?
     cell->enabled = b;
 }
 

@@ -111,7 +111,6 @@ void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
         at.properties[FixX] = x;
         at.properties[FixY] = y;
         at.properties[FixZ] = z;
-//        at.properties = x*FixX | y*FixY | z*FixZ;
     }
 }
 
@@ -123,12 +122,31 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
         std::string line;
         std::getline(file, line);
         while(line[0]=='!' || line[0]=='#') std::getline(file, line);
+        m.getKPoints().active = KPointFmt::MPG;
         KPoints::MPG &mpg = m.getKPoints().mpg;
         std::stringstream linestream{line};
         linestream >> mpg.x >> mpg.y >> mpg.z >> mpg.sx >> mpg.sy >> mpg.sz;
         if (linestream.fail()) throw IOError("Failed to parse automatic K-Points");
     } else {
-        throw IOError("Discrete K-Points not implemented");
+        if(name.find("CRYSTAL") != name.npos) {
+            m.getKPoints().discrete.properties = KPoints::Discrete::crystal;
+        }
+        if(name.find("_B") != name.npos) {
+            m.getKPoints().discrete.properties =
+                    static_cast<KPoints::Discrete::Properties>(
+                        m.getKPoints().discrete.properties |
+                        KPoints::Discrete::band);
+        }
+        std::string line;
+        std::getline(file, line);
+        size_t nk;
+        std::stringstream{line} >> nk;
+        m.getKPoints().discrete.kpoints.resize(nk);
+        for(size_t k=0; k!=nk; ++k){
+            std::getline(file, line);
+            DiscreteKPoint &kp = m.getKPoints().discrete.kpoints[k];
+            std::stringstream{line} >> kp.pos[0] >> kp.pos[1] >> kp.pos[2] >> kp.weight;
+        }
     }
 }
 

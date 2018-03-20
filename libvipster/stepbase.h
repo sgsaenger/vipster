@@ -63,16 +63,20 @@ public:
     virtual const T&    asFmt(AtomFmt) const=0;
 
     // Bonds
-    const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell) const
+    const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell,
+                                         bool update=true) const
     {
-        return getBonds(bonds->cutoff_factor, l);
+        return getBonds(bonds->cutoff_factor, l, update);
     }
     const std::vector<Bond>&    getBonds(float cutfac,
-                                         BondLevel l=BondLevel::Cell) const
+                                         BondLevel l=BondLevel::Cell,
+                                         bool update=true) const
     {
         evaluateCache();
         if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
-        if(bonds->outdated or (cutfac != bonds->cutoff_factor) or (bonds->level < l))
+        if(update and (bonds->outdated or
+                       (cutfac != bonds->cutoff_factor) or
+                       (bonds->level < l)))
         {
             setBonds(l, cutfac);
         }
@@ -81,6 +85,24 @@ public:
     size_t                      getNbond() const
     {
         return getBonds().size();
+    }
+    void    setBonds(BondLevel l, float cutfac) const
+    {
+        bonds->bonds.clear();
+        if(!static_cast<const T*>(this)->getNat()) l = BondLevel::None;
+        switch(l){
+        case BondLevel::None:
+            break;
+        case BondLevel::Molecule:
+            setBondsMolecule(cutfac);
+            break;
+        case BondLevel::Cell:
+            setBondsCell(cutfac);
+            break;
+        }
+        bonds->outdated = false;
+        bonds->cutoff_factor = cutfac;
+        bonds->level = l;
     }
 
     // Cell
@@ -219,24 +241,6 @@ protected:
 
 private:
     // Bonds
-    void    setBonds(BondLevel l, float cutfac) const
-    {
-        bonds->bonds.clear();
-        if(!static_cast<const T*>(this)->getNat()) l = BondLevel::None;
-        switch(l){
-        case BondLevel::None:
-            break;
-        case BondLevel::Molecule:
-            setBondsMolecule(cutfac);
-            break;
-        case BondLevel::Cell:
-            setBondsCell(cutfac);
-            break;
-        }
-        bonds->outdated = false;
-        bonds->cutoff_factor = cutfac;
-        bonds->level = l;
-    }
     void    setBondsMolecule(float cutfac) const
     {
         AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
