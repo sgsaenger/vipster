@@ -156,12 +156,12 @@ auto makeParser(std::vector<lmpTok> fmt){
     };
 }
 
-std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file)
+IO::BaseData LmpInpParser(std::string name, std::ifstream &file)
 {
     enum class ParseMode{Header,Atoms,Types};
 
-    auto data = std::make_shared<IO::BaseData>();
-    Molecule& m = data->mol;
+    IO::BaseData data{};
+    Molecule& m = data.mol;
     m.setName(name);
     StepProper& s = m.newStep();
     s.setFmt(AtomFmt::Angstrom);
@@ -272,9 +272,11 @@ std::shared_ptr<IO::BaseData> LmpInpParser(std::string name, std::ifstream &file
     return data;
 }
 
-bool LmpInpWriter(const Molecule&, std::ofstream &, const IO::BaseParam* p)
+bool LmpInpWriter(const Molecule&, std::ofstream &,
+                  const IO::BaseParam *const,
+                  const IO::BaseConfig *const c)
 {
-    auto *lp = dynamic_cast<const IO::LmpParam*>(p);
+    auto *lp = dynamic_cast<const IO::LmpConfig*>(c);
     if(!lp) throw IOError("Lammps-Writer needs parameter set");
     return false;
 }

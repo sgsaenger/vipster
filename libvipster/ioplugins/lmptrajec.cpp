@@ -66,13 +66,13 @@ auto IdentifyColumns(std::string& line)
     }
 }
 
-std::shared_ptr<IO::BaseData>
+IO::BaseData
 LmpTrajecParser(std::string name, std::ifstream &file)
 {
     enum class ParseMode{Header, Cell, Atoms};
 
-    auto data = std::make_shared<IO::BaseData>();
-    Molecule& m = data->mol;
+    IO::BaseData data{};
+    Molecule& m = data.mol;
     m.setName(name);
     StepProper* s = nullptr;
 

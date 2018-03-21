@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-std::shared_ptr<IO::BaseData> Vipster::readFile(std::string fn, IOFmt fmt, std::string name)
+IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt, std::string name)
 {
     std::ifstream file{fn};
     try{
@@ -22,12 +22,14 @@ std::shared_ptr<IO::BaseData> Vipster::readFile(std::string fn, IOFmt fmt, std::
     }
 }
 
-std::shared_ptr<IO::BaseData> Vipster::readFile(std::string fn, IOFmt fmt)
+IO::BaseData Vipster::readFile(std::string fn, IOFmt fmt)
 {
     return readFile(fn, fmt, fn);
 }
 
-bool  Vipster::writeFile(std::string fn, IOFmt fmt, const Molecule &m, const IO::BaseParam * const p)
+bool  Vipster::writeFile(std::string fn, IOFmt fmt, const Molecule &m,
+                         const IO::BaseParam *const p,
+                         const IO::BaseConfig *const c)
 {
     std::ofstream file{fn};
     try{
@@ -39,7 +41,7 @@ bool  Vipster::writeFile(std::string fn, IOFmt fmt, const Molecule &m, const IO:
         }else{
             const IOPlugin * const w = IOPlugins.at(fmt);
             if(!w->writer) throw IOError("Read-only format");
-            return w->writer(m, file, p);
+            return w->writer(m, file, p, c);
         }
     }
     catch(IOError &e){

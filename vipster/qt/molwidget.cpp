@@ -205,3 +205,14 @@ void MolWidget::on_atomFmtButton_clicked()
 {
     master->setFmt(ui->atomFmtBox->currentIndex(), true, false);
 }
+
+void MolWidget::on_molList_currentIndexChanged(int index)
+{
+    master->setMol(index);
+}
+
+void MolWidget::registerMol(const std::string& name)
+{
+    ui->molList->addItem(name.c_str());
+    ui->molList->setCurrentIndex(ui->molList->count()-1);
+}

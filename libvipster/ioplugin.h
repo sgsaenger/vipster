@@ -6,21 +6,25 @@
 
 namespace Vipster{
 namespace IO {
-    constexpr int linelen = 256;
     struct BaseParam{
+        std::string name;
         virtual ~BaseParam() = default;
+    };
+    struct BaseConfig{
+        virtual ~BaseConfig() = default;
     };
     struct BaseData{
         Molecule mol{"",0};
-        virtual ~BaseData() = default;
+        std::unique_ptr<BaseParam> param{};
     };
 }
     struct IOPlugin{
         std::string name;
         std::string extension;
         std::string argument;
-        std::shared_ptr<IO::BaseData> (*parser)(std::string name, std::ifstream &file);
-        bool   (*writer)(const Molecule& m, std::ofstream &file, const IO::BaseParam* p);
+        IO::BaseData (*parser)(std::string name, std::ifstream &file);
+        bool   (*writer)(const Molecule& m, std::ofstream &file,
+                         const IO::BaseParam *const p, const IO::BaseConfig *const c);
     };
     class IOError: public std::runtime_error
     {

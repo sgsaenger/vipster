@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         const char* fmt = kv.second->argument.c_str();
         if(p.isSet(fmt)){
             parseFile = true;
-            MainWindow w(Vipster::readFile(p.values(fmt).at(0).toStdString(),kv.first)->mol);
+            MainWindow w(Vipster::readFile(p.values(fmt).at(0).toStdString(),kv.first));
             w.show();
             return a.exec();
         }

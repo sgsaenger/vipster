@@ -29,6 +29,9 @@
    <iconset resource="../resources/vipster.qrc">
     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::ForceTabbedDocks|QMainWindow::VerticalTabs</set>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
     <item>
@@ -380,6 +383,9 @@
    </attribute>
   </widget>
   <widget class="QDockWidget" name="molDock">
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>&amp;Molecule</string>
    </property>
@@ -387,7 +393,7 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="molDockContents">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
      <property name="leftMargin">
       <number>0</number>
      </property>
@@ -401,14 +407,25 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="MolWidget" name="molWidget" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
+      <widget class="MolWidget" name="molWidget" native="true"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="paramDock">
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>&amp;Parameter</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="paramDockContents">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="ParamWidget" name="paramWidget" native="true"/>
      </item>
     </layout>
    </widget>
@@ -537,6 +554,12 @@
     <signal>stepChanged()</signal>
     <signal>molChanged()</signal>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>ParamWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/paramwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -832,7 +855,7 @@
  </slots>
  <buttongroups>
   <buttongroup name="stepGroup"/>
-  <buttongroup name="modeGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="modeGroup"/>
  </buttongroups>
 </ui>

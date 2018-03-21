@@ -16,6 +16,7 @@ public:
     explicit MolWidget(QWidget *parent = nullptr);
     ~MolWidget();
     void updateWidget(Vipster::Change change);
+    void registerMol(const std::string& name);
 
 private slots:
     void on_cellEnabled_toggled(bool checked);
@@ -25,13 +26,14 @@ private slots:
     void on_atomTable_cellChanged(int row, int column);
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();
+    void on_molList_currentIndexChanged(int index);
 
 private:
     void fillAtomTable(void);
     void fillCell(void);
     void fillKPoints(void);
     Ui::MolWidget *ui;
-    Vipster::Step* curStep;
+    Vipster::Step *curStep;
     Vipster::Molecule* curMol;
 };
 

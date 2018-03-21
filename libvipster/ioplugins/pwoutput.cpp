@@ -4,10 +4,10 @@
 
 using namespace Vipster;
 
-std::shared_ptr<IO::BaseData> PWOutParser(std::string name, std::ifstream &file)
+IO::BaseData PWOutParser(std::string name, std::ifstream &file)
 {
-    auto d = std::make_shared<IO::BaseData>();
-    Molecule& m = d->mol;
+    IO::BaseData d{};
+    Molecule& m = d.mol;
     m.setName(name);
     StepProper *s = &m.newStep();
 

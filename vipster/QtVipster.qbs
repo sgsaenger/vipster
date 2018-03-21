@@ -10,7 +10,7 @@ QtGuiApplication {
 
     files: ["common/*",
             "resources/vipster.qrc",
-            "qt/*"]
+            "qt/**"]
 
     Group {
         name: "binary"

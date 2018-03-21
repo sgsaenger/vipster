@@ -14,23 +14,25 @@ MainWindow::MainWindow(QWidget *parent):
     setupUI();
 }
 
-MainWindow::MainWindow(const Molecule &m, QWidget *parent):
+MainWindow::MainWindow(const IO::BaseData &d, QWidget *parent):
     QMainWindow{parent},
     ui{new Ui::MainWindow}
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol(m);
+    newMol(d.mol);
+    newParam(d.param);
     setupUI();
 }
 
-MainWindow::MainWindow(Molecule &&m, QWidget *parent):
+MainWindow::MainWindow(IO::BaseData &&d, QWidget *parent):
     QMainWindow{parent},
     ui{new Ui::MainWindow}
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol(std::move(m));
+    newMol(std::move(d.mol));
+    newParam(std::move(d.param));
     setupUI();
 }
 
@@ -46,6 +48,8 @@ void MainWindow::setupUI()
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+    tabifyDockWidget(ui->molDock, ui->paramDock);
+    ui->molDock->raise();
 }
 
 void MainWindow::updateWidgets(Change change)
@@ -53,6 +57,7 @@ void MainWindow::updateWidgets(Change change)
     if(change & (Change::atoms | Change::cell))
         ui->openGLWidget->setStep(curStep);
     ui->molWidget->updateWidget(change);
+    ui->paramWidget->updateWidget(change);
 }
 
 void MainWindow::setFmt(int i, bool apply, bool scale)
@@ -73,7 +78,7 @@ AtomFmt MainWindow::getFmt()
 
 void MainWindow::setMol(int i)
 {
-    curMol = &molecules.at(i-1);
+    curMol = &molecules.at(i);
     uint steps = curMol->getNstep();
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
@@ -114,8 +119,13 @@ void MainWindow::setStep(int i)
         ui->lastStepButton->setEnabled(true);
     }
     //Update child widgets
-    ui->openGLWidget->setStep(curStep);
     updateWidgets(stepChanged);
+}
+
+void MainWindow::setParam(int i)
+{
+    curParam = params.at(i).get();
+    updateWidgets(Change::param);
 }
 
 void MainWindow::stepBut(QAbstractButton* but)
@@ -144,20 +154,38 @@ void MainWindow::editAtoms()
 
 void MainWindow::newMol()
 {
-    molecules.push_back(Molecule());
-    setMol(molecules.size());
+    molecules.emplace_back();
+    ui->molWidget->registerMol(molecules.back().getName());
 }
 
 void MainWindow::newMol(const Molecule &m)
 {
     molecules.push_back(m);
-    setMol(molecules.size());
+    ui->molWidget->registerMol(m.getName());
 }
 
 void MainWindow::newMol(Molecule &&m)
 {
     molecules.push_back(std::move(m));
-    setMol(molecules.size());
+    ui->molWidget->registerMol(molecules.back().getName());
+}
+
+void MainWindow::newParam(const std::unique_ptr<IO::BaseParam> &p)
+{
+    if(p){
+        params.push_back(std::make_unique<IO::BaseParam>(*p));
+        ui->paramWidget->registerParam(params.back()->name);
+//        setParam(params.size());
+    }
+}
+
+void MainWindow::newParam(std::unique_ptr<IO::BaseParam> &&p)
+{
+    if(p){
+        params.push_back(std::move(p));
+        ui->paramWidget->registerParam(params.back()->name);
+//        setParam(params.size());
+    }
 }
 
 void MainWindow::about()

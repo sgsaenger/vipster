@@ -5,8 +5,11 @@
 
 namespace Vipster{
 namespace IO{
+
 extern const IOPlugin PWInput;
+
 using PWNamelist = std::map<std::string, std::string>;
+
 struct PWParam: BaseParam{
     PWNamelist control;
     PWNamelist system;
@@ -14,9 +17,7 @@ struct PWParam: BaseParam{
     PWNamelist ions;
     PWNamelist cell;
 };
-struct PWData: BaseData{
-    PWParam data;
-};
+
 }
 }
 

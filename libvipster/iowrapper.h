@@ -20,9 +20,11 @@ namespace Vipster{
                     {IOFmt::LMP, &IO::LmpInput},
                     {IOFmt::DMP, &IO::LmpTrajec}
                 };
-    std::shared_ptr<IO::BaseData> readFile(std::string fn, IOFmt fmt);
-    std::shared_ptr<IO::BaseData> readFile(std::string fn, IOFmt fmt, std::string name);
-    bool        writeFile(std::string fn, IOFmt fmt, const Molecule &m, const IO::BaseParam* const p=nullptr);
+    IO::BaseData readFile(std::string fn, IOFmt fmt);
+    IO::BaseData readFile(std::string fn, IOFmt fmt, std::string name);
+    bool        writeFile(std::string fn, IOFmt fmt, const Molecule &m,
+                          const IO::BaseParam *const p=nullptr,
+                          const IO::BaseConfig *const c=nullptr);
 }
 
 #endif // IOWRAPPER

@@ -25,7 +25,9 @@ const change = {
     atoms: 1,
     cell: 2,
     fmt: 4,
-    kpoints: 32,
+    kpoints: 8,
+    param: 16,
+    config: 32
 };
 
 change.step = change.atoms | change.cell | change.fmt;

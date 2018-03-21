@@ -5,10 +5,10 @@
 
 using namespace Vipster;
 
-std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
+IO::BaseData XYZParser(std::string name, std::ifstream &file)
 {
-    auto data = std::make_shared<IO::BaseData>();
-    Molecule &m = data->mol;
+    IO::BaseData data{};
+    Molecule &m = data.mol;
     m.setName(name);
 
     std::string line;
@@ -43,7 +43,8 @@ std::shared_ptr<IO::BaseData> XYZParser(std::string name, std::ifstream &file)
     return data;
 }
 
-bool XYZWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam*)
+bool XYZWriter(const Molecule& m, std::ofstream &file,
+               const IO::BaseParam*const, const IO::BaseConfig*const)
 {
     const Step& s = m.getStep(0).asAngstrom;
     file << s.getNat() << '\n';

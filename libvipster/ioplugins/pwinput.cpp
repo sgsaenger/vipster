@@ -45,12 +45,12 @@ void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
     throw IOError("Error in Namelist-parsing");
 }
 
-void parseSpecies(std::ifstream& file, IO::PWData& d)
+void parseSpecies(std::ifstream& file, Molecule& m, IO::PWParam& p)
 {
-    auto dataentry = d.data.system.find("ntyp");
-    if (dataentry == d.data.system.end()) throw IOError("ntyp not specified");
+    auto dataentry = p.system.find("ntyp");
+    if (dataentry == p.system.end()) throw IOError("ntyp not specified");
     int ntyp = std::stoi(dataentry->second);
-    d.data.system.erase(dataentry);
+    p.system.erase(dataentry);
 
     std::string line;
     for(int i=0; i<ntyp; ++i) {
@@ -60,19 +60,20 @@ void parseSpecies(std::ifstream& file, IO::PWData& d)
         std::stringstream linestream{line};
         linestream >> name >> mass >> pwpp;
         if(linestream.fail()) throw IOError("Failed to parse species");
-        PseEntry &type = (*d.mol.pse)[name];
+        PseEntry &type = (*m.pse)[name];
         type.m = std::stof(mass);
         type.PWPP = pwpp;
     }
 }
 
-void parseCoordinates(std::string name, std::ifstream& file, IO::PWData& d)
+void parseCoordinates(std::string name, std::ifstream& file,
+                      Molecule& m, IO::PWParam& p)
 {
-    auto dataentry = d.data.system.find("nat");
-    if (dataentry == d.data.system.end()) throw IOError("nat not specified");
+    auto dataentry = p.system.find("nat");
+    if (dataentry == p.system.end()) throw IOError("nat not specified");
     size_t nat = std::stoul(dataentry->second);
-    d.data.system.erase(dataentry);
-    StepProper &s = d.mol.getStep(0);
+    p.system.erase(dataentry);
+    StepProper &s = m.getStep(0);
 
     const std::map<std::string, AtomFmt> fmtmap = {
         {"ALAT", AtomFmt::Alat},
@@ -150,10 +151,11 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
     }
 }
 
-void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &cellFmt)
+void parseCell(std::string name, std::ifstream& file,
+               Molecule& m, IO::PWParam& p, CellFmt &cellFmt)
 {
-    auto ibrav = d.data.system.find("ibrav");
-    if (ibrav == d.data.system.end()) throw IOError{"ibrav not specified"};
+    auto ibrav = p.system.find("ibrav");
+    if (ibrav == p.system.end()) throw IOError{"ibrav not specified"};
     if(!std::stoi(ibrav->second)) {
         std::string line;
         Mat cell;
@@ -164,7 +166,7 @@ void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &ce
             linestream >> cell[i][0] >> cell[i][1] >> cell[i][2];
             if (linestream.fail()) throw IOError("Failed to parse CELL_PARAMETERS");
         }
-        Step& step = d.mol.getStep(0);
+        Step& step = m.getStep(0);
         step.setCellVec(cell, (step.getFmt()==AtomFmt::Crystal));
         if (name.find("BOHR") != name.npos) cellFmt = CellFmt::Bohr;
         else if (name.find("ANGSTROM") != name.npos) cellFmt = CellFmt::Angstrom;
@@ -172,11 +174,11 @@ void parseCell(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &ce
     }
 }
 
-void createCell(IO::PWData &d, CellFmt &cellFmt)
+void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
 {
-    StepProper &s = d.mol.getStep(0);
+    StepProper &s = m.getStep(0);
     CdmFmt cdmFmt;
-    const IO::PWNamelist& sys = d.data.system;
+    const IO::PWNamelist& sys = p.system;
     auto celldm = sys.find("celldm(1)");
     auto cellA = sys.find("A");
     if ((celldm != sys.end()) && (cellA == sys.end())) {
@@ -205,8 +207,8 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
         }
         break;
     case CellFmt::None:
-        auto ibrav = d.data.system.find("ibrav");
-        if (ibrav == d.data.system.end()) throw IOError{"ibrav not specified"};
+        auto ibrav = p.system.find("ibrav");
+        if (ibrav == p.system.end()) throw IOError{"ibrav not specified"};
         if(!std::stoi(ibrav->second)) throw IOError("ibrav=0, but no CELL_PARAMETERS were given");
         //TODO
         throw IOError("Creating Cells based on ibrav not supported yet");
@@ -214,24 +216,28 @@ void createCell(IO::PWData &d, CellFmt &cellFmt)
     }
 }
 
-void parseCard(std::string name, std::ifstream& file, IO::PWData& d, CellFmt &cellFmt)
+void parseCard(std::string name, std::ifstream& file,
+               Molecule& m, IO::PWParam& p,
+               CellFmt &cellFmt)
 {
-    if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, d);
-    else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, d);
-    else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, d.mol);
-    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, d, cellFmt);
+    if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, m, p);
+    else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, m, p);
+    else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, m);
+    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, m, p, cellFmt);
     else if (name.find("OCCUPATIONS") != name.npos) throw IOError("OCCUPATIONS not implemented");
     else if (name.find("CONSTRAINTS") != name.npos) throw IOError("CONSTRAINTS not implemented");
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IOError("ATOMIC_FORCES not implemented");
 }
 
-std::shared_ptr<IO::BaseData> PWInpParser(std::string name, std::ifstream &file)
+IO::BaseData PWInpParser(std::string name, std::ifstream &file)
 {
-    auto d = std::make_shared<IO::PWData>();
-    Molecule &m = d->mol;
+    IO::BaseData d{};
+    Molecule &m = d.mol;
     m.setName(name);
     m.newStep();
-    IO::PWParam &p = d->data;
+    d.param = std::make_unique<IO::PWParam>();
+    IO::PWParam &p = *static_cast<IO::PWParam*>(d.param.get());
+    p.name = name;
     CellFmt cellFmt = CellFmt::None;
 
     std::string line;
@@ -239,15 +245,17 @@ std::shared_ptr<IO::BaseData> PWInpParser(std::string name, std::ifstream &file)
         if (!line[0] || line[0] == ' ' || line[0] == '!' || line[0] == '#') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if (line[0] == '&') parseNamelist(line, file, p);
-        else parseCard(line, file, *d, cellFmt);
+        else parseCard(line, file, m, p, cellFmt);
     }
 
-    createCell(*d, cellFmt);
+    createCell(m, p, cellFmt);
 
     return d;
 }
 
-bool PWInpWriter(const Molecule& m, std::ofstream &file, const IO::BaseParam* p)
+bool PWInpWriter(const Molecule& m, std::ofstream &file,
+                 const IO::BaseParam *const p,
+                 const IO::BaseConfig *const)
 {
     auto& s = m.getStep(0);
     auto *pp = dynamic_cast<const IO::PWParam*>(p);

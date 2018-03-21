@@ -5,15 +5,16 @@
 
 namespace Vipster{
 namespace IO{
+
 extern const IOPlugin LmpInput;
+
 enum class LmpAtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
-struct LmpParam: BaseParam{
+
+struct LmpConfig: BaseConfig{
     LmpAtomStyle style;
     bool angles, bonds, dihedrals, impropers;
 };
-struct LmpData: Vipster::IO::BaseData{
-    LmpParam data;
-};
+
 }
 }
 
