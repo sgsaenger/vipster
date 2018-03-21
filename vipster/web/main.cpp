@@ -15,7 +15,7 @@ static std::vector<Molecule> molecules;
 std::string emReadFile(std::string fn, std::string name, int fmt){
     try {
         auto d = readFile(fn, (IOFmt)fmt, name);
-        molecules.push_back(d->mol);
+        molecules.push_back(d.mol);
         return "";
     } catch (std::exception &e) {
         return e.what();
