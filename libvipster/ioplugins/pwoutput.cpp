@@ -4,9 +4,10 @@
 
 using namespace Vipster;
 
-IO::BaseData PWOutParser(std::string name, std::ifstream &file)
+IO::Data PWOutParser(std::string name, std::ifstream &file)
 {
-    IO::BaseData d{};
+    IO::Data d{};
+    d.fmt = IOFmt::PWO;
     Molecule& m = d.mol;
     m.setName(name);
     StepProper *s = &m.newStep();
@@ -129,6 +130,7 @@ const IOPlugin IO::PWOutput =
     "PWScf Output File",
     "pwo",
     "pwo",
+    IOPlugin::None,
     &PWOutParser,
     nullptr
 };

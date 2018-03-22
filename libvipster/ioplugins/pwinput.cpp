@@ -229,9 +229,10 @@ void parseCard(std::string name, std::ifstream& file,
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IOError("ATOMIC_FORCES not implemented");
 }
 
-IO::BaseData PWInpParser(std::string name, std::ifstream &file)
+IO::Data PWInpParser(std::string name, std::ifstream &file)
 {
-    IO::BaseData d{};
+    IO::Data d{};
+    d.fmt = IOFmt::PWI;
     Molecule &m = d.mol;
     m.setName(name);
     m.newStep();
@@ -336,6 +337,7 @@ const IOPlugin IO::PWInput =
     "PWScf Input File",
     "pwi",
     "pwi",
+    IOPlugin::Param,
     &PWInpParser,
     &PWInpWriter
 };

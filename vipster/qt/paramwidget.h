@@ -16,7 +16,7 @@ public:
     explicit ParamWidget(QWidget *parent = nullptr);
     ~ParamWidget();
     void updateWidget(Vipster::Change change);
-    void registerParam(const std::string& name);
+    void registerParam(Vipster::IOFmt fmt, const std::string& name);
 
 private slots:
     void on_paramSel_currentIndexChanged(int index);

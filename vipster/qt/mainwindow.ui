@@ -442,6 +442,9 @@
    <property name="text">
     <string>&amp;Load Molecule</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionSave_Molecule">
    <property name="text">
@@ -842,6 +845,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionLoad_Molecule</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>loadMol()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -852,6 +871,7 @@
   <slot>setStep()</slot>
   <slot>setMol()</slot>
   <slot>stepBut(QAbstractButton*)</slot>
+  <slot>loadMol()</slot>
  </slots>
  <buttongroups>
   <buttongroup name="stepGroup"/>

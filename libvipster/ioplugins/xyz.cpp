@@ -5,9 +5,10 @@
 
 using namespace Vipster;
 
-IO::BaseData XYZParser(std::string name, std::ifstream &file)
+IO::Data XYZParser(std::string name, std::ifstream &file)
 {
-    IO::BaseData data{};
+    IO::Data data{};
+    data.fmt = IOFmt::XYZ;
     Molecule &m = data.mol;
     m.setName(name);
 
@@ -64,6 +65,7 @@ const IOPlugin IO::XYZ =
     "xyz",
     "xyz",
     "xyz",
+    IOPlugin::None,
     &XYZParser,
     &XYZWriter
 };

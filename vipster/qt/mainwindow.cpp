@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QInputDialog>
 
 using namespace Vipster;
 
@@ -14,25 +16,13 @@ MainWindow::MainWindow(QWidget *parent):
     setupUI();
 }
 
-MainWindow::MainWindow(const IO::BaseData &d, QWidget *parent):
+MainWindow::MainWindow(IO::Data &&d, QWidget *parent):
     QMainWindow{parent},
     ui{new Ui::MainWindow}
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol(d.mol);
-    newParam(d.param);
-    setupUI();
-}
-
-MainWindow::MainWindow(IO::BaseData &&d, QWidget *parent):
-    QMainWindow{parent},
-    ui{new Ui::MainWindow}
-{
-    ui->setupUi(this);
-    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol(std::move(d.mol));
-    newParam(std::move(d.param));
+    newData(std::move(d));
     setupUI();
 }
 
@@ -124,7 +114,7 @@ void MainWindow::setStep(int i)
 
 void MainWindow::setParam(int i)
 {
-    curParam = params.at(i).get();
+    curParam = params.at(i).second.get();
     updateWidgets(Change::param);
 }
 
@@ -158,10 +148,10 @@ void MainWindow::newMol()
     ui->molWidget->registerMol(molecules.back().getName());
 }
 
-void MainWindow::newMol(const Molecule &m)
+void MainWindow::newData(IO::Data &&d)
 {
-    molecules.push_back(m);
-    ui->molWidget->registerMol(m.getName());
+    newMol(std::move(d.mol));
+    newParam(d.fmt, std::move(d.param));
 }
 
 void MainWindow::newMol(Molecule &&m)
@@ -170,21 +160,43 @@ void MainWindow::newMol(Molecule &&m)
     ui->molWidget->registerMol(molecules.back().getName());
 }
 
-void MainWindow::newParam(const std::unique_ptr<IO::BaseParam> &p)
+void MainWindow::loadMol()
 {
-    if(p){
-        params.push_back(std::make_unique<IO::BaseParam>(*p));
-        ui->paramWidget->registerParam(params.back()->name);
-//        setParam(params.size());
+    // File dialog
+    static QDir path{QString{std::getenv("HOME")}};
+    QStringList files;
+    QFileDialog fileDiag{this};
+    fileDiag.setDirectory(path);
+    fileDiag.setFileMode(QFileDialog::ExistingFiles);
+    // Format dialog
+    QStringList formats{};
+    for(auto &iop: IOPlugins){
+        formats << QString::fromStdString(iop.second->name);
+    }
+    QString fmt_s;
+    IOFmt fmt;
+    bool got_fmt{false};
+    if(fileDiag.exec()){
+        files = fileDiag.selectedFiles();
+        path = fileDiag.directory();
+        if(files.count()){
+            fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
+                                          formats, 0, false, &got_fmt);
+            if(got_fmt){
+                fmt = static_cast<IOFmt>(formats.indexOf(fmt_s));
+            }
+        }
+    }
+    for(auto &file: files){
+        newData(readFile(file.toStdString(), fmt));
     }
 }
 
-void MainWindow::newParam(std::unique_ptr<IO::BaseParam> &&p)
+void MainWindow::newParam(IOFmt fmt, std::unique_ptr<IO::BaseParam> &&p)
 {
     if(p){
-        params.push_back(std::move(p));
-        ui->paramWidget->registerParam(params.back()->name);
-//        setParam(params.size());
+        params.push_back({fmt, std::move(p)});
+        ui->paramWidget->registerParam(fmt, params.back().second->name);
     }
 }
 

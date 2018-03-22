@@ -22,14 +22,14 @@ int main(int argc, char *argv[])
     p.addVersionOption();
     for(auto &kv: Vipster::IOPlugins)
     {
-        p.addOption({QString::fromStdString(kv.second->argument),
+        p.addOption({QString::fromStdString(kv.second->command),
                      QString::fromStdString(kv.second->name),
                      "files"});
     }
     p.process(a);
     for(auto &kv: Vipster::IOPlugins)
     {
-        const char* fmt = kv.second->argument.c_str();
+        const char* fmt = kv.second->command.c_str();
         if(p.isSet(fmt)){
             parseFile = true;
             MainWindow w(Vipster::readFile(p.values(fmt).at(0).toStdString(),kv.first));

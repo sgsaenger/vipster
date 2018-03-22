@@ -156,11 +156,12 @@ auto makeParser(std::vector<lmpTok> fmt){
     };
 }
 
-IO::BaseData LmpInpParser(std::string name, std::ifstream &file)
+IO::Data LmpInpParser(std::string name, std::ifstream &file)
 {
     enum class ParseMode{Header,Atoms,Types};
 
-    IO::BaseData data{};
+    IO::Data data{};
+    data.fmt = IOFmt::LMP;
     Molecule& m = data.mol;
     m.setName(name);
     StepProper& s = m.newStep();
@@ -286,6 +287,7 @@ const IOPlugin IO::LmpInput =
     "Lammps Data File",
     "lmp",
     "lmp",
+    IOPlugin::Config,
     &LmpInpParser,
     nullptr
 };

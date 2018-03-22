@@ -32,9 +32,12 @@ void ParamWidget::updateWidget(Vipster::Change change)
     }
 }
 
-void ParamWidget::registerParam(const std::string &name)
+void ParamWidget::registerParam(IOFmt fmt, const std::string &name)
 {
-    ui->paramSel->addItem(name.c_str());
+    ui->paramSel->addItem(QString::fromStdString(
+                          "(" +  IOPlugins.at(fmt)->command +
+                           ") " + name
+                         ));
 }
 
 void ParamWidget::on_paramSel_currentIndexChanged(int index)

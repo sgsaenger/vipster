@@ -66,12 +66,13 @@ auto IdentifyColumns(std::string& line)
     }
 }
 
-IO::BaseData
+IO::Data
 LmpTrajecParser(std::string name, std::ifstream &file)
 {
     enum class ParseMode{Header, Cell, Atoms};
 
-    IO::BaseData data{};
+    IO::Data data{};
+    data.fmt = IOFmt::DMP;
     Molecule& m = data.mol;
     m.setName(name);
     StepProper* s = nullptr;
@@ -147,6 +148,7 @@ const IOPlugin IO::LmpTrajec =
     "Lammps Dump",
     "lammpstrj",
     "dmp",
+    IOPlugin::None,
     &LmpTrajecParser,
     nullptr
 };

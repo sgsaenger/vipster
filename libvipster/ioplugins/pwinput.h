@@ -18,6 +18,8 @@ struct PWParam: BaseParam{
     PWNamelist cell;
 };
 
+//TODO: PWConfig? set format-preferences?
+
 }
 }
 
