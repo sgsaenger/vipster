@@ -8,6 +8,16 @@ namespace Ui {
 class ParamWidget;
 }
 
+class ParamBase: public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit ParamBase(QWidget *parent = nullptr);
+    virtual ~ParamBase() = default;
+    virtual void setParam(Vipster::BaseParam *p)=0;
+};
+
 class ParamWidget : public QWidget, public Vipster::BaseWidget
 {
     Q_OBJECT
@@ -23,7 +33,7 @@ private slots:
 
 private:
     Ui::ParamWidget *ui;
-    Vipster::IO::BaseParam *curParam;
+    Vipster::BaseParam *curParam;
 };
 
 #endif // PARAMWIDGET_H

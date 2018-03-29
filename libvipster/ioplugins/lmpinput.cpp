@@ -179,7 +179,7 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
             std::stringstream ss{line};
             ss >> nat;
             if (ss.fail()) {
-                throw IOError("Lammps Input: failed to"
+                throw IO::Error("Lammps Input: failed to"
                               "parse number of atoms");
             } else {
                 s.newAtoms(nat);
@@ -188,14 +188,14 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
             std::stringstream ss{line};
             ss >> ntype;
             if (ss.fail()) {
-                throw IOError("Lammps Input: failed to"
+                throw IO::Error("Lammps Input: failed to"
                               "parse number of types");
             }
         } else if (line.find("xlo xhi") != line.npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
-                throw IOError("Lammps Input: failed to"
+                throw IO::Error("Lammps Input: failed to"
                               "parse cell X dimension");
             } else {
                 cell[0][0] = t2 - t1;
@@ -204,7 +204,7 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
-                throw IOError("Lammps Input: failed to"
+                throw IO::Error("Lammps Input: failed to"
                               "parse cell Y dimension");
             } else {
                 cell[1][1] = t2 - t1;
@@ -213,7 +213,7 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
-                throw IOError("Lammps Input: failed to"
+                throw IO::Error("Lammps Input: failed to"
                               "parse cell Z dimension");
             } else {
                 cell[2][2] = t2 - t1;
@@ -222,7 +222,7 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
             std::stringstream ss{line};
             ss >> cell[1][0] >> cell[2][0] >> cell[2][1];
             if (ss.fail()) {
-                throw IOError("Lammps Input: failed to"
+                throw IO::Error("Lammps Input: failed to"
                               "parse cell tilt factors");
             }
         } else if (line.find("Masses") != line.npos) {
@@ -244,7 +244,7 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
                     types[id] = id;
                 }
                 if (ss.fail())
-                    throw IOError("Lammps Input: failed to parse atom type");
+                    throw IO::Error("Lammps Input: failed to parse atom type");
                 (*s.pse)[name].m = t1;
             }
         } else if (line.find("Atoms") != line.npos) {
@@ -274,20 +274,25 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
 }
 
 bool LmpInpWriter(const Molecule&, std::ofstream &,
-                  const IO::BaseParam *const,
-                  const IO::BaseConfig *const c)
+                  const BaseParam *const,
+                  const BaseConfig *const c)
 {
     auto *lp = dynamic_cast<const IO::LmpConfig*>(c);
-    if(!lp) throw IOError("Lammps-Writer needs parameter set");
+    if(!lp) throw IO::Error("Lammps-Writer needs parameter set");
     return false;
 }
 
-const IOPlugin IO::LmpInput =
+const IO::Plugin IO::LmpInput =
 {
     "Lammps Data File",
     "lmp",
     "lmp",
-    IOPlugin::Config,
+    IO::Plugin::Config,
     &LmpInpParser,
     nullptr
 };
+
+std::unique_ptr<BaseConfig> IO::LmpConfig::copy()
+{
+    return std::make_unique<IO::LmpConfig>(*this);
+}

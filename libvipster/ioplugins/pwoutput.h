@@ -5,7 +5,7 @@
 
 namespace Vipster {
 namespace IO {
-extern const IOPlugin PWOutput;
+extern const IO::Plugin PWOutput;
 }
 }
 

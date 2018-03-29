@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QAbstractButton>
+#include <QDir>
 #include <vector>
 #include "iowrapper.h"
 #include "../common/guiwrapper.h"
@@ -17,15 +18,18 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    explicit MainWindow(Vipster::IO::Data &&d, QWidget *parent = nullptr);
+    explicit MainWindow(std::vector<Vipster::IO::Data> &&d, QWidget *parent = nullptr);
     ~MainWindow();
     Vipster::Molecule *curMol{nullptr};
     Vipster::StepProper *curStep{nullptr};
-    Vipster::IO::BaseParam *curParam{nullptr};
+    Vipster::BaseParam *curParam{nullptr};
     Vipster::AtomFmt getFmt();
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(Vipster::Change change);
     void newData(Vipster::IO::Data&& d);
+    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseParam>>> params;
+    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseConfig>>> configs;
+    std::vector<Vipster::Molecule> molecules;
 
 public slots:
     void setMol(int i);
@@ -35,20 +39,16 @@ public slots:
     void about(void);
     void newMol();
     void loadMol();
+    void saveMol();
     void editAtoms(void);
+    void loadParam();
 
 private:
     void setupUI(void);
-    void newParam(Vipster::IOFmt fmt, std::unique_ptr<Vipster::IO::BaseParam> &&p);
-    void newMol(Vipster::Molecule &&m);
 
     Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
-    std::vector<Vipster::Molecule> molecules;
-    std::vector<std::pair<Vipster::IOFmt,
-            std::unique_ptr<Vipster::IO::BaseParam>>> params;
-    std::vector<std::pair<Vipster::IOFmt,
-            std::unique_ptr<Vipster::IO::BaseConfig>>> configs;
+    QDir path{QString{std::getenv("HOME")}};
 };
 
 #endif // MAINWINDOW_H

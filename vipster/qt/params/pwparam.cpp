@@ -4,7 +4,7 @@
 using namespace Vipster;
 
 PWParam::PWParam(QWidget *parent) :
-    QWidget(parent),
+    ParamBase(parent),
     ui(new Ui::PWParam)
 {
     ui->setupUi(this);
@@ -15,9 +15,9 @@ PWParam::~PWParam()
     delete ui;
 }
 
-void PWParam::setParam(IO::PWParam* p)
+void PWParam::setParam(BaseParam *p)
 {
-    curParam = p;
+    curParam = static_cast<IO::PWParam*>(p);
     IO::PWNamelist IO::PWParam::* namelists[] = {
         &IO::PWParam::control, &IO::PWParam::system,
         &IO::PWParam::electrons, &IO::PWParam::ions,

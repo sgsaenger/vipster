@@ -5,7 +5,7 @@
 
 namespace Vipster{
 namespace IO{
-extern const IOPlugin XYZ;
+extern const IO::Plugin XYZ;
 }
 }
 

@@ -43,7 +43,8 @@ Product {
 
     // C++ settings (rest of project will inherit)
     Depends { name: "cpp"}
-    cpp.cxxLanguageVersion: "c++14"
+    cpp.cxxLanguageVersion: "c++1z"
+    cpp.defines: [ "PREFIX="+qbs.installRoot ]
     Properties {
         condition: qbs.buildVariant=="profile"
         cpp.driverFlags: [
@@ -54,7 +55,8 @@ Product {
     }
     Export {
         Depends { name: "cpp"}
-        cpp.cxxLanguageVersion: "c++14"
+        cpp.cxxLanguageVersion: "c++1z"
+        cpp.defines: [ "PREFIX="+qbs.installRoot ]
         Properties {
             condition: qbs.buildVariant=="profile"
             cpp.driverFlags: [

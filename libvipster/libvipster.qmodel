@@ -811,7 +811,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{f526fbfa-40f1-4b0b-870a-c0441e58724c}</uid>
+                    <uid>{b9545e32-c333-4dbf-a04e-e6a08fd12f90}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>Atom&amp; operator*()</declaration>
@@ -819,7 +819,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7978a9b9-75ff-4b0a-b76e-8594d755e495}</uid>
+                    <uid>{dae85822-9586-4f79-8403-c12d4334ac85}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>AtomIterator&amp; operator++()</declaration>
@@ -827,7 +827,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{3bb662ef-053f-4943-a59d-3ac7c7123867}</uid>
+                    <uid>{bf40d565-3e79-4412-8389-923db01fab4c}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>bool cmp(const AtomIterator&amp;)</declaration>
@@ -835,7 +835,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{067e3574-075a-415c-9628-7c66e7a62bba}</uid>
+                    <uid>{bb8b191c-8b97-48d4-a950-26fed33adb1e}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
@@ -915,7 +915,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{85095272-5b1b-43b1-812e-dbc2ad691d3b}</uid>
+                    <uid>{9ba86275-60c8-417d-aa6b-92da56d31ddf}</uid>
                     <group>Coordinates</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -924,7 +924,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{eab0aa7c-47cc-45d3-8986-4d6daf9f6668}</uid>
+                    <uid>{3b6335c2-0338-4b5d-a45b-238fb2e7e3cf}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -933,7 +933,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{2a905df0-8cf8-4b4b-9c20-4d63ec654d67}</uid>
+                    <uid>{7b5732ff-eca4-461b-96d0-fdeae61aab0c}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -942,7 +942,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{21565f30-b793-4689-bbc4-1f8a64ea2de5}</uid>
+                    <uid>{2223ef81-8042-4808-9bf6-b65e9e74c045}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -951,7 +951,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{98e59d79-3482-4c94-a5d2-52a41cab71dc}</uid>
+                    <uid>{8d77d489-706c-41e5-b7f4-4fa5a24fb2e7}</uid>
                     <group>Coordinates</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -960,7 +960,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5bc3e7bc-1691-4b6c-82c4-c8674f857baf}</uid>
+                    <uid>{51c9ff8b-ec73-448e-9fd8-efd5a88bdcfd}</uid>
                     <group>Coordinates</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -969,7 +969,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{058569be-3c51-45f2-b77b-27b49358701f}</uid>
+                    <uid>{c637ceab-e3a5-4e25-bca5-0f4515c602cb}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -978,7 +978,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{287ee7e4-dfeb-485a-ae95-1af7e1553c4a}</uid>
+                    <uid>{5b2ae5e4-c233-4d7d-9ba3-ed8096faf2bf}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -987,7 +987,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{715ed161-b1a2-42d1-8546-b34468fcf385}</uid>
+                    <uid>{9f16d524-d5b5-4565-aa3b-83fe11cb7b32}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -996,7 +996,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c4f6eeed-416e-40a4-9732-6e1d29ba94d6}</uid>
+                    <uid>{ccfbb426-3df0-487b-958c-1fccbfd6b646}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -2139,7 +2139,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1520613594129</last-modified>
+                  <last-modified>1522167959969</last-modified>
                   <toolbarid>General</toolbarid>
                  </MDiagram>
                 </base-MDiagram>

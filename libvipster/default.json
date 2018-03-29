@@ -124,7 +124,7 @@
     "CCP":   { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,  "covr": 0.72, "vdwr": 2.27, "col": [ 255, 255,   0, 255 ] },
     "NNACP": { "PWPP": "", "CPPP": "", "CPNL": "", "Z": 0,   "m": 0.0,       "bondcut": -1,  "covr": 0.72, "vdwr": 2.27, "col": [   0,   0, 255, 255 ] }
   },
-  "General": {
+  "Settings": {
     "Atom radius VdW": false,
     "Atom radius factor": 0.52917721092,
     "Bond radius": 0.52917721092,
@@ -139,8 +139,39 @@
     "Default CPMD Nonlocality": "LMAX=F"
   },
   "Parameters": {
-    "pwi": {},
-    "cpmd": {},
-    "lmp": {}
+    "PWI": [
+        {
+            "name": "scf",
+            "&CONTROL": {
+                "calculation": "'scf'",
+                "restart_mode": "'from_scratch'",
+                "outdir": "'./'",
+                "prefix": "'graph'",
+                "wf_collect": ".true.",
+                "tprnfor": ".true.",
+                "nstep": "500",
+                "etot_conv_thr": "1.d-4",
+                "forc_conv_thr": "2.d-4"
+            },
+            "&SYSTEM": {
+                "ibrav": "0",
+                "ecutwfc": "30.0",
+                "ecutrho": "120.0",
+                "occupations": "'smearing'",
+                "smearing": "'gauss'",
+                "degauss": "0.01"
+            },
+            "&ELECTRONS": {
+                "diagonalization": "'david'",
+                "electron_maxstep": "100",
+                "conv_thr": "1.0e-8",
+                "mixing_beta": "0.3"
+            },
+            "&IONS": {
+            },
+            "&CELL": {
+            }
+        }
+    ]
   }
 }

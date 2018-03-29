@@ -1,9 +1,13 @@
 #ifndef CONFIG
 #define CONFIG
 
+#include "json.hpp"
+
 #include <string>
 #include <map>
 #include <array>
+#include <variant>
+#include <memory>
 #include <cstdlib>
 #ifdef _WIN32
 #include <windows.h>
@@ -59,6 +63,23 @@ struct PseEntry{
     ColVec          col;
 };
 
+enum class IOFmt{XYZ, PWI, PWO, LMP, DMP};
+
+struct BaseParam
+{
+    std::string name;
+    virtual std::unique_ptr<BaseParam> copy() = 0;
+    virtual ~BaseParam() = default;
+};
+
+struct BaseConfig
+{
+    std::string name;
+    virtual std::unique_ptr<BaseConfig> copy() = 0;
+    virtual ~BaseConfig() = default;
+};
+
+
 class PseMap:private std::map<std::string,PseEntry>
 {
 public:
@@ -74,11 +95,13 @@ private:
     bool root;
 };
 
-PseMap readPse(void);
+using Settings = std::map<std::string, std::variant<bool, int, float, std::string>>;
+using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
 
-extern const PseMap pse;
+extern PseMap pse;
+extern Settings settings;
+extern Parameters params;
 
 }
 
 #endif // CONFIG
-

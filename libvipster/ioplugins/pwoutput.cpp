@@ -76,7 +76,7 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
                 std::getline(ss, dummy_s, '(');
                 ss >> at.coord[0] >> at.coord[1] >> at.coord[2];
                 if (ss.fail()) {
-                    throw IOError{"Failed to parse atom"};
+                    throw IO::Error{"Failed to parse atom"};
                 }
             }
         } else if (line.find("CELL_PARAMETERS") != line.npos) {
@@ -125,12 +125,12 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
     return d;
 }
 
-const IOPlugin IO::PWOutput =
+const IO::Plugin IO::PWOutput =
 {
     "PWScf Output File",
     "pwo",
     "pwo",
-    IOPlugin::None,
+    IO::Plugin::None,
     &PWOutParser,
     nullptr
 };

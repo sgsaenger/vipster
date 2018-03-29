@@ -210,8 +210,11 @@
         </item>
         <item>
          <widget class="QDoubleSpinBox" name="cellDimBox">
+          <property name="decimals">
+           <number>4</number>
+          </property>
           <property name="minimum">
-           <double>1.000000000000000</double>
+           <double>0.010000000000000</double>
           </property>
          </widget>
         </item>
@@ -534,8 +537,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>199</x>
-     <y>28</y>
+     <x>207</x>
+     <y>57</y>
     </hint>
     <hint type="destinationlabel">
      <x>181</x>
@@ -550,8 +553,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>195</x>
-     <y>283</y>
+     <x>203</x>
+     <y>265</y>
     </hint>
     <hint type="destinationlabel">
      <x>172</x>
@@ -566,8 +569,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>225</x>
-     <y>512</y>
+     <x>233</x>
+     <y>494</y>
     </hint>
     <hint type="destinationlabel">
      <x>186</x>
@@ -582,8 +585,8 @@
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>252</x>
-     <y>543</y>
+     <x>356</x>
+     <y>530</y>
     </hint>
     <hint type="destinationlabel">
      <x>238</x>

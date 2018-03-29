@@ -3,19 +3,20 @@
 
 #include <QWidget>
 #include "ioplugins/pwinput.h"
+#include "../paramwidget.h"
 
 namespace Ui {
 class PWParam;
 }
 
-class PWParam : public QWidget
+class PWParam : public ParamBase
 {
     Q_OBJECT
 
 public:
     explicit PWParam(QWidget *parent = nullptr);
     ~PWParam();
-    void setParam(Vipster::IO::PWParam *p);
+    void setParam(Vipster::BaseParam *p);
 
 private:
     Ui::PWParam *ui;

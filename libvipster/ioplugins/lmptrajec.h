@@ -5,7 +5,7 @@
 
 namespace Vipster{
 namespace IO{
-extern const IOPlugin LmpTrajec;
+extern const IO::Plugin LmpTrajec;
 }
 }
 

@@ -18,12 +18,12 @@ IO::Data XYZParser(std::string name, std::ifstream &file)
         size_t nat;
         natline >> nat;
         if (natline.fail()) {
-            if (!m.getNstep()) throw IOError("XYZ: Failed to parse nat");
+            if (!m.getNstep()) throw IO::Error("XYZ: Failed to parse nat");
             else {
                 while ((natline>>nat).fail()) {
                     std::getline(file, line);
                     if (file.eof())
-                        throw IOError("XYZ: Non-standard data after XYZ-file");
+                        throw IO::Error("XYZ: Non-standard data after XYZ-file");
                     natline = std::stringstream{line};
                 }
             }
@@ -38,14 +38,14 @@ IO::Data XYZParser(std::string name, std::ifstream &file)
             std::getline(file, line);
             std::stringstream atline{line};
             atline >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
-            if(atline.fail()) throw IOError("XYZ: failed to parse atom");
+            if(atline.fail()) throw IO::Error("XYZ: failed to parse atom");
         }
     }
     return data;
 }
 
 bool XYZWriter(const Molecule& m, std::ofstream &file,
-               const IO::BaseParam*const, const IO::BaseConfig*const)
+               const BaseParam*const, const BaseConfig*const)
 {
     const Step& s = m.getStep(0).asAngstrom;
     file << s.getNat() << '\n';
@@ -60,12 +60,12 @@ bool XYZWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-const IOPlugin IO::XYZ =
+const IO::Plugin IO::XYZ =
 {
     "xyz",
     "xyz",
     "xyz",
-    IOPlugin::None,
+    IO::Plugin::None,
     &XYZParser,
     &XYZWriter
 };

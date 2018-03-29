@@ -334,13 +334,28 @@
      <addaction name="actionCopy_single_Step"/>
      <addaction name="actionCopy_Trajector"/>
     </widget>
+    <widget class="QMenu" name="menuLoad_Parameter_set">
+     <property name="title">
+      <string>Load &amp;Parameter set</string>
+     </property>
+     <widget class="QMenu" name="menuPWScf">
+      <property name="title">
+       <string>PWScf</string>
+      </property>
+      <addaction name="actionParamDummy"/>
+     </widget>
+     <addaction name="menuPWScf"/>
+    </widget>
     <addaction name="actionNew_Molecule"/>
     <addaction name="menuFrom_existing_Molecule"/>
     <addaction name="actionLoad_Molecule"/>
     <addaction name="actionSave_Molecule"/>
     <addaction name="separator"/>
-    <addaction name="actionNew_Parameter_Set"/>
+    <addaction name="menuLoad_Parameter_set"/>
     <addaction name="actionSave_Parameter_set"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_IO_Config"/>
+    <addaction name="actionSave_IO_Config"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshot"/>
     <addaction name="separator"/>
@@ -384,7 +399,7 @@
   </widget>
   <widget class="QDockWidget" name="molDock">
    <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+    <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>&amp;Molecule</string>
@@ -414,7 +429,7 @@
   </widget>
   <widget class="QDockWidget" name="paramDock">
    <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+    <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>&amp;Parameter</string>
@@ -450,10 +465,8 @@
    <property name="text">
     <string>&amp;Save Molecule</string>
    </property>
-  </action>
-  <action name="actionNew_Parameter_Set">
-   <property name="text">
-    <string>New &amp;Parameter set</string>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionSave_Parameter_set">
@@ -464,6 +477,9 @@
   <action name="actionScreenshot">
    <property name="text">
     <string>S&amp;creenshot</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionExit">
@@ -533,6 +549,21 @@
   <action name="actionAbout_Qt">
    <property name="text">
     <string>About &amp;Qt</string>
+   </property>
+  </action>
+  <action name="actionLoad_IO_Config">
+   <property name="text">
+    <string>Load IO-Config</string>
+   </property>
+  </action>
+  <action name="actionSave_IO_Config">
+   <property name="text">
+    <string>Save IO-Config</string>
+   </property>
+  </action>
+  <action name="actionParamDummy">
+   <property name="text">
+    <string>paramDummy</string>
    </property>
   </action>
  </widget>
@@ -861,6 +892,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave_Molecule</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveMol()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -872,6 +919,7 @@
   <slot>setMol()</slot>
   <slot>stepBut(QAbstractButton*)</slot>
   <slot>loadMol()</slot>
+  <slot>saveMol()</slot>
  </slots>
  <buttongroups>
   <buttongroup name="stepGroup"/>

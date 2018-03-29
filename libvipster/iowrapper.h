@@ -12,7 +12,7 @@
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
-    const       std::map<IOFmt, IOPlugin const *const> IOPlugins{
+    const       std::map<IOFmt, IO::Plugin const *const> IOPlugins{
                     {IOFmt::XYZ, &IO::XYZ},
                     {IOFmt::PWI, &IO::PWInput},
                     {IOFmt::PWO, &IO::PWOutput},
@@ -22,8 +22,8 @@ namespace Vipster{
     IO::Data readFile(std::string fn, IOFmt fmt);
     IO::Data readFile(std::string fn, IOFmt fmt, std::string name);
     bool     writeFile(std::string fn, IOFmt fmt, const Molecule &m,
-                       const IO::BaseParam *const p=nullptr,
-                       const IO::BaseConfig *const c=nullptr);
+                       const BaseParam *const p=nullptr,
+                       const BaseConfig *const c=nullptr);
 }
 
 #endif // IOWRAPPER

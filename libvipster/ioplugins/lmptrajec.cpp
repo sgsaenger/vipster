@@ -54,15 +54,15 @@ auto IdentifyColumns(std::string& line)
                     fun(ss, at);
                 }
                 if(ss.fail())
-                    throw IOError("Lammps Dump: failed to parse atom");
+                    throw IO::Error("Lammps Dump: failed to parse atom");
             }
         };
     case unscaled|scaled:
-        throw IOError("Lammps Dump: mixed coordinates not supported");
+        throw IO::Error("Lammps Dump: mixed coordinates not supported");
     case none:
         [[fallthrough]];
     default:
-        throw IOError("Lammps Dump: no coordinates present");
+        throw IO::Error("Lammps Dump: no coordinates present");
     }
 }
 
@@ -92,7 +92,7 @@ LmpTrajecParser(std::string name, std::ifstream &file)
             std::stringstream ss{line};
             ss >> nat;
             if (ss.fail())
-                throw IOError("Lammps Dump: failed to parse nat");
+                throw IO::Error("Lammps Dump: failed to parse nat");
             s->newAtoms(nat);
             s->setCellDim(1, CdmFmt::Angstrom);
             // Cell
@@ -132,7 +132,7 @@ LmpTrajecParser(std::string name, std::ifstream &file)
                 cell[2][2] = t2 - t1;
             }
             if (ss.fail())
-                throw IOError("Lammps Dump: failed to parse box");
+                throw IO::Error("Lammps Dump: failed to parse box");
             s->setCellVec(cell, (s->getFmt()==AtomFmt::Crystal));
             // Atoms
             std::getline(file, line);
@@ -143,12 +143,12 @@ LmpTrajecParser(std::string name, std::ifstream &file)
     return data;
 }
 
-const IOPlugin IO::LmpTrajec =
+const IO::Plugin IO::LmpTrajec =
 {
     "Lammps Dump",
     "lammpstrj",
     "dmp",
-    IOPlugin::None,
+    IO::Plugin::None,
     &LmpTrajecParser,
     nullptr
 };

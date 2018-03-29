@@ -4,6 +4,10 @@
 
 using namespace Vipster;
 
+ParamBase::ParamBase(QWidget *parent):
+    QWidget(parent)
+{}
+
 ParamWidget::ParamWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ParamWidget)
@@ -24,8 +28,7 @@ void ParamWidget::updateWidget(Vipster::Change change)
             ui->paramStack->setCurrentIndex(0);
             return;
         }
-        auto pwParam = dynamic_cast<IO::PWParam*>(curParam);
-        if(pwParam){
+        if(auto pwParam = dynamic_cast<IO::PWParam*>(curParam)){
             ui->paramStack->setCurrentIndex(1);
             ui->PWWidget->setParam(pwParam);
         }
