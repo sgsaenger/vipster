@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 #include <array>
-#include <variant>
+//#include <variant>
 #include <memory>
 #include <cstdlib>
 #ifdef _WIN32
@@ -95,11 +95,11 @@ private:
     bool root;
 };
 
-using Settings = std::map<std::string, std::variant<bool, int, float, std::string>>;
+//using Settings = std::map<std::string, std::variant<bool, int, float, std::string>>;
 using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
 
 extern PseMap pse;
-extern Settings settings;
+//extern Settings settings;
 extern Parameters params;
 
 }

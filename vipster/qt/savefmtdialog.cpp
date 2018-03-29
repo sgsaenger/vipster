@@ -4,6 +4,9 @@
 
 using namespace Vipster;
 
+constexpr int SaveFmtDialog::paramlist[];
+constexpr int SaveFmtDialog::conflist[];
+
 SaveFmtDialog::SaveFmtDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SaveFmtDialog)
