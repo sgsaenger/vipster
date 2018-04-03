@@ -1,10 +1,9 @@
 import qbs 1.0
 
-Product {
+DynamicLibrary {
     name: "libvipster"
     targetName: "vipster"
-
-    type: "dynamiclibrary"
+    bundle.isBundle: false
 
     files: ["json.hpp",
             "libvipster.qmodel"]
@@ -27,7 +26,12 @@ Product {
         qbs.install: !project.webBuild
         Properties {
             condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: "lib"
+            qbs.installDir: {
+                if (qbs.targetOS.contains("macos"))
+                    return "vipster.app/Contents/Frameworks"
+                else
+                    return  "lib"
+            }
         }
     }
 
@@ -37,7 +41,12 @@ Product {
         qbs.install: !project.webBuild
         Properties {
             condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: "share/vipster"
+            qbs.installDir: {
+                if (qbs.targetOS.contains("macos"))
+                    return "vipster.app/Contents/Resources"
+                else
+                    return "share/vipster"
+            }
         }
     }
 
@@ -45,6 +54,10 @@ Product {
     Depends { name: "cpp"}
     cpp.cxxLanguageVersion: "c++14"
     cpp.defines: [ "PREFIX="+qbs.installRoot ]
+    Properties {
+        condition: qbs.targetOS.contains("macos")
+        cpp.sonamePrefix: "@rpath"
+    }
     Properties {
         condition: qbs.buildVariant=="profile"
         cpp.driverFlags: [
