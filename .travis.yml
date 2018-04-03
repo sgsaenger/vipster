@@ -72,7 +72,7 @@ matrix:
               - qbs config profiles.qt-brew.baseProfile xcode-macosx-x86_64
           install:
               - cd ~
-              - qbs build -f $TRAVIS_BUILD_DIR xcode qbs.buildVariant:release profile:qt-brew
+              - qbs build -f $TRAVIS_BUILD_DIR qbs.buildVariant:release profile:qt-brew
           script:
               - cd ~
-              - qbs run --products test_libvipster xcode
+              - qbs run --products test_libvipster
