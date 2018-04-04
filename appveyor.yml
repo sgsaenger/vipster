@@ -6,19 +6,18 @@ environment:
   MWDIR: C:\Qt\Tools\mingw530_32\bin
   PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
 install:
-    - choco install -y qbs --version 1.10.1
+    - choco install -y qbs --version 1.11.0
 build_script:
     - qbs.exe setup-toolchains --type mingw %MWDIR%\g++.exe gcc
     - qbs.exe setup-qt %QTDIR%\bin\qmake.exe qt-gcc
-    - qbs.exe build release profile:qt-gcc products.test_libvipster.qbsfix:true
+    - qbs.exe build config:release profile:qt-gcc
 test_script:
-    - qbs.exe run --products test_libvipster release
+    - qbs.exe run --products test_libvipster config:release
 after_test:
     - ps: |
         if ($env:APPVEYOR_REPO_TAG -eq "true") {
-            Remove-Item release\install-root\test_libvipster.exe
-            qbs.exe resolve project.winInstall:true release
-            qbs.exe build release
+            qbs.exe resolve project.winInstall:true config:release
+            qbs.exe build config:release
         }
 artifacts:
     - name: Installer

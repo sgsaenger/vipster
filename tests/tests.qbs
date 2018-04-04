@@ -10,11 +10,4 @@ CppApplication {
         cpp.defines: "DO_NOT_USE_WMAIN"
     }
     Depends { name: "libvipster" }
-    // install binary on windows because qbs does not add vipster.dll to search path
-    property bool qbsfix: false
-    Group {
-        name: binary
-        fileTagsFilter: product.type
-        qbs.install: qbsfix
-    }
 }
