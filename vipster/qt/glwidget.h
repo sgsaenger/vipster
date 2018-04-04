@@ -10,7 +10,7 @@ class GLWidget: public QOpenGLWidget, private Vipster::GuiWrapper
     Q_OBJECT
 
 public:
-    explicit GLWidget(QWidget *parent = 0);
+    explicit GLWidget(QWidget *parent = nullptr);
     ~GLWidget();
     void initializeGL(void);
     void paintGL(void);

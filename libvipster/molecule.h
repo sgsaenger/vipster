@@ -10,7 +10,7 @@ namespace Vipster {
 class Molecule
 {
 public:
-    Molecule(std::string name="New Molecule",unsigned long s=1);
+    Molecule(const std::string &name="New Molecule",unsigned long s=1);
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
 
 

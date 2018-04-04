@@ -8,15 +8,10 @@
 #include "atom_model.h"
 #include "bond_model.h"
 
-#ifndef __EMSCRIPTEN__
-#include "../qt/mainwindow.h"
-#include <QApplication>
-#endif
-
 using namespace Vipster;
 
 #ifdef __EMSCRIPTEN__
-std::string readShader(std::string filePath)
+std::string readShader(const std::string &filePath)
 {
     std::string content;
     std::ifstream fileStream{filePath};
@@ -31,7 +26,7 @@ std::string readShader(std::string filePath)
 #include <QString>
 #include <QFile>
 
-std::string readShader(std::string filePath)
+std::string readShader(const std::string &filePath)
 {
     QFile f(QString::fromStdString(filePath));
     f.open(QIODevice::ReadOnly);
@@ -39,26 +34,7 @@ std::string readShader(std::string filePath)
 }
 #endif
 
-#ifndef __EMSCRIPTEN__
-BaseWidget::BaseWidget()
-{
-    for(auto *w: qApp->topLevelWidgets()){
-        if(auto *t = qobject_cast<MainWindow*>(w)){
-            master = t;
-            return;
-        }
-    }
-    throw Error("Could not determine MainWindow-instance.");
-}
-
-void BaseWidget::triggerUpdate(Change change)
-{
-    updateTriggered = true;
-    master->updateWidgets(change);
-}
-#endif
-
-void GuiWrapper::loadShader(GLuint &program, std::string header, std::string vertShaderStr, std::string fragShaderStr)
+void GuiWrapper::loadShader(GLuint &program, const std::string &header, std::string vertShaderStr, std::string fragShaderStr)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -69,12 +45,12 @@ void GuiWrapper::loadShader(GLuint &program, std::string header, std::string ver
     glShaderSource(vertShader, 1, &vertShaderSrc, nullptr);
     glCompileShader(vertShader);
     glGetShaderiv(vertShader, GL_COMPILE_STATUS, &gl_ok);
-    if(!gl_ok){
+    if(gl_ok == 0){
         std::cout << "Vertex-Shader does not compile" << std::endl;
         GLint infoLen = 0;
         glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &infoLen);
         std::vector<char> infoLog;
-        infoLog.resize((infoLen > 1)?infoLen:1);
+        infoLog.resize((infoLen > 1)?static_cast<size_t>(infoLen):1);
         glGetShaderInfoLog(vertShader, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
         throw std::invalid_argument{"Vertex-Shader does not compile"};
@@ -85,11 +61,11 @@ void GuiWrapper::loadShader(GLuint &program, std::string header, std::string ver
     glShaderSource(fragShader, 1, &fragShaderSrc, nullptr);
     glCompileShader(fragShader);
     glGetShaderiv(fragShader, GL_COMPILE_STATUS, &gl_ok);
-    if(!gl_ok){
+    if(gl_ok == 0){
         std::cout << "Shader does not compile" << std::endl;
         GLint infoLen = 0;
         glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &infoLen);
-        std::vector<char> infoLog(infoLen > 1?infoLen:1);
+        std::vector<char> infoLog(infoLen > 1?static_cast<size_t>(infoLen):1);
         glGetShaderInfoLog(fragShader, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
         throw std::invalid_argument{"Shader does not compile"};
@@ -100,10 +76,10 @@ void GuiWrapper::loadShader(GLuint &program, std::string header, std::string ver
     glAttachShader(program, fragShader);
     glLinkProgram(program);
     glGetProgramiv(program, GL_LINK_STATUS, &gl_ok);
-    if(!gl_ok){
+    if(gl_ok == 0){
         std::cout << "Program does not link" << std::endl;
         GLint infoLen = 0;
-        std::vector<char> infoLog(infoLen > 1?infoLen:1);
+        std::vector<char> infoLog(infoLen > 1?static_cast<size_t>(infoLen):1);
         glGetProgramInfoLog(program, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
         throw std::invalid_argument{"Program does not link"};
@@ -115,7 +91,7 @@ void GuiWrapper::loadShader(GLuint &program, std::string header, std::string ver
     glDeleteShader(fragShader);
 }
 
-void GuiWrapper::initShaders(std::string header, std::string folder)
+void GuiWrapper::initShaders(const std::string& header, const std::string& folder)
 {
     loadShader(atom_program, header,
                readShader(folder + "/atom.vert"),
@@ -130,7 +106,7 @@ void GuiWrapper::initShaders(std::string header, std::string folder)
 
 void Vipster::guiMatScale(guiMat &m, float f)
 {
-    for(int i=0;i<4;i++){
+    for(size_t i=0;i<4;i++){
         m[i*4+0]*=f;
         m[i*4+1]*=f;
         m[i*4+2]*=f;
@@ -147,17 +123,19 @@ void Vipster::guiMatTranslate(guiMat &m, float x, float y, float z)
 
 void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
 {
-    if(a==0){
+    if(float_comp(a,0)){
         return;
     }
-    float tmp = a * M_PI / 180.;
+    float tmp = a * static_cast<float>(M_PI / 180.);
     float s = std::sin(tmp);
     float c = std::cos(tmp);
-    if(x==0){
-        if(y==0){
-            if(z!=0){
+    if(float_comp(x,0)){
+        if(float_comp(y,0)){
+            if(!float_comp(z,0)){
                 // z-axis
-                if(z<0) s = -s;
+                if (z<0){
+                    s = -s;
+                }
                 m[0] = c * (tmp = m[0]) - s * m[4];
                 m[4] = s * tmp + c * m[4];
                 m[1] = c * (tmp = m[1]) - s * m[5];
@@ -166,10 +144,14 @@ void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
                 m[6] = s * tmp + c * m[6];
                 m[3] = c * (tmp = m[3]) - s * m[7];
                 m[7] = s * tmp + c * m[7];
+            }else{
+                throw Error("guiMatRot: rotation axis-vector is zero");
             }
-        }else if(z==0){
+        }else if(float_comp(z,0)){
             // y-axis
-            if(y<0) s = -s;
+            if (y<0) {
+                s = -s;
+            }
             m[0] = c * (tmp = m[0]) + s * m[8];
             m[8] = -s * tmp + c * m[8];
             m[1] = c * (tmp = m[1]) + s * m[9];
@@ -179,9 +161,11 @@ void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
             m[3] = c * (tmp = m[3]) + s * m[11];
             m[11] = -s * tmp + c * m[11];
         }
-    }else if(y==0 && z==0){
+    }else if(float_comp(y,0) && float_comp(z,0)){
         // x-axis
-        if(x<0) s = -s;
+        if (x<0) {
+            s = -s;
+        }
         m[4] = c * (tmp = m[4]) - s * m[8];
         m[8] = s * tmp + c * m[8];
         m[5] = c * (tmp = m[5]) - s * m[9];
@@ -254,7 +238,7 @@ void GuiWrapper::initViewUBO(void)
 {
     glGenBuffers(1, &view_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(guiMat), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(guiMat), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
     GLuint atom_loc = glGetUniformBlockIndex(atom_program, "viewMat");
@@ -273,34 +257,34 @@ void GuiWrapper::initAtomVAO(void)
     glGenBuffers(1, &sphere_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(atom_model),
-                 (void*)&atom_model, GL_STATIC_DRAW);
-    GLuint vertexLoc = glGetAttribLocation(atom_program, "vertex_modelspace");
-    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+                 static_cast<const void*>(&atom_model), GL_STATIC_DRAW);
+    auto vertexLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "vertex_modelspace"));
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(vertexLoc);
     // link atom positions
     glGenBuffers(1, &atom_pos_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
-    GLuint positionLoc = glGetAttribLocation(atom_program, "position_modelspace");
+    auto positionLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "position_modelspace"));
     glVertexAttribPointer(positionLoc, 3,
                           GL_FLOAT, GL_FALSE,
-                          sizeof(Vec), 0);
+                          sizeof(Vec), nullptr);
     glVertexAttribDivisor(positionLoc, 1);
     glEnableVertexAttribArray(positionLoc);
     // link atom properties
     glGenBuffers(1, &atom_prop_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
-    GLuint scaleLoc = glGetAttribLocation(atom_program, "scale_modelspace");
+    auto scaleLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "scale_modelspace"));
     glVertexAttribPointer(scaleLoc, 1,
                           GL_FLOAT, GL_FALSE,
                           sizeof(atom_prop),
-                          (const GLvoid*)(offsetof(atom_prop, rad)));
+                          reinterpret_cast<const GLvoid*>(offsetof(atom_prop, rad)));
     glVertexAttribDivisor(scaleLoc, 1);
     glEnableVertexAttribArray(scaleLoc);
-    GLuint colorLoc = glGetAttribLocation(atom_program, "color_input");
+    auto colorLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "color_input"));
     glVertexAttribPointer(colorLoc, 4,
                           GL_UNSIGNED_BYTE, GL_TRUE,
                           sizeof(atom_prop),
-                          (const GLvoid*)(offsetof(atom_prop, col)));
+                          reinterpret_cast<const GLvoid*>(offsetof(atom_prop, col)));
     glVertexAttribDivisor(colorLoc, 1);
     glEnableVertexAttribArray(colorLoc);
 }
@@ -312,56 +296,56 @@ void GuiWrapper::initBondVAO(void)
     glGenBuffers(1, &torus_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, torus_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(bond_model),
-                 (void*)&bond_model, GL_STATIC_DRAW);
-    GLuint vertexLoc = glGetAttribLocation(bond_program, "vertex_modelspace");
-    glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,0);
+                 static_cast<const void*>(&bond_model), GL_STATIC_DRAW);
+    auto vertexLoc = static_cast<GLuint>(glGetAttribLocation(bond_program, "vertex_modelspace"));
+    glVertexAttribPointer(vertexLoc,3,GL_FLOAT,GL_FALSE,0,nullptr);
     glEnableVertexAttribArray(vertexLoc);
     glGenBuffers(1, &bond_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
-    GLuint mMatLoc = glGetAttribLocation(bond_program, "mMatrix");
+    auto mMatLoc = static_cast<GLuint>(glGetAttribLocation(bond_program, "mMatrix"));
     glVertexAttribPointer(mMatLoc, 3,
                           GL_FLOAT,GL_FALSE,
-                          sizeof(bond_prop), 0);
+                          sizeof(bond_prop), nullptr);
     glVertexAttribDivisor(mMatLoc, 1);
     glVertexAttribPointer(mMatLoc+1, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(bond_prop),
-                          (const GLvoid*)offsetof(bond_prop, mat[3]));
+                          reinterpret_cast<const GLvoid*>(offsetof(bond_prop, mat[3])));
     glVertexAttribDivisor(mMatLoc+1, 1);
     glVertexAttribPointer(mMatLoc+2, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(bond_prop),
-                          (const GLvoid*)offsetof(bond_prop, mat[6]));
+                          reinterpret_cast<const GLvoid*>(offsetof(bond_prop, mat[6])));
     glVertexAttribDivisor(mMatLoc+2, 1);
     glEnableVertexAttribArray(mMatLoc);
     glEnableVertexAttribArray(mMatLoc+1);
     glEnableVertexAttribArray(mMatLoc+2);
-    GLuint positionLoc = glGetAttribLocation(bond_program, "position_modelspace");
+    auto positionLoc = static_cast<GLuint>(glGetAttribLocation(bond_program, "position_modelspace"));
     glVertexAttribPointer(positionLoc, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(bond_prop),
-                          (const GLvoid*)offsetof(bond_prop, pos));
+                          reinterpret_cast<const GLvoid*>(offsetof(bond_prop, pos)));
     glVertexAttribDivisor(positionLoc, 1);
     glEnableVertexAttribArray(positionLoc);
-    GLuint critLoc = glGetAttribLocation(bond_program, "pbc_crit");
+    auto critLoc = static_cast<GLuint>(glGetAttribLocation(bond_program, "pbc_crit"));
     glVertexAttribIPointer(critLoc, 4,
                           GL_UNSIGNED_SHORT,
                           sizeof(bond_prop),
-                          (const GLvoid*)offsetof(bond_prop, mult));
+                          reinterpret_cast<const GLvoid*>(offsetof(bond_prop, mult)));
     glVertexAttribDivisor(critLoc, 1);
     glEnableVertexAttribArray(critLoc);
-    GLuint color1Loc = glGetAttribLocation(bond_program, "s1Color");
+    auto color1Loc = static_cast<GLuint>(glGetAttribLocation(bond_program, "s1Color"));
     glVertexAttribPointer(color1Loc, 4,
                           GL_UNSIGNED_BYTE,GL_TRUE,
                           sizeof(bond_prop),
-                          (const GLvoid*)offsetof(bond_prop, col_a));
+                          reinterpret_cast<const GLvoid*>(offsetof(bond_prop, col_a)));
     glVertexAttribDivisor(color1Loc, 1);
     glEnableVertexAttribArray(color1Loc);
-    GLuint color2Loc = glGetAttribLocation(bond_program, "s2Color");
+    auto color2Loc = static_cast<GLuint>(glGetAttribLocation(bond_program, "s2Color"));
     glVertexAttribPointer(color2Loc, 4,
                           GL_UNSIGNED_BYTE,GL_TRUE,
                           sizeof(bond_prop),
-                          (const GLvoid*)offsetof(bond_prop, col_b));
+                          reinterpret_cast<const GLvoid*>(offsetof(bond_prop, col_b)));
     glVertexAttribDivisor(color2Loc, 1);
     glEnableVertexAttribArray(color2Loc);
 }
@@ -373,11 +357,11 @@ void GuiWrapper::initCellVAO(void)
     glGenBuffers(1, &cell_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     GLushort indices[24] = {0,1,0,2,0,3,1,4,1,5,2,4,2,6,3,5,3,6,4,7,5,7,6,7};
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), static_cast<void*>(indices), GL_STATIC_DRAW);
     glGenBuffers(1, &cell_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-    GLuint vertexLoc = glGetAttribLocation(cell_program, "vertex_modelspace");
-    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    auto vertexLoc = static_cast<GLuint>(glGetAttribLocation(cell_program, "vertex_modelspace"));
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(vertexLoc);
 }
 
@@ -414,29 +398,30 @@ void GuiWrapper::drawMol(void)
     // atoms
     glBindVertexArray(atom_vao);
     glUseProgram(atom_program);
-    GLuint offLocA = glGetUniformLocation(atom_program, "offset");
-    GLuint facLoc = glGetUniformLocation(atom_program, "atom_fac");
-    GLuint cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    glUniform1f(facLoc, 0.4);
+    auto offLocA = glGetUniformLocation(atom_program, "offset");
+    auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
+    auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
+    // TODO: get from settings
+    glUniform1f(facLoc, 0.4f);
     glUniform3fv(offLocA, 1, center.data());
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           atom_model_npoly,
-                          atom_prop_buffer.size());
+                          static_cast<GLsizei>(atom_prop_buffer.size()));
     // bonds
     glBindVertexArray(bond_vao);
     glUseProgram(bond_program);
-    GLuint offLocB = glGetUniformLocation(bond_program, "offset");
-    GLuint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
-    GLuint multLoc = glGetUniformLocation(bond_program, "mult");
-    GLuint cellLocB = glGetUniformLocation(bond_program, "position_scale");
+    auto offLocB = glGetUniformLocation(bond_program, "offset");
+    auto pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
+    auto multLoc = glGetUniformLocation(bond_program, "mult");
+    auto cellLocB = glGetUniformLocation(bond_program, "position_scale");
     glUniform3ui(multLoc, 1, 1, 1);
     glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
     glUniform3fv(offLocB, 1, center.data());
     glUniform3ui(pbcLoc, 0, 0, 0);
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           bond_model_npoly,
-                          bond_buffer.size());
+                          static_cast<GLsizei>(bond_buffer.size()));
 }
 
 void GuiWrapper::drawCell(void)
@@ -451,10 +436,11 @@ void GuiWrapper::drawCell(void)
     glBindVertexArray(atom_vao);
     glUseProgram(atom_program);
     //TODO: pull atom_fac from config
-    GLuint offLocA = glGetUniformLocation(atom_program, "offset");
-    GLuint facLoc = glGetUniformLocation(atom_program, "atom_fac");
-    GLuint cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    glUniform1f(facLoc, 0.4);
+    auto offLocA = glGetUniformLocation(atom_program, "offset");
+    auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
+    auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
+    // TODO: get from settings
+    glUniform1f(facLoc, 0.4f);
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
@@ -463,7 +449,7 @@ void GuiWrapper::drawCell(void)
                 glUniform3fv(offLocA, 1, off.data());
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       atom_model_npoly,
-                                      atom_prop_buffer.size());
+                                      static_cast<GLsizei>(atom_prop_buffer.size()));
             }
         }
     }
@@ -484,7 +470,7 @@ void GuiWrapper::drawCell(void)
                 glUniform3ui(pbcLoc, x, y, z);
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       bond_model_npoly,
-                                      bond_buffer.size());
+                                      static_cast<GLsizei>(bond_buffer.size()));
             }
         }
     }
@@ -492,13 +478,13 @@ void GuiWrapper::drawCell(void)
     glBindVertexArray(cell_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     glUseProgram(cell_program);
-    GLuint offLocC = glGetUniformLocation(cell_program, "offset");
+    auto offLocC = glGetUniformLocation(cell_program, "offset");
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
                 off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocC, 1, off.data());
-                glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, NULL);
+                glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
             }
         }
     }
@@ -506,7 +492,9 @@ void GuiWrapper::drawCell(void)
 
 void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
 {
-    if(step!=nullptr) curStep = step;
+    if (step!=nullptr) {
+        curStep = step;
+    }
     //cell
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
     cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
@@ -587,16 +575,16 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
             bond_pos = (at_pos1+at_pos2)/2;
             if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
                std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
-                c = std::copysign(1., bond_axis[0]);
+                c = std::copysign(1.f, bond_axis[0]);
                 bond_buffer.push_back({
                     {bd.dist*c, 0., 0.,
                      0., rad, 0.,
                      0., 0., rad*c},
                     bond_pos,
-                    {(uint16_t)std::abs(bd.xdiff),
-                     (uint16_t)std::abs(bd.ydiff),
-                     (uint16_t)std::abs(bd.zdiff),
-                    !(bd.xdiff||bd.ydiff||bd.zdiff)},
+                    {static_cast<uint16_t>(std::abs(bd.xdiff)),
+                     static_cast<uint16_t>(std::abs(bd.ydiff)),
+                     static_cast<uint16_t>(std::abs(bd.zdiff)),
+                     static_cast<uint16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }else{
                 rot_axis = -Vec_cross(bond_axis, x_axis);
@@ -622,7 +610,7 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
                      static_cast<uint16_t>(std::abs(bd.ydiff)),
                      static_cast<uint16_t>(std::abs(bd.zdiff)),
                     //padding that tells if non-pbc bond
-                    !(bd.xdiff||bd.ydiff||bd.zdiff)},
+                     static_cast<uint16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
                     //2*vec4 with colors
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }
@@ -641,17 +629,17 @@ void GuiWrapper::updateVBOs(void)
     if (atoms_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
         auto nat = atom_prop_buffer.size();
-        if (nat) {
-            glBufferData(GL_ARRAY_BUFFER, nat*sizeof(Vec),
+        if (nat != 0u) {
+            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
                          static_cast<void*>(curStep->atoms->coordinates[
                              static_cast<size_t>(curStep->getFmt())].data()), GL_STREAM_DRAW);
         } else {
             glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
         }
         glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
-        if (nat) {
-            glBufferData(GL_ARRAY_BUFFER, nat*sizeof(atom_prop),
-                         (void*)atom_prop_buffer.data(), GL_STREAM_DRAW);
+        if (nat != 0u) {
+            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(atom_prop)),
+                         static_cast<void*>(atom_prop_buffer.data()), GL_STREAM_DRAW);
         } else {
             glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
         }
@@ -659,9 +647,9 @@ void GuiWrapper::updateVBOs(void)
     }
     if (bonds_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
-        if (bond_buffer.size()) {
-            glBufferData(GL_ARRAY_BUFFER, bond_buffer.size()*sizeof(bond_prop),
-                         (void*)bond_buffer.data(), GL_STREAM_DRAW);
+        if (!bond_buffer.empty()) {
+            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bond_buffer.size()*sizeof(bond_prop)),
+                         static_cast<void*>(bond_buffer.data()), GL_STREAM_DRAW);
         } else {
             glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
         }
@@ -669,7 +657,7 @@ void GuiWrapper::updateVBOs(void)
     }
     if (cell_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-        glBufferData(GL_ARRAY_BUFFER, 8*sizeof(Vec), (void*)cell_buffer.data(), GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 8*sizeof(Vec), static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
         cell_changed = false;
     }
 }
@@ -712,7 +700,7 @@ void GuiWrapper::resizeViewMat(int w, int h)
 
 void GuiWrapper::zoomViewMat(int i)
 {
-    guiMatScale(vMat, i>0?1.1:0.9);
+    guiMatScale(vMat, i>0?1.1f:0.9f);
     vMatChanged = true;
 }
 
@@ -726,7 +714,7 @@ void GuiWrapper::rotateViewMat(float x, float y, float z)
 
 void GuiWrapper::translateViewMat(float x, float y, float z)
 {
-    guiMatTranslate(vMat, x/10., y/10., z/10.);
+    guiMatTranslate(vMat, x/10.f, y/10.f, z/10.f);
     vMatChanged = true;
 }
 

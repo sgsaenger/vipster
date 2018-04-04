@@ -26,7 +26,7 @@ PseEntry& PseMap::operator [](const std::string& k)
             for(size_t i=k.length();i>0;--i)
             {
                 std::string test = k.substr(0,i);
-                if(std::islower(test[0])){
+                if(std::islower(test[0]) != 0){
                     test[0] = std::toupper(test[0],loc);
                 }
                 if(pse.find(test)!=pse.end())
@@ -77,7 +77,7 @@ bool readConfig()
 //            }
 //        }
         // Parameter sets
-        for(auto pw:loc_file.at("Parameters").at("PWI")){
+        for(const auto& pw:loc_file.at("Parameters").at("PWI")){
             params.emplace(std::make_pair(IOFmt::PWI, std::make_unique<IO::PWParam>(pw.get<IO::PWParam>())));
         }
     }

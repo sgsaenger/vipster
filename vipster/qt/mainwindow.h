@@ -51,4 +51,15 @@ private:
     QDir path{QString{std::getenv("HOME")}};
 };
 
+class BaseWidget{
+public:
+    BaseWidget();
+    void triggerUpdate(Vipster::Change change);
+    virtual void updateWidget(Vipster::Change){}
+    virtual ~BaseWidget()=default;
+protected:
+    bool updateTriggered{false};
+    MainWindow* master;
+};
+
 #endif // MAINWINDOW_H

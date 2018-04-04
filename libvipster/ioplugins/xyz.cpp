@@ -5,7 +5,7 @@
 
 using namespace Vipster;
 
-IO::Data XYZParser(std::string name, std::ifstream &file)
+IO::Data XYZParser(const std::string& name, std::ifstream &file)
 {
     IO::Data data{};
     data.fmt = IOFmt::XYZ;
@@ -18,14 +18,15 @@ IO::Data XYZParser(std::string name, std::ifstream &file)
         size_t nat;
         natline >> nat;
         if (natline.fail()) {
-            if (!m.getNstep()) throw IO::Error("XYZ: Failed to parse nat");
-            else {
-                while ((natline>>nat).fail()) {
-                    std::getline(file, line);
-                    if (file.eof())
-                        throw IO::Error("XYZ: Non-standard data after XYZ-file");
-                    natline = std::stringstream{line};
+            if (m.getNstep() == 0u) {
+                throw IO::Error("XYZ: Failed to parse nat");
+            }
+            while ((natline>>nat).fail()) {
+                std::getline(file, line);
+                if (file.eof()) {
+                    throw IO::Error("XYZ: Non-standard data after XYZ-file");
                 }
+                natline = std::stringstream{line};
             }
         }
         StepProper &sp = m.newStep();
@@ -38,7 +39,9 @@ IO::Data XYZParser(std::string name, std::ifstream &file)
             std::getline(file, line);
             std::stringstream atline{line};
             atline >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
-            if(atline.fail()) throw IO::Error("XYZ: failed to parse atom");
+            if (atline.fail()) {
+                throw IO::Error("XYZ: failed to parse atom");
+            }
         }
     }
     return data;

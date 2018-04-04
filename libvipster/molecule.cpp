@@ -1,9 +1,11 @@
+#include <utility>
+
 #include "molecule.h"
 
 using namespace Vipster;
 
 
-Molecule::Molecule(std::string name, unsigned long s):
+Molecule::Molecule(const std::string &name, unsigned long s):
     name{name},
     kpoints{}
 {

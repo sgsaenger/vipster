@@ -35,17 +35,20 @@ void MolWidget::updateWidget(Change change)
     QSignalBlocker blockAtFmt(ui->atomFmtBox);
     if ((change & stepChanged) == stepChanged) {
         curStep = master->curStep;
-        ui->atomFmtBox->setCurrentIndex((int)curStep->getFmt());
-    }else if(change & Change::fmt){
+        ui->atomFmtBox->setCurrentIndex(static_cast<int>(curStep->getFmt()));
+    }else if((change & Change::fmt) != 0){
         curStep = &master->curStep->asFmt(master->getFmt());
-        ui->atomFmtBox->setCurrentIndex((int)master->getFmt());
+        ui->atomFmtBox->setCurrentIndex(static_cast<int>(master->getFmt()));
     }
-    if (change & (Change::atoms | Change::fmt))
+    if ((change & (Change::atoms | Change::fmt)) != 0) {
         fillAtomTable();
-    if (change & Change::cell)
+    }
+    if ((change & Change::cell) != 0) {
         fillCell();
-    if (change & Change::kpoints)
+    }
+    if ((change & Change::kpoints) != 0) {
         fillKPoints();
+    }
 }
 
 void MolWidget::fillCell()
@@ -87,7 +90,7 @@ void MolWidget::fillAtomTable(void)
     for(int j=0;j!=nat;++j){
         ui->atomTable->item(j,0)->setText(at->name.c_str());
         ui->atomTable->item(j,0)->setCheckState(
-                    Qt::CheckState(at->properties[Hidden]*2));
+                    Qt::CheckState(static_cast<int>(at->properties[Hidden])*2));
         for(int k=0;k!=3;++k){
             ui->atomTable->item(j,k+1)->setText(QString::number(at->coord[k]));
             ui->atomTable->item(j,k+1)->setCheckState(
@@ -105,22 +108,21 @@ void MolWidget::fillKPoints()
     ui->mpg_x->setValue(kpoints.mpg.x);
     ui->mpg_y->setValue(kpoints.mpg.y);
     ui->mpg_z->setValue(kpoints.mpg.z);
-    ui->mpg_x_off->setValue(kpoints.mpg.sx);
-    ui->mpg_y_off->setValue(kpoints.mpg.sy);
-    ui->mpg_z_off->setValue(kpoints.mpg.sz);
+    ui->mpg_x_off->setValue(static_cast<double>(kpoints.mpg.sx));
+    ui->mpg_y_off->setValue(static_cast<double>(kpoints.mpg.sy));
+    ui->mpg_z_off->setValue(static_cast<double>(kpoints.mpg.sz));
     // fill discrete
     auto discToCheckstate = [](const KPoints::Discrete&k, KPoints::Discrete::Properties p){
-        if(k.properties&p){
+        if((k.properties&p) != 0){
             return Qt::CheckState::Checked;
-        }else{
-            return Qt::CheckState::Unchecked;
         }
+        return Qt::CheckState::Unchecked;
     };
     ui->crystal->setCheckState(discToCheckstate(kpoints.discrete, kpoints.discrete.crystal));
     ui->bands->setCheckState(discToCheckstate(kpoints.discrete, kpoints.discrete.band));
     auto& discretetable = *(ui->discretetable);
     int oldCount = discretetable.rowCount();
-    int newCount = kpoints.discrete.kpoints.size();
+    auto newCount = static_cast<int>(kpoints.discrete.kpoints.size());
     discretetable.setRowCount(newCount);
     if (oldCount < newCount) {
         for (int j=oldCount; j!=newCount; ++j) {
@@ -169,7 +171,8 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 {
     Mat vec;
     vec = curStep->getCellVec();
-    vec[row][column] = locale().toDouble(ui->cellVecTable->item(row,column)->text());
+    vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
+            locale().toFloat(ui->cellVecTable->item(row,column)->text());
     curStep->setCellVec(vec, ui->cellScaleBox->isChecked());
     // if needed, trigger atom update
     Change change = Change::cell;
@@ -183,15 +186,16 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
-    Atom at = (*curStep)[row];
+    Atom at = (*curStep)[static_cast<size_t>(row)];
     const QTableWidgetItem *cell = ui->atomTable->item(row,column);
     if (column == 0){
         at.name = cell->text().toStdString();
-        at.properties[Hidden] = cell->checkState()/2;
+        at.properties[Hidden] = ((cell->checkState()/2) != 0);
     } else {
         // TODO: property assignment toggles pse-reevaluation in evaluateCache!
-        at.coord[column-1] = locale().toDouble(cell->text());
-        at.properties[column-1] = cell->checkState()/2;
+        const auto col = static_cast<size_t>(column-1);
+        at.coord[col] = locale().toFloat(cell->text());
+        at.properties[col] = ((cell->checkState()/2) != 0);
     }
     triggerUpdate(Change::atoms);
 }

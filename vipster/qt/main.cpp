@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
     QApplication a(argc, argv);
-    a.setApplicationName("Vipster");
-    a.setApplicationVersion("1.8a");
+    QApplication::setApplicationName("Vipster");
+    QApplication::setApplicationVersion("1.8a");
     QCommandLineParser p;
     p.setApplicationDescription(
         "Vipster, a graphical molecular structure viewer and editor\n\n"
@@ -45,44 +45,42 @@ int main(int argc, char *argv[])
     p.addOptions(fmt_options);
     // Process arguments:
     p.process(a);
-    if(!p.optionNames().size()){
+    if(p.optionNames().empty()){
         // No options -> launch empty GUI
-        if(p.positionalArguments().size()){
+        if(!p.positionalArguments().empty()){
             p.showHelp(1);
         }
         MainWindow w{};
         w.show();
-        return a.exec();
-    } else {
-        if(p.isSet("w")){
-            std::cout << "Vipster\n\nAvailable parsers:\n";
-            for(auto& p:IOPlugins){
-                if(p.second->writer){
-                    std::cout << "--" << p.second->command << '\t' << p.second->name << '\n';
-                }
+        return QApplication::exec();
+    }
+    if(p.isSet("w")){
+        std::cout << "Vipster\n\nAvailable parsers:\n";
+        for(auto& p:IOPlugins){
+            if(p.second->writer != nullptr){
+                std::cout << "--" << p.second->command << '\t' << p.second->name << '\n';
             }
-            return 0;
         }
-        else if(p.isSet("convert")){
-            //TODO: perform conversion!
-            return 1;
-        } else {
-            if(p.optionNames().size() != 1){
-                p.showHelp(1);
-            }
-            std::vector<IO::Data> data;
-            IOFmt fmt;
-            for(auto& kv:IOPlugins){
-                if(p.isSet(kv.second->command.c_str())){
-                    fmt = kv.first;
-                }
-            }
-            for(auto& file:p.positionalArguments()){
-                data.push_back(readFile(file.toStdString(), fmt));
-            }
-            MainWindow w{std::move(data)};
-            w.show();
-            return a.exec();
+        return 0;
+    }
+    if(p.isSet("convert")){
+        //TODO: perform conversion!
+        return 1;
+    }
+    if(p.optionNames().size() != 1){
+        p.showHelp(1);
+    }
+    std::vector<IO::Data> data;
+    IOFmt fmt{};
+    for(auto& kv:IOPlugins){
+        if(p.isSet(kv.second->command.c_str())){
+            fmt = kv.first;
         }
     }
+    for(auto& file:p.positionalArguments()){
+        data.push_back(readFile(file.toStdString(), fmt));
+    }
+    MainWindow w{std::move(data)};
+    w.show();
+    return QApplication::exec();
 }

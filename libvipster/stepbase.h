@@ -89,7 +89,9 @@ public:
     void    setBonds(BondLevel l, float cutfac) const
     {
         bonds->bonds.clear();
-        if(!static_cast<const T*>(this)->getNat()) l = BondLevel::None;
+        if(!static_cast<const T*>(this)->getNat()){
+            l = BondLevel::None;
+        }
         switch(l){
         case BondLevel::None:
             break;
@@ -110,18 +112,20 @@ public:
     {
         return cell->enabled;
     }
+
     float   getCellDim(CdmFmt fmt) const noexcept
     {
         if (fmt == CdmFmt::Bohr) {
             return cell->dimBohr;
-        }else{
-            return cell->dimAngstrom;
         }
+        return cell->dimAngstrom;
     }
+
     Mat     getCellVec() const noexcept
     {
         return cell->cellvec;
     }
+
     Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
     {
         if((com && static_cast<const T*>(this)->getNat()) || !cell->enabled){
@@ -140,13 +144,14 @@ public:
                 max[2]=std::max(max[2],at.coord[2]);
             }
             return formatVec((min+max)/2, at_fmt, static_cast<AtomFmt>(fmt));
-        }else if(cell->enabled){
+        }
+        if(cell->enabled){
             const Mat& cv = cell->cellvec;
             return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
-        }else{
-            return Vec{{0,0,0}};
         }
+        return Vec{{0,0,0}};
     }
+
 protected:
     virtual void evaluateCache()const =0;
     StepBase(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::shared_ptr<BondList> bonds,
@@ -224,16 +229,18 @@ protected:
         }
         return [](const Vec& v){return v;};
     }
-    Vec                             formatVec(Vec in, AtomFmt source,
-                                              AtomFmt target) const
+
+    Vec formatVec(Vec in, AtomFmt source, AtomFmt target) const
     {
         return getFormatter(source, target)(in);
     }
-    std::vector<Vec>                formatAll(std::vector<Vec> in,
-                                              AtomFmt source,
-                                              AtomFmt target) const
+
+    std::vector<Vec> formatAll(std::vector<Vec> in, AtomFmt source,
+                               AtomFmt target) const
     {
-        if ((source == target) || (in.size() == 0)) return in;
+        if ((source == target) || in.empty()){
+            return in;
+        }
         auto op = getFormatter(source, target);
         std::transform(in.begin(), in.end(), in.begin(), op);
         return in;
@@ -252,15 +259,21 @@ private:
         for (auto at_i=asFmt.begin(); at_i!=asFmt.end(); ++at_i)
         {
             float cut_i = (*at_i->pse).bondcut;
-            if (cut_i<0) continue;
+            if (cut_i<0){
+                continue;
+            }
             for (auto at_j=asFmt.begin()+at_i.getIdx()+1; at_j != asFmt.end(); ++at_j){
                 float cut_j = (*at_j->pse).bondcut;
-                if (cut_j<0) continue;
+                if (cut_j<0) {
+                    continue;
+                }
                 float effcut = (cut_i + cut_j) * cutfac;
                 Vec dist_v = at_i->coord - at_j->coord;
                 if (((dist_v[0] *= fmtscale) > effcut) ||
                     ((dist_v[1] *= fmtscale) > effcut) ||
-                    ((dist_v[2] *= fmtscale) > effcut)) continue;
+                    ((dist_v[2] *= fmtscale) > effcut)) {
+                    continue;
+                }
                 float dist_n = Vec_dot(dist_v, dist_v);
                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
                     bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), 0, 0, 0});
@@ -270,17 +283,21 @@ private:
         this->bonds->outdated = false;
         this->bonds->level = BondLevel::Molecule;
     }
-    void    checkBond(std::size_t i, std::size_t j, float effcut,
-                      const Vec& dist, const std::array<int16_t, 3>& offset) const
+
+    void checkBond(std::size_t i, std::size_t j, float effcut,
+                   const Vec& dist, const std::array<int16_t, 3>& offset) const
     {
         auto& bonds = this->bonds->bonds;
-        if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) return;
+        if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
+            return;
+        }
         float dist_n = Vec_dot(dist, dist);
         if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
             bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
         }
     }
-    void    setBondsCell(float cutfac) const
+
+    void setBondsCell(float cutfac) const
     {
         const T& asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
@@ -302,11 +319,15 @@ private:
         auto at_i = asCrystal.begin();
         for (size_t i=0; i<nat; ++i) {
             float cut_i = (*at_i->pse).bondcut;
-            if (cut_i<0) continue;
+            if (cut_i<0) {
+                continue;
+            }
             auto at_j = asCrystal.begin();
             for (size_t j=0; j<nat; ++j) {
                 float cut_j = (*at_j->pse).bondcut;
-                if (cut_j<0) continue;
+                if (cut_j<0) {
+                    continue;
+                }
                 float effcut = (cut_i + cut_j) * cutfac;
                 Vec dist_v = at_i->coord - at_j->coord;
                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
@@ -317,23 +338,23 @@ private:
                         return (std::abs(f) < std::numeric_limits<float>::epsilon())?
                                     0 : ((f<0) ? -1 : 1);
                     });
-                if(!(crit_v[0]||crit_v[1]||crit_v[2])){
+                if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
                     // TODO: fail here? set flag? overlapping atoms!
                     continue;
                 }
                 dist_v = dist_v * cell->cellvec * cell->dimBohr;
                 // 0-vector
                 checkBond(i, j, effcut, dist_v, diff_v);
-                if(crit_v[0]){
+                if(crit_v[0] != 0){
                     // x, -x
                     checkBond(i, j, effcut, dist_v-crit_v[0]*x,
                               {{static_cast<int16_t>(diff_v[0]+crit_v[0]),diff_v[1],diff_v[2]}});
                 }
-                if(crit_v[1]){
+                if(crit_v[1] != 0){
                     // y, -y
                     checkBond(i, j, effcut, dist_v-crit_v[1]*y,
                               {{diff_v[0],static_cast<int16_t>(diff_v[1]+crit_v[1]),diff_v[2]}});
-                    if(crit_v[0]){
+                    if(crit_v[0] != 0){
                         if(crit_v[0] == crit_v[1]){
                             // x+y, -x-y
                             checkBond(i, j, effcut, dist_v-crit_v[0]*xy,
@@ -349,11 +370,11 @@ private:
                         }
                     }
                 }
-                if(crit_v[2]){
+                if(crit_v[2] != 0){
                     // z, -z
                     checkBond(i, j, effcut, dist_v-crit_v[2]*z,
                               {{diff_v[0],diff_v[1],static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                    if(crit_v[0]){
+                    if(crit_v[0] != 0){
                         if(crit_v[0] == crit_v[2]){
                             // x+z, -x-z
                             checkBond(i, j, effcut, dist_v-crit_v[0]*xz,
@@ -368,7 +389,7 @@ private:
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                         }
                     }
-                    if(crit_v[1]){
+                    if(crit_v[1] != 0){
                         if(crit_v[1] == crit_v[2]){
                             // y+z, -y-z
                             checkBond(i, j, effcut, dist_v-crit_v[1]*yz,
@@ -382,7 +403,7 @@ private:
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                         }
-                        if(crit_v[0]){
+                        if(crit_v[0] != 0){
                             if(crit_v[0] == crit_v[1]){
                                 if(crit_v[0] == crit_v[2]){
                                     // x+y+z, -x-y-z

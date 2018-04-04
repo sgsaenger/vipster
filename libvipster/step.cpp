@@ -146,7 +146,7 @@ void Step::setCellVec(const Mat &vec, bool scale)
                 if (i == static_cast<size_t>(AtomFmt::Crystal)){
                     continue;
                 }
-                if (atoms->coord_outdated[i] == false){
+                if (!atoms->coord_outdated[i]){
                     buf = i;
                 }
             }
@@ -173,8 +173,10 @@ void Step::setCellVec(const Mat &vec, bool scale)
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
 {
-    if(!(cdm>0))throw Error("Step::setCellDim(): "
-                            "cell-dimension must be positive");
+    if(!(cdm>0)) {
+        throw Error("Step::setCellDim(): "
+                    "cell-dimension must be positive");
+    }
     /*
      * 'scaling' means the systems grows/shrinks with the cell
      * => relative coordinates stay the same
@@ -245,14 +247,17 @@ void StepProper::setFmt(AtomFmt at_fmt, bool scale){
          */
         asFmt(at_fmt).getNat();
     }
-    if (at_fmt >= AtomFmt::Crystal) enableCell(true);
+    if (at_fmt >= AtomFmt::Crystal){
+        enableCell(true);
+    }
     this->at_fmt = at_fmt;
 }
 
 Step::Step(std::shared_ptr<PseMap> p, AtomFmt f, std::shared_ptr<BondList> b,
          std::shared_ptr<CellData> c, std::shared_ptr<std::string> s,
          std::shared_ptr<AtomList> a)
-    : StepBase{p,f,b,c,s}, atoms{a} {}
+    : StepBase{std::move(p),f,std::move(b),std::move(c),std::move(s)},
+      atoms{std::move(a)} {}
 
 Step::Step(const Step& s)
     : StepBase{s.pse, s.at_fmt,
@@ -278,7 +283,7 @@ StepFormatter::StepFormatter(StepProper& step, AtomFmt at_fmt)
 
 StepProper::StepProper(std::shared_ptr<PseMap> pse, AtomFmt at_fmt,
                        std::string comment)
-    : Step{pse, at_fmt,
+    : Step{std::move(pse), at_fmt,
            std::make_shared<BondList>(),
            std::make_shared<CellData>(),
            std::make_shared<std::string>(comment),
@@ -289,7 +294,7 @@ StepProper::StepProper(const StepProper& s)
 
 StepProper& StepProper::operator=(const StepProper& s)
 {
-    static_cast<Step&>(*this) = s;
+    static_cast<Step&>(*this).operator=(s);
     return *this;
 }
 

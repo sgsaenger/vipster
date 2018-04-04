@@ -8,7 +8,7 @@ namespace Ui {
 class MolWidget;
 }
 
-class MolWidget : public QWidget, public Vipster::BaseWidget
+class MolWidget : public QWidget, public BaseWidget
 {
     Q_OBJECT
 

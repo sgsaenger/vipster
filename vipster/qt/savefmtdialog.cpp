@@ -103,7 +103,7 @@ void SaveFmtDialog::enableConfWidget(bool on)
 void SaveFmtDialog::on_paramSel_currentIndexChanged(int index)
 {
     if(ui->paramWidget->isEnabled()){
-        param = ownParams[index].get();
+        param = ownParams[static_cast<size_t>(index)].get();
         static_cast<ParamBase*>(ui->paramWidget->
                                 currentWidget())->
                 setParam(param);
@@ -113,7 +113,7 @@ void SaveFmtDialog::on_paramSel_currentIndexChanged(int index)
 void SaveFmtDialog::on_configSel_currentIndexChanged(int index)
 {
     if(ui->configWidget->isEnabled()){
-        config = ownConfigs[index].get();
+        config = ownConfigs[static_cast<size_t>(index)].get();
         //TODO: no config widget yet
 //        static_cast<ConfigBase*>(ui->configWidget->
 //                                 currentWidget())->

@@ -1,5 +1,5 @@
-#ifndef STEPNEW_H
-#define STEPNEW_H
+#ifndef LIBVIPSTER_STEP_H
+#define LIBVIPSTER_STEP_H
 
 #include "atom.h"
 #include "cell.h"
@@ -18,6 +18,7 @@ namespace Vipster {
  */
 struct AtomList{
     // Coordinates
+    // one buffer per Vipster::AtomFmt
     std::array<std::vector<Vec>, 4> coordinates;
     std::array<bool,4>              coord_changed;
     std::array<bool,4>              coord_outdated;
@@ -36,7 +37,7 @@ template<typename T>
 class AtomListIterator: private T
 {
 public:
-    AtomListIterator(std::shared_ptr<AtomList> atoms,
+    AtomListIterator(const std::shared_ptr<AtomList> &atoms,
                      AtomFmt fmt, size_t idx)
         : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
             &atoms->coord_changed[static_cast<uint8_t>(fmt)],
@@ -70,6 +71,7 @@ public:
         return copy+=i;
     }
     T&      operator*() const {
+        //const-ness of iterator is separate of const-ness of atoms!
         return static_cast<T&>(*const_cast<AtomListIterator*>(this));
     }
     T*      operator->() const {
@@ -100,6 +102,9 @@ class Step: public StepBase<Step>
     friend class StepBase<Step>;
 public:
     Step& operator=(const Step& s);
+    ~Step()=default;
+    //TODO: make move-able
+
     // Atoms
     size_t          getNat() const noexcept;
     void            newAtom();
@@ -141,8 +146,8 @@ class StepFormatter: public Step
 {
 public:
     StepFormatter(StepProper& step, AtomFmt at_fmt);
-    Step&       asFmt(AtomFmt) override;
-    const Step& asFmt(AtomFmt) const override;
+    Step&       asFmt(AtomFmt at_fmt) override;
+    const Step& asFmt(AtomFmt at_fmt) const override;
 protected:
     void evaluateCache() const override;
 private:
@@ -165,6 +170,8 @@ public:
                std::string comment="");
     StepProper(const StepProper& s);
     StepProper& operator=(const StepProper& s);
+    ~StepProper() override =default;
+    //TODO: make move-able
 
     // Format
     void            setFmt(AtomFmt at_fmt, bool scale=false);
@@ -186,4 +193,4 @@ private:
 };
 }
 
-#endif // STEPNEW_H
+#endif // LIBVIPSTER_STEP_H

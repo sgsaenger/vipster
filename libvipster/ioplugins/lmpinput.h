@@ -13,7 +13,7 @@ enum class LmpAtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
 struct LmpConfig: BaseConfig{
     LmpAtomStyle style;
     bool angles, bonds, dihedrals, impropers;
-    std::unique_ptr<BaseConfig> copy();
+    std::unique_ptr<BaseConfig> copy() override;
 };
 
 }

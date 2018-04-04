@@ -243,7 +243,7 @@ std::string trim(const std::string& str)
 
 }
 
-IO::Data PWInpParser(std::string name, std::ifstream &file)
+IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 {
     IO::Data d{};
     d.fmt = IOFmt::PWI;

@@ -62,7 +62,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
     }
     // determine base argument length
     size_t narg{100};
-    for(auto at:atoms){
+    for(const auto& at:atoms){
         narg = std::min(narg,at.size());
     }
     file.seekg(rewindpos);
@@ -71,8 +71,9 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         try{
             for (auto& at: atoms){
                 auto f = stof(at[col]);
-                if(f != static_cast<int>(f))
+                if(f != floorf(f)){
                     return false;
+                }
             }
             return true;
         }catch(...){
@@ -89,44 +90,44 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
     if(narg == 5){
         // only one possible setup (atomic, mdpd)
         return {lmpTok::type, lmpTok::pos};
-    }else if(narg == 6){
+    }
+    if(narg == 6){
         if(checkInt(2) && checkDummy(2)){
             // angle/molecular have molID, then type
             return {lmpTok::ignore, lmpTok::type, lmpTok::pos};
-        }else{
-            // parse as charge, even though this is most likely wrong
-            return {lmpTok::type, lmpTok::charge, lmpTok::pos};
         }
-    }else{
-        std::vector<lmpTok> parser{};
-        size_t col{1}, poscoord{narg-3};
-        /* assume:
-         * - trailing int-columns are image-flags
-         * - three cols before image-flags are position
-         * - second or third col are atomtype
-         * - first col between type and pos is charge (if present)
-         */
-        if (checkInt(2) && !checkDummy(2)) {
-            // assume col1 is molID, probably fails for ellipsoid
-            parser.push_back(lmpTok::ignore);
-            col++;
-        }
-        parser.push_back(lmpTok::type);
-        for(size_t img=narg-1; img>=std::min(narg-3,static_cast<size_t>(5)); ++img){
-            if (!checkInt(img))
-                break;
-            --poscoord;
-        }
-        if((poscoord-col)>0){
-            parser.push_back(lmpTok::charge);
-            ++col;
-            for(size_t i=0; i<(poscoord-col); ++i){
-                parser.push_back(lmpTok::ignore);
-            }
-        }
-        parser.push_back(lmpTok::pos);
-        return parser;
+        // parse as charge, even though this is most likely wrong
+        return {lmpTok::type, lmpTok::charge, lmpTok::pos};
     }
+    std::vector<lmpTok> parser{};
+    size_t col{1}, poscoord{narg-3};
+    /* assume:
+     * - trailing int-columns are image-flags
+     * - three cols before image-flags are position
+     * - second or third col are atomtype
+     * - first col between type and pos is charge (if present)
+     */
+    if (checkInt(2) && !checkDummy(2)) {
+        // assume col1 is molID, probably fails for ellipsoid
+        parser.push_back(lmpTok::ignore);
+        col++;
+    }
+    parser.push_back(lmpTok::type);
+    for(size_t img=narg-1; img>=std::min(narg-3,static_cast<size_t>(5)); ++img){
+        if (!checkInt(img)){
+            break;
+        }
+        --poscoord;
+    }
+    if((poscoord-col)>0){
+        parser.push_back(lmpTok::charge);
+        ++col;
+        for(size_t i=0; i<(poscoord-col); ++i){
+            parser.push_back(lmpTok::ignore);
+        }
+    }
+    parser.push_back(lmpTok::pos);
+    return parser;
 }
 
 auto makeParser(std::vector<lmpTok> fmt){
@@ -156,7 +157,7 @@ auto makeParser(std::vector<lmpTok> fmt){
     };
 }
 
-IO::Data LmpInpParser(std::string name, std::ifstream &file)
+IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
 {
     enum class ParseMode{Header,Atoms,Types};
 
@@ -175,57 +176,53 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
     std::map<std::string, std::string> types{};
     bool hasNames{false};
     while (std::getline(file, line)) {
-        if (line.find("atoms") != line.npos) {
+        if (line.find("atoms") != std::string::npos) {
             std::stringstream ss{line};
             ss >> nat;
             if (ss.fail()) {
                 throw IO::Error("Lammps Input: failed to"
                               "parse number of atoms");
-            } else {
-                s.newAtoms(nat);
             }
-        } else if (line.find("atom types") != line.npos) {
+            s.newAtoms(nat);
+        } else if (line.find("atom types") != std::string::npos) {
             std::stringstream ss{line};
             ss >> ntype;
             if (ss.fail()) {
                 throw IO::Error("Lammps Input: failed to"
                               "parse number of types");
             }
-        } else if (line.find("xlo xhi") != line.npos) {
+        } else if (line.find("xlo xhi") != std::string::npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
                 throw IO::Error("Lammps Input: failed to"
                               "parse cell X dimension");
-            } else {
-                cell[0][0] = t2 - t1;
             }
-        } else if (line.find("ylo yhi") != line.npos) {
+            cell[0][0] = t2 - t1;
+        } else if (line.find("ylo yhi") != std::string::npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
                 throw IO::Error("Lammps Input: failed to"
                               "parse cell Y dimension");
-            } else {
-                cell[1][1] = t2 - t1;
             }
-        } else if (line.find("zlo zhi") != line.npos) {
+            cell[1][1] = t2 - t1;
+        } else if (line.find("zlo zhi") != std::string::npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
                 throw IO::Error("Lammps Input: failed to"
                               "parse cell Z dimension");
-            } else {
-                cell[2][2] = t2 - t1;
             }
-        } else if (line.find("xy xz yz") != line.npos) {
+            cell[2][2] = t2 - t1;
+        } else if (line.find("xy xz yz") != std::string::npos) {
             std::stringstream ss{line};
             ss >> cell[1][0] >> cell[2][0] >> cell[2][1];
             if (ss.fail()) {
                 throw IO::Error("Lammps Input: failed to"
                               "parse cell tilt factors");
             }
-        } else if (line.find("Masses") != line.npos) {
+        } else if (line.find("Masses") != std::string::npos) {
             std::getline(file, line);
             std::string id, name;
             for (size_t i=0; i<ntype; ++i) {
@@ -233,7 +230,7 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
                 std::stringstream ss{line};
                 ss >> id >> t1;
                 std::size_t cpos = line.find('#');
-                if(cpos != line.npos) {
+                if(cpos != std::string::npos) {
                     // if there's a comment, extract the typename from it
                     hasNames = true;
                     std::stringstream ss{line.substr(cpos+1)};
@@ -243,23 +240,25 @@ IO::Data LmpInpParser(std::string name, std::ifstream &file)
                     // else just number the types accordingly
                     types[id] = id;
                 }
-                if (ss.fail())
+                if (ss.fail()) {
                     throw IO::Error("Lammps Input: failed to parse atom type");
+                }
                 (*s.pse)[name].m = t1;
             }
-        } else if (line.find("Atoms") != line.npos) {
+        } else if (line.find("Atoms") != std::string::npos) {
             std::vector<lmpTok> fmt{};
             // lookup fixed parser if format is given
             std::size_t cpos = line.find('#');
-            if (cpos != line.npos) {
+            if (cpos != std::string::npos) {
                 std::string f{};
                 std::stringstream{line.substr(cpos+1)} >> f;
                 fmt = fmtmap.at(f);
             }
             std::getline(file, line);
             // if no format was given, try to determine a suitable parser
-            if (!fmt.size())
+            if (fmt.empty()) {
                 fmt = getFmtGuess(file, nat);
+            }
             // do the parsing
             makeParser(fmt)(file, s);
         }
@@ -278,7 +277,9 @@ bool LmpInpWriter(const Molecule&, std::ofstream &,
                   const BaseConfig *const c)
 {
     auto *lp = dynamic_cast<const IO::LmpConfig*>(c);
-    if(!lp) throw IO::Error("Lammps-Writer needs parameter set");
+    if(lp == nullptr){
+        throw IO::Error("Lammps-Writer needs parameter set");
+    }
     return false;
 }
 

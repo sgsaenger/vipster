@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-IO::Data PWOutParser(std::string name, std::ifstream &file)
+IO::Data PWOutParser(const std::string& name, std::ifstream &file)
 {
     IO::Data d{};
     d.fmt = IOFmt::PWO;
@@ -19,14 +19,14 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
     bool gamma{false};
     CdmFmt cdmfmt{CdmFmt::Bohr};
     while (std::getline(file, line)) {
-        if (line.find("number of atoms/cell") != line.npos) {
+        if (line.find("number of atoms/cell") != std::string::npos) {
             std::stringstream{line.substr(33)} >> nat;
             s->newAtoms(nat);
             std::getline(file, line);
             std::stringstream{line.substr(33)} >> ntype;
-        } else if (line.find("gamma-point") != line.npos) {
+        } else if (line.find("gamma-point") != std::string::npos) {
             gamma = true;
-        } else if (line.find("number of k points=") != line.npos) {
+        } else if (line.find("number of k points=") != std::string::npos) {
             if (gamma) {
                 continue;
             }
@@ -34,7 +34,7 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
             size_t nk = static_cast<size_t>(std::stoi(line.substr(line.find('=')+1)));
             // skip header
             std::getline(file, line);
-            if (line.find("cart. coord.") == line.npos){
+            if (line.find("cart. coord.") == std::string::npos){
                 continue;
             }
             kpts.discrete.kpoints.resize(nk);
@@ -47,7 +47,7 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
                 std::getline(ss, dummy_s, '=');
                 ss >> k.weight;
             }
-        } else if (line.find("celldm(1)=") != line.npos) {
+        } else if (line.find("celldm(1)=") != std::string::npos) {
             /*
              * parse celldm(1)
              * always given with discrete vectors
@@ -65,7 +65,7 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
                         >> cellvec[i][0] >> cellvec[i][1] >> cellvec[i][2];
             }
             s->setCellVec(cellvec);
-        } else if (line.find("site n.") != line.npos) {
+        } else if (line.find("site n.") != std::string::npos) {
             // parse initial coordinates
             // always given as ALAT
             s->setFmt(AtomFmt::Alat);
@@ -79,11 +79,11 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
                     throw IO::Error{"Failed to parse atom"};
                 }
             }
-        } else if (line.find("CELL_PARAMETERS") != line.npos) {
-            if (line.find("(bohr)") != line.npos) {
+        } else if (line.find("CELL_PARAMETERS") != std::string::npos) {
+            if (line.find("(bohr)") != std::string::npos) {
                 cdmfmt = CdmFmt::Bohr;
                 celldim = 1;
-            }else if (line.find("angstrom") != line.npos) {
+            }else if (line.find("angstrom") != std::string::npos) {
                 cdmfmt = CdmFmt::Angstrom;
                 celldim = 1;
             }else{
@@ -95,18 +95,18 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
                 std::getline(file, line);
                 std::stringstream{line} >> v[0] >> v[1] >> v[2];
             }
-        } else if (line.find("ATOMIC_POSITIONS") != line.npos) {
+        } else if (line.find("ATOMIC_POSITIONS") != std::string::npos) {
             // formatted positions
             // creating new step here
             s = &m.newStep();
             s->setCellDim(celldim, cdmfmt);
             s->setCellVec(cellvec);
             s->newAtoms(nat);
-            if(line.find("angstrom") != line.npos) {
+            if(line.find("angstrom") != std::string::npos) {
                 s->setFmt(AtomFmt::Angstrom);
-            }else if (line.find("bohr") != line.npos) {
+            }else if (line.find("bohr") != std::string::npos) {
                 s->setFmt(AtomFmt::Bohr);
-            }else if (line.find("crystal") != line.npos) {
+            }else if (line.find("crystal") != std::string::npos) {
                 s->setFmt(AtomFmt::Crystal);
             }else{
                 s->setFmt(AtomFmt::Alat);
@@ -117,7 +117,7 @@ IO::Data PWOutParser(std::string name, std::ifstream &file)
                         >> at.coord[0] >> at.coord[1] >> at.coord[2];
             }
         }
-        else if (line.find("Begin final coordinates") != line.npos) {
+        else if (line.find("Begin final coordinates") != std::string::npos) {
             break;
         }
     }

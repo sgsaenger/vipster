@@ -21,7 +21,7 @@ namespace IO {
         std::string extension;
         std::string command;
         uint8_t     arguments;
-        Data        (*parser)(std::string name, std::ifstream &file);
+        Data        (*parser)(const std::string& name, std::ifstream &file);
         bool        (*writer)(const Molecule& m, std::ofstream &file,
                               const BaseParam *const p,
                               const BaseConfig *const c);
@@ -29,7 +29,7 @@ namespace IO {
     class Error: public std::runtime_error
     {
         public:
-            Error(std::string reason):std::runtime_error(reason){}
+            Error(const std::string& reason):std::runtime_error(reason){}
     };
 }
 }

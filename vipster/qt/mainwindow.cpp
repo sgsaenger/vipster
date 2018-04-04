@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QApplication>
 
 using namespace Vipster;
 
@@ -55,8 +56,9 @@ void MainWindow::setupUI()
 
 void MainWindow::updateWidgets(Change change)
 {
-    if(change & (Change::atoms | Change::cell))
+    if((change & (Change::atoms | Change::cell)) != 0) {
         ui->openGLWidget->setStep(curStep);
+    }
     ui->molWidget->updateWidget(change);
     ui->paramWidget->updateWidget(change);
 }
@@ -96,13 +98,13 @@ void MainWindow::setMol(int i)
         ui->stepEdit->setEnabled(true);
         ui->stepSlider->setEnabled(true);
     }
-    setStep(steps);
+    setStep(static_cast<int>(steps));
     updateWidgets(molChanged);
 }
 
 void MainWindow::setStep(int i)
 {
-    curStep = &curMol->getStep(i-1);
+    curStep = &curMol->getStep(static_cast<size_t>(i-1));
     fmt = curStep->getFmt();
     //Handle control-buttons
     if(i == 1){
@@ -112,7 +114,7 @@ void MainWindow::setStep(int i)
         ui->preStepButton->setEnabled(true);
         ui->firstStepButton->setEnabled(true);
     }
-    if(i == curMol->getNstep()){
+    if(i == static_cast<int>(curMol->getNstep())){
         ui->nextStepButton->setDisabled(true);
         ui->lastStepButton->setDisabled(true);
     }else{
@@ -125,7 +127,7 @@ void MainWindow::setStep(int i)
 
 void MainWindow::setParam(int i)
 {
-    curParam = params.at(i).second.get();
+    curParam = params.at(static_cast<size_t>(i)).second.get();
     updateWidgets(Change::param);
 }
 
@@ -134,7 +136,7 @@ void MainWindow::stepBut(QAbstractButton* but)
     if(but == ui->firstStepButton){
         setStep(1);
     }else if(but == ui->lastStepButton){
-        setStep(curMol->getNstep());
+        setStep(static_cast<int>(curMol->getNstep()));
     }else if(but == ui->playButton){
         //TODO
     }
@@ -186,10 +188,10 @@ void MainWindow::loadMol()
     QString fmt_s;
     IOFmt fmt;
     bool got_fmt{false};
-    if(fileDiag.exec()){
+    if(fileDiag.exec() != 0){
         files = fileDiag.selectedFiles();
         path = fileDiag.directory();
-        if(files.count()){
+        if(files.count() != 0){
             fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
                                           formats, 0, false, &got_fmt);
             if(got_fmt){
@@ -207,11 +209,11 @@ void MainWindow::saveMol()
     QFileDialog fileDiag{this};
     fileDiag.setDirectory(path);
     fileDiag.setAcceptMode(QFileDialog::AcceptSave);
-    if(fileDiag.exec()){
+    if(fileDiag.exec() != 0){
         auto target = fileDiag.selectedFiles()[0].toStdString();
         path = fileDiag.directory();
         SaveFmtDialog sfd{this};
-        if(sfd.exec()){
+        if(sfd.exec() != 0){
             writeFile(target, sfd.fmt, *curMol, sfd.param, sfd.config);
         }
     }
@@ -256,4 +258,21 @@ void MainWindow::about()
             "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
             "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
+}
+
+BaseWidget::BaseWidget()
+{
+    for(auto *w: qApp->topLevelWidgets()){
+        if(auto *t = qobject_cast<MainWindow*>(w)){
+            master = t;
+            return;
+        }
+    }
+    throw Error("Could not determine MainWindow-instance.");
+}
+
+void BaseWidget::triggerUpdate(Change change)
+{
+    updateTriggered = true;
+    master->updateWidgets(change);
 }

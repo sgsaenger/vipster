@@ -26,11 +26,16 @@ auto IdentifyColumns(std::string& line)
             } else if (tok[1] == 's') {
                 cs = static_cast<coordstate>(cs | scaled);
             }
-            if (((tok.length() == 2) && (tok[1] == 'u')) || (tok.length() == 3))
+            if (((tok.length() == 2) && (tok[1] == 'u')) || (tok.length() == 3)) {
                 cs = static_cast<coordstate>(cs | unwrapped);
-            if(tok[0] == 'x') funvec.push_back(xparser);
-            else if(tok[0] == 'y') funvec.push_back(yparser);
-            else if(tok[0] == 'z') funvec.push_back(zparser);
+            }
+            if(tok[0] == 'x') {
+                funvec.push_back(xparser);
+            } else if(tok[0] == 'y') {
+                funvec.push_back(yparser);
+            } else if(tok[0] == 'z') {
+                funvec.push_back(zparser);
+            }
         } else if (tok == "q") {
             funvec.push_back(qparser);
         } else if (tok == "element") {
@@ -44,8 +49,11 @@ auto IdentifyColumns(std::string& line)
         [[fallthrough]];
     case scaled:
         return [=](std::ifstream &file, StepProper& s){
-            if(cs == scaled) s.setFmt(AtomFmt::Crystal, true);
-            else s.setFmt(AtomFmt::Angstrom, true);
+            if(cs == scaled) {
+                s.setFmt(AtomFmt::Crystal, true);
+            } else {
+                s.setFmt(AtomFmt::Angstrom, true);
+            }
             std::string line;
             for (auto& at:s) {
                 std::getline(file, line);
@@ -53,8 +61,9 @@ auto IdentifyColumns(std::string& line)
                 for (auto& fun:funvec) {
                     fun(ss, at);
                 }
-                if(ss.fail())
+                if(ss.fail()) {
                     throw IO::Error("Lammps Dump: failed to parse atom");
+                }
             }
         };
     case unscaled|scaled:
@@ -67,7 +76,7 @@ auto IdentifyColumns(std::string& line)
 }
 
 IO::Data
-LmpTrajecParser(std::string name, std::ifstream &file)
+LmpTrajecParser(const std::string& name, std::ifstream &file)
 {
     enum class ParseMode{Header, Cell, Atoms};
 
@@ -82,7 +91,7 @@ LmpTrajecParser(std::string name, std::ifstream &file)
     float t1, t2;
     Mat cell;
     while (std::getline(file, line)) {
-        if (line.find("TIMESTEP") != line.npos) {
+        if (line.find("TIMESTEP") != std::string::npos) {
             s = &m.newStep();
             // skip 2 lines
             std::getline(file, line);
@@ -91,8 +100,9 @@ LmpTrajecParser(std::string name, std::ifstream &file)
             std::getline(file, line);
             std::stringstream ss{line};
             ss >> nat;
-            if (ss.fail())
+            if (ss.fail()) {
                 throw IO::Error("Lammps Dump: failed to parse nat");
+            }
             s->newAtoms(nat);
             s->setCellDim(1, CdmFmt::Angstrom);
             // Cell
@@ -131,8 +141,9 @@ LmpTrajecParser(std::string name, std::ifstream &file)
                 ss >> t1 >> t2;
                 cell[2][2] = t2 - t1;
             }
-            if (ss.fail())
+            if (ss.fail()) {
                 throw IO::Error("Lammps Dump: failed to parse box");
+            }
             s->setCellVec(cell, (s->getFmt()==AtomFmt::Crystal));
             // Atoms
             std::getline(file, line);

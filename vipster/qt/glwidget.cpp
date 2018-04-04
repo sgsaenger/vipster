@@ -48,16 +48,19 @@ void GLWidget::resizeGL(int w, int h)
     resizeViewMat(w, h);
 }
 
-void GLWidget::setMode(int i,bool t)
+void GLWidget::setMode(int, bool t)
 {
-    if(!t)return;
+    // TODO: implement mouse-modes
+    if(!t) {
+        return;
+    }
 }
 
 void GLWidget::setMult(int i)
 {
-    if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = i; }
-    else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = i; }
-    else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = i; }
+    if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = static_cast<uint8_t>(i); }
+    else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = static_cast<uint8_t>(i); }
+    else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = static_cast<uint8_t>(i); }
     update();
 }
 
@@ -70,7 +73,7 @@ void GLWidget::setStep(const StepProper* step)
 
 void GLWidget::setCamera(int i)
 {
-    alignViewMat((alignDir)((-i)-2));
+    alignViewMat(static_cast<alignDir>((-i)-2));
     update();
 }
 
@@ -106,7 +109,9 @@ void GLWidget::wheelEvent(QWheelEvent *e)
 void GLWidget::mousePressEvent(QMouseEvent *e)
 {
     setFocus();
-    if (!(e->buttons()&7)) return;
+    if (!(e->buttons()&7)) {
+        return;
+    }
     mousePos = e->pos();
     switch(mouseMode){
         case MouseMode::Camera:
@@ -124,14 +129,16 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
 
 void GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
-    if (!(e->buttons()&7)) return;
+    if (!(e->buttons()&7)) {
+        return;
+    }
     QPoint delta = e->pos() - mousePos;
     switch(mouseMode){
         case MouseMode::Camera:
-            if(e->buttons() & Qt::MouseButton::LeftButton){
+            if((e->buttons() & Qt::MouseButton::LeftButton) != 0u){
                 rotateViewMat(delta.x(), delta.y(), 0);
                 update();
-            }else if(e->buttons() & Qt::MouseButton::MiddleButton){
+            }else if((e->buttons() & Qt::MouseButton::MiddleButton) != 0u){
                 translateViewMat(delta.x(), -delta.y(), 0);
                 update();
             }
@@ -147,7 +154,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-    if (!(e->buttons()&7)) return;
+    if (!(e->buttons()&7)) {
+        return;
+    }
     switch(mouseMode){
         case MouseMode::Camera:
             break;

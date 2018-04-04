@@ -340,7 +340,7 @@
      </property>
      <widget class="QMenu" name="menuPWScf">
       <property name="title">
-       <string>PWScf</string>
+       <string>&amp;PWScf</string>
       </property>
       <addaction name="actionParamDummy"/>
      </widget>
@@ -553,17 +553,17 @@
   </action>
   <action name="actionLoad_IO_Config">
    <property name="text">
-    <string>Load IO-Config</string>
+    <string>Load &amp;IO-Config</string>
    </property>
   </action>
   <action name="actionSave_IO_Config">
    <property name="text">
-    <string>Save IO-Config</string>
+    <string>Save I&amp;O-Config</string>
    </property>
   </action>
   <action name="actionParamDummy">
    <property name="text">
-    <string>paramDummy</string>
+    <string>&amp;paramDummy</string>
    </property>
   </action>
  </widget>
@@ -915,15 +915,13 @@
   <slot>editAtoms()</slot>
   <slot>about()</slot>
   <slot>newMol()</slot>
-  <slot>setStep()</slot>
-  <slot>setMol()</slot>
   <slot>stepBut(QAbstractButton*)</slot>
   <slot>loadMol()</slot>
   <slot>saveMol()</slot>
  </slots>
  <buttongroups>
+  <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
   <buttongroup name="cameraGroup"/>
-  <buttongroup name="modeGroup"/>
  </buttongroups>
 </ui>

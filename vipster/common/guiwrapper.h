@@ -6,7 +6,6 @@
 #include <GLES3/gl3.h>
 #else
 #include <QOpenGLFunctions_3_3_Core>
-class MainWindow;
 #endif
 #include <vector>
 #include <array>
@@ -17,29 +16,17 @@ namespace Vipster {
 typedef std::array<float,16> guiMat;
 
 enum Change{atoms=1, cell=2, fmt=4, kpoints=8, param=16, config=32};
-const Change stepChanged = (Change)(Change::atoms | Change::cell | Change::fmt);
+const Change stepChanged = static_cast<Change>(Change::atoms | Change::cell | Change::fmt);
 const Change molChanged = Change::kpoints;
-
-#ifndef __EMSCRIPTEN__
-class BaseWidget{
-public:
-    BaseWidget();
-    void triggerUpdate(Change change);
-    virtual void updateWidget(Change){}
-protected:
-    bool updateTriggered{false};
-    MainWindow* master;
-};
-#endif
 
 #ifdef __EMSCRIPTEN__
 class GuiWrapper{
 #else
 class GuiWrapper: protected QOpenGLFunctions_3_3_Core{
 #endif
-    void loadShader(GLuint &program, std::string header, std::string vertShaderStr, std::string fragShaderStr);
+    void loadShader(GLuint &program, const std::string &header, std::string vertShaderStr, std::string fragShaderStr);
 public:
-    void initShaders(std::string header, std::string folder);
+    void initShaders(const std::string& header, const std::string& folder);
     void deleteGLObjects(void);
     void draw(void);
     void drawCell(void);
