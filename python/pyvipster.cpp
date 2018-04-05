@@ -1,7 +1,6 @@
 #include <sstream>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
-//#include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 #include <molecule.h>
 #include <iowrapper.h>
@@ -28,25 +27,22 @@ py::class_<Array, holder_type> bind_array(py::module &m, std::string const &name
             throw py::index_error();
         v[i] = f;
     });
-    cl.def("__init__",[](Array &v, py::iterable it){
-        new (&v) Array();
-        try{
-            SizeType i=0;
-            for(py::handle h : it){
-                v[i] = h.cast<ValueType>();
-                i++;
-            }
-        }catch(...){
-            throw;
+    cl.def(py::init([](const py::iterable& it){
+        Array arr;
+        SizeType i=0;
+        for(py::handle h:it){
+            arr[i] = h.cast<ValueType>();
+            i++;
         }
-    });
+        return arr;
+    }));
     cl.def(py::self == py::self);
     py::implicitly_convertible<py::iterable, Array>();
     return cl;
 }
 
-PYBIND11_PLUGIN(vipster) {
-    py::module m("vipster", "pybind11 example plugin");
+PYBIND11_MODULE(vipster, m) {
+    m.doc() = "Vipster python bindings";
 
     /*
      * Step (Atoms, Bonds, Cell + PSE)
@@ -54,11 +50,10 @@ PYBIND11_PLUGIN(vipster) {
 
     bind_array<Vec>(m, "Vec");
     bind_array<Mat>(m, "Mat");
-    bind_array<FixVec>(m, "FixVec");
     bind_array<ColVec>(m, "ColVec");
-    py::bind_vector<std::vector<AtomProper>>(m,"__AtomVector__");
     py::bind_vector<std::vector<StepProper>>(m,"__StepVector__");
     py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
+    py::bind_vector<std::vector<std::string>>(m,"__StringVector__");
 
     py::enum_<AtomFmt>(m, "AtomFmt")
         .value("Bohr", AtomFmt::Bohr)
@@ -67,23 +62,26 @@ PYBIND11_PLUGIN(vipster) {
         .value("Alat", AtomFmt::Alat)
     ;
 
-    py::class_<AtomProper>(m, "Atom")
-        .def("__init__",
-             [](AtomProper &a, std::string n, Vec coord, float charge, FixVec fix, bool hidden)
-             { new (&a) AtomProper{n,coord,charge,fix,hidden};  },
-             "name"_a="C", "coord"_a=Vec{{0,0,0}}, "charge"_a=0,
-             "fix"_a=FixVec{{false,false,false}}, "hidden"_a=false )
-        .def_property("name", [](const AtomProper &a){return a.name;},
-                      [](AtomProper &a, std::string s){a.name = s;})
-        .def_property("coord", [](const AtomProper &a){return a.coord;},
-                      [](AtomProper &a, Vec c){a.coord = c;})
-        .def_property("charge", [](const AtomProper &a){return a.charge;},
-                      [](AtomProper &a, float c){a.charge = c;})
-        .def_property("fix", [](const AtomProper &a){return a.fix;},
-                      [](AtomProper &a, FixVec f){a.fix = f;})
-        .def_property("hidden", [](const AtomProper &a){return a.hidden;},
-                      [](AtomProper &a, bool h){a.hidden = h;})
-        .def("__bool__",[](const AtomProper &a){return !a.name.empty();})
+    py::enum_<BondLevel>(m, "BondLevel")
+        .value("None", BondLevel::None)
+        .value("Molecule", BondLevel::Molecule)
+        .value("Cell", BondLevel::Cell)
+    ;
+
+    py::enum_<CdmFmt>(m, "CellDimFmt")
+        .value("Bohr", CdmFmt::Bohr)
+        .value("Angstrom", CdmFmt::Angstrom)
+    ;
+
+    py::class_<Atom>(m, "Atom")
+        .def_property("name", [](const Atom &a)->const std::string&{return a.name;},
+                      [](Atom &a, std::string s){a.name = s;})
+        .def_property("coord", [](const Atom &a)->const Vec&{return a.coord;},
+                      [](Atom &a, Vec c){a.coord = c;})
+        .def_property("charge", [](const Atom &a)->const float&{return a.charge;},
+                      [](Atom &a, float c){a.charge = c;})
+    //TODO: make bitset observable. Should pse-entry be exposed?
+//        .def_property("properties", [](const Atom &a)->const )
         .def(py::self == py::self)
         .def(py::self != py::self)
     ;
@@ -115,37 +113,62 @@ PYBIND11_PLUGIN(vipster) {
     ;
 
     py::class_<Step>(m, "Step")
-        .def(py::init())
         .def_readonly("pse", &Step::pse)
-        .def_readwrite("comment", &Step::comment)
+        .def_property("comment", &Step::getComment, &Step::setComment)
         .def("newAtom", [](Step& s){s.newAtom();})
+    //TODO: enable when bitset is wrapped
+//        .def("newAtom", py::overload_cast<std::string, Vec, float, std::bitset<nAtProp>>(&StepProper::newAtom),
+//             "name"_a, "coord"_a=Vec{}, "charge"_a=float{})
         .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
-        .def("newAtom", py::overload_cast<AtomProper, AtomFmt>(&StepProper::newAtom), "at"_a, "fmt"_a)
+        //TODO: enable real iteration via c++-iterators in order to circumvent cache-evaluation
+        .def("__getitem__", [](Step& s, int i){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                return s[static_cast<size_t>(i)];
+            })
+        .def("__setitem__", [](Step& s, int i, const Atom& at){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                s[static_cast<size_t>(i)] = at;
+        })
         .def("delAtom", &Step::delAtom, "i"_a)
-        .def("setAtom", py::overload_cast<size_t, const AtomProper&>(&StepProper::setAtom), "i"_a, "at"_a)
-        .def("setAtom", py::overload_cast<size_t, AtomProper, AtomFmt>(&StepProper::setAtom), "i"_a, "at"_a, "fmt"_a)
-        .def("getAtom", py::overload_cast<size_t>(&StepProper::getAtom, py::const_), "i"_a)
-        .def("getAtomFmt", py::overload_cast<size_t, AtomFmt>(&StepProper::getAtomFmt, py::const_), "i"_a, "fmt"_a)
-        .def("getAtoms", py::overload_cast<>(&Step::getAtoms, py::const_))
-        .def("getAtomsFmt", py::overload_cast<AtomFmt>(&StepProper::getAtomsFmt, py::const_), "fmt"_a)
         .def_property_readonly("nat", &Step::getNat)
-        .def("getTypes", &Step::getTypes)
+        .def("getTypes", [](const Step& s){
+            auto oldT = s.getTypes();
+            return std::vector<std::string>(oldT.begin(), oldT.end());
+        })
         .def_property_readonly("ntyp", &Step::getNtyp)
+    //FMT
         .def("getFmt", &Step::getFmt)
-        .def("setFmt", &Step::setFmt, "fmt"_a, "scale"_a=false)
-        .def("getCellDim", py::overload_cast<>(&Step::getCellDim, py::const_))
-        .def("getCellDim", py::overload_cast<AtomFmt>(&StepProper::getCellDim, py::const_), "fmt"_a)
-        .def("setCellDim", py::overload_cast<float,bool>(&StepProper::setCellDim), "dim"_a, "scale"_a=false)
-        .def("setCellDim", py::overload_cast<float,bool,AtomFmt>(&StepProper::setCellDim), "dim"_a, "scale"_a, "fmt"_a)
+        .def("asFmt", py::overload_cast<AtomFmt>(&Step::asFmt), "fmt"_a,
+             py::return_value_policy::reference_internal)
+    //CELL
+        .def("enableCell", &Step::enableCell, "enable"_a)
+        .def("getCellDim", &Step::getCellDim)
+        .def("setCellDim", &Step::setCellDim, "cdm"_a, "fmt"_a, "scale"_a=false)
         .def("getCellVec", &Step::getCellVec)
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
-        .def("getCenter", &Step::getCenter, "com"_a=false)
-        .def("getBonds", py::overload_cast<>(&Step::getBonds, py::const_))
-        .def("getBonds", py::overload_cast<float>(&StepProper::getBonds, py::const_), "cutfac"_a)
-        .def("getBondsCell", py::overload_cast<>(&Step::getBondsCell, py::const_))
-        .def("getBondsCell", py::overload_cast<float>(&StepProper::getBondsCell, py::const_), "cutfac"_a)
+        .def("getCenter", &Step::getCenter, "fmt"_a, "com"_a=false)
+    //BONDS
+        .def("getBonds", py::overload_cast<BondLevel, bool>(&Step::getBonds, py::const_),
+             "level"_a=BondLevel::Cell, "update"_a=true)
+        .def("getBonds", py::overload_cast<float, BondLevel, bool>(&StepProper::getBonds, py::const_),
+             "cutfac"_a, "level"_a=BondLevel::Cell, "update"_a=true)
         .def_property_readonly("nbond", &StepProper::getNbond)
     ;
+
+    //TODO: allow construction?
+    py::class_<StepProper, Step>(m, "StepProper")
+        .def("setFmt", &StepProper::setFmt, "fmt"_a, "scale"_a=false);
+    py::class_<StepFormatter, Step>(m, "StepFormatter");
 
     /*
      * K-Points
@@ -180,9 +203,7 @@ PYBIND11_PLUGIN(vipster) {
     ;
 
     py::class_<DiscreteKPoint> dp(m, "DiscreteKPoint");
-    dp.def("__init__",[](DiscreteKPoint& dp, const Vec& p, float w)
-           { new (&dp) DiscreteKPoint{p,w};},
-           "pos"_a=Vec{},"weight"_a=0.)
+    dp.def(py::init([](const Vec& p, float w){return DiscreteKPoint{p,w};}))
         .def_readwrite("pos", &DiscreteKPoint::pos)
         .def_readwrite("weight", &DiscreteKPoint::weight)
     ;
@@ -191,6 +212,7 @@ PYBIND11_PLUGIN(vipster) {
         .value("none", KPoints::Discrete::Properties::none)
         .value("crystal", KPoints::Discrete::Properties::crystal)
         .value("band", KPoints::Discrete::Properties::band)
+        .value("contour", KPoints::Discrete::Properties::contour)
     ;
 
     /*
@@ -198,8 +220,10 @@ PYBIND11_PLUGIN(vipster) {
      */
     py::class_<Molecule>(m, "Molecule")
         .def(py::init())
-        .def("newStep", py::overload_cast<const StepProper&>(&Molecule::newStep), "step"_a=Step{})
-        .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a)
+        .def_readonly("pse", &Molecule::pse)
+        .def("newStep", [](Molecule& m){m.newStep();})
+        .def("newStep", py::overload_cast<const StepProper&>(&Molecule::newStep), "step"_a)
+        .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a, py::return_value_policy::reference_internal)
         .def("getSteps",py::overload_cast<>(&Molecule::getSteps))
         .def_property_readonly("nstep", &Molecule::getNstep)
         .def_property("name", &Molecule::getName, &Molecule::setName)
@@ -210,11 +234,12 @@ PYBIND11_PLUGIN(vipster) {
      * IO
      */
     py::enum_<IOFmt>(m,"IOFmt")
-        .value("XYZ",IOFmt::XYZ)
-        .value("PWI",IOFmt::PWI)
+        .value("XYZ", IOFmt::XYZ)
+        .value("PWI", IOFmt::PWI)
+        .value("PWO", IOFmt::PWO)
+        .value("LMP", IOFmt::LMP)
+        .value("DMP", IOFmt::DMP)
     ;
 
-    m.def("readFile",[](std::string fn, IOFmt fmt){return readFile(fn,fmt)->mol;},"fn"_a,"fmt"_a);
-
-    return m.ptr();
+    m.def("readFile",[](std::string fn, IOFmt fmt){return readFile(fn,fmt).mol;},"fn"_a,"fmt"_a);
 }

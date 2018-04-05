@@ -7,7 +7,7 @@ Project {
         "libvipster/libvipster.qbs",
         "vipster/QtVipster.qbs",
         "vipster/WebVipster.qbs",
-//        "python/python.qbs",
+        "python/python.qbs",
         "tests/tests.qbs",
         "dist/dist.qbs"
     ]

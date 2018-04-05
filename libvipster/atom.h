@@ -22,7 +22,6 @@ namespace Vipster{
      * Basic atom interface
      *
      * Provides access-wrappers to properties
-     * TODO: properties as bitset?
      */
     class Atom{
     protected:

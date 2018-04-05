@@ -13,7 +13,7 @@ Testing:
 Visualization and editing framework for atomistic simulations.
 
 For more information, please visit the [Homepage](https://hein09.github.io/vipster),
-installation instructions can be found [here](vipster/README.md).
+installation instructions can be found [here](INSTALL.md).
 
 Most importantly, [try it in your browser!](https://hein09.github.io/vipster/emscripten/index.html)
 
@@ -51,7 +51,7 @@ Most importantly, [try it in your browser!](https://hein09.github.io/vipster/ems
 - and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
 - optional:
     - [Catch2](https://github.com/catchorg/Catch2) (testing, included)
-    - [pybind11](https://github.com/pybind/pybind11) (script-interface)
+    - [pybind11](https://github.com/pybind/pybind11) (script-interface, included)
     - [emscripten](http://kripken.github.io/emscripten-site) (web-interface)
 
 ## Supported file types:

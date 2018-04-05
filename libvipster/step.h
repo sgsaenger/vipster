@@ -138,6 +138,7 @@ protected:
     std::shared_ptr<AtomList>       atoms;
 };
 
+//TODO: make constructible from Step
 /*
  * Wrapper to access AtomFmt-cache
  */

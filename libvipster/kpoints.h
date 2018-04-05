@@ -6,6 +6,7 @@
 
 namespace Vipster {
 enum class KPointFmt{Gamma, MPG, Discrete};
+//TODO: move to KPoints-struct
 struct DiscreteKPoint{
     Vec pos;
     float weight;
