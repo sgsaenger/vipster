@@ -14,6 +14,7 @@ Project {
 
     property bool webBuild: false
     property bool winInstall: false
+    property bool pythonBuild: false
 
     Profile {
         name: "emscripten"

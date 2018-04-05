@@ -1,7 +1,8 @@
+#include "pybind11/pybind11.h"
+#include "pybind11/operators.h"
+#include "pybind11/stl_bind.h"
+
 #include <sstream>
-#include <pybind11/pybind11.h>
-#include <pybind11/operators.h>
-#include <pybind11/stl_bind.h>
 #include <molecule.h>
 #include <iowrapper.h>
 
@@ -120,7 +121,6 @@ PYBIND11_MODULE(vipster, m) {
 //        .def("newAtom", py::overload_cast<std::string, Vec, float, std::bitset<nAtProp>>(&StepProper::newAtom),
 //             "name"_a, "coord"_a=Vec{}, "charge"_a=float{})
         .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
-        //TODO: enable real iteration via c++-iterators in order to circumvent cache-evaluation
         .def("__getitem__", [](Step& s, int i){
                 if (i<0){
                     i = i+static_cast<int>(s.getNat());
@@ -139,6 +139,7 @@ PYBIND11_MODULE(vipster, m) {
                 }
                 s[static_cast<size_t>(i)] = at;
         })
+        .def("__iter__", [](const Step& s){return py::make_iterator(s.begin(), s.end());})
         .def("delAtom", &Step::delAtom, "i"_a)
         .def_property_readonly("nat", &Step::getNat)
         .def("getTypes", [](const Step& s){

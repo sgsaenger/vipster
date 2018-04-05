@@ -48,7 +48,7 @@ To build it, run:
 
 ```
 cd $ARBITRARY_BUILD_DIR
-qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:$VARIANT --products PyVipster
+qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:$VARIANT project.pythonBuild:true
 ```
 
 
