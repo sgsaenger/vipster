@@ -55,6 +55,7 @@ PYBIND11_MODULE(vipster, m) {
     py::bind_vector<std::vector<StepProper>>(m,"__StepVector__");
     py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
     py::bind_vector<std::vector<std::string>>(m,"__StringVector__");
+    py::bind_map<std::map<std::string,std::string>>(m,"__StrStrMap__");
 
     py::enum_<AtomFmt>(m, "AtomFmt")
         .value("Bohr", AtomFmt::Bohr)
@@ -74,6 +75,22 @@ PYBIND11_MODULE(vipster, m) {
         .value("Angstrom", CdmFmt::Angstrom)
     ;
 
+    py::enum_<AtomProperty>(m, "AtomProperty")
+        .value("FixX", AtomProperty::FixX)
+        .value("FixY", AtomProperty::FixY)
+        .value("FixZ", AtomProperty::FixZ)
+        .value("Hidden", AtomProperty::Hidden)
+    ;
+
+    py::class_<std::bitset<nAtProp>>(m, "AtomProperties")
+        .def("__getitem__",[](const std::bitset<nAtProp> &bs, AtomProperty ap){
+            return bs[static_cast<uint8_t>(ap)];
+        })
+        .def("__setitem__",[](std::bitset<nAtProp> &bs, AtomProperty ap, bool val){
+            bs[static_cast<uint8_t>(ap)] = val;
+        })
+    ;
+
     py::class_<Atom>(m, "Atom")
         .def_property("name", [](const Atom &a)->const std::string&{return a.name;},
                       [](Atom &a, std::string s){a.name = s;})
@@ -81,8 +98,8 @@ PYBIND11_MODULE(vipster, m) {
                       [](Atom &a, Vec c){a.coord = c;})
         .def_property("charge", [](const Atom &a)->const float&{return a.charge;},
                       [](Atom &a, float c){a.charge = c;})
-    //TODO: make bitset observable. Should pse-entry be exposed?
-//        .def_property("properties", [](const Atom &a)->const )
+        .def_property("properties", [](const Atom &a)->const std::bitset<nAtProp>&{return a.properties;},
+                      [](Atom &a, std::bitset<nAtProp> bs){a.properties = bs;})
         .def(py::self == py::self)
         .def(py::self != py::self)
     ;
@@ -117,9 +134,8 @@ PYBIND11_MODULE(vipster, m) {
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
         .def("newAtom", [](Step& s){s.newAtom();})
-    //TODO: enable when bitset is wrapped
-//        .def("newAtom", py::overload_cast<std::string, Vec, float, std::bitset<nAtProp>>(&StepProper::newAtom),
-//             "name"_a, "coord"_a=Vec{}, "charge"_a=float{})
+        .def("newAtom", py::overload_cast<std::string, Vec, float, std::bitset<nAtProp>>(&StepProper::newAtom),
+             "name"_a, "coord"_a=Vec{}, "charge"_a=float{}, "properties"_a=std::bitset<nAtProp>{})
         .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
         .def("__getitem__", [](Step& s, int i){
                 if (i<0){
@@ -139,9 +155,10 @@ PYBIND11_MODULE(vipster, m) {
                 }
                 s[static_cast<size_t>(i)] = at;
         })
+        .def("__len__", &Step::getNat)
+        .def_property_readonly("nat", &Step::getNat)
         .def("__iter__", [](const Step& s){return py::make_iterator(s.begin(), s.end());})
         .def("delAtom", &Step::delAtom, "i"_a)
-        .def_property_readonly("nat", &Step::getNat)
         .def("getTypes", [](const Step& s){
             auto oldT = s.getTypes();
             return std::vector<std::string>(oldT.begin(), oldT.end());
@@ -219,13 +236,13 @@ PYBIND11_MODULE(vipster, m) {
     /*
      * Molecule (Steps + KPoints)
      */
-    py::class_<Molecule>(m, "Molecule")
-        .def(py::init())
+    py::class_<Molecule> pyMol(m, "Molecule");
+    pyMol.def(py::init())
         .def_readonly("pse", &Molecule::pse)
         .def("newStep", [](Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const StepProper&>(&Molecule::newStep), "step"_a)
         .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a, py::return_value_policy::reference_internal)
-        .def("getSteps",py::overload_cast<>(&Molecule::getSteps))
+        .def("getSteps",py::overload_cast<>(&Molecule::getSteps), py::return_value_policy::reference_internal)
         .def_property_readonly("nstep", &Molecule::getNstep)
         .def_property("name", &Molecule::getName, &Molecule::setName)
         .def_property("kpoints", py::overload_cast<>(&Molecule::getKPoints), &Molecule::setKPoints)
@@ -242,5 +259,44 @@ PYBIND11_MODULE(vipster, m) {
         .value("DMP", IOFmt::DMP)
     ;
 
-    m.def("readFile",[](std::string fn, IOFmt fmt){return readFile(fn,fmt).mol;},"fn"_a,"fmt"_a);
+    auto io = m.def_submodule("IO");
+
+    py::class_<BaseParam>(io, "BaseParam")
+        .def_readwrite("name", &BaseParam::name)
+    ;
+
+    py::class_<BaseConfig>(io, "BaseConfig")
+        .def_readwrite("name", &BaseConfig::name)
+    ;
+
+    py::class_<IO::PWParam, BaseParam>(io, "PWParam")
+        .def_readwrite("control", &IO::PWParam::control)
+        .def_readwrite("system", &IO::PWParam::system)
+        .def_readwrite("electrons", &IO::PWParam::electrons)
+        .def_readwrite("ions", &IO::PWParam::ions)
+        .def_readwrite("cell", &IO::PWParam::cell)
+    ;
+
+    py::enum_<IO::LmpAtomStyle>(io, "LmpAtomStyle")
+        .value("Angle", IO::LmpAtomStyle::Angle)
+        .value("Atomic", IO::LmpAtomStyle::Atomic)
+        .value("Bond", IO::LmpAtomStyle::Bond)
+        .value("Charge", IO::LmpAtomStyle::Charge)
+        .value("Full", IO::LmpAtomStyle::Full)
+        .value("Molecular", IO::LmpAtomStyle::Molecular)
+    ;
+
+    py::class_<IO::LmpConfig, BaseConfig>(io, "LmpConfig")
+        .def_readwrite("style", &IO::LmpConfig::style)
+        .def_readwrite("angles", &IO::LmpConfig::angles)
+        .def_readwrite("bonds", &IO::LmpConfig::bonds)
+        .def_readwrite("dihedrals", &IO::LmpConfig::dihedrals)
+        .def_readwrite("impropers", &IO::LmpConfig::impropers)
+    ;
+
+    m.def("readFile",[](std::string fn, IOFmt fmt){
+        IO::Data data = readFile(fn,fmt);
+        return py::make_tuple<py::return_value_policy::automatic>(data.mol, std::move(data.param));
+    },"filename"_a,"format"_a);
+    m.def("writeFile", &writeFile, "filename"_a, "format"_a, "molecule"_a, "param"_a=nullptr, "config"_a=nullptr);
 }

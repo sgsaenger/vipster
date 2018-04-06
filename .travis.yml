@@ -16,6 +16,7 @@ matrix:
                       - ubuntu-toolchain-r-test
                       - sourceline: "ppa:beineri/opt-qt-5.10.1-trusty"
                   packages:
+                      - python-dev
                       - g++-5
                       - qt510-meta-minimal
                       - qt510script
@@ -42,7 +43,12 @@ matrix:
           install:
               - cd ~
               # GCC
-              - qbs build -f $TRAVIS_BUILD_DIR gcc profile:qt-gcc qbs.buildVariant:profile
+              - unset PYTHON_CFLAGS # hack
+              - which python
+              - python -c "import sysconfig as sc; print(sc.get_paths())"
+              - ls /usr/include/python2.7/Python.h
+              - ls /local/include/python2.7/Python.h
+              - qbs build -f $TRAVIS_BUILD_DIR gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true
               # EMSCRIPTEN
               - qbs build -f $TRAVIS_BUILD_DIR emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
           script:
