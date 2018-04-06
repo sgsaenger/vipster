@@ -44,9 +44,8 @@ const std::string user_config = user_path + "\\vipster.json";
 //TODO: maybe Library/Application Support/vipster/vipster.json? or in bundle?
 const std::string sys_path = "";
 const std::string sys_config = "";
-//TODO: should be something like ~/Library/Application Support/vipster/vipster.json
 const std::string user_path = std::string{std::getenv("HOME")} + "/Library/Application Support/vipster";
-const std::string user_config = user_path + "/.vipster.json";
+const std::string user_config = user_path + "/vipster.json";
 #endif
 
 using ColVec = std::array<uint8_t, 4>;
