@@ -24,7 +24,7 @@ DynamicLibrary {
 
     Probes.BinaryProbe {
         id: hasPython
-        names: ["python"]
+        names: {return project.pythonName ? project.pythonName : "python"}
     }
 
     Probe{
@@ -37,9 +37,8 @@ DynamicLibrary {
             var proc = new Process();
             proc.exec(hasPython.filePath, ["-c",
                       "import sysconfig as sc;"+
-                      "paths = sc.get_paths(vars={'base':'','platbase':'','userbase':''});"+
-                      "print(paths['include']);"+
-                      "print(paths['platlib']);"+
+                      "print(sc.get_path('include'));"+
+                      "print(sc.get_path('platlib', vars={'base':'','platbase':'','userbase':''}));"+
                       "print(sc.get_config_var('SOABI'));"
                       ]);
             incPath = proc.readLine();

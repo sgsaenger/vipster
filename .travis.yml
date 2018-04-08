@@ -10,6 +10,7 @@ matrix:
     include:
         - os: linux
           compiler: gcc
+          python: 3.6
           addons:
               apt:
                   sources:
@@ -43,12 +44,8 @@ matrix:
           install:
               - cd ~
               # GCC
-              - unset PYTHON_CFLAGS # hack
-              - which python
-              - python -c "import sysconfig as sc; print(sc.get_paths())"
-              - ls /usr/include/python2.7/Python.h
-              - ls /local/include/python2.7/Python.h
-              - qbs build -f $TRAVIS_BUILD_DIR gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true
+              # pretty sure travis' python2 sysconfig-module is broken, force python3
+              - qbs build -f $TRAVIS_BUILD_DIR gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3"
               # EMSCRIPTEN
               - qbs build -f $TRAVIS_BUILD_DIR emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
           script:
