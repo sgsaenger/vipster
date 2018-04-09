@@ -1,10 +1,9 @@
 import qbs 1.0
 
-Product {
+DynamicLibrary {
     name: "libvipster"
     targetName: "vipster"
-
-    type: "dynamiclibrary"
+    bundle.isBundle: false
 
     files: ["json.hpp",
             "libvipster.qmodel"]
@@ -27,7 +26,12 @@ Product {
         qbs.install: !project.webBuild
         Properties {
             condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: "lib"
+            qbs.installDir: {
+                if (qbs.targetOS.contains("macos"))
+                    return "vipster.app/Contents/Frameworks"
+                else
+                    return  "lib"
+            }
         }
     }
 
@@ -37,14 +41,25 @@ Product {
         qbs.install: !project.webBuild
         Properties {
             condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: "share/vipster"
+            qbs.installDir: {
+                if (qbs.targetOS.contains("macos"))
+                    return "vipster.app/Contents/Resources"
+                else
+                    return "share/vipster"
+            }
         }
     }
 
     // C++ settings (rest of project will inherit)
     Depends { name: "cpp"}
     cpp.cxxLanguageVersion: "c++14"
+    //TODO: more intelligent wrapping. this is a rather bad idea!
     cpp.defines: [ "PREFIX="+qbs.installRoot ]
+    Properties {
+        condition: qbs.targetOS.contains("macos")
+        cpp.frameworks: ["CoreFoundation"]
+        cpp.sonamePrefix: "@rpath"
+    }
     Properties {
         condition: qbs.buildVariant=="profile"
         cpp.driverFlags: [
@@ -57,6 +72,10 @@ Product {
         Depends { name: "cpp"}
         cpp.cxxLanguageVersion: "c++14"
         cpp.defines: [ "PREFIX="+qbs.installRoot ]
+        Properties {
+            condition: qbs.targetOS.contains("macos")
+            cpp.frameworks: ["CoreFoundation"]
+        }
         Properties {
             condition: qbs.buildVariant=="profile"
             cpp.driverFlags: [

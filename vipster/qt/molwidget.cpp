@@ -10,6 +10,9 @@ MolWidget::MolWidget(QWidget *parent) :
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
+    ui->atomTableButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->cellWidgetButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->kpointStackButton->setAttribute(Qt::WA_MacBrushedMetal, true);
     QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){

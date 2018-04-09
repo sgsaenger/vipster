@@ -45,6 +45,9 @@ void MainWindow::setupUI()
     // setup left dock-area
     tabifyDockWidget(ui->molDock, ui->paramDock);
     ui->molDock->raise();
+#ifdef Q_OS_MACOS
+    setDockOptions(dockOptions()^VerticalTabs);
+#endif
     // fill in menu-options
     ui->menuPWScf->removeAction(ui->actionParamDummy); // qtcreator only creates menu when actions are provided
     auto pwi_range = Vipster::params.equal_range(IOFmt::PWI);
