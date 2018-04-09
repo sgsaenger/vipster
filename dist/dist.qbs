@@ -2,11 +2,16 @@ import qbs 1.0
 import qbs.FileInfo
 
 Project {
-    condition: project.winInstall
     property string baseName:{
-            var base = "Vipster-Win-";
-            if (qbs.debugInformation)
+            var base = "Vipster-";
+            if (qbs.targetOS.contains("windows")){
+                base += "Win-";
+            } else if (qbs.targetOS.contains("macos")){
+                base += "OSX-";
+            }
+            if (qbs.debugInformation){
                 base += "debug-";
+            }
             if (qbs.architecture === "x86_64") {
                 base += "64"
             } else {
@@ -16,6 +21,7 @@ Project {
         }
     Product {
         name: "Qt DLLs"
+        condition: project.winInstall
         Depends {name: "Qt.core"}
         property string suffix: {
             if (qbs.debugInformation) {
@@ -46,6 +52,7 @@ Project {
 
     InstallPackage {
         name: "winArchive"
+        condition: project.winInstall
         builtByDefault: true
         targetName: project.baseName
         archiver.type: "zip"
@@ -57,6 +64,7 @@ Project {
 
     NSISSetup {
         name: "winSetup"
+        condition: project.winInstall
         targetName: project.baseName + "-install"
         Depends {name: "libvipster"}
         Depends {name: "QtVipster"}
@@ -67,5 +75,23 @@ Project {
         ]
         nsis.compressor: "lzma"
         destinationDirectory: project.buildDirectory
+    }
+
+    AppleApplicationDiskImage {
+        name: "macSetup"
+        condition: project.macInstall
+        targetName: project.baseName
+        Depends {name: "libvipster"}
+        Depends {name: "QtVipster"}
+        dmg.volumeName: "Vipster"
+        dmg.iconSize: 128
+        dmg.windowWidth: 640
+        dmg.windowHeight: 480
+        dmg.iconPositions: [
+            {"path": "Applications", "x": 128, "y": 128},
+            {"path": "vipster.app", "x": 256, "y": 128},
+        ]
+        sourceBase: "."
+        files: ["../vipster/resources/vipster.icns"]
     }
 }

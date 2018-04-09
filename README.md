@@ -47,7 +47,7 @@ Most importantly, [try it in your browser!](https://hein09.github.io/vipster/ems
 ## Dependencies:
 
 - [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
-- [Qt5 >= 5.7](https://www.qt.io) including QBS >= 1.10
+- [Qt5 >= 5.7](https://www.qt.io) including QBS >= 1.11
 - and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
 - optional:
     - [Catch2](https://github.com/catchorg/Catch2) (testing, included)

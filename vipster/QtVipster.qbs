@@ -46,9 +46,4 @@ QtGuiApplication {
         cpp.useRPaths: true
         cpp.rpaths: ["@loader_path/../Frameworks"]
     }
-
-    //TODO: OSX/Windows icon/packaging
-//        Depends { name: "bundle" }
-//        Depends { name: "ib" }
-//        bundle.infoPlist: ({"CFBundleIconFile": "myapp"})
 }

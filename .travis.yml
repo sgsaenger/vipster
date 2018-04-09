@@ -31,7 +31,7 @@ matrix:
               - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
               - source $QT_ENV_SCRIPT
               # Qbs:
-              - git clone --depth 1 -b v1.10.1 https://github.com/qbs/qbs.git qbs-build
+              - git clone --depth 1 -b v1.11.0 https://code.qt.io/qbs/qbs.git qbs-build
               - pushd qbs-build
               - qmake -r qbs.pro "CONFIG+=qbs_no_dev_install qbs_no_man_install" && make
               - export PATH=$PATH:$PWD/bin
@@ -43,13 +43,13 @@ matrix:
               - cd ~
               # GCC
               # pretty sure travis' python2 sysconfig-module is broken, force python3
-              - qbs build -f $TRAVIS_BUILD_DIR gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3"
+              - qbs build -f $TRAVIS_BUILD_DIR config:gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3"
               # EMSCRIPTEN
-              - qbs build -f $TRAVIS_BUILD_DIR emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
+              - qbs build -f $TRAVIS_BUILD_DIR config:emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
           script:
               # GCC
               - cd ~
-              - qbs run --products test_libvipster gcc
+              - qbs run --products test_libvipster config:gcc
           after_success:
               # get coverage
               - cd ~/gcc
@@ -73,7 +73,7 @@ matrix:
               - qbs config profiles.qt-brew.baseProfile xcode-macosx-x86_64
           install:
               - cd ~
-              - qbs build -f $TRAVIS_BUILD_DIR qbs.buildVariant:release profile:qt-brew
+              - qbs build -f $TRAVIS_BUILD_DIR qbs.buildVariant:release profile:qt-brew project.macInstall:true
           script:
               - cd ~
               - qbs run --products test_libvipster
