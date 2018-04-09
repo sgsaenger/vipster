@@ -9,6 +9,9 @@
 //#include <variant>
 #include <memory>
 #include <cstdlib>
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -41,9 +44,15 @@ const std::string sys_config = sys_path + "\\default.json";
 const std::string user_path = std::string{std::getenv("APPDATA")} + "\\vipster";
 const std::string user_config = user_path + "\\vipster.json";
 #elif __APPLE__
-//TODO: maybe Library/Application Support/vipster/vipster.json? or in bundle?
-const std::string sys_path = "";
-const std::string sys_config = "";
+const std::string sys_path = [](){
+    CFURLRef appUrlRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+    CFStringRef macPath = CFURLCopyFileSystemPath(appUrlRef, kCFURLPOSIXPathStyle);
+    const char *pathPtr = CFStringGetCStringPtr(macPath, CFStringGetSystemEncoding());
+    CFRelease( appUrlRef );
+    CFRelease( macPath );
+    return std::string{pathPtr};
+}();
+const std::string sys_config = sys_path + "/Contents/Frameworks/default.json";
 const std::string user_path = std::string{std::getenv("HOME")} + "/Library/Application Support/vipster";
 const std::string user_config = user_path + "/vipster.json";
 #endif
