@@ -7,7 +7,7 @@ Vipster has three main frontends:
 
 In order to compile any of these (except the web-frontend),
 you need a suitable **qbs**-profile.
-If you haven't configured your **qbs**, a straight-forward way is this:
+If you have not configured your **qbs**, a straight-forward way is this:
 
 ```
 qbs setup-toolchains --detect
@@ -37,6 +37,19 @@ where `$VIPSTER_SOURCE` shall be the directory you cloned the git/unpacked the a
 `$VARIANT` can be one of debug, release, or profile.
 Debug will be the default, so please set it to release if you just want a working program.
 
+### For Linux (and other Unices):
+The default configuration expects to be installed under /usr/{bin,include,lib,share}.
+If you would like to specify another install prefix, please add `project.prefix:"/target/prefix"` to the qbs line.
+
+Example for a user-specific install:
+```
+qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:release project.prefix:"/home/NAME/.local"
+```
+
+### Windows, MacOS X:
+
+Adding `project.winInstall:true` or `project.macInstall:true` will create the respective installers.
+
 
 ## Python-bindings (Win, Lin, MacOS X)
 
@@ -44,19 +57,20 @@ These bindings should work on every platform that has python in its `$PATH`.
 For Windows and MacOS, however, no installation is performed,
 so you have to make sure that both the Vipster-library *and* the python-module are where they should be.
 Maybe this will be fixed somewhen.
-To build it, run:
+To build it, add `project.pythonBuild:true` to the qbs line.
+If you would like to select a different python executable, add `project.pythonName:"/path/to/python"` to the qbs line.
 
 ```
 cd $ARBITRARY_BUILD_DIR
-qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:$VARIANT project.pythonBuild:true
+qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3"
 ```
 
 
 ## Web-Frontend
 
 This frontend works in every browser with WebGL2 and WebAssembly support.
-The needed qbs-profile is included in the project, so no need for setup.
-It expects emcc(++) in your `$PATH`, so please make sure it is properly set.
+The needed qbs-profile (`emscripten`) is included in the project, so no need for setup.
+It expects emcc(++) in your `$PATH`, so please make sure everything is setup correctly.
 To build the frontend, run:
 
 ```
@@ -85,4 +99,4 @@ The following NPM scripts are available:
 
     Starts the watch-mode: As soon as one of the SCSS files under `styles/` is changed, a CSS rebuild is triggered automatically.
 
-**Don't forget to rebuild the web-frontend after making some changes to the CSS!**
+**Do not forget to rebuild the web-frontend after making some changes to the CSS!**

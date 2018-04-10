@@ -74,10 +74,14 @@ void MolWidget::fillCell()
 
 void MolWidget::fillAtomTable(void)
 {
+    if(!ui->atomContainer->isVisible()){
+        atomsOutdated = true;
+        return;
+    }
     //Fill atom list
     QSignalBlocker blockTable(ui->atomTable);
     int oldCount = ui->atomTable->rowCount();
-    int nat = curStep->getNat();
+    auto nat = static_cast<int>(curStep->getNat());
     ui->atomTable->setRowCount(nat);
     if( oldCount < nat){
         for(int j=oldCount;j!=nat;++j){
@@ -101,6 +105,7 @@ void MolWidget::fillAtomTable(void)
         }
         ++at;
     }
+    atomsOutdated = false;
 }
 
 void MolWidget::fillKPoints()
@@ -222,4 +227,12 @@ void MolWidget::registerMol(const std::string& name)
 {
     ui->molList->addItem(name.c_str());
     ui->molList->setCurrentIndex(ui->molList->count()-1);
+}
+
+void MolWidget::on_atomTableButton_toggled(bool checked)
+{
+    ui->atomContainer->setVisible(checked);
+    if(checked && atomsOutdated){
+        fillAtomTable();
+    }
 }

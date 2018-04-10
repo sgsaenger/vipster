@@ -547,22 +547,6 @@
  <resources/>
  <connections>
   <connection>
-   <sender>atomTableButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>atomContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>207</x>
-     <y>57</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>139</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>cellWidgetButton</sender>
    <signal>toggled(bool)</signal>
    <receiver>cellContainer</receiver>
