@@ -81,8 +81,8 @@ Project {
         name: "macSetup"
         condition: project.macInstall
         targetName: project.baseName
-        Depends {name: "libvipster"}
         Depends {name: "QtVipster"}
+        Depends {name: "libvipster"}
         dmg.volumeName: "Vipster"
         dmg.iconSize: 128
         dmg.windowWidth: 640
@@ -90,8 +90,9 @@ Project {
         dmg.iconPositions: [
             {"path": "Applications", "x": 128, "y": 128},
             {"path": "vipster.app", "x": 256, "y": 128},
+
         ]
-        sourceBase: "."
+        sourceBase: ""
         files: ["../vipster/resources/vipster.icns"]
     }
 }
