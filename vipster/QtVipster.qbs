@@ -8,25 +8,16 @@ QtGuiApplication {
     Depends { name: "Qt"; submodules: ["core", "widgets", "opengl"] }
     cpp.includePaths: [product.sourceDirectory]
 
+    property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
+
     files: ["common/*",
             "resources/vipster.qrc",
             "qt/**"]
 
-    // Install binary to install-root, under bin/ when it's a unix
     Group {
-        name: "binary"
-        fileTagsFilter: product.type
-        qbs.install: !qbs.targetOS.contains("macos")
-        Properties {
-            condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: "bin"
-        }
-    }
-    // Install OSX Bundle
-    Group {
-        fileTagsFilter: ["bundle.content"]
+        fileTagsFilter: isBundle ? ["bundle.content"] : ["application"]
         qbs.install: true
-        qbs.installDir: "."
+        qbs.installDir: isBundle ? "." : (qbs.targetOS.contains("windows") ? "" : "bin")
         qbs.installSourceBase: product.buildDirectory
     }
 

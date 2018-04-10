@@ -52,7 +52,7 @@ const std::string sys_path = [](){
     CFRelease( macPath );
     return std::string{pathPtr};
 }();
-const std::string sys_config = sys_path + "/Contents/Frameworks/default.json";
+const std::string sys_config = sys_path + "/Contents/Resources/default.json";
 const std::string user_path = std::string{std::getenv("HOME")} + "/Library/Application Support/vipster";
 const std::string user_config = user_path + "/vipster.json";
 #endif

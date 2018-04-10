@@ -3,7 +3,7 @@ import qbs 1.0
 DynamicLibrary {
     name: "libvipster"
     targetName: "vipster"
-    bundle.isBundle: false
+    property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
 
     files: ["json.hpp",
             "libvipster.qmodel"]
@@ -11,7 +11,7 @@ DynamicLibrary {
     Group {
         name: "headers"
         files: ["*.h","*/*.h"]
-        qbs.install: !qbs.targetOS.contains("windows") && !project.webBuild
+        qbs.install: !qbs.targetOS.contains("windows") && !qbs.targetOS.contains("macos") && !project.webBuild
         qbs.installDir: "include/vipster"
     }
 
@@ -22,17 +22,10 @@ DynamicLibrary {
 
     Group {
         name: "library"
-        fileTagsFilter: product.type
+        fileTagsFilter: isBundle ? ["bundle.content"] : product.type
         qbs.install: !project.webBuild
-        Properties {
-            condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: {
-                if (qbs.targetOS.contains("macos"))
-                    return "vipster.app/Contents/Frameworks"
-                else
-                    return  "lib"
-            }
-        }
+        qbs.installDir: isBundle ? "vipster.app/Contents/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
+        qbs.installSourceBase: product.buildDirectory
     }
 
     Group {
