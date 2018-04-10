@@ -80,7 +80,7 @@ Project {
     AppleApplicationDiskImage {
         name: "macSetup"
         condition: project.macInstall
-        targetName: project.baseName
+        targetName: "Vipster"
         Depends {name: "QtVipster"}
         Depends {name: "libvipster"}
         dmg.volumeName: "Vipster"
@@ -89,7 +89,7 @@ Project {
         dmg.windowHeight: 480
         dmg.iconPositions: [
             {"path": "Applications", "x": 128, "y": 128},
-            {"path": "vipster.app", "x": 256, "y": 128},
+            {"path": "Vipster.app", "x": 256, "y": 128},
 
         ]
         sourceBase: ""

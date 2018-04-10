@@ -24,7 +24,7 @@ DynamicLibrary {
         name: "library"
         fileTagsFilter: isBundle ? ["bundle.content"] : product.type
         qbs.install: !project.webBuild
-        qbs.installDir: isBundle ? "vipster.app/Contents/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
+        qbs.installDir: isBundle ? "Vipster.app/Contents/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
         qbs.installSourceBase: product.buildDirectory
     }
 
@@ -36,7 +36,7 @@ DynamicLibrary {
             condition: !qbs.targetOS.contains("windows")
             qbs.installDir: {
                 if (qbs.targetOS.contains("macos"))
-                    return "vipster.app/Contents/Resources"
+                    return "Vipster.app/Contents/Resources"
                 else
                     return "share/vipster"
             }

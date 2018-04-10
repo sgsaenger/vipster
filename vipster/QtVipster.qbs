@@ -2,7 +2,7 @@ import qbs 1.0
 
 QtGuiApplication {
     name: "QtVipster"
-    targetName: "vipster"
+    targetName: qbs.targetOS.contains("macos") ? "Vipster" : "vipster"
     condition: !project.webBuild
     Depends { name: "libvipster" }
     Depends { name: "Qt"; submodules: ["core", "widgets", "opengl"] }
