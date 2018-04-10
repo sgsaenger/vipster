@@ -83,7 +83,10 @@ Project {
         targetName: "Vipster"
         Depends {name: "QtVipster"}
         Depends {name: "libvipster"}
-        dmg.volumeName: "Vipster"
+        version: project.version
+        files: ["../vipster/resources/vipster.icns"]
+        sourceBase: ""
+        dmg.volumeName: "Vipster
         dmg.iconSize: 128
         dmg.windowWidth: 640
         dmg.windowHeight: 502
@@ -92,7 +95,9 @@ Project {
             {"path": "Vipster.app", "x": 256, "y": 128},
 
         ]
-        sourceBase: ""
-        files: ["../vipster/resources/vipster.icns"]
+        Group {
+         fileTagsFilter: product.type
+         qbs.install:true
+        }
     }
 }
