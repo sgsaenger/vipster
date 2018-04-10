@@ -12,11 +12,18 @@ Project {
         "dist/dist.qbs"
     ]
 
+    // toggle emscripten-build
     property bool webBuild: false
+    // create windows archive&&installer
     property bool winInstall: false
+    // create osx install-.dmg
     property bool macInstall: false
+    // enable python interface (TODO: not included in Win/OSX installers)
     property bool pythonBuild: false
-    property string pythonName: ""
+    // specify non-default python executable (defaults to 'python' in $PATH)
+    property string pythonName: "python"
+    // specify unix-install-prefix (defaults to /usr)
+    property string prefix: "/usr"
 
     Profile {
         name: "emscripten"

@@ -25,9 +25,11 @@ const std::string user_path{};
 const std::string user_config{};
 #elif __linux__
 #ifndef PREFIX
-#define PREFIX /usr/share/
+#define PREFIX /usr
 #endif
-const std::string sys_path = "PREFIXvipster";
+#define TO_STR2(x) #x
+#define TO_STR(x) TO_STR2(x)
+const std::string sys_path = std::string{TO_STR(PREFIX)} + "/share/vipster";
 const std::string sys_config = sys_path + "/default.json";
 const std::string user_path = std::getenv("HOME");
 const std::string user_config = user_path + "/.vipster.json";

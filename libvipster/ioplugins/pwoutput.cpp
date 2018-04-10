@@ -79,7 +79,8 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                     throw IO::Error{"Failed to parse atom"};
                 }
             }
-        } else if (line.find("CELL_PARAMETERS") != std::string::npos) {
+        } else if ((line.find("CELL_PARAMETERS") != std::string::npos) &&
+                   (line.find("DEPRECATED") == std::string::npos)) {
             if (line.find("(bohr)") != std::string::npos) {
                 cdmfmt = CdmFmt::Bohr;
                 celldim = 1;

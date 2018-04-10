@@ -86,11 +86,10 @@ Project {
         dmg.volumeName: "Vipster"
         dmg.iconSize: 128
         dmg.windowWidth: 640
-        dmg.windowHeight: 480
+        dmg.windowHeight: 502
         dmg.iconPositions: [
-            {"path": "Applications", "x": 128, "y": 128},
-            {"path": "vipster.app", "x": 256, "y": 128},
-
+            {"path": "vipster.app", "x": 128, "y": 128},
+            {"path": "Applications", "x": 256, "y": 128},
         ]
         sourceBase: ""
         files: ["../vipster/resources/vipster.icns"]

@@ -15,7 +15,7 @@ QtGuiApplication {
             "qt/**"]
 
     Group {
-        fileTagsFilter: isBundle ? ["bundle.content"] : ["application"]
+        fileTagsFilter: isBundle ? bundle.content : product.type
         qbs.install: true
         qbs.installDir: isBundle ? "." : (qbs.targetOS.contains("windows") ? "" : "bin")
         qbs.installSourceBase: product.buildDirectory

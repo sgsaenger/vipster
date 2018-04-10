@@ -22,7 +22,7 @@ DynamicLibrary {
 
     Group {
         name: "library"
-        fileTagsFilter: isBundle ? ["bundle.content"] : product.type
+        fileTagsFilter: isBundle ? bundle.content : product.type
         qbs.install: !project.webBuild
         qbs.installDir: isBundle ? "vipster.app/Contents/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
         qbs.installSourceBase: product.buildDirectory
@@ -47,7 +47,7 @@ DynamicLibrary {
     Depends { name: "cpp"}
     cpp.cxxLanguageVersion: "c++14"
     //TODO: more intelligent wrapping. this is a rather bad idea!
-    cpp.defines: [ "PREFIX="+qbs.installRoot ]
+    cpp.defines: [ "PREFIX="+project.prefix ]
     Properties {
         condition: qbs.targetOS.contains("macos")
         cpp.frameworks: ["CoreFoundation"]
@@ -64,7 +64,7 @@ DynamicLibrary {
     Export {
         Depends { name: "cpp"}
         cpp.cxxLanguageVersion: "c++14"
-        cpp.defines: [ "PREFIX="+qbs.installRoot ]
+        cpp.defines: [ "PREFIX="+project.prefix ]
         Properties {
             condition: qbs.targetOS.contains("macos")
             cpp.frameworks: ["CoreFoundation"]

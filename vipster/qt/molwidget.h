@@ -26,6 +26,7 @@ private slots:
     void on_atomTable_cellChanged(int row, int column);
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();
+    void on_atomTableButton_toggled(bool checked);
     void on_molList_currentIndexChanged(int index);
 
 private:
@@ -35,6 +36,7 @@ private:
     Ui::MolWidget *ui;
     Vipster::Step *curStep;
     Vipster::Molecule* curMol;
+    bool atomsOutdated{true};
 };
 
 #endif // MOLWIDGET_H

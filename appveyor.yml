@@ -26,7 +26,7 @@ artifacts:
       path: 'release\Vipster-Win-32.zip'
 deploy:
     - provider: GitHub
-      release: Vipster %APPVEYOR_REPO_TAG_NAME%
+      release: %APPVEYOR_REPO_TAG_NAME%
       auth_token:
         secure: B7byrQs5wuFQdK1ws3GCmTGI/0YCLZ3TUN+h3UxP9nl/uOlZX1jS1kO+AMWhprA5
       draft: true

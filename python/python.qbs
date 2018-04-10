@@ -24,7 +24,7 @@ DynamicLibrary {
 
     Probes.BinaryProbe {
         id: hasPython
-        names: {return project.pythonName ? project.pythonName : "python"}
+        names: project.pythonName
     }
 
     Probe{
