@@ -72,13 +72,10 @@ matrix:
               - qbs setup-qt /usr/local/opt/qt/bin/qmake qt-brew
               - qbs config profiles.qt-brew.baseProfile xcode-macosx-x86_64
           install:
-              - cd ~
               - qbs build -f $TRAVIS_BUILD_DIR qbs.buildVariant:release profile:qt-brew
           script:
-              - cd ~
               - qbs run --products test_libvipster
           before_deploy:
-              - cd ~
               - qbs resolve project.macInstall:true
               - qbs build
           deploy:
@@ -87,3 +84,5 @@ matrix:
                 file: default/install-root/Vipster.dmg
                 skip_cleanup: true
                 draft: true
+                on:
+                    tags: true
