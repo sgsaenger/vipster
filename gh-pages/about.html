@@ -46,7 +46,14 @@
                 </div>
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
-                        <li class="active"><a href="#">About</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> About <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li class="active"><a href="#">Overview</a></li>
+                                <li><a href="gui.html">QtVipster</a></li>
+                                <li><a href="python.html">PyVipster</a></li>
+                            </ul>
+                        </li>
                         <li><a href="download.html">Get it!</a></li>
                         <li><a href="emscripten/index.html">Try it!</a></li>
                     </ul>
@@ -60,19 +67,19 @@
                 <p> It's core is a library that provides powerful access to atomistic data,
                     designed with periodic simulations in mind.</p>
                 <p> Two interfaces are available: </p>
-                <p> <em> QtVipster </em> is a powerful editor for Linux (OSX and Windows coming soon™),
+                <p> <a href="gui.html"><em> QtVipster </em></a> is a powerful editor for Linux, OSX and Windows,
                     with various editing capabilities and a powerful cli-interface </p>
                 <p> <a href="emscripten/index.html"><em>WebVipster</em></a> is an emscripten-based visualisation
                     tool that works in every WebGL2/WebASM capable browser</p>
-                <p> <em> PyVipster </em> (planned) is a python interface for advanced scripting needs </p>
+                <p> <a href="python.html"><em> PyVipster </em></a> is a python interface for advanced scripting needs </p>
                 <div class="row">
                     <div class="col-md-6">
                         <p> These formats can be parsed:</p>
                         <ul>
                             <li>standard xyz</li>
-                            <li>Empire-xyz</li>
                             <li>PWScf input/output</li>
                             <li>LAMMPS data/custom-dump</li>
+                            <li>Empire-xyz (planned)</li>
                             <li>Gaussian cube files (planned)</li>
                             <li>AIMALL output (planned)</li>
                             <li>CPMD input (planned)</li>
@@ -84,9 +91,9 @@
                     <div class="col-md-6">
                         <p> These formats can be written: </p>
                         <ul>
-                            <li>xyz (planned)</li>
+                            <li>xyz</li>
+                            <li>PWScf input</li>
                             <li>Empire-xyz (planned)</li>
-                            <li>PWScf input (planned)</li>
                             <li>LAMMPS data (planned)</li>
                             <li>CPMD input (planned)</li>
                         </ul>

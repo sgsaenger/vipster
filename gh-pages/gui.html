@@ -34,137 +34,22 @@
                 </div>
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="about.html">About</a></li>
-                        <li class="active"><a href="#">GUI</a></li>
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">CLI <span class="caret"></span></a>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> About <span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li><a href="cli.html">Vipster</a></li>
-                                <li><a href="molecule.html">Molecule</a></li>
+                                <li><a href="about.html">Overview</a></li>
+                                <li class="active"><a href="#">QtVipster</a></li>
+                                <li><a href="python.html">PyVipster</a></li>
                             </ul>
                         </li>
                         <li><a href="download.html">Get It!</a></li>
+                        <li><a href="emscripten/index.html">Try it!</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
         <main class="container">
-            <p>Two sets of widgets are keen to serve your every needs:</p>
-            <div id="accordion" class="panel-group" role="tablist">
-                <div class="panel">
-                    <div id="headleft" class="panel-heading" role="tab">
-                        <h3 class="panel-title">
-                            <a href="#collleft" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collapse1">
-                                Basic functions
-                            </a>
-                        </h3>
-                    </div>
-                    <div id="collleft" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headleft">
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Molecules.png" alt="Molecule/Cell settings"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Molecule/Cell settings</h4>
-                                    <p>Edit basic properties of a Molecule/Cell/Trajectory.</p>
-                                    <ul>
-                                        <li>Coordinates are accessible in multiple formats</li>
-                                        <li>Cell modifications can keep either the real or the crystal-coordinates intact</li>
-                                        <li>Multiple ways of expressing the k-point grid</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Parameters.png" alt="Parameter sets"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Parameter sets</h4>
-                                    <p>Parameter sets for PWScf or CPMD can be saved/passed through/edited.</p>
-                                    <p>Additionally, preference for a LAMMPS data file can be managed</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/PSE.png" alt="Periodic table"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Periodic table</h4>
-                                    <p>Manage global or file-specific settings for your atom-types.</p>
-                                    <ul>
-                                        <li>Graphical representation</li>
-                                        <li>Physical properties</li>
-                                        <li>PWScf/CPMD properties</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Settings.png" alt="Settings"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Settings</h4>
-                                    <p>Change everything that's not specific to a file/species.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div id="headright" class="panel-heading" role="tab">
-                        <h3 class="panel-title">
-                            <a href="#collright" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collright">
-                                Additional tools
-                            </a>
-                        </h3>
-                    </div>
-                    <div id="collright" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headright">
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Pick.png" alt="Picker"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Picker</h4>
-                                    <p>View/analyze your selection of atoms.</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Cellmod.png" alt="Cell Modifications"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Cell Modifications</h4>
-                                    <ul>
-                                        <li>Wrap/crop</li>
-                                        <li>Multiply</li>
-                                        <li>Reshape</li>
-                                        <li>Align to axis</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Script.png" alt="Script"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Script</h4>
-                                    <p>Modify the structure programmatically:</p>
-                                    <ul>
-                                        <li>Rotation</li>
-                                        <li>Shift</li>
-                                        <li>Mirroring</li>
-                                        <li>Select</li>
-                                        <li>Align to surface</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Plane.png" alt="Plane"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Plane</h4>
-                                    <p>Display crystal-planes according to their miller-indices or
-                                    visualize a slice of volume data.</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 col-lg-6"><img src="images/Volume.png" alt="Volume"></div>
-                                <div class="col-md-8 col-lg-6">
-                                    <h4>Volume</h4>
-                                    <p>Display isosurfaces of some volume data.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        Fancy pictures to come soon™!
         </main>
         <footer class="footer">
             <div class="container">

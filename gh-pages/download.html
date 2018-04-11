@@ -19,6 +19,17 @@
             crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function (event) {
+                $.getJSON("https://api.github.com/repos/hein09/vipster/releases/latest").done(function(release){
+                    const list = $('#dl-list');
+                    $.each(release.assets, function(id, asset){
+                        list.append("<li><a href=" + asset.browser_download_url + ">"
+                            + asset.name + "</a></li>")
+                    });
+                });
+            });
+        </script>
     </head>
     <body>
         <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
@@ -46,7 +57,14 @@
                 </div>
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="about.html">About</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> About <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="about.html">Overview</a></li>
+                                <li><a href="gui.html">QtVipster</a></li>
+                                <li><a href="python.html">PyVipster</a></li>
+                            </ul>
+                        </li>
                         <li class="active"><a href="#">Get it!</a></li>
                         <li><a href="emscripten/index.html">Try it!</a></li>
                     </ul>
@@ -66,10 +84,13 @@
                 and the brilliant <a href="https://grubersjoe.de">Jonathan Gruber</a>, this rewrite is available for you to 
                 <a class="btn btn-default" href="emscripten/index.html">try in your browser!</a>
             </p>
+            <h4> Latest release </h4>
+            <ul id="dl-list"></ul>
+            <h4> Build from source </h4>
             <p> Depends on <a href="https://www.qt.io">Qt5</a> (&gt=5.7), QBS (&gt=1.10)
                 and a C++14-capable compiler (G++/MinGW &gt 5, Clang &gt 3.4) </p>
             <p> For build informations, please consult the README.md </p>
-            <h4> Master-branch </h4>
+            <b> Master-branch </b>
             <p>
                 Status:
                     <a href="https://travis-ci.org/hein09/vipster">
@@ -84,7 +105,7 @@
             </p>
             <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
             <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
-            <h4> Testing-branch </h4>
+            <b> Testing-branch </b>
             <p>
                 Status:
                     <a href="https://travis-ci.org/hein09/vipster">
