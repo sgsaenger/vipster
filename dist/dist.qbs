@@ -86,7 +86,7 @@ Project {
         version: project.version
         files: ["../vipster/resources/vipster.icns"]
         sourceBase: ""
-        dmg.volumeName: "Vipster
+        dmg.volumeName: "Vipster"
         dmg.iconSize: 128
         dmg.windowWidth: 640
         dmg.windowHeight: 502
