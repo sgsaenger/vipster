@@ -64,7 +64,8 @@ Project {
 
     NSISSetup {
         name: "winSetup"
-        condition: project.winInstall
+//        condition: project.winInstall
+        condition: false
         targetName: project.baseName + "-install"
         Depends {name: "libvipster"}
         Depends {name: "QtVipster"}
