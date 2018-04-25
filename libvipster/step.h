@@ -25,7 +25,7 @@ struct AtomList{
     // Properties
     std::vector<std::string>        names;
     std::vector<float>              charges;
-    std::vector<std::bitset<nAtProp>>            properties;
+    std::vector<AtomProperties>            properties;
     std::vector<PseEntry*>          pse;
     bool                            prop_changed;
 };
@@ -111,7 +111,7 @@ public:
     void            newAtom(std::string name,
                             Vec coord=Vec{},
                             float charge=float{},
-                            std::bitset<nAtProp> prop=std::bitset<nAtProp>{});
+                            AtomProperties prop=AtomProperties{});
     void            newAtom(const Atom& at);
     void            newAtoms(size_t i);
     void            delAtom(long i);

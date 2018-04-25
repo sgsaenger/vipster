@@ -25,7 +25,7 @@ void Step::newAtom(){
 }
 
 void Step::newAtom(std::string name, Vec coord, float charge,
-                   std::bitset<nAtProp> prop)
+                   AtomProperties prop)
 {
     evaluateCache();
     AtomList& al = *atoms;
