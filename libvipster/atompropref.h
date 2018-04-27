@@ -1,7 +1,6 @@
 #ifndef ATOMPROPREF_H
 #define ATOMPROPREF_H
 
-#include <iostream>
 #include <utility>
 
 namespace Vipster{

@@ -74,7 +74,7 @@ void MolWidget::fillCell()
 
 void MolWidget::fillAtomTable(void)
 {
-    if(!ui->atomContainer->isVisible()){
+    if(!ui->atomTableButton->isChecked()){
         atomsOutdated = true;
         return;
     }

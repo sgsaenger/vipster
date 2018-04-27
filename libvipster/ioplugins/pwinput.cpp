@@ -1,5 +1,4 @@
 #include "pwinput.h"
-#include <iostream>
 
 #include <sstream>
 #include <iomanip>
@@ -183,13 +182,15 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
 {
     StepProper &s = m.getStep(0);
     CdmFmt cdmFmt;
-    const IO::PWNamelist& sys = p.system;
+    IO::PWNamelist& sys = p.system;
     auto celldm = sys.find("celldm(1)");
     auto cellA = sys.find("A");
     if ((celldm != sys.end()) && (cellA == sys.end())) {
         cdmFmt = CdmFmt::Bohr;
+        sys.erase(celldm);
     } else if ((celldm == sys.end()) && (cellA != sys.end())) {
         cdmFmt = CdmFmt::Angstrom;
+        sys.erase(cellA);
     } else {
         throw IO::Error("Specify either celldm or A,B,C, but not both!");
     }
