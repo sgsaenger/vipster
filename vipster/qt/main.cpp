@@ -92,7 +92,11 @@ int main(int argc, char *argv[])
         }else{
             fmt_out = pos_out->first;
         }
-        auto [mol, fmt, param] = readFile(conv_data.input[1], fmt_in);
+        //TODO: c++17
+        //auto [mol, fmt, param] = readFile(conv_data.input[1], fmt_in);
+        auto data = readFile(conv_data.input[1], fmt_in);
+        auto mol = std::move(data.mol);
+        auto param = std::move(data.param);
         if(!conv_data.param.empty()){
             auto tmp = params.equal_range(fmt_in);
             auto pos_par = std::find_if(tmp.first, tmp.second,
