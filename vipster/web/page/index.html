@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
 
+    <!-- TODO: replace this with static SVG -->
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
 </head>
@@ -123,8 +124,7 @@
                             </div>
                         </form>
 
-                        <table class="table table-sm table-dark" id="atList"
-                               onInput="atomChanged(event.target)"></table>
+                        <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
                     </div>
                 </article>
 
@@ -157,8 +157,7 @@
                                             <div class="input-group-text">X</div>
                                         </div>
                                         <input type="number" class="form-control" id="xmult" min="1" value="1" max="255"
-                                               placeholder="X"
-                                               onchange="setMult()">
+                                               placeholder="X" onchange="setMult()">
                                     </div>
                                 </div>
                                 <div class="col">
@@ -167,8 +166,7 @@
                                             <div class="input-group-text">Y</div>
                                         </div>
                                         <input type="number" class="form-control" id="ymult" min="1" value="1" max="255"
-                                               placeholder="Y"
-                                               onchange="setMult()">
+                                               placeholder="Y" onchange="setMult()">
                                     </div>
                                 </div>
                                 <div class="col">
@@ -177,8 +175,7 @@
                                             <div class="input-group-text">Z</div>
                                         </div>
                                         <input type="number" class="form-control" id="zmult" min="1" value="1" max="255"
-                                               placeholder="Z"
-                                               onchange="setMult()">
+                                               placeholder="Z" onchange="setMult()">
                                     </div>
                                 </div>
                             </div>
@@ -257,11 +254,11 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
         integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"
+        integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ"
         crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"
+        integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm"
         crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.js"
         integrity="sha256-GMd3rFxMDNnM5JQEpiKLLl8kSrDuG5egqchk758z59g="
