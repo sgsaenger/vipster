@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     // main parser + data-targets
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
     // TODO
-//    app.allow_extras(true);
+    app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, IOFmt> fmt_opts{};
     for(auto& fmt: IOPlugins){
@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
         // TODO
 //        std::unique_ptr<BaseConfig> config{};
     }conv_data;
+    [[maybe_unused]]
     auto conv_kpoints = convert->add_option("-k", conv_data.kpoints,
         "Specify k-points (defaults to parsed mesh or gamma-point)");
 
@@ -71,26 +72,17 @@ int main(int argc, char *argv[])
     if(app.got_subcommand(convert)){
         // TODO: as callback! should catch the throws
         IOFmt fmt_in, fmt_out;
-        auto pos_in = std::find_if(IOPlugins.begin(), IOPlugins.end(),
-                                   [&](const decltype(IOPlugins)::value_type& pl){
-                                       return pl.second->command ==
-                                               conv_data.input[0];
-                                   });
-        if(pos_in == IOPlugins.end()){
+        auto pos_in = IOCmdIn.find(conv_data.input[0]);
+        if(pos_in == IOCmdIn.end()){
             throw CLI::ParseError("Invalid input format: "+conv_data.input[0], 1);
         }else{
-            fmt_in = pos_in->first;
+            fmt_in = pos_in->second;
         }
-        auto pos_out = std::find_if(IOPlugins.begin(), IOPlugins.end(),
-                                    [&](const decltype(IOPlugins)::value_type& pl){
-                                        return (pl.second->command ==
-                                                conv_data.output[0]) &&
-                                               (pl.second->writer != nullptr);
-                                    });
-        if(pos_out == IOPlugins.end()){
+        auto pos_out = IOCmdIn.find(conv_data.output[0]);
+        if(pos_out == IOCmdOut.end()){
             throw CLI::ParseError("Invalid output format: "+conv_data.output[0], 1);
         }else{
-            fmt_out = pos_out->first;
+            fmt_out = pos_out->second;
         }
         //TODO: c++17
         //auto [mol, fmt, param] = readFile(conv_data.input[1], fmt_in);
@@ -147,9 +139,27 @@ int main(int argc, char *argv[])
     }else{
         std::vector<IO::Data> data{};
         // TODO: try to guess formats from app.remaining()
+        for(const auto& file: app.remaining()){
+            auto pos = file.find_last_of('.');
+            if(pos != file.npos){
+                std::string ext = file.substr(pos+1);
+                auto pos = IOExt.find(ext);
+                if(pos != IOExt.end()){
+                    data.push_back(readFile(file, pos->second));
+                }else{
+                    throw CLI::ParseError(
+                                "Could not deduce format of file "+file+
+                                "\nPlease specify format explicitely", 1);
+                }
+            }else{
+                throw CLI::ParseError(
+                            "Could not deduce format of file "+file+
+                            "\nPlease specify format explicitely", 1);
+            }
+        }
         // parse files
         for(auto& op_fmt: fmt_opts){
-            for(auto& fn: op_fmt.first->results()){
+            for(const auto& fn: op_fmt.first->results()){
                 data.push_back(readFile(fn, op_fmt.second));
             }
         }
