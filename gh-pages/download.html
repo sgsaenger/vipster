@@ -21,7 +21,7 @@
             crossorigin="anonymous"></script>
         <script>
             document.addEventListener("DOMContentLoaded", function (event) {
-                $.getJSON("https://api.github.com/repos/hein09/vipster/releases/latest").done(function(release){
+                $.getJSON("https://api.github.com/repos/sgsaenger/vipster/releases/latest").done(function(release){
                     const list = $('#dl-list');
                     $.each(release.assets, function(id, asset){
                         list.append("<li><a href=" + asset.browser_download_url + ">"
@@ -38,14 +38,14 @@
                     <a class="navbar-brand" href="index.html">
                             VIPSTER
                     </a>
-                    <a href="https://travis-ci.org/hein09/vipster" class="navbar-text">
-                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    <a href="https://travis-ci.org/sgsaenger/vipster" class="navbar-text">
+                        <img src="https://travis-ci.org/sgsaenger/vipster.svg?branch=master" alt="Travis build status" height="17">
                     </a>
-                    <a href="https://ci.appveyor.com/project/hein09/vipster" class="navbar-text">
+                    <a href="https://ci.appveyor.com/project/sgsaenger/vipster" class="navbar-text">
                         <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true" alt="AppVeyor build status" height="17">
                     </a>
-                    <a href="https://codecov.io/gh/hein09/vipster" class="navbar-text">
-                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    <a href="https://codecov.io/gh/sgsaenger/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
                     </a>
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                       data-target="#navbar" aria-expanded="false">
@@ -93,33 +93,33 @@
             <b> Master-branch </b>
             <p>
                 Status:
-                    <a href="https://travis-ci.org/hein09/vipster">
-                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=master" alt="Travis build status">
+                    <a href="https://travis-ci.org/sgsaenger/vipster">
+                        <img src="https://travis-ci.org/sgsaenger/vipster.svg?branch=master" alt="Travis build status">
                     </a>
-                    <a href="https://ci.appveyor.com/project/hein09/vipster">
+                    <a href="https://ci.appveyor.com/project/sgsaenger/vipster">
                         <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true" alt="Appveyor build status">
                     </a>
-                    <a href="https://codecov.io/gh/hein09/vipster">
-                          <img src="https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg" alt="Codecov">
+                    <a href="https://codecov.io/gh/sgsaenger/vipster">
+                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov">
                     </a>
             </p>
-            <p><a href="https://github.com/hein09/vipster/tarball/master">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/hein09/vipster/zipball/master">Download as .zip</a></p>
+            <p><a href="https://github.com/sgsaenger/vipster/tarball/master">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/sgsaenger/vipster/zipball/master">Download as .zip</a></p>
             <b> Testing-branch </b>
             <p>
                 Status:
-                    <a href="https://travis-ci.org/hein09/vipster">
-                        <img src="https://travis-ci.org/hein09/vipster.svg?branch=testing" alt="Travis build status">
+                    <a href="https://travis-ci.org/sgsaenger/vipster">
+                        <img src="https://travis-ci.org/sgsaenger/vipster.svg?branch=testing" alt="Travis build status">
                     </a>
-                    <a href="https://ci.appveyor.com/project/hein09/vipster">
+                    <a href="https://ci.appveyor.com/project/sgsaenger/vipster">
                         <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true" alt="Appveyor build status">
                     </a>
-                    <a href="https://codecov.io/gh/hein09/vipster">
-                          <img src="https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg" alt="Codecov">
+                    <a href="https://codecov.io/gh/sgsaenger/vipster">
+                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg" alt="Codecov">
                     </a>
             </p>
-            <p><a href="https://github.com/hein09/vipster/tarball/testing">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/hein09/vipster/zipball/testing">Download as .zip</a></p>
+            <p><a href="https://github.com/sgsaenger/vipster/tarball/testing">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/sgsaenger/vipster/zipball/testing">Download as .zip</a></p>
             <h3> Old python version </h3>
             <p> 
                 The first version of vipster was written in Python.
@@ -130,8 +130,8 @@
                 so use with care when performing larger Lammps calculations!
             </p>
             <p> Depends on Python2.7/3, Numpy, PyQT4/5 and the Python OpenGL bindings. </p>
-            <p><a href="https://github.com/hein09/vipster/archive/V1.0.tar.gz">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/hein09/vipster/archive/V1.0.zip">Download as .zip</a></p>
+            <p><a href="https://github.com/sgsaenger/vipster/archive/V1.0.tar.gz">Download as .tar.gz</a></p>
+            <p><a href="https://github.com/sgsaenger/vipster/archive/V1.0.zip">Download as .zip</a></p>
             <ul class="list-unstyled">
                 <li>Install globally (requires root):</li>
                 <li><code>python setup.py install</code></li>
@@ -145,7 +145,7 @@
         <footer class="footer">
             <div class="container">
                 <p class="pull-right"><a href="#">Back to top</a></p>
-                <p>Follow Vipster on <a href="https://github.com/hein09/vipster">GitHub</a></p>
+                <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
             </div>
         </footer>
     </body>

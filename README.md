@@ -1,21 +1,21 @@
-# [![vipster](vipster-icon.png)](https://hein09.github.io/vipster) VIsual Periodic STructure EditoR
+# [![vipster](vipster-icon.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
 Master:
-[![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=master)](https://travis-ci.org/hein09/vipster)
-[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/master)
-[![codecov](https://codecov.io/gh/hein09/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
+[![Build Status](https://travis-ci.org/sgsaenger/vipster.svg?branch=master)](https://travis-ci.org/sgsaenger/vipster)
+[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/master)
+[![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 
 Testing:
-[![Build Status](https://travis-ci.org/hein09/vipster.svg?branch=testing)](https://travis-ci.org/hein09/vipster)
-[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/hein09/vipster/branch/testing)
-[![codecov](https://codecov.io/gh/hein09/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/hein09/vipster)
+[![Build Status](https://travis-ci.org/sgsaenger/vipster.svg?branch=testing)](https://travis-ci.org/sgsaenger/vipster)
+[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/testing)
+[![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 
 Visualization and editing framework for atomistic simulations.
 
-For more information, please visit the [Homepage](https://hein09.github.io/vipster),
+For more information, please visit the [Homepage](https://sgsaenger.github.io/vipster),
 installation instructions can be found [here](INSTALL.md).
 
-Most importantly, [try it in your browser!](https://hein09.github.io/vipster/emscripten/index.html)
+Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/emscripten/index.html)
 
 <table align="center">
   <tr>

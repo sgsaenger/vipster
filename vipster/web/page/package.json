@@ -13,12 +13,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hein09/vipster.git"
+    "url": "git+https://github.com/sgsaenger/vipster.git"
   },
   "bugs": {
-    "url": "https://github.com/hein09/vipster/issues"
+    "url": "https://github.com/sgsaenger/vipster/issues"
   },
-  "homepage": "https://hein09.github.io/vipster/",
+  "homepage": "https://sgsaenger.github.io/vipster/",
   "devDependencies": {
     "autoprefixer": "^7.2.5",
     "bootstrap": "^4.0.0",
