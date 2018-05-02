@@ -4,8 +4,6 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
-//TODO
-#include <iostream>
 
 using namespace Vipster;
 
@@ -23,7 +21,6 @@ int main(int argc, char *argv[])
 
     // main parser + data-targets
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
-    // TODO
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, IOFmt> fmt_opts{};
@@ -36,6 +33,43 @@ int main(int argc, char *argv[])
         opt->group("Parse files");
         opt->check(CLI::ExistingFile);
     }
+    app.set_callback([&](){
+        std::vector<IO::Data> data{};
+        for(const auto& file: app.remaining()){
+            auto pos = file.find_last_of('.');
+            if(pos != file.npos){
+                std::string ext = file.substr(pos+1);
+                auto pos = IOExt.find(ext);
+                if(pos != IOExt.end()){
+                    data.push_back(readFile(file, pos->second));
+                }else{
+                    throw CLI::ParseError(
+                                "Could not deduce format of file "+file+
+                                "\nPlease specify format explicitely", 1);
+                }
+            }else{
+                throw CLI::ParseError(
+                            "Could not deduce format of file "+file+
+                            "\nPlease specify format explicitely", 1);
+            }
+        }
+        // parse files
+        for(auto& op_fmt: fmt_opts){
+            for(const auto& fn: op_fmt.first->results()){
+                data.push_back(readFile(fn, op_fmt.second));
+            }
+        }
+        // launch GUI
+        if(data.size()){
+            MainWindow w{std::move(data)};
+            w.show();
+            return QApplication::exec();
+        }else{
+            MainWindow w{};
+            w.show();
+            return QApplication::exec();
+        }
+    });
 
     // conversion parser + data + options
     auto convert = app.add_subcommand("convert", "Directly convert a file");
@@ -65,12 +99,7 @@ int main(int argc, char *argv[])
     conv_out->required(true);
     conv_out->expected(2);
 
-    // do the parsing
-    CLI11_PARSE(app, argc, argv);
-
-    // execution
-    if(app.got_subcommand(convert)){
-        // TODO: as callback! should catch the throws
+    convert->set_callback([&](){
         IOFmt fmt_in, fmt_out;
         auto pos_in = IOCmdIn.find(conv_data.input[0]);
         if(pos_in == IOCmdIn.end()){
@@ -136,42 +165,9 @@ int main(int argc, char *argv[])
             }
         }
         writeFile(conv_data.output[1], fmt_out, mol, param.get());
-    }else{
-        std::vector<IO::Data> data{};
-        // TODO: try to guess formats from app.remaining()
-        for(const auto& file: app.remaining()){
-            auto pos = file.find_last_of('.');
-            if(pos != file.npos){
-                std::string ext = file.substr(pos+1);
-                auto pos = IOExt.find(ext);
-                if(pos != IOExt.end()){
-                    data.push_back(readFile(file, pos->second));
-                }else{
-                    throw CLI::ParseError(
-                                "Could not deduce format of file "+file+
-                                "\nPlease specify format explicitely", 1);
-                }
-            }else{
-                throw CLI::ParseError(
-                            "Could not deduce format of file "+file+
-                            "\nPlease specify format explicitely", 1);
-            }
-        }
-        // parse files
-        for(auto& op_fmt: fmt_opts){
-            for(const auto& fn: op_fmt.first->results()){
-                data.push_back(readFile(fn, op_fmt.second));
-            }
-        }
-        // launch GUI
-        if(data.size()){
-            MainWindow w{std::move(data)};
-            w.show();
-            return QApplication::exec();
-        }else{
-            MainWindow w{};
-            w.show();
-            return QApplication::exec();
-        }
-    }
+        throw CLI::Success();
+    });
+
+    // do the parsing
+    CLI11_PARSE(app, argc, argv);
 }
