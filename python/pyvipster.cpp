@@ -18,11 +18,11 @@ py::class_<Array, holder_type> bind_array(py::module &m, std::string const &name
 
     Class_ cl(m, name.c_str(), std::forward<Args>(args)...);
     cl.def(py::init());
-    cl.def("__getitem__",[](const Array &v, SizeType i){
+    cl.def("__getitem__",[](const Array &v, SizeType i)->const ValueType&{
         if(i<0 || i>= v.size())
             throw py::index_error();
         return v[i];
-    });
+    }, py::return_value_policy::reference_internal);
     cl.def("__setitem__",[](Array &v, SizeType i, ValueType f){
         if(i<0 || i>= v.size())
             throw py::index_error();
@@ -39,11 +39,26 @@ py::class_<Array, holder_type> bind_array(py::module &m, std::string const &name
     }));
     cl.def(py::self == py::self);
     py::implicitly_convertible<py::iterable, Array>();
+    cl.def("__repr__", [name](const Array &v){
+        std::string repr = name + "[";
+        for(size_t i=0; i<v.size()-1; ++i){
+            repr += py::str(py::cast(v[i]).attr("__repr__")());
+            repr += ", ";
+        }
+        repr += py::str(py::cast(v[v.size()-1]).attr("__repr__")());
+        repr += "]";
+        return repr;
+    });
     return cl;
 }
 
 PYBIND11_MODULE(vipster, m) {
-    m.doc() = "Vipster python bindings";
+    m.doc() = "Vipster\n"
+              "=======\n\n"
+              "A molecular modeling framework with periodic structures in mind.\n"
+              "Use readFile() and writeFile() to handle files.\n"
+              "Please inspect Molecule and Step as the main data"
+              "containers for more information.";
 
     /*
      * Step (Atoms, Bonds, Cell + PSE)
@@ -82,11 +97,11 @@ PYBIND11_MODULE(vipster, m) {
         .value("Hidden", AtomProperty::Hidden)
     ;
 
-    py::class_<std::bitset<nAtProp>>(m, "AtomProperties")
-        .def("__getitem__",[](const std::bitset<nAtProp> &bs, AtomProperty ap){
+    py::class_<AtomProperties>(m, "AtomProperties")
+        .def("__getitem__",[](const AtomProperties &bs, AtomProperty ap){
             return bs[static_cast<uint8_t>(ap)];
         })
-        .def("__setitem__",[](std::bitset<nAtProp> &bs, AtomProperty ap, bool val){
+        .def("__setitem__",[](AtomProperties &bs, AtomProperty ap, bool val){
             bs[static_cast<uint8_t>(ap)] = val;
         })
     ;
@@ -98,8 +113,8 @@ PYBIND11_MODULE(vipster, m) {
                       [](Atom &a, Vec c){a.coord = c;})
         .def_property("charge", [](const Atom &a)->const float&{return a.charge;},
                       [](Atom &a, float c){a.charge = c;})
-        .def_property("properties", [](const Atom &a)->const std::bitset<nAtProp>&{return a.properties;},
-                      [](Atom &a, std::bitset<nAtProp> bs){a.properties = bs;})
+        .def_property("properties", [](const Atom &a)->const AtomProperties&{return a.properties;},
+                      [](Atom &a, AtomProperties bs){a.properties = bs;})
         .def(py::self == py::self)
         .def(py::self != py::self)
     ;
@@ -114,7 +129,7 @@ PYBIND11_MODULE(vipster, m) {
     ;
 
     py::class_<PseMap, std::shared_ptr<PseMap>>(m, "PseMap")
-        .def("__getitem__", &PseMap::operator [])
+        .def("__getitem__", &PseMap::operator [], py::return_value_policy::reference_internal)
         .def("__setitem__", [](PseMap &pse, std::string n, PseEntry& e){pse[n] = e;})
     ;
 
@@ -134,8 +149,8 @@ PYBIND11_MODULE(vipster, m) {
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
         .def("newAtom", [](Step& s){s.newAtom();})
-        .def("newAtom", py::overload_cast<std::string, Vec, float, std::bitset<nAtProp>>(&StepProper::newAtom),
-             "name"_a, "coord"_a=Vec{}, "charge"_a=float{}, "properties"_a=std::bitset<nAtProp>{})
+        .def("newAtom", py::overload_cast<std::string, Vec, float, AtomProperties>(&StepProper::newAtom),
+             "name"_a, "coord"_a=Vec{}, "charge"_a=float{}, "properties"_a=AtomProperties{})
         .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
         .def("__getitem__", [](Step& s, int i){
                 if (i<0){
@@ -236,8 +251,8 @@ PYBIND11_MODULE(vipster, m) {
     /*
      * Molecule (Steps + KPoints)
      */
-    py::class_<Molecule> pyMol(m, "Molecule");
-    pyMol.def(py::init())
+    py::class_<Molecule>(m, "Molecule")
+        .def(py::init())
         .def_readonly("pse", &Molecule::pse)
         .def("newStep", [](Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const StepProper&>(&Molecule::newStep), "step"_a)

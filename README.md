@@ -47,12 +47,14 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 ## Dependencies:
 
 - [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
-- [Qt5 >= 5.7](https://www.qt.io) including QBS >= 1.11
+- [CLI11](https:://github.com/CLIUtils/CLI11) (included)
+- [QBS >= 1.11](https://doc.qt.io/qbs)
 - and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
 - optional:
+    - [Qt5 >= 5.7](https://www.qt.io) (desktop application)
+    - [emscripten](http://kripken.github.io/emscripten-site) (web interface)
+    - [pybind11](https://github.com/pybind/pybind11) (script interface, included)
     - [Catch2](https://github.com/catchorg/Catch2) (testing, included)
-    - [pybind11](https://github.com/pybind/pybind11) (script-interface, included)
-    - [emscripten](http://kripken.github.io/emscripten-site) (web-interface)
 
 ## Supported file types:
 

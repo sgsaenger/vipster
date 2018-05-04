@@ -17,6 +17,7 @@ namespace Vipster{
     constexpr size_t nAtFmt = 4;
     enum AtomProperty: uint8_t {FixX, FixY, FixZ, Hidden};
     constexpr size_t nAtProp = 4;
+    using AtomProperties = std::bitset<nAtProp>;
 
     /*
      * Basic atom interface
@@ -34,7 +35,7 @@ namespace Vipster{
         bool                    *coord_changed;
         std::string             *name_ptr;
         float                   *charge_ptr;
-        std::bitset<nAtProp>    *prop_ptr;
+        AtomProperties          *prop_ptr;
         PseEntry*               *pse_ptr;
         bool                    *prop_changed;
     public:
@@ -44,7 +45,7 @@ namespace Vipster{
             coord{*this};
         PropRef<float, &Atom::charge_ptr, &Atom::prop_changed>
             charge{*this};
-        PropRef<std::bitset<nAtProp>, &Atom::prop_ptr, &Atom::prop_changed>
+        PropRef<AtomProperties, &Atom::prop_ptr, &Atom::prop_changed>
             properties{*this};
         const PropRef<PseEntry*, &Atom::pse_ptr, nullptr>
             pse{*this};
