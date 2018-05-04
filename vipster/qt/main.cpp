@@ -34,23 +34,35 @@ int main(int argc, char *argv[])
         opt->check(CLI::ExistingFile);
     }
     app.set_callback([&](){
+        if(!app.get_subcommands().empty()){
+            return;
+        }
         std::vector<IO::Data> data{};
-        for(const auto& file: app.remaining()){
-            auto pos = file.find_last_of('.');
-            if(pos != file.npos){
-                std::string ext = file.substr(pos+1);
-                auto pos = IOExt.find(ext);
-                if(pos != IOExt.end()){
-                    data.push_back(readFile(file, pos->second));
+        if(app.remaining_size()!=0){
+            const auto IOExt = [](){
+                std::map<std::string, IOFmt> ext;
+                for(const auto& pair: IOPlugins){
+                    ext[pair.second->extension] = pair.first;
+                }
+                return ext;
+            }();
+            for(const auto& file: app.remaining()){
+                auto pos = file.find_last_of('.');
+                if(pos != file.npos){
+                    std::string ext = file.substr(pos+1);
+                    auto pos = IOExt.find(ext);
+                    if(pos != IOExt.end()){
+                        data.push_back(readFile(file, pos->second));
+                    }else{
+                        throw CLI::ParseError(
+                                    "Could not deduce format of file "+file+
+                                    "\nPlease specify format explicitely", 1);
+                    }
                 }else{
                     throw CLI::ParseError(
                                 "Could not deduce format of file "+file+
                                 "\nPlease specify format explicitely", 1);
                 }
-            }else{
-                throw CLI::ParseError(
-                            "Could not deduce format of file "+file+
-                            "\nPlease specify format explicitely", 1);
             }
         }
         // parse files
@@ -63,11 +75,11 @@ int main(int argc, char *argv[])
         if(data.size()){
             MainWindow w{std::move(data)};
             w.show();
-            return QApplication::exec();
+            throw CLI::RuntimeError(QApplication::exec());
         }else{
             MainWindow w{};
             w.show();
-            return QApplication::exec();
+            throw CLI::RuntimeError(QApplication::exec());
         }
     });
 
@@ -101,13 +113,29 @@ int main(int argc, char *argv[])
 
     convert->set_callback([&](){
         IOFmt fmt_in, fmt_out;
+        const auto IOCmdIn = [](){
+            std::map<std::string, IOFmt> fmts_in;
+            for(const auto& pair: IOPlugins){
+                fmts_in[pair.second->command] = pair.first;
+            }
+            return fmts_in;
+        }();
+        const auto IOCmdOut = [](){
+            std::map<std::string, IOFmt> fmts_out;
+            for(const auto& pair: IOPlugins){
+                if(pair.second->writer!=nullptr){
+                    fmts_out[pair.second->command] = pair.first;
+                }
+            }
+            return fmts_out;
+        }();
         auto pos_in = IOCmdIn.find(conv_data.input[0]);
         if(pos_in == IOCmdIn.end()){
             throw CLI::ParseError("Invalid input format: "+conv_data.input[0], 1);
         }else{
             fmt_in = pos_in->second;
         }
-        auto pos_out = IOCmdIn.find(conv_data.output[0]);
+        auto pos_out = IOCmdOut.find(conv_data.output[0]);
         if(pos_out == IOCmdOut.end()){
             throw CLI::ParseError("Invalid output format: "+conv_data.output[0], 1);
         }else{

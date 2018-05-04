@@ -24,32 +24,6 @@ namespace Vipster{
     bool     writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
                        const BaseParam *p=nullptr,
                        const BaseConfig *c=nullptr);
-    /*
-     * Convenience maps
-     */
-    const auto IOCmdIn = [](){
-        std::map<std::string, IOFmt> fmts_in;
-        for(const auto& pair: IOPlugins){
-            fmts_in[pair.second->command] = pair.first;
-        }
-        return fmts_in;
-    }();
-    const auto IOCmdOut = [](){
-        std::map<std::string, IOFmt> fmts_out;
-        for(const auto& pair: IOPlugins){
-            if(pair.second->writer!=nullptr){
-                fmts_out[pair.second->command] = pair.first;
-            }
-        }
-        return fmts_out;
-    }();
-    const auto IOExt = [](){
-        std::map<std::string, IOFmt> ext;
-        for(const auto& pair: IOPlugins){
-            ext[pair.second->extension] = pair.first;
-        }
-        return ext;
-    }();
 }
 
 #endif // IOWRAPPER
