@@ -45,7 +45,7 @@ DynamicLibrary {
             instPath = proc.readLine();
             instPath = instPath.substr(1);
             libSuffix = proc.readLine();
-            if(libSuffix){
+            if(libSuffix!="None"){
                 libSuffix = "."+libSuffix
             }
         }
