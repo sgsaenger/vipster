@@ -8,16 +8,16 @@ environment:
 install:
     - choco install -y qbs --version 1.11.0
 build_script:
-    - qbs.exe setup-toolchains --type mingw %MWDIR%\g++.exe gcc
-    - qbs.exe setup-qt %QTDIR%\bin\qmake.exe qt-gcc
-    - qbs.exe build config:release profile:qt-gcc project.winInstall:true
+    - qbs setup-toolchains --type mingw %MWDIR%\g++.exe gcc
+    - qbs setup-qt %QTDIR%\bin\qmake.exe qt-gcc
+    - qbs build config:release profile:qt-gcc project.winInstall:true
 test_script:
-    - qbs.exe run --products test_libvipster config:release
+    - qbs run --products test_libvipster config:release
 artifacts:
     - name: Installer
-      path: 'release\Vipster-Win-32-install.exe'
+      path: 'release\Vipster-Win-install.exe'
     - name: Archive
-      path: 'release\Vipster-Win-32.zip'
+      path: 'release\Vipster-Win.zip'
 deploy:
     - provider: GitHub
       auth_token:

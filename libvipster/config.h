@@ -105,11 +105,14 @@ private:
     bool root;
 };
 
-//using Settings = std::map<std::string, std::variant<bool, int, float, std::string>>;
+// TODO: switch to variant when c++17 is available in XCode
+//using Setting = std::variant<bool, int, float, std::string>;
+//using Settings = std::map<std::string, Setting>;
+using Settings = std::map<std::string, nlohmann::json>;
 using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
 
 extern PseMap pse;
-//extern Settings settings;
+extern Settings settings;
 extern Parameters params;
 
 }

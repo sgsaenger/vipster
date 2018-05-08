@@ -11,7 +11,7 @@ bool readConfig();
 
 namespace Vipster{
 PseMap pse;
-//Settings settings;
+Settings settings;
 Parameters params;
 bool config_loaded = readConfig();
 }
@@ -44,7 +44,7 @@ PseEntry& PseMap::operator [](const std::string& k)
 bool readConfig()
 {
     PseMap pse{true};
-//    Settings settings;
+    Settings settings;
     Parameters params;
     std::ifstream conf_file{user_config};
     if(!conf_file){
@@ -63,9 +63,10 @@ bool readConfig()
                     v["vdwr"],v["col"]});
         }
         // General settings
-        // TODO: figure out c++17-support on CI
-//        for(auto it=loc_file["Settings"].begin();it!=loc_file["Settings"].end();++it)
-//        {
+        for(auto it=loc_file["Settings"].begin();it!=loc_file["Settings"].end();++it)
+        {
+// TODO: switch to variant when c++17 is available in XCode
+            settings.insert({it.key(), it.value()});
 //            if(it.value().is_boolean()){
 //                settings.insert({it.key(), it.value().get<bool>()});
 //            }else if(it.value().is_number_float()){
@@ -75,7 +76,7 @@ bool readConfig()
 //            }else{
 //                settings.insert({it.key(), it.value().get<std::string>()});
 //            }
-//        }
+        }
         // Parameter sets
         for(const auto& pw:loc_file.at("Parameters").at("PWI")){
             params.emplace(std::make_pair(IOFmt::PWI, std::make_unique<IO::PWParam>(pw.get<IO::PWParam>())));
@@ -86,7 +87,7 @@ bool readConfig()
         pse.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
     }
     Vipster::pse = std::move(pse);
-//    Vipster::settings = std::move(settings);
+    Vipster::settings = std::move(settings);
     Vipster::params = std::move(params);
     return true;
 }

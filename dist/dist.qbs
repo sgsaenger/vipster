@@ -3,19 +3,14 @@ import qbs.FileInfo
 
 Project {
     property string baseName:{
-            var base = "Vipster-";
+            var base = "Vipster";
             if (qbs.targetOS.contains("windows")){
-                base += "Win-";
+                base += "-Win";
             } else if (qbs.targetOS.contains("macos")){
-                base += "OSX-";
+                base += "-OSX";
             }
             if (qbs.debugInformation){
-                base += "debug-";
-            }
-            if (qbs.architecture === "x86_64") {
-                base += "64"
-            } else {
-                base += "32"
+                base += "-debug";
             }
             return base;
         }
@@ -36,9 +31,7 @@ Project {
                     "Qt5Core" + suffix,
                     "Qt5Gui" + suffix,
                     "Qt5Widgets" + suffix,
-                    "libgcc_s_dw2-1.dll",
                     "libwinpthread-1.dll",
-                    "libstdc++-6.dll",
             ]
             qbs.install: true
         }
@@ -81,7 +74,7 @@ Project {
     AppleApplicationDiskImage {
         name: "macSetup"
         condition: project.macInstall
-        targetName: "Vipster"
+        targetName: project.baseName
         Depends {name: "QtVipster"}
         Depends {name: "libvipster"}
         version: project.version

@@ -19,9 +19,9 @@ namespace Vipster {
 struct AtomList{
     // Coordinates
     // one buffer per Vipster::AtomFmt
-    std::array<std::vector<Vec>, 4> coordinates;
-    std::array<bool,4>              coord_changed;
-    std::array<bool,4>              coord_outdated;
+    std::array<std::vector<Vec>, nAtFmt> coordinates;
+    std::array<bool, nAtFmt>             coord_changed;
+    std::array<bool, nAtFmt>             coord_outdated;
     // Properties
     std::vector<std::string>        names;
     std::vector<float>              charges;
@@ -135,6 +135,7 @@ protected:
          std::shared_ptr<CellData>, std::shared_ptr<std::string>,
          std::shared_ptr<AtomList>);
     Step(const Step& s);
+    //TODO: offer public const access to properties, no befriending needed
     std::shared_ptr<AtomList>       atoms;
 };
 

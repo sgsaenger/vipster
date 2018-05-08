@@ -46,12 +46,18 @@ DynamicLibrary {
     // C++ settings (rest of project will inherit)
     Depends { name: "cpp"}
     cpp.cxxLanguageVersion: "c++14"
-    //TODO: more intelligent wrapping. this is a rather bad idea!
     cpp.defines: [ "PREFIX="+project.prefix ]
     Properties {
         condition: qbs.targetOS.contains("macos")
         cpp.frameworks: ["CoreFoundation"]
         cpp.sonamePrefix: "@rpath"
+    }
+    Properties {
+        condition: qbs.targetOS.contains("windows")
+        cpp.driverFlags: [
+            "-static-libgcc",
+            "-static-libstdc++"
+        ]
     }
     Properties {
         condition: qbs.buildVariant=="profile"
@@ -68,6 +74,13 @@ DynamicLibrary {
         Properties {
             condition: qbs.targetOS.contains("macos")
             cpp.frameworks: ["CoreFoundation"]
+        }
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.driverFlags: [
+                "-static-libgcc",
+                "-static-libstdc++"
+            ]
         }
         Properties {
             condition: qbs.buildVariant=="profile"
