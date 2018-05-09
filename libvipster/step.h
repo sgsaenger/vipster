@@ -102,7 +102,6 @@ private:
  */
 class Step: public StepBase<Step>
 {
-    friend class StepBase<Step>;
 public:
     Step& operator=(const Step& s);
     ~Step()=default;
@@ -127,6 +126,12 @@ public:
     iterator        end() noexcept;
     constIterator   end() const noexcept;
     constIterator   cend() const noexcept;
+    // Prop-getters
+    const std::vector<Vec>&             getCoords() const noexcept;
+    const std::vector<std::string>&     getNames() const noexcept;
+    const std::vector<PseEntry*>&       getPseEntries() const noexcept;
+    const std::vector<float>&           getCharges() const noexcept;
+    const std::vector<AtomProperties>&  getProperties() const noexcept;
 
     // Cell-setters
     void    enableCell(bool) noexcept;
@@ -138,7 +143,6 @@ protected:
          std::shared_ptr<CellData>, std::shared_ptr<std::string>,
          std::shared_ptr<AtomList>);
     Step(const Step& s);
-    //TODO: offer public const access to properties, no befriending needed
     std::shared_ptr<AtomList>       atoms;
 };
 
@@ -152,7 +156,6 @@ public:
     StepFormatter(StepProper& step, AtomFmt at_fmt);
     Step&       asFmt(AtomFmt at_fmt) override;
     const Step& asFmt(AtomFmt at_fmt) const override;
-protected:
     void evaluateCache() const override;
 private:
     StepProper& step;
@@ -168,7 +171,6 @@ private:
 class StepProper: public Step
 {
     friend class StepFormatter;
-    friend class GuiWrapper;
 public:
     StepProper(std::shared_ptr<PseMap> pse = std::make_shared<PseMap>(),
                AtomFmt at_fmt=AtomFmt::Bohr,
@@ -186,7 +188,6 @@ public:
     StepFormatter   asAlat{*this, AtomFmt::Alat};
     Step&           asFmt(AtomFmt at_fmt) override;
     const Step&     asFmt(AtomFmt at_fmt) const override;
-protected:
     void evaluateCache() const override;
 private:
     static constexpr StepFormatter StepProper::* fmtmap[] = {

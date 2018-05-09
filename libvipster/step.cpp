@@ -124,6 +124,26 @@ Step::constIterator Step::cend() const noexcept {
     return {atoms, at_fmt, getNat()};
 }
 
+const std::vector<Vec>& Step::getCoords() const noexcept {
+    return atoms->coordinates[static_cast<size_t>(at_fmt)];
+}
+
+const std::vector<std::string>& Step::getNames() const noexcept {
+    return atoms->names;
+}
+
+const std::vector<PseEntry*>& Step::getPseEntries() const noexcept {
+    return atoms->pse;
+}
+
+const std::vector<float>& Step::getCharges() const noexcept {
+    return atoms->charges;
+}
+
+const std::vector<AtomProperties>& Step::getProperties() const noexcept {
+    return atoms->properties;
+}
+
 Atom Step::operator[](size_t i) {
     evaluateCache();
     return *iterator{atoms, at_fmt, i};
@@ -131,9 +151,8 @@ Atom Step::operator[](size_t i) {
 
 void Step::setCellVec(const Mat &vec, bool scale)
 {
-    //TODO: make evaluateCache public? getNat to validate is bullshit...
     Mat inv = Mat_inv(vec);
-    enableCell(true);
+    cell->enabled = true;
     evaluateCache();
     if (scale) {
         if (at_fmt == AtomFmt::Crystal) {
@@ -149,7 +168,7 @@ void Step::setCellVec(const Mat &vec, bool scale)
              * calculates crystal-coordinates as intermediate
              * TODO: manually validate buffer
              */
-            asFmt(AtomFmt::Crystal).getNat();
+            asFmt(AtomFmt::Crystal).evaluateCache();
             cell->cellvec = vec;
             cell->invvec = inv;
             constexpr auto crystal = static_cast<size_t>(AtomFmt::Crystal);
@@ -177,7 +196,7 @@ void Step::setCellVec(const Mat &vec, bool scale)
             }
             if (buf == nAtFmt) {
                 buf = static_cast<size_t>(AtomFmt::Alat);
-                asFmt(AtomFmt::Alat).getNat();
+                asFmt(AtomFmt::Alat).evaluateCache();
             }
             cell->cellvec = vec;
             cell->invvec = inv;
@@ -206,7 +225,7 @@ void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
      * 'scaling' means the systems grows/shrinks with the cell
      * => relative coordinates stay the same
      */
-    enableCell(true);
+    cell->enabled = true;
     evaluateCache();
     size_t int_fmt = static_cast<size_t>(at_fmt);
     bool relative = at_fmt>=AtomFmt::Crystal;
@@ -267,13 +286,11 @@ void StepProper::setFmt(AtomFmt at_fmt, bool scale){
     } else {
         /*
          * without scaling, we just change which buffer we're pulling data from
-         * (after making sure it's up to date by
-         *  calling getNat() which evaluates the cache)
          */
-        asFmt(at_fmt).getNat();
+        asFmt(at_fmt).evaluateCache();
     }
     if (at_fmt >= AtomFmt::Crystal){
-        enableCell(true);
+        cell->enabled = true;
     }
     this->at_fmt = at_fmt;
 }

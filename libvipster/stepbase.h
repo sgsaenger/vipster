@@ -69,6 +69,86 @@ public:
     }
     virtual T&          asFmt(AtomFmt)=0;
     virtual const T&    asFmt(AtomFmt) const=0;
+    std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
+                                                 AtomFmt target) const
+    {
+        float fac{};
+        Mat fmat{};
+        switch(source) {
+        case AtomFmt::Bohr:
+            switch(target){
+            case AtomFmt::Angstrom:
+                return [](const Vec& v){return v*Vipster::bohrrad;};
+            case AtomFmt::Alat:
+                fac = 1/getCellDim(CdmFmt::Bohr);
+                return [fac](const Vec& v){return v*fac;};
+            case AtomFmt::Crystal:
+                fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Bohr);
+                return [fmat](const Vec& v){return v*fmat;};
+            default:
+                break;
+            }
+            break;
+        case AtomFmt::Angstrom:
+            switch(target){
+            case AtomFmt::Bohr:
+                return [](const Vec& v){return v*Vipster::invbohr;};
+            case AtomFmt::Alat:
+                fac = 1/getCellDim(CdmFmt::Angstrom);
+                return [fac](const Vec& v){return v*fac;};
+            case AtomFmt::Crystal:
+                fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Angstrom);
+                return [fmat](const Vec& v){return v*fmat;};
+            default:
+                break;
+            }
+            break;
+        case AtomFmt::Alat:
+            switch(target){
+            case AtomFmt::Angstrom:
+                fac = getCellDim(CdmFmt::Angstrom);
+                return [fac](const Vec& v){return v*fac;};
+            case AtomFmt::Bohr:
+                fac = getCellDim(CdmFmt::Bohr);
+                return [fac](const Vec& v){return v*fac;};
+            case AtomFmt::Crystal:
+                fmat = Mat_inv(getCellVec());
+                return [fmat](const Vec& v){return v*fmat;};
+            default:
+                break;
+            }
+            break;
+        case AtomFmt::Crystal:
+            switch(target){
+            case AtomFmt::Angstrom:
+                fmat = getCellVec()*getCellDim(CdmFmt::Angstrom);
+                return [fmat](const Vec& v){return v*fmat;};
+            case AtomFmt::Alat:
+                fmat = getCellVec();
+                return [fmat](const Vec& v){return v*fmat;};
+            case AtomFmt::Bohr:
+                fmat = getCellVec()*getCellDim(CdmFmt::Bohr);
+                return [fmat](const Vec& v){return v*fmat;};
+            default:
+                break;
+            }
+        }
+        return [](const Vec& v){return v;};
+    }
+    Vec formatVec(Vec in, AtomFmt source, AtomFmt target) const
+    {
+        return getFormatter(source, target)(in);
+    }
+    std::vector<Vec> formatAll(std::vector<Vec> in, AtomFmt source,
+                               AtomFmt target) const
+    {
+        if ((source == target) || in.empty()){
+            return in;
+        }
+        auto op = getFormatter(source, target);
+        std::transform(in.begin(), in.end(), in.begin(), op);
+        return in;
+    }
 
     // Bonds
     const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell,
@@ -167,9 +247,9 @@ public:
         }
         return Vec{{0,0,0}};
     }
+    virtual void evaluateCache()const =0;
 
 protected:
-    virtual void evaluateCache()const =0;
     StepBase(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
         : pse{pse}, at_fmt{fmt}, bonds{bonds}, cell{cell}, comment{comment} {}
@@ -178,89 +258,6 @@ protected:
     std::shared_ptr<BondList>       bonds;
     std::shared_ptr<CellData>       cell;
     std::shared_ptr<std::string>    comment;
-    // Format
-    std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
-                                                 AtomFmt target) const
-    {
-        float fac{};
-        Mat fmat{};
-        switch(source) {
-        case AtomFmt::Bohr:
-            switch(target){
-            case AtomFmt::Angstrom:
-                return [](const Vec& v){return v*Vipster::bohrrad;};
-            case AtomFmt::Alat:
-                fac = 1/getCellDim(CdmFmt::Bohr);
-                return [fac](const Vec& v){return v*fac;};
-            case AtomFmt::Crystal:
-                fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Bohr);
-                return [fmat](const Vec& v){return v*fmat;};
-            default:
-                break;
-            }
-            break;
-        case AtomFmt::Angstrom:
-            switch(target){
-            case AtomFmt::Bohr:
-                return [](const Vec& v){return v*Vipster::invbohr;};
-            case AtomFmt::Alat:
-                fac = 1/getCellDim(CdmFmt::Angstrom);
-                return [fac](const Vec& v){return v*fac;};
-            case AtomFmt::Crystal:
-                fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Angstrom);
-                return [fmat](const Vec& v){return v*fmat;};
-            default:
-                break;
-            }
-            break;
-        case AtomFmt::Alat:
-            switch(target){
-            case AtomFmt::Angstrom:
-                fac = getCellDim(CdmFmt::Angstrom);
-                return [fac](const Vec& v){return v*fac;};
-            case AtomFmt::Bohr:
-                fac = getCellDim(CdmFmt::Bohr);
-                return [fac](const Vec& v){return v*fac;};
-            case AtomFmt::Crystal:
-                fmat = Mat_inv(getCellVec());
-                return [fmat](const Vec& v){return v*fmat;};
-            default:
-                break;
-            }
-            break;
-        case AtomFmt::Crystal:
-            switch(target){
-            case AtomFmt::Angstrom:
-                fmat = getCellVec()*getCellDim(CdmFmt::Angstrom);
-                return [fmat](const Vec& v){return v*fmat;};
-            case AtomFmt::Alat:
-                fmat = getCellVec();
-                return [fmat](const Vec& v){return v*fmat;};
-            case AtomFmt::Bohr:
-                fmat = getCellVec()*getCellDim(CdmFmt::Bohr);
-                return [fmat](const Vec& v){return v*fmat;};
-            default:
-                break;
-            }
-        }
-        return [](const Vec& v){return v;};
-    }
-
-    Vec formatVec(Vec in, AtomFmt source, AtomFmt target) const
-    {
-        return getFormatter(source, target)(in);
-    }
-
-    std::vector<Vec> formatAll(std::vector<Vec> in, AtomFmt source,
-                               AtomFmt target) const
-    {
-        if ((source == target) || in.empty()){
-            return in;
-        }
-        auto op = getFormatter(source, target);
-        std::transform(in.begin(), in.end(), in.begin(), op);
-        return in;
-    }
 
 private:
     // Bonds

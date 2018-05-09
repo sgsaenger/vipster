@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QApplication>
+#include <iostream>
 
 using namespace Vipster;
 
@@ -226,8 +227,9 @@ void MainWindow::loadParam()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
+    std::cout << p->title().toStdString() << std::endl;
     IOFmt fmt = [&](){
-        if(p->title() == "PWScf"){
+        if(p->title() == "&PWScf"){
             return IOFmt::PWI;
         }
         throw Error("Invalid parameter set");

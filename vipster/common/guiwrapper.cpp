@@ -528,7 +528,7 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     //atoms
     atom_prop_buffer.clear();
     atom_prop_buffer.reserve(curStep->getNat());
-    for (const PseEntry* at:curStep->atoms->pse) {
+    for (const PseEntry* at:curStep->getPseEntries()){
         atom_prop_buffer.push_back({at->covr, at->col});
     }
     atoms_changed = true;
@@ -537,15 +537,13 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
         const auto& bonds = curStep->getBonds(settings.bondLvl.val);
-        // TODO change to direct RO access through Step?
-        const auto& pse = curStep->atoms->pse;
+        const auto& pse = curStep->getPseEntries();
         float c, s, ic;
         float rad = settings.bondRad.val;
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
-        const std::vector<Vec>& at_coord = curStep->atoms->coordinates[
-                static_cast<size_t>(curStep->getFmt())];
-        AtomFmt fmt = curStep->getFmt();
+        const auto& at_coord = curStep->getCoords();
+        auto fmt = curStep->getFmt();
         auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         switch(fmt){
         case AtomFmt::Crystal:
@@ -633,8 +631,7 @@ void GuiWrapper::updateVBOs(void)
         auto nat = atom_prop_buffer.size();
         if (nat != 0u) {
             glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
-                         static_cast<void*>(curStep->atoms->coordinates[
-                             static_cast<size_t>(curStep->getFmt())].data()), GL_STREAM_DRAW);
+                         static_cast<const void*>(curStep->getCoords().data()), GL_STREAM_DRAW);
         } else {
             glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
         }
