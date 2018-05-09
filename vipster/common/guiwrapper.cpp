@@ -401,14 +401,14 @@ void GuiWrapper::drawMol(void)
     auto offLocA = glGetUniformLocation(atom_program, "offset");
     auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
     auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    glUniform1f(facLoc, settings.at("Atom radius factor").get<float>());
+    glUniform1f(facLoc, settings.atRadFac.val);
     glUniform3fv(offLocA, 1, center.data());
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           atom_model_npoly,
                           static_cast<GLsizei>(atom_prop_buffer.size()));
     // bonds
-    if(settings.at("Show bonds").get<bool>()){
+    if(settings.showBonds.val){
         glBindVertexArray(bond_vao);
         glUseProgram(bond_program);
         auto offLocB = glGetUniformLocation(bond_program, "offset");
@@ -439,7 +439,7 @@ void GuiWrapper::drawCell(void)
     auto offLocA = glGetUniformLocation(atom_program, "offset");
     auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
     auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    glUniform1f(facLoc, settings.at("Atom radius factor").get<float>());
+    glUniform1f(facLoc, settings.atRadFac.val);
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
@@ -453,7 +453,7 @@ void GuiWrapper::drawCell(void)
         }
     }
     // bonds
-    if(settings.at("Show bonds").get<bool>()){
+    if(settings.showBonds.val){
         glBindVertexArray(bond_vao);
         glUseProgram(bond_program);
         GLint offLocB = glGetUniformLocation(bond_program, "offset");
@@ -476,7 +476,7 @@ void GuiWrapper::drawCell(void)
         }
     }
     // cell
-    if(settings.at("Show cell").get<bool>()){
+    if(settings.showCell.val){
         glBindVertexArray(cell_vao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
         glUseProgram(cell_program);
@@ -536,11 +536,11 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     //bonds
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        const auto& bonds = curStep->getBonds(settings.at("Bond level").get<BondLevel>());
+        const auto& bonds = curStep->getBonds(settings.bondLvl.val);
         // TODO change to direct RO access through Step?
         const auto& pse = curStep->atoms->pse;
         float c, s, ic;
-        float rad = settings.at("Bond radius").get<float>();
+        float rad = settings.bondRad.val;
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
         const std::vector<Vec>& at_coord = curStep->atoms->coordinates[

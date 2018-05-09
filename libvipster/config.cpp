@@ -63,23 +63,11 @@ bool readConfig()
                     v["vdwr"],v["col"]});
         }
         // General settings
-        for(auto it=loc_file["Settings"].begin();it!=loc_file["Settings"].end();++it)
-        {
-// TODO: switch to variant when c++17 is available in XCode
-            settings.insert({it.key(), it.value()});
-//            if(it.value().is_boolean()){
-//                settings.insert({it.key(), it.value().get<bool>()});
-//            }else if(it.value().is_number_float()){
-//                settings.insert({it.key(), it.value().get<float>()});
-//            }else if(it.value().is_number_integer()){
-//                settings.insert({it.key(), it.value().get<int>()});
-//            }else{
-//                settings.insert({it.key(), it.value().get<std::string>()});
-//            }
-        }
+        settings = loc_file["Settings"].get<Settings>();
         // Parameter sets
         for(const auto& pw:loc_file.at("Parameters").at("PWI")){
-            params.emplace(std::make_pair(IOFmt::PWI, std::make_unique<IO::PWParam>(pw.get<IO::PWParam>())));
+            params.emplace(std::make_pair(IOFmt::PWI,
+                                          std::make_unique<IO::PWParam>(pw.get<IO::PWParam>())));
         }
     }
     // ensure fallback-value is present
@@ -90,4 +78,29 @@ bool readConfig()
     Vipster::settings = std::move(settings);
     Vipster::params = std::move(params);
     return true;
+}
+
+template<typename T>
+void jsonToSetting(const nlohmann::json& j, T& s){
+    using ValueType = typename T::ValueType;
+    auto it = j.find(s.name);
+    if(it != j.end()){
+        s.val = it.value().template get<ValueType>();
+    }
+}
+
+void Vipster::from_json(const nlohmann::json& j, Settings& s){
+    jsonToSetting(j, s.atRadFac);
+    jsonToSetting(j, s.atRadVdW);
+    jsonToSetting(j, s.bondRad);
+    jsonToSetting(j, s.bondCutFac);
+    jsonToSetting(j, s.bondFreq);
+    jsonToSetting(j, s.bondLvl);
+    jsonToSetting(j, s.showBonds);
+    jsonToSetting(j, s.showCell);
+    jsonToSetting(j, s.antialias);
+    jsonToSetting(j, s.perspective);
+    jsonToSetting(j, s.PWPP);
+    jsonToSetting(j, s.CPPP);
+    jsonToSetting(j, s.CPNL);
 }

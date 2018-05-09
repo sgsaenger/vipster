@@ -2,6 +2,8 @@
 #define CONFIG
 
 #include "json.hpp"
+#include "global.h"
+#include "bond.h"
 
 #include <string>
 #include <map>
@@ -105,10 +107,30 @@ private:
     bool root;
 };
 
-// TODO: switch to variant when c++17 is available in XCode
-//using Setting = std::variant<bool, int, float, std::string>;
-//using Settings = std::map<std::string, Setting>;
-using Settings = std::map<std::string, nlohmann::json>;
+template<typename T>
+struct Setting{
+    using ValueType = T;
+    std::string name;
+    T val;
+};
+struct Settings{
+    Setting<bool> atRadVdW{"Atom radius VdW", false};
+    Setting<float> atRadFac{"Atom radius factor", bohrrad};
+    Setting<float> bondRad{"Bond radius", bohrrad};
+    Setting<float> bondCutFac{"Bond cutoff factor", 1.1f};
+    Setting<BondFrequency> bondFreq{"Bond frequency", BondFrequency::Always};
+    Setting<BondLevel> bondLvl{"Bond level", BondLevel::Cell};
+    Setting<bool> showBonds{"Show bonds", true};
+    Setting<bool> showCell{"Show cell", true};
+    Setting<bool> antialias{"Antialiasing", true};
+    Setting<bool> perspective{"Perspective projection", false};
+    Setting<std::string> PWPP{"Default PWScf PP-suffix", ""};
+    Setting<std::string> CPPP{"Default CPMD PP-suffix", ""};
+    Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
+};
+//TODO: void to_json(nlohmann::json& j,const Settings& s);
+void from_json(const nlohmann::json& j, Settings& s);
+
 using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
 
 extern PseMap pse;

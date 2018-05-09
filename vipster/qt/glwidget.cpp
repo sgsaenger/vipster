@@ -66,7 +66,7 @@ void GLWidget::setMult(int i)
 
 void GLWidget::setStep(const StepProper* step)
 {
-    updateBuffers(step, settings.at("Show bonds").get<bool>());
+    updateBuffers(step, settings.showBonds.val);
     update();
 }
 

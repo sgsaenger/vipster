@@ -15,6 +15,14 @@
 
 namespace Vipster {
 
+// Bond container
+struct BondList{
+    bool                outdated{true}, setOnce{false};
+    BondLevel           level{BondLevel::None};
+    float               cutoff_factor{settings.bondCutFac.val};
+    std::vector<Bond>   bonds;
+};
+
 /*
  * Base for all Step-like containers
  *
@@ -66,7 +74,7 @@ public:
     const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell,
                                          BondFrequency update=BondFrequency::Always) const
     {
-        return getBonds(settings.at("Bond cutoff factor").get<float>(), l, update);
+        return getBonds(settings.bondCutFac.val, l, update);
     }
     const std::vector<Bond>&    getBonds(float cutfac,
                                          BondLevel l=BondLevel::Cell,
@@ -90,7 +98,7 @@ public:
     }
     void    setBonds(BondLevel l) const
     {
-        setBonds(l, settings.at("Bond cutoff factor").get<float>());
+        setBonds(l, settings.bondCutFac.val);
     }
     void    setBonds(BondLevel l, float cutfac) const
     {
