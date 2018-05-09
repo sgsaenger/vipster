@@ -37,12 +37,41 @@ function setupCanvas(canvas) {
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
 
-    dom.canvas.addEventListener('webglcontextlost', (e) => {
+    canvas.addEventListener('webglcontextlost', (e) => {
         e.preventDefault();
         if (window.confirm('Lost WebGL context. Reload page?')) {
             window.location.reload();
         }
     });
+
+    const hammer = new Hammer(dom.canvas);
+    hammer.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 20});
+    hammer.get('pinch').set({enable: true});
+//    hammer.get('rotate').set({enable: true});
+    hammer.remove(['press','tap','doubletap', 'swipe']);
+    hammer.on('pan',(e) => {
+                  if(e.pointerType !== 'touch'){
+                      return;
+                  }
+                  if(typeof this.oldX == 'undefined'){
+                      this.oldX = 0
+                      this.oldY = 0
+                  }
+                  Module.rotate(e.deltaX-this.oldX, e.deltaY-this.oldY);
+                  this.oldX = e.deltaX;
+                  this.oldY = e.deltaY;
+              });
+    hammer.on('pinch', (e)=>{
+                  if(e.pointerType !== 'touch'){
+                      return;
+                  }
+                  if(typeof this.oldScale == 'undefined'){
+                      this.oldScale = 1.0
+                  }
+                  let delta = (e.scale - this.oldScale)<0?-1:1;
+                  Module.zoom(delta);
+                  this.oldScale = e.scale;
+              });
 
     return canvas;
 }

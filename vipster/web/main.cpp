@@ -28,7 +28,6 @@ std::string emGetMolName(int m){ return molecules[m].getName();}
 
 // Steps
 void emSetStep(int m, int s){ gui.updateBuffers(&molecules[m].getStep(s), true); }
-void emUpdateView(void){ gui.updateBuffers(nullptr, true); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
 Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
@@ -55,6 +54,12 @@ void emSetCellVec(int m, int s, Mat vec, bool scale){molecules[m].getStep(s).set
 void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
 bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
 
+// Expose Canvas operations
+void emUpdateView(void){ gui.updateBuffers(nullptr, true); }
+void emZoom(int val){gui.zoomViewMat(val);}
+void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
+void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
+
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("getNMol", &emGetNMol);
     em::function("getMolNStep", &emGetMolNstep);
@@ -73,6 +78,9 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("enableCell", &emEnableCell);
     em::function("hasCell", &emHasCell);
     em::function("updateView", &emUpdateView);
+    em::function("zoom", &emZoom);
+    em::function("rotate", &emRotate);
+    em::function("translate", &emTranslate);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
@@ -137,91 +145,6 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     }
     localX = mouseEvent->canvasX;
     localY = mouseEvent->canvasY;
-    return 1;
-}
-
-EM_BOOL touch_event(int eventType, const EmscriptenTouchEvent* touchEvent, void*)
-{
-    constexpr long translateDelta = 10, scaleDelta = 10;
-    enum class TouchMode { None, Rotate, Scale, Translate};
-    static TouchMode tMode = TouchMode::None;
-    static long local1X, local2X, local1Y, local2Y, distance, transX, transY;
-    long tmp=0, tmp2=0;
-    switch (eventType) {
-    case EMSCRIPTEN_EVENT_TOUCHSTART:
-        if(tMode != TouchMode::None) break;
-        switch(touchEvent->numTouches){
-//        case 2:
-//            local2X = touchEvent->touches[1].canvasX;
-//            local2Y = touchEvent->touches[1].canvasY;
-//            distance = std::sqrt(std::pow(local2X-touchEvent->touches[0].canvasX,2)+
-//                                 std::pow(local2Y-touchEvent->touches[0].canvasY,2));
-//            transX = (local2X + touchEvent->touches[0].canvasX)/2;
-//            transY = (local2Y + touchEvent->touches[0].canvasY)/2;
-        case 1:
-            tMode = TouchMode::Rotate;
-            local1X = touchEvent->touches[0].canvasX;
-            local1Y = touchEvent->touches[0].canvasY;
-            break;
-        default:
-            gui.alignViewMat(GuiWrapper::alignDir::z);
-            break;
-        }
-        break;
-    case EMSCRIPTEN_EVENT_TOUCHMOVE:
-        switch(touchEvent->numTouches){
-        case 1:
-            if(tMode != TouchMode::Rotate) break;
-            gui.rotateViewMat(touchEvent->touches[0].canvasX-local1X,
-                    touchEvent->touches[0].canvasY-local1Y,0);
-            local1X = touchEvent->touches[0].canvasX;
-            local1Y = touchEvent->touches[0].canvasY;
-            break;
-        default:
-            break;
-//        case 2:
-//            if(tMode < TouchMode::Scale){
-//                tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
-//                                         touchEvent->touches[0].canvasX,2)+
-//                                std::pow(touchEvent->touches[1].canvasY-
-//                                         touchEvent->touches[0].canvasY,2));
-//                if (std::abs(tmp-distance)>scaleDelta){
-//                    tMode = TouchMode::Scale;
-//                }else if(local1X-touchEvent->touches[0].canvasX > translateDelta||
-//                         local1Y-touchEvent->touches[0].canvasY > translateDelta||
-//                         local2X-touchEvent->touches[1].canvasX > translateDelta||
-//                         local2Y-touchEvent->touches[1].canvasY > translateDelta){
-//                    tMode = TouchMode::Translate;
-//                }
-//            }
-//            if(tMode < TouchMode::Scale) break;
-//            if(tMode == TouchMode::Scale){
-//                if(!tmp)
-//                    tmp = std::sqrt(std::pow(touchEvent->touches[1].canvasX-
-//                                             touchEvent->touches[0].canvasX,2)+
-//                                    std::pow(touchEvent->touches[1].canvasY-
-//                                             touchEvent->touches[0].canvasY,2));
-//                gui.zoomViewMat(tmp-distance);
-//                distance = tmp;
-//            }else if(tMode == TouchMode::Translate){
-//                tmp = (touchEvent->touches[0].canvasX + touchEvent->touches[1].canvasX)/2;
-//                tmp2 = (touchEvent->touches[0].canvasY + touchEvent->touches[1].canvasY)/2;
-//                gui.translateViewMat(tmp-transX, -(tmp2-transY), 0);
-//                transX = tmp;
-//                transY = tmp2;
-//            }
-//            local1X = touchEvent->touches[0].canvasX;
-//            local1Y = touchEvent->touches[0].canvasY;
-//            local2X = touchEvent->touches[1].canvasX;
-//            local2Y = touchEvent->touches[1].canvasY;
-//            break;
-        }
-        break;
-    case EMSCRIPTEN_EVENT_TOUCHEND:
-    case EMSCRIPTEN_EVENT_TOUCHCANCEL:
-        tMode = TouchMode::None;
-        break;
-    }
     return 1;
 }
 
@@ -308,9 +231,6 @@ int main()
     emscripten_set_mousemove_callback("#canvas", nullptr, 0, mouse_event);
     emscripten_set_mouseleave_callback("#canvas", nullptr, 0, mouse_event);
     emscripten_set_wheel_callback("#canvas", nullptr, 0, wheel_event);
-    emscripten_set_touchstart_callback("#canvas", nullptr, 0, touch_event);
-    emscripten_set_touchmove_callback("#canvas", nullptr, 0, touch_event);
-    emscripten_set_touchend_callback("#canvas", nullptr, 0, touch_event);
 
     //start
     int i{0};
