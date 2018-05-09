@@ -4,8 +4,11 @@
 #include <cstdint>
 #include <vector>
 
+#include "config.h"
+
 namespace Vipster {
     enum class BondLevel { None, Molecule, Cell };
+    enum class BondFrequency { Never, Once, Always };
 
     struct Bond{
         std::size_t at1;
@@ -17,10 +20,9 @@ namespace Vipster {
     };
 
     struct BondList{
-        bool                outdated{true};
+        bool                outdated{true}, setOnce{false};
         BondLevel           level{BondLevel::None};
-        //TODO: read from config
-        float               cutoff_factor{1.1f};
+        float               cutoff_factor{settings.at("Bond cutoff factor").get<float>()};
         std::vector<Bond>   bonds;
     };
 }

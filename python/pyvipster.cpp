@@ -85,6 +85,12 @@ PYBIND11_MODULE(vipster, m) {
         .value("Cell", BondLevel::Cell)
     ;
 
+    py::enum_<BondFrequency>(m, "BondFrequency")
+        .value("Never", BondFrequency::Never)
+        .value("Once", BondFrequency::Once)
+        .value("Always", BondFrequency::Always)
+    ;
+
     py::enum_<CdmFmt>(m, "CellDimFmt")
         .value("Bohr", CdmFmt::Bohr)
         .value("Angstrom", CdmFmt::Angstrom)
@@ -191,10 +197,10 @@ PYBIND11_MODULE(vipster, m) {
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
         .def("getCenter", &Step::getCenter, "fmt"_a, "com"_a=false)
     //BONDS
-        .def("getBonds", py::overload_cast<BondLevel, bool>(&Step::getBonds, py::const_),
-             "level"_a=BondLevel::Cell, "update"_a=true)
-        .def("getBonds", py::overload_cast<float, BondLevel, bool>(&StepProper::getBonds, py::const_),
-             "cutfac"_a, "level"_a=BondLevel::Cell, "update"_a=true)
+        .def("getBonds", py::overload_cast<BondLevel, BondFrequency>(&Step::getBonds, py::const_),
+             "level"_a=BondLevel::Cell, "update"_a=BondFrequency::Always)
+        .def("getBonds", py::overload_cast<float, BondLevel, BondFrequency>(&StepProper::getBonds, py::const_),
+             "cutfac"_a, "level"_a=BondLevel::Cell, "update"_a=BondFrequency::Always)
         .def_property_readonly("nbond", &StepProper::getNbond)
     ;
 

@@ -401,27 +401,28 @@ void GuiWrapper::drawMol(void)
     auto offLocA = glGetUniformLocation(atom_program, "offset");
     auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
     auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    // TODO: get from settings
-    glUniform1f(facLoc, 0.4f);
+    glUniform1f(facLoc, settings.at("Atom radius factor").get<float>());
     glUniform3fv(offLocA, 1, center.data());
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           atom_model_npoly,
                           static_cast<GLsizei>(atom_prop_buffer.size()));
     // bonds
-    glBindVertexArray(bond_vao);
-    glUseProgram(bond_program);
-    auto offLocB = glGetUniformLocation(bond_program, "offset");
-    auto pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
-    auto multLoc = glGetUniformLocation(bond_program, "mult");
-    auto cellLocB = glGetUniformLocation(bond_program, "position_scale");
-    glUniform3ui(multLoc, 1, 1, 1);
-    glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
-    glUniform3fv(offLocB, 1, center.data());
-    glUniform3ui(pbcLoc, 0, 0, 0);
-    glDrawArraysInstanced(GL_TRIANGLES, 0,
-                          bond_model_npoly,
-                          static_cast<GLsizei>(bond_buffer.size()));
+    if(settings.at("Show bonds").get<bool>()){
+        glBindVertexArray(bond_vao);
+        glUseProgram(bond_program);
+        auto offLocB = glGetUniformLocation(bond_program, "offset");
+        auto pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
+        auto multLoc = glGetUniformLocation(bond_program, "mult");
+        auto cellLocB = glGetUniformLocation(bond_program, "position_scale");
+        glUniform3ui(multLoc, 1, 1, 1);
+        glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
+        glUniform3fv(offLocB, 1, center.data());
+        glUniform3ui(pbcLoc, 0, 0, 0);
+        glDrawArraysInstanced(GL_TRIANGLES, 0,
+                              bond_model_npoly,
+                              static_cast<GLsizei>(bond_buffer.size()));
+    }
 }
 
 void GuiWrapper::drawCell(void)
@@ -435,12 +436,10 @@ void GuiWrapper::drawCell(void)
     // atoms
     glBindVertexArray(atom_vao);
     glUseProgram(atom_program);
-    //TODO: pull atom_fac from config
     auto offLocA = glGetUniformLocation(atom_program, "offset");
     auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
     auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
-    // TODO: get from settings
-    glUniform1f(facLoc, 0.4f);
+    glUniform1f(facLoc, settings.at("Atom radius factor").get<float>());
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
@@ -454,37 +453,41 @@ void GuiWrapper::drawCell(void)
         }
     }
     // bonds
-    glBindVertexArray(bond_vao);
-    glUseProgram(bond_program);
-    GLint offLocB = glGetUniformLocation(bond_program, "offset");
-    GLint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
-    GLint multLoc = glGetUniformLocation(bond_program, "mult");
-    GLint cellLocB = glGetUniformLocation(bond_program, "position_scale");
-    glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
-    glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
-    for(GLuint x=0;x<mult[0];++x){
-        for(GLuint y=0;y<mult[1];++y){
-            for(GLuint z=0;z<mult[2];++z){
-                off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
-                glUniform3fv(offLocB, 1, off.data());
-                glUniform3ui(pbcLoc, x, y, z);
-                glDrawArraysInstanced(GL_TRIANGLES, 0,
-                                      bond_model_npoly,
-                                      static_cast<GLsizei>(bond_buffer.size()));
+    if(settings.at("Show bonds").get<bool>()){
+        glBindVertexArray(bond_vao);
+        glUseProgram(bond_program);
+        GLint offLocB = glGetUniformLocation(bond_program, "offset");
+        GLint pbcLoc = glGetUniformLocation(bond_program, "pbc_cell");
+        GLint multLoc = glGetUniformLocation(bond_program, "mult");
+        GLint cellLocB = glGetUniformLocation(bond_program, "position_scale");
+        glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
+        glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
+        for(GLuint x=0;x<mult[0];++x){
+            for(GLuint y=0;y<mult[1];++y){
+                for(GLuint z=0;z<mult[2];++z){
+                    off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                    glUniform3fv(offLocB, 1, off.data());
+                    glUniform3ui(pbcLoc, x, y, z);
+                    glDrawArraysInstanced(GL_TRIANGLES, 0,
+                                          bond_model_npoly,
+                                          static_cast<GLsizei>(bond_buffer.size()));
+                }
             }
         }
     }
     // cell
-    glBindVertexArray(cell_vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
-    glUseProgram(cell_program);
-    auto offLocC = glGetUniformLocation(cell_program, "offset");
-    for(int x=0;x<mult[0];++x){
-        for(int y=0;y<mult[1];++y){
-            for(int z=0;z<mult[2];++z){
-                off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
-                glUniform3fv(offLocC, 1, off.data());
-                glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
+    if(settings.at("Show cell").get<bool>()){
+        glBindVertexArray(cell_vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
+        glUseProgram(cell_program);
+        auto offLocC = glGetUniformLocation(cell_program, "offset");
+        for(int x=0;x<mult[0];++x){
+            for(int y=0;y<mult[1];++y){
+                for(int z=0;z<mult[2];++z){
+                    off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                    glUniform3fv(offLocC, 1, off.data());
+                    glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
+                }
             }
         }
     }
@@ -533,12 +536,11 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     //bonds
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        //TODO: pull cutfac and level from config
-        const auto& bonds = curStep->getBonds(BondLevel::Cell);
-        //TODO: reduce map-lookups somehow
+        const auto& bonds = curStep->getBonds(settings.at("Bond level").get<BondLevel>());
+        // TODO change to direct RO access through Step?
         const auto& pse = curStep->atoms->pse;
         float c, s, ic;
-        float rad = 0.53f; // TODO: pull bond-radius from config
+        float rad = settings.at("Bond radius").get<float>();
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
         const std::vector<Vec>& at_coord = curStep->atoms->coordinates[

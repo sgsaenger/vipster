@@ -64,19 +64,21 @@ public:
 
     // Bonds
     const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell,
-                                         bool update=true) const
+                                         BondFrequency update=BondFrequency::Always) const
     {
-        return getBonds(bonds->cutoff_factor, l, update);
+        return getBonds(settings.at("Bond cutoff factor").get<float>(), l, update);
     }
     const std::vector<Bond>&    getBonds(float cutfac,
                                          BondLevel l=BondLevel::Cell,
-                                         bool update=true) const
+                                         BondFrequency update=BondFrequency::Always) const
     {
         evaluateCache();
-        if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
-        if(update and (bonds->outdated or
-                       (cutfac != bonds->cutoff_factor) or
-                       (bonds->level < l)))
+        if(((update == BondFrequency::Always) or
+            ((update == BondFrequency::Once) and not bonds->setOnce))
+           and
+           (bonds->outdated or
+            (float_comp(cutfac, bonds->cutoff_factor)) or
+            (bonds->level < l)))
         {
             setBonds(l, cutfac);
         }
@@ -86,12 +88,17 @@ public:
     {
         return getBonds().size();
     }
+    void    setBonds(BondLevel l) const
+    {
+        setBonds(l, settings.at("Bond cutoff factor").get<float>());
+    }
     void    setBonds(BondLevel l, float cutfac) const
     {
         bonds->bonds.clear();
         if(!static_cast<const T*>(this)->getNat()){
             l = BondLevel::None;
         }
+        if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
         switch(l){
         case BondLevel::None:
             break;
@@ -103,6 +110,7 @@ public:
             break;
         }
         bonds->outdated = false;
+        bonds->setOnce = true;
         bonds->cutoff_factor = cutfac;
         bonds->level = l;
     }
