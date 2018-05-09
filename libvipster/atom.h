@@ -26,20 +26,21 @@ namespace Vipster{
      */
     class Atom{
     protected:
-        Atom(Vec *co, bool *c_m, std::string *n,
+        Atom(Vec *co, bool *c_m, std::string *n, bool *n_m,
              float *ch, std::bitset<nAtProp> *p, PseEntry** pse, bool *p_m)
-            : coord_ptr{co}, coord_changed{c_m}, name_ptr{n},
+            : coord_ptr{co}, coord_changed{c_m}, name_ptr{n}, name_changed{n_m},
               charge_ptr{ch}, prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
         {}
         Vec                     *coord_ptr;
         bool                    *coord_changed;
         std::string             *name_ptr;
+        bool                    *name_changed;
         float                   *charge_ptr;
         AtomProperties          *prop_ptr;
         PseEntry*               *pse_ptr;
         bool                    *prop_changed;
     public:
-        PropRef<std::string, &Atom::name_ptr, &Atom::prop_changed>
+        PropRef<std::string, &Atom::name_ptr, &Atom::name_changed>
             name{*this};
         PropRef<Vec, &Atom::coord_ptr, &Atom::coord_changed>
             coord{*this};
@@ -55,6 +56,7 @@ namespace Vipster{
             : coord_ptr{at.coord_ptr},
               coord_changed{at.coord_changed},
               name_ptr{at.name_ptr},
+              name_changed{at.name_changed},
               charge_ptr{at.charge_ptr},
               prop_ptr{at.prop_ptr},
               pse_ptr{at.pse_ptr},

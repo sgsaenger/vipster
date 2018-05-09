@@ -16,12 +16,17 @@ size_t Step::getNat() const noexcept{
 void Step::newAtom(){
     evaluateCache();
     AtomList& al = *atoms;
+    // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].emplace_back();
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+    // Type
     al.names.emplace_back();
+    al.name_changed = true;
+    al.pse.push_back(&(*pse)[""]);
+    // Properties
     al.charges.emplace_back();
     al.properties.emplace_back();
-    al.pse.push_back(&(*pse)[""]);
+    al.prop_changed = true;
 }
 
 void Step::newAtom(std::string name, Vec coord, float charge,
@@ -29,47 +34,67 @@ void Step::newAtom(std::string name, Vec coord, float charge,
 {
     evaluateCache();
     AtomList& al = *atoms;
+    // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].emplace_back(coord);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+    // Type
     al.names.emplace_back(name);
+    al.name_changed = true;
+    al.pse.push_back(&(*pse)[name]);
+    // Properties
     al.charges.emplace_back(charge);
     al.properties.emplace_back(prop);
-    al.pse.push_back(&(*pse)[name]);
+    al.prop_changed = true;
 }
 
 void Step::newAtom(const Atom& at){
     evaluateCache();
     AtomList& al = *atoms;
+    // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].push_back(at.coord);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+    // Type
     al.names.push_back(at.name);
+    al.name_changed = true;
+    al.pse.push_back(&(*pse)[at.name]);
+    // Properties
     al.charges.push_back(at.charge);
     al.properties.push_back(at.properties);
-    al.pse.push_back(&(*pse)[at.name]);
+    al.prop_changed = true;
 }
 
 void Step::newAtoms(size_t i){
     evaluateCache();
     size_t nat = getNat()+i;
+    // Coordinates
     AtomList& al = *atoms;
     al.coordinates[static_cast<size_t>(at_fmt)].resize(nat);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+    // Type
     al.names.resize(nat);
+    al.name_changed = true;
+    al.pse.resize(nat);
+    // Properties
     al.charges.resize(nat);
     al.properties.resize(nat);
-    al.pse.resize(nat);
+    al.prop_changed = true;
 }
 
 void Step::delAtom(long i){
     evaluateCache();
     AtomList& al = *atoms;
+    // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].erase(
         al.coordinates[static_cast<size_t>(at_fmt)].begin()+i);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+    // Type
     al.names.erase(al.names.begin()+i);
+    al.name_changed = true;
+    al.pse.erase(al.pse.begin()+i);
+    // Properties
     al.charges.erase(al.charges.begin()+i);
     al.properties.erase(al.properties.begin()+i);
-    al.pse.erase(al.pse.begin()+i);
+    al.prop_changed = true;
 }
 
 Step::iterator Step::begin() noexcept {
@@ -358,17 +383,17 @@ void StepProper::evaluateCache() const
                     atoms.coord_outdated[i] = true;
                 }
             }
+            bonds->outdated = true;
         }
-        bonds->outdated = true;
     }
     // if some atom-types changed, update pse pointers
-    if(atoms.prop_changed){
+    if(atoms.name_changed){
         if(size_t nat = atoms.names.size()){
             for(size_t i=0; i<nat; ++i){
                 atoms.pse[i] = &(*pse)[atoms.names[i]];
             }
         }
-        atoms.prop_changed = false;
+        atoms.name_changed = false;
         bonds->outdated = true;
     }
 }

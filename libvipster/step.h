@@ -22,11 +22,13 @@ struct AtomList{
     std::array<std::vector<Vec>, nAtFmt> coordinates;
     std::array<bool, nAtFmt>             coord_changed;
     std::array<bool, nAtFmt>             coord_outdated;
-    // Properties
+    // Names (synced with type-pointers)
     std::vector<std::string>        names;
-    std::vector<float>              charges;
-    std::vector<AtomProperties>            properties;
+    bool                            name_changed;
     std::vector<PseEntry*>          pse;
+    // Properties
+    std::vector<float>              charges;
+    std::vector<AtomProperties>     properties;
     bool                            prop_changed;
 };
 
@@ -42,6 +44,7 @@ public:
         : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
             &atoms->coord_changed[static_cast<uint8_t>(fmt)],
             &atoms->names[idx],
+            &atoms->name_changed,
             &atoms->charges[idx],
             &atoms->properties[idx],
             &atoms->pse[idx],
@@ -139,7 +142,6 @@ protected:
     std::shared_ptr<AtomList>       atoms;
 };
 
-//TODO: make constructible from Step
 /*
  * Wrapper to access AtomFmt-cache
  */
@@ -156,6 +158,7 @@ private:
     StepProper& step;
 };
 
+//TODO: make constructible from Step
 /*
  * Concrete Step
  *
