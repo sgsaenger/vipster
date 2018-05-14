@@ -152,7 +152,7 @@ void MainWindow::editAtoms()
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
     }
-    //TODO:
+    //TODO when selection stuff is implemented
 //    }else if ( sender == ui->actionDelete_Atom_s){
 //        curMol->curStep().delAtom();
 //    }
@@ -167,10 +167,8 @@ void MainWindow::newMol()
 
 void MainWindow::newData(IO::Data &&d)
 {
-//    newMol(std::move(d.mol));
     molecules.push_back(std::move(d.mol));
     ui->molWidget->registerMol(molecules.back().getName());
-//    newParam(d.fmt, std::move(d.param));
     if(d.param){
         params.push_back({d.fmt, std::move(d.param)});
         ui->paramWidget->registerParam(d.fmt, params.back().second->name);

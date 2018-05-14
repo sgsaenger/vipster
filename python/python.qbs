@@ -7,7 +7,7 @@ DynamicLibrary {
     targetName: "vipster" + pySettings.libSuffix
     condition: hasPython.found && !project.webBuild
     builtByDefault: project.pythonBuild
-    files: "pyvipster.cpp"
+    files: ["pyvipster.cpp"]
     Depends { name: "libvipster" }
 
     Group{
@@ -45,8 +45,10 @@ DynamicLibrary {
             instPath = proc.readLine();
             instPath = instPath.substr(1);
             libSuffix = proc.readLine();
-            if(libSuffix!="None"){
-                libSuffix = "."+libSuffix
+            if(libSuffix=="None"){
+                libSuffix = undefined;
+            }else{
+                libSuffix = "."+libSuffix;
             }
         }
     }

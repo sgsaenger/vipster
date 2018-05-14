@@ -5,8 +5,7 @@ DynamicLibrary {
     targetName: "vipster"
     property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
 
-    files: ["json.hpp",
-            "libvipster.qmodel"]
+    files: ["libvipster.qmodel"]
 
     Group {
         name: "headers"
@@ -47,6 +46,7 @@ DynamicLibrary {
     Depends { name: "cpp"}
     cpp.cxxLanguageVersion: "c++14"
     cpp.defines: [ "PREFIX="+project.prefix ]
+    cpp.includePaths: ["../external"]
     Properties {
         condition: qbs.targetOS.contains("macos")
         cpp.frameworks: ["CoreFoundation"]
@@ -90,6 +90,6 @@ DynamicLibrary {
             ]
             cpp.dynamicLibraries: ["gcov"]
         }
-        cpp.includePaths: [product.sourceDirectory]
+        cpp.includePaths: [product.sourceDirectory, "../external"]
     }
 }
