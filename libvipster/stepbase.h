@@ -51,12 +51,8 @@ public:
     // Types
     std::set<std::string>   getTypes() const
     {
-        //TODO: use PseEntries instead of string?
-        std::set<std::string> set;
-        for(auto& at: *static_cast<const T*>(this)){
-            set.insert(at.name);
-        }
-        return set;
+        const auto& names{static_cast<const T*>(this)->getNames()};
+        return std::set<std::string>{names.begin(), names.end()};
     }
     size_t                  getNtyp() const
     {

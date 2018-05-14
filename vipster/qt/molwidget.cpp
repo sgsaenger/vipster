@@ -196,16 +196,23 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
     Atom at = (*curStep)[static_cast<size_t>(row)];
     const QTableWidgetItem *cell = ui->atomTable->item(row,column);
+    bool checkState = (cell->checkState()/2) != 0;
     if (column == 0){
-        at.name = cell->text().toStdString();
-        at.properties[Hidden] = ((cell->checkState()/2) != 0);
+        if(at.properties[Hidden] != checkState){
+            at.properties[Hidden] = checkState;
+        }else{
+            at.name = cell->text().toStdString();
+        }
+        triggerUpdate(Change::atoms);
     } else {
-        // TODO: property assignment toggles pse-reevaluation in evaluateCache!
         const auto col = static_cast<size_t>(column-1);
-        at.coord[col] = locale().toFloat(cell->text());
-        at.properties[col] = ((cell->checkState()/2) != 0);
+        if(at.properties[col] != checkState){
+            at.properties[col] = checkState;
+        }else{
+            at.coord[col] = locale().toFloat(cell->text());
+            triggerUpdate(Change::atoms);
+        }
     }
-    triggerUpdate(Change::atoms);
 }
 
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
