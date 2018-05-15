@@ -1,5 +1,5 @@
 ignore:
-    - "libvipster/json.hpp"
-    - "tests"
     - "python"
     - "vipster"
+    - "tests"
+    - "external"
