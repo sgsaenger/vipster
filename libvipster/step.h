@@ -102,9 +102,9 @@ private:
  */
 class Step: public StepBase<Step>
 {
+    friend class StepSelProper;
 public:
     Step& operator=(const Step& s);
-    ~Step()=default;
     //TODO: make move-able
 
     // Atoms
@@ -188,6 +188,7 @@ public:
     StepFormatter   asAlat{*this, AtomFmt::Alat};
     Step&           asFmt(AtomFmt at_fmt) override;
     const Step&     asFmt(AtomFmt at_fmt) const override;
+
     void evaluateCache() const override;
 private:
     static constexpr StepFormatter StepProper::* fmtmap[] = {

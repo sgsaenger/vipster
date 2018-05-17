@@ -261,17 +261,17 @@ private:
     {
         AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
-        const T& asFmt = static_cast<const T*>(this)->asFmt(fmt);
-        asFmt.evaluateCache();
+        const T& tgtFmt = asFmt(fmt);
+        tgtFmt.evaluateCache();
         std::vector<Bond>& bonds = this->bonds->bonds;
-        auto at_i = asFmt.begin();
-        for (auto at_i=asFmt.begin(); at_i!=asFmt.end(); ++at_i)
+        auto at_i = tgtFmt.begin();
+        for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
             float cut_i = (*at_i->pse).bondcut;
             if (cut_i<0){
                 continue;
             }
-            for (auto at_j=asFmt.begin()+at_i.getIdx()+1; at_j != asFmt.end(); ++at_j){
+            for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
                 float cut_j = (*at_j->pse).bondcut;
                 if (cut_j<0) {
                     continue;
