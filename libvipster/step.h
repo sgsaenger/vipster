@@ -100,12 +100,23 @@ private:
  *
  * Instantiation of Bond- and Cell-getters with AtomList as Atom-source
  */
+template<typename T>
+class SelectionProper;
+
+class Step;
+using StepSelection = SelectionProper<Step>;
+using StepSelConst = SelectionProper<const Step>;
+
 class Step: public StepBase<Step>
 {
-    friend class StepSelProper;
+    template<typename T>
+    friend class SelectionBase;
 public:
     Step& operator=(const Step& s);
     //TODO: make move-able
+
+    StepSelection   select(std::string);
+    StepSelConst    select(std::string) const;
 
     // Atoms
     size_t          getNat() const noexcept;

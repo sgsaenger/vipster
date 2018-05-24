@@ -1832,7 +1832,7 @@
                          </stereotypes>
                          <name>Step</name>
                          <pos>x:875;y:835</pos>
-                         <rect>x:-120;y:-160;w:240;h:320</rect>
+                         <rect>x:-135;y:-170;w:270;h:340</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -2163,7 +2163,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1526477774592</last-modified>
+                  <last-modified>1527157861245</last-modified>
                   <toolbarid>General</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -2632,7 +2632,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{02d7cb0c-ed58-4e9c-b63b-8dddc9857415}</uid>
+                    <uid>{4fb94a03-7500-4740-86b5-75031e8b48ef}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;BondData&gt; bonds</declaration>
@@ -2640,7 +2640,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{b9ad8db8-980f-459b-a559-af852479928d}</uid>
+                    <uid>{7cbcbb3e-5b01-4d12-9be8-93dca0f55bfe}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;CellData&gt; cell</declaration>
@@ -2648,7 +2648,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{dc51aedd-1903-4323-97de-ee536084498a}</uid>
+                    <uid>{919cc3ba-bb2c-4e26-9a27-6a2e6289ec8d}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;string&gt; comment</declaration>
@@ -2656,7 +2656,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c809229e-a09a-41cb-a120-7b2fee02ab7e}</uid>
+                    <uid>{a0cf2cc9-deac-4782-ab6b-a754e175628b}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>AtomFmt at_fmt</declaration>
@@ -2664,8 +2664,8 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8acd2896-135c-4b38-acae-8247d1b229b0}</uid>
-                    <visibility>2</visibility>
+                    <uid>{fa4a81e4-9adf-4f5a-a835-12bc6b827730}</uid>
+                    <visibility>1</visibility>
                     <type>2</type>
                     <properties>3</properties>
                     <declaration>void evaluateCache()</declaration>
@@ -2673,7 +2673,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{53053c91-b673-40cf-b083-66ee27bb307f}</uid>
+                    <uid>{066dd3f8-b033-4eb8-a344-586b0e958e95}</uid>
                     <group>Types</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2682,7 +2682,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{4f8ab848-bbf8-4927-9781-3dba5c6b957d}</uid>
+                    <uid>{c3ca21ba-c384-4b3c-ae1d-884fc9f35aaf}</uid>
                     <group>Types</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2691,7 +2691,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0a0fc942-52d2-48a0-ad1b-db6e51608f62}</uid>
+                    <uid>{9547f5e2-2119-417b-a635-bcfcbf587808}</uid>
                     <group>Format</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2700,7 +2700,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8dc80828-8ea1-45e4-8140-c048d714d9f8}</uid>
+                    <uid>{0d4678af-687e-44ee-9b5b-8707cbea0de3}</uid>
                     <group>Format</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2710,7 +2710,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{166b5114-15d5-4c28-b82d-683292974cac}</uid>
+                    <uid>{36dcd376-0ddd-4455-be0b-adfa4176c563}</uid>
                     <group>Comment</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2719,7 +2719,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9f171283-34c9-431d-9620-9a989c32db4b}</uid>
+                    <uid>{877e2fcc-1ed1-4aff-b082-d45c29b57b26}</uid>
                     <group>Comment</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2728,7 +2728,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5222d7ef-0b72-42ca-bae2-ac115d60acc1}</uid>
+                    <uid>{5bba586e-38b3-4c98-8edb-9ccf479a7a67}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2737,7 +2737,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7f2cf993-4e14-46e8-bf2e-a2b0b9a6dd93}</uid>
+                    <uid>{ad971964-b30f-474f-a202-caccde4ea323}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2746,7 +2746,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{52ee2c26-17a2-45ff-a190-256159801a0f}</uid>
+                    <uid>{67b424bb-7225-427a-adec-5616b6bf4130}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2755,7 +2755,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{987a672d-9cb0-4dcb-b2d6-11c6c5520af8}</uid>
+                    <uid>{16c47957-cd52-46cc-adda-a5bee510993d}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2764,7 +2764,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{29e196fd-deb3-4c19-acc4-210494c71107}</uid>
+                    <uid>{ac559a40-5c80-43b4-8bf6-a7a23fe681e5}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2773,7 +2773,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{1d3b7d01-414d-4d82-aefd-8340be9503fa}</uid>
+                    <uid>{1c96d4a6-abc0-4ac5-aa31-1c30a65be371}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2782,7 +2782,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9a4af9f4-c9e3-4c10-9f83-50bd897c6fdf}</uid>
+                    <uid>{e7b657dc-662e-4fd5-80e5-16111cc3f348}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2791,7 +2791,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{a63e24aa-be77-4359-baf6-7cf36be2b4bf}</uid>
+                    <uid>{dd2a9e6f-80ba-40db-b06b-3a02860c2627}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2800,7 +2800,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{850c63bf-85f4-4bbe-94b1-4bdb8839c606}</uid>
+                    <uid>{06e773f3-58ec-4008-8134-30290090234c}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3519,7 +3519,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{f07b45fb-d16e-447b-825f-47c3c374de59}</uid>
+                    <uid>{bb1e7b4a-07c2-4345-9d1b-18deb36da654}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
@@ -3527,7 +3527,16 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{e737834a-e8bd-4757-b9a9-36bc0442e196}</uid>
+                    <uid>{2f016d4e-10e6-4c4b-be84-6d663e1303dd}</uid>
+                    <visibility>1</visibility>
+                    <type>2</type>
+                    <properties>3</properties>
+                    <declaration>StepSelProper select(std::string)</declaration>
+                   </MClassMember>
+                  </item>
+                  <item>
+                   <MClassMember>
+                    <uid>{06715d34-5b8c-4489-86d3-73a8e61f6650}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3536,7 +3545,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{b5d0e1e3-4ea9-4fdb-81be-2d1251f030c7}</uid>
+                    <uid>{b49c63ea-ddfd-4750-ae8f-994f2574cd2b}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3545,7 +3554,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{f320fdfe-0a62-4582-979a-7d8cf35f9bd4}</uid>
+                    <uid>{8ba294c8-f947-4514-9712-ef289f9a56bd}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3554,7 +3563,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{89f8cd68-46dc-4ac8-86eb-39eb73add6fc}</uid>
+                    <uid>{334aea53-d811-4c6f-b37d-80c3a7cc8a57}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3563,7 +3572,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{cb0e3fb3-2b62-4577-b676-87678d631244}</uid>
+                    <uid>{e8ea5683-31a0-48a1-bcd5-ffb74bd3060e}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3572,7 +3581,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7b85c06c-f1fb-447c-9899-53356539a682}</uid>
+                    <uid>{b4fe4f35-8292-4705-b69f-71ba68482f64}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3581,7 +3590,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{a1ed0d01-48b0-47f0-89c6-93961f5f5d1e}</uid>
+                    <uid>{04370166-fd93-4fd5-b311-a08d0879482b}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3590,7 +3599,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0e9e8922-b56d-4f89-8749-2854abc31bb7}</uid>
+                    <uid>{b0eea100-5af7-4123-9288-96b75d0441d4}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3599,7 +3608,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ffdd6313-31ed-4cc9-9c8c-4018713ac056}</uid>
+                    <uid>{a992a75f-9390-45a3-8a0d-012eb6719e0e}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3608,7 +3617,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{6c4b48e1-5f74-4090-9595-5cdeae138ee1}</uid>
+                    <uid>{2a04798f-65ab-46fa-ae8c-389375e7c184}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3617,7 +3626,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ae11ba1c-ef29-48f0-9735-8c68a355bea5}</uid>
+                    <uid>{149d9ff5-994b-44c5-85af-486e7eb1af4a}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3626,7 +3635,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{671483d0-d733-49e9-827e-1c39b108b85f}</uid>
+                    <uid>{7f740222-99a1-40a6-826f-5ae852c0be2d}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3635,7 +3644,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{12cf80a5-0112-4180-b229-ca7a897c49e1}</uid>
+                    <uid>{48c0ad95-8e28-430a-9524-991c1433be90}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>

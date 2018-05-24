@@ -1,4 +1,5 @@
 #include "step.h"
+#include "stepsel.h"
 
 using namespace Vipster;
 
@@ -147,6 +148,16 @@ const std::vector<AtomProperties>& Step::getProperties() const noexcept {
 Atom Step::operator[](size_t i) {
     evaluateCache();
     return *iterator{atoms, at_fmt, i};
+}
+
+StepSelection Step::select(std::string filter)
+{
+    return StepSelection{*this, filter};
+}
+
+StepSelConst Step::select(std::string filter) const
+{
+    return StepSelConst{*this, filter};
 }
 
 void Step::setCellVec(const Mat &vec, bool scale)
@@ -341,6 +352,8 @@ StepProper& StepProper::operator=(const StepProper& s)
 }
 
 constexpr StepFormatter StepProper::* StepProper::fmtmap[];
+template<typename T>
+constexpr SelectionFormatter<T> SelectionProper<T>::* SelectionProper<T>::fmtmap[];
 
 void StepFormatter::evaluateCache() const
 {
