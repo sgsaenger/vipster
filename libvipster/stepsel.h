@@ -42,13 +42,13 @@ struct SelectionFilter{
             PAIR=0x2, NOT_PAIR=0x4, // second bit activates coupling, third bit negates
             AND=0x2, NAND=0x6,
             OR=0xA, NOR=0xE,
-            XOR=0x12, XNOR=0x16};
+            XOR=0x12, XNOR=0x16,
+            UPDATE=0x80};
     Mode mode;
-    uint op;
+    unsigned int op;
     std::vector<size_t> indices;
     std::vector<std::string> types;
     std::unique_ptr<SelectionFilter> subfilter{nullptr};
-    bool updated{false};
 };
 
 std::stringstream& operator<<(std::stringstream& os, const SelectionFilter& filter)
@@ -171,7 +171,7 @@ std::stringstream& operator>>(std::stringstream& is, SelectionFilter& filter){
             throw Error("Unterminated nested filter");
         }
     }
-    filter.updated = true;
+    filter.op |= Op::UPDATE;
     return is;
 }
 
@@ -217,8 +217,8 @@ class AtomSelIterator: private T
 public:
     AtomSelIterator(const std::shared_ptr<AtomSelection> &selection,
                     AtomFmt fmt, size_t idx)
-        : T{&selection->atoms->coordinates[static_cast<uint8_t>(fmt)][selection->indices[idx]],
-            &selection->atoms->coord_changed[static_cast<uint8_t>(fmt)],
+        : T{&selection->atoms->coordinates[static_cast<size_t>(fmt)][selection->indices[idx]],
+            &selection->atoms->coord_changed[static_cast<size_t>(fmt)],
             &selection->atoms->names[selection->indices[idx]],
             &selection->atoms->name_changed,
             &selection->atoms->charges[selection->indices[idx]],
@@ -300,7 +300,7 @@ public:
 
     void        evaluateCache() const override
     {
-        bool updateNeeded{filter->updated};
+        bool updateNeeded{static_cast<bool>(filter->op & SelectionFilter::UPDATE)};
         if(!updateNeeded){
             switch(filter->mode){
             case SelectionFilter::Mode::Type:
