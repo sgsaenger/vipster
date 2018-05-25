@@ -452,21 +452,21 @@ public:
     SelectionFormatter<T>   asAlat{*this, AtomFmt::Alat};
     SelectionBase<T>&       asFmt(AtomFmt fmt) override
     {
-        return this->*fmtmap[static_cast<size_t>(fmt)];
+        switch(fmt){
+        case AtomFmt::Bohr:
+            return asBohr;
+        case AtomFmt::Angstrom:
+            return asAngstrom;
+        case AtomFmt::Crystal:
+            return asCrystal;
+        case AtomFmt::Alat:
+            return asAlat;
+        }
     }
     const SelectionBase<T>& asFmt(AtomFmt fmt) const override
     {
-        return this->*fmtmap[static_cast<size_t>(fmt)];
+        return const_cast<SelectionProper<T>*>(this)->asFmt(fmt);
     }
-private:
-    // NOTE: ODR stuff that makes sure this is REALLY there (because standard)
-    // can be found in step.cpp
-    static constexpr SelectionFormatter<T> SelectionProper::* fmtmap[] = {
-        &SelectionProper::asBohr,
-        &SelectionProper::asAngstrom,
-        &SelectionProper::asCrystal,
-        &SelectionProper::asAlat,
-    };
 };
 
 }

@@ -352,8 +352,6 @@ StepProper& StepProper::operator=(const StepProper& s)
 }
 
 constexpr StepFormatter StepProper::* StepProper::fmtmap[];
-template<typename T>
-constexpr SelectionFormatter<T> SelectionProper<T>::* SelectionProper<T>::fmtmap[];
 
 void StepFormatter::evaluateCache() const
 {
