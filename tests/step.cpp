@@ -38,11 +38,11 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         s.setComment("test");
         REQUIRE( s.getComment() == "test" );
         // basic cell-functionality
-        REQUIRE( s.getCellDim(CdmFmt::Bohr) == 1 );
-        REQUIRE( s.getCellDim(CdmFmt::Angstrom) == bohrrad );
+        REQUIRE( s.getCellDim(CdmFmt::Bohr) == Approx(1) );
+        REQUIRE( s.getCellDim(CdmFmt::Angstrom) == Approx(bohrrad) );
         s.setCellDim(1, CdmFmt::Angstrom);
-        REQUIRE( s.getCellDim(CdmFmt::Bohr) == invbohr );
-        REQUIRE( s.getCellDim(CdmFmt::Angstrom) == 1 );
+        REQUIRE( s.getCellDim(CdmFmt::Bohr) == Approx(invbohr) );
+        REQUIRE( s.getCellDim(CdmFmt::Angstrom) == Approx(1) );
         REQUIRE( s.getCellVec() == Mat{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}});
         s.setCellVec(cv);
         REQUIRE( s.getCellVec() == cv );

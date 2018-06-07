@@ -84,4 +84,18 @@ TEST_CASE("Vipster::StepSel", "[step]") {
         auto notPosB = s.select("not pos xb>0");
         CHECK(notPosB.getNat() == 1);
     }
+    SECTION("complex"){
+        auto selOr = s.select("index 0 | type H");
+        CHECK(selOr.getNat() == 2);
+        auto selNor = s.select("index 0 !| type H");
+        CHECK(selNor.getNat() == 1);
+        auto selAnd = s.select("index 0-2 & type H");
+        CHECK(selAnd.getNat() == 1);
+        auto selNand = s.select("index 0-2 !& type H");
+        CHECK(selNand.getNat() == 2);
+        auto selXor = s.select("index [0 1] ^ type [H O]");
+        CHECK(selXor.getNat() == 2);
+        auto selXnor = s.select("index [0 1] !^ type [H O]");
+        CHECK(selXnor.getNat() == 1);
+    }
 }

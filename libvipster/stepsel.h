@@ -21,7 +21,7 @@ struct AtomSelection{
  * Target grammar:
  * Keywords are case insensitive, whereas atom-types are case-sensitive
  *
- * Filter ::= Criterion, [(Coupling, Filter)];
+ * Filter ::= Criterion, {(Coupling, Filter) | ("(", Filter, ")")};
  * Criterion ::= ["not "], (TypeCrit | IdxCrit | PosCrit | CoordCrit);
  * Coupling ::= ["!"], ("|" | "&" | "^");
  *
@@ -49,12 +49,13 @@ struct SelectionFilter{
           types{f.types},
           subfilter{std::make_unique<SelectionFilter>(*f.subfilter)}
     {}
-    enum class Mode:uint8_t{Index, Type, Coord, Pos};
+    enum class Mode:uint8_t{Index, Type, Coord, Pos, Group};
     enum Op{NONE=0x0, NOT=0x1, // first bit negates own op
             PAIR=0x2, NOT_PAIR=0x4, // second bit activates coupling, third bit negates
             AND=0x2, NAND=0x6,
             OR=0xA, NOR=0xE,
             XOR=0x12, XNOR=0x16,
+            PAIR_MASK=0x1E,
             UPDATE=0x80};
     enum Pos{BOHR=0x0, ANG=0x1, CRYS=0x2, CDM=0x3, FMT_MASK=0x3,// 2 bits for format
              P_GT=0x0, P_LT=0x4, P_CMP_MASK=0x4,  // 1 bit for comp direction
@@ -69,98 +70,94 @@ struct SelectionFilter{
     size_t coordVal;
     std::set<size_t> indices;
     std::set<std::string> types;
+    std::unique_ptr<SelectionFilter> groupfilter{nullptr};
     std::unique_ptr<SelectionFilter> subfilter{nullptr};
 };
+
+void writeType(std::ostream& os, const SelectionFilter& filter){
+    os << "type ";
+    if(filter.types.size() == 1){
+        os << *filter.types.cbegin();
+    }else{
+        os << "[ ";
+        for(const auto& t:filter.types){
+            os << t << " ";
+        }
+        os << ']';
+    }
+}
+
+void writeCoord(std::ostream& os, const SelectionFilter& filter){
+    using Coord = SelectionFilter::Coord;
+    os << "coord ";
+    switch(filter.coord & Coord::C_CMP_MASK){
+    case Coord::C_GT:
+        os << '>';
+        break;
+    case Coord::C_EQ:
+        os << '=';
+        break;
+    case Coord::C_LT:
+        os << '<';
+        break;
+    }
+    os << filter.coordVal;
+}
+
+void writePos(std::ostream& os, const SelectionFilter& filter){
+    using Pos = SelectionFilter::Pos;
+    os << "pos ";
+    const std::map<uint8_t, char> posToC{
+        {Pos::X, 'x'}, {Pos::Y, 'y'}, {Pos::Z, 'z'},
+        {Pos::ANG, 'a'}, {Pos::BOHR, 'b'},
+        {Pos::CRYS, 'c'}, {Pos::CDM, 'd'},
+        {Pos::P_LT, '<'}, {Pos::P_GT, '>'}
+    };
+    os << posToC.at(filter.pos & Pos::DIR_MASK);
+    os << posToC.at(filter.pos & Pos::FMT_MASK);
+    os << posToC.at(filter.pos & Pos::P_CMP_MASK);
+    os << filter.posVal;
+}
+
+void writeIdx(std::ostream& os, const SelectionFilter& filter){
+    os << "index ";
+    if(filter.indices.size() == 1){
+        os << *filter.indices.cbegin();
+    }else{
+        os << "[ ";
+        for(const auto& i:filter.indices){
+            os << i << " ";
+        }
+        os << ']';
+    }
+}
 
 std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter)
 {
     using Op = SelectionFilter::Op;
-    using Pos = SelectionFilter::Pos;
-    using Coord = SelectionFilter::Coord;
     using Mode = SelectionFilter::Mode;
     if(filter.op & Op::NOT){
         os << "not ";
     }
     switch(filter.mode){
     case Mode::Index:
-        os << "index ";
-        if(filter.indices.size() == 1){
-            os << *filter.indices.cbegin();
-        }else{
-            os << "[ ";
-            for(const auto& i:filter.indices){
-                os << i << " ";
-            }
-            os << ']';
-        }
+        writeIdx(os, filter);
         break;
     case Mode::Coord:
-        os << "coord ";
-        switch(filter.coord & Coord::C_CMP_MASK){
-        case Coord::C_GT:
-            os << '>';
-            break;
-        case Coord::C_EQ:
-            os << '=';
-            break;
-        case Coord::C_LT:
-            os << '<';
-            break;
-        }
-        os << filter.coordVal;
+        writeCoord(os, filter);
         break;
     case Mode::Pos:
-        os << "pos ";
-        switch(filter.pos & Pos::DIR_MASK){
-        case Pos::X:
-            os << 'x';
-            break;
-        case Pos::Y:
-            os << 'y';
-            break;
-        case Pos::Z:
-            os << 'z';
-            break;
-        }
-        switch(filter.pos & Pos::FMT_MASK){
-        case Pos::ANG:
-            os << 'a';
-            break;
-        case Pos::BOHR:
-            os << 'b';
-            break;
-        case Pos::CRYS:
-            os << 'c';
-            break;
-        case Pos::CDM:
-            os << 'd';
-            break;
-        }
-        switch(filter.pos & Pos::P_CMP_MASK){
-        case Pos::P_LT:
-            os << '<';
-            break;
-        case Pos::P_GT:
-            os << '>';
-            break;
-        }
-        os << filter.posVal;
+        writePos(os, filter);
         break;
     case Mode::Type:
-        os << "type ";
-        if(filter.types.size() == 1){
-            os << *filter.types.cbegin();
-        }else{
-            os << "[ ";
-            for(const auto& t:filter.types){
-                os << t << " ";
-            }
-            os << ']';
-        }
+        writeType(os, filter);
+        break;
+    case Mode::Group:
+        //TODO
         break;
     }
     if(filter.op & Op::PAIR){
-        os << '(';
+        os << ' ';
         if(filter.op & Op::NOT_PAIR){
             os << '!';
         }
@@ -171,15 +168,119 @@ std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter)
         }else{
             os << '&';
         }
+        os << ' ';
         os << *filter.subfilter;
-        os << ')';
     }
     return os;
 }
 
+void parseType(std::istream& is, SelectionFilter& filter){
+    std::string token;
+    filter.mode = SelectionFilter::Mode::Type;
+    is >> token;
+    if(token.front() == '['){
+        if(token.size() > 1){
+            filter.types.insert(token.substr(1));
+        }
+        while(is.good()){
+            is >> token;
+            if(token.back() == ']'){
+                if(token.size() > 1){
+                    token.pop_back();
+                    filter.types.insert(token);
+                }
+                break;
+            }else{
+                filter.types.insert(token);
+            }
+        }
+    }else{
+        is >> token;
+        filter.types.insert(token);
+    }
+}
+
+void parseCoord(std::istream& is, SelectionFilter& filter){
+    using Coord = SelectionFilter::Coord;
+    filter.mode = SelectionFilter::Mode::Coord;
+    filter.coord = 0;
+    char ctoken;
+    is >> ctoken;
+    switch(ctoken){
+    case '<':
+        filter.coord |= Coord::C_LT;
+        break;
+    case '>':
+        filter.coord |= Coord::C_GT;
+        break;
+    case '=':
+        filter.coord |= Coord::C_EQ;
+        break;
+    default:
+        throw Error(std::string{"Unknown comparison "}+ctoken);
+    }
+    is >> filter.coordVal;
+}
+
+void parsePos(std::istream& is, SelectionFilter& filter){
+    using Pos = SelectionFilter::Pos;
+    filter.mode = SelectionFilter::Mode::Pos;
+    filter.pos = 0;
+    const std::map<char, Pos> cToPos{
+        {'x', Pos::X}, {'y', Pos::Y}, {'z', Pos::Z},
+        {'a', Pos::ANG}, {'b', Pos::BOHR},
+        {'c', Pos::CRYS}, {'d', Pos::CDM},
+        {'<', Pos::P_LT}, {'>', Pos::P_GT}
+    };
+    char ctoken;
+    is >> ctoken;
+    filter.pos |= cToPos.at(ctoken);
+    is >> ctoken;
+    filter.pos |= cToPos.at(ctoken);
+    is >> ctoken;
+    filter.pos |= cToPos.at(ctoken);
+    is >> filter.posVal;
+}
+
+void parseIdx(std::istream& is, SelectionFilter& filter){
+    filter.mode = SelectionFilter::Mode::Index;
+    std::string token;
+    is >> token;
+    auto rangeParser = [&filter](const std::string &token){
+        auto splitPos = token.find('-');
+        if(splitPos != token.npos){
+            auto left = std::stoul(token.substr(0, splitPos));
+            auto right = std::stoul(token.substr(splitPos+1));
+            for(auto i=std::min(left, right); i<=std::max(left,right);++i){
+                filter.indices.insert(static_cast<size_t>(i));
+            }
+        }else{
+            filter.indices.insert(std::stoul(token));
+        }
+    };
+    if(token.front() == '['){
+        if(token.size() > 1){
+            rangeParser(token.substr(1));
+        }
+        while(is.good()){
+            is >> token;
+            if(token.back() == ']'){
+                if(token.size() > 1){
+                    token.pop_back();
+                    rangeParser(token);
+                }
+                break;
+            }else{
+                rangeParser(token);
+            }
+        }
+    }else{
+        rangeParser(token);
+    }
+}
+
 std::istream& operator>>(std::istream& is, SelectionFilter& filter){
     using Op = SelectionFilter::Op;
-    using Mode = SelectionFilter::Mode;
     std::string token;
     filter.op = 0;
     is >> token;
@@ -190,157 +291,38 @@ std::istream& operator>>(std::istream& is, SelectionFilter& filter){
         std::transform(token.begin(), token.end(), token.begin(), ::tolower);
     }
     if(token == "type"){
-        filter.mode = Mode::Type;
-        is >> token;
-        if(token[0] == '['){
-            if(token.size() > 1){
-                filter.types.insert(token.substr(1));
-            }
-            while(is.good()){
-                is >> token;
-                if(token.back() == ']'){
-                    if(token.size() > 1){
-                        token.pop_back();
-                        filter.types.insert(token);
-                    }
-                    break;
-                }else{
-                    filter.types.insert(token);
-                }
-            }
-        }else{
-            is >> token;
-            filter.types.insert(token);
-        }
+        parseType(is, filter);
     }else if(token == "coord"){
-        using Coord = SelectionFilter::Coord;
-        filter.mode = Mode::Coord;
-        filter.coord = 0;
-        char ctoken;
-        is >> ctoken;
-        switch(ctoken){
-        case '<':
-            filter.coord |= Coord::C_LT;
-            break;
-        case '>':
-            filter.coord |= Coord::C_GT;
-            break;
-        case '=':
-            filter.coord |= Coord::C_EQ;
-            break;
-        default:
-            throw Error(std::string{"Unknown comparison "}+ctoken);
-        }
-        is >> filter.coordVal;
+        parseCoord(is, filter);
     }else if(token == "pos"){
-        using Pos = SelectionFilter::Pos;
-        filter.mode = Mode::Pos;
-        filter.pos = 0;
-        char ctoken;
-        is >> ctoken;
-        switch(ctoken){
-        case 'x':
-            filter.pos |= Pos::X;
-            break;
-        case 'y':
-            filter.pos |= Pos::Y;
-            break;
-        case 'z':
-            filter.pos |= Pos::Z;
-            break;
-        default:
-            throw Error(std::string{"Unknown direction "}+ctoken);
-        }
-        is >> ctoken;
-        switch(ctoken){
-        case 'a':
-            filter.pos |= Pos::ANG;
-            break;
-        case 'b':
-            filter.pos |= Pos::BOHR;
-            break;
-        case 'c':
-            filter.pos |= Pos::CRYS;
-            break;
-        case 'd':
-            filter.pos |= Pos::CDM;
-            break;
-        default:
-            throw Error(std::string{"Unknown format "}+ctoken);
-        }
-        is >> ctoken;
-        switch(ctoken){
-        case '<':
-            filter.pos |= Pos::P_LT;
-            break;
-        case '>':
-            filter.pos |= Pos::P_GT;
-            break;
-        default:
-            throw Error(std::string{"Unknown comparison "}+ctoken);
-        }
-        is >> filter.posVal;
+        parsePos(is, filter);
     }else if(token == "index"){
-        filter.mode = Mode::Index;
-        is >> token;
-        auto rangeParser = [&filter](const std::string &token){
-            auto splitPos = token.find('-');
-            if(splitPos != token.npos){
-                auto left = std::stol(token.substr(0, splitPos));
-                auto right = std::stol(token.substr(splitPos+1));
-                for(auto i=std::min(left, right); i<=std::max(left,right);++i){
-                    filter.indices.insert(static_cast<size_t>(i));
-                }
-            }else{
-                filter.indices.insert(std::stoul(token));
-            }
-        };
-        if(token[0] == '['){
-            if(token.size() > 1){
-                rangeParser(token.substr(1));
-            }
-            while(is.good()){
-                is >> token;
-                if(token.back() == ']'){
-                    if(token.size() > 1){
-                        token.pop_back();
-                        rangeParser(token);
-                    }
-                    break;
-                }else{
-                    rangeParser(token);
-                }
-            }
-        }else{
-            is >> token;
-            rangeParser(token);
-        }
+        parseIdx(is, filter);
     }else{
         throw Error("Unknown selection operator: "+token);
     }
-    auto ctoken = is.peek();
-    if(ctoken == '('){
-        is.get();
-        ctoken = is.get();
-        if(ctoken == '!'){
-            filter.op |= Op::NOT_PAIR;
-            ctoken = is.get();
+    if(is.good() && (is >> token) && !token.empty()){
+        if(token.size() > 2){
+            throw Error("Unknown coupling operator "+token);
         }
-        if(ctoken == '|'){
+        if(token.front() == '!'){
+            filter.op |= Op::NOT_PAIR;
+        }
+        switch(token.back()){
+        case '|':
             filter.op |= Op::OR;
-        }else if(ctoken == '&'){
+            break;
+        case '&':
             filter.op |= Op::AND;
-        }else if(ctoken == '^'){
+            break;
+        case '^':
             filter.op |= Op::XOR;
-        }else{
-            throw Error("Unknown coupling operator "+std::string{1, static_cast<char>(ctoken)});
+            break;
+        default:
+            throw Error("Unknown coupling operator "+token);
         }
         filter.subfilter = std::make_unique<SelectionFilter>();
         is >> *filter.subfilter;
-        ctoken = is.get();
-        if(ctoken != ')'){
-            throw Error("Unterminated nested filter");
-        }
     }
     filter.op |= Op::UPDATE;
     return is;
@@ -349,79 +331,142 @@ std::istream& operator>>(std::istream& is, SelectionFilter& filter){
 /*
  * recursively evaluate the filters
  */
-std::vector<size_t> evalFilter(const Step& step, const SelectionFilter& filter)
-{
+std::vector<size_t> evalType(const Step& step, const SelectionFilter& filter){
     std::vector<size_t> tmp;
     size_t idx{0};
-    switch(filter.mode){
-    case SelectionFilter::Mode::Type:
-        for(const auto& at: step.getNames()){
-            for(const auto& type: filter.types){
-                if(at == type){
-                    tmp.push_back(idx);
-                    break;
-                }
+    for(const auto& at: step.getNames()){
+        for(const auto& type: filter.types){
+            if(at == type){
+                tmp.push_back(idx);
+                break;
             }
-            ++idx;
         }
+        ++idx;
+    }
+    return tmp;
+}
+
+std::vector<size_t> evalIdx(const Step&, const SelectionFilter& filter){
+    std::vector<size_t> tmp;
+    tmp = std::vector<size_t>{
+            filter.indices.cbegin(), filter.indices.cend()};
+    return tmp;
+}
+
+std::vector<size_t> evalPos(const Step& step, const SelectionFilter& filter){
+    std::vector<size_t> tmp;
+    std::size_t idx{0};
+    auto cmp = [&filter](const Vec& at){
+        size_t dir = (filter.pos & filter.DIR_MASK) >> 3;
+        if(filter.pos & filter.P_LT){
+            return at[dir] < filter.posVal;
+        }
+        return at[dir] > filter.posVal;
+    };
+    for(const auto& at: step.asFmt(static_cast<AtomFmt>(filter.pos & filter.FMT_MASK))
+                            .getCoords()){
+        if(cmp(at)){
+            tmp.push_back(idx);
+        }
+        ++idx;
+    }
+    return tmp;
+}
+
+std::vector<size_t> evalCoord(const Step& step, const SelectionFilter& filter){
+    std::vector<size_t> tmp;
+    // TODO: move functionality to step?
+    std::vector<size_t> coord_numbers(step.getNat());
+    for(const Bond& b: step.getBonds()){
+        coord_numbers[b.at1] += 1;
+        coord_numbers[b.at2] += 1;
+    }
+    auto cmp = [&filter](const size_t c){
+        auto cmp_op = filter.coord & filter.C_CMP_MASK;
+        if(cmp_op == filter.C_GT){
+            return c > filter.coordVal;
+        }else if(cmp_op == filter.C_EQ){
+            return c == filter.coordVal;
+        }else{
+            return c < filter.coordVal;
+        }
+    };
+    for(size_t i=0; i<step.getNat(); ++i){
+        if(cmp(coord_numbers[i])){
+            tmp.push_back(i);
+        }
+    }
+    return tmp;
+}
+
+std::vector<size_t> invertSel(const Step& step, const std::vector<size_t>& in){
+    std::vector<size_t> out;
+    out.reserve(step.getNat());
+    for(size_t i=0; i<step.getNat(); ++i){
+        if(std::find(in.begin(), in.end(), i) == in.end()){
+            out.push_back(i);
+        }
+    }
+    return out;
+}
+
+std::vector<size_t> evalFilter(const Step& step, SelectionFilter& filter);
+std::vector<size_t> evalSubFilter(const Step& step,
+                                  const SelectionFilter& filter,
+                                  const std::vector<size_t>& parent){
+    using Op = SelectionFilter::Op;
+    std::vector<size_t> child = evalFilter(step, *filter.subfilter);
+    std::vector<size_t> tmp(parent.size()+child.size());
+    std::vector<size_t>::iterator it;
+    if((filter.op & Op::XOR) == Op::XOR){
+        it = std::set_symmetric_difference(parent.begin(), parent.end(),
+                                           child.begin(), child.end(),
+                                           tmp.begin());
+    }else if((filter.op & Op::OR) == Op::OR){
+        it = std::set_union(parent.begin(), parent.end(),
+                            child.begin(), child.end(),
+                            tmp.begin());
+    }else if((filter.op & Op::AND) == Op::AND){
+        it = std::set_intersection(parent.begin(), parent.end(),
+                                   child.begin(), child.end(),
+                                   tmp.begin());
+    }else{
+        throw Error("Unknown coupling operator "+std::to_string(filter.op & Op::PAIR_MASK));
+    }
+    tmp.resize(static_cast<size_t>(it - tmp.begin()));
+    if(filter.op & Op::NOT_PAIR){
+        return invertSel(step, tmp);
+    }
+    return tmp;
+}
+
+std::vector<size_t> evalFilter(const Step& step, SelectionFilter& filter)
+{
+    std::vector<size_t> tmp;
+    switch(filter.mode){
+    case SelectionFilter::Mode::Group:
+        //TODO
+        break;
+    case SelectionFilter::Mode::Type:
+        tmp = evalType(step, filter);
         break;
     case SelectionFilter::Mode::Index:
-        tmp = std::vector<size_t>{
-                filter.indices.cbegin(), filter.indices.cend()};
+        tmp = evalIdx(step, filter);
         break;
     case SelectionFilter::Mode::Pos:
-        {
-        auto cmp = [&filter](const Vec& at){
-            size_t dir = (filter.pos & filter.DIR_MASK) >> 3;
-            if(filter.pos & filter.P_CMP_MASK){
-                return at[dir] < filter.posVal;
-            }
-            return at[dir] > filter.posVal;
-        };
-        for(const auto& at: step.asFmt(static_cast<AtomFmt>(filter.pos & filter.FMT_MASK))
-                                .getCoords()){
-            if(cmp(at)){
-                tmp.push_back(idx);
-            }
-            ++idx;
-        }
-        }
+        tmp = evalPos(step, filter);
         break;
     case SelectionFilter::Mode::Coord:
-        {
-        // TODO: move functionality to step?
-        std::map<size_t, size_t> coord_numbers;
-        for(const Bond& b: step.getBonds()){
-            coord_numbers[b.at1] += 1;
-            coord_numbers[b.at2] += 1;
-        }
-        auto cmp = [&filter](const size_t c){
-            auto cmp_op = filter.coord & filter.C_CMP_MASK;
-            if(cmp_op == filter.C_GT){
-                return c > filter.coordVal;
-            }else if(cmp_op == filter.C_EQ){
-                return c == filter.coordVal;
-            }else{
-                return c < filter.coordVal;
-            }
-        };
-        for(size_t i=0; i<step.getNat(); ++i){
-            if(cmp(coord_numbers[i])){
-                tmp.push_back(i);
-            }
-        }
-        }
+        tmp = evalCoord(step, filter);
         break;
     }
     if(filter.op & filter.NOT){
-        std::vector<size_t> tmp2;
-        for(size_t i=0; i<step.getNat(); ++i){
-            if(std::find(tmp.begin(), tmp.end(), i) == tmp.end()){
-                tmp2.push_back(i);
-            }
-        }
-        std::swap(tmp, tmp2);
+        tmp = invertSel(step, tmp);
     }
+    if(filter.op & filter.PAIR){
+        tmp = evalSubFilter(step, filter, tmp);
+    }
+    filter.op &= ~filter.UPDATE;
     return tmp;
 }
 
