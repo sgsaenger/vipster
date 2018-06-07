@@ -21,7 +21,7 @@ struct AtomSelection{
  * Target grammar:
  * Keywords are case insensitive, whereas atom-types are case-sensitive
  *
- * Filter ::= Criterion, {(Coupling, Filter) | ("(", Filter, ")")};
+ * Filter ::= (Criterion, {Coupling, Filter}) | ("(", Filter, ")"));
  * Criterion ::= ["not "], (TypeCrit | IdxCrit | PosCrit | CoordCrit);
  * Coupling ::= ["!"], ("|" | "&" | "^");
  *
@@ -184,18 +184,33 @@ void parseType(std::istream& is, SelectionFilter& filter){
         }
         while(is.good()){
             is >> token;
+            if(token.back() == ')'){
+                if(token.size() > 1){
+                    token.pop_back();
+                    is.putback(')');
+                }else{
+                    throw Error("Unterminated type list");
+                }
+            }
             if(token.back() == ']'){
                 if(token.size() > 1){
                     token.pop_back();
                     filter.types.insert(token);
                 }
-                break;
+                return;
             }else{
                 filter.types.insert(token);
             }
         }
     }else{
-        is >> token;
+        if(token.back() == ')'){
+            if(token.size() > 1){
+                token.pop_back();
+                is.putback(')');
+            }else{
+                throw Error("Missing type");
+            }
+        }
         filter.types.insert(token);
     }
 }
@@ -264,17 +279,33 @@ void parseIdx(std::istream& is, SelectionFilter& filter){
         }
         while(is.good()){
             is >> token;
+            if(token.back() == ')'){
+                if(token.size() > 1){
+                    token.pop_back();
+                    is.putback(')');
+                }else{
+                    throw Error("Unterminated index list");
+                }
+            }
             if(token.back() == ']'){
                 if(token.size() > 1){
                     token.pop_back();
                     rangeParser(token);
                 }
-                break;
+                return;
             }else{
                 rangeParser(token);
             }
         }
     }else{
+        if(token.back() == ')'){
+            if(token.size() > 1){
+                token.pop_back();
+                is.putback(')');
+            }else{
+                throw Error("Missing index");
+            }
+        }
         rangeParser(token);
     }
 }
@@ -282,26 +313,46 @@ void parseIdx(std::istream& is, SelectionFilter& filter){
 std::istream& operator>>(std::istream& is, SelectionFilter& filter){
     using Op = SelectionFilter::Op;
     std::string token;
-    filter.op = 0;
-    is >> token;
-    std::transform(token.begin(), token.end(), token.begin(), ::tolower);
-    if(token == "not"){
-        filter.op |= Op::NOT;
-        is >> token;
-        std::transform(token.begin(), token.end(), token.begin(), ::tolower);
-    }
-    if(token == "type"){
-        parseType(is, filter);
-    }else if(token == "coord"){
-        parseCoord(is, filter);
-    }else if(token == "pos"){
-        parsePos(is, filter);
-    }else if(token == "index"){
-        parseIdx(is, filter);
+    char c;
+    filter.op = Op::UPDATE;
+    is >> c;
+    if(c == '('){
+        // Parse subfilter (lower level, filter is parent)
+        filter.mode = SelectionFilter::Mode::Group;
+        filter.groupfilter = std::make_unique<SelectionFilter>();
+        is >> *filter.groupfilter;
+        is >> c;
+        if(c != ')'){
+            throw Error("Unterminated filter group");
+        }
     }else{
-        throw Error("Unknown selection operator: "+token);
+        // Parse criterion
+        is >> token;
+        token.insert(token.begin(), c);
+        std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+        if(token == "not"){
+            filter.op |= Op::NOT;
+            is >> token;
+            std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+        }
+        if(token == "type"){
+            parseType(is, filter);
+        }else if(token == "coord"){
+            parseCoord(is, filter);
+        }else if(token == "pos"){
+            parsePos(is, filter);
+        }else if(token == "index"){
+            parseIdx(is, filter);
+        }else{
+            throw Error("Unknown selection operator: "+token);
+        }
     }
+    // Parse subfilter (same level)
     if(is.good() && (is >> token) && !token.empty()){
+        if(token.front() == ')'){
+            is.putback(')');
+            return is;
+        }
         if(token.size() > 2){
             throw Error("Unknown coupling operator "+token);
         }
@@ -324,7 +375,6 @@ std::istream& operator>>(std::istream& is, SelectionFilter& filter){
         filter.subfilter = std::make_unique<SelectionFilter>();
         is >> *filter.subfilter;
     }
-    filter.op |= Op::UPDATE;
     return is;
 }
 

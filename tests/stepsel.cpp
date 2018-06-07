@@ -100,5 +100,11 @@ TEST_CASE("Vipster::StepSel", "[step]") {
         CHECK(selXor.getNat() == 2);
         auto selXnor = s.select("index [0 1] !^ type [H O]");
         CHECK(selXnor.getNat() == 1);
+        auto ungrouped = s.select("index 0 | index 1 & index 2");
+        CHECK(ungrouped.getNat() == 1);
+        auto leftgrouped = s.select("(index 0 | index 1) & index 2");
+        CHECK(leftgrouped.getNat() == 0);
+        auto rightgrouped = s.select("index 0 | (index 1 & index 2)");
+        CHECK(rightgrouped.getNat() == 1);
     }
 }
