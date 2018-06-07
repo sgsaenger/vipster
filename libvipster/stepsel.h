@@ -153,7 +153,9 @@ std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter)
         writeType(os, filter);
         break;
     case Mode::Group:
-        //TODO
+        os << "( ";
+        os << *filter.groupfilter;
+        os << " )";
         break;
     }
     if(filter.op & Op::PAIR){
@@ -161,9 +163,9 @@ std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter)
         if(filter.op & Op::NOT_PAIR){
             os << '!';
         }
-        if(filter.op & Op::OR){
+        if((filter.op & Op::OR) == Op::OR){
             os << '|';
-        }else if(filter.op & Op::XOR){
+        }else if((filter.op & Op::XOR) == Op::XOR){
             os << '^';
         }else{
             os << '&';

@@ -90,21 +90,30 @@ TEST_CASE("Vipster::StepSel", "[step]") {
     SECTION("complex"){
         auto selOr = s.select("index 0 | type H");
         CHECK(selOr.getNat() == 2);
+        CHECK(selOr.getFilter() == "index 0 | type H");
         auto selNor = s.select("index 0 !| type H");
         CHECK(selNor.getNat() == 1);
+        CHECK(selNor.getFilter() == "index 0 !| type H");
         auto selAnd = s.select("index 0-2 & type H");
         CHECK(selAnd.getNat() == 1);
+        CHECK(selAnd.getFilter() == "index [ 0 1 2 ] & type H");
         auto selNand = s.select("index 0-2 !& type H");
         CHECK(selNand.getNat() == 2);
-        auto selXor = s.select("index [0 1] ^ type [H O]");
+        CHECK(selNand.getFilter() == "index [ 0 1 2 ] !& type H");
+        auto selXor = s.select("not index 2 ^ type [H O]");
         CHECK(selXor.getNat() == 2);
-        auto selXnor = s.select("index [0 1] !^ type [H O]");
+        CHECK(selXor.getFilter() == "not index 2 ^ type [ H O ]");
+        auto selXnor = s.select("not index 2 !^ type [H O]");
         CHECK(selXnor.getNat() == 1);
+        CHECK(selXnor.getFilter() == "not index 2 !^ type [ H O ]");
         auto ungrouped = s.select("index 0 | index 1 & index 2");
         CHECK(ungrouped.getNat() == 1);
+        CHECK(ungrouped.getFilter() == "index 0 | index 1 & index 2");
         auto leftgrouped = s.select("(index 0 | index 1) & index 2");
         CHECK(leftgrouped.getNat() == 0);
+        CHECK(leftgrouped.getFilter()== "( index 0 | index 1 ) & index 2");
         auto rightgrouped = s.select("index 0 | (index 1 & index 2)");
         CHECK(rightgrouped.getNat() == 1);
+        CHECK(rightgrouped.getFilter() == "index 0 | ( index 1 & index 2 )");
     }
 }
