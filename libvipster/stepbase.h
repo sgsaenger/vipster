@@ -245,6 +245,46 @@ public:
     }
     virtual void evaluateCache()const =0;
 
+    // Modifier functions
+    void modShift(Vec shift, float fac=1.0f){
+        shift *= fac;
+        for(Atom& at:*static_cast<T*>(this)){
+            at.coord += shift;
+        }
+    }
+
+    void modRotate(float angle, Vec axis, Vec shift={0,0,0}){
+        angle *= 2*M_PI/360.;
+        float c = std::cos(angle);
+        float s = -std::sin(angle);
+        float ic = 1.f-c;
+        float len = Vec_length(axis);
+        if(float_comp(len, 0.f)){
+            throw Error("0-Vector cannot be rotation axis");
+        }
+        axis /= len;
+        Mat rotMat = {Vec{ic * axis[0] * axis[0] + c,
+                          ic * axis[0] * axis[1] - s * axis[2],
+                          ic * axis[0] * axis[2] + s * axis[1]},
+                      Vec{ic * axis[1] * axis[0] + s * axis[2],
+                          ic * axis[1] * axis[1] + c,
+                          ic * axis[1] * axis[2] - s * axis[0]},
+                      Vec{ic * axis[2] * axis[0] - s * axis[1],
+                          ic * axis[2] * axis[1] + s * axis[0],
+                          ic * axis[2] * axis[2] + c}};
+        for(Atom& at:*static_cast<T*>(this)){
+            at.coord = (at.coord - shift) * rotMat + shift;
+        }
+    }
+
+    void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0}){
+        Vec normal = Vec_cross(ax1, ax2);
+        normal /= Vec_length(normal);
+        for(Atom& at:*static_cast<T*>(this)){
+            at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
+        }
+    }
+
 protected:
     StepBase(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)

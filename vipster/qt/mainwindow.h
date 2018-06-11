@@ -6,6 +6,7 @@
 #include <QDir>
 #include <vector>
 #include "iowrapper.h"
+#include "stepsel.h"
 #include "../common/guiwrapper.h"
 
 namespace Ui {
@@ -23,6 +24,7 @@ public:
     Vipster::Molecule *curMol{nullptr};
     Vipster::StepProper *curStep{nullptr};
     Vipster::BaseParam *curParam{nullptr};
+    std::unique_ptr<Vipster::StepSelection> curSel{nullptr};
     Vipster::AtomFmt getFmt();
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(Vipster::Change change);
