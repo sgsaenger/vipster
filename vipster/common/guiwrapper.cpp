@@ -1,8 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "guiwrapper.h"
 #include "atom_model.h"
@@ -126,7 +124,7 @@ void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
     if(float_comp(a,0)){
         return;
     }
-    float tmp = a * static_cast<float>(M_PI / 180.);
+    float tmp = a * static_cast<float>(Vipster::pi / 180.);
     float s = std::sin(tmp);
     float c = std::cos(tmp);
     if(float_comp(x,0)){
