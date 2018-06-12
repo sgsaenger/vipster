@@ -150,9 +150,15 @@ Atom Step::operator[](size_t i) {
     return *iterator{atoms, at_fmt, i};
 }
 
-StepSelection Step::select(std::string filter)
+StepSelection& Step::select(std::string filter)
 {
-    return StepSelection{*this, filter};
+    lastSel = StepSelection{*this, filter};
+    return lastSel;
+}
+
+StepSelection& Step::getLastSelection()
+{
+    return lastSel;
 }
 
 StepSelConst Step::select(std::string filter) const
@@ -323,10 +329,10 @@ Step& Step::operator=(const Step& s)
 {
     pse = s.pse;
     at_fmt = s.at_fmt;
-    atoms = std::make_shared<AtomList>(*s.atoms);
-    bonds = std::make_shared<BondList>(*s.bonds);
-    cell = std::make_shared<CellData>(*s.cell);
-    comment = std::make_shared<std::string>(*s.comment);
+    *atoms = *s.atoms;
+    *bonds = *s.bonds;
+    *cell = *s.cell;
+    *comment = *s.comment;
     return *this;
 }
 
@@ -347,7 +353,7 @@ StepProper::StepProper(const StepProper& s)
 
 StepProper& StepProper::operator=(const StepProper& s)
 {
-    static_cast<Step&>(*this).operator=(s);
+    *static_cast<Step*>(this) = s;
     return *this;
 }
 

@@ -1,4 +1,5 @@
 #include "stepsel.h"
+#include "step.h"
 
 using namespace Vipster;
 

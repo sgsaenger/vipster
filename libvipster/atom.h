@@ -11,6 +11,7 @@
 #include "config.h"
 
 //TODO: track changes in properties?
+//TODO: forces, other properties
 
 namespace Vipster{
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };

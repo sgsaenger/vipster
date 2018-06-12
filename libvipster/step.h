@@ -1,10 +1,9 @@
 #ifndef LIBVIPSTER_STEP_H
 #define LIBVIPSTER_STEP_H
 
-#include "atom.h"
-#include "cell.h"
 #include "stepbase.h"
-#include "vec.h"
+#include "atomcontainers.h"
+#include "stepsel.h"
 
 #include <vector>
 #include <memory>
@@ -12,100 +11,10 @@
 namespace Vipster {
 
 /*
- * Basic serial Atom container
- *
- * Stores atom in separate vectors
- */
-struct AtomList{
-    // Coordinates
-    // one buffer per Vipster::AtomFmt
-    std::array<std::vector<Vec>, nAtFmt> coordinates;
-    std::array<bool, nAtFmt>             coord_changed;
-    std::array<bool, nAtFmt>             coord_outdated;
-    // Names (synced with type-pointers)
-    std::vector<std::string>        names;
-    bool                            name_changed;
-    std::vector<PseEntry*>          pse;
-    // Properties
-    std::vector<float>              charges;
-    std::vector<AtomProperties>     properties;
-    bool                            prop_changed;
-};
-
-/*
- * Iterator for serial Atom container
- */
-template<typename T>
-class AtomListIterator: private T
-{
-public:
-    AtomListIterator(const std::shared_ptr<AtomList> &atoms,
-                     AtomFmt fmt, size_t idx)
-        : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
-            &atoms->coord_changed[static_cast<uint8_t>(fmt)],
-            &atoms->names[idx],
-            &atoms->name_changed,
-            &atoms->charges[idx],
-            &atoms->properties[idx],
-            &atoms->pse[idx],
-            &atoms->prop_changed,
-        }, atoms{atoms}, fmt{fmt}, idx{idx}
-    {}
-    AtomListIterator& operator++(){
-        ++idx;
-        ++(this->coord_ptr);
-        ++(this->name_ptr);
-        ++(this->charge_ptr);
-        ++(this->prop_ptr);
-        ++(this->pse_ptr);
-        return *this;
-    }
-    AtomListIterator& operator+=(size_t i){
-        idx += i;
-        this->coord_ptr += i;
-        this->name_ptr += i;
-        this->charge_ptr += i;
-        this->prop_ptr += i;
-        this->pse_ptr += i;
-        return *this;
-    }
-    AtomListIterator operator+(size_t i){
-        AtomListIterator copy{*this};
-        return copy+=i;
-    }
-    T&      operator*() const {
-        //const-ness of iterator is separate of const-ness of atoms!
-        return static_cast<T&>(*const_cast<AtomListIterator*>(this));
-    }
-    T*      operator->() const {
-        return &(operator*());
-    }
-    bool    operator==(const AtomListIterator& rhs) const noexcept{
-        return (atoms == rhs.atoms) && (fmt == rhs.fmt) && (idx == rhs.idx);
-    }
-    bool    operator!=(const AtomListIterator& rhs) const noexcept{
-        return !(*this == rhs);
-    }
-    size_t getIdx() const noexcept{
-        return idx;
-    }
-private:
-    std::shared_ptr<AtomList> atoms;
-    AtomFmt fmt;
-    size_t idx;
-};
-
-/*
  * Basic Step-class
  *
  * Instantiation of Bond- and Cell-getters with AtomList as Atom-source
  */
-template<typename T>
-class SelectionProper;
-
-class Step;
-using StepSelection = SelectionProper<Step>;
-using StepSelConst = SelectionProper<const Step>;
 
 class Step: public StepBase<Step>
 {
@@ -113,9 +22,11 @@ class Step: public StepBase<Step>
     friend class SelectionBase;
 public:
     Step& operator=(const Step& s);
+    ~Step() override = default;
     //TODO: make move-able
 
-    StepSelection   select(std::string);
+    StepSelection&  select(std::string);
+    StepSelection&  getLastSelection();
     StepSelConst    select(std::string) const;
 
     // Atoms
@@ -155,6 +66,7 @@ protected:
          std::shared_ptr<AtomList>);
     Step(const Step& s);
     std::shared_ptr<AtomList>       atoms;
+    StepSelection                   lastSel{*this};
 };
 
 /*
@@ -165,6 +77,7 @@ class StepFormatter: public Step
 {
 public:
     StepFormatter(StepProper& step, AtomFmt at_fmt);
+    ~StepFormatter() override = default;
     Step&       asFmt(AtomFmt at_fmt) override;
     const Step& asFmt(AtomFmt at_fmt) const override;
     void evaluateCache() const override;
@@ -188,7 +101,7 @@ public:
                std::string comment="");
     StepProper(const StepProper& s);
     StepProper& operator=(const StepProper& s);
-    ~StepProper() override =default;
+    ~StepProper() override = default;
     //TODO: make move-able
 
     // Format

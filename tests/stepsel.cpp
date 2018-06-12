@@ -1,4 +1,4 @@
-#include "stepsel.h"
+#include "step.h"
 #include "catch.hpp"
 using namespace Vipster;
 

@@ -1,23 +1,20 @@
 #ifndef LIBVIPSTER_STEPSEL_H
 #define LIBVIPSTER_STEPSEL_H
 
-#include "step.h"
+#include "stepbase.h"
+#include "atomcontainers.h"
 
 namespace Vipster {
-
-/*
- * Selection container
- *
- * contains indices of selected atoms in AtomList
- */
-struct AtomSelection{
-    std::vector<size_t> indices;
-    std::shared_ptr<AtomList> atoms;
-};
+// Forward declarations
+class Step;
+template<typename T>
+class SelectionProper;
+using StepSelection = SelectionProper<Step>;
+using StepSelConst = SelectionProper<const Step>;
 
 /*
  * Wrap multiple filter criteria without polymorphism
- * also, represents differently coupled filter chains
+ * also represents hierarchically coupled filter chains
  * Target grammar:
  * Keywords are case insensitive, whereas atom-types are case-sensitive
  *
@@ -43,17 +40,21 @@ struct AtomSelection{
  */
 struct SelectionFilter{
     SelectionFilter() = default;
-    SelectionFilter(const SelectionFilter& f)
-        :mode{f.mode}, op{f.op},
-          indices{f.indices},
-          types{f.types}
-    {
+    SelectionFilter(const SelectionFilter& f) {
+        *this = f;
+    }
+    SelectionFilter& operator=(const SelectionFilter& f){
+        mode = f.mode; op = f.op;
+        pos = f.pos; posVal = f.posVal;
+        coord = f.coord; coordVal = f.coordVal;
+        indices = f.indices; types = f.types;
         if(f.subfilter){
             subfilter = std::make_unique<SelectionFilter>(*f.subfilter);
         }
         if(f.groupfilter){
             groupfilter = std::make_unique<SelectionFilter>(*f.groupfilter);
         }
+        return *this;
     }
     enum class Mode:uint8_t{Index, Type, Coord, Pos, Group};
     enum Op{NONE=0x0, NOT=0x1, // first bit negates own op
@@ -85,73 +86,6 @@ std::istream& operator>>(std::istream& is, SelectionFilter& filter);
 std::vector<size_t> evalFilter(const Step& step, SelectionFilter& filter);
 
 /*
- * Iterator for Atom selection
- *
- * dereferences selection-indices
- */
-template<typename T>
-class AtomSelIterator: private T
-{
-public:
-    AtomSelIterator(const std::shared_ptr<AtomSelection> &selection,
-                    AtomFmt fmt, size_t idx)
-    //TODO: introduce a terminal-object (when c++17 is ready?)
-        : T{&selection->atoms->coordinates[static_cast<size_t>(fmt)][idx<selection->indices.size()?selection->indices[idx]:0],
-            &selection->atoms->coord_changed[static_cast<size_t>(fmt)],
-            &selection->atoms->names[idx<selection->indices.size()?selection->indices[idx]:0],
-            &selection->atoms->name_changed,
-            &selection->atoms->charges[idx<selection->indices.size()?selection->indices[idx]:0],
-            &selection->atoms->properties[idx<selection->indices.size()?selection->indices[idx]:0],
-            &selection->atoms->pse[idx<selection->indices.size()?selection->indices[idx]:0],
-            &selection->atoms->prop_changed},
-          selection{selection}, fmt{fmt}, idx{idx}
-    {}
-    AtomSelIterator& operator++(){
-        ++idx;
-        auto diff = selection->indices[idx] - selection->indices[idx-1];
-        this->coord_ptr += diff;
-        this->name_ptr += diff;
-        this->charge_ptr += diff;
-        this->prop_ptr += diff;
-        this->pse_ptr += diff;
-        return *this;
-    }
-    AtomSelIterator& operator+=(size_t i){
-        idx += i;
-        auto diff = selection->indices[idx] - selection->indices[idx-i];
-        this->coord_ptr += diff;
-        this->name_ptr += diff;
-        this->charge_ptr += diff;
-        this->prop_ptr += diff;
-        this->pse_ptr += diff;
-        return *this;
-    }
-    AtomSelIterator operator+(size_t i){
-        AtomSelIterator copy{*this};
-        return copy+=i;
-    }
-    T&  operator*() const {
-        return static_cast<T&>(*const_cast<AtomSelIterator*>(this));
-    }
-    T*  operator->() const {
-        return &(operator*());
-    }
-    bool    operator==(const AtomSelIterator& rhs) const noexcept{
-        return (selection == rhs.selection) && (fmt == rhs.fmt) && (idx == rhs.idx);
-    }
-    bool    operator!=(const AtomSelIterator& rhs) const noexcept{
-        return !(*this == rhs);
-    }
-    size_t getIdx() const noexcept{
-        return idx;
-    }
-private:
-    std::shared_ptr<AtomSelection> selection;
-    AtomFmt fmt;
-    size_t idx;
-};
-
-/*
  * Basic Selection-class template
  *
  * Instantiation of Bond- and Cell-getters with AtomSelection as Atom-source
@@ -163,14 +97,13 @@ class SelectionBase: public StepBase<SelectionBase<T>>
 public:
     SelectionBase& operator=(const SelectionBase& s)
     {
-        pse = s.pse;
+        this->pse = s.pse;
         this->at_fmt = s.at_fmt;
-        this->atoms = std::make_shared<AtomList>(*s.atoms);
-        this->bonds = std::make_shared<BondList>(*s.bonds);
-        this->cell = std::make_shared<CellData>(*s.cell);
-        this->comment = std::make_shared<std::string>(*s.comment);
-        this->selection = std::make_shared<AtomSelection>(*s.selection);
-        this->filter = std::make_shared<SelectionFilter>(*s.filter);
+        *this->bonds = *s.bonds;
+        *this->cell = *s.cell;
+        *this->comment = *s.comment;
+        *this->selection = *s.selection;
+        *this->filter = *s.filter;
         this->step = s.step;
         return *this;
     }
@@ -334,6 +267,10 @@ public:
     SelectionProper(const SelectionProper& s)
         :SelectionBase<T>{s}
     {}
+    SelectionProper& operator=(const SelectionProper& s){
+        *static_cast<SelectionBase<T>*>(this) = s;
+        return *this;
+    }
     void    setFmt(AtomFmt at_fmt)
     {
         this->at_fmt = at_fmt;

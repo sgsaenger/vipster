@@ -2,6 +2,7 @@
 #define ATOMPROPREF_H
 
 #include <utility>
+#include <istream>
 
 namespace Vipster{
 
@@ -43,12 +44,12 @@ namespace Vipster{
         const typename R::value_type* c_str() const {return (at.*p_prop)->c_str();}
         // enable array-access for Vec
         template <typename R=T>
-        typename R::reference operator [](size_t i) {
+        typename R::reference operator [](std::size_t i) {
             *(at.*p_mod) = true;
             return (*(at.*p_prop))[i];
         }
         template <typename R=T>
-        typename const_ref<R>::type operator [](size_t i) const {
+        typename const_ref<R>::type operator [](std::size_t i) const {
             return (*(at.*p_prop))[i];
         }
         bool operator==(const PropRef &rhs) const
