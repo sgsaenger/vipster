@@ -27,7 +27,7 @@ public:
     std::unique_ptr<Vipster::StepSelection> curSel{nullptr};
     Vipster::AtomFmt getFmt();
     void setFmt(int i, bool apply, bool scale);
-    void updateWidgets(Vipster::Change change);
+    void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
     std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseParam>>> params;
     std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseConfig>>> configs;
@@ -56,8 +56,8 @@ private:
 class BaseWidget{
 public:
     BaseWidget();
-    void triggerUpdate(Vipster::Change change);
-    virtual void updateWidget(Vipster::Change){}
+    void triggerUpdate(uint8_t change);
+    virtual void updateWidget(uint8_t){}
     virtual ~BaseWidget()=default;
 protected:
     bool updateTriggered{false};

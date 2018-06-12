@@ -26,7 +26,7 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::updateWidget(Change change)
+void MolWidget::updateWidget(uint8_t change)
 {
     if (updateTriggered) {
         updateTriggered = false;
@@ -43,13 +43,13 @@ void MolWidget::updateWidget(Change change)
         curStep = &master->curStep->asFmt(master->getFmt());
         ui->atomFmtBox->setCurrentIndex(static_cast<int>(master->getFmt()));
     }
-    if ((change & (Change::atoms | Change::fmt)) != 0) {
+    if (change & (Change::atoms | Change::fmt)) {
         fillAtomTable();
     }
-    if ((change & Change::cell) != 0) {
+    if (change & Change::cell) {
         fillCell();
     }
-    if ((change & Change::kpoints) != 0) {
+    if (change & Change::kpoints) {
         fillKPoints();
     }
 }
@@ -166,9 +166,9 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
                         static_cast<CdmFmt>(ui->cellFmt->currentIndex()),
                         ui->cellScaleBox->isChecked());
     // if needed, trigger atom update
-    Change change = Change::cell;
+    uint8_t change = Change::cell;
     if(ui->cellScaleBox->isChecked() != (curStep->getFmt()>=AtomFmt::Crystal)){
-        change = static_cast<Change>(Change::cell | Change::atoms);
+        change = Change::cell | Change::atoms;
         fillAtomTable();
     }
     ui->cellEnabled->setCheckState(Qt::CheckState::Checked);

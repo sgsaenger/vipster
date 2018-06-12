@@ -15,9 +15,9 @@ namespace Vipster {
 
 typedef std::array<float,16> guiMat;
 
-enum Change{atoms=1, cell=2, fmt=4, kpoints=8, param=16, config=32};
-const Change stepChanged = static_cast<Change>(Change::atoms | Change::cell | Change::fmt);
-const Change molChanged = Change::kpoints;
+enum Change{atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8, param=0x10, config=0x20, selection=0x40};
+constexpr auto stepChanged = Change::atoms | Change::cell | Change::fmt | Change::selection;
+constexpr auto molChanged = Change::kpoints;
 
 #ifdef __EMSCRIPTEN__
 class GuiWrapper{

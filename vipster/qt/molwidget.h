@@ -14,8 +14,8 @@ class MolWidget : public QWidget, public BaseWidget
 
 public:
     explicit MolWidget(QWidget *parent = nullptr);
-    ~MolWidget();
-    void updateWidget(Vipster::Change change);
+    ~MolWidget() override;
+    void updateWidget(uint8_t change) override;
     void registerMol(const std::string& name);
 
 private slots:

@@ -58,7 +58,7 @@ void MainWindow::setupUI()
     }
 }
 
-void MainWindow::updateWidgets(Change change)
+void MainWindow::updateWidgets(uint8_t change)
 {
     if((change & (Change::atoms | Change::cell)) != 0) {
         ui->openGLWidget->setStep(curStep);
@@ -85,8 +85,8 @@ AtomFmt MainWindow::getFmt()
 
 void MainWindow::setMol(int i)
 {
-    curMol = &molecules.at(i);
-    uint steps = curMol->getNstep();
+    curMol = &molecules.at(static_cast<size_t>(i));
+    int steps = static_cast<int>(curMol->getNstep());
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
     QSignalBlocker boxBlocker(ui->stepEdit);
@@ -273,7 +273,7 @@ BaseWidget::BaseWidget()
     throw Error("Could not determine MainWindow-instance.");
 }
 
-void BaseWidget::triggerUpdate(Change change)
+void BaseWidget::triggerUpdate(uint8_t change)
 {
     updateTriggered = true;
     master->updateWidgets(change);

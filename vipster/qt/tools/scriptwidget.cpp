@@ -82,6 +82,7 @@ void ScriptWidget::evalScript()
     };
     auto script_str = static_cast<QPlainTextEdit*>(ui->inputEdit)->toPlainText().toStdString();
     auto script = std::stringstream{script_str};
+    uint8_t change{};
     Step& step = *master->curStep;
     std::map<std::string, StepSelection> definitions{};
     std::map<std::string, ScriptOp> operations{};
@@ -93,6 +94,7 @@ void ScriptWidget::evalScript()
         std::transform(op_pre.begin(), op_pre.begin()+4, op.begin(), ::tolower);
         if(op == "sel"){
             // Change GUI-selection
+            change |= Change::selection;
             std::string sel;
             std::getline(line_stream, sel);
             master->curSel = std::make_unique<StepSelection>(step.select(sel));
@@ -104,6 +106,7 @@ void ScriptWidget::evalScript()
             definitions.insert({name, step.select(sel)});
         }else{
             // Save OPs on stack
+            change |= Change::atoms;
             line_stream >> name;
             ScriptOp& action = operations[name];
             // TODO: check when and how stream extraction fails
@@ -151,5 +154,5 @@ void ScriptWidget::evalScript()
             execOp(definitions.at(pair.first), pair.second);
         }
     }
-    triggerUpdate(Change::atoms);
+    triggerUpdate(change);
 }
