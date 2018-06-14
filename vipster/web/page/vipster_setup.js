@@ -114,9 +114,9 @@ function fillAtoms() {
         html += `
             <tr data-idx=${i}>
                 <td contenteditable data-idx='name' scope="row">${at.name}</td>
-                <td contenteditable data-idx='0'>${x < 0 ? '' : nbsp}${x.toFixed(7)}</td>
-                <td contenteditable data-idx='1'>${y < 0 ? '' : nbsp}${y.toFixed(7)}</td>
-                <td contenteditable data-idx='2'>${z < 0 ? '' : nbsp}${z.toFixed(7)}</td>
+                <td contenteditable data-idx='0'>${x < 0 ? '' : nbsp}${x.toFixed(6)}</td>
+                <td contenteditable data-idx='1'>${y < 0 ? '' : nbsp}${y.toFixed(6)}</td>
+                <td contenteditable data-idx='2'>${z < 0 ? '' : nbsp}${z.toFixed(6)}</td>
             </tr>
         `;
         at.increment();

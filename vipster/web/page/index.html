@@ -124,7 +124,9 @@
                             </div>
                         </form>
 
-                        <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
+                        </div>
                     </div>
                 </article>
 
@@ -203,37 +205,39 @@
                             </div>
 
                             <h3>Cell vectors</h3>
-                            <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors"
-                                   onInput="cellVecChanged(event.target)">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>X</th>
-                                    <th>Y</th>
-                                    <th>Z</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr data-idx=0>
-                                    <td>1</td>
-                                    <td contenteditable data-idx=0>1</td>
-                                    <td contenteditable data-idx=1>0</td>
-                                    <td contenteditable data-idx=2>0</td>
-                                </tr>
-                                <tr data-idx=1>
-                                    <td>2</td>
-                                    <td contenteditable data-idx=0>0</td>
-                                    <td contenteditable data-idx=1>1</td>
-                                    <td contenteditable data-idx=2>0</td>
-                                </tr>
-                                <tr data-idx=2>
-                                    <td>3</td>
-                                    <td contenteditable data-idx=0>0</td>
-                                    <td contenteditable data-idx=1>0</td>
-                                    <td contenteditable data-idx=2>1</td>
-                                </tr>
-                                </tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors"
+                                       onInput="cellVecChanged(event.target)">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>X</th>
+                                        <th>Y</th>
+                                        <th>Z</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr data-idx=0>
+                                        <td>1</td>
+                                        <td contenteditable data-idx=0>1</td>
+                                        <td contenteditable data-idx=1>0</td>
+                                        <td contenteditable data-idx=2>0</td>
+                                    </tr>
+                                    <tr data-idx=1>
+                                        <td>2</td>
+                                        <td contenteditable data-idx=0>0</td>
+                                        <td contenteditable data-idx=1>1</td>
+                                        <td contenteditable data-idx=2>0</td>
+                                    </tr>
+                                    <tr data-idx=2>
+                                        <td>3</td>
+                                        <td contenteditable data-idx=0>0</td>
+                                        <td contenteditable data-idx=1>0</td>
+                                        <td contenteditable data-idx=2>1</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
 
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="cellScale">
