@@ -20,10 +20,10 @@
   },
   "homepage": "https://sgsaenger.github.io/vipster/",
   "devDependencies": {
-    "autoprefixer": "^8.4.0",
-    "bootstrap": "^4.1.0",
-    "node-sass": "^4.7.0",
-    "nodemon": "^1.17.0",
+    "autoprefixer": "^8.6.2",
+    "bootstrap": "^4.1.1",
+    "node-sass": "^4.9.0",
+    "nodemon": "^1.17.5",
     "postcss-cli": "^5.0.0"
   }
 }
