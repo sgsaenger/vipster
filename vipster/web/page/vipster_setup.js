@@ -3,10 +3,10 @@ const DESKTOP_BREAKPOINT = 992;
 
 const dom = {};
 [
-    'canvas', 'alerts', 'inputFile', 'fileType', 'btnBrowse', 'btnUpload',
-    'atList', 'selectAtomFormat', 'cdmFmtSel', 'cellDim', 'cellVec',
-    'cellToMol', 'cellScale', 'stepCur', 'stepMax', 'stepSlider',
-    'moleculeDropdown', 'checkboxCellEnabled',
+    'alerts', 'atList', 'btnBrowse', 'btnUpload', 'canvas', 'cdmFmtSel',
+    'cellDim', 'cellToMol', 'cellScale', 'cellVec', 'checkboxCellEnabled',
+    'fileType', 'inputFile', 'moleculeDropdown', 'selectAtomFormat', 'stepCur',
+    'stepMax', 'stepSlider',
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -44,36 +44,48 @@ function setupCanvas(canvas) {
         }
     });
 
-    const hammer = new Hammer(dom.canvas);
-    hammer.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 20});
-    hammer.get('pinch').set({enable: true});
-//    hammer.get('rotate').set({enable: true});
-    hammer.remove(['press','tap','doubletap', 'swipe']);
-    hammer.on('pan',(e) => {
-                  if(e.pointerType !== 'touch'){
-                      return;
-                  }
-                  if(typeof this.oldX == 'undefined'){
-                      this.oldX = 0
-                      this.oldY = 0
-                  }
-                  Module.rotate(e.deltaX-this.oldX, e.deltaY-this.oldY);
-                  this.oldX = e.deltaX;
-                  this.oldY = e.deltaY;
-              });
-    hammer.on('pinch', (e)=>{
-                  if(e.pointerType !== 'touch'){
-                      return;
-                  }
-                  if(typeof this.oldScale == 'undefined'){
-                      this.oldScale = 1.0
-                  }
-                  let delta = (e.scale - this.oldScale)<0?-1:1;
-                  Module.zoom(delta);
-                  this.oldScale = e.scale;
-              });
+    setupHammer();
 
     return canvas;
+}
+
+function setupHammer() {
+    const hammer = new Hammer(dom.canvas);
+
+    hammer.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 20});
+    hammer.get('pinch').set({enable: true});
+    // hammer.get('rotate').set({enable: true});
+    hammer.remove(['press', 'tap', 'doubletap', 'swipe']);
+
+    hammer.on('pan', (e) => {
+        if (e.pointerType !== 'touch') {
+            return;
+        }
+
+        if (typeof this.oldX === 'undefined') {
+            this.oldX = 0;
+            this.oldY = 0;
+        }
+
+        Module.rotate(e.deltaX - this.oldX, e.deltaY - this.oldY);
+
+        this.oldX = e.deltaX;
+        this.oldY = e.deltaY;
+    });
+
+    hammer.on('pinch', (e) => {
+        if (e.pointerType !== 'touch') {
+            return;
+        }
+
+        if (typeof this.oldScale === 'undefined') {
+            this.oldScale = 1.0
+        }
+
+        const delta = (e.scale - this.oldScale) < 0 ? -1 : 1;
+        Module.zoom(delta);
+        this.oldScale = e.scale;
+    });
 }
 
 function fillAtoms() {
@@ -102,9 +114,9 @@ function fillAtoms() {
         html += `
             <tr data-idx=${i}>
                 <td contenteditable data-idx='name' scope="row">${at.name}</td>
-                <td contenteditable data-idx='0'>${x < 0 ? '' : nbsp}${x.toFixed(7)}</td>
-                <td contenteditable data-idx='1'>${y < 0 ? '' : nbsp}${y.toFixed(7)}</td>
-                <td contenteditable data-idx='2'>${z < 0 ? '' : nbsp}${z.toFixed(7)}</td>
+                <td contenteditable data-idx='0'>${x < 0 ? '' : nbsp}${x.toFixed(6)}</td>
+                <td contenteditable data-idx='1'>${y < 0 ? '' : nbsp}${y.toFixed(6)}</td>
+                <td contenteditable data-idx='2'>${z < 0 ? '' : nbsp}${z.toFixed(6)}</td>
             </tr>
         `;
         at.increment();
