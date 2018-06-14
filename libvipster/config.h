@@ -17,21 +17,33 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#ifdef __linux__
+#include <unistd.h>
+#include <libgen.h>
+#endif
 
 namespace Vipster{
 
 #ifdef __EMSCRIPTEN__
 const std::string sys_path = "/";
 const std::string sys_config = "/vipster.json";
-const std::string user_path{};
-const std::string user_config{};
+const std::string user_path{}; // not used
+const std::string user_config{}; // not used
 #elif __linux__
+#ifdef RELPATH
+const std::string sys_path = [](){
+    char path[4096]; // let's hope this is big enough
+    readlink("/proc/self/exe", path, 4096);
+    return std::string{dirname(dirname(path))}+"/share/vipster";
+}();
+#else
 #ifndef PREFIX
 #define PREFIX /usr
 #endif
 #define TO_STR2(x) #x
 #define TO_STR(x) TO_STR2(x)
 const std::string sys_path = std::string{TO_STR(PREFIX)} + "/share/vipster";
+#endif
 const std::string sys_config = sys_path + "/default.json";
 const std::string user_path = std::getenv("HOME");
 const std::string user_config = user_path + "/.vipster.json";

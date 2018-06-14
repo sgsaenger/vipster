@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Vipster
+Comment=Visual periodic structure editor
+GenericName=Vipster
+Exec=vipster
+Icon=vipster
+Terminal=false
+Type=Application
+Categories=Science;

@@ -24,6 +24,8 @@ Project {
     property string pythonName: "python"
     // specify unix-install-prefix (defaults to /usr)
     property string prefix: "/usr"
+    // load config from relative path (for AppImage, good for user install in .local)
+    property bool relpath: false
 
     Profile {
         name: "emscripten"

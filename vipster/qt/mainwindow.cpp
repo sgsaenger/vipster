@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QApplication>
+#include <QStyle>
 #include <iostream>
 
 using namespace Vipster;

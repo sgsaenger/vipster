@@ -9,8 +9,9 @@ DynamicLibrary {
 
     Group {
         name: "headers"
-        files: ["*.h","*/*.h"]
-        qbs.install: !qbs.targetOS.contains("windows") && !qbs.targetOS.contains("macos") && !project.webBuild
+        files: ["*.h", "*/*.h"]
+        qbs.install: !qbs.targetOS.contains("windows")
+                     && !qbs.targetOS.contains("macos") && !project.webBuild
         qbs.installDir: "include/vipster"
     }
 
@@ -23,7 +24,8 @@ DynamicLibrary {
         name: "library"
         fileTagsFilter: isBundle ? ["bundle.content"] : product.type
         qbs.install: !project.webBuild
-        qbs.installDir: isBundle ? "Vipster.app/Contents/Frameworks" : (qbs.targetOS.contains("windows") ? "" : "lib")
+        qbs.installDir: qbs.targetOS.contains(
+                            "windows") ? "" : (isBundle ? "Vipster.app/Contents/Frameworks" : "lib")
         qbs.installSourceBase: product.buildDirectory
     }
 
@@ -43,9 +45,16 @@ DynamicLibrary {
     }
 
     // C++ settings (rest of project will inherit)
-    Depends { name: "cpp"}
+    Depends {
+        name: "cpp"
+    }
     cpp.cxxLanguageVersion: "c++14"
-    cpp.defines: [ "PREFIX="+project.prefix ]
+    cpp.defines: ["PREFIX=" + project.prefix]
+    Properties {
+        condition: project.relpath
+        cpp.defines: ["RELPATH"]
+    }
+
     cpp.includePaths: ["../external"]
     Properties {
         condition: qbs.targetOS.contains("macos")
@@ -54,40 +63,29 @@ DynamicLibrary {
     }
     Properties {
         condition: qbs.targetOS.contains("windows")
-        cpp.driverFlags: [
-            "-static-libgcc",
-            "-static-libstdc++"
-        ]
+        cpp.driverFlags: ["-static-libgcc", "-static-libstdc++"]
     }
     Properties {
-        condition: qbs.buildVariant=="profile"
-        cpp.driverFlags: [
-            "-fprofile-arcs",
-            "-ftest-coverage"
-        ]
+        condition: qbs.buildVariant == "profile"
+        cpp.driverFlags: ["-fprofile-arcs", "-ftest-coverage"]
         cpp.dynamicLibraries: ["gcov"]
     }
     Export {
-        Depends { name: "cpp"}
+        Depends {
+            name: "cpp"
+        }
         cpp.cxxLanguageVersion: "c++14"
-        cpp.defines: [ "PREFIX="+project.prefix ]
         Properties {
             condition: qbs.targetOS.contains("macos")
             cpp.frameworks: ["CoreFoundation"]
         }
         Properties {
             condition: qbs.targetOS.contains("windows")
-            cpp.driverFlags: [
-                "-static-libgcc",
-                "-static-libstdc++"
-            ]
+            cpp.driverFlags: ["-static-libgcc", "-static-libstdc++"]
         }
         Properties {
-            condition: qbs.buildVariant=="profile"
-            cpp.driverFlags: [
-                "-fprofile-arcs",
-                "-ftest-coverage"
-            ]
+            condition: qbs.buildVariant == "profile"
+            cpp.driverFlags: ["-fprofile-arcs", "-ftest-coverage"]
             cpp.dynamicLibraries: ["gcov"]
         }
         cpp.includePaths: [product.sourceDirectory, "../external"]

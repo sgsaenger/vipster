@@ -8,6 +8,6 @@
         <file>cell.vert</file>
     </qresource>
     <qresource prefix="/images">
-        <file>icon.png</file>
+        <file>vipster.png</file>
     </qresource>
 </RCC>

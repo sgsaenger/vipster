@@ -40,6 +40,7 @@ Debug will be the default, so please set it to release if you just want a workin
 ### For Linux (and other Unices):
 The default configuration expects to be installed under /usr/{bin,include,lib,share}.
 If you would like to specify another install prefix, please add `project.prefix:"/target/prefix"` to the qbs line.
+When installing in your home-directory (or for creating an AppImage or similar), set `project.relpath` to `true`.
 
 Example for a user-specific install:
 ```
