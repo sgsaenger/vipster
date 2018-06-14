@@ -10,6 +10,8 @@ layout(std140, row_major) uniform viewMat{
 uniform mat3 position_scale;
 uniform float atom_fac;
 uniform vec3 offset;
+uniform bool has_single_color;
+uniform vec4 single_color;
 
 out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -25,6 +27,10 @@ void main(void)
     EyeDirection_cameraspace = vec3(0,0,25) - vertex_cameraspace;
     LightDirection_cameraspace = vec3(10,10,10) + EyeDirection_cameraspace;
     normals_cameraspace = (rMatrix * vec4(vertex_modelspace, 0)).xyz;
-    MaterialDiffuseColor = color_input;
+    if(!has_single_color){
+        MaterialDiffuseColor = color_input;
+    }else{
+        MaterialDiffuseColor = single_color;
+    }
 }
 

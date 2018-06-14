@@ -21,6 +21,7 @@ public:
     void mouseMoveEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
     void setStep(const Vipster::StepProper* step);
+    void setSel(const Vipster::StepSelection* sel);
 public slots:
     void setMode(int i,bool t);
     void setMult(int i);

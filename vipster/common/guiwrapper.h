@@ -35,7 +35,9 @@ public:
     void initAtomVAO(void);
     void initBondVAO(void);
     void initCellVAO(void);
-    void updateBuffers(const StepProper* step, bool draw_bonds=true);
+    void initSelVAO(void);
+    void updateStepBuffers(const StepProper* step, bool draw_bonds=true);
+    void updateSelBuffers(const StepSelection* sel);
     void updateVBOs(void);
     // view/projection matrices
     void initViewUBO(void);
@@ -49,6 +51,7 @@ public:
     void alignViewMat(alignDir d);
     // molecule-store
     const StepProper* curStep{nullptr};
+    const StepSelection* curSel{nullptr};
 public:
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
@@ -58,7 +61,12 @@ private:
         float rad;  // 4 bytes
         ColVec col; // 4 bytes
     };
-    std::vector<atom_prop> atom_prop_buffer;
+    std::vector<atom_prop> atom_prop_buffer{};
+    struct sel_prop{ // 16 bytes
+        Vec pos;    // 3*4 = 12 bytes
+        float rad;  // 4 bytes
+    };
+    std::vector<sel_prop> sel_buffer{};
     struct bond_prop{ // 64 bytes
         float mat[9]; // 9*4 = 36 bytes
         Vec pos; // 3*4 = 12 bytes
@@ -68,14 +76,14 @@ private:
     std::vector<bond_prop> bond_buffer{};
     std::array<Vec,8> cell_buffer{};
     std::array<float, 9>  cell_mat{};
-    bool atoms_changed{false}, bonds_changed{false};
-    bool cell_changed{false}, cell_mat_changed{false};
+    bool atoms_changed{false}, sel_changed{false};
+    bool bonds_changed{false}, cell_changed{false};
     bool bonds_drawn = false;
     // gpu-side data
     GLuint atom_program, bond_program, cell_program;
-    GLuint atom_vao, bond_vao, cell_vao;
+    GLuint atom_vao, bond_vao, cell_vao, sel_vao;
     GLuint atom_pos_vbo, atom_prop_vbo;
-    GLuint bond_vbo, cell_vbo;
+    GLuint bond_vbo, cell_vbo, sel_vbo;
     GLuint sphere_vbo, torus_vbo;
     GLuint cell_ibo;
     GLuint view_ubo;

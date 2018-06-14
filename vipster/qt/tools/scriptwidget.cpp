@@ -97,7 +97,7 @@ void ScriptWidget::evalScript()
             change |= Change::selection;
             std::string sel;
             std::getline(line_stream, sel);
-            master->curSel = std::make_unique<StepSelection>(step.select(sel));
+            master->curSel = &step.select(sel);
         }else if(op == "def"){
             // Create group for script-operations
             line_stream >> name;

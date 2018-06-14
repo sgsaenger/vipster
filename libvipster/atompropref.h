@@ -56,6 +56,9 @@ namespace Vipster{
         {
             return *(at.*p_prop) == static_cast<const T&>(rhs);
         }
+        T operator->() const{
+            return *(at.*p_prop);
+        }
     private:
         Atom& at;
     };

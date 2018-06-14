@@ -307,12 +307,12 @@ private:
         auto at_i = tgtFmt.begin();
         for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
-            float cut_i = (*at_i->pse).bondcut;
+            float cut_i = at_i->pse->bondcut;
             if (cut_i<0){
                 continue;
             }
             for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
-                float cut_j = (*at_j->pse).bondcut;
+                float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
                     continue;
                 }
@@ -367,13 +367,13 @@ private:
         size_t nat = static_cast<const T*>(this)->getNat();
         auto at_i = asCrystal.begin();
         for (size_t i=0; i<nat; ++i) {
-            float cut_i = (*at_i->pse).bondcut;
+            float cut_i = at_i->pse->bondcut;
             if (cut_i<0) {
                 continue;
             }
             auto at_j = asCrystal.begin();
             for (size_t j=0; j<nat; ++j) {
-                float cut_j = (*at_j->pse).bondcut;
+                float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
                     continue;
                 }

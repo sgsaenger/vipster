@@ -21,10 +21,10 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     explicit MainWindow(std::vector<Vipster::IO::Data> &&d, QWidget *parent = nullptr);
     ~MainWindow();
-    Vipster::Molecule *curMol{nullptr};
-    Vipster::StepProper *curStep{nullptr};
-    Vipster::BaseParam *curParam{nullptr};
-    std::unique_ptr<Vipster::StepSelection> curSel{nullptr};
+    Vipster::Molecule* curMol{nullptr};
+    Vipster::StepProper* curStep{nullptr};
+    Vipster::BaseParam* curParam{nullptr};
+    Vipster::StepSelection* curSel{nullptr};
     Vipster::AtomFmt getFmt();
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(uint8_t change);

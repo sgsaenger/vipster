@@ -56,7 +56,7 @@ struct SelectionFilter{
         }
         return *this;
     }
-    enum class Mode:uint8_t{Index, Type, Coord, Pos, Group};
+    enum class Mode:uint8_t{None, Index, Type, Coord, Pos, Group};
     enum Op{NONE=0x0, NOT=0x1, // first bit negates own op
             PAIR=0x2, NOT_PAIR=0x4, // second bit activates coupling, third bit negates
             AND=0x2, NAND=0x6,
@@ -112,39 +112,12 @@ public:
 
     void        evaluateCache() const override
     {
-        using Mode = SelectionFilter::Mode;
-        bool updateNeeded{static_cast<bool>(filter->op & SelectionFilter::UPDATE)};
-        // Type or Index need to be reset when types have been changed
-        if(!updateNeeded &&
-                ((filter->mode == Mode::Type) ||
-                 (filter->mode == Mode::Index))){
-            if(step.atoms->name_changed)
-                updateNeeded = true;
-        }
-        // Pos or Index need to be reset when coords have been changed
-        if(!updateNeeded &&
-                ((filter->mode == Mode::Pos) ||
-                 (filter->mode == Mode::Index))){
-            if(std::any_of(step.atoms->coord_changed.begin(), // any coordinates changed,
-                           step.atoms->coord_changed.end(),   // no caches evaluated
-                           [](bool b){return b;}) ||
-                step.atoms->coord_outdated[filter->pos &      // something changed,
-                     SelectionFilter::FMT_MASK]){             // relevant cache still outdated
-                updateNeeded = true;
-            }
-        }
         // make sure that caches are clean, for pos even the needed formatted cache
-        auto fmt = (filter->mode == Mode::Pos) ?
+        auto fmt = (filter->mode == SelectionFilter::Mode::Pos) ?
                     static_cast<AtomFmt>(filter->pos & SelectionFilter::FMT_MASK) :
                     this->at_fmt;
         step.asFmt(fmt).evaluateCache();
-        // Coord needs to be reset when bonds (possibly) change
-        if(!updateNeeded && (filter->mode == Mode::Coord)){
-            if(step.bonds->outdated){
-                updateNeeded = true;
-            }
-        }
-        if(updateNeeded){
+        if(filter->op & SelectionFilter::UPDATE){
             selection->indices = evalFilter(step, *filter);
         }
     }
@@ -158,6 +131,10 @@ public:
     {
         auto fs = std::stringstream{filter};
         fs >> *this->filter;
+    }
+    void evaluateFilter() const
+    {
+        selection->indices = evalFilter(step, *filter);
     }
 
     // Atoms

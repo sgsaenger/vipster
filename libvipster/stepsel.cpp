@@ -86,6 +86,8 @@ std::ostream& Vipster::operator<<(std::ostream& os, const SelectionFilter& filte
         os << *filter.groupfilter;
         os << " )";
         break;
+    default:
+        break;
     }
     if(filter.op & Op::PAIR){
         os << ' ';
@@ -440,6 +442,8 @@ std::vector<size_t> Vipster::evalFilter(const Step& step, SelectionFilter& filte
     case SelectionFilter::Mode::Coord:
         tmp = evalCoord(step, filter);
         break;
+    default:
+        return tmp;
     }
     if(filter.op & filter.NOT){
         tmp = invertSel(step, tmp);

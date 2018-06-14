@@ -60,8 +60,11 @@ void MainWindow::setupUI()
 
 void MainWindow::updateWidgets(uint8_t change)
 {
-    if((change & (Change::atoms | Change::cell)) != 0) {
+    if(change & (Change::atoms | Change::cell)) {
         ui->openGLWidget->setStep(curStep);
+    }
+    if(change & Change::selection){
+        ui->openGLWidget->setSel(curSel);
     }
     ui->molWidget->updateWidget(change);
     ui->paramWidget->updateWidget(change);
@@ -109,6 +112,7 @@ void MainWindow::setMol(int i)
 void MainWindow::setStep(int i)
 {
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    curSel = &curStep->getLastSelection();
     fmt = curStep->getFmt();
     //Handle control-buttons
     if(i == 1){

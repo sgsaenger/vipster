@@ -30,6 +30,7 @@ void GLWidget::initializeGL()
     initAtomVAO();
     initBondVAO();
     initCellVAO();
+    initSelVAO();
     initViewUBO();
     initViewMat();
 }
@@ -66,7 +67,13 @@ void GLWidget::setMult(int i)
 
 void GLWidget::setStep(const StepProper* step)
 {
-    updateBuffers(step, settings.showBonds.val);
+    updateStepBuffers(step, settings.showBonds.val);
+    update();
+}
+
+void GLWidget::setSel(const StepSelection* sel)
+{
+    updateSelBuffers(sel);
     update();
 }
 
