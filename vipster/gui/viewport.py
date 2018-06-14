@@ -314,6 +314,8 @@ class ViewPort(QGLWidget):
         if not e.buttons() & 7:
             return
         delta = e.pos() - self.mousePos
+        if not delta:
+            return
         if (e.buttons() & 1):
             if self.mouseMode == 'Camera':
                 # rotate camera
