@@ -8,10 +8,6 @@
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
-
-    <!-- TODO: replace this with static SVG -->
-    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
-    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
 </head>
 
 <body>
@@ -23,7 +19,9 @@
                 <button id="controls__toggle-btn" class="btn btn-lg" type="button" data-toggle="collapse"
                         data-target="#controls__collapse" aria-expanded="false" aria-controls="controls__collapse"
                         title="Toggle controls">
-                    <i class="fas fa-bars"></i>
+                    <i class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"></path></svg>
+                    </i>
                 </button>
 
                 <h1>
@@ -39,7 +37,12 @@
                     <header>
                         <h2 class="widget_toggle">Load molecule</h2>
                         <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
-                            <i class="fas fa-chevron-up"></i>
+                            <i class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <path fill="currentColor"
+                                          d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04L224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941L207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"></path>
+                                </svg>
+                            </i>
                         </button>
                     </header>
 
@@ -84,7 +87,12 @@
                     <header>
                         <h2 class="widget_toggle">Step</h2>
                         <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
-                            <i class="fas fa-chevron-up"></i>
+                            <i class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <path fill="currentColor"
+                                          d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04L224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941L207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"></path>
+                                </svg>
+                            </i>
                         </button>
                     </header>
 
@@ -105,7 +113,12 @@
                     <header>
                         <h2 class="widget_toggle">Atoms</h2>
                         <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
-                            <i class="fas fa-chevron-up"></i>
+                            <i class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <path fill="currentColor"
+                                          d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04L224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941L207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"></path>
+                                </svg>
+                            </i>
                         </button>
                     </header>
                     <div class="widget__body">
@@ -125,7 +138,8 @@
                         </form>
 
                         <div class="table-responsive">
-                            <table class="table table-sm table-dark" id="atList" onInput="atomChanged(event.target)"></table>
+                            <table class="table table-sm table-dark" id="atList"
+                                   onInput="atomChanged(event.target)"></table>
                         </div>
                     </div>
                 </article>
@@ -134,7 +148,12 @@
                     <header>
                         <h2 class="widget_toggle">Cell</h2>
                         <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
-                            <i class="fas fa-chevron-up"></i>
+                            <i class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <path fill="currentColor"
+                                          d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04L224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941L207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"></path>
+                                </svg>
+                            </i>
                         </button>
                     </header>
 
@@ -255,8 +274,8 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
         integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
