@@ -63,7 +63,7 @@ void MainWindow::updateWidgets(uint8_t change)
     if(change & (Change::atoms | Change::cell)) {
         ui->openGLWidget->setStep(curStep);
     }
-    if(change & Change::selection){
+    if(change & (Change::atoms | Change::cell | Change::selection)){
         ui->openGLWidget->setSel(curSel);
     }
     ui->molWidget->updateWidget(change);

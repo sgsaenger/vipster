@@ -90,30 +90,30 @@ TEST_CASE("Vipster::StepSel", "[step]") {
     SECTION("complex"){
         auto selOr = s.select("index 0 | type H");
         CHECK(selOr.getNat() == 2);
-        CHECK(selOr.getFilter() == "index 0 | type H");
+        CHECK(selOr.getFilter().toStr() == "index 0 | type H");
         auto selNor = s.select("index 0 !| type H");
         CHECK(selNor.getNat() == 1);
-        CHECK(selNor.getFilter() == "index 0 !| type H");
+        CHECK(selNor.getFilter().toStr() == "index 0 !| type H");
         auto selAnd = s.select("index 0-2 & type H");
         CHECK(selAnd.getNat() == 1);
-        CHECK(selAnd.getFilter() == "index [ 0 1 2 ] & type H");
+        CHECK(selAnd.getFilter().toStr() == "index [ 0 1 2 ] & type H");
         auto selNand = s.select("index 0-2 !& type H");
         CHECK(selNand.getNat() == 2);
-        CHECK(selNand.getFilter() == "index [ 0 1 2 ] !& type H");
+        CHECK(selNand.getFilter().toStr() == "index [ 0 1 2 ] !& type H");
         auto selXor = s.select("not index 2 ^ type [H O]");
         CHECK(selXor.getNat() == 2);
-        CHECK(selXor.getFilter() == "not index 2 ^ type [ H O ]");
+        CHECK(selXor.getFilter().toStr() == "not index 2 ^ type [ H O ]");
         auto selXnor = s.select("not index 2 !^ type [H O]");
         CHECK(selXnor.getNat() == 1);
-        CHECK(selXnor.getFilter() == "not index 2 !^ type [ H O ]");
+        CHECK(selXnor.getFilter().toStr() == "not index 2 !^ type [ H O ]");
         auto ungrouped = s.select("index 0 | index 1 & index 2");
         CHECK(ungrouped.getNat() == 1);
-        CHECK(ungrouped.getFilter() == "index 0 | index 1 & index 2");
+        CHECK(ungrouped.getFilter().toStr() == "index 0 | index 1 & index 2");
         auto leftgrouped = s.select("(index 0 | index 0-2) & index 2");
         CHECK(leftgrouped.getNat() == 1);
-        CHECK(leftgrouped.getFilter()== "( index 0 | index [ 0 1 2 ] ) & index 2");
+        CHECK(leftgrouped.getFilter().toStr()== "( index 0 | index [ 0 1 2 ] ) & index 2");
         auto rightgrouped = s.select("index 0 | (index 0-2 & index 2)");
         CHECK(rightgrouped.getNat() == 2);
-        CHECK(rightgrouped.getFilter() == "index 0 | ( index [ 0 1 2 ] & index 2 )");
+        CHECK(rightgrouped.getFilter().toStr() == "index 0 | ( index [ 0 1 2 ] & index 2 )");
     }
 }

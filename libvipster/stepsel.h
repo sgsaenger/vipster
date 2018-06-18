@@ -38,13 +38,19 @@ using StepSelConst = SelectionProper<const Step>;
  * CoordCrit ::= "coord ", CompEqOp, Integer;
  * CompEqOp ::= "=" | CompOp;
  */
+struct SelectionFilter;
+std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter);
+std::istream& operator>>(std::istream& is, SelectionFilter& filter);
+std::vector<size_t> evalFilter(const Step& step, SelectionFilter& filter);
+
 struct SelectionFilter{
     SelectionFilter() = default;
     SelectionFilter(const SelectionFilter& f) {
         *this = f;
+        op |= Op::UPDATE;
     }
     SelectionFilter& operator=(const SelectionFilter& f){
-        mode = f.mode; op = f.op;
+        mode = f.mode; op = f.op | Op::UPDATE;
         pos = f.pos; posVal = f.posVal;
         coord = f.coord; coordVal = f.coordVal;
         indices = f.indices; types = f.types;
@@ -55,6 +61,12 @@ struct SelectionFilter{
             groupfilter = std::make_unique<SelectionFilter>(*f.groupfilter);
         }
         return *this;
+    }
+    std::string toStr() const
+    {
+        std::stringstream ss{};
+        ss << *this;
+        return ss.str();
     }
     enum class Mode:uint8_t{None, Index, Type, Coord, Pos, Group};
     enum Op{NONE=0x0, NOT=0x1, // first bit negates own op
@@ -70,7 +82,7 @@ struct SelectionFilter{
             };
     enum Coord{C_GT=0x0, C_EQ=0x1, C_LT=0x2, C_CMP_MASK=0x3};
     Mode mode;
-    uint8_t op;
+    uint8_t op{Op::UPDATE};
     uint8_t pos;
     uint8_t coord;
     float posVal;
@@ -80,10 +92,6 @@ struct SelectionFilter{
     std::unique_ptr<SelectionFilter> groupfilter{nullptr};
     std::unique_ptr<SelectionFilter> subfilter{nullptr};
 };
-
-std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter);
-std::istream& operator>>(std::istream& is, SelectionFilter& filter);
-std::vector<size_t> evalFilter(const Step& step, SelectionFilter& filter);
 
 /*
  * Basic Selection-class template
@@ -121,16 +129,18 @@ public:
             selection->indices = evalFilter(step, *filter);
         }
     }
-    std::string getFilter() const noexcept
+    const SelectionFilter& getFilter() const noexcept
     {
-        std::stringstream ss{};
-        ss << *filter;
-        return ss.str();
+        return *filter;
     }
     void setFilter(std::string filter)
     {
         auto fs = std::stringstream{filter};
         fs >> *this->filter;
+    }
+    void setFilter(SelectionFilter filter)
+    {
+        this->filter = std::make_shared<SelectionFilter>(std::move(filter));
     }
     void evaluateFilter() const
     {
@@ -265,7 +275,7 @@ public:
             return asAngstrom;
         case AtomFmt::Crystal:
             return asCrystal;
-        case AtomFmt::Alat:
+        default:
             return asAlat;
         }
     }

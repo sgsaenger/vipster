@@ -34,7 +34,6 @@ struct AtomList{
  *
  * contains indices of selected atoms in AtomList
  */
-struct AtomList;
 struct AtomSelection{
     std::vector<size_t> indices;
     std::shared_ptr<AtomList> atoms;

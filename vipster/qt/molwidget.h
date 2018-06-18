@@ -28,11 +28,13 @@ private slots:
     void on_atomFmtButton_clicked();
     void on_atomTableButton_toggled(bool checked);
     void on_molList_currentIndexChanged(int index);
+    void on_atomTable_itemSelectionChanged();
 
 private:
     void fillAtomTable(void);
     void fillCell(void);
     void fillKPoints(void);
+    void setSelection(void);
     Ui::MolWidget *ui;
     Vipster::Step *curStep;
     Vipster::Molecule* curMol;

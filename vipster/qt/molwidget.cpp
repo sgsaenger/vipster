@@ -52,6 +52,9 @@ void MolWidget::updateWidget(uint8_t change)
     if (change & Change::kpoints) {
         fillKPoints();
     }
+    if (change & Change::selection) {
+        setSelection();
+    }
 }
 
 void MolWidget::fillCell()
@@ -85,6 +88,7 @@ void MolWidget::fillAtomTable(void)
     ui->atomTable->setRowCount(nat);
     if( oldCount < nat){
         for(int j=oldCount;j!=nat;++j){
+            ui->atomTable->setVerticalHeaderItem(j, new QTableWidgetItem(QString::number(j)));
             for(int k=0;k!=4;++k){
                 ui->atomTable->setItem(j,k,new QTableWidgetItem());
                 ui->atomTable->item(j,k)->setFlags(
@@ -241,5 +245,26 @@ void MolWidget::on_atomTableButton_toggled(bool checked)
     ui->atomContainer->setVisible(checked);
     if(checked && atomsOutdated){
         fillAtomTable();
+    }
+}
+
+void MolWidget::on_atomTable_itemSelectionChanged()
+{
+    auto idx = ui->atomTable->selectionModel()->selectedRows();
+    SelectionFilter filter{};
+    filter.mode = SelectionFilter::Mode::Index;
+    for(const auto& i: idx){
+        filter.indices.insert(static_cast<size_t>(i.row()));
+    }
+    master->curSel->setFilter(filter);
+    triggerUpdate(Change::selection);
+}
+
+void MolWidget::setSelection()
+{
+    auto& table = ui->atomTable;
+    QSignalBlocker{table};
+    for(const auto& i:master->curSel->getFilter().indices){
+        table->selectRow(static_cast<int>(i));
     }
 }

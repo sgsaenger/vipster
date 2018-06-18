@@ -396,30 +396,30 @@ static std::vector<size_t> invertSel(const Step& step, const std::vector<size_t>
 }
 
 static std::vector<size_t> evalSubFilter(const Step& step,
-                                  SelectionFilter::Op op,
+                                  const SelectionFilter& filter,
                                   SelectionFilter& subfilter,
                                   const std::vector<size_t>& parent){
     using Op = SelectionFilter::Op;
     std::vector<size_t> child = evalFilter(step, subfilter);
     std::vector<size_t> tmp(parent.size()+child.size());
     std::vector<size_t>::iterator it;
-    if((op & Op::XOR) == Op::XOR){
+    if((filter.op & Op::XOR) == Op::XOR){
         it = std::set_symmetric_difference(parent.begin(), parent.end(),
                                            child.begin(), child.end(),
                                            tmp.begin());
-    }else if((op & Op::OR) == Op::OR){
+    }else if((filter.op & Op::OR) == Op::OR){
         it = std::set_union(parent.begin(), parent.end(),
                             child.begin(), child.end(),
                             tmp.begin());
-    }else if((op & Op::AND) == Op::AND){
+    }else if((filter.op & Op::AND) == Op::AND){
         it = std::set_intersection(parent.begin(), parent.end(),
                                    child.begin(), child.end(),
                                    tmp.begin());
     }else{
-        throw Error("Unknown coupling operator "+std::to_string(op & Op::PAIR_MASK));
+        throw Error("Unknown coupling operator "+std::to_string(filter.op & Op::PAIR_MASK));
     }
     tmp.resize(static_cast<size_t>(it - tmp.begin()));
-    if(op & Op::NOT_PAIR){
+    if(filter.op & Op::NOT_PAIR){
         return invertSel(step, tmp);
     }
     return tmp;
@@ -427,11 +427,10 @@ static std::vector<size_t> evalSubFilter(const Step& step,
 
 std::vector<size_t> Vipster::evalFilter(const Step& step, SelectionFilter& filter)
 {
-    using Op = SelectionFilter::Op;
     std::vector<size_t> tmp;
     switch(filter.mode){
     case SelectionFilter::Mode::Group:
-        tmp = evalSubFilter(step, Op::OR, *filter.groupfilter, {});
+        tmp = evalFilter(step, *filter.groupfilter);
         break;
     case SelectionFilter::Mode::Type:
         tmp = evalType(step, filter);
@@ -452,7 +451,7 @@ std::vector<size_t> Vipster::evalFilter(const Step& step, SelectionFilter& filte
         tmp = invertSel(step, tmp);
     }
     if(filter.op & filter.PAIR){
-        tmp = evalSubFilter(step, static_cast<Op>(filter.op), *filter.subfilter, tmp);
+        tmp = evalSubFilter(step, filter, *filter.subfilter, tmp);
     }
     filter.op &= ~filter.UPDATE;
     return tmp;
