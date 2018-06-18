@@ -109,11 +109,11 @@ TEST_CASE("Vipster::StepSel", "[step]") {
         auto ungrouped = s.select("index 0 | index 1 & index 2");
         CHECK(ungrouped.getNat() == 1);
         CHECK(ungrouped.getFilter() == "index 0 | index 1 & index 2");
-        auto leftgrouped = s.select("(index 0 | index 1) & index 2");
-        CHECK(leftgrouped.getNat() == 0);
-        CHECK(leftgrouped.getFilter()== "( index 0 | index 1 ) & index 2");
-        auto rightgrouped = s.select("index 0 | (index 1 & index 2)");
-        CHECK(rightgrouped.getNat() == 1);
-        CHECK(rightgrouped.getFilter() == "index 0 | ( index 1 & index 2 )");
+        auto leftgrouped = s.select("(index 0 | index 0-2) & index 2");
+        CHECK(leftgrouped.getNat() == 1);
+        CHECK(leftgrouped.getFilter()== "( index 0 | index [ 0 1 2 ] ) & index 2");
+        auto rightgrouped = s.select("index 0 | (index 0-2 & index 2)");
+        CHECK(rightgrouped.getNat() == 2);
+        CHECK(rightgrouped.getFilter() == "index 0 | ( index [ 0 1 2 ] & index 2 )");
     }
 }

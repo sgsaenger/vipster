@@ -254,7 +254,7 @@ public:
     }
 
     void modRotate(float angle, Vec axis, Vec shift={0,0,0}){
-        angle *= 2*pi/360.;
+        angle *= 2*pi/360.f;
         float c = std::cos(angle);
         float s = -std::sin(angle);
         float ic = 1.f-c;
