@@ -42,7 +42,7 @@ matrix:
               - cd ~
               # GCC
               # pretty sure travis' python2 sysconfig-module is broken, force python3
-              - qbs build -f $TRAVIS_BUILD_DIR config:gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3" project.relpath:true
+              - qbs build -f $TRAVIS_BUILD_DIR config:gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3"
               # EMSCRIPTEN
               - qbs build -f $TRAVIS_BUILD_DIR config:emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
           script:
@@ -60,7 +60,8 @@ matrix:
               # build AppImage
               - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt
               - chmod a+x linuxdeployqt
-              - ARCH=x86_64 ./linuxdeployqt ~/gcc/install-root/share/applications/vipster.desktop -appimage
+              - qbs build -f $TRAVIS_BUILD_DIR config:appimage profile:qt-gcc qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3" project.relpath:true
+              - ARCH=x86_64 ./linuxdeployqt ~/appimage/install-root/share/applications/vipster.desktop -appimage
           deploy:
               - provider: pages
                 skip_cleanup: true
@@ -75,7 +76,7 @@ matrix:
                 file: Vipster-x86_64.AppImage
                 draft: true
                 on:
-                    branch: appimage
+                    tags: true
         - os: osx
           before_install:
               - brew update
