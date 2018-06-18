@@ -31,11 +31,10 @@ matrix:
               - QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
               - source $QT_ENV_SCRIPT
               # Qbs:
-              - git clone --depth 1 -b v1.11.0 https://code.qt.io/qbs/qbs.git qbs-build
-              - pushd qbs-build
-              - qmake -r qbs.pro "CONFIG+=qbs_no_dev_install qbs_no_man_install" && make
-              - export PATH=$PATH:$PWD/bin
-              - popd
+              - wget "http://download.qt.io/official_releases/qtcreator/4.6/4.6.2/qt-creator-opensource-linux-x86_64-4.6.2.run" -O qt.run
+              - chmod a+x qt.run
+              - ./qt.run --platform minimal --script $TRAVIS_BUILD_DIR/dist/qt-headless.qs
+              - export PATH=~/Qt/bin/:$PATH
               - qbs setup-toolchains `which g++` gcc
               - qbs setup-qt `which qmake` qt-gcc
               - qbs config profiles.qt-gcc.baseProfile gcc
