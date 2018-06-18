@@ -54,25 +54,25 @@ matrix:
               - cd ~/gcc
               - bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
           before_deploy:
+              - cd $TRAVIS_BUILD_DIR
               # prepare website
-              - mv ~/emscripten/install-root $TRAVIS_BUILD_DIR/gh-pages/emscripten
+              - mv ~/emscripten/install-root gh-pages/emscripten
               # build AppImage
-              - cd ~
               - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt
               - chmod a+x linuxdeployqt
-              - ARCH=x86_64 ./linuxdeployqt gcc/install-root/share/applications/vipster.desktop -appimage
+              - ARCH=x86_64 ./linuxdeployqt ~/gcc/install-root/share/applications/vipster.desktop -appimage
           deploy:
               - provider: pages
                 skip_cleanup: true
                 github_token: $GH_TOKEN
-                local_dir: $TRAVIS_BUILD_DIR/gh-pages
+                local_dir: gh-pages
                 on:
                     branch: master
               - provider: releases
                 skip_cleanup: true
                 api_key:
                     secure: KBiyKkeDNQQE7m1WI0s9+YRTiO9eAAYZTljTrTMWicKWRo28NNNGaeZ5DYZ0J0CCnJAaywIPBHsfcis10rLyIB+GYyVN6oToI/OZf/aufLry4zbmiB/LQva4zln6zQAj/SIxUVRzu6rG30s+imAxUzbIboAHD068yTKpd3A/IMDCutI1OZZ4TPFb4fUZauDvGn3j30fty13OyRs3aEyCd7ldHxydnMPJsOZfp26KTPokWItUnXrfhv7igjRPRHu3DAoxhZBO3gWbPrT0QAUP59bD4A97PXpXVyqiE7A6vK4jvbYCuYsbEyCj2HT4QZ2OLGt9MEo4+/4C0almNd9FUYwXKK9jZmfqSQfc1EWmBJCQ+ABtIIxExbXs6V6tsfYxcAxU1NC8jaMFwIe4sX67eKP5IUE2/wmlqxGIaTH3Lm3S7HzyNHMlrLPdEh4csoo+V2ljmIDCav02huKv5DixLUfN5olESb0xgyU8iOiEOrA2P2uCDfKsdbOkwJHvHKgZx/Y93ysa5Z1X5NKgAoMzYBXWVihOwa93MRxWyTWxFZKzolhFzCBH2+VWCwhLKJ9+rpLC5z1zipidzHC3/yWtFK6BZ2GSlDW20uQGWMWc88Wyp+JFVYqXHG4RF7veM2+s2vxlNzHqBACK7S6CNk2ffbbAJC9amdzKIKrBDAvw0ko=
-                file: ~/Vipster-x86_64.AppImage
+                file: Vipster-x86_64.AppImage
                 draft: true
                 on:
                     branch: appimage
