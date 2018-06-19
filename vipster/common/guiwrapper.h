@@ -52,10 +52,10 @@ public:
     void translateViewMat(float x, float y, float z);
     enum class alignDir{x,y,z,mx,my,mz};
     void alignViewMat(alignDir d);
+    Mat getAxes();
     // molecule-store
     StepProper* curStep{nullptr};
     StepSelection* curSel{nullptr};
-public:
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
 private:

@@ -218,31 +218,37 @@ public:
         return cell->cellvec;
     }
 
+    Vec     getCom(AtomFmt fmt) const noexcept
+    {
+        if(!static_cast<const T*>(this)->getNat()){
+            return Vec{{0,0,0}};
+        }
+        Vec min{{std::numeric_limits<float>::max(),
+                 std::numeric_limits<float>::max(),
+                 std::numeric_limits<float>::max()}};
+        Vec max{{std::numeric_limits<float>::min(),
+                 std::numeric_limits<float>::min(),
+                 std::numeric_limits<float>::min()}};
+        for(auto& at:*static_cast<const T*>(this)){
+            min[0]=std::min(min[0],at.coord[0]);
+            min[1]=std::min(min[1],at.coord[1]);
+            min[2]=std::min(min[2],at.coord[2]);
+            max[0]=std::max(max[0],at.coord[0]);
+            max[1]=std::max(max[1],at.coord[1]);
+            max[2]=std::max(max[2],at.coord[2]);
+        }
+        return formatVec((min+max)/2, at_fmt, fmt);
+    }
+
     Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
     {
-        if((com && static_cast<const T*>(this)->getNat()) || !cell->enabled){
-            Vec min{{std::numeric_limits<float>::max(),
-                     std::numeric_limits<float>::max(),
-                     std::numeric_limits<float>::max()}};
-            Vec max{{std::numeric_limits<float>::min(),
-                     std::numeric_limits<float>::min(),
-                     std::numeric_limits<float>::min()}};
-            for(auto& at:*static_cast<const T*>(this)){
-                min[0]=std::min(min[0],at.coord[0]);
-                min[1]=std::min(min[1],at.coord[1]);
-                min[2]=std::min(min[2],at.coord[2]);
-                max[0]=std::max(max[0],at.coord[0]);
-                max[1]=std::max(max[1],at.coord[1]);
-                max[2]=std::max(max[2],at.coord[2]);
-            }
-            return formatVec((min+max)/2, at_fmt, static_cast<AtomFmt>(fmt));
+        if(com || !cell->enabled){
+            return getCom(static_cast<AtomFmt>(fmt));
         }
-        if(cell->enabled){
-            const Mat& cv = cell->cellvec;
-            return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
-        }
-        return Vec{{0,0,0}};
+        const Mat& cv = cell->cellvec;
+        return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
     }
+
     virtual void evaluateCache()const =0;
 
     // Modifier functions

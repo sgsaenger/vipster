@@ -3,7 +3,6 @@
 #include <QOpenGLFramebufferObject>
 #include "../common/atom_model.h"
 #include "../common/bond_model.h"
-#include <iostream>
 
 using namespace Vipster;
 
@@ -115,6 +114,75 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
+std::set<size_t> GLWidget::pickAtoms()
+{
+        std::set<size_t> idx;
+        makeCurrent();
+        drawSel();
+        QOpenGLFramebufferObjectFormat format;
+        format.setSamples(0);
+        QOpenGLFramebufferObject fbo{size(), format};
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
+        glBlitFramebuffer(0, 0, width(), height(),
+                          0, 0, fbo.width(), fbo.height(),
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        fbo.bind();
+        auto x = std::min(mousePos.x(), rectPos.x());
+        auto y = std::min(height() - 1 - mousePos.y(),
+                          height() - 1 - rectPos.y());
+        auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
+        auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
+        std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
+        glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+        fbo.release();
+        for(size_t i=0; i<data.size(); i+=4){
+            if(data[i+3]){
+                idx.insert(data[i+0] +
+                           (static_cast<size_t>(data[i+1])<<8) +
+                           (static_cast<size_t>(data[i+2])<<16)
+                        );
+            }
+        }
+        return idx;
+}
+
+void GLWidget::rotAtoms(QPoint delta)
+{
+    float angle = delta.manhattanLength();
+    auto axes = getAxes();
+    Vec axis = delta.y() * axes[0] + delta.x() * axes[1];
+    if(curSel->getNat()){
+        curSel->modRotate(angle, axis, shift);
+    }else{
+        curStep->modRotate(angle, axis, shift);
+    }
+    triggerUpdate(Change::atoms);
+}
+
+void GLWidget::shiftAtomsXY(QPoint delta)
+{
+    auto axes = getAxes();
+    Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
+    if(curSel->getNat()){
+        curSel->modShift(axis, 0.1f);
+    }else{
+        curStep->modShift(axis, 0.1f);
+    }
+    triggerUpdate(Change::atoms);
+}
+
+void GLWidget::shiftAtomsZ(QPoint delta)
+{
+    float fac = 0.1f * (delta.x() + delta.y());
+    if(curSel->getNat()){
+        curSel->modShift(getAxes()[2], fac);
+    }else{
+        curStep->modShift(getAxes()[2], fac);
+    }
+    triggerUpdate(Change::atoms);
+}
+
 void GLWidget::wheelEvent(QWheelEvent *e)
 {
     zoomViewMat(e->angleDelta().y());
@@ -144,6 +212,19 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         }
         break;
     case MouseMode::Modify:
+        if((e->button() == Qt::MouseButton::LeftButton) &&
+           (e->modifiers() & (Qt::Modifier::CTRL|Qt::Modifier::SHIFT)) == 0u){
+            auto idx = pickAtoms();
+            if(idx.empty()){
+                if(curSel->getNat()){
+                    shift = curSel->getCom(curSel->getFmt());
+                }else{
+                    shift = curStep->getCom(curStep->getFmt());
+                }
+            }else{
+                shift = (*curStep)[*idx.begin()].coord;
+            }
+        }
         break;
     }
 }
@@ -173,6 +254,26 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
         }
         break;
     case MouseMode::Modify:
+        switch(e->buttons()){
+        case Qt::MouseButton::LeftButton:
+            if(e->modifiers() & Qt::Modifier::CTRL){
+                shiftAtomsXY(delta);
+            }else if(e->modifiers() & Qt::Modifier::SHIFT){
+                shiftAtomsZ(delta);
+            }else{
+                rotAtoms(delta);
+            }
+            break;
+        case Qt::MouseButton::MiddleButton:
+            shiftAtomsXY(delta);
+            break;
+        case Qt::MouseButton::RightButton:
+            shiftAtomsZ(delta);
+            break;
+        default:
+            break;
+        }
+        mousePos = e->pos();
         break;
     }
 }
@@ -193,40 +294,14 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                 const auto& origIndices = curSel->getIndices();
                 filter.indices.insert(origIndices.begin(), origIndices.end());
             }
-            std::set<size_t> idx;
-            makeCurrent();
-            drawSel();
-            QOpenGLFramebufferObjectFormat format;
-            format.setSamples(0);
-            QOpenGLFramebufferObject fbo{size(), format};
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
-            glBlitFramebuffer(0, 0, width(), height(),
-                              0, 0, fbo.width(), fbo.height(),
-                              GL_COLOR_BUFFER_BIT, GL_NEAREST);
-            fbo.bind();
-            auto x = std::min(mousePos.x(), rectPos.x());
-            auto y = std::min(height() - 1 - mousePos.y(),
-                              height() - 1 - rectPos.y());
-            auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
-            auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
-            std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
-            glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
-            fbo.release();
-            for(size_t i=0; i<data.size(); i+=4){
-                if(data[i+3]){
-                    idx.insert(data[i+0] +
-                               (static_cast<size_t>(data[i+1])<<8) +
-                               (static_cast<size_t>(data[i+2])<<16)
-                            );
-                }
-            }
+            auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
             curSel->setFilter(filter);
             triggerUpdate(Change::selection);
         }
         break;
     case MouseMode::Modify:
+        //TODO: undo
         break;
     }
 }

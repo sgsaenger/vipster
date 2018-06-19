@@ -33,6 +33,11 @@ private:
     enum class MouseMode { Camera=-2, Select=-3, Modify=-4 };
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;
+    Vipster::Vec shift;
+    std::set<size_t> pickAtoms();
+    void rotAtoms(QPoint delta);
+    void shiftAtomsXY(QPoint delta);
+    void shiftAtomsZ(QPoint delta);
 };
 
 #endif // GLWIDGET_

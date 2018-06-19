@@ -20,7 +20,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     explicit MainWindow(std::vector<Vipster::IO::Data> &&d, QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
     Vipster::Molecule* curMol{nullptr};
     Vipster::StepProper* curStep{nullptr};
     Vipster::BaseParam* curParam{nullptr};

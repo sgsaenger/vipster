@@ -915,3 +915,12 @@ void GuiWrapper::alignViewMat(alignDir d)
     }
     rMatChanged = true;
 }
+
+Mat GuiWrapper::getAxes()
+{
+    Mat tmp;
+    tmp[0] =  Vec{rMat[0], rMat[1], rMat[2]};
+    tmp[1] = -Vec{rMat[4], rMat[5], rMat[6]};
+    tmp[2] =  Vec{rMat[8], rMat[9], rMat[10]};
+    return tmp;
+}
