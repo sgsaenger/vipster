@@ -117,6 +117,11 @@ public:
     }
     // TODO: missing constructors?
     // TODO: direct Prop-getters?
+    const std::vector<size_t>& getIndices() const noexcept
+    {
+        evaluateCache();
+        return selection->indices;
+    }
 
     void        evaluateCache() const override
     {

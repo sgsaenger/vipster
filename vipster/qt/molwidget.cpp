@@ -263,8 +263,11 @@ void MolWidget::on_atomTable_itemSelectionChanged()
 void MolWidget::setSelection()
 {
     auto& table = ui->atomTable;
-    QSignalBlocker{table};
-    for(const auto& i:master->curSel->getFilter().indices){
+    QSignalBlocker tableBlocker{table};
+    table->clearSelection();
+    table->setSelectionMode(QAbstractItemView::MultiSelection);
+    for(const auto& i:master->curSel->getIndices()){
         table->selectRow(static_cast<int>(i));
     }
+    table->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }

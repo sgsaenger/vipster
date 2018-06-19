@@ -329,10 +329,14 @@ static std::vector<size_t> evalType(const Step& step, const SelectionFilter& fil
     return tmp;
 }
 
-static std::vector<size_t> evalIdx(const Step&, const SelectionFilter& filter){
+static std::vector<size_t> evalIdx(const Step& step, const SelectionFilter& filter){
     std::vector<size_t> tmp;
-    tmp = std::vector<size_t>{
-            filter.indices.cbegin(), filter.indices.cend()};
+    auto nat = step.getNat();
+    for(const auto& i:filter.indices){
+        if(i<nat){
+            tmp.push_back(i);
+        }
+    }
     return tmp;
 }
 

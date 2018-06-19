@@ -187,17 +187,8 @@ int main()
 
     // init GL
     emscripten_webgl_make_context_current(context);
-    glClearColor(1,1,1,1);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     gui.initShaders("# version 300 es\nprecision highp float;\n", "");
-    gui.initAtomVAO();
-    gui.initBondVAO();
-    gui.initCellVAO();
-    gui.initViewUBO();
-    gui.initViewMat();
+    gui.initGL();
 
     // init examples (something needs to be displayed for the renderer to not fail
     StepProper* step;

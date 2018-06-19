@@ -9,6 +9,7 @@
 #endif
 #include <vector>
 #include <array>
+#include <set>
 #include "molecule.h"
 
 namespace Vipster {
@@ -26,18 +27,20 @@ class GuiWrapper: protected QOpenGLFunctions_3_3_Core{
 #endif
     void loadShader(GLuint &program, const std::string &header, std::string vertShaderStr, std::string fragShaderStr);
 public:
+    void initGL(void);
     void initShaders(const std::string& header, const std::string& folder);
     void deleteGLObjects(void);
     void draw(void);
     void drawCell(void);
     void drawMol(void);
+    void drawSel(void);
     // atom/bond/cell-data
     void initAtomVAO(void);
     void initBondVAO(void);
     void initCellVAO(void);
     void initSelVAO(void);
-    void updateStepBuffers(const StepProper* step, bool draw_bonds=true);
-    void updateSelBuffers(const StepSelection* sel);
+    void updateStepBuffers(StepProper* step, bool draw_bonds=true);
+    void updateSelBuffers(StepSelection* sel);
     void updateVBOs(void);
     // view/projection matrices
     void initViewUBO(void);
@@ -50,8 +53,8 @@ public:
     enum class alignDir{x,y,z,mx,my,mz};
     void alignViewMat(alignDir d);
     // molecule-store
-    const StepProper* curStep{nullptr};
-    const StepSelection* curSel{nullptr};
+    StepProper* curStep{nullptr};
+    StepSelection* curSel{nullptr};
 public:
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
@@ -80,7 +83,7 @@ private:
     bool bonds_changed{false}, cell_changed{false};
     bool bonds_drawn = false;
     // gpu-side data
-    GLuint atom_program, bond_program, cell_program;
+    GLuint atom_program, bond_program, cell_program, sel_program;
     GLuint atom_vao, bond_vao, cell_vao, sel_vao;
     GLuint atom_pos_vbo, atom_prop_vbo;
     GLuint bond_vbo, cell_vbo, sel_vbo;
