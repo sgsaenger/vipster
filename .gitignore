@@ -1,6 +1,3 @@
-
-vipster/vipster
-tests/test_libvipstertest
 # C++ build files
 *.o
 *.so*
@@ -42,3 +39,4 @@ moc_*
 
 # NPM packages
 node_modules/
+package-lock.json
