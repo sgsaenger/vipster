@@ -11,6 +11,9 @@ template<typename T>
 class SelectionProper;
 using StepSelection = SelectionProper<Step>;
 using StepSelConst = SelectionProper<const Step>;
+template<typename T>
+class SelectionFormatter;
+using StepSelFormatter = SelectionFormatter<Step>;
 
 /*
  * Wrap multiple filter criteria without polymorphism
@@ -60,6 +63,15 @@ struct SelectionFilter{
         if(f.groupfilter){
             groupfilter = std::make_unique<SelectionFilter>(*f.groupfilter);
         }
+        return *this;
+    }
+    SelectionFilter& operator=(SelectionFilter&& f){
+        mode = f.mode; op = f.op | Op::UPDATE;
+        pos = f.pos; posVal = f.posVal;
+        coord = f.coord; coordVal = f.coordVal;
+        indices = f.indices; types = f.types;
+        subfilter = std::move(f.subfilter);
+        groupfilter = std::move(f.groupfilter);
         return *this;
     }
     std::string toStr() const
@@ -145,7 +157,7 @@ public:
     }
     void setFilter(SelectionFilter filter)
     {
-        this->filter = std::make_shared<SelectionFilter>(std::move(filter));
+        *this->filter = std::move(filter);
     }
     void evaluateFilter() const
     {
@@ -217,6 +229,14 @@ protected:
           filter{std::make_shared<SelectionFilter>(*s.filter)},
           step{s.step}
     {}
+    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f, std::shared_ptr<BondList> b,
+         std::shared_ptr<CellData> c, std::shared_ptr<std::string> s,
+         std::shared_ptr<AtomSelection> a, std::shared_ptr<SelectionFilter> sf,
+         T& step)
+        : StepBase<SelectionBase<T>>{std::move(p), std::move(f),
+                   std::move(b), std::move(c), std::move(s)},
+          selection{std::move(a)}, filter{std::move(sf)}, step{step}
+    {}
     std::shared_ptr<AtomSelection>      selection;
     std::shared_ptr<SelectionFilter>    filter;
     T&                                  step;
@@ -227,10 +247,16 @@ class SelectionFormatter: public SelectionBase<T>
 {
 public:
     SelectionFormatter(SelectionProper<T>& sel, AtomFmt at_fmt)
-        : SelectionBase<T>{sel.step}, sel{sel}
-    {
-        this->at_fmt = at_fmt;
-    }
+        : SelectionBase<T>{sel.pse,
+                           at_fmt,
+                           sel.bonds,
+                           sel.cell,
+                           sel.comment,
+                           sel.selection,
+                           sel.filter,
+                           sel.step},
+          sel{sel}
+    {}
     SelectionBase<T>&       asFmt(AtomFmt fmt) override
     {
         return sel.asFmt(fmt);

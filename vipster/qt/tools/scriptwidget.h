@@ -14,7 +14,7 @@ class ScriptWidget : public QWidget, public BaseWidget
 
 public:
     explicit ScriptWidget(QWidget *parent = nullptr);
-    ~ScriptWidget();
+    ~ScriptWidget() override;
 public slots:
     void evalScript();
 

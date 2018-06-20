@@ -146,7 +146,7 @@ void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
     if(float_comp(a,0)){
         return;
     }
-    float tmp = a * Vipster::pi / 180.f;
+    float tmp = a * deg2rad;
     float s = std::sin(tmp);
     float c = std::cos(tmp);
     if(float_comp(x,0)){

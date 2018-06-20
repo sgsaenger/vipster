@@ -63,6 +63,8 @@ void MainWindow::updateWidgets(uint8_t change)
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
     ui->paramWidget->updateWidget(change);
+    ui->scriptWidget->updateWidget(change);
+    ui->pickWidget->updateWidget(change);
 }
 
 void MainWindow::setFmt(int i, bool apply, bool scale)
