@@ -54,14 +54,20 @@ matrix:
               - cd ~/gcc
               - bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
           before_deploy:
+              # build for AppImage
+              - if [ -n "$TRAVIS_TAG" ]; then
+                cd ~;
+                qbs build -f $TRAVIS_BUILD_DIR config:appimage profile:qt-gcc qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3" project.relpath:true;
+                fi
               - cd $TRAVIS_BUILD_DIR
               # prepare website
               - mv ~/emscripten/install-root gh-pages/emscripten
               # build AppImage
-              - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt
-              - chmod a+x linuxdeployqt
-              - qbs build -f $TRAVIS_BUILD_DIR config:appimage profile:qt-gcc qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3" project.relpath:true
-              - ARCH=x86_64 ./linuxdeployqt ~/appimage/install-root/share/applications/vipster.desktop -appimage
+              - if [ -n "$TRAVIS_TAG" ]; then
+                wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt;
+                chmod a+x linuxdeployqt;
+                ARCH=x86_64 ./linuxdeployqt ~/appimage/install-root/share/applications/vipster.desktop -appimage;
+                fi;
           deploy:
               - provider: pages
                 skip_cleanup: true
