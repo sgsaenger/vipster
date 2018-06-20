@@ -58,9 +58,11 @@ Product{
         "--embed-file", sourceDirectory.concat("/resources/atom.frag@atom.frag"),
         "--embed-file", sourceDirectory.concat("/resources/bond.frag@bond.frag"),
         "--embed-file", sourceDirectory.concat("/resources/cell.frag@cell.frag"),
+        "--embed-file", sourceDirectory.concat("/resources/select.frag@select.frag"),
         "--embed-file", sourceDirectory.concat("/resources/atom.vert@atom.vert"),
         "--embed-file", sourceDirectory.concat("/resources/bond.vert@bond.vert"),
         "--embed-file", sourceDirectory.concat("/resources/cell.vert@cell.vert"),
+        "--embed-file", sourceDirectory.concat("/resources/select.vert@select.vert"),
         "--embed-file", sourceDirectory.concat("/../libvipster/default.json@vipster.json")
     ]
 }
