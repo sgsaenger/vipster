@@ -62,10 +62,6 @@ DynamicLibrary {
         cpp.sonamePrefix: "@rpath"
     }
     Properties {
-        condition: qbs.targetOS.contains("windows")
-        cpp.driverFlags: ["-static-libgcc", "-static-libstdc++"]
-    }
-    Properties {
         condition: qbs.buildVariant == "profile"
         cpp.driverFlags: ["-fprofile-arcs", "-ftest-coverage"]
         cpp.dynamicLibraries: ["gcov"]
@@ -78,10 +74,6 @@ DynamicLibrary {
         Properties {
             condition: qbs.targetOS.contains("macos")
             cpp.frameworks: ["CoreFoundation"]
-        }
-        Properties {
-            condition: qbs.targetOS.contains("windows")
-            cpp.driverFlags: ["-static-libgcc", "-static-libstdc++"]
         }
         Properties {
             condition: qbs.buildVariant == "profile"
