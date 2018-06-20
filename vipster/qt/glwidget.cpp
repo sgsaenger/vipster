@@ -3,6 +3,7 @@
 #include <QOpenGLFramebufferObject>
 #include "../common/atom_model.h"
 #include "../common/bond_model.h"
+#include <iostream>
 
 using namespace Vipster;
 
@@ -149,6 +150,9 @@ std::set<size_t> GLWidget::pickAtoms()
 
 void GLWidget::rotAtoms(QPoint delta)
 {
+    if(delta.isNull()){
+        return;
+    }
     float angle = delta.manhattanLength();
     auto axes = getAxes();
     Vec axis = delta.y() * axes[0] + delta.x() * axes[1];
