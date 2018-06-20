@@ -14,8 +14,8 @@ class MolWidget : public QWidget, public BaseWidget
 
 public:
     explicit MolWidget(QWidget *parent = nullptr);
-    ~MolWidget();
-    void updateWidget(Vipster::Change change);
+    ~MolWidget() override;
+    void updateWidget(uint8_t change) override;
     void registerMol(const std::string& name);
 
 private slots:
@@ -28,11 +28,13 @@ private slots:
     void on_atomFmtButton_clicked();
     void on_atomTableButton_toggled(bool checked);
     void on_molList_currentIndexChanged(int index);
+    void on_atomTable_itemSelectionChanged();
 
 private:
     void fillAtomTable(void);
     void fillCell(void);
     void fillKPoints(void);
+    void setSelection(void);
     Ui::MolWidget *ui;
     Vipster::Step *curStep;
     Vipster::Molecule* curMol;

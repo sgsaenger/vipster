@@ -20,7 +20,7 @@ ParamWidget::~ParamWidget()
     delete ui;
 }
 
-void ParamWidget::updateWidget(Vipster::Change change)
+void ParamWidget::updateWidget(uint8_t change)
 {
     if(change & Change::param){
         curParam = master->curParam;

@@ -218,32 +218,78 @@ public:
         return cell->cellvec;
     }
 
+    Vec     getCom(AtomFmt fmt) const noexcept
+    {
+        if(!static_cast<const T*>(this)->getNat()){
+            return Vec{{0,0,0}};
+        }
+        Vec min{{std::numeric_limits<float>::max(),
+                 std::numeric_limits<float>::max(),
+                 std::numeric_limits<float>::max()}};
+        Vec max{{std::numeric_limits<float>::min(),
+                 std::numeric_limits<float>::min(),
+                 std::numeric_limits<float>::min()}};
+        for(auto& at:*static_cast<const T*>(this)){
+            min[0]=std::min(min[0],at.coord[0]);
+            min[1]=std::min(min[1],at.coord[1]);
+            min[2]=std::min(min[2],at.coord[2]);
+            max[0]=std::max(max[0],at.coord[0]);
+            max[1]=std::max(max[1],at.coord[1]);
+            max[2]=std::max(max[2],at.coord[2]);
+        }
+        return formatVec((min+max)/2, at_fmt, fmt);
+    }
+
     Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
     {
-        if((com && static_cast<const T*>(this)->getNat()) || !cell->enabled){
-            Vec min{{std::numeric_limits<float>::max(),
-                     std::numeric_limits<float>::max(),
-                     std::numeric_limits<float>::max()}};
-            Vec max{{std::numeric_limits<float>::min(),
-                     std::numeric_limits<float>::min(),
-                     std::numeric_limits<float>::min()}};
-            for(auto& at:*static_cast<const T*>(this)){
-                min[0]=std::min(min[0],at.coord[0]);
-                min[1]=std::min(min[1],at.coord[1]);
-                min[2]=std::min(min[2],at.coord[2]);
-                max[0]=std::max(max[0],at.coord[0]);
-                max[1]=std::max(max[1],at.coord[1]);
-                max[2]=std::max(max[2],at.coord[2]);
-            }
-            return formatVec((min+max)/2, at_fmt, static_cast<AtomFmt>(fmt));
+        if(com || !cell->enabled){
+            return getCom(static_cast<AtomFmt>(fmt));
         }
-        if(cell->enabled){
-            const Mat& cv = cell->cellvec;
-            return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
-        }
-        return Vec{{0,0,0}};
+        const Mat& cv = cell->cellvec;
+        return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
     }
+
     virtual void evaluateCache()const =0;
+
+    // Modifier functions
+    void modShift(Vec shift, float fac=1.0f){
+        shift *= fac;
+        for(Atom& at:*static_cast<T*>(this)){
+            at.coord += shift;
+        }
+    }
+
+    void modRotate(float angle, Vec axis, Vec shift={0,0,0}){
+        angle *= 2*pi/360.f;
+        float c = std::cos(angle);
+        float s = -std::sin(angle);
+        float ic = 1.f-c;
+        float len = Vec_length(axis);
+        if(float_comp(len, 0.f)){
+            throw Error("0-Vector cannot be rotation axis");
+        }
+        axis /= len;
+        Mat rotMat = {Vec{ic * axis[0] * axis[0] + c,
+                          ic * axis[0] * axis[1] - s * axis[2],
+                          ic * axis[0] * axis[2] + s * axis[1]},
+                      Vec{ic * axis[1] * axis[0] + s * axis[2],
+                          ic * axis[1] * axis[1] + c,
+                          ic * axis[1] * axis[2] - s * axis[0]},
+                      Vec{ic * axis[2] * axis[0] - s * axis[1],
+                          ic * axis[2] * axis[1] + s * axis[0],
+                          ic * axis[2] * axis[2] + c}};
+        for(Atom& at:*static_cast<T*>(this)){
+            at.coord = (at.coord - shift) * rotMat + shift;
+        }
+    }
+
+    void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0}){
+        Vec normal = Vec_cross(ax1, ax2);
+        normal /= Vec_length(normal);
+        for(Atom& at:*static_cast<T*>(this)){
+            at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
+        }
+    }
 
 protected:
     StepBase(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::shared_ptr<BondList> bonds,
@@ -261,18 +307,18 @@ private:
     {
         AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
-        const T& asFmt = static_cast<const T*>(this)->asFmt(fmt);
-        asFmt.evaluateCache();
+        const T& tgtFmt = asFmt(fmt);
+        tgtFmt.evaluateCache();
         std::vector<Bond>& bonds = this->bonds->bonds;
-        auto at_i = asFmt.begin();
-        for (auto at_i=asFmt.begin(); at_i!=asFmt.end(); ++at_i)
+        auto at_i = tgtFmt.begin();
+        for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
-            float cut_i = (*at_i->pse).bondcut;
+            float cut_i = at_i->pse->bondcut;
             if (cut_i<0){
                 continue;
             }
-            for (auto at_j=asFmt.begin()+at_i.getIdx()+1; at_j != asFmt.end(); ++at_j){
-                float cut_j = (*at_j->pse).bondcut;
+            for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
+                float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
                     continue;
                 }
@@ -327,13 +373,13 @@ private:
         size_t nat = static_cast<const T*>(this)->getNat();
         auto at_i = asCrystal.begin();
         for (size_t i=0; i<nat; ++i) {
-            float cut_i = (*at_i->pse).bondcut;
+            float cut_i = at_i->pse->bondcut;
             if (cut_i<0) {
                 continue;
             }
             auto at_j = asCrystal.begin();
             for (size_t j=0; j<nat; ++j) {
-                float cut_j = (*at_j->pse).bondcut;
+                float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
                     continue;
                 }

@@ -24,8 +24,8 @@ class ParamWidget : public QWidget, public BaseWidget
 
 public:
     explicit ParamWidget(QWidget *parent = nullptr);
-    ~ParamWidget();
-    void updateWidget(Vipster::Change change);
+    ~ParamWidget() override;
+    void updateWidget(uint8_t change) override;
     void registerParam(Vipster::IOFmt fmt, const std::string& name);
 
 private slots:

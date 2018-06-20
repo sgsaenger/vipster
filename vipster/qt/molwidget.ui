@@ -95,6 +95,9 @@
       </item>
       <item>
        <widget class="QTableWidget" name="atomTable">
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
         <column>
          <property name="text">
           <string>Type</string>

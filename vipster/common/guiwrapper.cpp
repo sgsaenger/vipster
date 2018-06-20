@@ -1,8 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "guiwrapper.h"
 #include "atom_model.h"
@@ -91,6 +89,25 @@ void GuiWrapper::loadShader(GLuint &program, const std::string &header, std::str
     glDeleteShader(fragShader);
 }
 
+void GuiWrapper::initGL(void)
+{
+    glClearColor(1,1,1,1);
+#ifndef __EMSCRIPTEN__
+    glEnable(GL_MULTISAMPLE);
+#endif
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //
+    initAtomVAO();
+    initBondVAO();
+    initCellVAO();
+    initSelVAO();
+    initViewUBO();
+    initViewMat();
+}
+
 void GuiWrapper::initShaders(const std::string& header, const std::string& folder)
 {
     loadShader(atom_program, header,
@@ -102,6 +119,9 @@ void GuiWrapper::initShaders(const std::string& header, const std::string& folde
     loadShader(cell_program, header,
                readShader(folder + "/cell.vert"),
                readShader(folder + "/cell.frag"));
+    loadShader(sel_program, header,
+               readShader(folder + "/select.vert"),
+               readShader(folder + "/select.frag"));
 }
 
 void Vipster::guiMatScale(guiMat &m, float f)
@@ -126,7 +146,7 @@ void Vipster::guiMatRot(guiMat &m, float a, float x, float y, float z)
     if(float_comp(a,0)){
         return;
     }
-    float tmp = a * static_cast<float>(M_PI / 180.);
+    float tmp = a * deg2rad;
     float s = std::sin(tmp);
     float c = std::cos(tmp);
     if(float_comp(x,0)){
@@ -247,6 +267,8 @@ void GuiWrapper::initViewUBO(void)
     glUniformBlockBinding(bond_program, 0, bond_loc);
     GLuint cell_loc = glGetUniformBlockIndex(cell_program, "viewMat");
     glUniformBlockBinding(cell_program, 0, cell_loc);
+    GLuint sel_loc = glGetUniformBlockIndex(sel_program, "viewMat");
+    glUniformBlockBinding(sel_program, 0, sel_loc);
 }
 
 void GuiWrapper::initAtomVAO(void)
@@ -287,6 +309,32 @@ void GuiWrapper::initAtomVAO(void)
                           reinterpret_cast<const GLvoid*>(offsetof(atom_prop, col)));
     glVertexAttribDivisor(colorLoc, 1);
     glEnableVertexAttribArray(colorLoc);
+}
+
+void GuiWrapper::initSelVAO(void)
+{
+    glGenVertexArrays(1, &sel_vao);
+    glBindVertexArray(sel_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
+    auto vertexLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "vertex_modelspace"));
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(vertexLoc);
+    glGenBuffers(1, &sel_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, sel_vbo);
+    auto positionLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "position_modelspace"));
+    glVertexAttribPointer(positionLoc, 3,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(sel_prop),
+                          reinterpret_cast<const GLvoid*>(offsetof(sel_prop, pos)));
+    glVertexAttribDivisor(positionLoc, 1);
+    glEnableVertexAttribArray(positionLoc);
+    auto scaleLoc = static_cast<GLuint>(glGetAttribLocation(atom_program, "scale_modelspace"));
+    glVertexAttribPointer(scaleLoc, 1,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(sel_prop),
+                          reinterpret_cast<const GLvoid*>(offsetof(sel_prop, rad)));
+    glVertexAttribDivisor(scaleLoc, 1);
+    glEnableVertexAttribArray(scaleLoc);
 }
 
 void GuiWrapper::initBondVAO(void)
@@ -385,6 +433,8 @@ void GuiWrapper::deleteGLObjects(void)
 
 void GuiWrapper::draw(void)
 {
+    glClearColor(1,1,1,1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if(curStep->hasCell()){
         drawCell();
     }else{
@@ -401,9 +451,12 @@ void GuiWrapper::drawMol(void)
     auto offLocA = glGetUniformLocation(atom_program, "offset");
     auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
     auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
+    auto toggleLoc = glGetUniformLocation(atom_program, "has_single_color");
+    auto colorLoc = glGetUniformLocation(atom_program, "single_color");
     glUniform1f(facLoc, settings.atRadFac.val);
     glUniform3fv(offLocA, 1, center.data());
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+    glUniform1i(toggleLoc, 0);
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           atom_model_npoly,
                           static_cast<GLsizei>(atom_prop_buffer.size()));
@@ -423,28 +476,46 @@ void GuiWrapper::drawMol(void)
                               bond_model_npoly,
                               static_cast<GLsizei>(bond_buffer.size()));
     }
+    if(sel_buffer.size()){
+        glBindVertexArray(sel_vao);
+        glUseProgram(atom_program);
+        glUniform1f(facLoc, settings.atRadFac.val);
+        glUniform3fv(offLocA, 1, center.data());
+        glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+        glUniform1i(toggleLoc, 1);
+        glUniform4f(colorLoc, settings.selCol.val[0]/255.f,
+                              settings.selCol.val[1]/255.f,
+                              settings.selCol.val[2]/255.f,
+                              settings.selCol.val[3]/255.f);
+        glDrawArraysInstanced(GL_TRIANGLES, 0,
+                              atom_model_npoly,
+                              static_cast<GLsizei>(sel_buffer.size()));
+    }
 }
 
 void GuiWrapper::drawCell(void)
 {
     Vec off;
-    Vec center = curStep->getCenter(CdmFmt::Bohr);
+    Vec center = -curStep->getCenter(CdmFmt::Bohr);
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
-    center += (mult[0]-1)*cv[0]/2.;
-    center += (mult[1]-1)*cv[1]/2.;
-    center += (mult[2]-1)*cv[2]/2.;
+    center -= (mult[0]-1)*cv[0]/2.;
+    center -= (mult[1]-1)*cv[1]/2.;
+    center -= (mult[2]-1)*cv[2]/2.;
     // atoms
     glBindVertexArray(atom_vao);
     glUseProgram(atom_program);
     auto offLocA = glGetUniformLocation(atom_program, "offset");
     auto facLoc = glGetUniformLocation(atom_program, "atom_fac");
     auto cellLocA = glGetUniformLocation(atom_program, "position_scale");
+    auto toggleLoc = glGetUniformLocation(atom_program, "has_single_color");
+    auto colorLoc = glGetUniformLocation(atom_program, "single_color");
     glUniform1f(facLoc, settings.atRadFac.val);
+    glUniform1f(toggleLoc, 0);
     glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
-                off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
                 glUniform3fv(offLocA, 1, off.data());
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       atom_model_npoly,
@@ -465,7 +536,7 @@ void GuiWrapper::drawCell(void)
         for(GLuint x=0;x<mult[0];++x){
             for(GLuint y=0;y<mult[1];++y){
                 for(GLuint z=0;z<mult[2];++z){
-                    off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                    off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
                     glUniform3fv(offLocB, 1, off.data());
                     glUniform3ui(pbcLoc, x, y, z);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
@@ -484,16 +555,78 @@ void GuiWrapper::drawCell(void)
         for(int x=0;x<mult[0];++x){
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
-                    off = (-center + x*cv[0] + y*cv[1] + z*cv[2]);
+                    off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
                     glUniform3fv(offLocC, 1, off.data());
                     glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
                 }
             }
         }
     }
+    // selection
+    if(sel_buffer.size()){
+        glBindVertexArray(sel_vao);
+        glUseProgram(atom_program);
+        glUniform1f(facLoc, settings.atRadFac.val);
+        glUniform3fv(offLocA, 1, (center).data());
+        glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+        glUniform1i(toggleLoc, 1);
+        glUniform4f(colorLoc, settings.selCol.val[0]/255.f,
+                              settings.selCol.val[1]/255.f,
+                              settings.selCol.val[2]/255.f,
+                              settings.selCol.val[3]/255.f);
+        glDrawArraysInstanced(GL_TRIANGLES, 0,
+                              atom_model_npoly,
+                              static_cast<GLsizei>(sel_buffer.size()));
+    }
 }
 
-void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
+void GuiWrapper::drawSel()
+{
+    // draw Atoms (as setup in atom_vao, shader locations must match)
+    // with selection shader -> color by gl_InstanceID
+    // to seperate Framebuffer
+#ifndef __EMSCRIPTEN__
+    glDisable(GL_MULTISAMPLE);
+#endif
+    glClearColor(1,1,1,0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Vec center = -curStep->getCenter(CdmFmt::Bohr);
+    glBindVertexArray(atom_vao);
+    glUseProgram(sel_program);
+    auto offLocA = glGetUniformLocation(sel_program, "offset");
+    auto facLoc = glGetUniformLocation(sel_program, "atom_fac");
+    auto cellLocA = glGetUniformLocation(sel_program, "position_scale");
+    glUniform1f(facLoc, settings.atRadFac.val);
+    glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+    if(curStep->hasCell()){
+        Vec off;
+        Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
+        center -= (mult[0]-1)*cv[0]/2.;
+        center -= (mult[1]-1)*cv[1]/2.;
+        center -= (mult[2]-1)*cv[2]/2.;
+        for(int x=0;x<mult[0];++x){
+            for(int y=0;y<mult[1];++y){
+                for(int z=0;z<mult[2];++z){
+                    off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
+                    glUniform3fv(offLocA, 1, off.data());
+                    glDrawArraysInstanced(GL_TRIANGLES, 0,
+                                          atom_model_npoly,
+                                          static_cast<GLsizei>(atom_prop_buffer.size()));
+                }
+            }
+        }
+    }else{
+        glUniform3fv(offLocA, 1, center.data());
+        glDrawArraysInstanced(GL_TRIANGLES, 0,
+                              atom_model_npoly,
+                              static_cast<GLsizei>(atom_prop_buffer.size()));
+    }
+#ifndef __EMSCRIPTEN__
+    glEnable(GL_MULTISAMPLE);
+#endif
+}
+
+void GuiWrapper::updateStepBuffers(StepProper* step, bool draw_bonds)
 {
     if (step!=nullptr) {
         curStep = step;
@@ -523,7 +656,6 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
                  tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
                  tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
-    cell_mat_changed = true;
 
     //atoms
     atom_prop_buffer.clear();
@@ -624,6 +756,19 @@ void GuiWrapper::updateBuffers(const StepProper* step, bool draw_bonds)
     }
 }
 
+void GuiWrapper::updateSelBuffers(StepSelection* sel)
+{
+    if(sel != nullptr){
+        curSel = sel;
+    }
+    sel_buffer.clear();
+    sel_buffer.reserve(curSel->getNat());
+    for(const Atom& at:*curSel){
+        sel_buffer.push_back({at.coord, at.pse->covr*1.3f});
+    }
+    sel_changed = true;
+}
+
 void GuiWrapper::updateVBOs(void)
 {
     if (atoms_changed) {
@@ -644,6 +789,16 @@ void GuiWrapper::updateVBOs(void)
         }
         atoms_changed = false;
     }
+    if (sel_changed) {
+        glBindBuffer(GL_ARRAY_BUFFER, sel_vbo);
+        if(!sel_buffer.empty()){
+            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sel_buffer.size()*sizeof(sel_prop)),
+                         static_cast<const void*>(sel_buffer.data()), GL_STREAM_DRAW);
+        }else{
+            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
+        }
+        sel_changed = false;
+    }
     if (bonds_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
         if (!bond_buffer.empty()) {
@@ -656,7 +811,8 @@ void GuiWrapper::updateVBOs(void)
     }
     if (cell_changed) {
         glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-        glBufferData(GL_ARRAY_BUFFER, 8*sizeof(Vec), static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 8*sizeof(Vec),
+                     static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
         cell_changed = false;
     }
 }
@@ -758,4 +914,13 @@ void GuiWrapper::alignViewMat(alignDir d)
         break;
     }
     rMatChanged = true;
+}
+
+Mat GuiWrapper::getAxes()
+{
+    Mat tmp;
+    tmp[0] =  Vec{rMat[0], rMat[1], rMat[2]};
+    tmp[1] = -Vec{rMat[4], rMat[5], rMat[6]};
+    tmp[2] =  Vec{rMat[8], rMat[9], rMat[10]};
+    return tmp;
 }

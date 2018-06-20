@@ -1,7 +1,9 @@
 #include "glwidget.h"
 #include <QKeyEvent>
+#include <QOpenGLFramebufferObject>
 #include "../common/atom_model.h"
 #include "../common/bond_model.h"
+#include <iostream>
 
 using namespace Vipster;
 
@@ -15,23 +17,21 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
+void GLWidget::updateWidget(uint8_t change)
+{
+    if(change & (Change::atoms | Change::cell)) {
+        setStep(master->curStep);
+    }
+    if(change & (Change::atoms | Change::cell | Change::selection)){
+        setSel(master->curSel);
+    }
+}
+
 void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
-    glClearColor(1,1,1,1);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     initShaders("# version 330\n", ":/shaders");
-    //
-    initAtomVAO();
-    initBondVAO();
-    initCellVAO();
-    initViewUBO();
-    initViewMat();
+    initGL();
 }
 
 void GLWidget::paintGL()
@@ -48,11 +48,22 @@ void GLWidget::resizeGL(int w, int h)
     resizeViewMat(w, h);
 }
 
-void GLWidget::setMode(int, bool t)
+void GLWidget::setMode(int mode, bool t)
 {
-    // TODO: implement mouse-modes
     if(!t) {
         return;
+    }
+    mouseMode = static_cast<MouseMode>(mode);
+    switch(mouseMode){
+    case MouseMode::Camera:
+        setCursor(Qt::ArrowCursor);
+        break;
+    case MouseMode::Modify:
+        setCursor(Qt::OpenHandCursor);
+        break;
+    case MouseMode::Select:
+        setCursor(Qt::CrossCursor);
+        break;
     }
 }
 
@@ -64,9 +75,15 @@ void GLWidget::setMult(int i)
     update();
 }
 
-void GLWidget::setStep(const StepProper* step)
+void GLWidget::setStep(StepProper* step)
 {
-    updateBuffers(step, settings.showBonds.val);
+    updateStepBuffers(step, settings.showBonds.val);
+    update();
+}
+
+void GLWidget::setSel(StepSelection* sel)
+{
+    updateSelBuffers(sel);
     update();
 }
 
@@ -98,6 +115,78 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
+std::set<size_t> GLWidget::pickAtoms()
+{
+        std::set<size_t> idx;
+        makeCurrent();
+        drawSel();
+        QOpenGLFramebufferObjectFormat format;
+        format.setSamples(0);
+        QOpenGLFramebufferObject fbo{size(), format};
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
+        glBlitFramebuffer(0, 0, width(), height(),
+                          0, 0, fbo.width(), fbo.height(),
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        fbo.bind();
+        auto x = std::min(mousePos.x(), rectPos.x());
+        auto y = std::min(height() - 1 - mousePos.y(),
+                          height() - 1 - rectPos.y());
+        auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
+        auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
+        std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
+        glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+        fbo.release();
+        for(size_t i=0; i<data.size(); i+=4){
+            if(data[i+3]){
+                idx.insert(data[i+0] +
+                           (static_cast<size_t>(data[i+1])<<8) +
+                           (static_cast<size_t>(data[i+2])<<16)
+                        );
+            }
+        }
+        return idx;
+}
+
+void GLWidget::rotAtoms(QPoint delta)
+{
+    if(delta.isNull()){
+        return;
+    }
+    float angle = delta.manhattanLength();
+    auto axes = getAxes();
+    Vec axis = delta.y() * axes[0] + delta.x() * axes[1];
+    if(curSel->getNat()){
+        curSel->modRotate(angle, axis, shift);
+    }else{
+        curStep->modRotate(angle, axis, shift);
+    }
+    triggerUpdate(Change::atoms);
+}
+
+void GLWidget::shiftAtomsXY(QPoint delta)
+{
+    auto axes = getAxes();
+    Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
+    if(curSel->getNat()){
+        curSel->modShift(axis, 0.1f);
+    }else{
+        curStep->modShift(axis, 0.1f);
+    }
+    triggerUpdate(Change::atoms);
+}
+
+void GLWidget::shiftAtomsZ(QPoint delta)
+{
+    float fac = 0.1f * (delta.x() + delta.y());
+    if(curSel->getNat()){
+        curSel->modShift(getAxes()[2], fac);
+    }else{
+        curStep->modShift(getAxes()[2], fac);
+    }
+    triggerUpdate(Change::atoms);
+}
+
 void GLWidget::wheelEvent(QWheelEvent *e)
 {
     zoomViewMat(e->angleDelta().y());
@@ -107,61 +196,116 @@ void GLWidget::wheelEvent(QWheelEvent *e)
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
 {
+    e->accept();
     setFocus();
     if (!(e->buttons()&7)) {
         return;
     }
-    mousePos = e->pos();
+    rectPos = mousePos = e->pos();
     switch(mouseMode){
-        case MouseMode::Camera:
-            if(e->button() == Qt::MouseButton::RightButton){
-                alignViewMat(alignDir::z);
-                update();
+    case MouseMode::Camera:
+        if(e->button() == Qt::MouseButton::RightButton){
+            alignViewMat(alignDir::z);
+            update();
+        }
+        break;
+    case MouseMode::Select:
+        if(e->button() == Qt::MouseButton::RightButton){
+            curSel->setFilter(SelectionFilter{});
+            triggerUpdate(Change::selection);
+        }
+        break;
+    case MouseMode::Modify:
+        if((e->button() == Qt::MouseButton::LeftButton) &&
+           (e->modifiers() & (Qt::Modifier::CTRL|Qt::Modifier::SHIFT)) == 0u){
+            auto idx = pickAtoms();
+            if(idx.empty()){
+                if(curSel->getNat()){
+                    shift = curSel->getCom(curSel->getFmt());
+                }else{
+                    shift = curStep->getCom(curStep->getFmt());
+                }
+            }else{
+                shift = (*curStep)[*idx.begin()].coord;
             }
-            break;
-        case MouseMode::Select:
-            break;
-        case MouseMode::Modify:
-            break;
+        }
+        break;
     }
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
+    e->accept();
     if (!(e->buttons()&7)) {
         return;
     }
     QPoint delta = e->pos() - mousePos;
     switch(mouseMode){
-        case MouseMode::Camera:
-            if((e->buttons() & Qt::MouseButton::LeftButton) != 0u){
-                rotateViewMat(delta.x(), delta.y(), 0);
-                update();
-            }else if((e->buttons() & Qt::MouseButton::MiddleButton) != 0u){
-                translateViewMat(delta.x(), -delta.y(), 0);
-                update();
+    case MouseMode::Camera:
+        if((e->buttons() & Qt::MouseButton::LeftButton) != 0u){
+            rotateViewMat(delta.x(), delta.y(), 0);
+            update();
+        }else if((e->buttons() & Qt::MouseButton::MiddleButton) != 0u){
+            translateViewMat(delta.x(), -delta.y(), 0);
+            update();
+        }
+        mousePos = e->pos();
+        break;
+    case MouseMode::Select:
+        if((e->buttons() & Qt::MouseButton::RightButton) == 0u &&
+                delta.manhattanLength() > 5){
+            rectPos = e->pos();
+        }
+        break;
+    case MouseMode::Modify:
+        switch(e->buttons()){
+        case Qt::MouseButton::LeftButton:
+            if(e->modifiers() & Qt::Modifier::CTRL){
+                shiftAtomsXY(delta);
+            }else if(e->modifiers() & Qt::Modifier::SHIFT){
+                shiftAtomsZ(delta);
+            }else{
+                rotAtoms(delta);
             }
             break;
-        case MouseMode::Select:
+        case Qt::MouseButton::MiddleButton:
+            shiftAtomsXY(delta);
             break;
-        case MouseMode::Modify:
+        case Qt::MouseButton::RightButton:
+            shiftAtomsZ(delta);
             break;
+        default:
+            break;
+        }
+        mousePos = e->pos();
+        break;
     }
-    mousePos = e->pos();
-    e->accept();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-    if (!(e->buttons()&7)) {
-        return;
-    }
+    e->accept();
     switch(mouseMode){
-        case MouseMode::Camera:
-            break;
-        case MouseMode::Select:
-            break;
-        case MouseMode::Modify:
-            break;
+    case MouseMode::Camera:
+        break;
+    case MouseMode::Select:
+        if(e->button() != Qt::MouseButton::RightButton){
+            bool add = (e->button() & Qt::MouseButton::MiddleButton) ||
+                       (e->modifiers() & Qt::ControlModifier);
+            SelectionFilter filter{};
+            filter.mode = SelectionFilter::Mode::Index;
+            if(add){
+                const auto& origIndices = curSel->getIndices();
+                filter.indices.insert(origIndices.begin(), origIndices.end());
+            }
+            auto idx = pickAtoms();
+            filter.indices.insert(idx.begin(), idx.end());
+            curSel->setFilter(filter);
+            triggerUpdate(Change::selection);
+        }
+        break;
+    case MouseMode::Modify:
+        //TODO: undo
+        break;
     }
 }

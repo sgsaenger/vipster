@@ -30,7 +30,7 @@ void PWParam::setParam(BaseParam *p)
             if(nl.size()){
                 treeTop->setFlags(treeTop->flags() | Qt::ItemIsEnabled);
             } else {
-                treeTop->setFlags(treeTop->flags() & !Qt::ItemIsEnabled);
+                treeTop->setFlags(treeTop->flags() & ~Qt::ItemIsEnabled);
             }
         }
         // clear tree

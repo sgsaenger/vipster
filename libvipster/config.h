@@ -139,6 +139,7 @@ struct Settings{
     Setting<std::string> PWPP{"Default PWScf PP-suffix", ""};
     Setting<std::string> CPPP{"Default CPMD PP-suffix", ""};
     Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
+    Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
 };
 //TODO: void to_json(nlohmann::json& j,const Settings& s);
 void from_json(const nlohmann::json& j, Settings& s);

@@ -537,7 +537,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{3c161d2b-0887-45f1-8a2b-496ef0f8690d}</uid>
+                    <uid>{1f88c605-54da-401d-b51d-ee2cb18c9ed3}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomSelection&gt; atoms</declaration>
@@ -545,7 +545,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{bbdfd11f-8dae-4901-a9b3-67917429788b}</uid>
+                    <uid>{88f7f741-ecc9-485b-abfd-e5e8d147b17b}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -554,7 +554,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{a972be1d-88a3-448a-b213-7f133d881f13}</uid>
+                    <uid>{508abcac-5de8-481a-8fd4-a8778c4b1241}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -563,7 +563,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8af9de54-8ead-4437-93f1-a2c724f1d741}</uid>
+                    <uid>{4dcf6470-3da2-4617-af84-0bbc5e35d9ee}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -572,7 +572,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7b47361a-b2bf-43db-a150-4fd218c84b31}</uid>
+                    <uid>{d8a9633a-9885-4320-a219-609fc0d650b0}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -581,7 +581,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5eb839d9-0e62-458e-b4d1-ded15f1322fa}</uid>
+                    <uid>{18198c56-5558-4c8d-bb14-42bd75999093}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -590,7 +590,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{4440b932-544f-453d-bbda-ab13b257b2de}</uid>
+                    <uid>{bf1dcc7a-8465-41cc-b398-2824c0b4d686}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -811,7 +811,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{b9545e32-c333-4dbf-a04e-e6a08fd12f90}</uid>
+                    <uid>{5052059d-5051-405b-8013-15017f12c225}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>Atom&amp; operator*()</declaration>
@@ -819,7 +819,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{dae85822-9586-4f79-8403-c12d4334ac85}</uid>
+                    <uid>{fe1c23c7-f9f5-4da9-88ef-c57181e1e8e7}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>AtomIterator&amp; operator++()</declaration>
@@ -827,7 +827,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{bf40d565-3e79-4412-8389-923db01fab4c}</uid>
+                    <uid>{277f69d6-416b-45c7-a784-c4e7cd2b07be}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>bool cmp(const AtomIterator&amp;)</declaration>
@@ -835,7 +835,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{bb8b191c-8b97-48d4-a950-26fed33adb1e}</uid>
+                    <uid>{837b946d-92b9-4bb6-81d1-edb85ed05913}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
@@ -1246,7 +1246,7 @@
                          </stereotypes>
                          <name>StepProper</name>
                          <pos>x:600;y:1050</pos>
-                         <rect>x:-105;y:-90;w:210;h:180</rect>
+                         <rect>x:-125;y:-90;w:250;h:180</rect>
                          <auto-sized>false</auto-sized>
                          <visual-role>0</visual-role>
                         </DObject>
@@ -1273,7 +1273,7 @@
                          </stereotypes>
                          <name>StepFormatter</name>
                          <pos>x:870;y:1300</pos>
-                         <rect>x:-105;y:-65;w:210;h:130</rect>
+                         <rect>x:-105;y:-70;w:210;h:140</rect>
                          <auto-sized>false</auto-sized>
                          <visual-role>0</visual-role>
                         </DObject>
@@ -1832,7 +1832,7 @@
                          </stereotypes>
                          <name>Step</name>
                          <pos>x:875;y:835</pos>
-                         <rect>x:-120;y:-160;w:240;h:320</rect>
+                         <rect>x:-135;y:-170;w:270;h:340</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1919,8 +1919,8 @@
                           </qlist>
                          </stereotypes>
                          <name>StepSelFormatter</name>
-                         <pos>x:395;y:1310</pos>
-                         <rect>x:-130;y:-70;w:260;h:140</rect>
+                         <pos>x:395;y:1305</pos>
+                         <rect>x:-130;y:-80;w:260;h:160</rect>
                          <auto-sized>false</auto-sized>
                          <visual-role>0</visual-role>
                         </DObject>
@@ -2064,8 +2064,8 @@
                           </qlist>
                          </stereotypes>
                          <name>StepSelection</name>
-                         <pos>x:245;y:725</pos>
-                         <rect>x:-115;y:-100;w:230;h:200</rect>
+                         <pos>x:240;y:730</pos>
+                         <rect>x:-115;y:-85;w:230;h:170</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -2137,9 +2137,33 @@
                       </DAssociation>
                      </instance>
                     </item>
+                    <item>
+                     <instance type="DAssociation">
+                      <DAssociation>
+                       <base-DRelation>
+                        <DRelation>
+                         <base-DElement>
+                          <DElement>
+                           <uid>{20ea789e-a80a-4773-930e-3966866c89b4}</uid>
+                          </DElement>
+                         </base-DElement>
+                         <object>{7de018fc-7e56-4b7d-94b2-65f12f05a0f7}</object>
+                         <a>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</a>
+                         <b>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</b>
+                        </DRelation>
+                       </base-DRelation>
+                       <a>
+                        <DAssociationEnd>
+                         <navigable>true</navigable>
+                         <kind>2</kind>
+                        </DAssociationEnd>
+                       </a>
+                      </DAssociation>
+                     </instance>
+                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1522167959969</last-modified>
+                  <last-modified>1527157861245</last-modified>
                   <toolbarid>General</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -2239,7 +2263,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{b6fbc797-9e9b-4efd-9aac-eacebb7ed976}</uid>
+                    <uid>{0844f7ec-71e3-42f3-80e0-ac5486ccc67f}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepFormatter asAlat</declaration>
@@ -2247,7 +2271,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{b3b46da0-79d4-4490-bcce-3d0733b2e178}</uid>
+                    <uid>{081e4c2c-532b-4e1d-b70c-ac279c0c77f4}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepFormatter asBohr</declaration>
@@ -2255,7 +2279,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7d36e36f-ccf4-48b9-8c58-8f6ac2dd5a3a}</uid>
+                    <uid>{e70bad85-76fb-42f6-acf3-1035ca68fd4f}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepFormatter asCrystal</declaration>
@@ -2263,7 +2287,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ecb65287-be4c-4c6e-a6fa-f9dbe48fafdc}</uid>
+                    <uid>{c0108011-0bb4-4f2c-8bd6-10ee97730b5d}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepFormatter asAngstrom</declaration>
@@ -2271,15 +2295,15 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{20e278c4-4c59-4386-8c12-60fd6bf55d2f}</uid>
+                    <uid>{40002574-81c2-4c58-a64d-68234e2af88e}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
-                    <declaration>void setFmt(AtomFmt)</declaration>
+                    <declaration>void setFmt(AtomFmt, bool)</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0b6c1724-a844-480d-a2db-d7031db8f87a}</uid>
+                    <uid>{76b7cafa-b945-47c5-83ff-384df7ae69cc}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
@@ -2288,8 +2312,8 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{795b0607-30e6-4235-9e40-6f0affda858b}</uid>
-                    <visibility>2</visibility>
+                    <uid>{e7073d6c-013a-4ffc-a8cb-8a7d23dd3214}</uid>
+                    <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
                     <declaration>void evaluateCache()</declaration>
@@ -2357,16 +2381,16 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{1280b4b8-6c99-487f-8465-791e56493389}</uid>
+                    <uid>{fcbd0b6c-7f1d-45aa-8771-bb14849c83b5}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
-                    <declaration>StepProper* step</declaration>
+                    <declaration>StepProper&amp; step</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5d1bf20b-d1bb-461a-b2a2-d9b205bc6ff0}</uid>
-                    <visibility>2</visibility>
+                    <uid>{008fe3a8-dabf-4d81-bd24-8d934f400236}</uid>
+                    <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
                     <declaration>void evaluateCache()</declaration>
@@ -2374,7 +2398,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c4f6e82f-aa97-4f67-9096-484b55e1d76a}</uid>
+                    <uid>{fdbfbb62-4aa5-4f05-bbc3-38c9df9dc85d}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
@@ -2608,7 +2632,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{02d7cb0c-ed58-4e9c-b63b-8dddc9857415}</uid>
+                    <uid>{4fb94a03-7500-4740-86b5-75031e8b48ef}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;BondData&gt; bonds</declaration>
@@ -2616,7 +2640,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{b9ad8db8-980f-459b-a559-af852479928d}</uid>
+                    <uid>{7cbcbb3e-5b01-4d12-9be8-93dca0f55bfe}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;CellData&gt; cell</declaration>
@@ -2624,7 +2648,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{dc51aedd-1903-4323-97de-ee536084498a}</uid>
+                    <uid>{919cc3ba-bb2c-4e26-9a27-6a2e6289ec8d}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;string&gt; comment</declaration>
@@ -2632,7 +2656,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c809229e-a09a-41cb-a120-7b2fee02ab7e}</uid>
+                    <uid>{a0cf2cc9-deac-4782-ab6b-a754e175628b}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>AtomFmt at_fmt</declaration>
@@ -2640,8 +2664,8 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8acd2896-135c-4b38-acae-8247d1b229b0}</uid>
-                    <visibility>2</visibility>
+                    <uid>{fa4a81e4-9adf-4f5a-a835-12bc6b827730}</uid>
+                    <visibility>1</visibility>
                     <type>2</type>
                     <properties>3</properties>
                     <declaration>void evaluateCache()</declaration>
@@ -2649,7 +2673,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{53053c91-b673-40cf-b083-66ee27bb307f}</uid>
+                    <uid>{066dd3f8-b033-4eb8-a344-586b0e958e95}</uid>
                     <group>Types</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2658,7 +2682,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{4f8ab848-bbf8-4927-9781-3dba5c6b957d}</uid>
+                    <uid>{c3ca21ba-c384-4b3c-ae1d-884fc9f35aaf}</uid>
                     <group>Types</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2667,7 +2691,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0a0fc942-52d2-48a0-ad1b-db6e51608f62}</uid>
+                    <uid>{9547f5e2-2119-417b-a635-bcfcbf587808}</uid>
                     <group>Format</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2676,7 +2700,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8dc80828-8ea1-45e4-8140-c048d714d9f8}</uid>
+                    <uid>{0d4678af-687e-44ee-9b5b-8707cbea0de3}</uid>
                     <group>Format</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2686,7 +2710,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{166b5114-15d5-4c28-b82d-683292974cac}</uid>
+                    <uid>{36dcd376-0ddd-4455-be0b-adfa4176c563}</uid>
                     <group>Comment</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2695,7 +2719,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9f171283-34c9-431d-9620-9a989c32db4b}</uid>
+                    <uid>{877e2fcc-1ed1-4aff-b082-d45c29b57b26}</uid>
                     <group>Comment</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2704,7 +2728,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5222d7ef-0b72-42ca-bae2-ac115d60acc1}</uid>
+                    <uid>{5bba586e-38b3-4c98-8edb-9ccf479a7a67}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2713,7 +2737,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7f2cf993-4e14-46e8-bf2e-a2b0b9a6dd93}</uid>
+                    <uid>{ad971964-b30f-474f-a202-caccde4ea323}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2722,7 +2746,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{52ee2c26-17a2-45ff-a190-256159801a0f}</uid>
+                    <uid>{67b424bb-7225-427a-adec-5616b6bf4130}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2731,7 +2755,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{987a672d-9cb0-4dcb-b2d6-11c6c5520af8}</uid>
+                    <uid>{16c47957-cd52-46cc-adda-a5bee510993d}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2740,7 +2764,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{29e196fd-deb3-4c19-acc4-210494c71107}</uid>
+                    <uid>{ac559a40-5c80-43b4-8bf6-a7a23fe681e5}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2749,7 +2773,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{1d3b7d01-414d-4d82-aefd-8340be9503fa}</uid>
+                    <uid>{1c96d4a6-abc0-4ac5-aa31-1c30a65be371}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2758,7 +2782,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9a4af9f4-c9e3-4c10-9f83-50bd897c6fdf}</uid>
+                    <uid>{e7b657dc-662e-4fd5-80e5-16111cc3f348}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2767,7 +2791,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{a63e24aa-be77-4359-baf6-7cf36be2b4bf}</uid>
+                    <uid>{dd2a9e6f-80ba-40db-b06b-3a02860c2627}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2776,7 +2800,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{850c63bf-85f4-4bbe-94b1-4bdb8839c606}</uid>
+                    <uid>{06e773f3-58ec-4008-8134-30290090234c}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2859,7 +2883,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{d83c017b-bf55-4b59-9ec3-683d673d8218}</uid>
+                    <uid>{b39d3f53-00c2-4cd9-ad24-bbd2996b4581}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>operator T&amp;()</declaration>
@@ -2867,7 +2891,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8afe7c80-2ed8-4fdd-ad2c-014910980234}</uid>
+                    <uid>{4cfa7137-53c3-42d9-947e-915db9428fbd}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>Atom&amp; at</declaration>
@@ -3457,6 +3481,34 @@
                         </target>
                        </handle>
                       </item>
+                      <item>
+                       <handle>
+                        <uid>{7de018fc-7e56-4b7d-94b2-65f12f05a0f7}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{7de018fc-7e56-4b7d-94b2-65f12f05a0f7}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{8de526df-dfea-4678-a68c-6867f6d85c7e}</a>
+                             <b>{77cc3035-8c86-4856-b2d4-6953574e4212}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <navigable>true</navigable>
+                             <kind>2</kind>
+                            </MAssociationEnd>
+                           </a>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
                      </qlist>
                     </handles>
                    </handles>
@@ -3467,7 +3519,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{c10d9edb-883d-4a26-a61c-4a6b866a424b}</uid>
+                    <uid>{bb1e7b4a-07c2-4345-9d1b-18deb36da654}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
@@ -3475,7 +3527,16 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{83fae76c-91ad-44d2-b2e0-39ff10902d06}</uid>
+                    <uid>{2f016d4e-10e6-4c4b-be84-6d663e1303dd}</uid>
+                    <visibility>1</visibility>
+                    <type>2</type>
+                    <properties>3</properties>
+                    <declaration>StepSelProper select(std::string)</declaration>
+                   </MClassMember>
+                  </item>
+                  <item>
+                   <MClassMember>
+                    <uid>{06715d34-5b8c-4489-86d3-73a8e61f6650}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3484,7 +3545,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9811b49c-96f6-4f64-8976-67bb780248ae}</uid>
+                    <uid>{b49c63ea-ddfd-4750-ae8f-994f2574cd2b}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3493,7 +3554,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{83a69614-0721-437b-9ec6-217478e000ec}</uid>
+                    <uid>{8ba294c8-f947-4514-9712-ef289f9a56bd}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3502,7 +3563,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8f95506f-6cb1-4f2c-87c8-d680cdfdf2de}</uid>
+                    <uid>{334aea53-d811-4c6f-b37d-80c3a7cc8a57}</uid>
                     <group>Atom-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3511,7 +3572,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{38e17d18-f9fb-42c1-88bd-cf5358b7ccd1}</uid>
+                    <uid>{e8ea5683-31a0-48a1-bcd5-ffb74bd3060e}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3520,7 +3581,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{d401fddf-5c41-4f93-a562-2dab4db06000}</uid>
+                    <uid>{b4fe4f35-8292-4705-b69f-71ba68482f64}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3529,7 +3590,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ec644b28-431f-4d39-a57f-8aeebbcf0be7}</uid>
+                    <uid>{04370166-fd93-4fd5-b311-a08d0879482b}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3538,7 +3599,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9b35e11b-afb0-4ba5-adad-f3272bb67f78}</uid>
+                    <uid>{b0eea100-5af7-4123-9288-96b75d0441d4}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3547,7 +3608,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{93e8fa38-5ad8-453d-80b0-52f4d41b50e9}</uid>
+                    <uid>{a992a75f-9390-45a3-8a0d-012eb6719e0e}</uid>
                     <group>Atom-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3556,7 +3617,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{08e30ca1-4e67-4b12-8289-7fba3dba6c77}</uid>
+                    <uid>{2a04798f-65ab-46fa-ae8c-389375e7c184}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3565,7 +3626,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{21783b05-1915-4010-8146-465cefe39526}</uid>
+                    <uid>{149d9ff5-994b-44c5-85af-486e7eb1af4a}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3574,7 +3635,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{08f90f96-a256-4e13-b967-1f5b4492e1a7}</uid>
+                    <uid>{7f740222-99a1-40a6-826f-5ae852c0be2d}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3583,7 +3644,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{b73fb74b-f6bc-4bbf-af6d-628fc739ccc3}</uid>
+                    <uid>{48c0ad95-8e28-430a-9524-991c1433be90}</uid>
                     <group>Cell-setters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -3682,7 +3743,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{6af862fa-e836-46f0-95d8-6bbb00abedf4}</uid>
+                    <uid>{b6656bca-08be-4c25-8fd0-e55fa0f919cd}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepSelFormatter asAlat</declaration>
@@ -3690,7 +3751,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{e83de2cc-386d-4aaa-a213-fc054060a98d}</uid>
+                    <uid>{f442990a-240f-4de2-a2df-565b4367ef5e}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepSelFormatter asBohr</declaration>
@@ -3698,7 +3759,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{bb65b75a-82e6-43c0-a4e9-e21fcec9b2b4}</uid>
+                    <uid>{4250ac21-6ce8-401a-9b7f-6502a667d4ae}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepSelFormatter asCrystal</declaration>
@@ -3706,7 +3767,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0f5ebd7b-5f31-4bb3-939b-8bf5da87e1e4}</uid>
+                    <uid>{5a5843d8-c02f-45fb-b1d1-d4aefe883c85}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>StepSelFormatter asAngstrom</declaration>
@@ -3714,7 +3775,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{873edf71-eb7d-420a-83cf-fc8874d4ed42}</uid>
+                    <uid>{8e4b3a9e-a9af-4c73-97ac-2d9206adc9a4}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>void setFmt(AtomFmt)</declaration>
@@ -3722,7 +3783,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{a8cf7b41-822d-4a6b-b8a5-dc1c84027dc3}</uid>
+                    <uid>{18c8e8de-c0d2-44d0-93a0-49fdcc681440}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
@@ -3731,7 +3792,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5b1c772f-c9fa-4962-8569-458b688f0a1e}</uid>
+                    <uid>{7b47bc49-ef02-4dc3-b5c5-f37292c7b202}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>StepProper* step</declaration>
@@ -3739,8 +3800,8 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0b66228a-ac9b-48de-a8e8-caaf6e921dc5}</uid>
-                    <visibility>2</visibility>
+                    <uid>{85fc6e54-b19a-4cd8-a7b9-c0a73e5d9230}</uid>
+                    <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
                     <declaration>void evaluateCache()</declaration>
@@ -3873,15 +3934,15 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{4f994e86-a72d-4150-9f75-0dcf10103f67}</uid>
+                    <uid>{7eff0451-24cb-4f53-b0ad-09f802cff280}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
-                    <declaration>StepSelection* sel</declaration>
+                    <declaration>StepSelection&amp; sel</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c8ca59e5-5d56-4c78-8d2d-f77e96b0f204}</uid>
+                    <uid>{795971de-aff6-4778-bfb2-f6f8096dacb0}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>StepFormatter* step</declaration>
@@ -3889,8 +3950,8 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{1706afbc-cc58-45c5-9c90-49817f61e436}</uid>
-                    <visibility>2</visibility>
+                    <uid>{a140ecf6-92a4-4f2f-86f7-1ce74fd9a685}</uid>
+                    <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
                     <declaration>void evaluateCache()</declaration>
@@ -3898,7 +3959,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9481ac96-ab63-411a-a3b7-0484a0a1241b}</uid>
+                    <uid>{ed49f8bd-38a1-4906-b133-81f41a09d58a}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <properties>8</properties>
@@ -4063,6 +4124,33 @@
                         </target>
                        </handle>
                       </item>
+                      <item>
+                       <handle>
+                        <uid>{ecad6cca-c6c7-4916-b372-cffc8c29da92}</uid>
+                        <target>
+                         <instance type="MAssociation">
+                          <MAssociation>
+                           <base-MRelation>
+                            <MRelation>
+                             <base-MElement>
+                              <MElement>
+                               <uid>{ecad6cca-c6c7-4916-b372-cffc8c29da92}</uid>
+                              </MElement>
+                             </base-MElement>
+                             <a>{77cc3035-8c86-4856-b2d4-6953574e4212}</a>
+                             <b>{8de526df-dfea-4678-a68c-6867f6d85c7e}</b>
+                            </MRelation>
+                           </base-MRelation>
+                           <a>
+                            <MAssociationEnd>
+                             <navigable>true</navigable>
+                            </MAssociationEnd>
+                           </a>
+                          </MAssociation>
+                         </instance>
+                        </target>
+                       </handle>
+                      </item>
                      </qlist>
                     </handles>
                    </handles>
@@ -4073,7 +4161,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{e38df041-ed69-4149-84a1-f125f7ed9f61}</uid>
+                    <uid>{f8e40a1a-e116-4136-8311-f34baa45d161}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomSelection&gt; atoms</declaration>
@@ -4081,7 +4169,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{10b8ffb1-6d38-450a-a60d-9f8d03b49193}</uid>
+                    <uid>{2ba42250-ca3c-468e-a378-8c188325ccf4}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -4090,25 +4178,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{3cb23e59-84dc-497c-b0e9-65ac36db6c33}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNtyp()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{21f630d0-a712-4c67-aadb-8465bf165de8}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>set&lt;string&gt; getTypes()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{3b68608d-b0e1-48b2-b40b-976689305df4}</uid>
+                    <uid>{54e25f7a-8410-41da-abcf-7813312ab6e0}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -4117,7 +4187,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{4bac8661-b716-42c1-95d2-5af5cf0ac375}</uid>
+                    <uid>{56314c92-1e4e-419c-b45f-f85a8297c5ba}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -4126,7 +4196,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{e490a939-4c5f-4fd9-8f0d-1cc3bc6af70b}</uid>
+                    <uid>{edf5d32f-e382-4ed8-ada2-2980a8671256}</uid>
                     <group>Atom getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
