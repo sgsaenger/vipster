@@ -31,7 +31,9 @@ Project {
                     "Qt5Core" + suffix,
                     "Qt5Gui" + suffix,
                     "Qt5Widgets" + suffix,
+                    "libgcc_s_dw2-1.dll",
                     "libwinpthread-1.dll",
+                    "libstdc++-6.dll",
             ]
             qbs.install: true
         }
