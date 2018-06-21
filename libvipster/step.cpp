@@ -156,12 +156,23 @@ StepSelection& Step::select(std::string filter)
     return lastSel;
 }
 
+StepSelection& Step::select(SelectionFilter filter)
+{
+    lastSel = StepSelection{*this, filter};
+    return lastSel;
+}
+
 StepSelection& Step::getLastSelection()
 {
     return lastSel;
 }
 
 StepSelConst Step::select(std::string filter) const
+{
+    return StepSelConst{*this, filter};
+}
+
+StepSelConst Step::select(SelectionFilter filter) const
 {
     return StepSelConst{*this, filter};
 }

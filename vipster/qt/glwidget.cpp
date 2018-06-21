@@ -211,7 +211,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            curSel->setFilter(SelectionFilter{});
+            *curSel = curStep->select(SelectionFilter{});
             triggerUpdate(Change::selection);
         }
         break;
@@ -300,7 +300,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
             auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
-            curSel->setFilter(filter);
+            *curSel = curStep->select(filter);
             triggerUpdate(Change::selection);
         }
         break;

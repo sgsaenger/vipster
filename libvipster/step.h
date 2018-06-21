@@ -26,8 +26,10 @@ public:
     //TODO: make move-able
 
     StepSelection&  select(std::string);
+    StepSelection&  select(SelectionFilter);
     StepSelection&  getLastSelection();
     StepSelConst    select(std::string) const;
+    StepSelConst    select(SelectionFilter) const;
 
     // Atoms
     size_t          getNat() const noexcept;

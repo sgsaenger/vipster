@@ -282,6 +282,11 @@ public:
     {
         this->setFilter(filter);
     }
+    SelectionProper(T& step, SelectionFilter filter)
+        : SelectionProper{step}
+    {
+        this->setFilter(filter);
+    }
     SelectionProper(const SelectionProper& s)
         :SelectionBase<T>{s}
     {}
