@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
-    QApplication::setApplicationVersion("1.9a");
+    QApplication::setApplicationVersion("1.10a");
 
     // main parser + data-targets
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
