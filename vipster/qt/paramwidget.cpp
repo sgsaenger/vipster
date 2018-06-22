@@ -20,6 +20,12 @@ ParamWidget::~ParamWidget()
     delete ui;
 }
 
+void ParamWidget::clearParams()
+{
+    params.clear();
+    ui->paramSel->clear();
+}
+
 void ParamWidget::registerParam(Vipster::IOFmt fmt,
                                 std::unique_ptr<Vipster::BaseParam>&& data)
 {
@@ -32,6 +38,14 @@ void ParamWidget::registerParam(Vipster::IOFmt fmt,
 
 void ParamWidget::on_paramSel_currentIndexChanged(int index)
 {
+    if(index<0){
+        ui->paramStack->setCurrentWidget(ui->NoPWidget);
+        curParam = nullptr;
+        return;
+    }
+    if(static_cast<size_t>(index) >= params.size()){
+        throw Error("Invalid parameter set selected");
+    }
     const auto& pair = params.at(static_cast<size_t>(index));
     curParam = pair.second.get();
     switch(pair.first){

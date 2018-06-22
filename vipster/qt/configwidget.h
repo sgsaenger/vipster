@@ -28,6 +28,7 @@ public:
     std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseConfig>>> configs;
     void registerConfig(Vipster::IOFmt fmt,
                         std::unique_ptr<Vipster::BaseConfig>&& data);
+    void clearConfigs();
     Vipster::BaseConfig* curConfig;
 
 private slots:

@@ -28,6 +28,7 @@ public:
     std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseParam>>> params;
     void registerParam(Vipster::IOFmt fmt,
                        std::unique_ptr<Vipster::BaseParam>&& data);
+    void clearParams();
     Vipster::BaseParam *curParam;
 
 private slots:

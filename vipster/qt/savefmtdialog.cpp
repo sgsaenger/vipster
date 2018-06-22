@@ -33,8 +33,7 @@ void SaveFmtDialog::selFmt(int i)
 void SaveFmtDialog::enableParamWidget(bool on)
 {
     auto* widget = ui->paramWidget;
-    auto& params = widget->params;
-    params.clear();
+    widget->clearParams();
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
@@ -53,8 +52,7 @@ void SaveFmtDialog::enableParamWidget(bool on)
 void SaveFmtDialog::enableConfWidget(bool on)
 {
     auto* widget = ui->configWidget;
-    auto& configs = widget->configs;
-    configs.clear();
+    widget->clearConfigs();
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
