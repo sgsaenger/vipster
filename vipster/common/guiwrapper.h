@@ -16,7 +16,7 @@ namespace Vipster {
 
 typedef std::array<float,16> guiMat;
 
-enum Change{atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8, param=0x10, config=0x20, selection=0x40};
+enum Change{atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8, selection=0x10};
 constexpr auto stepChanged = Change::atoms | Change::cell | Change::fmt | Change::selection;
 constexpr auto molChanged = Change::kpoints;
 

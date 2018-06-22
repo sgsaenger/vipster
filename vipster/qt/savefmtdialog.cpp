@@ -4,9 +4,6 @@
 
 using namespace Vipster;
 
-constexpr int SaveFmtDialog::paramlist[];
-constexpr int SaveFmtDialog::conflist[];
-
 SaveFmtDialog::SaveFmtDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SaveFmtDialog)
@@ -35,88 +32,50 @@ void SaveFmtDialog::selFmt(int i)
 
 void SaveFmtDialog::enableParamWidget(bool on)
 {
-    ui->paramLabel->setDisabled(true);
-    ui->paramSel->setDisabled(true);
-    ui->paramWidget->setDisabled(true);
+    auto* widget = ui->paramWidget;
+    auto& params = widget->params;
+    params.clear();
     if(on){
-        ownParams.clear();
-        auto vipRange = Vipster::params.equal_range(fmt);
-        for(auto it=vipRange.first; it!=vipRange.second; ++it){
-            ownParams.push_back(it->second->copy());
-        }
+        widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(auto& p: mw.params){
-            ownParams.push_back(p.second->copy());
+        for(auto& p: mw.getParams()){
+            widget->registerParam(fmt, p.second->copy());
         }
-    }
-    if(on && ownParams.size()){
-        ui->paramWidget->setCurrentIndex(paramlist[static_cast<int>(fmt)]);
-        ui->paramSel->clear();
-        for(auto& p: ownParams){
-            ui->paramSel->addItem(QString::fromStdString(p->name));
+        auto param_range = Vipster::params.equal_range(fmt);
+        for(auto it=param_range.first; it!=param_range.second; ++it){
+            widget->registerParam(fmt, it->second->copy());
         }
-        ui->paramLabel->setEnabled(true);
-        ui->paramSel->setEnabled(true);
-        ui->paramWidget->setEnabled(true);
-        on_paramSel_currentIndexChanged(0);
     }else{
-        ui->paramSel->clear();
-        ui->paramSel->addItem("None");
-        ui->paramWidget->setCurrentIndex(0);
+        widget->setDisabled(true);
     }
 }
 
 void SaveFmtDialog::enableConfWidget(bool on)
 {
-    ui->configLabel->setDisabled(true);
-    ui->configSel->setDisabled(true);
-    ui->configWidget->setDisabled(true);
+    auto* widget = ui->configWidget;
+    auto& configs = widget->configs;
+    configs.clear();
     if(on){
-        ownConfigs.clear();
-        // TODO: No default configs yet
-//        auto vipRange = Vipster::config.equal_range(fmt);
-//        for(auto it=vipRange.first; it!=vipRange.second; ++it){
-//            ownParams.push_back(it->second->copy());
-//        }
+        widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(auto& p: mw.configs){
-            ownConfigs.push_back(p.second->copy());
+        for(auto& p: mw.getConfigs()){
+            widget->registerConfig(fmt, p.second->copy());
         }
-    }
-    if(on && ownConfigs.size()){
-        ui->configWidget->setCurrentIndex(paramlist[static_cast<int>(fmt)]);
-        ui->configSel->clear();
-        for(auto& p: ownConfigs){
-            ui->configSel->addItem(QString::fromStdString(p->name));
+        auto config_range = Vipster::configs.equal_range(fmt);
+        for(auto it=config_range.first; it!=config_range.second; ++it){
+            widget->registerConfig(fmt, it->second->copy());
         }
-        ui->configLabel->setEnabled(true);
-        ui->configSel->setEnabled(true);
-        ui->configWidget->setEnabled(true);
-        on_configSel_currentIndexChanged(0);
     }else{
-        ui->configSel->clear();
-        ui->configSel->addItem("None");
-        ui->configWidget->setCurrentIndex(0);
+        widget->setDisabled(true);
     }
 }
 
-void SaveFmtDialog::on_paramSel_currentIndexChanged(int index)
+BaseConfig* SaveFmtDialog::getConfig()
 {
-    if(ui->paramWidget->isEnabled()){
-        param = ownParams[static_cast<size_t>(index)].get();
-        static_cast<ParamBase*>(ui->paramWidget->
-                                currentWidget())->
-                setParam(param);
-    }
+    return ui->configWidget->curConfig;
 }
 
-void SaveFmtDialog::on_configSel_currentIndexChanged(int index)
+BaseParam* SaveFmtDialog::getParam()
 {
-    if(ui->configWidget->isEnabled()){
-        config = ownConfigs[static_cast<size_t>(index)].get();
-        //TODO: no config widget yet
-//        static_cast<ConfigBase*>(ui->configWidget->
-//                                 currentWidget())->
-//                setConfig(config);
-    }
+    return ui->paramWidget->curParam;
 }

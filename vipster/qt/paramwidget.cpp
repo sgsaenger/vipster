@@ -20,30 +20,26 @@ ParamWidget::~ParamWidget()
     delete ui;
 }
 
-void ParamWidget::updateWidget(uint8_t change)
+void ParamWidget::registerParam(Vipster::IOFmt fmt,
+                                std::unique_ptr<Vipster::BaseParam>&& data)
 {
-    if(change & Change::param){
-        curParam = master->curParam;
-        if(!curParam){
-            ui->paramStack->setCurrentIndex(0);
-            return;
-        }
-        if(auto pwParam = dynamic_cast<IO::PWParam*>(curParam)){
-            ui->paramStack->setCurrentIndex(1);
-            ui->PWWidget->setParam(pwParam);
-        }
-    }
-}
-
-void ParamWidget::registerParam(IOFmt fmt, const std::string &name)
-{
+    params.emplace_back(fmt, std::move(data));
     ui->paramSel->addItem(QString::fromStdString(
                           "(" +  IOPlugins.at(fmt)->command +
-                           ") " + name
+                           ") " + params.back().second->name
                          ));
 }
 
 void ParamWidget::on_paramSel_currentIndexChanged(int index)
 {
-    master->setParam(index);
+    const auto& pair = params.at(static_cast<size_t>(index));
+    curParam = pair.second.get();
+    switch(pair.first){
+    case IOFmt::PWI:
+        ui->paramStack->setCurrentWidget(ui->PWWidget);
+        ui->PWWidget->setParam(curParam);
+        break;
+    default:
+        throw Error("Invalid parameter format");
+    }
 }

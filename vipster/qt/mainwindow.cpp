@@ -77,8 +77,6 @@ void MainWindow::updateWidgets(uint8_t change)
 {
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
-    ui->paramWidget->updateWidget(change);
-    ui->configWidget->updateWidget(change);
     ui->scriptWidget->updateWidget(change);
     ui->pickWidget->updateWidget(change);
 }
@@ -146,18 +144,6 @@ void MainWindow::setStep(int i)
     updateWidgets(stepChanged);
 }
 
-void MainWindow::setParam(int i)
-{
-    curParam = params.at(static_cast<size_t>(i)).second.get();
-    updateWidgets(Change::param);
-}
-
-void MainWindow::setConfig(int i)
-{
-    curConfig = configs.at(static_cast<size_t>(i)).second.get();
-    updateWidgets(Change::config);
-}
-
 void MainWindow::stepBut(QAbstractButton* but)
 {
     if(but == ui->firstStepButton){
@@ -193,8 +179,7 @@ void MainWindow::newData(IO::Data &&d)
     molecules.push_back(std::move(d.mol));
     ui->molWidget->registerMol(molecules.back().getName());
     if(d.param){
-        params.push_back({d.fmt, std::move(d.param)});
-        ui->paramWidget->registerParam(d.fmt, params.back().second->name);
+        ui->paramWidget->registerParam(d.fmt, std::move(d.param));
     }
 }
 
@@ -239,9 +224,19 @@ void MainWindow::saveMol()
         path = fileDiag.directory();
         SaveFmtDialog sfd{this};
         if(sfd.exec() != 0){
-            writeFile(target, sfd.fmt, *curMol, sfd.param, sfd.config);
+            writeFile(target, sfd.fmt, *curMol, sfd.getParam(), sfd.getConfig());
         }
     }
+}
+
+
+const std::vector<std::pair<IOFmt, std::unique_ptr<BaseParam>>>& MainWindow::getParams() const noexcept
+{
+    return ui->paramWidget->params;
+}
+const std::vector<std::pair<IOFmt, std::unique_ptr<BaseConfig>>>& MainWindow::getConfigs() const noexcept
+{
+    return ui->configWidget->configs;
 }
 
 void MainWindow::loadParam()
@@ -259,8 +254,7 @@ void MainWindow::loadParam()
     auto range = Vipster::params.equal_range(fmt);
     for(auto it=range.first; it!=range.second; ++it){
         if (it->second->name.c_str() == s->text()){
-            params.push_back({fmt, it->second->copy()});
-            ui->paramWidget->registerParam(fmt, params.back().second->name);
+            ui->paramWidget->registerParam(fmt, it->second->copy());
             return;
         }
     }
@@ -283,8 +277,7 @@ void MainWindow::loadConfig()
     const auto& name = s->text();
     for(auto it=range.first; it!=range.second; ++it){
         if(name == it->second->name.c_str()){
-            configs.push_back({fmt, it->second->copy()});
-            ui->configWidget->registerConfig(fmt, configs.back().second->name);
+            ui->configWidget->registerConfig(fmt, it->second->copy());
             return;
         }
     }

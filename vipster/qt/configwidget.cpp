@@ -20,34 +20,30 @@ ConfigWidget::~ConfigWidget()
     delete ui;
 }
 
-void ConfigWidget::updateWidget(uint8_t change)
+void ConfigWidget::registerConfig(Vipster::IOFmt fmt,
+                                  std::unique_ptr<Vipster::BaseConfig>&& data)
 {
-    if(change & Change::config){
-        curConfig = master->curConfig;
-        if(!curConfig){
-            ui->configStack->setCurrentIndex(0);
-            return;
-        }
-        if(auto pwConfig = dynamic_cast<IO::PWConfig*>(curConfig)){
-            ui->configStack->setCurrentWidget(ui->PWWidget);
-            ui->PWWidget->setConfig(pwConfig);
-        }
-        if(auto lmpConfig = dynamic_cast<IO::LmpConfig*>(curConfig)){
-            ui->configStack->setCurrentWidget(ui->LmpWidget);
-            ui->LmpWidget->setConfig(lmpConfig);
-        }
-    }
-}
-
-void ConfigWidget::registerConfig(IOFmt fmt, const std::string &name)
-{
+    configs.emplace_back(fmt, std::move(data));
     ui->configSel->addItem(QString::fromStdString(
                                "(" + IOPlugins.at(fmt)->command +
-                               ") " + name
+                               ") " + configs.back().second->name
                                ));
 }
 
 void ConfigWidget::on_configSel_currentIndexChanged(int index)
 {
-    master->setConfig(index);
+    const auto& pair = configs.at(static_cast<size_t>(index));
+    curConfig = pair.second.get();
+    switch (pair.first) {
+    case IOFmt::PWI:
+        ui->configStack->setCurrentWidget(ui->PWWidget);
+        ui->PWWidget->setConfig(curConfig);
+        break;
+    case IOFmt::LMP:
+        ui->configStack->setCurrentWidget(ui->LmpWidget);
+        ui->LmpWidget->setConfig(curConfig);
+        break;
+    default:
+        throw Error("Invalid config format");
+    }
 }
