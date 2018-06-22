@@ -45,16 +45,31 @@ void MainWindow::setupUI()
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     // setup left dock-area
     tabifyDockWidget(ui->molDock, ui->paramDock);
+    tabifyDockWidget(ui->paramDock, ui->configDock);
     ui->molDock->raise();
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
     // fill in menu-options
-    ui->menuPWScf->removeAction(ui->actionParamDummy); // qtcreator only creates menu when actions are provided
-    auto pwi_range = Vipster::params.equal_range(IOFmt::PWI);
-    for(auto it=pwi_range.first; it!=pwi_range.second; ++it){
-        ui->menuPWScf->addAction(QString::fromStdString(it->second->name),
-                                 this, &MainWindow::loadParam);
+    for(const auto& pair:IOPlugins){
+        auto param_range = Vipster::params.equal_range(pair.first);
+        if(param_range.first != param_range.second){
+            auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
+                        QString::fromStdString(pair.second->name));
+            for(auto it=param_range.first; it!=param_range.second; ++it){
+                param_menu->addAction(QString::fromStdString(it->second->name),
+                                      this, &MainWindow::loadParam);
+            }
+        }
+        auto config_range = Vipster::configs.equal_range(pair.first);
+        if(config_range.first != config_range.second){
+            auto* config_menu = ui->menuLoad_IO_Config->addMenu(
+                        QString::fromStdString(pair.second->name));
+            for(auto it=config_range.first; it!=config_range.second; ++it){
+                config_menu->addAction(QString::fromStdString(it->second->name),
+                                      this, &MainWindow::loadConfig);
+            }
+        }
     }
 }
 
@@ -63,6 +78,7 @@ void MainWindow::updateWidgets(uint8_t change)
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
     ui->paramWidget->updateWidget(change);
+    ui->configWidget->updateWidget(change);
     ui->scriptWidget->updateWidget(change);
     ui->pickWidget->updateWidget(change);
 }
@@ -134,6 +150,12 @@ void MainWindow::setParam(int i)
 {
     curParam = params.at(static_cast<size_t>(i)).second.get();
     updateWidgets(Change::param);
+}
+
+void MainWindow::setConfig(int i)
+{
+    curConfig = configs.at(static_cast<size_t>(i)).second.get();
+    updateWidgets(Change::config);
 }
 
 void MainWindow::stepBut(QAbstractButton* but)
@@ -226,12 +248,14 @@ void MainWindow::loadParam()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    IOFmt fmt = [&](){
-        if(p->title() == "&PWScf"){
-            return IOFmt::PWI;
+    IOFmt fmt = [](QString name){
+        for(const auto& pair:IOPlugins){
+            if(name == pair.second->name.c_str()){
+                return pair.first;
+            }
         }
         throw Error("Invalid parameter set");
-    }();
+    }(p->title());
     auto range = Vipster::params.equal_range(fmt);
     for(auto it=range.first; it!=range.second; ++it){
         if (it->second->name.c_str() == s->text()){
@@ -240,6 +264,31 @@ void MainWindow::loadParam()
             return;
         }
     }
+    throw Error("Invalid parameter set");
+}
+
+void MainWindow::loadConfig()
+{
+    auto* s = static_cast<QAction*>(sender());
+    auto* p = static_cast<QMenu*>(s->parent());
+    IOFmt fmt = [](QString name){
+        for(const auto& pair:IOPlugins){
+            if(name == pair.second->name.c_str()){
+                return pair.first;
+            }
+        }
+        throw Error("Invalid config");
+    }(p->title());
+    auto range = Vipster::configs.equal_range(fmt);
+    const auto& name = s->text();
+    for(auto it=range.first; it!=range.second; ++it){
+        if(name == it->second->name.c_str()){
+            configs.push_back({fmt, it->second->copy()});
+            ui->configWidget->registerConfig(fmt, configs.back().second->name);
+            return;
+        }
+    }
+    throw Error("Invalid config");
 }
 
 void MainWindow::about()

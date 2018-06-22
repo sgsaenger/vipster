@@ -13,8 +13,17 @@ namespace Vipster{
 PseMap pse;
 Settings settings;
 Parameters params;
-bool config_loaded = readConfig();
+Configs configs;
+static bool config_loaded = readConfig();
 }
+
+BaseParam::BaseParam(std::string name)
+    :name{name}
+{}
+
+BaseConfig::BaseConfig(std::string name)
+    :name{name}
+{}
 
 PseEntry& PseMap::operator [](const std::string& k)
 {
@@ -46,6 +55,7 @@ bool readConfig()
     PseMap pse{true};
     Settings settings;
     Parameters params;
+    Configs configs;
     std::ifstream conf_file{user_config};
     if(!conf_file){
         conf_file = std::ifstream{sys_config};
@@ -63,20 +73,29 @@ bool readConfig()
                     v["vdwr"],v["col"]});
         }
         // General settings
-        settings = loc_file["Settings"].get<Settings>();
+        settings = loc_file["Settings"];
         // Parameter sets
-        for(const auto& pw:loc_file.at("Parameters").at("PWI")){
-            params.emplace(std::make_pair(IOFmt::PWI,
-                                          std::make_unique<IO::PWParam>(pw.get<IO::PWParam>())));
+        for(const auto& pw:loc_file["Parameters"]["PWI"]){
+            params.emplace(IOFmt::PWI, std::make_unique<IO::PWParam>(pw.get<IO::PWParam>()));
         }
     }
-    // ensure fallback-value is present
+    // ensure fallback-values are present
     if(pse.find("")==pse.end()){
         pse.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
+    }
+    if(params.find(IOFmt::PWI) == params.end()){
+        params.emplace(IOFmt::PWI, std::make_unique<IO::PWParam>(IO::PWParamDefault));
+    }
+    if(configs.find(IOFmt::PWI) == configs.end()){
+        configs.emplace(IOFmt::PWI, std::make_unique<IO::PWConfig>(IO::PWConfigDefault));
+    }
+    if(configs.find(IOFmt::LMP) == configs.end()){
+        configs.emplace(IOFmt::LMP, std::make_unique<IO::LmpConfig>(IO::LmpConfigDefault));
     }
     Vipster::pse = std::move(pse);
     Vipster::settings = std::move(settings);
     Vipster::params = std::move(params);
+    Vipster::configs = std::move(configs);
     return true;
 }
 

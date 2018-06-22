@@ -24,6 +24,7 @@ public:
     Vipster::Molecule* curMol{nullptr};
     Vipster::StepProper* curStep{nullptr};
     Vipster::BaseParam* curParam{nullptr};
+    Vipster::BaseConfig* curConfig{nullptr};
     Vipster::StepSelection* curSel{nullptr};
     Vipster::AtomFmt getFmt();
     void setFmt(int i, bool apply, bool scale);
@@ -37,6 +38,7 @@ public slots:
     void setMol(int i);
     void setStep(int i);
     void setParam(int i);
+    void setConfig(int i);
     void stepBut(QAbstractButton *but);
     void about(void);
     void newMol();
@@ -44,6 +46,7 @@ public slots:
     void saveMol();
     void editAtoms(void);
     void loadParam();
+    void loadConfig();
 
 private:
     void setupUI(void);

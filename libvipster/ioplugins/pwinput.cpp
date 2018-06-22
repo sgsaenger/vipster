@@ -7,6 +7,21 @@ using namespace Vipster;
 
 enum class CellFmt{None, Alat, Bohr, Angstrom};
 
+IO::PWParam::PWParam(std::string name, IO::PWNamelist control, IO::PWNamelist system,
+                 IO::PWNamelist electrons, IO::PWNamelist ions, IO::PWNamelist cell)
+    : BaseParam{name}, control{control}, system{system},
+      electrons{electrons}, ions{ions}, cell{cell}
+{}
+
+IO::PWConfig::PWConfig(std::string name, PWConfig::AtomFmt atoms, CellFmt cell)
+    : BaseConfig{name}, atoms{atoms}, cell{cell}
+{}
+
+std::unique_ptr<BaseConfig> IO::PWConfig::copy()
+{
+    return std::make_unique<IO::PWConfig>(*this);
+}
+
 void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 {
     const std::map<std::string, IO::PWNamelist IO::PWParam::*> nlmap = {

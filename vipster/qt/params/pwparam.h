@@ -15,8 +15,8 @@ class PWParam : public ParamBase
 
 public:
     explicit PWParam(QWidget *parent = nullptr);
-    ~PWParam();
-    void setParam(Vipster::BaseParam *p);
+    ~PWParam() override;
+    void setParam(Vipster::BaseParam *p) override;
 
 private:
     Ui::PWParam *ui;

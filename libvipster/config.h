@@ -89,18 +89,24 @@ struct PseEntry{
 
 enum class IOFmt{XYZ, PWI, PWO, LMP, DMP};
 
-struct BaseParam
+class BaseParam
 {
+public:
     std::string name;
     virtual std::unique_ptr<BaseParam> copy() = 0;
     virtual ~BaseParam() = default;
+protected:
+    BaseParam(std::string);
 };
 
-struct BaseConfig
+class BaseConfig
 {
+public:
     std::string name;
     virtual std::unique_ptr<BaseConfig> copy() = 0;
     virtual ~BaseConfig() = default;
+protected:
+    BaseConfig(std::string);
 };
 
 
@@ -145,10 +151,12 @@ struct Settings{
 void from_json(const nlohmann::json& j, Settings& s);
 
 using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
+using Configs = std::multimap<IOFmt, std::unique_ptr<BaseConfig>>;
 
 extern PseMap pse;
 extern Settings settings;
 extern Parameters params;
+extern Configs configs;
 
 }
 
