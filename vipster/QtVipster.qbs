@@ -4,6 +4,7 @@ QtGuiApplication {
     name: "QtVipster"
     targetName: qbs.targetOS.contains("macos") ? "Vipster" : "vipster"
     condition: !project.webBuild
+    consoleApplication: false
     Depends {
         name: "libvipster"
     }
