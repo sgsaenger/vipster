@@ -396,6 +396,9 @@
    </attribute>
   </widget>
   <widget class="QDockWidget" name="molDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea</set>
    </property>
@@ -408,6 +411,9 @@
    <widget class="MolWidget" name="molWidget"/>
   </widget>
   <widget class="QDockWidget" name="paramDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea</set>
    </property>
@@ -420,6 +426,9 @@
    <widget class="ParamWidget" name="paramWidget"/>
   </widget>
   <widget class="QDockWidget" name="scriptDock">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>Script</string>
    </property>
@@ -429,8 +438,11 @@
    <widget class="ScriptWidget" name="scriptWidget"/>
   </widget>
   <widget class="QDockWidget" name="pickDock">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
-    <string>Selected Atoms</string>
+    <string>Se&amp;lected Atoms</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -438,6 +450,12 @@
    <widget class="PickWidget" name="pickWidget"/>
   </widget>
   <widget class="QDockWidget" name="configDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>&amp;Config</string>
    </property>
@@ -571,6 +589,18 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
+   <class>ParamWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/paramwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/configwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>GLWidget</class>
    <extends>QOpenGLWidget</extends>
    <header>qt/glwidget.h</header>
@@ -591,12 +621,6 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>ParamWidget</class>
-   <extends>QWidget</extends>
-   <header>qt/paramwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>ScriptWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/scriptwidget.h</header>
@@ -606,12 +630,6 @@
    <class>PickWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/pickwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ConfigWidget</class>
-   <extends>QWidget</extends>
-   <header>qt/configwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -939,8 +957,8 @@
   <slot>saveMol()</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
+  <buttongroup name="modeGroup"/>
   <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>
