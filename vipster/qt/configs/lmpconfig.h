@@ -18,6 +18,17 @@ public:
     ~LmpConfig() override;
     void setConfig(Vipster::BaseConfig *c) override;
 
+private slots:
+    void on_bondCheck_stateChanged(int arg1);
+
+    void on_angleCheck_stateChanged(int arg1);
+
+    void on_dihedCheck_stateChanged(int arg1);
+
+    void on_impropCheck_stateChanged(int arg1);
+
+    void on_atomSel_currentIndexChanged(int index);
+
 private:
     Ui::LmpConfig *ui;
     Vipster::IO::LmpConfig *curConfig{nullptr};

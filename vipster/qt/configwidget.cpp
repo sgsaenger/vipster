@@ -43,7 +43,7 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
         curConfig = nullptr;
         return;
     }
-    if(static_cast<size_t>(index) >= params.size()){
+    if(static_cast<size_t>(index) >= configs.size()){
         throw Error("Invalid configuration preset selected");
     }
     const auto& pair = configs.at(static_cast<size_t>(index));

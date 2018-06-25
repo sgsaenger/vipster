@@ -18,6 +18,11 @@ public:
     ~PWConfig() override;
     void setConfig(Vipster::BaseConfig *c) override;
 
+private slots:
+    void on_atomSel_currentIndexChanged(int index);
+
+    void on_cellSel_currentIndexChanged(int index);
+
 private:
     Ui::PWConfig *ui;
     Vipster::IO::PWConfig *curConfig{nullptr};

@@ -24,3 +24,28 @@ void LmpConfig::setConfig(BaseConfig *c)
     ui->dihedCheck->setCheckState(Qt::CheckState(curConfig->dihedrals*2));
     ui->impropCheck->setCheckState(Qt::CheckState(curConfig->impropers*2));
 }
+
+void LmpConfig::on_bondCheck_stateChanged(int arg1)
+{
+    curConfig->bonds = arg1/2;
+}
+
+void LmpConfig::on_angleCheck_stateChanged(int arg1)
+{
+    curConfig->angles = arg1/2;
+}
+
+void LmpConfig::on_dihedCheck_stateChanged(int arg1)
+{
+    curConfig->dihedrals = arg1/2;
+}
+
+void LmpConfig::on_impropCheck_stateChanged(int arg1)
+{
+    curConfig->impropers = arg1/2;
+}
+
+void LmpConfig::on_atomSel_currentIndexChanged(int index)
+{
+    curConfig->style = static_cast<IO::LmpAtomStyle>(index);
+}
