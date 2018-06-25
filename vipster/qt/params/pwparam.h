@@ -2,6 +2,8 @@
 #define PWIPARAM_H
 
 #include <QWidget>
+#include <QTreeWidgetItem>
+#include <QAction>
 #include "ioplugins/pwinput.h"
 #include "../paramwidget.h"
 
@@ -15,11 +17,22 @@ class PWParam : public ParamBase
 
 public:
     explicit PWParam(QWidget *parent = nullptr);
-    ~PWParam();
-    void setParam(Vipster::BaseParam *p);
+    ~PWParam() override;
+    void setParam(Vipster::BaseParam *p) override;
+
+private slots:
+    void addElement();
+    void delElement();
+    void on_paramTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
+    void on_paramTree_itemChanged(QTreeWidgetItem *item, int column);
 
 private:
     Ui::PWParam *ui;
+    QAction *addAction;
+    QAction *delAction;
+    QTreeWidgetItem *curItem{nullptr};
+    std::string curKey{};
+    Vipster::IO::PWNamelist Vipster::IO::PWParam::* curNL{nullptr};
     Vipster::IO::PWParam *curParam{nullptr};
 };
 

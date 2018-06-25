@@ -16,13 +16,34 @@ struct PWParam: BaseParam{
     PWNamelist electrons;
     PWNamelist ions;
     PWNamelist cell;
-    std::unique_ptr<BaseParam> copy();
+    PWParam(std::string="", PWNamelist={}, PWNamelist={},
+            PWNamelist={}, PWNamelist={}, PWNamelist={});
+    std::unique_ptr<BaseParam> copy() override;
+};
+
+const PWParam PWParamDefault{
+    "default",
+    {}, {}, {}, {}, {}
 };
 
 void to_json(nlohmann::json& j,const PWParam& p);
 void from_json(const nlohmann::json& j, PWParam& p);
+//TODO: json methods for config
 
-//TODO: PWConfig? set format-preferences?
+struct PWConfig: BaseConfig{
+    enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Current};
+    enum class CellFmt {Bohr, Angstrom, Current};
+    AtomFmt atoms;
+    CellFmt cell;
+    PWConfig(std::string="", AtomFmt=AtomFmt::Current, CellFmt=CellFmt::Current);
+    std::unique_ptr<BaseConfig> copy() override;
+};
+
+const PWConfig PWConfigDefault{
+    "default",
+    PWConfig::AtomFmt::Current,
+    PWConfig::CellFmt::Current
+};
 
 }
 }

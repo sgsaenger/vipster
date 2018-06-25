@@ -7,6 +7,21 @@ using namespace Vipster;
 
 enum class CellFmt{None, Alat, Bohr, Angstrom};
 
+IO::PWParam::PWParam(std::string name, IO::PWNamelist control, IO::PWNamelist system,
+                 IO::PWNamelist electrons, IO::PWNamelist ions, IO::PWNamelist cell)
+    : BaseParam{name}, control{control}, system{system},
+      electrons{electrons}, ions{ions}, cell{cell}
+{}
+
+IO::PWConfig::PWConfig(std::string name, PWConfig::AtomFmt atoms, CellFmt cell)
+    : BaseConfig{name}, atoms{atoms}, cell{cell}
+{}
+
+std::unique_ptr<BaseConfig> IO::PWConfig::copy()
+{
+    return std::make_unique<IO::PWConfig>(*this);
+}
+
 void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 {
     const std::map<std::string, IO::PWNamelist IO::PWParam::*> nlmap = {
@@ -275,21 +290,24 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 
 bool PWInpWriter(const Molecule& m, std::ofstream &file,
                  const BaseParam *const p,
-                 const BaseConfig *const)
+                 const BaseConfig *const c,
+                 IO::State state)
 {
-    auto& s = m.getStep(0);
+    auto& s = m.getStep(state.index);
     auto *pp = dynamic_cast<const IO::PWParam*>(p);
     if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
+    auto *cc = dynamic_cast<const IO::PWConfig*>(c);
+    if(!cc) throw IO::Error("PWI-Writer needs PWScf configuration preset");
     std::vector<std::pair<std::string, const IO::PWNamelist*>>
             outNL = {{"control", &pp->control},
                      {"system", &pp->system},
                      {"electrons", &pp->electrons}};
-    auto c = pp->control.find("calculation");
-    if(c != pp->control.end()){
-        if(c->second == "'vc-relax'"){
+    auto calc = pp->control.find("calculation");
+    if(calc != pp->control.end()){
+        if(calc->second == "'vc-relax'"){
             outNL.push_back({"ions", &pp->ions});
             outNL.push_back({"cell", &pp->cell});
-        }else if(c->second == "'relax'"){
+        }else if(calc->second == "'relax'"){
             outNL.push_back({"ions", &pp->ions});
         }
     }
@@ -298,8 +316,14 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
         if(nl.second == &pp->system){
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
-            //TODO: decide for A when ...?
-            file << " celldm(1) = " << s.getCellDim(CdmFmt::Bohr) << '\n';
+            auto cell_fmt = (cc->cell == IO::PWConfig::CellFmt::Current) ?
+                        state.cell_fmt : // use from GUI/CLI
+                        static_cast<CdmFmt>(cc->cell); // use from Step
+            if(cell_fmt == CdmFmt::Bohr){
+                file << " celldm(1) = " << s.getCellDim(cell_fmt) << '\n';
+            }else{
+                file << " A = " << s.getCellDim(cell_fmt) << '\n';
+            }
         }
         for(auto& e: *nl.second){
             file << ' ' << e.first << " = " << e.second << '\n';
@@ -315,9 +339,12 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
              << e.PWPP << '\n';
     }
     const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
-    file << "\nATOMIC_POSITIONS " << atfmt[static_cast<size_t>(s.getFmt())] << '\n'
+    auto atom_fmt = (cc->atoms == IO::PWConfig::AtomFmt::Current) ?
+                state.atom_fmt : // use from GUI/CLI
+                static_cast<AtomFmt>(cc->atoms); // use from Step
+    file << "\nATOMIC_POSITIONS " << atfmt[static_cast<size_t>(atom_fmt)] << '\n'
          << std::fixed << std::setprecision(5);
-    for (const Atom& at: s) {
+    for (const Atom& at: s.asFmt(atom_fmt)) {
         file << std::left << std::setw(3) << at.name << ' '
              << std::right << std::setw(10) << at.coord[0] << ' '
              << std::right << std::setw(10) << at.coord[1] << ' '
@@ -392,7 +419,7 @@ const IO::Plugin IO::PWInput =
     "PWScf Input File",
     "pwi",
     "pwi",
-    IO::Plugin::Param,
+    IO::Plugin::Param|IO::Plugin::Config,
     &PWInpParser,
     &PWInpWriter
 };

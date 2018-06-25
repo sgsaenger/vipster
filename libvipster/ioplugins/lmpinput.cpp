@@ -4,6 +4,19 @@
 
 using namespace Vipster;
 
+IO::LmpConfig::LmpConfig(std::string name, LmpAtomStyle style,
+                         bool bonds, bool angles, bool dihedrals, bool impropers)
+    : BaseConfig{name},
+      style{style},
+      bonds{bonds}, angles{angles},
+      dihedrals{dihedrals}, impropers{impropers}
+{}
+
+std::unique_ptr<BaseConfig> IO::LmpConfig::copy()
+{
+    return std::make_unique<IO::LmpConfig>(*this);
+}
+
 enum class lmpTok{
     type,
     pos,
@@ -45,7 +58,7 @@ const static std::map<std::string, std::vector<lmpTok>> fmtmap{
 };
 
 std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
-    // WILL fail if fmt == tdpd, hybrid, template
+    // TODO: WILL fail if fmt == tdpd, hybrid, template
     // probably also for dipole and ellipsoid
     auto rewindpos = file.tellg();
     std::vector<std::vector<std::string>> atoms;
@@ -274,7 +287,8 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
 
 bool LmpInpWriter(const Molecule&, std::ofstream &,
                   const BaseParam *const,
-                  const BaseConfig *const c)
+                  const BaseConfig *const c,
+                  IO::State)
 {
     auto *lp = dynamic_cast<const IO::LmpConfig*>(c);
     if(lp == nullptr){
@@ -292,8 +306,3 @@ const IO::Plugin IO::LmpInput =
     &LmpInpParser,
     nullptr
 };
-
-std::unique_ptr<BaseConfig> IO::LmpConfig::copy()
-{
-    return std::make_unique<IO::LmpConfig>(*this);
-}

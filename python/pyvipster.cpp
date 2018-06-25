@@ -315,9 +315,16 @@ PYBIND11_MODULE(vipster, m) {
         .def_readwrite("impropers", &IO::LmpConfig::impropers)
     ;
 
+    py::class_<IO::State>(io, "State")
+        .def_readwrite("index", &IO::State::index)
+        .def_readwrite("atom_fmt", &IO::State::atom_fmt)
+        .def_readwrite("cell_fmt", &IO::State::cell_fmt)
+    ;
+
     m.def("readFile",[](std::string fn, IOFmt fmt){
         IO::Data data = readFile(fn,fmt);
         return py::make_tuple<py::return_value_policy::automatic>(data.mol, std::move(data.param));
     },"filename"_a,"format"_a);
-    m.def("writeFile", &writeFile, "filename"_a, "format"_a, "molecule"_a, "param"_a=nullptr, "config"_a=nullptr);
+    m.def("writeFile", &writeFile, "filename"_a, "format"_a, "molecule"_a,
+          "param"_a=nullptr, "config"_a=nullptr, "state"_a=IO::State{});
 }
