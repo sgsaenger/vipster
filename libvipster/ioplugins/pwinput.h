@@ -28,6 +28,7 @@ const PWParam PWParamDefault{
 
 void to_json(nlohmann::json& j,const PWParam& p);
 void from_json(const nlohmann::json& j, PWParam& p);
+//TODO: json methods for config
 
 struct PWConfig: BaseConfig{
     enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Current};

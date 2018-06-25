@@ -287,7 +287,8 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
 
 bool LmpInpWriter(const Molecule&, std::ofstream &,
                   const BaseParam *const,
-                  const BaseConfig *const c)
+                  const BaseConfig *const c,
+                  IO::State)
 {
     auto *lp = dynamic_cast<const IO::LmpConfig*>(c);
     if(lp == nullptr){
