@@ -19,7 +19,7 @@ GLWidget::~GLWidget()
 
 void GLWidget::updateWidget(uint8_t change)
 {
-    if(change & (Change::atoms | Change::cell)) {
+    if(change & (Change::atoms | Change::cell | Change::settings)) {
         setStep(master->curStep);
     }
     if(change & (Change::atoms | Change::cell | Change::selection)){

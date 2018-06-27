@@ -150,7 +150,7 @@ public:
     const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell,
                                          BondFrequency update=BondFrequency::Always) const
     {
-        return getBonds(settings.bondCutFac.val, l, update);
+        return getBonds(bonds->cutoff_factor, l, update);
     }
     const std::vector<Bond>&    getBonds(float cutfac,
                                          BondLevel l=BondLevel::Cell,
