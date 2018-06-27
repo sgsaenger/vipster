@@ -81,6 +81,29 @@ void Step::newAtoms(size_t i){
     al.prop_changed = true;
 }
 
+void Step::newAtoms(const AtomList& atoms){
+    evaluateCache();
+    size_t nat = getNat() + atoms.names.size();
+    // Coordinates
+    AtomList& al = *this->atoms;
+    al.coordinates[static_cast<size_t>(at_fmt)].reserve(nat);
+    al.coordinates[static_cast<size_t>(at_fmt)].insert(
+                al.coordinates[static_cast<size_t>(at_fmt)].end(),
+                atoms.coordinates[static_cast<size_t>(at_fmt)].begin(),
+                atoms.coordinates[static_cast<size_t>(at_fmt)].end());
+    al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+    // Type
+    al.names.reserve(nat);
+    al.names.insert(al.names.end(), atoms.names.begin(), atoms.names.end());
+    al.name_changed = true;
+    // Properties
+    al.charges.reserve(nat);
+    al.charges.insert(al.charges.end(), atoms.charges.begin(), atoms.charges.end());
+    al.properties.reserve(nat);
+    al.properties.insert(al.properties.end(), atoms.properties.begin(), atoms.properties.end());
+    al.prop_changed = true;
+}
+
 void Step::delAtom(long i){
     evaluateCache();
     AtomList& al = *atoms;
@@ -125,23 +148,33 @@ Step::constIterator Step::cend() const noexcept {
     return {atoms, at_fmt, getNat()};
 }
 
+const AtomList& Step::getAtoms() const noexcept {
+    evaluateCache();
+    return *atoms;
+}
+
 const std::vector<Vec>& Step::getCoords() const noexcept {
+    evaluateCache();
     return atoms->coordinates[static_cast<size_t>(at_fmt)];
 }
 
 const std::vector<std::string>& Step::getNames() const noexcept {
+    evaluateCache();
     return atoms->names;
 }
 
 const std::vector<PseEntry*>& Step::getPseEntries() const noexcept {
+    evaluateCache();
     return atoms->pse;
 }
 
 const std::vector<float>& Step::getCharges() const noexcept {
+    evaluateCache();
     return atoms->charges;
 }
 
 const std::vector<AtomProperties>& Step::getProperties() const noexcept {
+    evaluateCache();
     return atoms->properties;
 }
 

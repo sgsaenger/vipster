@@ -430,7 +430,7 @@
     <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Script</string>
+    <string>Sc&amp;ript</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -463,6 +463,12 @@
     <number>1</number>
    </attribute>
    <widget class="ConfigWidget" name="configWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="cellModDock">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="CellModWidget" name="cellModWidget"/>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -630,6 +636,12 @@
    <class>PickWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/pickwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CellModWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/tools/cellmodwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -941,8 +953,8 @@
   <slot>saveMol()</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>

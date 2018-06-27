@@ -291,6 +291,59 @@ public:
         }
     }
 
+    void modWrap(){
+        for(Atom& at:asFmt(AtomFmt::Crystal)){
+            at.coord[0] -= std::floor(at.coord[0]);
+            at.coord[1] -= std::floor(at.coord[1]);
+            at.coord[2] -= std::floor(at.coord[2]);
+        }
+    }
+
+    void modCrop(){
+        std::vector<size_t> toRemove;
+        toRemove.reserve(static_cast<T*>(this)->getNat());
+        for(auto it=asFmt(AtomFmt::Crystal).begin(); it!=asFmt(AtomFmt::Crystal).end(); ++it){
+            if((it->coord[0]>1) | (it->coord[0]<0) |
+               (it->coord[1]>1) | (it->coord[1]<0) |
+               (it->coord[2]>1) | (it->coord[2]<0)){
+                toRemove.push_back(it.getIdx());
+            }
+        }
+        for(auto it=toRemove.rbegin(); it!=toRemove.rend(); ++it){
+            static_cast<T*>(this)->delAtom(*it);
+        }
+    }
+
+    void modMultiply(uint8_t x, uint8_t y, uint8_t z){
+        auto fac = x*y*z;
+        if(fac == 0){
+            throw Error("Cannot eradicate atoms via modMultiply");
+        }else if(fac == 1){
+            return;
+        }
+        T& handle = static_cast<T*>(this)->asFmt(AtomFmt::Crystal);
+        auto refIt = handle.begin();
+        auto oldNat = handle.getNat();
+        auto multiply = [&](uint8_t dir, uint8_t mult){
+            auto atoms = handle.getAtoms();
+            for(uint8_t i=1; i<mult; ++i){
+                handle.newAtoms(atoms);
+                for(auto it=refIt+i*oldNat; it!=refIt+(i+1)*oldNat; ++it){
+                    it->coord[dir] += i;
+                }
+            }
+        };
+        if(x>1){
+            multiply(0, x);
+        }
+        if(y>1){
+            multiply(1, y);
+        }
+        if(z>1){
+            multiply(2, z);
+        }
+    }
+
 protected:
     StepBase(std::shared_ptr<PseMap> pse, AtomFmt fmt, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
