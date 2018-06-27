@@ -142,10 +142,10 @@ struct Settings{
     Setting<bool> showCell{"Show cell", true};
     Setting<bool> antialias{"Antialiasing", true};
     Setting<bool> perspective{"Perspective projection", false};
+    Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
     Setting<std::string> PWPP{"Default PWScf PP-suffix", ""};
     Setting<std::string> CPPP{"Default CPMD PP-suffix", ""};
     Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
-    Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
 };
 //TODO: void to_json(nlohmann::json& j,const Settings& s);
 void from_json(const nlohmann::json& j, Settings& s);

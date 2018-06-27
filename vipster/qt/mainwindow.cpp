@@ -46,6 +46,7 @@ void MainWindow::setupUI()
     // setup left dock-area
     tabifyDockWidget(ui->molDock, ui->paramDock);
     tabifyDockWidget(ui->paramDock, ui->configDock);
+    tabifyDockWidget(ui->configDock, ui->settingsDock);
     ui->molDock->raise();
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
