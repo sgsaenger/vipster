@@ -850,22 +850,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>stepSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>stepEdit</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1115</x>
-     <y>627</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1157</x>
-     <y>631</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>stepGroup</sender>
    <signal>buttonClicked(QAbstractButton*)</signal>
    <receiver>MainWindow</receiver>

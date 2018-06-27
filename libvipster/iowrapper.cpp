@@ -33,7 +33,7 @@ bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
 {
     std::ofstream file{fn};
     if(state.index == -1ul){
-        state.index = m.getNstep();
+        state.index = m.getNstep()-1;
     }
     try{
         if(!file){

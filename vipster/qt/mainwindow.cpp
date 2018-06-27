@@ -106,9 +106,7 @@ void MainWindow::setMol(int i)
     QSignalBlocker boxBlocker(ui->stepEdit);
     QSignalBlocker slideBlocker(ui->stepSlider);
     ui->stepEdit->setMaximum(steps);
-    ui->stepEdit->setValue(steps);
     ui->stepSlider->setMaximum(steps);
-    ui->stepSlider->setValue(steps);
     if(steps == 1){
         ui->stepEdit->setDisabled(true);
         ui->stepSlider->setDisabled(true);
@@ -125,7 +123,11 @@ void MainWindow::setStep(int i)
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
     curSel = &curStep->getLastSelection();
     fmt = curStep->getFmt();
-    //Handle control-buttons
+    //Handle control-elements
+    QSignalBlocker boxBlocker(ui->stepEdit);
+    QSignalBlocker slideBlocker(ui->stepSlider);
+    ui->stepEdit->setValue(i);
+    ui->stepSlider->setValue(i);
     if(i == 1){
         ui->preStepButton->setDisabled(true);
         ui->firstStepButton->setDisabled(true);
@@ -224,7 +226,11 @@ void MainWindow::saveMol()
         path = fileDiag.directory();
         SaveFmtDialog sfd{this};
         if(sfd.exec() != 0){
-            writeFile(target, sfd.fmt, *curMol, sfd.getParam(), sfd.getConfig());
+            writeFile(target, sfd.fmt, *curMol,
+                      sfd.getParam(), sfd.getConfig(),
+                      IO::State{ui->stepSlider->value()-1,
+                                this->fmt,
+                                ui->molWidget->getCellFmt()});
         }
     }
 }

@@ -219,6 +219,11 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
     }
 }
 
+CdmFmt MolWidget::getCellFmt()
+{
+    return static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+}
+
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
     master->setFmt(index, false, false);

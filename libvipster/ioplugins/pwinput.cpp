@@ -293,10 +293,10 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
                  const BaseConfig *const c,
                  IO::State state)
 {
-    auto& s = m.getStep(state.index);
-    auto *pp = dynamic_cast<const IO::PWParam*>(p);
+    const auto& s = m.getStep(state.index);
+    const auto *pp = dynamic_cast<const IO::PWParam*>(p);
     if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
-    auto *cc = dynamic_cast<const IO::PWConfig*>(c);
+    const auto *cc = dynamic_cast<const IO::PWConfig*>(c);
     if(!cc) throw IO::Error("PWI-Writer needs PWScf configuration preset");
     std::vector<std::pair<std::string, const IO::PWNamelist*>>
             outNL = {{"control", &pp->control},

@@ -41,8 +41,8 @@ struct PWConfig: BaseConfig{
 
 const PWConfig PWConfigDefault{
     "default",
-    PWConfig::AtomFmt::Current,
-    PWConfig::CellFmt::Current
+    PWConfig::AtomFmt::Bohr,
+    PWConfig::CellFmt::Bohr
 };
 
 }
