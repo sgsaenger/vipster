@@ -1,14 +1,41 @@
 sudo: required
 language: cpp
 cache: ccache
+python: 3.6
 git:
     depth: 3
 matrix:
     fast_finish: true
     include:
         - os: linux
+          compiler: emcc
+          install:
+              # setup emscripten
+              - git clone --depth 1 --branch incoming https://github.com/urho3d/emscripten-sdk.git ~/emscripten-sdk
+              - ~/emscripten-sdk/emsdk activate --build=Release sdk-incoming-64bit binaryen-master-64bit
+              - source ~/emscripten-sdk/emsdk_env.sh
+              - for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
+              # Qbs:
+              - wget "http://download.qt.io/official_releases/qtcreator/4.6/4.6.2/qt-creator-opensource-linux-x86_64-4.6.2.run" -O qt.run
+              - chmod a+x qt.run
+              - ./qt.run --platform minimal --script $TRAVIS_BUILD_DIR/dist/qt-headless.qs
+              - export PATH=~/Qt/bin/:$PATH
+          script:
+              - cd ~
+              - qbs build -f $TRAVIS_BUILD_DIR config:emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
+          before_deploy:
+              # prepare website
+              - cd $TRAVIS_BUILD_DIR
+              - mv ~/emscripten/install-root gh-pages/emscripten
+          deploy:
+              - provider: pages
+                skip_cleanup: true
+                github_token: $GH_TOKEN
+                local_dir: gh-pages
+                on:
+                    branch: master
+        - os: linux
           compiler: gcc
-          python: 3.6
           addons:
               apt:
                   sources:
@@ -19,12 +46,8 @@ matrix:
                       - g++-5
                       - qt510-meta-minimal
                       - qt510script
-          before_install:
-              # Toolchains:
-              - git clone --depth 1 --branch incoming https://github.com/urho3d/emscripten-sdk.git ~/emscripten-sdk
-              - ~/emscripten-sdk/emsdk activate --build=Release sdk-incoming-64bit binaryen-master-64bit
-              - source ~/emscripten-sdk/emsdk_env.sh
-              - for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
+          install:
+              # GCC5:
               - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
               - sudo update-alternatives --set gcc /usr/bin/gcc-5
               # Qt:
@@ -38,43 +61,36 @@ matrix:
               - qbs setup-toolchains `which g++` gcc
               - qbs setup-qt `which qmake` qt-gcc
               - qbs config profiles.qt-gcc.baseProfile gcc
-          install:
+          script:
               - cd ~
-              # GCC
               # pretty sure travis' python2 sysconfig-module is broken, force python3
               - qbs build -f $TRAVIS_BUILD_DIR config:gcc profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3"
-              # EMSCRIPTEN
-              - qbs build -f $TRAVIS_BUILD_DIR config:emscripten profile:emscripten project.webBuild:true qbs.buildVariant:release
-          script:
-              # GCC
-              - cd ~
               - qbs run --products test_libvipster config:gcc
           after_success:
               # get coverage
               - cd ~/gcc
               - bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
           before_deploy:
-              # build for AppImage
-              - if [ -n "$TRAVIS_TAG" ]; then
-                cd ~;
-                qbs build -f $TRAVIS_BUILD_DIR config:appimage profile:qt-gcc qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3" project.relpath:true;
-                fi
-              - cd $TRAVIS_BUILD_DIR
-              # prepare website
-              - mv ~/emscripten/install-root gh-pages/emscripten
               # build AppImage
-              - if [ -n "$TRAVIS_TAG" ]; then
-                wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt;
-                chmod a+x linuxdeployqt;
-                ARCH=x86_64 ./linuxdeployqt ~/appimage/install-root/share/applications/vipster.desktop -appimage;
-                fi;
+              - cd ~
+              - qbs build -f $TRAVIS_BUILD_DIR profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3" project.relpath:true
+              - qbs install --install-root AppDir/usr
+              # prepare normal depdendencies
+              - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt
+              - chmod +x linuxdeployqt
+              - ./linuxdeployqt AppDir/usr/share/applications/vipster.desktop -bundle-non-qt-libs;
+              # bundle libstdc++ to be compatible with older linuxes, see https://github.com/darealshinji/AppImageKit-checkrt
+              - mkdir -p AppDir/usr/optional/libstdc++
+              - wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so -O AppDir/usr/optional/exec.so
+              - cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/
+              - rm AppDir/AppRun
+              - wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64 -O AppDir/AppRun
+              - chmod a+x AppDir/AppRun
+              - wget -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+              - chmod +x appimagetool
+              - ./appimagetool -g AppDir $TRAVIS_BUILD_DIR/Vipster-x86_64.AppImage
+              - cd $TRAVIS_BUILD_DIR
           deploy:
-              - provider: pages
-                skip_cleanup: true
-                github_token: $GH_TOKEN
-                local_dir: gh-pages
-                on:
-                    branch: master
               - provider: releases
                 skip_cleanup: true
                 api_key:
@@ -84,15 +100,14 @@ matrix:
                 on:
                     tags: true
         - os: osx
-          before_install:
+          install:
               - brew update
               - brew install qbs
               - qbs setup-toolchains --detect
               - qbs setup-qt /usr/local/opt/qt/bin/qmake qt-brew
               - qbs config profiles.qt-brew.baseProfile xcode
-          install:
-              - qbs build -f $TRAVIS_BUILD_DIR qbs.buildVariant:release profile:qt-brew project.macInstall:true
           script:
+              - qbs build -f $TRAVIS_BUILD_DIR qbs.buildVariant:release profile:qt-brew project.macInstall:true
               - qbs run --products test_libvipster
           deploy:
               - provider: releases
