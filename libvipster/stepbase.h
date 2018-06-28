@@ -303,9 +303,9 @@ public:
         std::vector<size_t> toRemove;
         toRemove.reserve(static_cast<T*>(this)->getNat());
         for(auto it=asFmt(AtomFmt::Crystal).begin(); it!=asFmt(AtomFmt::Crystal).end(); ++it){
-            if((it->coord[0]>1) | (it->coord[0]<0) |
-               (it->coord[1]>1) | (it->coord[1]<0) |
-               (it->coord[2]>1) | (it->coord[2]<0)){
+            if((it->coord[0]>=1) | (it->coord[0]<0) |
+               (it->coord[1]>=1) | (it->coord[1]<0) |
+               (it->coord[2]>=1) | (it->coord[2]<0)){
                 toRemove.push_back(it.getIdx());
             }
         }
@@ -314,7 +314,7 @@ public:
         }
     }
 
-    void modMultiply(uint8_t x, uint8_t y, uint8_t z){
+    void modMultiply(size_t x, size_t y, size_t z){
         auto fac = x*y*z;
         if(fac == 0){
             throw Error("Cannot eradicate atoms via modMultiply");
@@ -372,6 +372,42 @@ public:
         Mat oldCell = getCellVec();
         Mat newCell = oldCell*rotMat;
         static_cast<T*>(this)->setCellVec(newCell, true);
+    }
+
+    void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
+        auto oldCdm = getCellDim(cdmFmt);
+        auto oldMat = getCellVec();
+        if((newMat == oldMat) && (float_comp(newCdm, oldCdm))){
+            return;
+        }
+        modWrap();
+        auto& handle = *static_cast<T*>(this);
+        size_t fac;
+        if(newMat == oldMat){
+            // only changing cdm
+            fac = std::ceil(newCdm/oldCdm);
+        }else{
+            // change vectors or both
+            auto getExtent = [](const Mat& m){
+                return Vec{m[0][0] + m[1][0] + m[2][0],
+                           m[0][1] + m[1][1] + m[2][1],
+                           m[0][2] + m[1][2] + m[2][2]
+                           };
+            };
+            auto compExtLt = [](const Vec& v1, const Vec& v2){
+                return (v1[0] < v2[0]) || (v1[1] < v2[1]) || (v1[2] < v2[2]);
+            };
+            Vec newExtent = getExtent(newMat*newCdm);
+            Vec oldExtent = getExtent(oldMat*oldCdm);
+            fac = 1;
+            while(compExtLt(oldExtent*fac, newExtent)){
+                fac += 1;
+            }
+        }
+        modMultiply(fac, fac, fac);
+        handle.setCellVec(newMat);
+        handle.setCellDim(newCdm, cdmFmt);
+        modCrop();
     }
 
 protected:
