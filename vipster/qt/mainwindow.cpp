@@ -228,7 +228,7 @@ void MainWindow::saveMol()
         if(sfd.exec() != 0){
             writeFile(target, sfd.fmt, *curMol,
                       sfd.getParam(), sfd.getConfig(),
-                      IO::State{ui->stepSlider->value()-1,
+                      IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
                                 this->fmt,
                                 ui->molWidget->getCellFmt()});
         }
