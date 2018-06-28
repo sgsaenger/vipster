@@ -16,12 +16,12 @@ namespace Vipster {
 
 typedef std::array<float,16> guiMat;
 
-namespace Changes{
-enum Change{atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8, selection=0x10, settings=0x20};
+namespace Enums{
+enum GuiChange{atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8, selection=0x10, settings=0x20};
 }
-using Changes::Change;
-constexpr auto stepChanged = Change::atoms | Change::cell | Change::fmt | Change::selection;
-constexpr auto molChanged = Change::kpoints;
+using Enums::GuiChange;
+constexpr auto guiStepChanged = GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::selection;
+constexpr auto guiMolChanged = GuiChange::kpoints;
 
 #ifdef __EMSCRIPTEN__
 class GuiWrapper{

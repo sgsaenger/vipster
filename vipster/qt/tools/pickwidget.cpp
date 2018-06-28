@@ -49,7 +49,7 @@ inline void printDihed(QPlainTextEdit& text,
 
 void PickWidget::updateWidget(uint8_t change)
 {
-    if((change & (Change::atoms|Change::selection)) == 0u){
+    if((change & (GuiChange::atoms|GuiChange::selection)) == 0u){
         return;
     }
     auto& curSel = *master->curSel;

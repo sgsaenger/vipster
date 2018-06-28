@@ -128,9 +128,9 @@ void parseCoordinates(std::string name, std::ifstream& file,
         }
         uint8_t x{0},y{0},z{0};
         linestream >> x >> y >> z;
-        at.properties[FixX] = x;
-        at.properties[FixY] = y;
-        at.properties[FixZ] = z;
+        at.properties->flags[AtomFlag::FixX] = x;
+        at.properties->flags[AtomFlag::FixY] = y;
+        at.properties->flags[AtomFlag::FixZ] = z;
     }
 }
 

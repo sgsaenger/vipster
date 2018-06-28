@@ -87,9 +87,9 @@ void MainWindow::setFmt(int i, bool apply, bool scale)
     fmt = static_cast<AtomFmt>(i);
     if(apply){
         curStep->setFmt(fmt, scale);
-        updateWidgets(stepChanged);
+        updateWidgets(guiStepChanged);
     }else{
-        updateWidgets(Change::fmt);
+        updateWidgets(GuiChange::fmt);
     }
 }
 
@@ -116,7 +116,7 @@ void MainWindow::setMol(int i)
         ui->stepSlider->setEnabled(true);
     }
     setStep(static_cast<int>(steps));
-    updateWidgets(molChanged);
+    updateWidgets(guiMolChanged);
 }
 
 void MainWindow::setStep(int i)
@@ -144,7 +144,7 @@ void MainWindow::setStep(int i)
         ui->lastStepButton->setEnabled(true);
     }
     //Update child widgets
-    updateWidgets(stepChanged);
+    updateWidgets(guiStepChanged);
 }
 
 void MainWindow::stepBut(QAbstractButton* but)
@@ -168,7 +168,7 @@ void MainWindow::editAtoms()
 //    }else if ( sender == ui->actionDelete_Atom_s){
 //        curMol->curStep().delAtom();
 //    }
-    updateWidgets(Change::atoms);
+    updateWidgets(GuiChange::atoms);
 }
 
 void MainWindow::newMol()

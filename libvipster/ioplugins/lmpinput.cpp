@@ -165,7 +165,7 @@ auto makeParser(std::vector<lmpTok> fmt){
                     ss >> at.name;
                     break;
                 case lmpTok::charge:
-                    ss >> at.charge;
+                    ss >> at.properties->charge;
                     break;
                 case lmpTok::pos:
                     ss >> at.coord[0] >> at.coord[1] >> at.coord[2];
@@ -221,7 +221,7 @@ auto makeWriter(const std::vector<lmpTok>& fmt,
                 switch(tok){
                 case lmpTok::charge:
                     file << std::left << std::setw(3)
-                         << (*it).charge;
+                         << (*it).properties->charge;
                     break;
                 case lmpTok::mol:
                     file << std::left << std::setw(3)

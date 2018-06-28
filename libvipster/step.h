@@ -36,7 +36,6 @@ public:
     void            newAtom();
     void            newAtom(std::string name,
                             Vec coord=Vec{},
-                            float charge=float{},
                             AtomProperties prop=AtomProperties{});
     void            newAtom(const Atom& at);
     void            newAtoms(size_t i);
@@ -56,7 +55,6 @@ public:
     const std::vector<Vec>&             getCoords() const noexcept;
     const std::vector<std::string>&     getNames() const noexcept;
     const std::vector<PseEntry*>&       getPseEntries() const noexcept;
-    const std::vector<float>&           getCharges() const noexcept;
     const std::vector<AtomProperties>&  getProperties() const noexcept;
 
     // Cell-setters

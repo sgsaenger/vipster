@@ -18,13 +18,13 @@ CellModWidget::~CellModWidget()
 void CellModWidget::on_wrapButton_clicked()
 {
     master->curStep->modWrap();
-    triggerUpdate(Change::atoms);
+    triggerUpdate(GuiChange::atoms);
 }
 
 void CellModWidget::on_cropButton_clicked()
 {
     master->curStep->modCrop();
-    triggerUpdate(Change::atoms);
+    triggerUpdate(GuiChange::atoms);
 }
 
 void CellModWidget::on_multButton_clicked()
@@ -33,7 +33,7 @@ void CellModWidget::on_multButton_clicked()
                 static_cast<size_t>(ui->xMultSel->value()),
                 static_cast<size_t>(ui->yMultSel->value()),
                 static_cast<size_t>(ui->zMultSel->value()));
-    triggerUpdate(Change::atoms | Change::cell);
+    triggerUpdate(GuiChange::atoms | GuiChange::cell);
 }
 
 void CellModWidget::on_alignButton_clicked()
@@ -41,7 +41,7 @@ void CellModWidget::on_alignButton_clicked()
     master->curStep->modAlign(
                 static_cast<uint8_t>(ui->stepVecSel->currentIndex()),
                 static_cast<uint8_t>(ui->coordVecSel->currentIndex()));
-    triggerUpdate(Change::atoms | Change::cell);
+    triggerUpdate(GuiChange::atoms | GuiChange::cell);
 }
 
 void CellModWidget::on_reshapeButton_clicked()
@@ -56,5 +56,5 @@ void CellModWidget::on_reshapeButton_clicked()
     master->curStep->modReshape(newMat,
                                 ui->cdmSel->value(),
                                 static_cast<CdmFmt>(ui->cdmFmtSel->currentIndex()));
-    triggerUpdate(Change::atoms | Change::cell);
+    triggerUpdate(GuiChange::atoms | GuiChange::cell);
 }

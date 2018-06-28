@@ -19,10 +19,10 @@ GLWidget::~GLWidget()
 
 void GLWidget::updateWidget(uint8_t change)
 {
-    if(change & (Change::atoms | Change::cell | Change::settings)) {
+    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
         setStep(master->curStep);
     }
-    if(change & (Change::atoms | Change::cell | Change::selection)){
+    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings | GuiChange::selection)){
         setSel(master->curSel);
     }
 }
@@ -161,7 +161,7 @@ void GLWidget::rotAtoms(QPoint delta)
     }else{
         curStep->modRotate(angle, axis, shift);
     }
-    triggerUpdate(Change::atoms);
+    triggerUpdate(GuiChange::atoms);
 }
 
 void GLWidget::shiftAtomsXY(QPoint delta)
@@ -173,7 +173,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     }else{
         curStep->modShift(axis, 0.1f);
     }
-    triggerUpdate(Change::atoms);
+    triggerUpdate(GuiChange::atoms);
 }
 
 void GLWidget::shiftAtomsZ(QPoint delta)
@@ -184,7 +184,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
     }else{
         curStep->modShift(getAxes()[2], fac);
     }
-    triggerUpdate(Change::atoms);
+    triggerUpdate(GuiChange::atoms);
 }
 
 void GLWidget::wheelEvent(QWheelEvent *e)
@@ -212,7 +212,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
             *curSel = curStep->select(SelectionFilter{});
-            triggerUpdate(Change::selection);
+            triggerUpdate(GuiChange::selection);
         }
         break;
     case MouseMode::Modify:
@@ -301,7 +301,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
             *curSel = curStep->select(filter);
-            triggerUpdate(Change::selection);
+            triggerUpdate(GuiChange::selection);
         }
         break;
     case MouseMode::Modify:

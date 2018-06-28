@@ -96,18 +96,18 @@ PYBIND11_MODULE(vipster, m) {
         .value("Angstrom", CdmFmt::Angstrom)
     ;
 
-    py::enum_<AtomProperty>(m, "AtomProperty")
-        .value("FixX", AtomProperty::FixX)
-        .value("FixY", AtomProperty::FixY)
-        .value("FixZ", AtomProperty::FixZ)
-        .value("Hidden", AtomProperty::Hidden)
+    py::enum_<AtomFlag>(m, "AtomFlag")
+        .value("FixX", AtomFlag::FixX)
+        .value("FixY", AtomFlag::FixY)
+        .value("FixZ", AtomFlag::FixZ)
+        .value("Hidden", AtomFlag::Hidden)
     ;
 
-    py::class_<AtomProperties>(m, "AtomProperties")
-        .def("__getitem__",[](const AtomProperties &bs, AtomProperty ap){
+    py::class_<AtomFlags>(m, "AtomFlags")
+        .def("__getitem__",[](const AtomFlags &bs, AtomFlag ap){
             return bs[static_cast<uint8_t>(ap)];
         })
-        .def("__setitem__",[](AtomProperties &bs, AtomProperty ap, bool val){
+        .def("__setitem__",[](AtomFlags &bs, AtomFlag ap, bool val){
             bs[static_cast<uint8_t>(ap)] = val;
         })
     ;
@@ -117,8 +117,6 @@ PYBIND11_MODULE(vipster, m) {
                       [](Atom &a, std::string s){a.name = s;})
         .def_property("coord", [](const Atom &a)->const Vec&{return a.coord;},
                       [](Atom &a, Vec c){a.coord = c;})
-        .def_property("charge", [](const Atom &a)->const float&{return a.charge;},
-                      [](Atom &a, float c){a.charge = c;})
         .def_property("properties", [](const Atom &a)->const AtomProperties&{return a.properties;},
                       [](Atom &a, AtomProperties bs){a.properties = bs;})
         .def(py::self == py::self)
@@ -155,8 +153,8 @@ PYBIND11_MODULE(vipster, m) {
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
         .def("newAtom", [](Step& s){s.newAtom();})
-        .def("newAtom", py::overload_cast<std::string, Vec, float, AtomProperties>(&StepProper::newAtom),
-             "name"_a, "coord"_a=Vec{}, "charge"_a=float{}, "properties"_a=AtomProperties{})
+        .def("newAtom", py::overload_cast<std::string, Vec, AtomProperties>(&StepProper::newAtom),
+             "name"_a, "coord"_a=Vec{}, "properties"_a=AtomProperties{})
         .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
         .def("__getitem__", [](Step& s, int i){
                 if (i<0){

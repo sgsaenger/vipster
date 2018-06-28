@@ -24,7 +24,6 @@ struct AtomList{
     bool                            name_changed;
     std::vector<PseEntry*>          pse;
     // Properties
-    std::vector<float>              charges;
     std::vector<AtomProperties>     properties;
     bool                            prop_changed;
 };
@@ -52,7 +51,6 @@ public:
             &atoms->coord_changed[static_cast<uint8_t>(fmt)],
             &atoms->names[idx],
             &atoms->name_changed,
-            &atoms->charges[idx],
             &atoms->properties[idx],
             &atoms->pse[idx],
             &atoms->prop_changed,
@@ -62,7 +60,6 @@ public:
         ++idx;
         ++(this->coord_ptr);
         ++(this->name_ptr);
-        ++(this->charge_ptr);
         ++(this->prop_ptr);
         ++(this->pse_ptr);
         return *this;
@@ -71,7 +68,6 @@ public:
         idx += i;
         this->coord_ptr += i;
         this->name_ptr += i;
-        this->charge_ptr += i;
         this->prop_ptr += i;
         this->pse_ptr += i;
         return *this;
@@ -119,7 +115,6 @@ public:
             &selection->atoms->coord_changed[static_cast<size_t>(fmt)],
             &selection->atoms->names[idx<selection->indices.size()?selection->indices[idx]:0],
             &selection->atoms->name_changed,
-            &selection->atoms->charges[idx<selection->indices.size()?selection->indices[idx]:0],
             &selection->atoms->properties[idx<selection->indices.size()?selection->indices[idx]:0],
             &selection->atoms->pse[idx<selection->indices.size()?selection->indices[idx]:0],
             &selection->atoms->prop_changed},
@@ -130,7 +125,6 @@ public:
         auto diff = selection->indices[idx] - selection->indices[idx-1];
         this->coord_ptr += diff;
         this->name_ptr += diff;
-        this->charge_ptr += diff;
         this->prop_ptr += diff;
         this->pse_ptr += diff;
         return *this;
@@ -140,7 +134,6 @@ public:
         auto diff = selection->indices[idx] - selection->indices[idx-i];
         this->coord_ptr += diff;
         this->name_ptr += diff;
-        this->charge_ptr += diff;
         this->prop_ptr += diff;
         this->pse_ptr += diff;
         return *this;

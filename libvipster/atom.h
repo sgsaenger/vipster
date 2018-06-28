@@ -14,12 +14,22 @@
 //TODO: forces, other properties
 
 namespace Vipster{
+    namespace Enums{
+    enum AtomChange{coord=0x1, name=0x2, prop=0x4, del=0x8};
+    enum AtomFlag: uint8_t {FixX, FixY, FixZ, Hidden};
+    }
+    using Enums::AtomChange;
+    using Enums::AtomFlag;
+    constexpr size_t nAtFlag = 4;
+    using AtomFlags = std::bitset<nAtFlag>;
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };
     constexpr size_t nAtFmt = 4;
-    enum AtomProperty: uint8_t {FixX, FixY, FixZ, Hidden};
-    constexpr size_t nAtProp = 4;
-    using AtomProperties = std::bitset<nAtProp>;
 
+    struct AtomProperties{
+        float charge;
+        Vec forces;
+        AtomFlags flags;
+    };
     /*
      * Basic atom interface
      *
@@ -28,15 +38,14 @@ namespace Vipster{
     class Atom{
     protected:
         Atom(Vec *co, bool *c_m, std::string *n, bool *n_m,
-             float *ch, std::bitset<nAtProp> *p, PseEntry** pse, bool *p_m)
+             AtomProperties *p, PseEntry** pse, bool *p_m)
             : coord_ptr{co}, coord_changed{c_m}, name_ptr{n}, name_changed{n_m},
-              charge_ptr{ch}, prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
+              prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
         {}
         Vec                     *coord_ptr;
         bool                    *coord_changed;
         std::string             *name_ptr;
         bool                    *name_changed;
-        float                   *charge_ptr;
         AtomProperties          *prop_ptr;
         PseEntry*               *pse_ptr;
         bool                    *prop_changed;
@@ -45,8 +54,6 @@ namespace Vipster{
             name{*this};
         PropRef<Vec, &Atom::coord_ptr, &Atom::coord_changed>
             coord{*this};
-        PropRef<float, &Atom::charge_ptr, &Atom::prop_changed>
-            charge{*this};
         PropRef<AtomProperties, &Atom::prop_ptr, &Atom::prop_changed>
             properties{*this};
         const PropRef<PseEntry*, &Atom::pse_ptr, nullptr>
@@ -58,7 +65,6 @@ namespace Vipster{
               coord_changed{at.coord_changed},
               name_ptr{at.name_ptr},
               name_changed{at.name_changed},
-              charge_ptr{at.charge_ptr},
               prop_ptr{at.prop_ptr},
               pse_ptr{at.pse_ptr},
               prop_changed{at.prop_changed} {}
@@ -66,7 +72,6 @@ namespace Vipster{
         {
             name = at.name;
             coord = at.coord;
-            charge = at.charge;
             properties = at.properties;
             pse_ptr = at.pse_ptr;
             return *this;
@@ -74,12 +79,17 @@ namespace Vipster{
     };
 
     inline bool operator==(const Atom &a1, const Atom &a2){
-        return std::tie(a1.name, a1.coord, a1.charge, a1.properties)
+        return std::tie(a1.name, a1.coord, a1.properties)
                ==
-               std::tie(a2.name, a2.coord, a2.charge, a2.properties);
+               std::tie(a2.name, a2.coord, a2.properties);
     }
     inline bool operator!=(const Atom &a1, const Atom &a2){
         return !(a1==a2);
+    }
+    inline bool operator==(const AtomProperties &p1, const AtomProperties &p2){
+        return std::tie(p1.charge, p1.flags, p1.forces)
+               ==
+               std::tie(p2.charge, p2.flags, p2.forces);
     }
 
 }

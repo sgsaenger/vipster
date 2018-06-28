@@ -16,7 +16,7 @@ auto IdentifyColumns(std::string& line)
     auto yparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[1];};
     auto zparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[2];};
     auto nparser = [](std::stringstream& ss, Atom& at) {ss >> at.name;};
-    auto qparser = [](std::stringstream& ss, Atom& at) {ss >> at.charge;};
+    auto qparser = [](std::stringstream& ss, Atom& at) {ss >> at.properties->charge;};
     auto dparser = [](std::stringstream& ss, Atom&) {static std::string dummy{}; ss >> dummy;};
     std::vector<void(*)(std::stringstream&, Atom&)> funvec{};
     while ( !(ss >> tok).fail() ) {

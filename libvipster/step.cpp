@@ -25,13 +25,11 @@ void Step::newAtom(){
     al.name_changed = true;
     al.pse.push_back(&(*pse)[""]);
     // Properties
-    al.charges.emplace_back();
     al.properties.emplace_back();
     al.prop_changed = true;
 }
 
-void Step::newAtom(std::string name, Vec coord, float charge,
-                   AtomProperties prop)
+void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
 {
     evaluateCache();
     AtomList& al = *atoms;
@@ -43,7 +41,6 @@ void Step::newAtom(std::string name, Vec coord, float charge,
     al.name_changed = true;
     al.pse.push_back(&(*pse)[name]);
     // Properties
-    al.charges.emplace_back(charge);
     al.properties.emplace_back(prop);
     al.prop_changed = true;
 }
@@ -59,7 +56,6 @@ void Step::newAtom(const Atom& at){
     al.name_changed = true;
     al.pse.push_back(&(*pse)[at.name]);
     // Properties
-    al.charges.push_back(at.charge);
     al.properties.push_back(at.properties);
     al.prop_changed = true;
 }
@@ -76,7 +72,6 @@ void Step::newAtoms(size_t i){
     al.name_changed = true;
     al.pse.resize(nat);
     // Properties
-    al.charges.resize(nat);
     al.properties.resize(nat);
     al.prop_changed = true;
 }
@@ -98,8 +93,6 @@ void Step::newAtoms(const AtomList& atoms){
     al.name_changed = true;
     al.pse.resize(nat);
     // Properties
-    al.charges.reserve(nat);
-    al.charges.insert(al.charges.end(), atoms.charges.begin(), atoms.charges.end());
     al.properties.reserve(nat);
     al.properties.insert(al.properties.end(), atoms.properties.begin(), atoms.properties.end());
     al.prop_changed = true;
@@ -117,7 +110,6 @@ void Step::delAtom(long i){
     al.name_changed = true;
     al.pse.erase(al.pse.begin()+i);
     // Properties
-    al.charges.erase(al.charges.begin()+i);
     al.properties.erase(al.properties.begin()+i);
     al.prop_changed = true;
 }
@@ -167,11 +159,6 @@ const std::vector<std::string>& Step::getNames() const noexcept {
 const std::vector<PseEntry*>& Step::getPseEntries() const noexcept {
     evaluateCache();
     return atoms->pse;
-}
-
-const std::vector<float>& Step::getCharges() const noexcept {
-    evaluateCache();
-    return atoms->charges;
 }
 
 const std::vector<AtomProperties>& Step::getProperties() const noexcept {
