@@ -30,15 +30,18 @@ void CellModWidget::on_cropButton_clicked()
 void CellModWidget::on_multButton_clicked()
 {
     master->curStep->modMultiply(
-                ui->xMultSel->value(),
-                ui->yMultSel->value(),
-                ui->zMultSel->value());
-    triggerUpdate(Change::atoms);
+                static_cast<uint8_t>(ui->xMultSel->value()),
+                static_cast<uint8_t>(ui->yMultSel->value()),
+                static_cast<uint8_t>(ui->zMultSel->value()));
+    triggerUpdate(Change::atoms | Change::cell);
 }
 
 void CellModWidget::on_alignButton_clicked()
 {
-
+    master->curStep->modAlign(
+                static_cast<uint8_t>(ui->stepVecSel->currentIndex()),
+                static_cast<uint8_t>(ui->coordVecSel->currentIndex()));
+    triggerUpdate(Change::atoms | Change::cell);
 }
 
 void CellModWidget::on_reshapeButton_clicked()

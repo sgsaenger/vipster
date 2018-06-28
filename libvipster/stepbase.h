@@ -260,7 +260,7 @@ public:
     }
 
     void modRotate(float angle, Vec axis, Vec shift={0,0,0}){
-        angle *= 2*pi/360.f;
+        angle *= deg2rad;
         float c = std::cos(angle);
         float s = -std::sin(angle);
         float ic = 1.f-c;
@@ -322,12 +322,14 @@ public:
             return;
         }
         T& handle = static_cast<T*>(this)->asFmt(AtomFmt::Crystal);
-        auto refIt = handle.begin();
-        auto oldNat = handle.getNat();
+        auto cell = getCellVec();
         auto multiply = [&](uint8_t dir, uint8_t mult){
             auto atoms = handle.getAtoms();
+            auto oldNat = handle.getNat();
+            cell[dir] *= mult;
             for(uint8_t i=1; i<mult; ++i){
                 handle.newAtoms(atoms);
+                auto refIt = handle.begin();
                 for(auto it=refIt+i*oldNat; it!=refIt+(i+1)*oldNat; ++it){
                     it->coord[dir] += i;
                 }
@@ -342,6 +344,34 @@ public:
         if(z>1){
             multiply(2, z);
         }
+        static_cast<T*>(this)->setCellVec(cell);
+    }
+
+    void modAlign(uint8_t step_dir, uint8_t target_dir){
+        auto target = Vec{};
+        target.at(target_dir) = 1;
+        auto source = getCellVec().at(step_dir);
+        source /= Vec_length(source);
+        if(target == source){
+            return;
+        }
+        auto axis = Vec_cross(source, target);
+        axis /= Vec_length(axis);
+        auto cos = Vec_dot(source, target);
+        auto icos = 1-cos;
+        auto sin = -std::sqrt(1-cos*cos);
+        Mat rotMat = {Vec{icos * axis[0] * axis[0] + cos,
+                          icos * axis[0] * axis[1] - sin * axis[2],
+                          icos * axis[0] * axis[2] + sin * axis[1]},
+                      Vec{icos * axis[1] * axis[0] + sin * axis[2],
+                          icos * axis[1] * axis[1] + cos,
+                          icos * axis[1] * axis[2] - sin * axis[0]},
+                      Vec{icos * axis[2] * axis[0] - sin * axis[1],
+                          icos * axis[2] * axis[1] + sin * axis[0],
+                          icos * axis[2] * axis[2] + cos}};
+        Mat oldCell = getCellVec();
+        Mat newCell = oldCell*rotMat;
+        static_cast<T*>(this)->setCellVec(newCell, true);
     }
 
 protected:

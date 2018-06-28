@@ -96,6 +96,7 @@ void Step::newAtoms(const AtomList& atoms){
     al.names.reserve(nat);
     al.names.insert(al.names.end(), atoms.names.begin(), atoms.names.end());
     al.name_changed = true;
+    al.pse.resize(nat);
     // Properties
     al.charges.reserve(nat);
     al.charges.insert(al.charges.end(), atoms.charges.begin(), atoms.charges.end());
