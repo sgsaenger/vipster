@@ -202,16 +202,17 @@ inline Vec operator*(const Vec &v, const Mat&m)
 
 inline Mat& operator*=(Mat &lhs, const Mat &rhs)
 {
+    Mat tmp = lhs;
     Mat mt = Mat_trans(rhs);
-    lhs[0][0] = Vec_dot(lhs[0],mt[0]);
-    lhs[0][1] = Vec_dot(lhs[0],mt[1]);
-    lhs[0][2] = Vec_dot(lhs[0],mt[2]);
-    lhs[1][0] = Vec_dot(lhs[1],mt[0]);
-    lhs[1][1] = Vec_dot(lhs[1],mt[1]);
-    lhs[1][2] = Vec_dot(lhs[1],mt[2]);
-    lhs[2][0] = Vec_dot(lhs[2],mt[0]);
-    lhs[2][1] = Vec_dot(lhs[2],mt[1]);
-    lhs[2][2] = Vec_dot(lhs[2],mt[2]);
+    lhs[0][0] = Vec_dot(tmp[0],mt[0]);
+    lhs[0][1] = Vec_dot(tmp[0],mt[1]);
+    lhs[0][2] = Vec_dot(tmp[0],mt[2]);
+    lhs[1][0] = Vec_dot(tmp[1],mt[0]);
+    lhs[1][1] = Vec_dot(tmp[1],mt[1]);
+    lhs[1][2] = Vec_dot(tmp[1],mt[2]);
+    lhs[2][0] = Vec_dot(tmp[2],mt[0]);
+    lhs[2][1] = Vec_dot(tmp[2],mt[1]);
+    lhs[2][2] = Vec_dot(tmp[2],mt[2]);
     return lhs;
 }
 

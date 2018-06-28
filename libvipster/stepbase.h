@@ -260,7 +260,7 @@ public:
     }
 
     void modRotate(float angle, Vec axis, Vec shift={0,0,0}){
-        angle *= 2*pi/360.f;
+        angle *= deg2rad;
         float c = std::cos(angle);
         float s = -std::sin(angle);
         float ic = 1.f-c;
@@ -289,6 +289,125 @@ public:
         for(Atom& at:*static_cast<T*>(this)){
             at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
         }
+    }
+
+    void modWrap(){
+        for(Atom& at:asFmt(AtomFmt::Crystal)){
+            at.coord[0] -= std::floor(at.coord[0]);
+            at.coord[1] -= std::floor(at.coord[1]);
+            at.coord[2] -= std::floor(at.coord[2]);
+        }
+    }
+
+    void modCrop(){
+        std::vector<size_t> toRemove;
+        toRemove.reserve(static_cast<T*>(this)->getNat());
+        for(auto it=asFmt(AtomFmt::Crystal).begin(); it!=asFmt(AtomFmt::Crystal).end(); ++it){
+            if((it->coord[0]>=1) | (it->coord[0]<0) |
+               (it->coord[1]>=1) | (it->coord[1]<0) |
+               (it->coord[2]>=1) | (it->coord[2]<0)){
+                toRemove.push_back(it.getIdx());
+            }
+        }
+        for(auto it=toRemove.rbegin(); it!=toRemove.rend(); ++it){
+            static_cast<T*>(this)->delAtom(*it);
+        }
+    }
+
+    void modMultiply(size_t x, size_t y, size_t z){
+        auto fac = x*y*z;
+        if(fac == 0){
+            throw Error("Cannot eradicate atoms via modMultiply");
+        }else if(fac == 1){
+            return;
+        }
+        T& handle = static_cast<T*>(this)->asFmt(AtomFmt::Crystal);
+        auto cell = getCellVec();
+        auto multiply = [&](uint8_t dir, uint8_t mult){
+            auto atoms = handle.getAtoms();
+            auto oldNat = handle.getNat();
+            cell[dir] *= mult;
+            for(uint8_t i=1; i<mult; ++i){
+                handle.newAtoms(atoms);
+                auto refIt = handle.begin();
+                for(auto it=refIt+i*oldNat; it!=refIt+(i+1)*oldNat; ++it){
+                    it->coord[dir] += i;
+                }
+            }
+        };
+        if(x>1){
+            multiply(0, x);
+        }
+        if(y>1){
+            multiply(1, y);
+        }
+        if(z>1){
+            multiply(2, z);
+        }
+        static_cast<T*>(this)->setCellVec(cell);
+    }
+
+    void modAlign(uint8_t step_dir, uint8_t target_dir){
+        auto target = Vec{};
+        target.at(target_dir) = 1;
+        auto source = getCellVec().at(step_dir);
+        source /= Vec_length(source);
+        if(target == source){
+            return;
+        }
+        auto axis = Vec_cross(source, target);
+        axis /= Vec_length(axis);
+        auto cos = Vec_dot(source, target);
+        auto icos = 1-cos;
+        auto sin = -std::sqrt(1-cos*cos);
+        Mat rotMat = {Vec{icos * axis[0] * axis[0] + cos,
+                          icos * axis[0] * axis[1] - sin * axis[2],
+                          icos * axis[0] * axis[2] + sin * axis[1]},
+                      Vec{icos * axis[1] * axis[0] + sin * axis[2],
+                          icos * axis[1] * axis[1] + cos,
+                          icos * axis[1] * axis[2] - sin * axis[0]},
+                      Vec{icos * axis[2] * axis[0] - sin * axis[1],
+                          icos * axis[2] * axis[1] + sin * axis[0],
+                          icos * axis[2] * axis[2] + cos}};
+        Mat oldCell = getCellVec();
+        Mat newCell = oldCell*rotMat;
+        static_cast<T*>(this)->setCellVec(newCell, true);
+    }
+
+    void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
+        auto oldCdm = getCellDim(cdmFmt);
+        auto oldMat = getCellVec();
+        if((newMat == oldMat) && (float_comp(newCdm, oldCdm))){
+            return;
+        }
+        modWrap();
+        auto& handle = *static_cast<T*>(this);
+        size_t fac;
+        if(newMat == oldMat){
+            // only changing cdm
+            fac = std::ceil(newCdm/oldCdm);
+        }else{
+            // change vectors or both
+            auto getExtent = [](const Mat& m){
+                return Vec{m[0][0] + m[1][0] + m[2][0],
+                           m[0][1] + m[1][1] + m[2][1],
+                           m[0][2] + m[1][2] + m[2][2]
+                           };
+            };
+            auto compExtLt = [](const Vec& v1, const Vec& v2){
+                return (v1[0] < v2[0]) || (v1[1] < v2[1]) || (v1[2] < v2[2]);
+            };
+            Vec newExtent = getExtent(newMat*newCdm);
+            Vec oldExtent = getExtent(oldMat*oldCdm);
+            fac = 1;
+            while(compExtLt(oldExtent*fac, newExtent)){
+                fac += 1;
+            }
+        }
+        modMultiply(fac, fac, fac);
+        handle.setCellVec(newMat);
+        handle.setCellDim(newCdm, cdmFmt);
+        modCrop();
     }
 
 protected:

@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 namespace Vipster {
-    constexpr float pi = 3.14159265358979323846264338327950288;
+    constexpr float pi = 3.14159265358979323846264338327950288f;
     constexpr float rad2deg = 180.f / pi;
     constexpr float deg2rad = pi / 180.f;
     constexpr float bohrrad = 0.52917721092f;
