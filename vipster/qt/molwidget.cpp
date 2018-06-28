@@ -181,8 +181,7 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 {
-    Mat vec;
-    vec = curStep->getCellVec();
+    Mat vec = curStep->getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
     curStep->setCellVec(vec, ui->cellScaleBox->isChecked());

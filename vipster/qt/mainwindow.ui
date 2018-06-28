@@ -430,7 +430,7 @@
     <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Script</string>
+    <string>Sc&amp;ript</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -472,6 +472,15 @@
     <number>1</number>
    </attribute>
    <widget class="SettingsWidget" name="settingsWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="cellModDock">
+   <property name="windowTitle">
+    <string>Modify Cell</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="CellModWidget" name="cellModWidget"/>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -645,6 +654,12 @@
    <class>SettingsWidget</class>
    <extends>QWidget</extends>
    <header>qt/settingswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CellModWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/tools/cellmodwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
