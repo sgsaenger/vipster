@@ -87,6 +87,7 @@ template<>
 QWidget* SettingsWidget::makeWidget(Vipster::ColVec& setting)
 {
     auto* widget = new QPushButton(ui->settingsContainer);
+    widget->setText("Select");
     widget->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
                           .arg(setting[0]).arg(setting[1]).arg(setting[2]));
     connect(widget, &QPushButton::clicked, this,
@@ -94,6 +95,9 @@ QWidget* SettingsWidget::makeWidget(Vipster::ColVec& setting)
                 auto oldCol = QColor::fromRgb(setting[0], setting[1], setting[2], setting[3]);
                 auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                                      QColorDialog::ShowAlphaChannel);
+                if(!newCol.isValid()){
+                    return;
+                }
                 setting = {static_cast<uint8_t>(newCol.red()),
                            static_cast<uint8_t>(newCol.green()),
                            static_cast<uint8_t>(newCol.blue()),

@@ -119,6 +119,7 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
     jsonToSetting(j, s.showCell);
     jsonToSetting(j, s.antialias);
     jsonToSetting(j, s.perspective);
+    jsonToSetting(j, s.selCol);
     jsonToSetting(j, s.PWPP);
     jsonToSetting(j, s.CPPP);
     jsonToSetting(j, s.CPNL);

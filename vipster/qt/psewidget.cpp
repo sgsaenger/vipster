@@ -94,6 +94,9 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
                 auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
                 auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                                      QColorDialog::ShowAlphaChannel);
+                if(!newCol.isValid()){
+                    return;
+                }
                 col = {static_cast<uint8_t>(newCol.red()),
                        static_cast<uint8_t>(newCol.green()),
                        static_cast<uint8_t>(newCol.blue()),
