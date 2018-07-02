@@ -47,10 +47,14 @@ void MainWindow::setupUI()
     tabifyDockWidget(ui->molDock, ui->paramDock);
     tabifyDockWidget(ui->paramDock, ui->configDock);
     tabifyDockWidget(ui->configDock, ui->settingsDock);
+    tabifyDockWidget(ui->settingsDock, ui->mpseDock);
+    tabifyDockWidget(ui->mpseDock, ui->pseDock);
     ui->molDock->raise();
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
+    // fill in global PSE
+    ui->pseWidget->setPSE(&Vipster::pse);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
         auto param_range = Vipster::params.equal_range(pair.first);
@@ -80,6 +84,7 @@ void MainWindow::updateWidgets(uint8_t change)
     ui->molWidget->updateWidget(change);
     ui->scriptWidget->updateWidget(change);
     ui->pickWidget->updateWidget(change);
+    ui->mpseWidget->updateWidget(change);
 }
 
 void MainWindow::setFmt(int i, bool apply, bool scale)

@@ -482,6 +482,24 @@
    </attribute>
    <widget class="CellModWidget" name="cellModWidget"/>
   </widget>
+  <widget class="QDockWidget" name="pseDock">
+   <property name="windowTitle">
+    <string>PSE (&amp;global)</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="PSEWidget" name="pseWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="mpseDock">
+   <property name="windowTitle">
+    <string>PSE (Molec&amp;ule)</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="PSEWidget" name="mpseWidget"/>
+  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -660,6 +678,12 @@
    <class>CellModWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/cellmodwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PSEWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/psewidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

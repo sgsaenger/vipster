@@ -22,6 +22,18 @@ void PSEWidget::registerProperty(QWidget* w, float PseEntry::* prop)
                 triggerUpdate(GuiChange::settings);
             }
     );
+    connect(this, &PSEWidget::currentEntryChanged, this,
+            [prop, w, this](){
+                if(currentEntry){
+                    w->setEnabled(true);
+                    QSignalBlocker{w};
+                    static_cast<QDoubleSpinBox*>(w)->setValue(
+                                static_cast<double>(currentEntry->*prop));
+                }else{
+                    w->setDisabled(true);
+                }
+            }
+    );
 }
 
 template<>
@@ -34,6 +46,18 @@ void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
                 triggerUpdate(GuiChange::settings);
             }
     );
+    connect(this, &PSEWidget::currentEntryChanged, this,
+            [prop, w, this](){
+                if(currentEntry){
+                    w->setEnabled(true);
+                    QSignalBlocker{w};
+                    static_cast<QSpinBox*>(w)->setValue(
+                                static_cast<unsigned int>(currentEntry->*prop));
+                }else{
+                    w->setDisabled(true);
+                }
+            }
+    );
 }
 
 template<>
@@ -44,6 +68,18 @@ void PSEWidget::registerProperty(QWidget* w, std::string PseEntry::* prop)
             [prop, w, this](){
                 currentEntry->*prop = static_cast<QLineEdit*>(w)->text().toStdString();
                 triggerUpdate(GuiChange::settings);
+            }
+    );
+    connect(this, &PSEWidget::currentEntryChanged, this,
+            [prop, w, this](){
+                if(currentEntry){
+                    w->setEnabled(true);
+                    QSignalBlocker{w};
+                    static_cast<QLineEdit*>(w)->setText(
+                                QString::fromStdString(currentEntry->*prop));
+                }else{
+                    w->setDisabled(true);
+                }
             }
     );
 }
@@ -64,6 +100,18 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
                        static_cast<uint8_t>(newCol.alpha())};
                 w->setStyleSheet(QString("background-color: %1").arg(newCol.name()));
                 triggerUpdate(GuiChange::settings);
+            }
+    );
+    connect(this, &PSEWidget::currentEntryChanged, this,
+            [prop, w, this](){
+                if(currentEntry){
+                    w->setEnabled(true);
+                    const ColVec& col = currentEntry->*prop;
+                    w->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
+                                            .arg(col[0]).arg(col[1]).arg(col[2]));
+                }else{
+                    w->setDisabled(true);
+                }
             }
     );
 }
@@ -91,18 +139,29 @@ PSEWidget::~PSEWidget()
 
 void PSEWidget::setEntry(QListWidgetItem *item)
 {
-    QSignalBlocker blockAll{this};
-    currentEntry = &pse.at(item->text().toStdString());
-    const PseEntry& entry = *currentEntry;
-    ui->zSel->setValue(static_cast<int>(entry.Z));
-    ui->mSel->setValue(static_cast<double>(entry.m));
-    ui->cutSel->setValue(static_cast<double>(entry.bondcut));
-    ui->covSel->setValue(static_cast<double>(entry.covr));
-    ui->vdwSel->setValue(static_cast<double>(entry.vdwr));
-    ui->pwppSel->setText(QString::fromStdString(entry.PWPP));
-    ui->cpppSel->setText(QString::fromStdString(entry.CPPP));
-    ui->cpnlSel->setText(QString::fromStdString(entry.CPNL));
-    const ColVec& col = entry.col;
-    ui->colSel->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
-                              .arg(col[0], col[1], col[2]));
+    if(!pse){
+        return;
+    }
+    currentEntry = &pse->at(item->text().toStdString());
+    emit(currentEntryChanged());
+}
+
+void PSEWidget::setPSE(PseMap* pse)
+{
+    this->pse = pse;
+    ui->pseList->clear();
+    if(pse){
+        for(const auto& entry: *pse){
+            ui->pseList->addItem(QString::fromStdString(entry.first));
+        }
+    }
+}
+
+void PSEWidget::updateWidget(uint8_t change)
+{
+    if(change == guiMolChanged){
+        setPSE(master->curMol->pse.get());
+    }else if(change & GuiChange::atoms){
+        setPSE(this->pse);
+    }
 }
