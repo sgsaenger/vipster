@@ -17,7 +17,11 @@ LmpConfig::~LmpConfig()
 
 void LmpConfig::setConfig(BaseConfig *c)
 {
-    curConfig = static_cast<IO::LmpConfig*>(c);
+    curConfig = dynamic_cast<IO::LmpConfig*>(c);
+    if(!curConfig){
+        throw Error("Invalid configuration preset");
+    }
+    QSignalBlocker block{this};
     ui->atomSel->setCurrentIndex(static_cast<int>(curConfig->style));
     ui->bondCheck->setCheckState(Qt::CheckState(curConfig->bonds*2));
     ui->angleCheck->setCheckState(Qt::CheckState(curConfig->angles*2));

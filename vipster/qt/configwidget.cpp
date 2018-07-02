@@ -49,6 +49,10 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
     const auto& pair = configs.at(static_cast<size_t>(index));
     curConfig = pair.second.get();
     switch (pair.first) {
+    case IOFmt::XYZ:
+        ui->configStack->setCurrentWidget(ui->XYZWidget);
+        ui->XYZWidget->setConfig(curConfig);
+        break;
     case IOFmt::PWI:
         ui->configStack->setCurrentWidget(ui->PWWidget);
         ui->PWWidget->setConfig(curConfig);

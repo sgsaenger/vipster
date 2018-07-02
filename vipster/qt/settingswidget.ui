@@ -40,7 +40,7 @@
         <x>0</x>
         <y>0</y>
         <width>400</width>
-        <height>359</height>
+        <height>298</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="settingsLayout"/>
