@@ -83,6 +83,9 @@ bool readConfig()
     if(pse.find("")==pse.end()){
         pse.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
     }
+    if(configs.find(IOFmt::XYZ) == configs.end()){
+        configs.emplace(IOFmt::XYZ, std::make_unique<IO::XYZConfig>(IO::XYZConfigDefault));
+    }
     if(params.find(IOFmt::PWI) == params.end()){
         params.emplace(IOFmt::PWI, std::make_unique<IO::PWParam>(IO::PWParamDefault));
     }

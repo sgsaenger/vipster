@@ -42,7 +42,7 @@ const static std::map<std::string, std::vector<lmpTok>> fmtmap{
     {"dipole", {{lmpTok::charge, lmpTok::type, lmpTok::pos}}},
     {"dpd", {{lmpTok::type, lmpTok::ignore, lmpTok::pos}}},
     {"edpd", {{lmpTok::type, lmpTok::ignore, lmpTok::ignore, lmpTok::pos}}},
-    {"mdpd", {{lmpTok::type, lmpTok::pos}}},
+    {"mdpd", {{lmpTok::type, lmpTok::ignore, lmpTok::pos}}},
     {"tdpd", {{lmpTok::type, lmpTok::pos}}},
     {"electron", {{lmpTok::type, lmpTok::charge, lmpTok::ignore,
                    lmpTok::ignore, lmpTok::pos}}},
@@ -103,14 +103,14 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         }
     };
     auto checkDummy = [&atoms](size_t col){
-        std::set<float> s, n{0};
+        std::set<float> s, n{0.f};
         for (auto& at: atoms){
             s.insert(stof(at[col]));
         }
         return (s.size()==1)&&(s==n);
     };
     if(narg == 5){
-        // only one possible setup (atomic, mdpd)
+        // only one possible setup (atomic)
         return {lmpTok::type, lmpTok::pos};
     }
     if(narg == 6){
