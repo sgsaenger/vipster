@@ -145,7 +145,11 @@ void PSEWidget::setEntry(QListWidgetItem *item)
     if(!pse){
         return;
     }
-    currentEntry = &pse->at(item->text().toStdString());
+    if(item){
+        currentEntry = &pse->at(item->text().toStdString());
+    }else{
+        currentEntry = nullptr;
+    }
     emit(currentEntryChanged());
 }
 
