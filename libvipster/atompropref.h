@@ -56,8 +56,18 @@ namespace Vipster{
         {
             return *(at.*p_prop) == static_cast<const T&>(rhs);
         }
-        T operator->() const{
+        template <typename R=T, typename =typename std::enable_if<std::is_pointer<R>::value>::type>
+        R operator->() const{
             return *(at.*p_prop);
+        }
+        template <typename R=T, typename =typename std::enable_if<std::is_class<R>::value>::type>
+        R* operator->(){
+            *(at.*p_mod) = true;
+            return at.*p_prop;
+        }
+        template <typename R=T, typename =typename std::enable_if<std::is_class<R>::value>::type>
+        R const* operator->() const{
+            return at.*p_prop;
         }
     private:
         Atom& at;

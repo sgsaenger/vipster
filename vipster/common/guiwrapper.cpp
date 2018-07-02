@@ -763,7 +763,7 @@ void GuiWrapper::updateSelBuffers(StepSelection* sel)
     }
     sel_buffer.clear();
     sel_buffer.reserve(curSel->getNat());
-    for(const Atom& at:*curSel){
+    for(const Atom& at:curSel->asFmt(curStep->getFmt())){
         sel_buffer.push_back({at.coord, at.pse->covr*1.3f});
     }
     sel_changed = true;

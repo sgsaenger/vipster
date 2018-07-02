@@ -7,8 +7,7 @@
 
 using namespace Vipster;
 
-int main(int argc, char *argv[])
-{
+void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QSurfaceFormat format;
     format.setVersion(3,3);
     format.setSamples(8);
@@ -18,7 +17,19 @@ int main(int argc, char *argv[])
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
     QApplication::setApplicationVersion("1.10a");
+    if(!data.empty()){
+        MainWindow w{std::move(data)};
+        w.show();
+        throw CLI::RuntimeError(QApplication::exec());
+    }else{
+        MainWindow w{};
+        w.show();
+        throw CLI::RuntimeError(QApplication::exec());
+    }
+}
 
+int main(int argc, char *argv[])
+{
     // main parser + data-targets
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
     app.allow_extras(true);
@@ -72,15 +83,7 @@ int main(int argc, char *argv[])
             }
         }
         // launch GUI
-        if(data.size()){
-            MainWindow w{std::move(data)};
-            w.show();
-            throw CLI::RuntimeError(QApplication::exec());
-        }else{
-            MainWindow w{};
-            w.show();
-            throw CLI::RuntimeError(QApplication::exec());
-        }
+        launchVipster(argc, argv, std::move(data));
     });
 
     // conversion parser + data + options

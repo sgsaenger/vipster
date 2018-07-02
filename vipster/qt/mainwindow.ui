@@ -338,13 +338,11 @@
      <property name="title">
       <string>Load &amp;Parameter set</string>
      </property>
-     <widget class="QMenu" name="menuPWScf">
-      <property name="title">
-       <string>&amp;PWScf</string>
-      </property>
-      <addaction name="actionParamDummy"/>
-     </widget>
-     <addaction name="menuPWScf"/>
+    </widget>
+    <widget class="QMenu" name="menuLoad_IO_Config">
+     <property name="title">
+      <string>Load &amp;IO-Config</string>
+     </property>
     </widget>
     <addaction name="actionNew_Molecule"/>
     <addaction name="menuFrom_existing_Molecule"/>
@@ -354,7 +352,7 @@
     <addaction name="menuLoad_Parameter_set"/>
     <addaction name="actionSave_Parameter_set"/>
     <addaction name="separator"/>
-    <addaction name="actionLoad_IO_Config"/>
+    <addaction name="menuLoad_IO_Config"/>
     <addaction name="actionSave_IO_Config"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshot"/>
@@ -398,6 +396,9 @@
    </attribute>
   </widget>
   <widget class="QDockWidget" name="molDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea</set>
    </property>
@@ -410,6 +411,9 @@
    <widget class="MolWidget" name="molWidget"/>
   </widget>
   <widget class="QDockWidget" name="paramDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea</set>
    </property>
@@ -422,16 +426,79 @@
    <widget class="ParamWidget" name="paramWidget"/>
   </widget>
   <widget class="QDockWidget" name="scriptDock">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Sc&amp;ript</string>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
    <widget class="ScriptWidget" name="scriptWidget"/>
   </widget>
   <widget class="QDockWidget" name="pickDock">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Se&amp;lected Atoms</string>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
    <widget class="PickWidget" name="pickWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="configDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>&amp;Config</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="ConfigWidget" name="configWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="settingsDock">
+   <property name="windowTitle">
+    <string>Setti&amp;ngs</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="SettingsWidget" name="settingsWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="cellModDock">
+   <property name="windowTitle">
+    <string>Modify Cell</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="CellModWidget" name="cellModWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="pseDock">
+   <property name="windowTitle">
+    <string>PSE (&amp;global)</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="PSEWidget" name="pseWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="mpseDock">
+   <property name="windowTitle">
+    <string>PSE (Molec&amp;ule)</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="PSEWidget" name="mpseWidget"/>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -539,11 +606,6 @@
     <string>About &amp;Qt</string>
    </property>
   </action>
-  <action name="actionLoad_IO_Config">
-   <property name="text">
-    <string>Load &amp;IO-Config</string>
-   </property>
-  </action>
   <action name="actionSave_IO_Config">
    <property name="text">
     <string>Save I&amp;O-Config</string>
@@ -554,9 +616,26 @@
     <string>&amp;paramDummy</string>
    </property>
   </action>
+  <action name="actiondummy">
+   <property name="text">
+    <string>dummy</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
+  <customwidget>
+   <class>ParamWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/paramwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/configwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>GLWidget</class>
    <extends>QOpenGLWidget</extends>
@@ -578,12 +657,6 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>ParamWidget</class>
-   <extends>QWidget</extends>
-   <header>qt/paramwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>ScriptWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/scriptwidget.h</header>
@@ -593,6 +666,24 @@
    <class>PickWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/pickwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SettingsWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/settingswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CellModWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/tools/cellmodwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PSEWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/psewidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -643,12 +734,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1206</x>
-     <y>630</y>
+     <x>1157</x>
+     <y>631</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1162</x>
-     <y>624</y>
+     <x>1115</x>
+     <y>627</y>
     </hint>
    </hints>
   </connection>
@@ -771,8 +862,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1175</x>
-     <y>588</y>
+     <x>1130</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>1137</x>
@@ -787,7 +878,7 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1130</x>
+     <x>1080</x>
      <y>600</y>
     </hint>
     <hint type="destinationlabel">
@@ -803,28 +894,12 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1229</x>
-     <y>594</y>
+     <x>1180</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1188</x>
-     <y>526</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>stepSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>stepEdit</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1130</x>
-     <y>621</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1191</x>
-     <y>621</y>
+     <x>1182</x>
+     <y>571</y>
     </hint>
    </hints>
   </connection>
@@ -855,8 +930,8 @@
      <y>627</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1189</x>
-     <y>622</y>
+     <x>1157</x>
+     <y>631</y>
     </hint>
    </hints>
   </connection>
@@ -871,8 +946,8 @@
      <y>626</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1188</x>
-     <y>619</y>
+     <x>1157</x>
+     <y>631</y>
     </hint>
    </hints>
   </connection>
@@ -920,8 +995,8 @@
   <slot>saveMol()</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="cameraGroup"/>
   <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
+  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

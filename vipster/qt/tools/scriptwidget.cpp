@@ -94,7 +94,7 @@ void ScriptWidget::evalScript()
         std::transform(op_pre.begin(), op_pre.begin()+4, op.begin(), ::tolower);
         if(op == "sel"){
             // Change GUI-selection
-            change |= Change::selection;
+            change |= GuiChange::selection;
             std::string sel;
             std::getline(line_stream, sel);
             master->curSel = &step.select(sel);
@@ -106,7 +106,7 @@ void ScriptWidget::evalScript()
             definitions.insert({name, step.select(sel)});
         }else{
             // Save OPs on stack
-            change |= Change::atoms;
+            change |= GuiChange::atoms;
             line_stream >> name;
             ScriptOp& action = operations[name];
             // TODO: check when and how stream extraction fails

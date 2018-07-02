@@ -17,6 +17,7 @@ public:
     ~MolWidget() override;
     void updateWidget(uint8_t change) override;
     void registerMol(const std::string& name);
+    Vipster::CdmFmt getCellFmt();
 
 private slots:
     void on_cellEnabled_toggled(bool checked);

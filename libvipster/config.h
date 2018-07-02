@@ -89,18 +89,24 @@ struct PseEntry{
 
 enum class IOFmt{XYZ, PWI, PWO, LMP, DMP};
 
-struct BaseParam
+class BaseParam
 {
+public:
     std::string name;
     virtual std::unique_ptr<BaseParam> copy() = 0;
     virtual ~BaseParam() = default;
+protected:
+    BaseParam(std::string);
 };
 
-struct BaseConfig
+class BaseConfig
 {
+public:
     std::string name;
     virtual std::unique_ptr<BaseConfig> copy() = 0;
     virtual ~BaseConfig() = default;
+protected:
+    BaseConfig(std::string);
 };
 
 
@@ -136,19 +142,21 @@ struct Settings{
     Setting<bool> showCell{"Show cell", true};
     Setting<bool> antialias{"Antialiasing", true};
     Setting<bool> perspective{"Perspective projection", false};
+    Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
     Setting<std::string> PWPP{"Default PWScf PP-suffix", ""};
     Setting<std::string> CPPP{"Default CPMD PP-suffix", ""};
     Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
-    Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
 };
 //TODO: void to_json(nlohmann::json& j,const Settings& s);
 void from_json(const nlohmann::json& j, Settings& s);
 
 using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
+using Configs = std::multimap<IOFmt, std::unique_ptr<BaseConfig>>;
 
 extern PseMap pse;
 extern Settings settings;
 extern Parameters params;
+extern Configs configs;
 
 }
 

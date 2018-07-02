@@ -15,6 +15,12 @@ namespace IO {
         std::unique_ptr<BaseParam> param{};
     };
 
+    struct State{
+        size_t index = -1ul;
+        AtomFmt atom_fmt = AtomFmt::Bohr;
+        CdmFmt cell_fmt = CdmFmt::Bohr;
+    };
+
     struct Plugin{
         enum Args:uint8_t{None, Param, Config};
         std::string name;
@@ -24,7 +30,8 @@ namespace IO {
         Data        (*parser)(const std::string& name, std::ifstream &file);
         bool        (*writer)(const Molecule& m, std::ofstream &file,
                               const BaseParam *const p,
-                              const BaseConfig *const c);
+                              const BaseConfig *const c,
+                              State state);
     };
     class Error: public std::runtime_error
     {

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LmpConfig</class>
+ <widget class="QWidget" name="LmpConfig">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="0">
+    <widget class="QLabel" name="angleLabel">
+     <property name="text">
+      <string>Print angles:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" colspan="2">
+    <widget class="QComboBox" name="atomSel">
+     <item>
+      <property name="text">
+       <string>Angle</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Atomic</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Bond</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Charge</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Full</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Molecular</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QCheckBox" name="bondCheck">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QCheckBox" name="angleCheck">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QCheckBox" name="dihedCheck">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
+    <widget class="QCheckBox" name="impropCheck">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="bondLabel">
+     <property name="text">
+      <string>Print bonds:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="dihedLabel">
+     <property name="text">
+      <string>Print dihedrals:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <spacer name="angleSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="impropLabel">
+     <property name="text">
+      <string>Print impropers:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <spacer name="dihedSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="1">
+    <spacer name="bondSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="1">
+    <spacer name="impropSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="5" column="0" colspan="3">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="atomLabel">
+     <property name="text">
+      <string>Atom style:</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+  <zorder>angleLabel</zorder>
+  <zorder>bondLabel</zorder>
+  <zorder>dihedLabel</zorder>
+  <zorder>impropLabel</zorder>
+  <zorder>atomLabel</zorder>
+  <zorder>impropCheck</zorder>
+  <zorder>dihedCheck</zorder>
+  <zorder>angleCheck</zorder>
+  <zorder>bondCheck</zorder>
+  <zorder>atomSel</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

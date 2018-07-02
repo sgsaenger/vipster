@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PSEWidget</class>
+ <widget class="QWidget" name="PSEWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QListWidget" name="pseList"/>
+   </item>
+   <item>
+    <widget class="QWidget" name="pseContainer" native="true">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="vdwSel">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="colLabel">
+        <property name="text">
+         <string>Display color:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="cpppLabel">
+        <property name="text">
+         <string>CPMD PP-Suffix:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLineEdit" name="cpnlSel"/>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLineEdit" name="cpppSel"/>
+      </item>
+      <item row="5" column="1">
+       <widget class="QPushButton" name="colSel">
+        <property name="text">
+         <string>Select</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="covLabel">
+        <property name="text">
+         <string>Covalent radius:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="vdwLabel">
+        <property name="text">
+         <string>Van-der-Waals radius:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="cutLabel">
+        <property name="text">
+         <string>Bond cutoff radius:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="zLabel">
+        <property name="text">
+         <string>Atomic number:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="mLabel">
+        <property name="text">
+         <string>Mass:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QDoubleSpinBox" name="mSel">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="covSel">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="cutSel">
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="zSel"/>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="pwppLabel">
+        <property name="text">
+         <string>PWScf PP-Suffix:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="pwppSel"/>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="cpnlLabel">
+        <property name="text">
+         <string>CPMD Nonlocality:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0" colspan="2">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pseList</sender>
+   <signal>currentItemChanged(QListWidgetItem*,QListWidgetItem*)</signal>
+   <receiver>PSEWidget</receiver>
+   <slot>setEntry(QListWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>107</x>
+     <y>256</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>175</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>setEntry(QListWidgetItem*)</slot>
+ </slots>
+</ui>

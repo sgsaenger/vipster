@@ -13,8 +13,8 @@ static std::ostream& operator<<(std::ostream& out, const Vec& v)
 
 static std::ostream& operator<<(std::ostream& os, const Atom& at)
 {
-    os << "Atom{" << at.name << ", " << at.coord << ", " << at.charge
-       << ", " << at.properties << "}";
+    os << "Atom{" << at.name << ", " << at.coord << ", " << at.properties->charge
+       << ", " << at.properties->flags << "}";
     return os;
 }
 

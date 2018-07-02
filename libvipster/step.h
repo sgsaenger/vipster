@@ -36,10 +36,10 @@ public:
     void            newAtom();
     void            newAtom(std::string name,
                             Vec coord=Vec{},
-                            float charge=float{},
                             AtomProperties prop=AtomProperties{});
     void            newAtom(const Atom& at);
     void            newAtoms(size_t i);
+    void            newAtoms(const AtomList& atoms);
     void            delAtom(long i);
     using           iterator = AtomListIterator<Atom>;
     using           constIterator = AtomListIterator<const Atom>;
@@ -51,10 +51,10 @@ public:
     constIterator   end() const noexcept;
     constIterator   cend() const noexcept;
     // Prop-getters
+    const AtomList&                     getAtoms() const noexcept;
     const std::vector<Vec>&             getCoords() const noexcept;
     const std::vector<std::string>&     getNames() const noexcept;
     const std::vector<PseEntry*>&       getPseEntries() const noexcept;
-    const std::vector<float>&           getCharges() const noexcept;
     const std::vector<AtomProperties>&  getProperties() const noexcept;
 
     // Cell-setters

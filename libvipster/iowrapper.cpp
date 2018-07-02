@@ -28,9 +28,13 @@ IO::Data Vipster::readFile(const std::string &fn, IOFmt fmt)
 
 bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
                          const BaseParam *const p,
-                         const BaseConfig *const c)
+                         const BaseConfig *const c,
+                         IO::State state)
 {
     std::ofstream file{fn};
+    if(state.index == -1ul){
+        state.index = m.getNstep()-1;
+    }
     try{
         if(!file){
             throw IO::Error("Could not open "+fn);
@@ -42,7 +46,7 @@ bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
         if(w->writer == nullptr){
             throw IO::Error("Read-only format");
         }
-        return w->writer(m, file, p, c);
+        return w->writer(m, file, p, c, state);
     }
     catch(IO::Error &e){
         std::cout << e.what() << std::endl;

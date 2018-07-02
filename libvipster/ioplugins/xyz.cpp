@@ -48,9 +48,9 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
 }
 
 bool XYZWriter(const Molecule& m, std::ofstream &file,
-               const BaseParam*const, const BaseConfig*const)
+               const BaseParam*const, const BaseConfig*const, IO::State state)
 {
-    const Step& s = m.getStep(0).asAngstrom;
+    const Step& s = m.getStep(state.index).asAngstrom;
     file << s.getNat() << '\n';
     file << s.getComment() << '\n';
     file << std::fixed << std::setprecision(5);
