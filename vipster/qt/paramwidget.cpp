@@ -53,6 +53,8 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
         ui->paramStack->setCurrentWidget(ui->PWWidget);
         ui->PWWidget->setParam(curParam);
         break;
+    case IOFmt::CPI:
+        break;
     default:
         throw Error("Invalid parameter format");
     }

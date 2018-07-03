@@ -87,7 +87,7 @@ struct PseEntry{
     ColVec          col;
 };
 
-enum class IOFmt{XYZ, PWI, PWO, LMP, DMP};
+enum class IOFmt{XYZ, PWI, PWO, LMP, DMP, CPI};
 
 class BaseParam
 {

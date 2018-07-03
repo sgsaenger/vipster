@@ -9,6 +9,7 @@
 #include "ioplugins/pwoutput.h"
 #include "ioplugins/lmpinput.h"
 #include "ioplugins/lmptrajec.h"
+#include "ioplugins/cpmdinput.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
@@ -17,7 +18,8 @@ namespace Vipster{
             {IOFmt::PWI, &IO::PWInput},
             {IOFmt::PWO, &IO::PWOutput},
             {IOFmt::LMP, &IO::LmpInput},
-            {IOFmt::DMP, &IO::LmpTrajec}
+            {IOFmt::DMP, &IO::LmpTrajec},
+            {IOFmt::CPI, &IO::CPInput}
     };
     IO::Data readFile(const std::string &fn, IOFmt fmt);
     IO::Data readFile(const std::string &fn, IOFmt fmt, std::string name);
