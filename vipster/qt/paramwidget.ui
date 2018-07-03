@@ -19,6 +19,9 @@
    </item>
    <item row="1" column="0">
     <widget class="QStackedWidget" name="paramStack">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
      <widget class="QWidget" name="NoPWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
@@ -34,6 +37,7 @@
       </layout>
      </widget>
      <widget class="PWParam" name="PWWidget"/>
+     <widget class="CPParam" name="CPWidget"/>
     </widget>
    </item>
   </layout>
@@ -43,6 +47,12 @@
    <class>PWParam</class>
    <extends>QWidget</extends>
    <header>qt/params/pwparam.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CPParam</class>
+   <extends>QWidget</extends>
+   <header>qt/params/cpparam.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

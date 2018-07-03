@@ -24,8 +24,10 @@ struct CPParam: BaseParam{
     Section tddft;
     Section hardness;
     Section classic;
+    Section exte;
     Section vdw;
     Section qmmm;
+    static const std::map<std::string, IO::CPParam::Section IO::CPParam::*> str2section;
     CPParam(std::string="", Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={});

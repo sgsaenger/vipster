@@ -45,8 +45,7 @@ const std::map<std::string, int> str2ibrav{
     {"TRICLINIC", 14}
 };
 
-const std::map<std::string, IO::CPParam::Section IO::CPParam::*> str2section{
-    {"&END", nullptr},
+const std::map<std::string, IO::CPParam::Section IO::CPParam::*> IO::CPParam::str2section{
     {"&INFO", &IO::CPParam::info},
     {"&CPMD", &IO::CPParam::cpmd},
     {"&SYSTEM", &IO::CPParam::system},
@@ -61,6 +60,7 @@ const std::map<std::string, IO::CPParam::Section IO::CPParam::*> str2section{
     {"&TDDFT", &IO::CPParam::tddft},
     {"&HARDNESS", &IO::CPParam::hardness},
     {"&CLASSIC", &IO::CPParam::classic},
+    {"&EXTE", &IO::CPParam::exte},
     {"&VDW", &IO::CPParam::vdw},
     {"&QMMM", &IO::CPParam::qmmm},
 };
@@ -159,18 +159,67 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
         if(line.empty() || line[0] == '!') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if(line[0] == '&'){
-            curSection = str2section.at(line);
+            if(line.find("&END") != line.npos){
+                curSection = nullptr;
+            }else{
+                curSection = IO::CPParam::str2section.at(line);
+            }
         }else{
             if(!curSection){
                 throw IO::Error("Data outside of section");
             }
+            bool parsed{false};
             if(curSection == &IO::CPParam::system){
                 if(line.find("ANGSTROM") != line.npos) {
+                    parsed = true;
                     cf = CdmFmt::Angstrom;
                     af = AtomFmt::Angstrom;
                 }else if(line.find("KPOINTS") != line.npos){
-                    //TODO parse kpoints
+                    parsed = true;
+                    auto& kp = m.getKPoints();
+                    if(line.find("MONKHORST-PACK") != line.npos){
+                        kp.active = KPointFmt::MPG;
+                        std::getline(file, buf);
+                        std::stringstream{buf} >> kp.mpg.x >> kp.mpg.y >> kp.mpg.z;
+                        size_t pos;
+                        if((pos = line.find("SHIFT=")) != line.npos){
+                            std::stringstream{line.substr(pos+6)}
+                                >> kp.mpg.sx >> kp.mpg.sy >> kp.mpg.sz;
+                        }
+                    }else{
+                        kp.active = KPointFmt::Discrete;
+                        if(line.find("SCALED") != line.npos){
+                            kp.discrete.properties |=
+                                    KPoints::Discrete::Properties::crystal;
+                        }
+                        if(line.find("BANDS") != line.npos){
+                            kp.discrete.properties |=
+                                    KPoints::Discrete::Properties::band;
+                            auto isTerm = [](const DiscreteKPoint& p){
+                                return float_comp(p.pos[0], 0) && float_comp(p.pos[1], 0)
+                                        && float_comp(p.pos[2], 0) && float_comp(p.weight, 0);
+                            };
+                            do{
+                                std::getline(file, buf);
+                                DiscreteKPoint p1, p2;
+                                std::stringstream{buf}
+                                    >> p1.weight
+                                    >> p1.pos[0] >> p1.pos[1] >> p1.pos[2]
+                                    >> p2.pos[0] >> p2.pos[1] >> p2.pos[2];
+                            }while(!isTerm(kp.discrete.kpoints.back()));
+                        }else{
+                            std::getline(file, buf);
+                            size_t nk = std::stoul(buf);
+                            kp.discrete.kpoints.resize(nk);
+                            for(auto& p: kp.discrete.kpoints){
+                                std::getline(file, buf);
+                                std::stringstream{buf}
+                                    >> p.pos[0] >> p.pos[1] >> p.pos[2] >> p.weight;
+                            }
+                        }
+                    }
                 }else if(line.find("SCALE") != line.npos){
+                    parsed = true;
                     if(line.find("CARTESIAN") != line.npos){
                         af = AtomFmt::Alat;
                     }else{
@@ -196,6 +245,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         std::stringstream{line.substr(pos+3)} >> scaleVec[2];
                     }
                 }else if(line.find("SYMMETRY") != line.npos){
+                    parsed = true;
                     std::getline(file, buf);
                     std::stringstream ss{buf};
                     int tmp;
@@ -208,6 +258,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         ibrav = tmp;
                     }
                 }else if(line.find("CELL") != line.npos){
+                    parsed = true;
                     if(line.find("VECTORS") != line.npos){
                         ibrav = -1;
                         file >> cellVec[0][0] >> cellVec[0][1] >> cellVec[0][2]
@@ -229,6 +280,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                 }
             }else if(curSection == &IO::CPParam::atoms){
                 if(line[0] == '*'){
+                    parsed = true;
                     line = trim(buf); // reset to regain capitalization
                     std::string CPPP = line.substr(1);
                     auto pos = CPPP.find_first_of(". ");
@@ -260,6 +312,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         }
                     }
                 }else if(line.find("CONSTRAINTS") != line.npos){
+                    parsed = true;
                     std::getline(file, buf);
                     std::vector<std::string> other;
                     while(buf.find("END CONSTRAINTS") == buf.npos){
@@ -354,13 +407,15 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         }
                     }
                 }else if(line.find("ISOTOPE") != line.npos){
+                    parsed = true;
                     for(auto& t: types){
                         std::getline(file, buf);
                         (*s.pse)[t].m = std::stof(buf);
                     }
                 }
-            }else{
-                (p.*curSection).push_back(line);
+            }
+            if(!parsed){
+                (p.*curSection).push_back(buf);
             }
         }
     }

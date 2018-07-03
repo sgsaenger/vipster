@@ -26,7 +26,10 @@ PWParam::~PWParam()
 void PWParam::setParam(BaseParam *p)
 {
     auto treeBlocker = QSignalBlocker{ui->paramTree};
-    curParam = static_cast<IO::PWParam*>(p);
+    curParam = dynamic_cast<IO::PWParam*>(p);
+    if(!curParam){
+        throw Error("Invalid parameter set");
+    }
     IO::PWParam::Namelist IO::PWParam::* namelists[] = {
         &IO::PWParam::control, &IO::PWParam::system,
         &IO::PWParam::electrons, &IO::PWParam::ions,
