@@ -8,16 +8,15 @@ namespace IO{
 
 extern const IO::Plugin PWInput;
 
-using PWNamelist = std::map<std::string, std::string>;
-
 struct PWParam: BaseParam{
-    PWNamelist control;
-    PWNamelist system;
-    PWNamelist electrons;
-    PWNamelist ions;
-    PWNamelist cell;
-    PWParam(std::string="", PWNamelist={}, PWNamelist={},
-            PWNamelist={}, PWNamelist={}, PWNamelist={});
+    using Namelist = std::map<std::string, std::string>;
+    Namelist control;
+    Namelist system;
+    Namelist electrons;
+    Namelist ions;
+    Namelist cell;
+    PWParam(std::string="", Namelist={}, Namelist={},
+            Namelist={}, Namelist={}, Namelist={});
     std::unique_ptr<BaseParam> copy() override;
 };
 

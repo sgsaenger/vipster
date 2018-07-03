@@ -32,7 +32,7 @@ private:
     QAction *delAction;
     QTreeWidgetItem *curItem{nullptr};
     std::string curKey{};
-    Vipster::IO::PWNamelist Vipster::IO::PWParam::* curNL{nullptr};
+    Vipster::IO::PWParam::Namelist Vipster::IO::PWParam::* curNL{nullptr};
     Vipster::IO::PWParam *curParam{nullptr};
 };
 

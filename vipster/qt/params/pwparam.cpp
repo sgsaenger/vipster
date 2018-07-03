@@ -27,7 +27,7 @@ void PWParam::setParam(BaseParam *p)
 {
     auto treeBlocker = QSignalBlocker{ui->paramTree};
     curParam = static_cast<IO::PWParam*>(p);
-    IO::PWNamelist IO::PWParam::* namelists[] = {
+    IO::PWParam::Namelist IO::PWParam::* namelists[] = {
         &IO::PWParam::control, &IO::PWParam::system,
         &IO::PWParam::electrons, &IO::PWParam::ions,
         &IO::PWParam::cell};
@@ -86,7 +86,7 @@ void PWParam::delElement()
 void PWParam::on_paramTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *)
 {
     curItem = current;
-    const std::map<QString, IO::PWNamelist IO::PWParam::*> stringToNL =
+    const std::map<QString, IO::PWParam::Namelist IO::PWParam::*> stringToNL =
     {
         {"control", &IO::PWParam::control},
         {"system", &IO::PWParam::system},
