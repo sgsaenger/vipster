@@ -1,7 +1,12 @@
-#include "config.h"
+#include "configfile.h"
 #include "iowrapper.h"
+#include "pse.h"
+#include "settings.h"
+#include "parameters.h"
+#include "configs.h"
+#include "json.hpp"
+
 #include <fstream>
-#include <locale>
 #include <tuple>
 
 using json = nlohmann::json;
@@ -15,39 +20,6 @@ Settings settings;
 Parameters params;
 Configs configs;
 static bool config_loaded = readConfig();
-}
-
-BaseParam::BaseParam(std::string name)
-    :name{name}
-{}
-
-BaseConfig::BaseConfig(std::string name)
-    :name{name}
-{}
-
-PseEntry& PseMap::operator [](const std::string& k)
-{
-    try{
-        return at(k);
-    }catch(const std::out_of_range&){
-        if(!root){
-            std::locale loc;
-            for(size_t i=k.length();i>0;--i)
-            {
-                std::string test = k.substr(0,i);
-                if(std::islower(test[0]) != 0){
-                    test[0] = std::toupper(test[0],loc);
-                }
-                if(pse.find(test)!=pse.end())
-                {
-                    emplace(k,pse.at(test));
-                    return at(k);
-                }
-            }
-        }
-        emplace(k,pse.at(""));
-        return at(k);
-    }
 }
 
 bool readConfig()
@@ -100,30 +72,4 @@ bool readConfig()
     Vipster::params = std::move(params);
     Vipster::configs = std::move(configs);
     return true;
-}
-
-template<typename T>
-void jsonToSetting(const nlohmann::json& j, T& s){
-    using ValueType = typename T::ValueType;
-    auto it = j.find(s.name);
-    if(it != j.end()){
-        s.val = it.value().template get<ValueType>();
-    }
-}
-
-void Vipster::from_json(const nlohmann::json& j, Settings& s){
-    jsonToSetting(j, s.atRadFac);
-    jsonToSetting(j, s.atRadVdW);
-    jsonToSetting(j, s.bondRad);
-    jsonToSetting(j, s.bondCutFac);
-    jsonToSetting(j, s.bondFreq);
-    jsonToSetting(j, s.bondLvl);
-    jsonToSetting(j, s.showBonds);
-    jsonToSetting(j, s.showCell);
-    jsonToSetting(j, s.antialias);
-    jsonToSetting(j, s.perspective);
-    jsonToSetting(j, s.selCol);
-    jsonToSetting(j, s.PWPP);
-    jsonToSetting(j, s.CPPP);
-    jsonToSetting(j, s.CPNL);
 }

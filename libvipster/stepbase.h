@@ -5,7 +5,7 @@
 #include "bond.h"
 #include "cell.h"
 #include "vec.h"
-#include "config.h"
+#include "settings.h"
 
 #include <memory>
 #include <vector>

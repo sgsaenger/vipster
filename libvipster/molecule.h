@@ -2,7 +2,6 @@
 #define MOLECULE_H
 
 #include "step.h"
-#include "config.h"
 #include "kpoints.h"
 
 namespace Vipster {

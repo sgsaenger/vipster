@@ -2,7 +2,9 @@
 #define IOWRAPPER
 
 #include <map>
+
 #include "molecule.h"
+#include "iofmt.h"
 #include "ioplugin.h"
 #include "ioplugins/xyz.h"
 #include "ioplugins/pwinput.h"

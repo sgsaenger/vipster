@@ -2,7 +2,6 @@
 #define ATOMCONTAINERS_H
 
 #include "atom.h"
-#include "config.h"
 #include "vec.h"
 #include <array>
 
