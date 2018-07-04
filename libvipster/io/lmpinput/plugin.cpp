@@ -1,20 +1,7 @@
-#include "lmpinput.h"
+#include "plugin.h"
 #include <sstream>
 
 using namespace Vipster;
-
-IO::LmpConfig::LmpConfig(std::string name, LmpAtomStyle style,
-                         bool bonds, bool angles, bool dihedrals, bool impropers)
-    : BaseConfig{name},
-      style{style},
-      bonds{bonds}, angles{angles},
-      dihedrals{dihedrals}, impropers{impropers}
-{}
-
-std::unique_ptr<BaseConfig> IO::LmpConfig::copy()
-{
-    return std::make_unique<IO::LmpConfig>(*this);
-}
 
 enum class lmpTok{
     type,
@@ -24,13 +11,13 @@ enum class lmpTok{
     ignore
 };
 
-const static std::map<IO::LmpAtomStyle, std::string> fmt2str{
-    {IO::LmpAtomStyle::Angle, "angle"},
-    {IO::LmpAtomStyle::Atomic, "atomic"},
-    {IO::LmpAtomStyle::Bond, "bond"},
-    {IO::LmpAtomStyle::Charge, "charge"},
-    {IO::LmpAtomStyle::Full, "full"},
-    {IO::LmpAtomStyle::Molecular, "molecular"},
+const static std::map<IO::LmpConfig::AtomStyle, std::string> fmt2str{
+    {IO::LmpConfig::AtomStyle::Angle, "angle"},
+    {IO::LmpConfig::AtomStyle::Atomic, "atomic"},
+    {IO::LmpConfig::AtomStyle::Bond, "bond"},
+    {IO::LmpConfig::AtomStyle::Charge, "charge"},
+    {IO::LmpConfig::AtomStyle::Full, "full"},
+    {IO::LmpConfig::AtomStyle::Molecular, "molecular"},
 };
 
 const static std::map<std::string, std::vector<lmpTok>> fmtmap{

@@ -1,30 +1,27 @@
-#ifndef LMPINPUT_H
-#define LMPINPUT_H
+#ifndef LMPI_CONF_H
+#define LMPI_CONF_H
 
 #include "../plugin.h"
 
 namespace Vipster{
 namespace IO{
 
-extern const IO::Plugin LmpInput;
-
-enum class LmpAtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
-
 struct LmpConfig: BaseConfig{
-    LmpAtomStyle style;
+    enum class AtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
+    AtomStyle style;
     bool bonds, angles, dihedrals, impropers;
-    LmpConfig(std::string="", LmpAtomStyle=LmpAtomStyle::Atomic,
+    LmpConfig(std::string="", AtomStyle=AtomStyle::Atomic,
               bool=false, bool=false, bool=false, bool=false);
     std::unique_ptr<BaseConfig> copy() override;
 };
 
 const LmpConfig LmpConfigDefault{
     "default",
-    LmpAtomStyle::Atomic,
+    LmpConfig::AtomStyle::Atomic,
     false, false, false, false
 };
 
 }
 }
 
-#endif // LMPINPUT_H
+#endif // LMPI_CONF_H

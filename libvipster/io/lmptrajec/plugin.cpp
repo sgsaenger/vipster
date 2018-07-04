@@ -1,4 +1,4 @@
-#include "lmptrajec.h"
+#include "plugin.h"
 
 #include <sstream>
 

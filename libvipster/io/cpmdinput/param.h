@@ -1,12 +1,10 @@
-#ifndef CPMDINPUT_H
-#define CPMDINPUT_H
+#ifndef CPI_PARAM_H
+#define CPI_PARAM_H
 
 #include "../plugin.h"
 
 namespace Vipster {
 namespace IO {
-
-extern const IO::Plugin CPInput;
 
 struct CPParam: BaseParam{
     using Section = std::vector<std::string>;
@@ -37,4 +35,4 @@ struct CPParam: BaseParam{
 }
 }
 
-#endif // CPMDINPUT_H
+#endif // CPI_PARAM_H

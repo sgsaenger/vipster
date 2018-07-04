@@ -6,12 +6,12 @@
 #include "molecule.h"
 #include "io/fmt.h"
 #include "io/plugin.h"
-#include "io/xyz/xyz.h"
-#include "io/pwinput/pwinput.h"
-#include "io/pwoutput/pwoutput.h"
-#include "io/lmpinput/lmpinput.h"
-#include "io/lmptrajec/lmptrajec.h"
-#include "io/cpmdinput/cpmdinput.h"
+#include "io/xyz/plugin.h"
+#include "io/pwinput/plugin.h"
+#include "io/pwoutput/plugin.h"
+#include "io/lmpinput/plugin.h"
+#include "io/lmptrajec/plugin.h"
+#include "io/cpmdinput/plugin.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{

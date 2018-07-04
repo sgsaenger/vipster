@@ -296,13 +296,13 @@ PYBIND11_MODULE(vipster, m) {
         .def_readwrite("cell", &IO::PWParam::cell)
     ;
 
-    py::enum_<IO::LmpAtomStyle>(io, "LmpAtomStyle")
-        .value("Angle", IO::LmpAtomStyle::Angle)
-        .value("Atomic", IO::LmpAtomStyle::Atomic)
-        .value("Bond", IO::LmpAtomStyle::Bond)
-        .value("Charge", IO::LmpAtomStyle::Charge)
-        .value("Full", IO::LmpAtomStyle::Full)
-        .value("Molecular", IO::LmpAtomStyle::Molecular)
+    py::enum_<IO::LmpConfig::AtomStyle>(io, "LmpConfig::AtomStyle")
+        .value("Angle", IO::LmpConfig::AtomStyle::Angle)
+        .value("Atomic", IO::LmpConfig::AtomStyle::Atomic)
+        .value("Bond", IO::LmpConfig::AtomStyle::Bond)
+        .value("Charge", IO::LmpConfig::AtomStyle::Charge)
+        .value("Full", IO::LmpConfig::AtomStyle::Full)
+        .value("Molecular", IO::LmpConfig::AtomStyle::Molecular)
     ;
 
     py::class_<IO::LmpConfig, BaseConfig>(io, "LmpConfig")

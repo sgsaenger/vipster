@@ -51,5 +51,5 @@ void LmpConfig::on_impropCheck_stateChanged(int arg1)
 
 void LmpConfig::on_atomSel_currentIndexChanged(int index)
 {
-    curConfig->style = static_cast<IO::LmpAtomStyle>(index);
+    curConfig->style = static_cast<IO::LmpConfig::AtomStyle>(index);
 }

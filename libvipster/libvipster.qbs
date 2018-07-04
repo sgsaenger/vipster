@@ -13,6 +13,7 @@ DynamicLibrary {
         qbs.install: !qbs.targetOS.contains("windows")
                      && !qbs.targetOS.contains("macos") && !project.webBuild
         qbs.installDir: "include/vipster"
+        qbs.installSourceBase: "."
     }
 
     Group {

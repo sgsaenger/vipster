@@ -2,7 +2,7 @@
 #define PWCONFIG_H
 
 #include <QWidget>
-#include "io/pwinput/pwinput.h"
+#include "io/pwinput/config.h"
 #include "../configwidget.h"
 
 namespace Ui {

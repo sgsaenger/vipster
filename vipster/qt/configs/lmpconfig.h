@@ -2,7 +2,7 @@
 #define LMPCONFIG_H
 
 #include <QWidget>
-#include "io/lmpinput/lmpinput.h"
+#include "io/lmpinput/config.h"
 #include "../configwidget.h"
 
 namespace Ui {

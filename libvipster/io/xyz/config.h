@@ -1,11 +1,10 @@
-#ifndef XYZ_H
-#define XYZ_H
+#ifndef XYZ_CONF_H
+#define XYZ_CONF_H
 
 #include "../plugin.h"
 
-namespace Vipster{
-namespace IO{
-extern const IO::Plugin XYZ;
+namespace Vipster {
+namespace IO {
 
 struct XYZConfig: BaseConfig{
     enum class Data{None, Charge, Forces};
@@ -25,4 +24,4 @@ const XYZConfig XYZConfigDefault{
 }
 }
 
-#endif // XYZ_H
+#endif // XYZ_CONF_H
