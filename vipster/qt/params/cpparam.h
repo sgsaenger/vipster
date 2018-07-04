@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "../paramwidget.h"
+#include "io/cpmdinput/cpmdinput.h"
 
 namespace Ui {
 class CPParam;

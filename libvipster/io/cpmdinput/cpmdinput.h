@@ -1,7 +1,7 @@
 #ifndef CPMDINPUT_H
 #define CPMDINPUT_H
 
-#include "../ioplugin.h"
+#include "../plugin.h"
 
 namespace Vipster {
 namespace IO {

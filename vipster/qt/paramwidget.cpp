@@ -1,6 +1,6 @@
 #include "paramwidget.h"
 #include "ui_paramwidget.h"
-#include "iowrapper.h"
+#include "io.h"
 
 using namespace Vipster;
 

@@ -4,7 +4,7 @@
 
 #include "../common/guiwrapper.h"
 #include "molecule.h"
-#include "iowrapper.h"
+#include "io.h"
 
 namespace em = emscripten;
 using namespace Vipster;

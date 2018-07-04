@@ -1,7 +1,7 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-#include "iofmt.h"
+#include "io/fmt.h"
 
 #include <string>
 #include <map>

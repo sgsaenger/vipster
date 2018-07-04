@@ -1,6 +1,6 @@
 #include "configwidget.h"
 #include "ui_configwidget.h"
-#include "iowrapper.h"
+#include "io.h"
 
 using namespace Vipster;
 

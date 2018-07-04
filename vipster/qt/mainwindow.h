@@ -5,7 +5,7 @@
 #include <QAbstractButton>
 #include <QDir>
 #include <vector>
-#include "iowrapper.h"
+#include "io.h"
 #include "stepsel.h"
 #include "../common/guiwrapper.h"
 

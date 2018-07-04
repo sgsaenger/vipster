@@ -4,14 +4,14 @@
 #include <map>
 
 #include "molecule.h"
-#include "iofmt.h"
-#include "ioplugin.h"
-#include "ioplugins/xyz.h"
-#include "ioplugins/pwinput.h"
-#include "ioplugins/pwoutput.h"
-#include "ioplugins/lmpinput.h"
-#include "ioplugins/lmptrajec.h"
-#include "ioplugins/cpmdinput.h"
+#include "io/fmt.h"
+#include "io/plugin.h"
+#include "io/xyz/xyz.h"
+#include "io/pwinput/pwinput.h"
+#include "io/pwoutput/pwoutput.h"
+#include "io/lmpinput/lmpinput.h"
+#include "io/lmptrajec/lmptrajec.h"
+#include "io/cpmdinput/cpmdinput.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{

@@ -1,10 +1,10 @@
 #ifndef IOPLUGIN_H
 #define IOPLUGIN_H
 
-#include "molecule.h"
-#include "iofmt.h"
-#include "parameters.h"
-#include "configs.h"
+#include "../molecule.h"
+#include "../parameters.h"
+#include "../configs.h"
+#include "fmt.h"
 
 #include <string>
 #include <map>

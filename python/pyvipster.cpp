@@ -4,7 +4,7 @@
 
 #include <sstream>
 #include <molecule.h>
-#include <iowrapper.h>
+#include <io.h>
 
 namespace py = pybind11;
 using namespace py::literals;

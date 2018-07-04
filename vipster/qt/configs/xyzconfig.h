@@ -2,7 +2,7 @@
 #define XYZCONFIG_H
 
 #include <QWidget>
-#include "ioplugins/xyz.h"
+#include "io/xyz/xyz.h"
 #include "../configwidget.h"
 
 namespace Ui {

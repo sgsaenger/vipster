@@ -1,7 +1,7 @@
 #ifndef XYZ_H
 #define XYZ_H
 
-#include "../ioplugin.h"
+#include "../plugin.h"
 
 namespace Vipster{
 namespace IO{
