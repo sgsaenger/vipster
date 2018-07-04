@@ -285,8 +285,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     std::getline(file, buf);
                     (*s.pse)[name].CPNL = trim(buf);
                     std::getline(file, buf);
-                    size_t nat;
-                    std::stoul(buf, &nat);
+                    size_t nat = std::stoul(buf);
                     s.newAtoms(nat);
                     for(auto& at: s){
                         std::getline(file, buf);

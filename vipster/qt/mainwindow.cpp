@@ -246,6 +246,7 @@ const std::vector<std::pair<IOFmt, std::unique_ptr<BaseParam>>>& MainWindow::get
 {
     return ui->paramWidget->params;
 }
+
 const std::vector<std::pair<IOFmt, std::unique_ptr<BaseConfig>>>& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
