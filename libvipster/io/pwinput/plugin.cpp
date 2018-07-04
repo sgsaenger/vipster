@@ -184,17 +184,6 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
     StepProper &s = m.getStep(0);
     CdmFmt cdmFmt;
     IO::PWParam::Namelist& sys = p.system;
-    auto celldm = sys.find("celldm(1)");
-    auto cellA = sys.find("A");
-    if ((celldm != sys.end()) && (cellA == sys.end())) {
-        cdmFmt = CdmFmt::Bohr;
-        sys.erase(celldm);
-    } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-        cdmFmt = CdmFmt::Angstrom;
-        sys.erase(cellA);
-    } else {
-        throw IO::Error("Specify either celldm or A,B,C, but not both!");
-    }
     bool scale = (s.getFmt() >= AtomFmt::Crystal);
     switch (cellFmt) {
     case CellFmt::Bohr:
@@ -204,6 +193,18 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
         s.setCellDim(1, CdmFmt::Angstrom, scale);
         break;
     case CellFmt::Alat:
+    {
+        auto celldm = sys.find("celldm(1)");
+        auto cellA = sys.find("A");
+        if ((celldm != sys.end()) && (cellA == sys.end())) {
+            cdmFmt = CdmFmt::Bohr;
+            sys.erase(celldm);
+        } else if ((celldm == sys.end()) && (cellA != sys.end())) {
+            cdmFmt = CdmFmt::Angstrom;
+            sys.erase(cellA);
+        } else {
+            throw IO::Error("Specify either celldm or A,B,C, but not both!");
+        }
         switch (cdmFmt) {
         case CdmFmt::Angstrom:
             s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
@@ -212,6 +213,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
             s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
             break;
         }
+    }
         break;
     case CellFmt::None:
         auto ibrav = p.system.find("ibrav");
