@@ -32,6 +32,11 @@ struct CPParam: BaseParam{
     std::unique_ptr<BaseParam> copy() override;
 };
 
+const CPParam CPParamDefault{
+    "default",
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+};
+
 }
 }
 

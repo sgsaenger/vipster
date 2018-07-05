@@ -181,10 +181,14 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         if(line.find("BANDS") != line.npos){
                             kp.discrete.properties |=
                                     KPoints::Discrete::Properties::band;
-                            auto isTerm = [](const DiscreteKPoint& p){
-                                return float_comp(p.pos[0], 0) && float_comp(p.pos[1], 0)
-                                        && float_comp(p.pos[2], 0) && float_comp(p.weight, 0);
+                            auto isTerm = [](const DiscreteKPoint& p1,
+                                             const DiscreteKPoint& p2){
+                                return float_comp(p1.pos[0], 0) && float_comp(p1.pos[1], 0)
+                                        && float_comp(p1.pos[2], 0) && float_comp(p1.weight, 0)
+                                        && float_comp(p2.pos[0], 0) && float_comp(p2.pos[1], 0)
+                                        && float_comp(p2.pos[2], 0);
                             };
+                            bool cont{true};
                             do{
                                 std::getline(file, buf);
                                 DiscreteKPoint p1, p2;
@@ -192,7 +196,13 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                                     >> p1.weight
                                     >> p1.pos[0] >> p1.pos[1] >> p1.pos[2]
                                     >> p2.pos[0] >> p2.pos[1] >> p2.pos[2];
-                            }while(!isTerm(kp.discrete.kpoints.back()));
+                                if(isTerm(p1, p2)){
+                                    cont = false;
+                                }else{
+                                    kp.discrete.kpoints.push_back(p1);
+                                    kp.discrete.kpoints.push_back(p2);
+                                }
+                            }while(cont);
                         }else{
                             std::getline(file, buf);
                             size_t nk = std::stoul(buf);
@@ -426,12 +436,175 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
 
 bool CPInpWriter(const Molecule& m, std::ofstream &file,
                  const BaseParam *const p,
-                 const BaseConfig *const,
+                 const BaseConfig *const c,
                  IO::State state)
 {
-    const auto& s = m.getStep(state.index);
     const auto *pp = dynamic_cast<const IO::CPParam*>(p);
     if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
+    const auto *cc = dynamic_cast<const IO::CPConfig*>(c);
+    if(!cc) throw IO::Error("CPI-Writer needs CPMD config preset");
+    auto af = cc->angstrom ? AtomFmt::Angstrom : AtomFmt::Bohr;
+    auto cf = cc->angstrom ? CdmFmt::Angstrom : CdmFmt::Bohr;
+    if(cc->scale == IO::CPConfig::Scale::Scale)
+    {
+        af = AtomFmt::Crystal;
+    }else if(cc->scale == IO::CPConfig::Scale::Cartesian)
+    {
+        af = AtomFmt::Alat;
+    }
+    const auto& s = m.getStep(state.index).asFmt(af);
+    for(const auto& pair: IO::CPParam::str2section){
+        file << pair.first << '\n';
+        if(pair.second == &IO::CPParam::atoms){
+            std::map<std::string, std::vector<size_t>> types;
+            for(auto it=s.begin(); it!=s.end(); ++it){
+                types[it->name].push_back(it.getIdx());
+            }
+            AtomFlags fixComp{};
+            fixComp[AtomFlag::FixX] = true;
+            fixComp[AtomFlag::FixY] = true;
+            fixComp[AtomFlag::FixZ] = true;
+            size_t count{0};
+            std::vector<size_t> fixAtom;
+            std::vector<std::pair<size_t, AtomFlags>> fixCoord;
+            std::vector<float> masses;
+            for(const auto& pair: types){
+                const auto& pE = (*m.pse)[pair.first];
+                masses.push_back(pE.m);
+                if(!pE.CPPP.empty()){
+                    file << '*' << pE.CPPP << '\n';
+                }else{
+                    file << '*' << trim(pair.first) << trim(Vipster::settings.CPPP.val) << '\n';
+                }
+                if(!pE.CPNL.empty()){
+                    file << "  " << pE.CPNL << '\n';
+                }else{
+                    file << "  " << Vipster::settings.CPNL.val << '\n';
+                }
+                auto it = s.begin();
+                for(const auto& i: pair.second){
+                    it += i-it.getIdx();
+                    count += 1;
+                    file << ' '
+                         << ' ' << std::right << std::setw(10) << it->coord[0]
+                         << ' ' << std::right << std::setw(10) << it->coord[1]
+                         << ' ' << std::right << std::setw(10) << it->coord[2];
+                    const auto fix = it->properties->flags & fixComp;
+                    if(fix.all()){
+                        fixAtom.push_back(count);
+                    }else if(fix.any()){
+                        fixCoord.emplace_back(count, fix);
+                    }
+                }
+            }
+            if(fixAtom.empty() && fixCoord.empty()){
+                for(const auto& line: pp->atoms){
+                    file << line << '\n';
+                }
+            }else{
+                size_t otherConstraints{pp->atoms.size()};
+                for(size_t i=0; i<pp->atoms.size(); ++i){
+                    const auto& line = pp->atoms[i];
+                    file << line << '\n';
+                    if(line.find("CONSTRAINTS") != line.npos){
+                        otherConstraints = i;
+                        break;
+                    }
+                }
+                if(otherConstraints == pp->atoms.size()){
+                    file << "  CONSTRAINTS\n";
+                }
+                if(!fixAtom.empty()){
+                    file << "  FIX ATOMS\n  "
+                         << fixAtom.size() << ' ';
+                    for(const auto& idx: fixAtom){
+                        file << idx;
+                    }
+                    file << '\n';
+                }
+                if(!fixCoord.empty()){
+                    file << "  FIX COORDINATES\n  "
+                         << fixCoord.size() << '\n';
+                    for(const auto& pair: fixCoord){
+                        file << pair.first
+                             << pair.second[AtomFlag::FixX]
+                             << pair.second[AtomFlag::FixY]
+                             << pair.second[AtomFlag::FixZ];
+                    }
+                    file << '\n';
+                }
+                if(otherConstraints != pp->atoms.size()){
+                    for(size_t i=otherConstraints; i<pp->atoms.size(); ++i){
+                        file << pp->atoms[i] << '\n';
+                    }
+                }
+                file << "  END CONSTRAINTS\n";
+            }
+            for(const auto& m: masses){
+                file << "  " << m << '\n';
+            }
+        }else if(pair.second == &IO::CPParam::system){
+            if(cc->angstrom){
+                file << "  ANGSTROM\n";
+            }
+            if(cc->scale == IO::CPConfig::Scale::Scale)
+            {
+                file << "  SCALE\n";
+            }else if(cc->scale == IO::CPConfig::Scale::Cartesian)
+            {
+                file << "  SCALE CARTESIAN\n";
+            }
+            Mat tmpvec = s.getCellVec() * s.getCellDim(cf);
+            file << "  CELL VECTORS\n"
+                 << "  " << tmpvec[0][0] << ' ' << tmpvec[0][1] << ' ' << tmpvec[0][2] << '\n'
+                 << "  " << tmpvec[1][0] << ' ' << tmpvec[1][1] << ' ' << tmpvec[1][2] << '\n'
+                 << "  " << tmpvec[2][0] << ' ' << tmpvec[2][1] << ' ' << tmpvec[2][2] << '\n';
+            const auto kp = m.getKPoints();
+            if(kp.active == KPointFmt::MPG){
+                const auto& mpg = kp.mpg;
+                file << "  KPOINTS MONKHORST-PACK";
+                if(float_comp(mpg.sx, 0) || float_comp(mpg.sy, 0) || float_comp(mpg.sz, 0)){
+                    file << " SHIFT=" << mpg.sx << ' ' << mpg.sy << ' ' << mpg.sz;
+                }
+                file << "\n  " << mpg.x << ' ' << mpg.y << ' ' << mpg.z << '\n';
+            }else if(kp.active == KPointFmt::Discrete){
+                const auto& disc = kp.discrete;
+                file << "  KPOINTS";
+                if(disc.properties & KPoints::Discrete::crystal){
+                    file << " SCALED";
+                }
+                if(disc.properties & KPoints::Discrete::band){
+                    file << " BANDS\n";
+                    if(disc.kpoints.size()%2){
+                        throw IO::Error("For BANDS, number of K-Points needs to be even");
+                    }
+                    for(auto it=disc.kpoints.begin(); it<disc.kpoints.end(); it+=2){
+                        const auto& k1 = *it;
+                        const auto& k2 = *(it+1);
+                        file << "  " << std::floor(k1.weight)
+                             << ' ' << k1.pos[0] << ' ' << k1.pos[1] << ' ' << k1.pos[2]
+                             << ' ' << k2.pos[0] << ' ' << k2.pos[1] << ' ' << k2.pos[2];
+                    }
+                    file << "0 0. 0. 0. 0. 0. 0.\n";
+                }else{
+                    file << "\n  " << disc.kpoints.size() << '\n';
+                    for(const auto& k: disc.kpoints){
+                        file << "  " << k.pos[0] << ' ' << k.pos[1]
+                             << ' ' << k.pos[2] << ' ' << k.weight << '\n';
+                    }
+                }
+            }
+            for(const auto& line: pp->system){
+                file << line << '\n';
+            }
+        }else if(pair.second == &IO::CPParam::cpmd ||
+                 !(pp->*pair.second).empty()){
+            for(const auto& line: pp->*pair.second){
+                file << line << '\n';
+            }
+        }
+        file << "&END\n";
+    }
     return true;
 }
 
@@ -440,7 +613,7 @@ const IO::Plugin IO::CPInput =
     "CPMD Input File",
     "cpi",
     "cpi",
-    IO::Plugin::Param,
+    IO::Plugin::Param|IO::Plugin::Config,
     &CPInpParser,
     &CPInpWriter
 };
