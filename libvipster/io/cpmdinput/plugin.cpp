@@ -454,8 +454,8 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
     }
     const auto& s = m.getStep(state.index).asFmt(af);
     for(const auto& pair: IO::CPParam::str2section){
-        file << pair.first << '\n';
         if(pair.second == &IO::CPParam::atoms){
+            file << pair.first << '\n';
             std::map<std::string, std::vector<size_t>> types;
             for(auto it=s.begin(); it!=s.end(); ++it){
                 types[it->name].push_back(it.getIdx());
@@ -481,6 +481,8 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 }else{
                     file << "  " << Vipster::settings.CPNL.val << '\n';
                 }
+                file << "  " << pair.second.size() << '\n'
+                     << std::fixed << std::setprecision(5);
                 auto it = s.begin();
                 for(const auto& i: pair.second){
                     it += i-it.getIdx();
@@ -488,7 +490,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                     file << ' '
                          << ' ' << std::right << std::setw(10) << it->coord[0]
                          << ' ' << std::right << std::setw(10) << it->coord[1]
-                         << ' ' << std::right << std::setw(10) << it->coord[2];
+                         << ' ' << std::right << std::setw(10) << it->coord[2] << '\n';
                     const auto fix = it->properties->flags & fixComp;
                     if(fix.all()){
                         fixAtom.push_back(count);
@@ -540,10 +542,13 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 }
                 file << "  END CONSTRAINTS\n";
             }
+            file << "  ISOTOPES\n";
             for(const auto& m: masses){
                 file << "  " << m << '\n';
             }
+            file << "&END\n";
         }else if(pair.second == &IO::CPParam::system){
+            file << pair.first << '\n';
             if(cc->angstrom){
                 file << "  ANGSTROM\n";
             }
@@ -555,7 +560,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 file << "  SCALE CARTESIAN\n";
             }
             Mat tmpvec = s.getCellVec() * s.getCellDim(cf);
-            file << "  CELL VECTORS\n"
+            file << "  CELL VECTORS\n" << std::fixed << std::setprecision(5)
                  << "  " << tmpvec[0][0] << ' ' << tmpvec[0][1] << ' ' << tmpvec[0][2] << '\n'
                  << "  " << tmpvec[1][0] << ' ' << tmpvec[1][1] << ' ' << tmpvec[1][2] << '\n'
                  << "  " << tmpvec[2][0] << ' ' << tmpvec[2][1] << ' ' << tmpvec[2][2] << '\n';
@@ -569,7 +574,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 file << "\n  " << mpg.x << ' ' << mpg.y << ' ' << mpg.z << '\n';
             }else if(kp.active == KPointFmt::Discrete){
                 const auto& disc = kp.discrete;
-                file << "  KPOINTS";
+                file << "  KPOINTS" << std::defaultfloat;
                 if(disc.properties & KPoints::Discrete::crystal){
                     file << " SCALED";
                 }
@@ -597,13 +602,15 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             for(const auto& line: pp->system){
                 file << line << '\n';
             }
+            file << "&END\n";
         }else if(pair.second == &IO::CPParam::cpmd ||
                  !(pp->*pair.second).empty()){
+            file << pair.first << '\n';
             for(const auto& line: pp->*pair.second){
                 file << line << '\n';
             }
+            file << "&END\n";
         }
-        file << "&END\n";
     }
     return true;
 }

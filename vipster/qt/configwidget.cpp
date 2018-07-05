@@ -61,6 +61,10 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
         ui->configStack->setCurrentWidget(ui->LmpWidget);
         ui->LmpWidget->setConfig(curConfig);
         break;
+    case IOFmt::CPI:
+        ui->configStack->setCurrentWidget(ui->CPWidget);
+        ui->CPWidget->setConfig(curConfig);
+        break;
     default:
         throw Error("Invalid config format");
     }

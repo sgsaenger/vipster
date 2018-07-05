@@ -39,6 +39,7 @@
      <widget class="XYZConfig" name="XYZWidget"/>
      <widget class="PWConfig" name="PWWidget"/>
      <widget class="LmpConfig" name="LmpWidget"/>
+     <widget class="CPConfig" name="CPWidget"/>
     </widget>
    </item>
   </layout>
@@ -60,6 +61,12 @@
    <class>XYZConfig</class>
    <extends>QWidget</extends>
    <header>qt/configs/xyzconfig.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CPConfig</class>
+   <extends>QWidget</extends>
+   <header>qt/configs/cpconfig.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
