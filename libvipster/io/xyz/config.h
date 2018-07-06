@@ -13,13 +13,11 @@ struct XYZConfig: BaseConfig{
     Data atomdata;
     XYZConfig(std::string="", Mode=Mode::Step, Data=Data::None);
     std::unique_ptr<BaseConfig> copy() override;
+    void parseJson(const nlohmann::json&) override;
 };
 
-const XYZConfig XYZConfigDefault{
-    "default",
-    XYZConfig::Mode::Step,
-    XYZConfig::Data::None
-};
+void to_json(nlohmann::json& j, const XYZConfig& p);
+void from_json(const nlohmann::json& j, XYZConfig& p);
 
 }
 }

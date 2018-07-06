@@ -10,3 +10,22 @@ std::unique_ptr<BaseConfig> IO::PWConfig::copy()
 {
     return std::make_unique<IO::PWConfig>(*this);
 }
+
+void Vipster::IO::to_json(nlohmann::json &j, const IO::PWConfig& c)
+{
+    j["name"] = c.name;
+    j["atomfmt"] = c.atoms;
+    j["cellfmt"] = c.cell;
+}
+
+void Vipster::IO::from_json(const nlohmann::json &j, IO::PWConfig& c)
+{
+    c.name = j.at("name");
+    c.atoms = j.at("atomfmt");
+    c.cell = j.at("cellfmt");
+}
+
+void IO::PWConfig::parseJson(const nlohmann::json& j)
+{
+    from_json(j, *this);
+}

@@ -38,6 +38,8 @@ struct Plugin{
                           const BaseParam *const p,
                           const BaseConfig *const c,
                           State state);
+    std::unique_ptr<BaseParam> (*makeParam)(const std::string& name);
+    std::unique_ptr<BaseConfig> (*makeConfig)(const std::string& name);
 };
 
 class Error: public std::runtime_error

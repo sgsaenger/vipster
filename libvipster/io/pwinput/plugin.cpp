@@ -375,6 +375,16 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
+static std::unique_ptr<BaseParam> makeParam(const std::string& name)
+{
+    return std::make_unique<IO::PWParam>(name);
+}
+
+static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+{
+    return std::make_unique<IO::PWConfig>(name);
+}
+
 const IO::Plugin IO::PWInput =
 {
     "PWScf Input File",
@@ -382,5 +392,7 @@ const IO::Plugin IO::PWInput =
     "pwi",
     IO::Plugin::Param|IO::Plugin::Config,
     &PWInpParser,
-    &PWInpWriter
+    &PWInpWriter,
+    &makeParam,
+    &makeConfig
 };

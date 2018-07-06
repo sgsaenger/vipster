@@ -172,6 +172,8 @@ void one_iter(){
 
 int main()
 {
+    // initialize library
+    Vipster::readConfig();
     // create WebGL2 context
     EmscriptenWebGLContextAttributes attrs;
     emscripten_webgl_init_context_attributes(&attrs);

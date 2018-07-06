@@ -31,26 +31,6 @@ const std::map<std::string, int> str2ibrav{
     {"TRICLINIC", 14}
 };
 
-const std::map<std::string, IO::CPParam::Section IO::CPParam::*> IO::CPParam::str2section{
-    {"&INFO", &IO::CPParam::info},
-    {"&CPMD", &IO::CPParam::cpmd},
-    {"&SYSTEM", &IO::CPParam::system},
-    {"&PIMD", &IO::CPParam::pimd},
-    {"&PATH", &IO::CPParam::path},
-    {"&PTDDFT", &IO::CPParam::ptddft},
-    {"&ATOMS", &IO::CPParam::atoms},
-    {"&DFT", &IO::CPParam::dft},
-    {"&PROP", &IO::CPParam::prop},
-    {"&RESP", &IO::CPParam::resp},
-    {"&LINRES", &IO::CPParam::linres},
-    {"&TDDFT", &IO::CPParam::tddft},
-    {"&HARDNESS", &IO::CPParam::hardness},
-    {"&CLASSIC", &IO::CPParam::classic},
-    {"&EXTE", &IO::CPParam::exte},
-    {"&VDW", &IO::CPParam::vdw},
-    {"&QMMM", &IO::CPParam::qmmm},
-};
-
 static Mat makeCell(int ibrav, float b, float c,
                     float alpha, float beta, float gamma)
 {
@@ -615,6 +595,16 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
+static std::unique_ptr<BaseParam> makeParam(const std::string& name)
+{
+    return std::make_unique<IO::CPParam>(name);
+}
+
+static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+{
+    return std::make_unique<IO::CPConfig>(name);
+}
+
 const IO::Plugin IO::CPInput =
 {
     "CPMD Input File",
@@ -622,5 +612,7 @@ const IO::Plugin IO::CPInput =
     "cpi",
     IO::Plugin::Param|IO::Plugin::Config,
     &CPInpParser,
-    &CPInpWriter
+    &CPInpWriter,
+    &makeParam,
+    &makeConfig
 };

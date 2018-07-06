@@ -2,6 +2,7 @@
 #define PARAMETERS_H
 
 #include "io/fmt.h"
+#include "json.hpp"
 
 #include <string>
 #include <map>
@@ -14,6 +15,7 @@ class BaseParam
 public:
     std::string name;
     virtual std::unique_ptr<BaseParam> copy() = 0;
+    virtual void parseJson(const nlohmann::json&) = 0;
     virtual ~BaseParam() = default;
 protected:
     BaseParam(std::string);

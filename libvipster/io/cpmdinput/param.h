@@ -25,17 +25,16 @@ struct CPParam: BaseParam{
     Section exte;
     Section vdw;
     Section qmmm;
-    static const std::map<std::string, IO::CPParam::Section IO::CPParam::*> str2section;
+    static const std::map<std::string, Section CPParam::*> str2section;
     CPParam(std::string="", Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={});
     std::unique_ptr<BaseParam> copy() override;
+    void parseJson(const nlohmann::json&) override;
 };
 
-const CPParam CPParamDefault{
-    "default",
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-};
+void to_json(nlohmann::json& j,const CPParam& p);
+void from_json(const nlohmann::json& j, CPParam& p);
 
 }
 }

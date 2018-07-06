@@ -62,7 +62,7 @@ void CPParam::saveText()
     }
 }
 
-void CPParam::focusOutEvent(QFocusEvent *e)
+void CPParam::focusOutEvent(QFocusEvent*)
 {
     saveText();
 }

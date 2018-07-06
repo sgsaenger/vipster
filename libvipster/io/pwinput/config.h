@@ -6,8 +6,6 @@
 namespace Vipster{
 namespace IO{
 
-//TODO: json methods for config
-
 struct PWConfig: BaseConfig{
     enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Current};
     enum class CellFmt {Bohr, Angstrom, Current};
@@ -15,13 +13,11 @@ struct PWConfig: BaseConfig{
     CellFmt cell;
     PWConfig(std::string="", AtomFmt=AtomFmt::Current, CellFmt=CellFmt::Current);
     std::unique_ptr<BaseConfig> copy() override;
+    void parseJson(const nlohmann::json&) override;
 };
 
-const PWConfig PWConfigDefault{
-    "default",
-    PWConfig::AtomFmt::Current,
-    PWConfig::CellFmt::Current
-};
+void to_json(nlohmann::json& j,const PWConfig& p);
+void from_json(const nlohmann::json& j, PWConfig& p);
 
 }
 }

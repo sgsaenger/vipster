@@ -12,13 +12,11 @@ struct CPConfig: BaseConfig{
     Scale scale;
     CPConfig(std::string="", bool=false, Scale=Scale::Scale);
     std::unique_ptr<BaseConfig> copy() override;
+    void parseJson(const nlohmann::json&) override;
 };
 
-const CPConfig CPConfigDefault{
-    "default",
-    false,
-    CPConfig::Scale::None
-};
+void to_json(nlohmann::json& j,const CPConfig& p);
+void from_json(const nlohmann::json& j, CPConfig& p);
 
 }
 }

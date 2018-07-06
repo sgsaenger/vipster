@@ -11,15 +11,6 @@ enum class lmpTok{
     ignore
 };
 
-const static std::map<IO::LmpConfig::AtomStyle, std::string> fmt2str{
-    {IO::LmpConfig::AtomStyle::Angle, "angle"},
-    {IO::LmpConfig::AtomStyle::Atomic, "atomic"},
-    {IO::LmpConfig::AtomStyle::Bond, "bond"},
-    {IO::LmpConfig::AtomStyle::Charge, "charge"},
-    {IO::LmpConfig::AtomStyle::Full, "full"},
-    {IO::LmpConfig::AtomStyle::Molecular, "molecular"},
-};
-
 const static std::map<std::string, std::vector<lmpTok>> fmtmap{
     {"angle", {{lmpTok::mol, lmpTok::type, lmpTok::pos}}},
     {"atomic", {{lmpTok::type, lmpTok::pos}}},
@@ -357,7 +348,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     const auto& types = step.getNames();
     const auto *cc = dynamic_cast<const IO::LmpConfig*>(c);
     if(!cc) throw IO::Error("Lammps-Writer needs configuration preset");
-    const auto tokens = fmtmap.at(fmt2str.at(cc->style));
+    const auto tokens = fmtmap.at(IO::LmpConfig::fmt2str.at(cc->style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
     file << std::fixed << std::setprecision(5);
@@ -591,7 +582,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         file << step.pse->at(i).m << " # " << i << '\n';
     }
 
-    file << "\nAtoms # " << fmt2str.at(cc->style) << "\n\n";
+    file << "\nAtoms # " << IO::LmpConfig::fmt2str.at(cc->style) << "\n\n";
     makeWriter(tokens, molID, atomtypemap)(file, step);
 
     if(cc->bonds && !bondlist.empty()){
@@ -642,6 +633,11 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
+static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+{
+    return std::make_unique<IO::LmpConfig>(name);
+}
+
 const IO::Plugin IO::LmpInput =
 {
     "Lammps Data File",
@@ -649,5 +645,7 @@ const IO::Plugin IO::LmpInput =
     "lmp",
     IO::Plugin::Config,
     &LmpInpParser,
-    &LmpInpWriter
+    &LmpInpWriter,
+    nullptr,
+    &makeConfig
 };

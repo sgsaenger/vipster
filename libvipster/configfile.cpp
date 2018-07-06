@@ -19,10 +19,9 @@ PseMap pse;
 Settings settings;
 Parameters params;
 Configs configs;
-static bool config_loaded = readConfig();
 }
 
-bool readConfig()
+bool Vipster::readConfig()
 {
     PseMap pse{true};
     Settings settings;
@@ -47,31 +46,35 @@ bool readConfig()
         // General settings
         settings = loc_file["Settings"];
         // Parameter sets
-        for(const auto& pw:loc_file["Parameters"]["PWI"]){
-            params.emplace(IOFmt::PWI, std::make_unique<IO::PWParam>(pw.get<IO::PWParam>()));
+        for(auto it=loc_file["Parameters"].begin(); it!=loc_file["Parameters"].end();++it)
+        {
+            for(const auto& pair: IOPlugins){
+                const auto& plugin = pair.second;
+                if(it.key() == plugin->command){
+                    for(const auto& entry: it.value()){
+                        auto tmp = plugin->makeParam("");
+                        tmp->parseJson(entry);
+                        params.emplace(pair.first, std::move(tmp));
+                    }
+                }
+            }
         }
     }
     // ensure fallback-values are present
     if(pse.find("")==pse.end()){
         pse.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
     }
-    if(params.find(IOFmt::PWI) == params.end()){
-        params.emplace(IOFmt::PWI, std::make_unique<IO::PWParam>(IO::PWParamDefault));
-    }
-    if(params.find(IOFmt::CPI) == params.end()){
-        params.emplace(IOFmt::CPI, std::make_unique<IO::CPParam>(IO::CPParamDefault));
-    }
-    if(configs.find(IOFmt::XYZ) == configs.end()){
-        configs.emplace(IOFmt::XYZ, std::make_unique<IO::XYZConfig>(IO::XYZConfigDefault));
-    }
-    if(configs.find(IOFmt::PWI) == configs.end()){
-        configs.emplace(IOFmt::PWI, std::make_unique<IO::PWConfig>(IO::PWConfigDefault));
-    }
-    if(configs.find(IOFmt::CPI) == configs.end()){
-        configs.emplace(IOFmt::CPI, std::make_unique<IO::CPConfig>(IO::CPConfigDefault));
-    }
-    if(configs.find(IOFmt::LMP) == configs.end()){
-        configs.emplace(IOFmt::LMP, std::make_unique<IO::LmpConfig>(IO::LmpConfigDefault));
+    for(const auto& pair: IOPlugins){
+        auto fmt = pair.first;
+        const auto& plugin = pair.second;
+        if(plugin->arguments & IO::Plugin::Args::Config &&
+           configs.find(fmt) == configs.end()){
+           configs.emplace(fmt, plugin->makeConfig("default"));
+        }
+        if(plugin->arguments & IO::Plugin::Args::Param &&
+           params.find(fmt) == params.end()){
+           params.emplace(fmt, plugin->makeParam("default"));
+        }
     }
     Vipster::pse = std::move(pse);
     Vipster::settings = std::move(settings);

@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "io.h"
+#include "configfile.h"
 #include "CLI11.hpp"
 #include <QApplication>
 #include <QCommandLineParser>
@@ -31,6 +32,7 @@ void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
 int main(int argc, char *argv[])
 {
     // main parser + data-targets
+    Vipster::readConfig();
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
@@ -189,7 +191,7 @@ int main(int argc, char *argv[])
                                    }, {}});
                 } catch (...) {
                     throw CLI::ParseError(mpg_err+kp_err, 1);
-                }{}
+                }
             //TODO: discrete
             }else{
                 throw CLI::ParseError("Invalid KPoint style\n"+kp_err, 1);

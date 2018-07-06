@@ -2,6 +2,7 @@
 #define CONFIGS_H
 
 #include "io/fmt.h"
+#include "json.hpp"
 
 #include <string>
 #include <map>
@@ -14,6 +15,7 @@ class BaseConfig
 public:
     std::string name;
     virtual std::unique_ptr<BaseConfig> copy() = 0;
+    virtual void parseJson(const nlohmann::json&) = 0;
     virtual ~BaseConfig() = default;
 protected:
     BaseConfig(std::string);

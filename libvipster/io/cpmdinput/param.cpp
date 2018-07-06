@@ -15,3 +15,44 @@ std::unique_ptr<BaseParam> IO::CPParam::copy()
 {
     return std::make_unique<IO::CPParam>(*this);
 }
+
+const std::map<std::string, IO::CPParam::Section IO::CPParam::*> IO::CPParam::str2section{
+    {"&INFO", &IO::CPParam::info},
+    {"&CPMD", &IO::CPParam::cpmd},
+    {"&SYSTEM", &IO::CPParam::system},
+    {"&PIMD", &IO::CPParam::pimd},
+    {"&PATH", &IO::CPParam::path},
+    {"&PTDDFT", &IO::CPParam::ptddft},
+    {"&ATOMS", &IO::CPParam::atoms},
+    {"&DFT", &IO::CPParam::dft},
+    {"&PROP", &IO::CPParam::prop},
+    {"&RESP", &IO::CPParam::resp},
+    {"&LINRES", &IO::CPParam::linres},
+    {"&TDDFT", &IO::CPParam::tddft},
+    {"&HARDNESS", &IO::CPParam::hardness},
+    {"&CLASSIC", &IO::CPParam::classic},
+    {"&EXTE", &IO::CPParam::exte},
+    {"&VDW", &IO::CPParam::vdw},
+    {"&QMMM", &IO::CPParam::qmmm},
+};
+
+void IO::CPParam::parseJson(const nlohmann::json& j)
+{
+    from_json(j, *this);
+}
+
+void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
+{
+    p.name = j.at("name");
+    for(const auto& pair: CPParam::str2section){
+        p.*pair.second = j.at(pair.first).get<CPParam::Section>();
+    }
+}
+
+void IO::to_json(nlohmann::json& j,const CPParam& p)
+{
+    j["name"] = p.name;
+    for(const auto& pair: CPParam::str2section){
+        j[pair.first] = p.*pair.second;
+    }
+}

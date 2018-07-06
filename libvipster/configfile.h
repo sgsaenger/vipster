@@ -20,6 +20,9 @@
 
 namespace Vipster{
 
+// call this function to initialize the library-state
+bool readConfig();
+
 #ifdef __EMSCRIPTEN__
 const std::string sys_path = "/";
 const std::string sys_config = "/vipster.json";

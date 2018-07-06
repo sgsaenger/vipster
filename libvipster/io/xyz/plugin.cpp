@@ -153,6 +153,11 @@ bool XYZWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
+static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+{
+    return std::make_unique<IO::XYZConfig>(name);
+}
+
 const IO::Plugin IO::XYZ =
 {
     "xyz",
@@ -160,5 +165,7 @@ const IO::Plugin IO::XYZ =
     "xyz",
     IO::Plugin::Config,
     &XYZParser,
-    &XYZWriter
+    &XYZWriter,
+    nullptr,
+    &makeConfig
 };

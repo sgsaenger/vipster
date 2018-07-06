@@ -13,14 +13,11 @@ struct PWParam: BaseParam{
     Namelist electrons;
     Namelist ions;
     Namelist cell;
+    static const std::map<std::string, Namelist PWParam::*> str2nl;
     PWParam(std::string="", Namelist={}, Namelist={},
             Namelist={}, Namelist={}, Namelist={});
     std::unique_ptr<BaseParam> copy() override;
-};
-
-const PWParam PWParamDefault{
-    "default",
-    {}, {}, {}, {}, {}
+    void parseJson(const nlohmann::json&) override;
 };
 
 void to_json(nlohmann::json& j,const PWParam& p);
