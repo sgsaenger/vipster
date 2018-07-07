@@ -92,7 +92,7 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
 }
 
 bool XYZWriter(const Molecule& m, std::ofstream &file,
-               const BaseParam*const, const BaseConfig*const c,
+               const IO::BaseParam*const, const IO::BaseConfig*const c,
                IO::State state)
 {
     const auto *cc = dynamic_cast<const IO::XYZConfig*>(c);
@@ -153,7 +153,7 @@ bool XYZWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
 {
     return std::make_unique<IO::XYZConfig>(name);
 }

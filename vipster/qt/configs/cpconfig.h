@@ -16,7 +16,7 @@ class CPConfig : public ConfigBase
 public:
     explicit CPConfig(QWidget *parent = nullptr);
     ~CPConfig() override;
-    void setConfig(Vipster::BaseConfig *c) override;
+    void setConfig(Vipster::IO::BaseConfig *c) override;
 
 private slots:
     void on_scaleSel_currentIndexChanged(int index);

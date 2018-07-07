@@ -15,7 +15,7 @@ PWConfig::~PWConfig()
     delete ui;
 }
 
-void PWConfig::setConfig(BaseConfig *c)
+void PWConfig::setConfig(IO::BaseConfig *c)
 {
     curConfig = dynamic_cast<IO::PWConfig*>(c);
     if(!curConfig){

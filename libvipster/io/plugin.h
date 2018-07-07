@@ -2,8 +2,8 @@
 #define IOPLUGIN_H
 
 #include "../molecule.h"
-#include "../parameters.h"
-#include "../configs.h"
+#include "parameters.h"
+#include "configs.h"
 #include "fmt.h"
 
 #include <string>

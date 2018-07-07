@@ -1,7 +1,7 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include "io/fmt.h"
+#include "fmt.h"
 #include "json.hpp"
 
 #include <string>
@@ -9,6 +9,7 @@
 #include <memory>
 
 namespace Vipster {
+namespace IO {
 
 class BaseParam
 {
@@ -24,7 +25,9 @@ protected:
 
 using Parameters = std::multimap<IOFmt, std::unique_ptr<BaseParam>>;
 
-extern Parameters params;
+}
+
+extern IO::Parameters params;
 
 }
 

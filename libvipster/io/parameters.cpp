@@ -2,6 +2,6 @@
 
 using namespace Vipster;
 
-BaseParam::BaseParam(std::string name)
+IO::BaseParam::BaseParam(std::string name)
     :name{name}
 {}

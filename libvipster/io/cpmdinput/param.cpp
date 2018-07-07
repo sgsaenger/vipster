@@ -11,7 +11,7 @@ IO::CPParam::CPParam(std::string name, Section info, Section cpmd, Section syste
       tddft{tddft}, hardness{hardness}, classic{classic}, vdw{vdw}, qmmm{qmmm}
 {}
 
-std::unique_ptr<BaseParam> IO::CPParam::copy()
+std::unique_ptr<IO::BaseParam> IO::CPParam::copy()
 {
     return std::make_unique<IO::CPParam>(*this);
 }

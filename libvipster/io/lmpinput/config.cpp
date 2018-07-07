@@ -10,7 +10,7 @@ IO::LmpConfig::LmpConfig(std::string name, AtomStyle style,
       dihedrals{dihedrals}, impropers{impropers}
 {}
 
-std::unique_ptr<BaseConfig> IO::LmpConfig::copy()
+std::unique_ptr<IO::BaseConfig> IO::LmpConfig::copy()
 {
     return std::make_unique<IO::LmpConfig>(*this);
 }

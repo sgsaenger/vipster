@@ -6,7 +6,7 @@ IO::CPConfig::CPConfig(std::string name, bool angstrom, Scale scale)
     : BaseConfig{name}, angstrom{angstrom}, scale{scale}
 {}
 
-std::unique_ptr<BaseConfig> IO::CPConfig::copy()
+std::unique_ptr<IO::BaseConfig> IO::CPConfig::copy()
 {
     return std::make_unique<IO::CPConfig>(*this);
 }

@@ -280,15 +280,15 @@ PYBIND11_MODULE(vipster, m) {
 
     auto io = m.def_submodule("IO");
 
-    py::class_<BaseParam>(io, "BaseParam")
-        .def_readwrite("name", &BaseParam::name)
+    py::class_<IO::BaseParam>(io, "BaseParam")
+        .def_readwrite("name", &IO::BaseParam::name)
     ;
 
-    py::class_<BaseConfig>(io, "BaseConfig")
-        .def_readwrite("name", &BaseConfig::name)
+    py::class_<IO::BaseConfig>(io, "BaseConfig")
+        .def_readwrite("name", &IO::BaseConfig::name)
     ;
 
-    py::class_<IO::PWParam, BaseParam>(io, "PWParam")
+    py::class_<IO::PWParam, IO::BaseParam>(io, "PWParam")
         .def_readwrite("control", &IO::PWParam::control)
         .def_readwrite("system", &IO::PWParam::system)
         .def_readwrite("electrons", &IO::PWParam::electrons)
@@ -305,7 +305,7 @@ PYBIND11_MODULE(vipster, m) {
         .value("Molecular", IO::LmpConfig::AtomStyle::Molecular)
     ;
 
-    py::class_<IO::LmpConfig, BaseConfig>(io, "LmpConfig")
+    py::class_<IO::LmpConfig, IO::BaseConfig>(io, "LmpConfig")
         .def_readwrite("style", &IO::LmpConfig::style)
         .def_readwrite("angles", &IO::LmpConfig::angles)
         .def_readwrite("bonds", &IO::LmpConfig::bonds)

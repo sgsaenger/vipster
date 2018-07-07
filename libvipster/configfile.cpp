@@ -2,8 +2,8 @@
 #include "io.h"
 #include "pse.h"
 #include "settings.h"
-#include "parameters.h"
-#include "configs.h"
+#include "io/parameters.h"
+#include "io/configs.h"
 #include "json.hpp"
 
 #include <fstream>
@@ -17,16 +17,16 @@ bool readConfig();
 namespace Vipster{
 PseMap pse;
 Settings settings;
-Parameters params;
-Configs configs;
+IO::Parameters params;
+IO::Configs configs;
 }
 
 bool Vipster::readConfig()
 {
     PseMap pse{true};
     Settings settings;
-    Parameters params;
-    Configs configs;
+    IO::Parameters params;
+    IO::Configs configs;
     std::ifstream conf_file{user_config};
     if(!conf_file){
         conf_file = std::ifstream{sys_config};
@@ -35,40 +35,40 @@ bool Vipster::readConfig()
         json loc_file;
         conf_file >> loc_file;
         // PSE
-        pse = loc_file["PSE"];
-//        for(auto it=loc_file["PSE"].begin();it!=loc_file["PSE"].end();++it)
-//        {
-//            auto v = it.value();
-//            pse.emplace(it.key(),PseEntry{v["PWPP"],
-//                    v["CPPP"],v["CPNL"],v["Z"],
-//                    v["m"],v["bondcut"],v["covr"],
-//                    v["vdwr"],v["col"]});
-//        }
+        if(loc_file.find("PSE") != loc_file.end()){
+            pse = loc_file["PSE"];
+        }
         // General settings
-        settings = loc_file["Settings"];
+        if(loc_file.find("Settings") != loc_file.end()){
+            settings = loc_file["Settings"];
+        }
         // Parameter sets
-        for(auto it=loc_file["Parameters"].begin(); it!=loc_file["Parameters"].end(); ++it)
-        {
-            for(const auto& pair: IOPlugins){
-                const auto& plugin = pair.second;
-                if(it.key() == plugin->command){
-                    for(const auto& entry: it.value()){
-                        auto tmp = plugin->makeParam("");
-                        tmp->parseJson(entry);
-                        params.emplace(pair.first, std::move(tmp));
+        if(loc_file.find("Parameters") != loc_file.end()){
+            for(auto it=loc_file["Parameters"].begin(); it!=loc_file["Parameters"].end(); ++it)
+            {
+                for(const auto& pair: IOPlugins){
+                    const auto& plugin = pair.second;
+                    if(it.key() == plugin->command){
+                        for(const auto& entry: it.value()){
+                            auto tmp = plugin->makeParam("");
+                            tmp->parseJson(entry);
+                            params.emplace(pair.first, std::move(tmp));
+                        }
                     }
                 }
             }
         }
         // Config presets
-        for(auto it=loc_file["Configs"].begin(); it!=loc_file["Configs"].end(); ++it){
-            for(const auto& pair: IOPlugins){
-                const auto& plugin = pair.second;
-                if(it.key() == plugin->command){
-                    for(const auto& entry: it.value()){
-                        auto tmp = plugin->makeConfig("");
-                        tmp->parseJson(entry);
-                        configs.emplace(pair.first, std::move(tmp));
+        if(loc_file.find("Configs") != loc_file.end()){
+            for(auto it=loc_file["Configs"].begin(); it!=loc_file["Configs"].end(); ++it){
+                for(const auto& pair: IOPlugins){
+                    const auto& plugin = pair.second;
+                    if(it.key() == plugin->command){
+                        for(const auto& entry: it.value()){
+                            auto tmp = plugin->makeConfig("");
+                            tmp->parseJson(entry);
+                            configs.emplace(pair.first, std::move(tmp));
+                        }
                     }
                 }
             }

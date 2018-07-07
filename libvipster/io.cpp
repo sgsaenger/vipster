@@ -27,8 +27,8 @@ IO::Data Vipster::readFile(const std::string &fn, IOFmt fmt)
 }
 
 bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
-                         const BaseParam *const p,
-                         const BaseConfig *const c,
+                         const IO::BaseParam *const p,
+                         const IO::BaseConfig *const c,
                          IO::State state)
 {
     std::ofstream file{fn};

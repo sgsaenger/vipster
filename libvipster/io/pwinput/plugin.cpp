@@ -276,8 +276,8 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 }
 
 bool PWInpWriter(const Molecule& m, std::ofstream &file,
-                 const BaseParam *const p,
-                 const BaseConfig *const c,
+                 const IO::BaseParam *const p,
+                 const IO::BaseConfig *const c,
                  IO::State state)
 {
     const auto& s = m.getStep(state.index);
@@ -375,12 +375,12 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<BaseParam> makeParam(const std::string& name)
+static std::unique_ptr<IO::BaseParam> makeParam(const std::string& name)
 {
     return std::make_unique<IO::PWParam>(name);
 }
 
-static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
 {
     return std::make_unique<IO::PWConfig>(name);
 }

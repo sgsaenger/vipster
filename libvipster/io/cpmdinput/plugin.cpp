@@ -415,8 +415,8 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
 }
 
 bool CPInpWriter(const Molecule& m, std::ofstream &file,
-                 const BaseParam *const p,
-                 const BaseConfig *const c,
+                 const IO::BaseParam *const p,
+                 const IO::BaseConfig *const c,
                  IO::State state)
 {
     const auto *pp = dynamic_cast<const IO::CPParam*>(p);
@@ -595,12 +595,12 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<BaseParam> makeParam(const std::string& name)
+static std::unique_ptr<IO::BaseParam> makeParam(const std::string& name)
 {
     return std::make_unique<IO::CPParam>(name);
 }
 
-static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
 {
     return std::make_unique<IO::CPConfig>(name);
 }

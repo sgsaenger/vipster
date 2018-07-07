@@ -72,12 +72,12 @@ void SaveFmtDialog::enableConfWidget(bool on)
     }
 }
 
-BaseConfig* SaveFmtDialog::getConfig()
+IO::BaseConfig* SaveFmtDialog::getConfig()
 {
     return ui->configWidget->curConfig;
 }
 
-BaseParam* SaveFmtDialog::getParam()
+IO::BaseParam* SaveFmtDialog::getParam()
 {
     return ui->paramWidget->curParam;
 }

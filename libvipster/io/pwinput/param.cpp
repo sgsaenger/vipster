@@ -9,7 +9,7 @@ IO::PWParam::PWParam(std::string name, IO::PWParam::Namelist control, IO::PWPara
       electrons{electrons}, ions{ions}, cell{cell}
 {}
 
-std::unique_ptr<BaseParam> IO::PWParam::copy()
+std::unique_ptr<IO::BaseParam> IO::PWParam::copy()
 {
     return std::make_unique<IO::PWParam>(*this);
 }

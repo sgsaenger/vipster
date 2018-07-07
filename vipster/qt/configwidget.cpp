@@ -27,7 +27,7 @@ void ConfigWidget::clearConfigs()
 }
 
 void ConfigWidget::registerConfig(Vipster::IOFmt fmt,
-                                  std::unique_ptr<Vipster::BaseConfig>&& data)
+                                  std::unique_ptr<Vipster::IO::BaseConfig>&& data)
 {
     configs.emplace_back(fmt, std::move(data));
     ui->configSel->addItem(QString::fromStdString(

@@ -16,7 +16,7 @@ class XYZConfig : public ConfigBase
 public:
     explicit XYZConfig(QWidget *parent = nullptr);
     ~XYZConfig();
-    void setConfig(Vipster::BaseConfig *c) override;
+    void setConfig(Vipster::IO::BaseConfig *c) override;
 
 private slots:
     void on_modeSel_currentIndexChanged(int index);

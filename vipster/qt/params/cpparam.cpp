@@ -19,7 +19,7 @@ CPParam::~CPParam()
     delete ui;
 }
 
-void CPParam::setParam(BaseParam *p)
+void CPParam::setParam(IO::BaseParam *p)
 {
     saveText();
     curParam = dynamic_cast<IO::CPParam*>(p);

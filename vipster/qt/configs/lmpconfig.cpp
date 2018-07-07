@@ -15,7 +15,7 @@ LmpConfig::~LmpConfig()
     delete ui;
 }
 
-void LmpConfig::setConfig(BaseConfig *c)
+void LmpConfig::setConfig(IO::BaseConfig *c)
 {
     curConfig = dynamic_cast<IO::LmpConfig*>(c);
     if(!curConfig){

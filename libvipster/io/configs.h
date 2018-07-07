@@ -1,7 +1,7 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-#include "io/fmt.h"
+#include "fmt.h"
 #include "json.hpp"
 
 #include <string>
@@ -9,6 +9,7 @@
 #include <memory>
 
 namespace Vipster {
+namespace IO {
 
 class BaseConfig
 {
@@ -24,8 +25,9 @@ protected:
 
 using Configs = std::multimap<IOFmt, std::unique_ptr<BaseConfig>>;
 
-extern Configs configs;
+}
 
+extern IO::Configs configs;
 }
 
 #endif // CONFIGS_H

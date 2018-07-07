@@ -2,6 +2,6 @@
 
 using namespace Vipster;
 
-BaseConfig::BaseConfig(std::string name)
+IO::BaseConfig::BaseConfig(std::string name)
     :name{name}
 {}

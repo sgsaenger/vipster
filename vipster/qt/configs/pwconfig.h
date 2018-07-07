@@ -16,7 +16,7 @@ class PWConfig : public ConfigBase
 public:
     explicit PWConfig(QWidget *parent = nullptr);
     ~PWConfig() override;
-    void setConfig(Vipster::BaseConfig *c) override;
+    void setConfig(Vipster::IO::BaseConfig *c) override;
 
 private slots:
     void on_atomSel_currentIndexChanged(int index);

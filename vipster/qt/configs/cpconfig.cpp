@@ -15,7 +15,7 @@ CPConfig::~CPConfig()
     delete ui;
 }
 
-void CPConfig::setConfig(BaseConfig *c)
+void CPConfig::setConfig(IO::BaseConfig *c)
 {
     curConfig = dynamic_cast<IO::CPConfig*>(c);
     if(!curConfig){

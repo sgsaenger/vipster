@@ -15,7 +15,7 @@ XYZConfig::~XYZConfig()
     delete ui;
 }
 
-void XYZConfig::setConfig(BaseConfig *c)
+void XYZConfig::setConfig(IO::BaseConfig *c)
 {
     curConfig = dynamic_cast<IO::XYZConfig*>(c);
     if(!curConfig){

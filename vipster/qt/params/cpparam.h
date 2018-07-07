@@ -16,7 +16,7 @@ class CPParam : public ParamBase
 public:
     explicit CPParam(QWidget *parent = nullptr);
     ~CPParam() override;
-    void setParam(Vipster::BaseParam *p) override;
+    void setParam(Vipster::IO::BaseParam *p) override;
 
 private slots:
     void on_comboBox_currentIndexChanged(const QString &arg1);

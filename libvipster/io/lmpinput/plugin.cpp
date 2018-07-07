@@ -340,8 +340,8 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
 }
 
 bool LmpInpWriter(const Molecule& m, std::ofstream &file,
-                  const BaseParam *const,
-                  const BaseConfig *const c,
+                  const IO::BaseParam *const,
+                  const IO::BaseConfig *const c,
                   IO::State state)
 {
     const auto& step = m.getStep(state.index);
@@ -633,7 +633,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
 {
     return std::make_unique<IO::LmpConfig>(name);
 }

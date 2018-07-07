@@ -242,12 +242,12 @@ void MainWindow::saveMol()
 }
 
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<BaseParam>>>& MainWindow::getParams() const noexcept
+const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseParam>>>& MainWindow::getParams() const noexcept
 {
     return ui->paramWidget->params;
 }
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<BaseConfig>>>& MainWindow::getConfigs() const noexcept
+const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseConfig>>>& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
 }
