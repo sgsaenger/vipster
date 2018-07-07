@@ -3,6 +3,7 @@
 #include <emscripten/html5.h>
 
 #include "../common/guiwrapper.h"
+#include "configfile.h"
 #include "molecule.h"
 #include "io.h"
 

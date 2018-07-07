@@ -20,6 +20,13 @@ void IO::LmpConfig::parseJson(const nlohmann::json& j)
     from_json(j, *this);
 }
 
+nlohmann::json IO::LmpConfig::toJson()
+{
+    nlohmann::json j;
+    to_json(j, *this);
+    return j;
+}
+
 void IO::from_json(const nlohmann::json& j, IO::LmpConfig& c)
 {
     c.name = j.at("name");

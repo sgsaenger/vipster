@@ -41,6 +41,13 @@ void IO::CPParam::parseJson(const nlohmann::json& j)
     from_json(j, *this);
 }
 
+nlohmann::json IO::CPParam::toJson()
+{
+    nlohmann::json j;
+    to_json(j, *this);
+    return j;
+}
+
 void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
 {
     p.name = j.at("name");

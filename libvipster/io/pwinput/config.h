@@ -14,6 +14,7 @@ struct PWConfig: BaseConfig{
     PWConfig(std::string="", AtomFmt=AtomFmt::Current, CellFmt=CellFmt::Current);
     std::unique_ptr<BaseConfig> copy() override;
     void parseJson(const nlohmann::json&) override;
+    nlohmann::json toJson() override;
 };
 
 void to_json(nlohmann::json& j,const PWConfig& p);

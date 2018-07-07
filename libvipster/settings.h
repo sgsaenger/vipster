@@ -33,7 +33,7 @@ struct Settings{
     Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
 };
 
-//TODO: void to_json(nlohmann::json& j,const Settings& s);
+void to_json(nlohmann::json& j, const Settings& s);
 void from_json(const nlohmann::json& j, Settings& s);
 
 extern Settings settings;

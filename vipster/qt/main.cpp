@@ -8,7 +8,7 @@
 
 using namespace Vipster;
 
-void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
+[[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QSurfaceFormat format;
     format.setVersion(3,3);
     format.setSamples(8);
@@ -18,6 +18,7 @@ void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
     QApplication::setApplicationVersion("1.10a");
+    QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
     if(!data.empty()){
         MainWindow w{std::move(data)};
         w.show();

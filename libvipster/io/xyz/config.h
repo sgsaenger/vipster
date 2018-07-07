@@ -14,6 +14,7 @@ struct XYZConfig: BaseConfig{
     XYZConfig(std::string="", Mode=Mode::Step, Data=Data::None);
     std::unique_ptr<BaseConfig> copy() override;
     void parseJson(const nlohmann::json&) override;
+    nlohmann::json toJson() override;
 };
 
 void to_json(nlohmann::json& j, const XYZConfig& p);

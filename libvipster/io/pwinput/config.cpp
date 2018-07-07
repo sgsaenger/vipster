@@ -29,3 +29,10 @@ void IO::PWConfig::parseJson(const nlohmann::json& j)
 {
     from_json(j, *this);
 }
+
+nlohmann::json IO::PWConfig::toJson()
+{
+    nlohmann::json j;
+    to_json(j, *this);
+    return j;
+}

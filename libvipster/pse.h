@@ -2,6 +2,7 @@
 #define PSE_H
 
 #include "global.h"
+#include "json.hpp"
 
 #include <string>
 #include <map>
@@ -20,6 +21,9 @@ struct PseEntry{
     ColVec          col;
 };
 
+void to_json(nlohmann::json& j,const PseEntry& p);
+void from_json(const nlohmann::json& j, PseEntry& p);
+
 class PseMap:private std::map<std::string,PseEntry>
 {
 public:
@@ -34,6 +38,9 @@ public:
 private:
     bool root;
 };
+
+void to_json(nlohmann::json& j,const PseMap& p);
+void from_json(const nlohmann::json& j, PseMap& p);
 
 extern PseMap pse;
 

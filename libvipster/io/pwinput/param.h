@@ -18,6 +18,7 @@ struct PWParam: BaseParam{
             Namelist={}, Namelist={}, Namelist={});
     std::unique_ptr<BaseParam> copy() override;
     void parseJson(const nlohmann::json&) override;
+    nlohmann::json toJson() override;
 };
 
 void to_json(nlohmann::json& j,const PWParam& p);

@@ -13,6 +13,7 @@ struct CPConfig: BaseConfig{
     CPConfig(std::string="", bool=false, Scale=Scale::Scale);
     std::unique_ptr<BaseConfig> copy() override;
     void parseJson(const nlohmann::json&) override;
+    nlohmann::json toJson() override;
 };
 
 void to_json(nlohmann::json& j,const CPConfig& p);

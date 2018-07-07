@@ -42,3 +42,10 @@ void IO::PWParam::parseJson(const nlohmann::json& j)
 {
     from_json(j, *this);
 }
+
+nlohmann::json IO::PWParam::toJson()
+{
+    nlohmann::json j;
+    to_json(j, *this);
+    return j;
+}

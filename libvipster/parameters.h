@@ -16,6 +16,7 @@ public:
     std::string name;
     virtual std::unique_ptr<BaseParam> copy() = 0;
     virtual void parseJson(const nlohmann::json&) = 0;
+    virtual nlohmann::json toJson() = 0;
     virtual ~BaseParam() = default;
 protected:
     BaseParam(std::string);

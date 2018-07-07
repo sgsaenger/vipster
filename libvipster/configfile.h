@@ -22,6 +22,7 @@ namespace Vipster{
 
 // call this function to initialize the library-state
 bool readConfig();
+bool saveConfig();
 
 #ifdef __EMSCRIPTEN__
 const std::string sys_path = "/";

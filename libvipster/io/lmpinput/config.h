@@ -15,6 +15,7 @@ struct LmpConfig: BaseConfig{
               bool=false, bool=false, bool=false, bool=false);
     std::unique_ptr<BaseConfig> copy() override;
     void parseJson(const nlohmann::json&) override;
+    nlohmann::json toJson() override;
 };
 
 void to_json(nlohmann::json& j,const LmpConfig& p);

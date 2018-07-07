@@ -31,6 +31,7 @@ struct CPParam: BaseParam{
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={});
     std::unique_ptr<BaseParam> copy() override;
     void parseJson(const nlohmann::json&) override;
+    nlohmann::json toJson() override;
 };
 
 void to_json(nlohmann::json& j,const CPParam& p);

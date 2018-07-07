@@ -29,3 +29,10 @@ void IO::XYZConfig::parseJson(const nlohmann::json& j)
 {
     from_json(j, *this);
 }
+
+nlohmann::json IO::XYZConfig::toJson()
+{
+    nlohmann::json j;
+    to_json(j, *this);
+    return j;
+}
