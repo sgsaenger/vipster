@@ -11,16 +11,29 @@ PseEntry& PseMap::operator [](const std::string& k)
     }catch(const std::out_of_range&){
         if(!root){
             std::locale loc;
-            for(size_t i=k.length();i>0;--i)
-            {
-                std::string test = k.substr(0,i);
-                if(std::islower(test[0]) != 0){
-                    test[0] = std::toupper(test[0],loc);
-                }
-                if(Vipster::pse.find(test) != Vipster::pse.end())
+            char *p;
+            std::size_t Z = std::strtoul(k.c_str(), &p, 10);
+            if(*p){
+                // found a derived/custom name, try to find match
+                for(size_t i=k.length();i>0;--i)
                 {
-                    emplace(k, Vipster::pse.at(test));
-                    return at(k);
+                    std::string test = k.substr(0,i);
+                    if(std::islower(test[0]) != 0){
+                        test[0] = std::toupper(test[0],loc);
+                    }
+                    if(Vipster::pse.find(test) != Vipster::pse.end())
+                    {
+                        emplace(k, Vipster::pse.at(test));
+                        return at(k);
+                    }
+                }
+            }else{
+                // interpret atomic number
+                for(const auto& pair: Vipster::pse){
+                    if(pair.second.Z == Z){
+                        emplace(k, pair.second);
+                        return at(k);
+                    }
                 }
             }
         }

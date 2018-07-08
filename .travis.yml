@@ -73,7 +73,7 @@ matrix:
           before_deploy:
               # build AppImage
               - cd ~
-              - qbs build -f $TRAVIS_BUILD_DIR profile:qt-gcc qbs.buildVariant:profile project.pythonBuild:true project.pythonName:"python3" project.relpath:true
+              - qbs build -f $TRAVIS_BUILD_DIR profile:qt-gcc qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3" project.relpath:true
               - qbs install --install-root AppDir/usr
               # prepare normal depdendencies
               - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt

@@ -3,7 +3,7 @@
 
 namespace Vipster {
 
-enum class IOFmt{XYZ, PWI, PWO, LMP, DMP, CPI};
+enum class IOFmt{XYZ, PWI, PWO, LMP, DMP, CPI, CUBE};
 
 }
 
