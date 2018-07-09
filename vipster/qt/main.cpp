@@ -16,7 +16,7 @@ void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
-    QApplication::setApplicationVersion("1.10a");
+    QApplication::setApplicationVersion("1.12a");
     if(!data.empty()){
         MainWindow w{std::move(data)};
         w.show();
