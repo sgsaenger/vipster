@@ -15,9 +15,12 @@ PWConfig::~PWConfig()
     delete ui;
 }
 
-void PWConfig::setConfig(BaseConfig *c)
+void PWConfig::setConfig(IO::BaseConfig *c)
 {
-    curConfig = static_cast<IO::PWConfig*>(c);
+    curConfig = dynamic_cast<IO::PWConfig*>(c);
+    if(!curConfig){
+        throw Error("Invalid configuration preset");
+    }
     ui->atomSel->setCurrentIndex(static_cast<int>(curConfig->atoms));
     ui->cellSel->setCurrentIndex(static_cast<int>(curConfig->cell));
 }

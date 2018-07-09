@@ -1,11 +1,14 @@
 #ifndef XYZ_H
 #define XYZ_H
 
-#include "../ioplugin.h"
+#include "../plugin.h"
+#include "config.h"
 
 namespace Vipster{
 namespace IO{
+
 extern const IO::Plugin XYZ;
+
 }
 }
 

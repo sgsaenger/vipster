@@ -3,8 +3,9 @@
 #include <emscripten/html5.h>
 
 #include "../common/guiwrapper.h"
+#include "configfile.h"
 #include "molecule.h"
-#include "iowrapper.h"
+#include "io.h"
 
 namespace em = emscripten;
 using namespace Vipster;
@@ -172,6 +173,8 @@ void one_iter(){
 
 int main()
 {
+    // initialize library
+    Vipster::readConfig();
     // create WebGL2 context
     EmscriptenWebGLContextAttributes attrs;
     emscripten_webgl_init_context_attributes(&attrs);

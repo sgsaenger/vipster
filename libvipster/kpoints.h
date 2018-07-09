@@ -20,7 +20,7 @@ struct KPoints{
     } mpg;
     struct Discrete{
         enum Properties{none=0x0,crystal=0x1,band=0x2,contour=0x4};
-        Properties properties{};
+        uint8_t properties{};
         std::vector<DiscreteKPoint> kpoints{};
     } discrete;
 };

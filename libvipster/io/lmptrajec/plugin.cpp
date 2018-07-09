@@ -1,4 +1,4 @@
-#include "lmptrajec.h"
+#include "plugin.h"
 
 #include <sstream>
 
@@ -161,5 +161,7 @@ const IO::Plugin IO::LmpTrajec =
     "dmp",
     IO::Plugin::None,
     &LmpTrajecParser,
+    nullptr,
+    nullptr,
     nullptr
 };

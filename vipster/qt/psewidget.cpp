@@ -26,7 +26,7 @@ void PSEWidget::registerProperty(QWidget* w, float PseEntry::* prop)
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
-                    QSignalBlocker{w};
+                    QSignalBlocker block{w};
                     static_cast<QDoubleSpinBox*>(w)->setValue(
                                 static_cast<double>(currentEntry->*prop));
                 }else{
@@ -50,7 +50,7 @@ void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
-                    QSignalBlocker{w};
+                    QSignalBlocker block{w};
                     static_cast<QSpinBox*>(w)->setValue(
                                 static_cast<unsigned int>(currentEntry->*prop));
                 }else{
@@ -74,7 +74,7 @@ void PSEWidget::registerProperty(QWidget* w, std::string PseEntry::* prop)
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
-                    QSignalBlocker{w};
+                    QSignalBlocker block{w};
                     static_cast<QLineEdit*>(w)->setText(
                                 QString::fromStdString(currentEntry->*prop));
                 }else{

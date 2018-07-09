@@ -5,7 +5,7 @@
 #include <QAbstractButton>
 #include <QDir>
 #include <vector>
-#include "iowrapper.h"
+#include "io.h"
 #include "stepsel.h"
 #include "../common/guiwrapper.h"
 
@@ -29,8 +29,8 @@ public:
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
     std::vector<Vipster::Molecule> molecules;
-    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::BaseParam>>>& getParams() const noexcept;
-    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::BaseConfig>>>& getConfigs() const noexcept;
+    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>>& getParams() const noexcept;
+    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>>& getConfigs() const noexcept;
 
 public slots:
     void setMol(int i);

@@ -1,20 +1,7 @@
-#include "lmpinput.h"
+#include "plugin.h"
 #include <sstream>
 
 using namespace Vipster;
-
-IO::LmpConfig::LmpConfig(std::string name, LmpAtomStyle style,
-                         bool bonds, bool angles, bool dihedrals, bool impropers)
-    : BaseConfig{name},
-      style{style},
-      bonds{bonds}, angles{angles},
-      dihedrals{dihedrals}, impropers{impropers}
-{}
-
-std::unique_ptr<BaseConfig> IO::LmpConfig::copy()
-{
-    return std::make_unique<IO::LmpConfig>(*this);
-}
 
 enum class lmpTok{
     type,
@@ -22,15 +9,6 @@ enum class lmpTok{
     charge,
     mol,
     ignore
-};
-
-const static std::map<IO::LmpAtomStyle, std::string> fmt2str{
-    {IO::LmpAtomStyle::Angle, "angle"},
-    {IO::LmpAtomStyle::Atomic, "atomic"},
-    {IO::LmpAtomStyle::Bond, "bond"},
-    {IO::LmpAtomStyle::Charge, "charge"},
-    {IO::LmpAtomStyle::Full, "full"},
-    {IO::LmpAtomStyle::Molecular, "molecular"},
 };
 
 const static std::map<std::string, std::vector<lmpTok>> fmtmap{
@@ -42,7 +20,7 @@ const static std::map<std::string, std::vector<lmpTok>> fmtmap{
     {"dipole", {{lmpTok::charge, lmpTok::type, lmpTok::pos}}},
     {"dpd", {{lmpTok::type, lmpTok::ignore, lmpTok::pos}}},
     {"edpd", {{lmpTok::type, lmpTok::ignore, lmpTok::ignore, lmpTok::pos}}},
-    {"mdpd", {{lmpTok::type, lmpTok::pos}}},
+    {"mdpd", {{lmpTok::type, lmpTok::ignore, lmpTok::pos}}},
     {"tdpd", {{lmpTok::type, lmpTok::pos}}},
     {"electron", {{lmpTok::type, lmpTok::charge, lmpTok::ignore,
                    lmpTok::ignore, lmpTok::pos}}},
@@ -103,14 +81,14 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         }
     };
     auto checkDummy = [&atoms](size_t col){
-        std::set<float> s, n{0};
+        std::set<float> s, n{0.f};
         for (auto& at: atoms){
             s.insert(stof(at[col]));
         }
         return (s.size()==1)&&(s==n);
     };
     if(narg == 5){
-        // only one possible setup (atomic, mdpd)
+        // only one possible setup (atomic)
         return {lmpTok::type, lmpTok::pos};
     }
     if(narg == 6){
@@ -362,15 +340,15 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
 }
 
 bool LmpInpWriter(const Molecule& m, std::ofstream &file,
-                  const BaseParam *const,
-                  const BaseConfig *const c,
+                  const IO::BaseParam *const,
+                  const IO::BaseConfig *const c,
                   IO::State state)
 {
     const auto& step = m.getStep(state.index);
     const auto& types = step.getNames();
     const auto *cc = dynamic_cast<const IO::LmpConfig*>(c);
     if(!cc) throw IO::Error("Lammps-Writer needs configuration preset");
-    const auto tokens = fmtmap.at(fmt2str.at(cc->style));
+    const auto tokens = fmtmap.at(IO::LmpConfig::fmt2str.at(cc->style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
     file << std::fixed << std::setprecision(5);
@@ -604,7 +582,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         file << step.pse->at(i).m << " # " << i << '\n';
     }
 
-    file << "\nAtoms # " << fmt2str.at(cc->style) << "\n\n";
+    file << "\nAtoms # " << IO::LmpConfig::fmt2str.at(cc->style) << "\n\n";
     makeWriter(tokens, molID, atomtypemap)(file, step);
 
     if(cc->bonds && !bondlist.empty()){
@@ -655,6 +633,11 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
+static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
+{
+    return std::make_unique<IO::LmpConfig>(name);
+}
+
 const IO::Plugin IO::LmpInput =
 {
     "Lammps Data File",
@@ -662,5 +645,7 @@ const IO::Plugin IO::LmpInput =
     "lmp",
     IO::Plugin::Config,
     &LmpInpParser,
-    &LmpInpWriter
+    &LmpInpWriter,
+    nullptr,
+    &makeConfig
 };

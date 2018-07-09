@@ -9,15 +9,16 @@ DynamicLibrary {
 
     Group {
         name: "headers"
-        files: ["*.h", "*/*.h"]
+        files: ["*.h", "**/*.h"]
         qbs.install: !qbs.targetOS.contains("windows")
                      && !qbs.targetOS.contains("macos") && !project.webBuild
         qbs.installDir: "include/vipster"
+        qbs.installSourceBase: "."
     }
 
     Group {
         name: "sources"
-        files: ["*.cpp", "*/*.cpp"]
+        files: ["*.cpp", "**/*.cpp"]
     }
 
     Group {

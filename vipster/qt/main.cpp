@@ -1,5 +1,6 @@
 #include "mainwindow.h"
-#include "iowrapper.h"
+#include "io.h"
+#include "configfile.h"
 #include "CLI11.hpp"
 #include <QApplication>
 #include <QCommandLineParser>
@@ -7,7 +8,7 @@
 
 using namespace Vipster;
 
-void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
+[[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QSurfaceFormat format;
     format.setVersion(3,3);
     format.setSamples(8);
@@ -17,6 +18,7 @@ void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
     QApplication::setApplicationVersion("1.12a");
+    QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
     if(!data.empty()){
         MainWindow w{std::move(data)};
         w.show();
@@ -31,6 +33,7 @@ void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
 int main(int argc, char *argv[])
 {
     // main parser + data-targets
+    Vipster::readConfig();
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
@@ -189,7 +192,7 @@ int main(int argc, char *argv[])
                                    }, {}});
                 } catch (...) {
                     throw CLI::ParseError(mpg_err+kp_err, 1);
-                }{}
+                }
             //TODO: discrete
             }else{
                 throw CLI::ParseError("Invalid KPoint style\n"+kp_err, 1);

@@ -1,4 +1,4 @@
-#include "pwinput.h"
+#include "plugin.h"
 
 #include <sstream>
 #include <iomanip>
@@ -7,24 +7,9 @@ using namespace Vipster;
 
 enum class CellFmt{None, Alat, Bohr, Angstrom};
 
-IO::PWParam::PWParam(std::string name, IO::PWNamelist control, IO::PWNamelist system,
-                 IO::PWNamelist electrons, IO::PWNamelist ions, IO::PWNamelist cell)
-    : BaseParam{name}, control{control}, system{system},
-      electrons{electrons}, ions{ions}, cell{cell}
-{}
-
-IO::PWConfig::PWConfig(std::string name, PWConfig::AtomFmt atoms, CellFmt cell)
-    : BaseConfig{name}, atoms{atoms}, cell{cell}
-{}
-
-std::unique_ptr<BaseConfig> IO::PWConfig::copy()
-{
-    return std::make_unique<IO::PWConfig>(*this);
-}
-
 void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 {
-    const std::map<std::string, IO::PWNamelist IO::PWParam::*> nlmap = {
+    const std::map<std::string, IO::PWParam::Namelist IO::PWParam::*> nlmap = {
         {"&CONTROL", &IO::PWParam::control},
         {"&SYSTEM", &IO::PWParam::system},
         {"&ELECTRONS", &IO::PWParam::electrons},
@@ -34,7 +19,7 @@ void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 
     auto nlp = nlmap.find(name);
     if (nlp == nlmap.end()) throw IO::Error("Unknown namelist");
-    IO::PWNamelist &nl = p.*(nlp->second);
+    IO::PWParam::Namelist &nl = p.*(nlp->second);
 
     std::string line, key;
     size_t beg, end, quote_end;
@@ -105,6 +90,7 @@ void parseCoordinates(std::string name, std::ifstream& file,
         }else if(fmt.find("CRYSTAL") != fmt.npos) {
             s.setFmt(AtomFmt::Crystal);
         }else if(fmt.find("CRYSTAL_SG") != fmt.npos) {
+            //TODO
             throw IO::Error("CRYSTAL_SG format not yet implemented");
 //            s.setFmt(AtomFmt::Crystal);
         }else{
@@ -126,7 +112,7 @@ void parseCoordinates(std::string name, std::ifstream& file,
         if (linestream.fail()) {
             throw IO::Error{"Failed to parse atom"};
         }
-        uint8_t x{0},y{0},z{0};
+        bool x{0},y{0},z{0};
         linestream >> x >> y >> z;
         at.properties->flags[AtomFlag::FixX] = x;
         at.properties->flags[AtomFlag::FixY] = y;
@@ -197,18 +183,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
 {
     StepProper &s = m.getStep(0);
     CdmFmt cdmFmt;
-    IO::PWNamelist& sys = p.system;
-    auto celldm = sys.find("celldm(1)");
-    auto cellA = sys.find("A");
-    if ((celldm != sys.end()) && (cellA == sys.end())) {
-        cdmFmt = CdmFmt::Bohr;
-        sys.erase(celldm);
-    } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-        cdmFmt = CdmFmt::Angstrom;
-        sys.erase(cellA);
-    } else {
-        throw IO::Error("Specify either celldm or A,B,C, but not both!");
-    }
+    IO::PWParam::Namelist& sys = p.system;
     bool scale = (s.getFmt() >= AtomFmt::Crystal);
     switch (cellFmt) {
     case CellFmt::Bohr:
@@ -218,6 +193,18 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
         s.setCellDim(1, CdmFmt::Angstrom, scale);
         break;
     case CellFmt::Alat:
+    {
+        auto celldm = sys.find("celldm(1)");
+        auto cellA = sys.find("A");
+        if ((celldm != sys.end()) && (cellA == sys.end())) {
+            cdmFmt = CdmFmt::Bohr;
+            sys.erase(celldm);
+        } else if ((celldm == sys.end()) && (cellA != sys.end())) {
+            cdmFmt = CdmFmt::Angstrom;
+            sys.erase(cellA);
+        } else {
+            throw IO::Error("Specify either celldm or A,B,C, but not both!");
+        }
         switch (cdmFmt) {
         case CdmFmt::Angstrom:
             s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
@@ -226,6 +213,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
             s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
             break;
         }
+    }
         break;
     case CellFmt::None:
         auto ibrav = p.system.find("ibrav");
@@ -250,7 +238,7 @@ void parseCard(std::string name, std::ifstream& file,
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("ATOMIC_FORCES not implemented");
 }
 
-std::string trim(const std::string& str)
+static std::string trim(const std::string& str)
 {
     const std::string whitespace{" \t"};
     const auto strBegin = str.find_first_not_of(whitespace);
@@ -259,7 +247,6 @@ std::string trim(const std::string& str)
     }
     const auto strEnd = str.find_last_not_of(whitespace);
     return str.substr(strBegin, strEnd-strBegin+1);
-
 }
 
 IO::Data PWInpParser(const std::string& name, std::ifstream &file)
@@ -277,7 +264,7 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
     std::string buf, line;
     while (std::getline(file, buf)) {
         line = trim(buf);
-        if (!line[0] || line[0] == '!' || line[0] == '#') continue;
+        if (line.empty() || line[0] == '!' || line[0] == '#') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if (line[0] == '&') parseNamelist(line, file, p);
         else parseCard(line, file, m, p, cellFmt);
@@ -289,8 +276,8 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 }
 
 bool PWInpWriter(const Molecule& m, std::ofstream &file,
-                 const BaseParam *const p,
-                 const BaseConfig *const c,
+                 const IO::BaseParam *const p,
+                 const IO::BaseConfig *const c,
                  IO::State state)
 {
     const auto& s = m.getStep(state.index);
@@ -298,7 +285,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
     const auto *cc = dynamic_cast<const IO::PWConfig*>(c);
     if(!cc) throw IO::Error("PWI-Writer needs PWScf configuration preset");
-    std::vector<std::pair<std::string, const IO::PWNamelist*>>
+    std::vector<std::pair<std::string, const IO::PWParam::Namelist*>>
             outNL = {{"control", &pp->control},
                      {"system", &pp->system},
                      {"electrons", &pp->electrons}};
@@ -344,11 +331,21 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
                 static_cast<AtomFmt>(cc->atoms); // use from Step
     file << "\nATOMIC_POSITIONS " << atfmt[static_cast<size_t>(atom_fmt)] << '\n'
          << std::fixed << std::setprecision(5);
+    AtomFlags fixComp{};
+    fixComp[AtomFlag::FixX] = true;
+    fixComp[AtomFlag::FixY] = true;
+    fixComp[AtomFlag::FixZ] = true;
     for (const Atom& at: s.asFmt(atom_fmt)) {
-        file << std::left << std::setw(3) << at.name << ' '
-             << std::right << std::setw(10) << at.coord[0] << ' '
-             << std::right << std::setw(10) << at.coord[1] << ' '
-             << std::right << std::setw(10) << at.coord[2] << '\n';
+        file << std::left << std::setw(3) << at.name
+             << ' ' << std::right << std::setw(10) << at.coord[0]
+             << ' ' << std::right << std::setw(10) << at.coord[1]
+             << ' ' << std::right << std::setw(10) << at.coord[2];
+        if((at.properties->flags & fixComp).any()){
+            file << ' ' << at.properties->flags[AtomFlag::FixX]
+                 << ' ' << at.properties->flags[AtomFlag::FixY]
+                 << ' ' << at.properties->flags[AtomFlag::FixZ];
+        }
+        file << '\n';
     }
     file << "\nK_POINTS " << std::defaultfloat;
     const KPoints& k = m.getKPoints();
@@ -378,40 +375,14 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-void Vipster::IO::to_json(nlohmann::json& j,const IO::PWParam& p)
+static std::unique_ptr<IO::BaseParam> makeParam(const std::string& name)
 {
-    const std::map<std::string, IO::PWNamelist IO::PWParam::*> nlmap = {
-        {"&CONTROL", &IO::PWParam::control},
-        {"&SYSTEM", &IO::PWParam::system},
-        {"&ELECTRONS", &IO::PWParam::electrons},
-        {"&IONS", &IO::PWParam::ions},
-        {"&CELL", &IO::PWParam::cell},
-    };
-    j["name"] = p.name;
-    for(auto& nl:nlmap){
-        nlohmann::json& jnl = j.at(nl.first);
-        for(auto kv:p.*nl.second){
-            jnl[kv.first] = kv.second;
-        }
-    }
+    return std::make_unique<IO::PWParam>(name);
 }
 
-void Vipster::IO::from_json(const nlohmann::json& j, IO::PWParam& p)
+static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
 {
-    const std::map<std::string, IO::PWNamelist IO::PWParam::*> nlmap = {
-        {"&CONTROL", &IO::PWParam::control},
-        {"&SYSTEM", &IO::PWParam::system},
-        {"&ELECTRONS", &IO::PWParam::electrons},
-        {"&IONS", &IO::PWParam::ions},
-        {"&CELL", &IO::PWParam::cell},
-    };
-    p.name = j.at("name");
-    for(auto& i:nlmap){
-        IO::PWNamelist& nl = p.*(i.second);
-        for(auto it=j.at(i.first).begin(); it!=j.at(i.first).end(); ++it){
-            nl[it.key()] = it.value();
-        }
-    }
+    return std::make_unique<IO::PWConfig>(name);
 }
 
 const IO::Plugin IO::PWInput =
@@ -421,10 +392,7 @@ const IO::Plugin IO::PWInput =
     "pwi",
     IO::Plugin::Param|IO::Plugin::Config,
     &PWInpParser,
-    &PWInpWriter
+    &PWInpWriter,
+    &makeParam,
+    &makeConfig
 };
-
-std::unique_ptr<BaseParam> IO::PWParam::copy()
-{
-    return std::make_unique<IO::PWParam>(*this);
-}

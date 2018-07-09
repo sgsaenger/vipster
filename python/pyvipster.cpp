@@ -4,7 +4,7 @@
 
 #include <sstream>
 #include <molecule.h>
-#include <iowrapper.h>
+#include <io.h>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -280,15 +280,15 @@ PYBIND11_MODULE(vipster, m) {
 
     auto io = m.def_submodule("IO");
 
-    py::class_<BaseParam>(io, "BaseParam")
-        .def_readwrite("name", &BaseParam::name)
+    py::class_<IO::BaseParam>(io, "BaseParam")
+        .def_readwrite("name", &IO::BaseParam::name)
     ;
 
-    py::class_<BaseConfig>(io, "BaseConfig")
-        .def_readwrite("name", &BaseConfig::name)
+    py::class_<IO::BaseConfig>(io, "BaseConfig")
+        .def_readwrite("name", &IO::BaseConfig::name)
     ;
 
-    py::class_<IO::PWParam, BaseParam>(io, "PWParam")
+    py::class_<IO::PWParam, IO::BaseParam>(io, "PWParam")
         .def_readwrite("control", &IO::PWParam::control)
         .def_readwrite("system", &IO::PWParam::system)
         .def_readwrite("electrons", &IO::PWParam::electrons)
@@ -296,16 +296,16 @@ PYBIND11_MODULE(vipster, m) {
         .def_readwrite("cell", &IO::PWParam::cell)
     ;
 
-    py::enum_<IO::LmpAtomStyle>(io, "LmpAtomStyle")
-        .value("Angle", IO::LmpAtomStyle::Angle)
-        .value("Atomic", IO::LmpAtomStyle::Atomic)
-        .value("Bond", IO::LmpAtomStyle::Bond)
-        .value("Charge", IO::LmpAtomStyle::Charge)
-        .value("Full", IO::LmpAtomStyle::Full)
-        .value("Molecular", IO::LmpAtomStyle::Molecular)
+    py::enum_<IO::LmpConfig::AtomStyle>(io, "LmpConfig::AtomStyle")
+        .value("Angle", IO::LmpConfig::AtomStyle::Angle)
+        .value("Atomic", IO::LmpConfig::AtomStyle::Atomic)
+        .value("Bond", IO::LmpConfig::AtomStyle::Bond)
+        .value("Charge", IO::LmpConfig::AtomStyle::Charge)
+        .value("Full", IO::LmpConfig::AtomStyle::Full)
+        .value("Molecular", IO::LmpConfig::AtomStyle::Molecular)
     ;
 
-    py::class_<IO::LmpConfig, BaseConfig>(io, "LmpConfig")
+    py::class_<IO::LmpConfig, IO::BaseConfig>(io, "LmpConfig")
         .def_readwrite("style", &IO::LmpConfig::style)
         .def_readwrite("angles", &IO::LmpConfig::angles)
         .def_readwrite("bonds", &IO::LmpConfig::bonds)

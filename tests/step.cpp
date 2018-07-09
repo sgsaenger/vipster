@@ -1,4 +1,5 @@
 #include "step.h"
+#include "configfile.h"
 #include <iostream>
 
 using namespace Vipster;
@@ -23,6 +24,7 @@ static std::ostream& operator<<(std::ostream& os, const Atom& at)
 #include "catch.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
+    Vipster::readConfig();
     Mat cv = {{{{1,2,3}},{{0,1,0}},{{0,0,1.5}}}};
     std::string fmtNames[nAtFmt] = {"Bohr", "Angstrom", "Crystal", "Alat"};
     // s will be checked
