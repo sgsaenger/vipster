@@ -2,6 +2,7 @@ import qbs 1.0
 
 Project {
     name: "Vipster"
+    minimumQbsVersion: "1.11.0"
 
     references: [
         "libvipster/libvipster.qbs",

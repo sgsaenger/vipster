@@ -7,6 +7,7 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
     d.fmt = IOFmt::CUBE;
     d.mol.setName(name);
     StepProper &s = d.mol.newStep();
+    s.setFmt(AtomFmt::Bohr);
 
     std::string line, buf;
     std::stringstream lstream;
@@ -52,6 +53,7 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
             cell[i] *= extent[i];
         }
     }
+    s.setCellVec(cell);
     for(auto& at: s){
         file >> at.name >> at.properties->charge
              >> at.coord[0] >> at.coord[1] >> at.coord[2];
@@ -65,35 +67,56 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
         size_t nmo;
         lstream >> nmo;
         std::vector<size_t> mo_indices(nmo);
-        std::vector<std::vector<float>> grids;
-        std::vector<std::vector<float>::iterator> iters;
+        std::vector<DataGrid3D_f> grids;
+        std::vector<DataGrid3D_f::iterator> iters;
         for(size_t i=0; i<nmo; ++i){
             lstream >> mo_indices[i];
-            grids.emplace_back(extent[0]*extent[1]*extent[2]);
-            iters.emplace_back(grids.back().begin());
+            grids.emplace_back(extent);
+            grids.back().origin = origin;
+            grids.back().cell = cell;
+            grids.back().name = name + " MO: " + std::to_string(mo_indices[i]);
         }
-        while(iters.back() != grids.back().end()){
+        for(auto& grid: grids){
+            iters.emplace_back(grid.begin());
+        }
+        for(size_t i=0; i<grids.back().size; ++i){
             for(auto& it: iters){
-                file >> *it++;
+                file >> *it;
+                it++;
             }
+        }
+        for(auto&& grid: grids){
+            d.data.emplace_back(std::make_unique<const DataGrid3D_f>(std::move(grid)));
         }
     }else{
         if(nval==1){
-            std::vector<float> grid(extent[0]*extent[1]*extent[2]);
+            DataGrid3D_f grid{extent};
+            grid.origin = origin;
+            grid.cell = cell;
+            grid.name = name;
             for(auto& p: grid){
                 file >> p;
             }
+            d.data.push_back(std::make_unique<const DataGrid3D_f>(std::move(grid)));
         }else if(nval==4){
-            std::vector<float> s_grid(extent[0]*extent[1]*extent[2]);
-            std::vector<std::array<float, 3>> v_grid(extent[0]*extent[1]*extent[2]);
-            auto s_it = s_grid.begin();
-            auto v_it = v_grid.begin();
-            while(s_it != s_grid.end()){
+            DataGrid3D_f density{extent};
+            DataGrid3D_v gradient{extent};
+            density.origin = origin;
+            density.cell = cell;
+            density.name = name;
+            gradient.origin = origin;
+            gradient.cell = cell;
+            gradient.name = name + " Gradient";
+            auto s_it = density.begin();
+            auto v_it = gradient.begin();
+            while(s_it != density.end()){
                 auto& v = *v_it;
                 file >> *s_it >> v[0] >> v[1] >> v[2];
                 s_it++;
                 v_it++;
             }
+            d.data.push_back(std::make_unique<const DataGrid3D_f>(std::move(density)));
+            d.data.push_back(std::make_unique<const DataGrid3D_v>(std::move(gradient)));
         }else{
             throw IO::Error("Cube: Only scalar or scalar+gradient grids are supported");
         }

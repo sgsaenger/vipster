@@ -7,6 +7,9 @@ using namespace Vipster;
 
 enum class CellFmt{None, Alat, Bohr, Angstrom};
 
+IO::Error::Error(const std::string& reason)
+    : std::runtime_error(reason){}
+
 void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 {
     const std::map<std::string, IO::PWParam::Namelist IO::PWParam::*> nlmap = {

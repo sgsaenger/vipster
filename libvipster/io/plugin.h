@@ -2,6 +2,7 @@
 #define IOPLUGIN_H
 
 #include "../molecule.h"
+#include "../data.h"
 #include "parameters.h"
 #include "configs.h"
 #include "fmt.h"
@@ -19,6 +20,7 @@ struct Data{
     Molecule mol{"",0};
     IOFmt fmt;
     std::unique_ptr<BaseParam> param{};
+    std::vector<std::unique_ptr<const BaseData>> data{};
 };
 
 struct State{
@@ -45,7 +47,7 @@ struct Plugin{
 class Error: public std::runtime_error
 {
     public:
-        Error(const std::string& reason):std::runtime_error(reason){}
+        Error(const std::string& reason);
 };
 
 }
