@@ -49,6 +49,7 @@ void MainWindow::setupUI()
     tabifyDockWidget(ui->configDock, ui->settingsDock);
     tabifyDockWidget(ui->settingsDock, ui->mpseDock);
     tabifyDockWidget(ui->mpseDock, ui->pseDock);
+    tabifyDockWidget(ui->pseDock, ui->dataDock);
     ui->molDock->raise();
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
@@ -85,6 +86,7 @@ void MainWindow::updateWidgets(uint8_t change)
     ui->scriptWidget->updateWidget(change);
     ui->pickWidget->updateWidget(change);
     ui->mpseWidget->updateWidget(change);
+    ui->dataWidget->updateWidget(change);
 }
 
 void MainWindow::setFmt(int i, bool apply, bool scale)
@@ -152,6 +154,12 @@ void MainWindow::setStep(int i)
     updateWidgets(guiStepChanged);
 }
 
+void MainWindow::setData(int i)
+{
+    curData = data.at(static_cast<size_t>(i)).get();
+    updateWidgets(GuiChange::data);
+}
+
 void MainWindow::stepBut(QAbstractButton* but)
 {
     if(but == ui->firstStepButton){
@@ -188,6 +196,10 @@ void MainWindow::newData(IO::Data &&d)
     ui->molWidget->registerMol(molecules.back().getName());
     if(d.param){
         ui->paramWidget->registerParam(d.fmt, std::move(d.param));
+    }
+    for(auto& dat: d.data){
+        data.push_back(std::move(dat));
+        ui->dataWidget->registerData(data.back()->name);
     }
 }
 

@@ -34,6 +34,7 @@ void ConfigWidget::registerConfig(Vipster::IOFmt fmt,
                                "(" + IOPlugins.at(fmt)->command +
                                ") " + configs.back().second->name
                                ));
+    ui->configSel->setCurrentIndex(ui->configSel->count()-1);
 }
 
 void ConfigWidget::on_configSel_currentIndexChanged(int index)

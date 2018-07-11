@@ -515,6 +515,21 @@
    </attribute>
    <widget class="PSEWidget" name="mpseWidget"/>
   </widget>
+  <widget class="QDockWidget" name="dataDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Add. Data</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="DataWidget" name="dataWidget"/>
+  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -699,6 +714,12 @@
    <class>PSEWidget</class>
    <extends>QWidget</extends>
    <header>qt/psewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DataWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/datawidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

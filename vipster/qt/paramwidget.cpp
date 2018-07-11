@@ -34,6 +34,7 @@ void ParamWidget::registerParam(Vipster::IOFmt fmt,
                           "(" +  IOPlugins.at(fmt)->command +
                            ") " + params.back().second->name
                          ));
+    ui->paramSel->setCurrentIndex(ui->paramSel->count()-1);
 }
 
 void ParamWidget::on_paramSel_currentIndexChanged(int index)
