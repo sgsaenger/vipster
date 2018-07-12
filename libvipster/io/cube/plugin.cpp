@@ -97,7 +97,7 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
             for(auto& p: grid){
                 file >> p;
             }
-            d.data.push_back(std::make_unique<const DataGrid3D_f>(std::move(grid)));
+            d.data.emplace_back(std::make_unique<const DataGrid3D_f>(std::move(grid)));
         }else if(nval==4){
             DataGrid3D_f density{extent};
             DataGrid3D_v gradient{extent};
@@ -115,8 +115,8 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
                 s_it++;
                 v_it++;
             }
-            d.data.push_back(std::make_unique<const DataGrid3D_f>(std::move(density)));
-            d.data.push_back(std::make_unique<const DataGrid3D_v>(std::move(gradient)));
+            d.data.emplace_back(std::make_unique<const DataGrid3D_f>(std::move(density)));
+            d.data.emplace_back(std::make_unique<const DataGrid3D_v>(std::move(gradient)));
         }else{
             throw IO::Error("Cube: Only scalar or scalar+gradient grids are supported");
         }
