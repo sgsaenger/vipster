@@ -325,8 +325,12 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     for(auto &t: s.getTypes()){
         auto e = (*s.pse)[t];
         file << std::left << std::setw(3) << t << ' '
-             << std::right << std::setw(9) << e.m << ' '
-             << e.PWPP << '\n';
+             << std::right << std::setw(9) << e.m << ' ';
+        if(e.PWPP.empty()){
+            file << t << settings.PWPP.val << '\n';
+        }else{
+            file << e.PWPP << '\n';
+        }
     }
     const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
     auto atom_fmt = (cc->atoms == IO::PWConfig::AtomFmt::Current) ?
