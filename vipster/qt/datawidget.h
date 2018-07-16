@@ -18,14 +18,13 @@ public:
     virtual void setData(const Vipster::BaseData *d)=0;
 };
 
-class DataWidget : public QWidget, public BaseWidget
+class DataWidget : public BaseWidget
 {
     Q_OBJECT
 
 public:
     explicit DataWidget(QWidget *parent = nullptr);
     ~DataWidget() override;
-    void updateWidget(uint8_t change) override;
     void registerData(const std::string& name);
 
 private slots:

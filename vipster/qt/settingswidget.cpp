@@ -10,7 +10,7 @@
 using namespace Vipster;
 
 SettingsWidget::SettingsWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);

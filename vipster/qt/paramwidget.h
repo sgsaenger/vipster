@@ -18,7 +18,7 @@ public:
     virtual void setParam(Vipster::IO::BaseParam *p)=0;
 };
 
-class ParamWidget : public QWidget
+class ParamWidget : public BaseWidget
 {
     Q_OBJECT
 

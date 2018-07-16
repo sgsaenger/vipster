@@ -9,7 +9,7 @@ ParamBase::ParamBase(QWidget *parent):
 {}
 
 ParamWidget::ParamWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::ParamWidget)
 {
     ui->setupUi(this);

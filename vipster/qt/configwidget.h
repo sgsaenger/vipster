@@ -18,7 +18,7 @@ public:
     virtual void setConfig(Vipster::IO::BaseConfig *c)=0;
 };
 
-class ConfigWidget : public QWidget
+class ConfigWidget : public BaseWidget
 {
     Q_OBJECT
 

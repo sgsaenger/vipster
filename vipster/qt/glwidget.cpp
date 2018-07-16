@@ -1,20 +1,34 @@
 #include "glwidget.h"
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
+#include <QApplication>
 #include "../common/atom_model.h"
 #include "../common/bond_model.h"
-#include <iostream>
 
 using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent):
-    QOpenGLWidget(parent) {}
+    QOpenGLWidget(parent)
+{
+    for(auto *w: qApp->topLevelWidgets()){
+        if(auto *t = qobject_cast<MainWindow*>(w)){
+            master = t;
+            return;
+        }
+    }
+    throw Error("Could not determine MainWindow-instance.");
+}
 
 GLWidget::~GLWidget()
 {
     makeCurrent();
 
     doneCurrent();
+}
+
+void GLWidget::triggerUpdate(uint8_t change){
+    updateTriggered = true;
+    master->updateWidgets(change);
 }
 
 void GLWidget::updateWidget(uint8_t change)

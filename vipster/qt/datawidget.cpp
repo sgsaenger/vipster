@@ -8,7 +8,7 @@ DataBase::DataBase(QWidget *parent)
 {}
 
 DataWidget::DataWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::DataWidget)
 {
     ui->setupUi(this);
@@ -25,12 +25,9 @@ void DataWidget::registerData(const std::string& name)
     ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
 }
 
-void DataWidget::updateWidget(uint8_t change)
+void DataWidget::on_DataSel_currentIndexChanged(int index)
 {
-    if(!(change & GuiChange::data)){
-        return;
-    }
-    curData = master->curData;
+    curData = master->data.at(index).get();
     if(dynamic_cast<const DataGrid3D_f*>(curData) != nullptr){
         ui->DataStack->setCurrentWidget(ui->ThreeDWidget);
         ui->ThreeDWidget->setData(curData);
@@ -43,9 +40,4 @@ void DataWidget::updateWidget(uint8_t change)
     }else{
         throw Error("Invalid data set");
     }
-}
-
-void DataWidget::on_DataSel_currentIndexChanged(int index)
-{
-    master->setData(index);
 }

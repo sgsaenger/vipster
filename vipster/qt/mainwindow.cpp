@@ -44,13 +44,31 @@ void MainWindow::setupUI()
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     // setup left dock-area
-    tabifyDockWidget(ui->molDock, ui->paramDock);
-    tabifyDockWidget(ui->paramDock, ui->configDock);
-    tabifyDockWidget(ui->configDock, ui->settingsDock);
-    tabifyDockWidget(ui->settingsDock, ui->mpseDock);
-    tabifyDockWidget(ui->mpseDock, ui->pseDock);
-    tabifyDockWidget(ui->pseDock, ui->dataDock);
+    baseWidgets = {
+        ui->paramDock,
+        ui->configDock,
+        ui->settingsDock,
+        ui->mpseDock,
+        ui->pseDock,
+        ui->dataDock,
+    };
+    for(auto& w: baseWidgets){
+        tabifyDockWidget(ui->molDock, w);
+    }
     ui->molDock->raise();
+    // setup right dock-area
+    toolWidgets = {
+        ui->scriptDock,
+        ui->pickDock,
+        ui->cellModDock,
+        ui->millerDock,
+    };
+    for(auto& w: toolWidgets){
+        auto action = ui->toolBar->addAction(w->windowTitle());
+        action->setCheckable(true);
+        connect(action, SIGNAL(toggled(bool)), w, SLOT(setVisible(bool)));
+        w->hide();
+    }
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
@@ -83,10 +101,12 @@ void MainWindow::updateWidgets(uint8_t change)
 {
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
-    ui->scriptWidget->updateWidget(change);
-    ui->pickWidget->updateWidget(change);
-    ui->mpseWidget->updateWidget(change);
-    ui->dataWidget->updateWidget(change);
+    for(auto& w: baseWidgets){
+        static_cast<BaseWidget*>(w->widget())->updateWidget(change);
+    }
+    for(auto& w: toolWidgets){
+        static_cast<BaseWidget*>(w->widget())->updateWidget(change);
+    }
 }
 
 void MainWindow::setFmt(int i, bool apply, bool scale)
@@ -152,12 +172,6 @@ void MainWindow::setStep(int i)
     }
     //Update child widgets
     updateWidgets(guiStepChanged);
-}
-
-void MainWindow::setData(int i)
-{
-    curData = data.at(static_cast<size_t>(i)).get();
-    updateWidgets(GuiChange::data);
 }
 
 void MainWindow::stepBut(QAbstractButton* but)
@@ -330,7 +344,8 @@ void MainWindow::about()
             "</p>"));
 }
 
-BaseWidget::BaseWidget()
+BaseWidget::BaseWidget(QWidget* parent)
+    :QWidget{parent}
 {
     for(auto *w: qApp->topLevelWidgets()){
         if(auto *t = qobject_cast<MainWindow*>(w)){

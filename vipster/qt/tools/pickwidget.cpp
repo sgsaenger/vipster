@@ -3,7 +3,7 @@
 using namespace Vipster;
 
 PickWidget::PickWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::PickWidget)
 {
     ui->setupUi(this);

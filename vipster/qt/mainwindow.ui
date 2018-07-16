@@ -530,6 +530,21 @@
    </attribute>
    <widget class="DataWidget" name="dataWidget"/>
   </widget>
+  <widget class="QDockWidget" name="millerDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Lattice planes</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="MillerWidget" name="millerWidget"/>
+  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -720,6 +735,12 @@
    <class>DataWidget</class>
    <extends>QWidget</extends>
    <header>qt/datawidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MillerWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/tools/millerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -1032,7 +1053,7 @@
  </slots>
  <buttongroups>
   <buttongroup name="modeGroup"/>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>

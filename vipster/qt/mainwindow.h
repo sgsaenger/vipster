@@ -24,7 +24,6 @@ public:
     Vipster::Molecule* curMol{nullptr};
     Vipster::StepProper* curStep{nullptr};
     Vipster::StepSelection* curSel{nullptr};
-    const Vipster::BaseData* curData{nullptr};
     Vipster::AtomFmt getFmt();
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(uint8_t change);
@@ -37,7 +36,6 @@ public:
 public slots:
     void setMol(int i);
     void setStep(int i);
-    void setData(int i);
     void stepBut(QAbstractButton *but);
     void about(void);
     void newMol();
@@ -53,14 +51,19 @@ private:
     Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
     QDir path{QString{std::getenv("HOME")}};
+    std::vector<QDockWidget*> baseWidgets;
+    std::vector<QDockWidget*> toolWidgets;
 };
 
-class BaseWidget{
+class BaseWidget: public QWidget{
+    Q_OBJECT
+
 public:
-    BaseWidget();
+    BaseWidget(QWidget *parent = nullptr);
     void triggerUpdate(uint8_t change);
     virtual void updateWidget(uint8_t){}
     virtual ~BaseWidget()=default;
+
 protected:
     bool updateTriggered{false};
     MainWindow* master;

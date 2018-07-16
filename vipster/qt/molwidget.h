@@ -8,7 +8,7 @@ namespace Ui {
 class MolWidget;
 }
 
-class MolWidget : public QWidget, public BaseWidget
+class MolWidget : public BaseWidget
 {
     Q_OBJECT
 

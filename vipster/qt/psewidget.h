@@ -9,7 +9,7 @@ namespace Ui {
 class PSEWidget;
 }
 
-class PSEWidget : public QWidget, public BaseWidget
+class PSEWidget : public BaseWidget
 {
     Q_OBJECT
 

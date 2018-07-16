@@ -6,7 +6,7 @@
 using namespace Vipster;
 
 ScriptWidget::ScriptWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::ScriptWidget)
 {
     ui->setupUi(this);

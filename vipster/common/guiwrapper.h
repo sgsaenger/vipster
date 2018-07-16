@@ -17,9 +17,10 @@ namespace Vipster {
 typedef std::array<float,16> guiMat;
 
 namespace Enums{
-enum GuiChange{atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8,
-               selection=0x10, settings=0x20,
-               data=0x40};
+enum GuiChange: uint8_t{
+    atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8,
+    selection=0x10, settings=0x20,
+    plane=0x40, volume=0x80};
 }
 using Enums::GuiChange;
 constexpr auto guiStepChanged = GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::selection;

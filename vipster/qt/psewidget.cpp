@@ -120,7 +120,7 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
 }
 
 PSEWidget::PSEWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::PSEWidget)
 {
     ui->setupUi(this);

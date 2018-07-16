@@ -6,7 +6,7 @@
 using namespace Vipster;
 
 MolWidget::MolWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);

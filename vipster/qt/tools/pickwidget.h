@@ -8,7 +8,7 @@ namespace Ui {
 class PickWidget;
 }
 
-class PickWidget : public QWidget, public BaseWidget
+class PickWidget : public BaseWidget
 {
     Q_OBJECT
 

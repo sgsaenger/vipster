@@ -9,7 +9,7 @@ ConfigBase::ConfigBase(QWidget *parent):
 {}
 
 ConfigWidget::ConfigWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::ConfigWidget)
 {
     ui->setupUi(this);

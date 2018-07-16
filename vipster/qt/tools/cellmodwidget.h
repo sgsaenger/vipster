@@ -8,7 +8,7 @@ namespace Ui {
 class CellModWidget;
 }
 
-class CellModWidget : public QWidget, public BaseWidget
+class CellModWidget : public BaseWidget
 {
     Q_OBJECT
 
