@@ -425,15 +425,23 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                 const auto& b2 = std::get<2>(*it2);
                 if(a1 == b0){
                     if(b1 == a0){
-                        dihedlist.emplace_back(a2, a1, a0, b2);
+                        if(a2 != b2){
+                            dihedlist.emplace_back(a2, a1, a0, b2);
+                        }
                     }else if(b1 == a2){
-                        dihedlist.emplace_back(a0, a1, a2, b2);
+                        if(a0 != b2){
+                            dihedlist.emplace_back(a0, a1, a2, b2);
+                        }
                     }
                 }else if(a1 == b2){
                     if(b1 == a0){
-                        dihedlist.emplace_back(a2, a1, a0, b0);
+                        if(a2 != b0){
+                            dihedlist.emplace_back(a2, a1, a0, b0);
+                        }
                     }else if(b1 == a2){
-                        dihedlist.emplace_back(a0, a1, a2, b0);
+                        if(a0 != b0){
+                            dihedlist.emplace_back(a0, a1, a2, b0);
+                        }
                     }
                 }
             }
@@ -468,13 +476,13 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                 const auto& b1 = std::get<1>(*it2);
                 const auto& b2 = std::get<2>(*it2);
                 if(a1 == b1){
-                    if(a0 == b0){
+                    if((a0 == b0) && (a2 != b2)){
                         improplist.emplace_back(a1, a0, a2, b2);
-                    }else if(a0 == b2){
+                    }else if((a0 == b2) && (a2 != b0)){
                         improplist.emplace_back(a1, a0, a2, b0);
-                    }else if(a2 == b0){
+                    }else if((a2 == b0) && (a0 != b2)){
                         improplist.emplace_back(a1, a0, a2, b2);
-                    }else if(a2 == b2){
+                    }else if((a2 == b2) && (a0 != b0)){
                         improplist.emplace_back(a1, a0, a2, b0);
                     }
                 }
