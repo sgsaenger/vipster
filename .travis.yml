@@ -100,6 +100,7 @@ matrix:
                 on:
                     tags: true
         - os: osx
+          osx_image: xcode10
           install:
               - brew update
               - brew install qbs
