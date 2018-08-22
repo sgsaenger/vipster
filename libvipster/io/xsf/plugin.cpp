@@ -234,8 +234,5 @@ const IO::Plugin IO::XSF =
     "xsf",
     "xsf",
     IO::Plugin::None,
-    &XSFParser,
-    nullptr,
-    nullptr,
-    nullptr
+    &XSFParser
 };

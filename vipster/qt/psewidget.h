@@ -15,7 +15,7 @@ class PSEWidget : public BaseWidget
 
 public:
     explicit PSEWidget(QWidget *parent = nullptr);
-    ~PSEWidget();
+    ~PSEWidget() override;
     void setPSE(Vipster::PseMap* pse);
     void updateWidget(uint8_t) override;
 

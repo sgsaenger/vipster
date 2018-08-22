@@ -24,40 +24,52 @@ void Data3DWidget::setData(const BaseData* data)
     //init state
     auto dir = ui->sliceDir->currentIndex();
     ui->sliceVal->setValue(0);
-    ui->sliceVal->setMaximum(curData->extent[dir]);
+    ui->sliceVal->setMaximum(static_cast<int>(curData->extent[
+                                              static_cast<size_t>(dir)]));
     ui->surfToggle->setCheckState(Qt::CheckState::Unchecked);
-    //TODO: get min/max values from grid
-//        ui->surfVal->setMinimum()
-//        ui->surfVal->setMaximum()
-}
-
-void Data3DWidget::on_sliceBut_clicked()
-{
-    //TODO: toggle display
+    auto minmax = std::minmax_element(curData->begin(), curData->end());
+    auto min = static_cast<double>(*minmax.first);
+    auto max = static_cast<double>(*minmax.second);
+    auto precision = std::abs(max - min)/1000.;
+    auto dec = -static_cast<int>(std::round(std::log10(precision)))+2;
+    validator.setRange(min, max, dec);
+    ui->maxLabel->setText(QString::number(max));
+    ui->minLabel->setText(QString::number(min));
 }
 
 void Data3DWidget::on_sliceDir_currentIndexChanged(int index)
 {
     ui->sliceVal->setValue(0);
-    ui->sliceVal->setMaximum(curData->extent[index]);
+    ui->sliceVal->setMaximum(static_cast<int>(curData->extent[
+                                              static_cast<size_t>(index)]));
 }
 
 void Data3DWidget::on_sliceVal_valueChanged(int)
 {
-    //TODO: create new plane, or toggle creation
+    // TODO: recreate slice
 }
 
-void Data3DWidget::on_surfToggle_stateChanged(int arg1)
+void Data3DWidget::on_surfToggle_stateChanged(int state)
 {
-
+    display_pm = state;
+    // TODO: reeval isosurface when displayed
 }
 
-void Data3DWidget::on_surfVal_valueChanged(double arg1)
+void Data3DWidget::on_horizontalSlider_valueChanged(int)
 {
+    //TODO: recreate isosurface, fill surfVal
+}
 
+void Data3DWidget::on_surfVal_editingFinished()
+{
+    //TODO: recreate isosurface, reposition slider
+}
+
+//TODO: display something...
+void Data3DWidget::on_sliceBut_clicked()
+{
 }
 
 void Data3DWidget::on_surfBut_clicked()
 {
-
 }

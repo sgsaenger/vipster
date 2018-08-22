@@ -39,9 +39,9 @@ struct Plugin{
     bool        (*writer)(const Molecule& m, std::ofstream &file,
                           const BaseParam *const p,
                           const BaseConfig *const c,
-                          State state);
-    std::unique_ptr<BaseParam> (*makeParam)(const std::string& name);
-    std::unique_ptr<BaseConfig> (*makeConfig)(const std::string& name);
+                          State state) = nullptr;
+    std::unique_ptr<BaseParam> (*makeParam)(const std::string& name) = nullptr;
+    std::unique_ptr<BaseConfig> (*makeConfig)(const std::string& name) = nullptr;
 };
 
 class Error: public std::runtime_error

@@ -131,8 +131,5 @@ const IO::Plugin IO::Cube =
     "cube",
     "cube",
     IO::Plugin::None,
-    &CubeParser,
-    nullptr,
-    nullptr,
-    nullptr
+    &CubeParser
 };

@@ -160,8 +160,5 @@ const IO::Plugin IO::LmpTrajec =
     "lammpstrj",
     "dmp",
     IO::Plugin::None,
-    &LmpTrajecParser,
-    nullptr,
-    nullptr,
-    nullptr
+    &LmpTrajecParser
 };

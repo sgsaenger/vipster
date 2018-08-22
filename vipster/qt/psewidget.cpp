@@ -52,7 +52,7 @@ void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
                     w->setEnabled(true);
                     QSignalBlocker block{w};
                     static_cast<QSpinBox*>(w)->setValue(
-                                static_cast<unsigned int>(currentEntry->*prop));
+                                static_cast<int>(currentEntry->*prop));
                 }else{
                     w->setDisabled(true);
                 }
@@ -133,6 +133,7 @@ PSEWidget::PSEWidget(QWidget *parent) :
     registerProperty(ui->pwppSel, &PseEntry::PWPP);
     registerProperty(ui->colSel, &PseEntry::col);
     registerProperty(ui->cutSel, &PseEntry::bondcut);
+    emit(currentEntryChanged());
 }
 
 PSEWidget::~PSEWidget()
@@ -142,10 +143,7 @@ PSEWidget::~PSEWidget()
 
 void PSEWidget::setEntry(QListWidgetItem *item)
 {
-    if(!pse){
-        return;
-    }
-    if(item){
+    if(item && pse){
         currentEntry = &pse->at(item->text().toStdString());
     }else{
         currentEntry = nullptr;

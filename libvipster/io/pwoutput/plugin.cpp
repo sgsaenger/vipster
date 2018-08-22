@@ -132,8 +132,5 @@ const IO::Plugin IO::PWOutput =
     "pwo",
     "pwo",
     IO::Plugin::None,
-    &PWOutParser,
-    nullptr,
-    nullptr,
-    nullptr
+    &PWOutParser
 };
