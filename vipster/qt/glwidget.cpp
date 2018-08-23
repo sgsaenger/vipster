@@ -183,9 +183,9 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
     if(curSel->getNat()){
-        curSel->modShift(axis, 0.1f);
+        curSel->modShift(axis, 0.01f);
     }else{
-        curStep->modShift(axis, 0.1f);
+        curStep->modShift(axis, 0.01f);
     }
     triggerUpdate(GuiChange::atoms);
 }
@@ -193,7 +193,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
 void GLWidget::shiftAtomsZ(QPoint delta)
 {
     auto axes = Mat_trans(Mat_inv(getAxes()));
-    float fac = 0.1f * (delta.x() + delta.y());
+    float fac = 0.01f * (delta.x() + delta.y());
     if(curSel->getNat()){
         curSel->modShift(axes[2], fac);
     }else{
