@@ -127,7 +127,7 @@ AtomFmt MainWindow::getFmt()
 
 void MainWindow::setMol(int i)
 {
-    curMol = &molecules.at(static_cast<size_t>(i));
+    curMol = &*std::next(molecules.begin(), i);
     int steps = static_cast<int>(curMol->getNstep());
     //Step-control
     ui->stepLabel->setText(QString::number(steps));

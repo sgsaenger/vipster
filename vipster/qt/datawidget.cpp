@@ -27,7 +27,7 @@ void DataWidget::registerData(const std::string& name)
 
 void DataWidget::on_DataSel_currentIndexChanged(int index)
 {
-    curData = master->data.at(index).get();
+    curData = std::next(master->data.begin(), index)->get();
     if(dynamic_cast<const DataGrid3D_f*>(curData) != nullptr){
         ui->DataStack->setCurrentWidget(ui->ThreeDWidget);
         ui->ThreeDWidget->setData(curData);

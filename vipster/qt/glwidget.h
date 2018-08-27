@@ -6,7 +6,7 @@
 #include "mainwindow.h"
 #include "../common/guiwrapper.h"
 
-class GLWidget: public QOpenGLWidget, private Vipster::GuiWrapper
+class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
 {
     Q_OBJECT
 
@@ -30,8 +30,6 @@ public slots:
 private:
     bool updateTriggered{false};
     MainWindow* master;
-    void setStep(Vipster::StepProper* step);
-    void setSel(Vipster::StepSelection* sel);
     // Input handling
     enum class MouseMode { Camera=-2, Select=-3, Modify=-4 };
     MouseMode mouseMode{MouseMode::Camera};

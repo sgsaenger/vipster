@@ -9,7 +9,7 @@ Molecule::Molecule(const std::string &name, unsigned long s):
     name{name},
     kpoints{}
 {
-    for(std::vector<StepProper>::size_type i=0;i!=s;++i){
+    for(decltype(steps)::size_type i=0; i!=s; ++i){
         steps.emplace_back(pse);
     }
 }
@@ -28,34 +28,22 @@ StepProper& Molecule::newStep(StepProper &&step)
     return steps.back();
 }
 
-std::vector<StepProper>& Molecule::newSteps(const std::vector<StepProper> &v)
-{
-    steps.reserve(steps.size()+v.size());
-    std::vector<StepProper>::iterator pos = steps.end();
-    steps.insert(steps.end(),v.begin(),v.end());
-    for(;pos!=steps.end();++pos)
-    {
-        pos->pse = pse;
-    }
-    return steps;
-}
-
 StepProper& Molecule::getStep(size_t idx)
 {
-    return steps.at(idx);
+    return *std::next(steps.begin(), idx);
 }
 
 const StepProper& Molecule::getStep(size_t idx) const
 {
-    return steps.at(idx);
+    return *std::next(steps.begin(), idx);
 }
 
-std::vector<StepProper>& Molecule::getSteps() noexcept
+std::list<StepProper>& Molecule::getSteps() noexcept
 {
     return steps;
 }
 
-const std::vector<StepProper>& Molecule::getSteps() const noexcept
+const std::list<StepProper>& Molecule::getSteps() const noexcept
 {
     return steps;
 }

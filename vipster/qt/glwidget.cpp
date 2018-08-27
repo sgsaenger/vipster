@@ -2,8 +2,6 @@
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
 #include <QApplication>
-#include "../common/atom_model.h"
-#include "../common/bond_model.h"
 
 using namespace Vipster;
 
@@ -34,26 +32,23 @@ void GLWidget::triggerUpdate(uint8_t change){
 void GLWidget::updateWidget(uint8_t change)
 {
     if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
-        setStep(master->curStep);
+        updateMainStep(master->curStep, settings.showBonds.val);
     }
     if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings | GuiChange::selection)){
-        setSel(master->curSel);
+        updateSelection(master->curSel);
     }
+    update();
 }
 
 void GLWidget::initializeGL()
 {
+    makeCurrent();
     initializeOpenGLFunctions();
-    initShaders("# version 330\n", ":/shaders");
-    initGL();
+    initGL("# version 330\n", ":/shaders");
 }
 
 void GLWidget::paintGL()
 {
-    updateViewUBO();
-    //
-    updateVBOs();
-    //
     draw();
 }
 
@@ -86,18 +81,6 @@ void GLWidget::setMult(int i)
     if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = static_cast<uint8_t>(i); }
     else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = static_cast<uint8_t>(i); }
     else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = static_cast<uint8_t>(i); }
-    update();
-}
-
-void GLWidget::setStep(StepProper* step)
-{
-    updateStepBuffers(step, settings.showBonds.val);
-    update();
-}
-
-void GLWidget::setSel(StepSelection* sel)
-{
-    updateSelBuffers(sel);
     update();
 }
 

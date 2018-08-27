@@ -28,8 +28,8 @@ public:
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
-    std::vector<Vipster::Molecule> molecules;
-    std::vector<std::unique_ptr<const Vipster::BaseData>> data;
+    std::list<Vipster::Molecule> molecules;
+    std::list<std::unique_ptr<const Vipster::BaseData>> data;
     const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>>& getParams() const noexcept;
     const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>>& getConfigs() const noexcept;
 
