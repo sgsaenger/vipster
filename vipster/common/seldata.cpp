@@ -8,12 +8,12 @@ GUI::SelData::SelData(GUI::GlobalData& glob, StepSelection *sel)
 {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
+    glBindVertexArray(vao);
     GLuint loc;
     glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
     loc = static_cast<GLuint>(glGetAttribLocation(global.atom_program, "vertex_modelspace"));
     glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(loc);
-    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     loc = static_cast<GLuint>(glGetAttribLocation(global.atom_program, "position_modelspace"));
