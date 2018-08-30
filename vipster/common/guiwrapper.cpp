@@ -45,6 +45,8 @@ void GuiWrapper::draw(void)
     if(rMatChanged||pMatChanged||vMatChanged){
         updateViewUBO();
     }
+    mainStep->syncToGPU();
+    selection->syncToGPU();
     if(mainStep->hasCell()){
         drawCell();
     }else{
@@ -66,6 +68,7 @@ void GuiWrapper::drawCell(void)
 
 void GuiWrapper::drawSel()
 {
+    mainStep->syncToGPU();
     mainStep->drawSel(mult);
 }
 

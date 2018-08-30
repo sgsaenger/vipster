@@ -67,7 +67,6 @@ void GUI::SelData::drawMol()
 
 void GUI::SelData::drawCell(const std::array<uint8_t, 3> &mult)
 {
-    syncToGPU();
     if(sel_buffer.size()){
         Vec center = -curSel->getCenter(CdmFmt::Bohr);
         Mat cv = curSel->getCellVec() * curSel->getCellDim(CdmFmt::Bohr);

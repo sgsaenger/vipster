@@ -29,8 +29,8 @@ namespace GUI {
         bool atoms_changed{false}, cell_changed{false};
         bool bonds_changed{false}, bonds_drawn{false};
         // GPU-State:
-        GLuint vaos[3];
-        GLuint &atom_vao, &bond_vao, &cell_vao;
+        GLuint vaos[4];
+        GLuint &atom_vao, &bond_vao, &cell_vao, &sel_vao;
         // GPU-Data:
         GLuint vbos[4];
         GLuint &atom_prop_vbo, &atom_pos_vbo;
@@ -69,6 +69,7 @@ namespace GUI {
         void initAtom();
         void initBond();
         void initCell();
+        void initSel();
     };
 }
 }

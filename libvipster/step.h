@@ -61,6 +61,7 @@ public:
     void    enableCell(bool) noexcept;
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
     void    setCellVec(const Mat &vec, bool scale=false);
+    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept override;
 
 protected:
     Step(std::shared_ptr<PseMap>, AtomFmt, std::shared_ptr<BondList>,

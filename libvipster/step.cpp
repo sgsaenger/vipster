@@ -264,6 +264,15 @@ void Step::setCellVec(const Mat &vec, bool scale)
     atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
 }
 
+Vec Step::getCenter(CdmFmt fmt, bool com) const noexcept
+{
+    if(com || !cell->enabled){
+        return getCom(static_cast<AtomFmt>(fmt));
+    }
+    const Mat& cv = cell->cellvec;
+    return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
+}
+
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
 {
     if(!(cdm>0)) {

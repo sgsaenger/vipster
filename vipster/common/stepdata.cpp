@@ -9,16 +9,53 @@ using namespace Vipster;
 GUI::StepData::StepData(GlobalData& glob, StepProper* step)
     : Data{glob},
       curStep{step},
-      atom_vao{vaos[0]}, bond_vao{vaos[1]}, cell_vao{vaos[2]},
+      atom_vao{vaos[0]}, bond_vao{vaos[1]},
+      cell_vao{vaos[2]}, sel_vao{vaos[3]},
       atom_prop_vbo{vbos[0]}, atom_pos_vbo{vbos[1]},
       bond_vbo{vbos[2]}, cell_vbo{vbos[3]}
 {
-    glGenVertexArrays(3, vaos);
+    glGenVertexArrays(4, vaos);
     glGenBuffers(4, vbos);
 
     initAtom();
     initBond();
     initCell();
+    initSel();
+}
+
+void GUI::StepData::initSel()
+{
+    sel_shader.program = loadShader("/select.vert", "/select.frag");
+    READATTRIB(sel_shader, vertex);
+    READATTRIB(sel_shader, position);
+    READATTRIB(sel_shader, vert_scale);
+    READUNIFORM(sel_shader, pos_scale);
+    READUNIFORM(sel_shader, scale_fac);
+    READUNIFORM(sel_shader, offset);
+
+    glBindVertexArray(sel_vao);
+
+    // sphere vertices
+    glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
+    glVertexAttribPointer(sel_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(sel_shader.vertex);
+
+    // atom positions
+    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
+    glVertexAttribPointer(sel_shader.position, 3,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(Vec), nullptr);
+    glVertexAttribDivisor(sel_shader.position, 1);
+    glEnableVertexAttribArray(sel_shader.position);
+
+    // atom properties
+    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    glVertexAttribPointer(sel_shader.vert_scale, 1,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(AtomProp),
+                          reinterpret_cast<const GLvoid*>(offsetof(AtomProp, rad)));
+    glVertexAttribDivisor(sel_shader.vert_scale, 1);
+    glEnableVertexAttribArray(sel_shader.vert_scale);
 }
 
 void GUI::StepData::initAtom()
@@ -153,12 +190,11 @@ void GUI::StepData::initCell()
 GUI::StepData::~StepData()
 {
     glDeleteBuffers(4, vbos);
-    glDeleteVertexArrays(3, vaos);
+    glDeleteVertexArrays(4, vaos);
 }
 
 void GUI::StepData::drawMol()
 {
-    syncToGPU();
     Vec center = -curStep->getCenter(CdmFmt::Bohr);
 // ATOMS
     glBindVertexArray(atom_vao);
@@ -185,7 +221,6 @@ void GUI::StepData::drawMol()
 
 void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
 {
-    syncToGPU();
     Vec off;
     Vec center = -curStep->getCenter(CdmFmt::Bohr);
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -248,17 +283,16 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
     // draw Atoms (as setup in atom_vao, shader locations must match)
     // with selection shader -> color by gl_InstanceID
     // to seperate Framebuffer
-    syncToGPU();
 #ifndef __EMSCRIPTEN__
     glDisable(GL_MULTISAMPLE);
 #endif
     glClearColor(1,1,1,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Vec center = -curStep->getCenter(CdmFmt::Bohr);
-    glBindVertexArray(atom_vao);
+    glBindVertexArray(sel_vao);
     glUseProgram(sel_shader.program);
-    glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
-    glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
+    glUniform1f(sel_shader.scale_fac, settings.atRadFac.val);
+    glUniformMatrix3fv(sel_shader.pos_scale, 1, 0, cell_mat.data());
     if(curStep->hasCell()){
         Vec off;
         Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -269,7 +303,7 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(atom_shader.offset, 1, off.data());
+                    glUniform3fv(sel_shader.offset, 1, off.data());
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           atom_model_npoly,
                                           static_cast<GLsizei>(atom_buffer.size()));

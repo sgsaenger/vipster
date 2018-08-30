@@ -120,7 +120,7 @@ public:
         this->pse = s.pse;
         this->at_fmt = s.at_fmt;
         *this->bonds = *s.bonds;
-        *this->cell = *s.cell;
+        this->cell = s.cell;
         *this->comment = *s.comment;
         *this->selection = *s.selection;
         *this->filter = *s.filter;
@@ -145,6 +145,10 @@ public:
         if(filter->op & SelectionFilter::UPDATE){
             selection->indices = evalFilter(step, *filter);
         }
+    }
+    Vec   getCenter(CdmFmt fmt, bool com=false) const noexcept override
+    {
+        return step.getCenter(fmt, com);
     }
     const SelectionFilter& getFilter() const noexcept
     {
@@ -212,7 +216,7 @@ protected:
         : StepBase<SelectionBase<T>>{step.pse,
                    step.at_fmt,
                    std::make_shared<BondList>(),
-                   std::make_shared<CellData>(*step.cell),
+                   step.cell,
                    std::make_shared<std::string>(*step.comment)},
           selection{std::make_shared<AtomSelection>(
                         AtomSelection{std::vector<size_t>{}, step.atoms})},
@@ -223,7 +227,7 @@ protected:
         : StepBase<SelectionBase<T>>{s.pse,
                    s.at_fmt,
                    std::make_shared<BondList>(*s.bonds),
-                   std::make_shared<CellData>(*s.cell),
+                   s.cell,
                    std::make_shared<std::string>(*s.comment)},
           selection{std::make_shared<AtomSelection>(*s.selection)},
           filter{std::make_shared<SelectionFilter>(*s.filter)},
