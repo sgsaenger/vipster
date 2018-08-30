@@ -28,16 +28,6 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
     glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(GUI::Mat), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
-    GLuint loc;
-    loc = glGetUniformBlockIndex(globals->atom_program, "viewMat");
-    glUniformBlockBinding(globals->atom_program, 0, loc);
-    loc = glGetUniformBlockIndex(globals->bond_program, "viewMat");
-    glUniformBlockBinding(globals->bond_program, 0, loc);
-    loc = glGetUniformBlockIndex(globals->cell_program, "viewMat");
-    glUniformBlockBinding(globals->cell_program, 0, loc);
-    loc = glGetUniformBlockIndex(globals->sel_program, "viewMat");
-    glUniformBlockBinding(globals->sel_program, 0, loc);
-
     // init view matrices
     pMat = guiMatMkOrtho(-15, 15, -10, 10, -100, 1000);
     rMat = {{1,0,0,0,

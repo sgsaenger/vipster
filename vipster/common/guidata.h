@@ -16,16 +16,12 @@ namespace GUI {
 struct GlobalData{
 #else
 struct GlobalData: protected QOpenGLFunctions_3_3_Core{
-    QOpenGLContext* context;
 #endif
     GlobalData(const std::string& header, const std::string& folder);
-    GLuint atom_program, bond_program, cell_program, sel_program;
     GLuint buffers[3];
     GLuint& sphere_vbo, &cylinder_vbo;
     GLuint& cell_ibo;
-private:
-    void loadShader(GLuint &program, const std::string &header,
-                    std::string vertShaderStr, std::string fragShaderStr);
+    std::string header, folder;
 };
 
 #ifdef __EMSCRIPTEN__
@@ -41,7 +37,26 @@ public:
     virtual void drawCell(const std::array<uint8_t,3> &mult) = 0;
     GlobalData& global;
     virtual void syncToGPU() = 0;
+    GLuint loadShader(std::string vert, std::string frag);
 };
+
+#define READATTRIB(shader, name) \
+    {GLint tmp = glGetAttribLocation(shader.program, #name); \
+     if(tmp<0){ \
+         throw Vipster::Error("Shader attribute mismatch: "#shader"."#name); \
+     }else{ \
+         shader.name = static_cast<GLuint>(tmp); \
+     }\
+    }
+
+#define READUNIFORM(shader, name) \
+    {GLint tmp = glGetUniformLocation(shader.program, #name); \
+     if(tmp<0){ \
+         throw Vipster::Error("Shader uniform mismatch: "#shader"."#name); \
+     }else{ \
+         shader.name = tmp; \
+     }\
+    }
 
 }
 }

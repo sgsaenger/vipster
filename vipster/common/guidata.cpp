@@ -33,7 +33,7 @@ std::string readShader(const std::string &filePath)
 
 GUI::GlobalData::GlobalData(const std::string& header, const std::string& folder)
     : sphere_vbo{buffers[0]}, cylinder_vbo{buffers[1]},
-      cell_ibo{buffers[2]}
+      cell_ibo{buffers[2]}, header{header}, folder{folder}
 {
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
@@ -49,29 +49,15 @@ GUI::GlobalData::GlobalData(const std::string& header, const std::string& folder
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     GLushort indices[24] = {0,1,0,2,0,3,1,4,1,5,2,4,2,6,3,5,3,6,4,7,5,7,6,7};
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), static_cast<void*>(indices), GL_STATIC_DRAW);
-
-    // load shaders
-    loadShader(atom_program, header,
-               readShader(folder + "/atom.vert"),
-               readShader(folder + "/atom.frag"));
-    loadShader(bond_program, header,
-               readShader(folder + "/bond.vert"),
-               readShader(folder + "/bond.frag"));
-    loadShader(cell_program, header,
-               readShader(folder + "/cell.vert"),
-               readShader(folder + "/cell.frag"));
-    loadShader(sel_program, header,
-               readShader(folder + "/select.vert"),
-               readShader(folder + "/select.frag"));
 }
 
-void GUI::GlobalData::loadShader(GLuint &program, const std::string &header, std::string vertShaderStr, std::string fragShaderStr)
+GLuint GUI::Data::loadShader(std::string vert, std::string frag)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
     GLint gl_ok = GL_FALSE;
 
-    vertShaderStr = header + vertShaderStr;
+    std::string vertShaderStr = global.header + readShader(global.folder + vert);
     const char *vertShaderSrc = vertShaderStr.c_str();
     glShaderSource(vertShader, 1, &vertShaderSrc, nullptr);
     glCompileShader(vertShader);
@@ -87,7 +73,7 @@ void GUI::GlobalData::loadShader(GLuint &program, const std::string &header, std
         throw std::invalid_argument{"Vertex-Shader does not compile"};
     }
 
-    fragShaderStr = header + fragShaderStr;
+    std::string fragShaderStr = global.header + readShader(global.folder + frag);
     const char *fragShaderSrc = fragShaderStr.c_str();
     glShaderSource(fragShader, 1, &fragShaderSrc, nullptr);
     glCompileShader(fragShader);
@@ -102,7 +88,7 @@ void GUI::GlobalData::loadShader(GLuint &program, const std::string &header, std
         throw std::invalid_argument{"Shader does not compile"};
     }
 
-    program = glCreateProgram();
+    GLuint program = glCreateProgram();
     glAttachShader(program, vertShader);
     glAttachShader(program, fragShader);
     glLinkProgram(program);
@@ -120,6 +106,8 @@ void GUI::GlobalData::loadShader(GLuint &program, const std::string &header, std
     glDeleteShader(vertShader);
     glDetachShader(program, fragShader);
     glDeleteShader(fragShader);
+    glUniformBlockBinding(program, 0, glGetUniformBlockIndex(program, "viewMat"));
+    return program;
 }
 
 GUI::Data::Data(GlobalData& glob)

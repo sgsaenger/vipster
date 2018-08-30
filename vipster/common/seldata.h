@@ -12,11 +12,20 @@ namespace GUI {
     };
 
     class SelData: public Data{
+        // CPU-Data:
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
-        GLuint vao, vbo;
         StepSelection* curSel;
+        // CPU-State:
         bool sel_changed{false};
+        // GPU-State/Data:
+        GLuint vao, vbo;
+        // Shader:
+        struct{
+            GLuint program;
+            GLuint vertex, position, vert_scale;
+            GLint offset, pos_scale, scale_fac, color;
+        } shader;
     public:
         SelData(GlobalData& glob, StepSelection* sel=nullptr);
         ~SelData() override;

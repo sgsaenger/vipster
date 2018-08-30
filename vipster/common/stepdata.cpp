@@ -8,125 +8,146 @@ using namespace Vipster;
 
 GUI::StepData::StepData(GlobalData& glob, StepProper* step)
     : Data{glob},
+      curStep{step},
       atom_vao{vaos[0]}, bond_vao{vaos[1]}, cell_vao{vaos[2]},
       atom_prop_vbo{vbos[0]}, atom_pos_vbo{vbos[1]},
-      bond_vbo{vbos[2]}, cell_vbo{vbos[3]},
-      curStep{step}
+      bond_vbo{vbos[2]}, cell_vbo{vbos[3]}
 {
     glGenVertexArrays(3, vaos);
     glGenBuffers(4, vbos);
-    GLuint loc;
 
-// ATOMS
+    initAtom();
+    initBond();
+    initCell();
+}
+
+void GUI::StepData::initAtom()
+{
+    atom_shader.program = loadShader("/atom.vert", "/atom.frag");
+    READATTRIB(atom_shader, vertex);
+    READATTRIB(atom_shader, position);
+    READATTRIB(atom_shader, vert_scale);
+    READATTRIB(atom_shader, color);
+    READUNIFORM(atom_shader, offset);
+    READUNIFORM(atom_shader, pos_scale);
+    READUNIFORM(atom_shader, scale_fac);
+
     glBindVertexArray(atom_vao);
 
     // sphere vertices
     glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.atom_program, "vertex_modelspace"));
-    glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribPointer(atom_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(atom_shader.vertex);
 
     // atom positions
     glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.atom_program, "position_modelspace"));
-    glVertexAttribPointer(loc, 3,
+    glVertexAttribPointer(atom_shader.position, 3,
                           GL_FLOAT, GL_FALSE,
                           sizeof(Vec), nullptr);
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribDivisor(atom_shader.position, 1);
+    glEnableVertexAttribArray(atom_shader.position);
 
     // atom properties
     glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.atom_program, "scale_modelspace"));
-    glVertexAttribPointer(loc, 1,
+    glVertexAttribPointer(atom_shader.vert_scale, 1,
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp),
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, rad)));
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.atom_program, "color_input"));
-    glVertexAttribPointer(loc, 4,
+    glVertexAttribDivisor(atom_shader.vert_scale, 1);
+    glEnableVertexAttribArray(atom_shader.vert_scale);
+    glVertexAttribPointer(atom_shader.color, 4,
                           GL_UNSIGNED_BYTE, GL_TRUE,
                           sizeof(AtomProp),
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, col)));
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribDivisor(atom_shader.color, 1);
+    glEnableVertexAttribArray(atom_shader.color);
+}
 
+void GUI::StepData::initBond()
+{
+    bond_shader.program = loadShader("/bond.vert", "/bond.frag");
+    READATTRIB(bond_shader, vertex);
+    READATTRIB(bond_shader, position);
+    READATTRIB(bond_shader, color1);
+    READATTRIB(bond_shader, color2);
+    READATTRIB(bond_shader, mMatrix);
+    READATTRIB(bond_shader, pbc_crit);
+    READUNIFORM(bond_shader, offset);
+    READUNIFORM(bond_shader, pos_scale);
+    READUNIFORM(bond_shader, pbc_cell);
+    READUNIFORM(bond_shader, mult);
 
-// BONDS
     glBindVertexArray(bond_vao);
 
     // cylinder vertices
     glBindBuffer(GL_ARRAY_BUFFER, global.cylinder_vbo);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.bond_program, "vertex_modelspace"));
-    glVertexAttribPointer(loc,3,GL_FLOAT,GL_FALSE,0,nullptr);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribPointer(bond_shader.vertex,3,GL_FLOAT,GL_FALSE,0,nullptr);
+    glEnableVertexAttribArray(bond_shader.vertex);
 
     // model matrix (rotation)
     glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.bond_program, "mMatrix"));
-    glVertexAttribPointer(loc, 3,
+    glVertexAttribPointer(bond_shader.mMatrix, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(BondProp), nullptr);
-    glVertexAttribDivisor(loc, 1);
-    glVertexAttribPointer(loc+1, 3,
+    glVertexAttribDivisor(bond_shader.mMatrix, 1);
+    glVertexAttribPointer(bond_shader.mMatrix+1, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(BondProp),
                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, mat[3])));
-    glVertexAttribDivisor(loc+1, 1);
-    glVertexAttribPointer(loc+2, 3,
+    glVertexAttribDivisor(bond_shader.mMatrix+1, 1);
+    glVertexAttribPointer(bond_shader.mMatrix+2, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(BondProp),
                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, mat[6])));
-    glVertexAttribDivisor(loc+2, 1);
-    glEnableVertexAttribArray(loc);
-    glEnableVertexAttribArray(loc+1);
-    glEnableVertexAttribArray(loc+2);
+    glVertexAttribDivisor(bond_shader.mMatrix+2, 1);
+    glEnableVertexAttribArray(bond_shader.mMatrix);
+    glEnableVertexAttribArray(bond_shader.mMatrix+1);
+    glEnableVertexAttribArray(bond_shader.mMatrix+2);
 
     // position
-    loc = static_cast<GLuint>(glGetAttribLocation(global.bond_program, "position_modelspace"));
-    glVertexAttribPointer(loc, 3,
+    glVertexAttribPointer(bond_shader.position, 3,
                           GL_FLOAT,GL_FALSE,
                           sizeof(BondProp),
                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, pos)));
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribDivisor(bond_shader.position, 1);
+    glEnableVertexAttribArray(bond_shader.position);
 
     // pbc conditions
-    loc = static_cast<GLuint>(glGetAttribLocation(global.bond_program, "pbc_crit"));
-    glVertexAttribIPointer(loc, 4,
+    glVertexAttribIPointer(bond_shader.pbc_crit, 4,
                           GL_UNSIGNED_SHORT,
                           sizeof(BondProp),
                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, mult)));
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribDivisor(bond_shader.pbc_crit, 1);
+    glEnableVertexAttribArray(bond_shader.pbc_crit);
 
     // Color 1
-    loc = static_cast<GLuint>(glGetAttribLocation(global.bond_program, "s1Color"));
-    glVertexAttribPointer(loc, 4,
+    glVertexAttribPointer(bond_shader.color1, 4,
                           GL_UNSIGNED_BYTE,GL_TRUE,
                           sizeof(BondProp),
                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, col_a)));
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribDivisor(bond_shader.color1, 1);
+    glEnableVertexAttribArray(bond_shader.color1);
 
     // Color 2
-    loc = static_cast<GLuint>(glGetAttribLocation(global.bond_program, "s2Color"));
-    glVertexAttribPointer(loc, 4,
+    glVertexAttribPointer(bond_shader.color2, 4,
                           GL_UNSIGNED_BYTE,GL_TRUE,
                           sizeof(BondProp),
                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, col_b)));
-    glVertexAttribDivisor(loc, 1);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribDivisor(bond_shader.color2, 1);
+    glEnableVertexAttribArray(bond_shader.color2);
+}
 
+void GUI::StepData::initCell()
+{
+    cell_shader.program = loadShader("/cell.vert", "/cell.frag");
+    READATTRIB(cell_shader, vertex);
+    READUNIFORM(cell_shader, offset);
 
-// CELL
     glBindVertexArray(cell_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-    loc = static_cast<GLuint>(glGetAttribLocation(global.cell_program, "vertex_modelspace"));
-    glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(loc);
+    glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(cell_shader.vertex);
 }
 
 GUI::StepData::~StepData()
@@ -141,31 +162,21 @@ void GUI::StepData::drawMol()
     Vec center = -curStep->getCenter(CdmFmt::Bohr);
 // ATOMS
     glBindVertexArray(atom_vao);
-    glUseProgram(global.atom_program);
-    // TODO: move glGetUniformLocation to GlobalData and store locations
-    auto offLocA = glGetUniformLocation(global.atom_program, "offset");
-    auto facLoc = glGetUniformLocation(global.atom_program, "atom_fac");
-    auto cellLocA = glGetUniformLocation(global.atom_program, "position_scale");
-    auto toggleLoc = glGetUniformLocation(global.atom_program, "has_single_color");
-    glUniform1f(facLoc, settings.atRadFac.val);
-    glUniform3fv(offLocA, 1, center.data());
-    glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
-    glUniform1i(toggleLoc, 0);
+    glUseProgram(atom_shader.program);
+    glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
+    glUniform3fv(atom_shader.offset, 1, center.data());
+    glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           atom_model_npoly,
                           static_cast<GLsizei>(atom_buffer.size()));
 // BONDS
     if(settings.showBonds.val){
         glBindVertexArray(bond_vao);
-        glUseProgram(global.bond_program);
-        auto offLocB = glGetUniformLocation(global.bond_program, "offset");
-        auto pbcLoc = glGetUniformLocation(global.bond_program, "pbc_cell");
-        auto multLoc = glGetUniformLocation(global.bond_program, "mult");
-        auto cellLocB = glGetUniformLocation(global.bond_program, "position_scale");
-        glUniform3ui(multLoc, 1, 1, 1);
-        glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
-        glUniform3fv(offLocB, 1, center.data());
-        glUniform3ui(pbcLoc, 0, 0, 0);
+        glUseProgram(bond_shader.program);
+        glUniform3ui(bond_shader.mult, 1, 1, 1);
+        glUniformMatrix3fv(bond_shader.pos_scale, 1, 0, cell_mat.data());
+        glUniform3fv(bond_shader.offset, 1, center.data());
+        glUniform3ui(bond_shader.pbc_cell, 0, 0, 0);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               bond_model_npoly,
                               static_cast<GLsizei>(bond_buffer.size()));
@@ -183,19 +194,14 @@ void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
     center -= (mult[2]-1)*cv[2]/2.;
     // atoms
     glBindVertexArray(atom_vao);
-    glUseProgram(global.atom_program);
-    auto offLocA = glGetUniformLocation(global.atom_program, "offset");
-    auto facLoc = glGetUniformLocation(global.atom_program, "atom_fac");
-    auto cellLocA = glGetUniformLocation(global.atom_program, "position_scale");
-    auto toggleLoc = glGetUniformLocation(global.atom_program, "has_single_color");
-    glUniform1f(facLoc, settings.atRadFac.val);
-    glUniform1f(toggleLoc, 0);
-    glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+    glUseProgram(atom_shader.program);
+    glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
+    glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
                 off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                glUniform3fv(offLocA, 1, off.data());
+                glUniform3fv(atom_shader.offset, 1, off.data());
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       atom_model_npoly,
                                       static_cast<GLsizei>(atom_buffer.size()));
@@ -205,19 +211,15 @@ void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
     // bonds
     if(settings.showBonds.val){
         glBindVertexArray(bond_vao);
-        glUseProgram(global.bond_program);
-        auto offLocB = glGetUniformLocation(global.bond_program, "offset");
-        auto pbcLoc = glGetUniformLocation(global.bond_program, "pbc_cell");
-        auto multLoc = glGetUniformLocation(global.bond_program, "mult");
-        auto cellLocB = glGetUniformLocation(global.bond_program, "position_scale");
-        glUniform3ui(multLoc, mult[0], mult[1], mult[2]);
-        glUniformMatrix3fv(cellLocB, 1, 0, cell_mat.data());
+        glUseProgram(bond_shader.program);
+        glUniform3ui(bond_shader.mult, mult[0], mult[1], mult[2]);
+        glUniformMatrix3fv(bond_shader.pos_scale, 1, 0, cell_mat.data());
         for(GLuint x=0;x<mult[0];++x){
             for(GLuint y=0;y<mult[1];++y){
                 for(GLuint z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(offLocB, 1, off.data());
-                    glUniform3ui(pbcLoc, x, y, z);
+                    glUniform3fv(bond_shader.offset, 1, off.data());
+                    glUniform3ui(bond_shader.pbc_cell, x, y, z);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           bond_model_npoly,
                                           static_cast<GLsizei>(bond_buffer.size()));
@@ -228,13 +230,12 @@ void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
     // cell
     if(settings.showCell.val){
         glBindVertexArray(cell_vao);
-        glUseProgram(global.cell_program);
-        auto offLocC = glGetUniformLocation(global.cell_program, "offset");
+        glUseProgram(cell_shader.program);
         for(int x=0;x<mult[0];++x){
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(offLocC, 1, off.data());
+                    glUniform3fv(cell_shader.offset, 1, off.data());
                     glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
                 }
             }
@@ -255,12 +256,9 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Vec center = -curStep->getCenter(CdmFmt::Bohr);
     glBindVertexArray(atom_vao);
-    glUseProgram(global.sel_program);
-    auto offLocA = glGetUniformLocation(global.sel_program, "offset");
-    auto facLoc = glGetUniformLocation(global.sel_program, "atom_fac");
-    auto cellLocA = glGetUniformLocation(global.sel_program, "position_scale");
-    glUniform1f(facLoc, settings.atRadFac.val);
-    glUniformMatrix3fv(cellLocA, 1, 0, cell_mat.data());
+    glUseProgram(sel_shader.program);
+    glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
+    glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
     if(curStep->hasCell()){
         Vec off;
         Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -271,7 +269,7 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(offLocA, 1, off.data());
+                    glUniform3fv(atom_shader.offset, 1, off.data());
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           atom_model_npoly,
                                           static_cast<GLsizei>(atom_buffer.size()));
@@ -279,7 +277,7 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
             }
         }
     }else{
-        glUniform3fv(offLocA, 1, center.data());
+        glUniform3fv(atom_shader.offset, 1, center.data());
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(atom_buffer.size()));
