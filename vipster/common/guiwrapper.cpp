@@ -47,23 +47,22 @@ void GuiWrapper::draw(void)
     }
     mainStep->syncToGPU();
     selection->syncToGPU();
-    if(mainStep->hasCell()){
-        drawCell();
-    }else{
-        drawMol();
+    for(const auto& i: extraData){
+        i->syncToGPU();
     }
-}
-
-void GuiWrapper::drawMol(void)
-{
-    mainStep->drawMol();
-    selection->drawMol();
-}
-
-void GuiWrapper::drawCell(void)
-{
-    mainStep->drawCell(mult);
-    selection->drawCell(mult);
+    if(mainStep->hasCell()){
+        mainStep->drawCell(mult);
+        selection->drawCell(mult);
+        for(const auto& i: extraData){
+            i->drawCell(mult);
+        }
+    }else{
+        mainStep->drawMol();
+        selection->drawMol();
+        for(const auto& i: extraData){
+            i->drawMol();
+        }
+    }
 }
 
 void GuiWrapper::drawSel()
@@ -76,6 +75,7 @@ void GuiWrapper::updateMainStep(StepProper* step, bool draw_bonds)
 {
     if(step){
         curStep = step;
+        extraData.clear();
     }
     if(mainStep){
         mainStep->update(step, draw_bonds);
@@ -90,6 +90,16 @@ void GuiWrapper::updateSelection(StepSelection* sel)
     if(selection){
         selection->update(sel);
     }
+}
+
+void GuiWrapper::addExtraData(GUI::Data* dat)
+{
+    extraData.insert(dat);
+}
+
+void GuiWrapper::delExtraData(GUI::Data* dat)
+{
+    extraData.erase(dat);
 }
 
 void GuiWrapper::updateViewUBO(void)

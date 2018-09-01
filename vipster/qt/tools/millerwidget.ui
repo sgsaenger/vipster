@@ -42,6 +42,9 @@
      <property name="text">
       <string>Show/Hide</string>
      </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item row="5" column="0" colspan="8">

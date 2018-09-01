@@ -30,7 +30,7 @@ namespace Enums{
 enum GuiChange: uint8_t{
     atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8,
     selection=0x10, settings=0x20,
-    plane=0x40, volume=0x80};
+    extra=0x40};
 }
 using Enums::GuiChange;
 constexpr auto guiStepChanged = GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::selection;
@@ -49,6 +49,8 @@ public:
     void drawSel(void);
     void updateMainStep(StepProper* step, bool draw_bonds=true);
     void updateSelection(StepSelection* sel);
+    void addExtraData(GUI::Data* dat);
+    void delExtraData(GUI::Data* dat);
 public:
     void resizeViewMat(int w, int h);
     void zoomViewMat(int i);
@@ -64,11 +66,8 @@ public:
     std::unique_ptr<GUI::StepData> mainStep{nullptr};
     std::unique_ptr<GUI::SelData> selection{nullptr};
     std::unique_ptr<GUI::GlobalData> globals{nullptr};
-    // TODO:
-//    std::list<GUI::StepData> pinnedSteps;
+    std::set<GUI::Data*> extraData{};
 private:
-    void drawCell(void);
-    void drawMol(void);
     void updateViewUBO(void);
     // gpu-side global data
     GLuint view_ubo;
