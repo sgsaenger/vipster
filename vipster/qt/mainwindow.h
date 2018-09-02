@@ -32,6 +32,10 @@ public:
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
     const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>>& getParams() const noexcept;
     const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>>& getConfigs() const noexcept;
+    void addExtraData(Vipster::GUI::Data* dat);
+    void delExtraData(Vipster::GUI::Data* dat);
+    const Vipster::GUI::GlobalData& getGLGlobals();
+    void makeGLCurrent();
 
 public slots:
     void setMol(int i);

@@ -171,8 +171,8 @@
    <slot>updateOffset(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>190</x>
-     <y>60</y>
+     <x>236</x>
+     <y>92</y>
     </hint>
     <hint type="destinationlabel">
      <x>75</x>
@@ -203,28 +203,12 @@
    <slot>updateOffset(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>369</x>
-     <y>62</y>
+     <x>390</x>
+     <y>92</y>
     </hint>
     <hint type="destinationlabel">
      <x>325</x>
      <y>61</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>toggleView()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>40</x>
-     <y>93</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>5</x>
-     <y>81</y>
     </hint>
    </hints>
   </connection>

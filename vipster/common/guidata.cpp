@@ -110,7 +110,7 @@ GLuint GUI::Data::loadShader(std::string vert, std::string frag)
     return program;
 }
 
-GUI::Data::Data(GlobalData& glob)
+GUI::Data::Data(const GlobalData& glob)
     : global{glob}
 {
 #ifndef __EMSCRIPTEN__

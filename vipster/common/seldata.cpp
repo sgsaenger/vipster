@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-GUI::SelData::SelData(GUI::GlobalData& glob, StepSelection *sel)
+GUI::SelData::SelData(const GUI::GlobalData& glob, StepSelection *sel)
     : Data{glob}, curSel{sel}
 {
     shader.program = loadShader("/selection.vert", "/selection.frag");

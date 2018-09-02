@@ -22,7 +22,7 @@ public:
 private slots:
     void updateIndex(int idx);
     void updateOffset(double off);
-    void toggleView();
+    void on_pushButton_toggled(bool checked);
 
 private:
     Ui::MillerWidget *ui;

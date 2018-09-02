@@ -2,9 +2,9 @@
 
 using namespace Vipster;
 
-GUI::MeshData::MeshData(GlobalData& glob, std::vector<Vec> vertices,
+GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
                         Vec offset, ColVec color, StepProper* step)
-    : Data{glob}, vertices{vertices},
+    : Data{glob}, vertices{std::move(vertices)},
       offset{offset}, step{step}
 {
     update(color);
@@ -29,9 +29,9 @@ GUI::MeshData::~MeshData()
     glDeleteVertexArrays(1, &vao);
 }
 
-void GUI::MeshData::update(std::vector<Vec> vert)
+void GUI::MeshData::update(std::vector<Vec>&& vert)
 {
-    vertices = vert;
+    vertices = std::move(vert);
     updated = true;
 }
 
@@ -60,12 +60,6 @@ void GUI::MeshData::syncToGPU()
 
 void GUI::MeshData::drawMol()
 {
-    Vec off = offset - step->getCenter(CdmFmt::Bohr);
-    glBindVertexArray(vao);
-    glUseProgram(shader.program);
-    glUniform3fv(shader.offset, 1, off.data());
-    glUniform4uiv(shader.color, 1, color.data());
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
 }
 
 void GUI::MeshData::drawCell(const std::array<uint8_t,3>& mult)
@@ -78,7 +72,10 @@ void GUI::MeshData::drawCell(const std::array<uint8_t,3>& mult)
     tmp -= (mult[2]-1)*cv[2]/2.;
     glBindVertexArray(vao);
     glUseProgram(shader.program);
-    glUniform4uiv(shader.color, 1, color.data());
+    glUniform4f(shader.color, color[0]/255.f,
+                              color[1]/255.f,
+                              color[2]/255.f,
+                              color[3]/255.f);
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){

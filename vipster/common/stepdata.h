@@ -57,7 +57,7 @@ class StepData: public Data{
         GLint offset, pos_scale, scale_fac;
     } sel_shader;
 public:
-    StepData(GlobalData& glob, StepProper* step=nullptr);
+    StepData(const GlobalData& glob, StepProper* step=nullptr);
     ~StepData() override;
     void drawMol() override;
     void drawCell(const std::array<uint8_t,3> &mult) override;

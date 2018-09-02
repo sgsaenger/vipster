@@ -15,8 +15,8 @@ MainWindow::MainWindow(QWidget *parent):
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol();
     setupUI();
+    newMol();
 }
 
 MainWindow::MainWindow(std::vector<IO::Data> &&d, QWidget *parent):
@@ -276,6 +276,28 @@ const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseParam>>>& MainWindow:
 const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseConfig>>>& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
+}
+
+void MainWindow::addExtraData(GUI::Data* dat)
+{
+    ui->openGLWidget->addExtraData(dat);
+    updateWidgets(GuiChange::extra);
+}
+
+void MainWindow::delExtraData(GUI::Data* dat)
+{
+    ui->openGLWidget->delExtraData(dat);
+    updateWidgets(GuiChange::extra);
+}
+
+const GUI::GlobalData& MainWindow::getGLGlobals()
+{
+    return *ui->openGLWidget->globals;
+}
+
+void MainWindow::makeGLCurrent()
+{
+    ui->openGLWidget->makeCurrent();
 }
 
 void MainWindow::loadParam()

@@ -14,6 +14,7 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
     s.antialias.val = j.at(s.antialias.name);
     s.perspective.val = j.at(s.perspective.name);
     s.selCol.val = j.at(s.selCol.name);
+    s.milCol.val = j.at(s.milCol.name);
     s.PWPP.val = j.at(s.PWPP.name);
     s.CPPP.val = j.at(s.CPPP.name);
     s.CPNL.val = j.at(s.CPNL.name);
@@ -31,6 +32,7 @@ void Vipster::to_json(nlohmann::json& j, const Settings& s){
     j[s.antialias.name] = s.antialias.val;
     j[s.perspective.name] = s.perspective.val;
     j[s.selCol.name] = s.selCol.val;
+    j[s.milCol.name] = s.milCol.val;
     j[s.PWPP.name] = s.PWPP.val;
     j[s.CPPP.name] = s.CPPP.val;
     j[s.CPNL.name] = s.CPNL.val;

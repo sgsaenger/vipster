@@ -27,7 +27,7 @@ namespace GUI {
             GLint offset, pos_scale, scale_fac, color;
         } shader;
     public:
-        SelData(GlobalData& glob, StepSelection* sel=nullptr);
+        SelData(const GlobalData& glob, StepSelection* sel=nullptr);
         ~SelData() override;
         void drawMol() override;
         void drawCell(const std::array<uint8_t,3> &mult) override;

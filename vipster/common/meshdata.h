@@ -23,13 +23,13 @@ class MeshData: public Data{
         GLint offset, color;
     }shader;
 public:
-    MeshData(GlobalData& glob, std::vector<Vec> vertices,
+    MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
              Vec offset, ColVec color, StepProper* step);
     ~MeshData() override;
     void drawMol() override;
     void drawCell(const std::array<uint8_t,3> &mult) override;
     void syncToGPU(void) override;
-    void update(std::vector<Vec> vertices);
+    void update(std::vector<Vec>&& vertices);
     void update(Vec offset);
     void update(const ColVec& color);
 };

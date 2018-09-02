@@ -6,7 +6,7 @@
 
 using namespace Vipster;
 
-GUI::StepData::StepData(GlobalData& glob, StepProper* step)
+GUI::StepData::StepData(const GlobalData& glob, StepProper* step)
     : Data{glob},
       curStep{step},
       atom_vao{vaos[0]}, bond_vao{vaos[1]},

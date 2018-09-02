@@ -33,10 +33,10 @@ class Data: protected QOpenGLFunctions_3_3_Core
 {
 public:
     virtual ~Data() = default;
-    Data(GlobalData&);
+    Data(const GlobalData&);
     virtual void drawMol() = 0;
     virtual void drawCell(const std::array<uint8_t,3> &mult) = 0;
-    GlobalData& global;
+    const GlobalData& global;
     virtual void syncToGPU() = 0;
     GLuint loadShader(std::string vert, std::string frag);
 };
