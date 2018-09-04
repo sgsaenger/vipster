@@ -2,21 +2,30 @@
 
 using namespace Vipster;
 
+template<typename T>
+void readSetting(const nlohmann::json& j, Setting<T>& s)
+{
+    auto tmp = j.find(s.name);
+    if(tmp != j.end()){
+        s.val = *tmp;
+    }
+}
+
 void Vipster::from_json(const nlohmann::json& j, Settings& s){
-    s.atRadFac.val = j.at(s.atRadFac.name);
-    s.atRadVdW.val = j.at(s.atRadVdW.name);
-    s.bondRad.val = j.at(s.bondRad.name);
-    s.bondCutFac.val = j.at(s.bondCutFac.name);
-    s.bondFreq.val = j.at(s.bondFreq.name);
-    s.bondLvl.val = j.at(s.bondLvl.name);
-    s.showBonds.val = j.at(s.showBonds.name);
-    s.showCell.val = j.at(s.showCell.name);
-    s.antialias.val = j.at(s.antialias.name);
-    s.perspective.val = j.at(s.perspective.name);
-    s.selCol.val = j.at(s.selCol.name);
-    s.PWPP.val = j.at(s.PWPP.name);
-    s.CPPP.val = j.at(s.CPPP.name);
-    s.CPNL.val = j.at(s.CPNL.name);
+    readSetting(j, s.atRadFac);
+    readSetting(j, s.atRadVdW);
+    readSetting(j, s.bondRad);
+    readSetting(j, s.bondCutFac);
+    readSetting(j, s.bondFreq);
+    readSetting(j, s.bondLvl);
+    readSetting(j, s.showBonds);
+    readSetting(j, s.showCell);
+    readSetting(j, s.antialias);
+    readSetting(j, s.perspective);
+    readSetting(j, s.selCol);
+    readSetting(j, s.PWPP);
+    readSetting(j, s.CPPP);
+    readSetting(j, s.CPNL);
 }
 
 void Vipster::to_json(nlohmann::json& j, const Settings& s){
