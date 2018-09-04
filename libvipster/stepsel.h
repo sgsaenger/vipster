@@ -207,6 +207,14 @@ public:
         evaluateCache();
         return constIterator{selection, this->at_fmt, selection->indices.size()};
     }
+    void delAtoms()
+    {
+        auto& idx = selection->indices;
+        for(auto it=idx.rbegin(); it!= idx.rend(); ++it){
+            step.delAtom(*it);
+        }
+        setFilter(SelectionFilter{});
+    }
 protected:
     SelectionBase(T& step)
         : StepBase<SelectionBase<T>>{step.pse,

@@ -40,7 +40,7 @@ public:
     void            newAtom(const Atom& at);
     void            newAtoms(size_t i);
     void            newAtoms(const AtomList& atoms);
-    void            delAtom(long i);
+    void            delAtom(size_t i);
     using           iterator = AtomListIterator<Atom>;
     using           constIterator = AtomListIterator<const Atom>;
     Atom            operator[](size_t i);

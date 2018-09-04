@@ -190,11 +190,9 @@ void MainWindow::editAtoms()
     const QObject *sender = QObject::sender();
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
+    }else if ( sender == ui->actionDelete_Atom_s){
+        curSel->delAtoms();
     }
-    //TODO when selection stuff is implemented
-//    }else if ( sender == ui->actionDelete_Atom_s){
-//        curMol->curStep().delAtom();
-//    }
     updateWidgets(GuiChange::atoms);
 }
 

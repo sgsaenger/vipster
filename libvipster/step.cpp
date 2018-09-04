@@ -98,9 +98,10 @@ void Step::newAtoms(const AtomList& atoms){
     al.prop_changed = true;
 }
 
-void Step::delAtom(long i){
+void Step::delAtom(size_t _i){
     evaluateCache();
     AtomList& al = *atoms;
+    auto i = static_cast<long>(_i);
     // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].erase(
         al.coordinates[static_cast<size_t>(at_fmt)].begin()+i);
