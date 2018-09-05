@@ -9,9 +9,10 @@
 
 using namespace Vipster;
 
-MainWindow::MainWindow(QWidget *parent):
+MainWindow::MainWindow(QString path, QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow}
+    ui{new Ui::MainWindow},
+    path{path}
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
@@ -19,9 +20,10 @@ MainWindow::MainWindow(QWidget *parent):
     setupUI();
 }
 
-MainWindow::MainWindow(std::vector<IO::Data> &&d, QWidget *parent):
+MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow}
+    ui{new Ui::MainWindow},
+    path{path}
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));

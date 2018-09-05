@@ -20,11 +20,11 @@ using namespace Vipster;
     QApplication::setApplicationVersion("1.12a");
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
     if(!data.empty()){
-        MainWindow w{std::move(data)};
+        MainWindow w{QDir::currentPath(), std::move(data)};
         w.show();
         throw CLI::RuntimeError(QApplication::exec());
     }else{
-        MainWindow w{};
+        MainWindow w{QDir::currentPath()};
         w.show();
         throw CLI::RuntimeError(QApplication::exec());
     }

@@ -18,8 +18,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    explicit MainWindow(std::vector<Vipster::IO::Data> &&d, QWidget *parent = nullptr);
+    explicit MainWindow(QString path, QWidget *parent = nullptr);
+    explicit MainWindow(QString path,
+                        std::vector<Vipster::IO::Data> &&d,
+                        QWidget *parent = nullptr);
     ~MainWindow() override;
     Vipster::Molecule* curMol{nullptr};
     Vipster::StepProper* curStep{nullptr};
@@ -50,7 +52,7 @@ private:
 
     Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
-    QDir path{QString{std::getenv("HOME")}};
+    QDir path{};
     std::vector<QDockWidget*> baseWidgets;
     std::vector<QDockWidget*> toolWidgets;
 };
