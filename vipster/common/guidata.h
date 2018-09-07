@@ -19,7 +19,7 @@ struct GlobalData{
 struct GlobalData: protected QOpenGLFunctions_3_3_Core{
 #endif
     GlobalData(const std::string& header, const std::string& folder);
-    GLuint buffers[3];
+    GLuint buffers[3]{0,0,0};
     GLuint& sphere_vbo, &cylinder_vbo;
     GLuint& cell_ibo;
     std::string header, folder;
@@ -32,13 +32,19 @@ class Data: protected QOpenGLFunctions_3_3_Core
 #endif
 {
 public:
-    virtual ~Data() = default;
-    Data(const GlobalData&);
+    const GlobalData& global;
+
     virtual void drawMol() = 0;
     virtual void drawCell(const std::array<uint8_t,3> &mult) = 0;
-    const GlobalData& global;
     virtual void syncToGPU() = 0;
     GLuint loadShader(std::string vert, std::string frag);
+
+    Data(const GlobalData&);
+    virtual ~Data() = default;
+    Data(const Data&) = delete;
+    Data(Data&&) = delete;
+    Data& operator=(const Data&) = delete;
+    Data& operator=(Data&&) = delete;
 };
 
 #define READATTRIB(shader, name) \

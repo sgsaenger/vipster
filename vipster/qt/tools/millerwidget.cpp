@@ -228,6 +228,9 @@ void MillerWidget::on_pushButton_toggled(bool checked)
               });
         curPlane = &tmp.first->second;
     }
+    if(!curPlane){
+        return;
+    }
     if(active){
         master->addExtraData(&curPlane->gpu_data);
     }else{

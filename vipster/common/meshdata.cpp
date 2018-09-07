@@ -21,6 +21,19 @@ GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(shader.vertex);
+    glBindVertexArray(0);
+}
+
+GUI::MeshData::MeshData(MeshData&& dat)
+    : Data{dat.global},
+      vertices{std::move(dat.vertices)},
+      offset{dat.offset},
+      step{dat.step}
+{
+    vao = dat.vao;
+    dat.vao = 0;
+    vbo = dat.vbo;
+    dat.vbo = 0;
 }
 
 GUI::MeshData::~MeshData()
@@ -64,6 +77,7 @@ void GUI::MeshData::drawMol()
 
 void GUI::MeshData::drawCell(const std::array<uint8_t,3>& mult)
 {
+    glDisable(GL_CULL_FACE);
     Vec off;
     Vec tmp = offset - step->getCenter(CdmFmt::Bohr);
     Mat cv = step->getCellVec() * step->getCellDim(CdmFmt::Bohr);
@@ -85,4 +99,5 @@ void GUI::MeshData::drawCell(const std::array<uint8_t,3>& mult)
             }
         }
     }
+    glEnable(GL_CULL_FACE);
 }

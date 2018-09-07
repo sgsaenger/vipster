@@ -38,6 +38,7 @@ GUI::SelData::SelData(const GUI::GlobalData& glob, StepSelection *sel)
                           reinterpret_cast<const GLvoid*>(offsetof(SelProp, rad)));
     glVertexAttribDivisor(shader.vert_scale, 1);
     glEnableVertexAttribArray(shader.vert_scale);
+    glBindVertexArray(0);
 }
 
 GUI::SelData::~SelData()

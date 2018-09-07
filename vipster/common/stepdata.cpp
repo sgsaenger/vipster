@@ -21,6 +21,7 @@ GUI::StepData::StepData(const GlobalData& glob, StepProper* step)
     initBond();
     initCell();
     initSel();
+    glBindVertexArray(0);
 }
 
 void GUI::StepData::initSel()
