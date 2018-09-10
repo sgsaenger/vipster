@@ -12,7 +12,6 @@ using namespace Vipster;
     QSurfaceFormat format;
     format.setVersion(3,3);
     format.setSamples(8);
-    format.setAlphaBufferSize(8);
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
