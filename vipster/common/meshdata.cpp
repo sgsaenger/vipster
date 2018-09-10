@@ -5,10 +5,11 @@ using namespace Vipster;
 GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
                         Vec offset, ColVec color, StepProper* step)
     : Data{glob}, vertices{std::move(vertices)},
-      offset{offset}, step{step}
-{
-    update(color);
+      offset{offset}, color{color}, step{step}
+{}
 
+void GUI::MeshData::initGL()
+{
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
@@ -29,8 +30,7 @@ GUI::MeshData::MeshData(MeshData&& dat)
       vertices{std::move(dat.vertices)},
       offset{dat.offset},
       color{dat.color},
-      step{dat.step},
-      updated{dat.updated}
+      step{dat.step}
 {
     vao = dat.vao;
     dat.vao = 0;
@@ -52,10 +52,7 @@ void GUI::MeshData::update(std::vector<Vec>&& vert)
 
 void GUI::MeshData::update(const ColVec& col)
 {
-    color[0] = col[0];
-    color[1] = col[1];
-    color[2] = col[2];
-    color[3] = col[3];
+    color = col;
 }
 
 void GUI::MeshData::update(Vec off)
@@ -63,14 +60,11 @@ void GUI::MeshData::update(Vec off)
     offset = off;
 }
 
-void GUI::MeshData::syncToGPU()
+void GUI::MeshData::updateGL()
 {
-    if(updated){
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof(Vec)*vertices.size()),
-                     static_cast<const void*>(vertices.data()), GL_STREAM_DRAW);
-        updated = false;
-    }
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof(Vec)*vertices.size()),
+                 static_cast<const void*>(vertices.data()), GL_STREAM_DRAW);
 }
 
 void GUI::MeshData::drawMol()

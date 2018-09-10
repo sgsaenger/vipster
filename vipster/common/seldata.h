@@ -16,10 +16,8 @@ namespace GUI {
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
         StepSelection* curSel;
-        // CPU-State:
-        bool sel_changed{false};
         // GPU-State/Data:
-        GLuint vao, vbo;
+        GLuint vao{0}, vbo{0};
         // Shader:
         struct{
             GLuint program;
@@ -31,7 +29,8 @@ namespace GUI {
         ~SelData() override;
         void drawMol() override;
         void drawCell(const std::array<uint8_t,3> &mult) override;
-        void syncToGPU() override;
+        void updateGL() override;
+        void initGL() override;
         void update(StepSelection* sel);
     };
 }

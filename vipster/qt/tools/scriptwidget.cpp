@@ -97,7 +97,7 @@ void ScriptWidget::evalScript()
             change |= GuiChange::selection;
             std::string sel;
             std::getline(line_stream, sel);
-            master->curSel = &step.select(sel);
+            master->curSel->setFilter(sel);
         }else if(op == "def"){
             // Create group for script-operations
             line_stream >> name;
@@ -106,6 +106,7 @@ void ScriptWidget::evalScript()
             definitions.insert({name, step.select(sel)});
         }else{
             // Save OPs on stack
+            // TODO: multimap?
             change |= GuiChange::atoms;
             line_stream >> name;
             ScriptOp& action = operations[name];

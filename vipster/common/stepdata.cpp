@@ -13,6 +13,9 @@ GUI::StepData::StepData(const GlobalData& glob, StepProper* step)
       cell_vao{vaos[2]}, sel_vao{vaos[3]},
       atom_prop_vbo{vbos[0]}, atom_pos_vbo{vbos[1]},
       bond_vbo{vbos[2]}, cell_vbo{vbos[3]}
+{}
+
+void GUI::StepData::initGL()
 {
     glGenVertexArrays(4, vaos);
     glGenBuffers(4, vbos);
@@ -322,42 +325,37 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
 #endif
 }
 
-void GUI::StepData::syncToGPU()
+void GUI::StepData::updateGL()
 {
-    if (atoms_changed) {
-        glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
-        auto nat = atom_buffer.size();
-        if (nat != 0u) {
-            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
-                         static_cast<const void*>(curStep->getCoords().data()), GL_STREAM_DRAW);
-        } else {
-            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
-        }
-        glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
-        if (nat != 0u) {
-            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(AtomProp)),
-                         static_cast<void*>(atom_buffer.data()), GL_STREAM_DRAW);
-        } else {
-            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
-        }
-        atoms_changed = false;
+    //TODO: separate data-handling somehow
+    // ATOMS
+    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
+    auto nat = atom_buffer.size();
+    if (nat != 0u) {
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
+                     static_cast<const void*>(curStep->getCoords().data()), GL_STREAM_DRAW);
+    } else {
+        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
-    if (bonds_changed) {
-        glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
-        if (!bond_buffer.empty()) {
-            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bond_buffer.size()*sizeof(BondProp)),
-                         static_cast<void*>(bond_buffer.data()), GL_STREAM_DRAW);
-        } else {
-            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
-        }
-        bonds_changed = false;
+    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    if (nat != 0u) {
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(AtomProp)),
+                     static_cast<void*>(atom_buffer.data()), GL_STREAM_DRAW);
+    } else {
+        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
-    if (cell_changed) {
-        glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cell_buffer),
-                     static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
-        cell_changed = false;
+    // BONDS
+    glBindBuffer(GL_ARRAY_BUFFER, bond_vbo);
+    if (!bond_buffer.empty()) {
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bond_buffer.size()*sizeof(BondProp)),
+                     static_cast<void*>(bond_buffer.data()), GL_STREAM_DRAW);
+    } else {
+        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
+    // CELL
+    glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cell_buffer),
+                 static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
 }
 
 void GUI::StepData::update(StepProper* step, bool draw_bonds)
@@ -365,12 +363,12 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
     if (step!=nullptr) {
         curStep = step;
     }
+    updated = true;
 
 // CELL
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
     cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
                      cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
-    cell_changed = true;
     Mat tmp_mat;
     if(curStep->getFmt() == AtomFmt::Crystal){
         tmp_mat = curStep->getCellVec();
@@ -398,7 +396,6 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
     for (const PseEntry* at:curStep->getPseEntries()){
         atom_buffer.push_back({at->covr, at->col});
     }
-    atoms_changed = true;
 
 // BONDS
     if(draw_bonds){
@@ -482,11 +479,9 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }
         }
-        bonds_changed = true;
         bonds_drawn = true;
     }else if(bonds_drawn){
         bond_buffer.clear();
-        bonds_changed = true;
         bonds_drawn = false;
     }
 }

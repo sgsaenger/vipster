@@ -26,13 +26,12 @@ class StepData: public Data{
     std::array<float, 9>  cell_mat{};
     StepProper* curStep;
     // CPU-State:
-    bool atoms_changed{false}, cell_changed{false};
-    bool bonds_changed{false}, bonds_drawn{false};
+    bool bonds_drawn{false};
     // GPU-State:
-    GLuint vaos[4];
+    GLuint vaos[4] = {0,0,0,0};
     GLuint &atom_vao, &bond_vao, &cell_vao, &sel_vao;
     // GPU-Data:
-    GLuint vbos[4];
+    GLuint vbos[4] = {0,0,0,0};
     GLuint &atom_prop_vbo, &atom_pos_vbo;
     GLuint &bond_vbo, &cell_vbo;
     // Shader:
@@ -61,7 +60,8 @@ public:
     ~StepData() override;
     void drawMol() override;
     void drawCell(const std::array<uint8_t,3> &mult) override;
-    void syncToGPU() override;
+    void updateGL() override;
+    void initGL() override;
     void update(StepProper* step, bool draw_bonds);
     void drawSel(const std::array<uint8_t,3> &mult);
     bool hasCell() const noexcept;

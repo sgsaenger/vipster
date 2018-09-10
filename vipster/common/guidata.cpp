@@ -51,6 +51,18 @@ GUI::GlobalData::GlobalData(const std::string& header, const std::string& folder
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), static_cast<void*>(indices), GL_STATIC_DRAW);
 }
 
+void GUI::Data::syncToGPU()
+{
+    if(!initialized){
+        initGL();
+        initialized = true;
+    }
+    if(updated){
+        updateGL();
+        updated = false;
+    }
+}
+
 GLuint GUI::Data::loadShader(std::string vert, std::string frag)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);

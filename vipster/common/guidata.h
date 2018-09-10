@@ -36,8 +36,12 @@ public:
 
     virtual void drawMol() = 0;
     virtual void drawCell(const std::array<uint8_t,3> &mult) = 0;
-    virtual void syncToGPU() = 0;
+    virtual void updateGL() = 0;
+    virtual void initGL() = 0;
     GLuint loadShader(std::string vert, std::string frag);
+    void syncToGPU();
+
+    bool updated{true}, initialized{false};
 
     Data(const GlobalData&);
     virtual ~Data() = default;

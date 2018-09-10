@@ -260,7 +260,7 @@ void MolWidget::on_atomTable_itemSelectionChanged()
     for(const auto& i: idx){
         filter.indices.insert(static_cast<size_t>(i.row()));
     }
-    master->curSel = &curStep->select(filter);
+    master->curSel->setFilter(filter);
     triggerUpdate(GuiChange::selection);
 }
 

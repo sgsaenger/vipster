@@ -5,6 +5,9 @@ using namespace Vipster;
 
 GUI::SelData::SelData(const GUI::GlobalData& glob, StepSelection *sel)
     : Data{glob}, curSel{sel}
+{}
+
+void GUI::SelData::initGL()
 {
     shader.program = loadShader("/selection.vert", "/selection.frag");
     READATTRIB(shader, vertex);
@@ -89,17 +92,14 @@ void GUI::SelData::drawCell(const std::array<uint8_t, 3> &mult)
     }
 }
 
-void GUI::SelData::syncToGPU()
+void GUI::SelData::updateGL()
 {
-    if (sel_changed) {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        if(!sel_buffer.empty()){
-            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sel_buffer.size()*sizeof(SelProp)),
-                         static_cast<const void*>(sel_buffer.data()), GL_STREAM_DRAW);
-        }else{
-            glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
-        }
-        sel_changed = false;
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    if(!sel_buffer.empty()){
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sel_buffer.size()*sizeof(SelProp)),
+                     static_cast<const void*>(sel_buffer.data()), GL_STREAM_DRAW);
+    }else{
+        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
 }
 
@@ -113,7 +113,7 @@ void GUI::SelData::update(StepSelection* sel)
     for(const Atom& at:*curSel){
         sel_buffer.push_back({at.coord, at.pse->covr*1.3f});
     }
-    sel_changed = true;
+    updated = true;
 
     Mat tmp_mat;
     if(curSel->getFmt() == AtomFmt::Crystal){

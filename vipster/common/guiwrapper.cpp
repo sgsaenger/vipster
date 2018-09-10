@@ -67,28 +67,31 @@ void GuiWrapper::draw(void)
 
 void GuiWrapper::drawSel()
 {
-    mainStep->syncToGPU();
+    mainStep->updateGL();
     mainStep->drawSel(mult);
 }
 
-void GuiWrapper::updateMainStep(StepProper* step, bool draw_bonds)
+void GuiWrapper::setMainStep(StepProper* step, StepSelection* sel, bool draw_bonds)
 {
-    if(step){
-        curStep = step;
-        extraData.clear();
-    }
+    curStep = step;
+    curSel = sel;
+    extraData.clear();
     if(mainStep){
         mainStep->update(step, draw_bonds);
     }
 }
 
-void GuiWrapper::updateSelection(StepSelection* sel)
+void GuiWrapper::updateMainStep(bool draw_bonds)
 {
-    if(sel != nullptr){
-        curSel = sel;
+    if(mainStep){
+        mainStep->update(curStep, draw_bonds);
     }
+}
+
+void GuiWrapper::updateMainSelection()
+{
     if(selection){
-        selection->update(sel);
+        selection->update(curSel);
     }
 }
 

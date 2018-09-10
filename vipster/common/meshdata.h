@@ -11,9 +11,8 @@ class MeshData: public Data{
     // CPU-Data:
     std::vector<Vec> vertices;
     Vec offset;
-    std::array<GLuint, 4> color;
+    std::array<uint8_t, 4> color;
     StepProper* step;
-    bool updated{true};
     // GPU-State/Data:
     GLuint vao{0}, vbo{0};
     // Shader:
@@ -29,7 +28,8 @@ public:
     ~MeshData() override;
     void drawMol() override;
     void drawCell(const std::array<uint8_t,3> &mult) override;
-    void syncToGPU(void) override;
+    void updateGL(void) override;
+    void initGL(void) override;
     void update(std::vector<Vec>&& vertices);
     void update(Vec offset);
     void update(const ColVec& color);

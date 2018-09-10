@@ -31,11 +31,15 @@ void GLWidget::triggerUpdate(uint8_t change){
 
 void GLWidget::updateWidget(uint8_t change)
 {
-    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
-        updateMainStep(master->curStep, settings.showBonds.val);
-    }
-    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings | GuiChange::selection)){
-        updateSelection(master->curSel);
+    if((change & guiStepChanged) == guiStepChanged ){
+        setMainStep(master->curStep, master->curSel, settings.showBonds.val);
+    }else{
+        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
+            updateMainStep(settings.showBonds.val);
+            updateMainSelection();
+        }else if(change & GuiChange::selection){
+            updateMainSelection();
+        }
     }
     update();
 }
@@ -209,7 +213,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            *curSel = curStep->select(SelectionFilter{});
+            curSel->setFilter(SelectionFilter{});
             triggerUpdate(GuiChange::selection);
         }
         break;
@@ -298,7 +302,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
             auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
-            *curSel = curStep->select(filter);
+            curSel->setFilter(filter);
             triggerUpdate(GuiChange::selection);
         }
         break;
