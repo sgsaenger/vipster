@@ -22,7 +22,7 @@ qbs config profiles.$QT.baseProfile $TOOLCHAIN
 where `$QT` and `$TOOLCHAIN` shall be the auto-generated names of the setup-X calls.
 
 
-## Qt-Frontend (Win, Lin)
+## Qt-Frontend
 
 This frontend works on every pc with OpenGL3.3 capabilities (MacOS X postponed due to unknown problems).
 To build the frontend, run:
@@ -52,7 +52,7 @@ qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:release project.prefix
 Adding `project.winInstall:true` or `project.macInstall:true` will create the respective installers.
 
 
-## Python-bindings (Win, Lin, MacOS X)
+## Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.
 For Windows and MacOS, however, no installation is performed,

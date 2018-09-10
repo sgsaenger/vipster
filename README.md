@@ -63,11 +63,11 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 - PWScf output
 - Lammps data
 - Lammps dump
-- ~~Empire-xyz~~
-- ~~Gaussian cube~~
+- Empire-xyz
+- CPMD input
+- Gaussian cube
+- XSF/AXSF
 - ~~AIMALL output~~
-- ~~CPMD input~~
 - ~~Mol2~~
-- ~~XSF/AXSF~~
 - ~~Turbomole~~
 
