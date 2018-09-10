@@ -28,7 +28,9 @@ GUI::MeshData::MeshData(MeshData&& dat)
     : Data{dat.global},
       vertices{std::move(dat.vertices)},
       offset{dat.offset},
-      step{dat.step}
+      color{dat.color},
+      step{dat.step},
+      updated{dat.updated}
 {
     vao = dat.vao;
     dat.vao = 0;

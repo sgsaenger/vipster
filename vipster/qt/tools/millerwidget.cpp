@@ -26,9 +26,9 @@ std::vector<Vec> mkVertices(const StepProper* step,
         if(hasK){
             if(hasL){
                 // hkl
-                float tmpX = 1/hkl[0];
-                float tmpY = 1/hkl[1];
-                float tmpZ = 1/hkl[2];
+                float tmpX = 1.f/hkl[0];
+                float tmpY = 1.f/hkl[1];
+                float tmpZ = 1.f/hkl[2];
                 for(int h=0; h<hkl[0]; ++h){
                     for(int k=0; k<hkl[1]; ++k){
                         for(int l=0; l<hkl[2]; ++l){
@@ -43,8 +43,8 @@ std::vector<Vec> mkVertices(const StepProper* step,
                 }
             }else{
                 // hk0
-                float tmpX = 1/hkl[0];
-                float tmpY = 1/hkl[1];
+                float tmpX = 1.f/hkl[0];
+                float tmpY = 1.f/hkl[1];
                 for(int h=0; h<hkl[0]; ++h){
                     for(int k=0; k<hkl[1]; ++k){
                         vert.push_back({(h+1)*tmpX, k*tmpY, 0});
@@ -58,8 +58,8 @@ std::vector<Vec> mkVertices(const StepProper* step,
             }
         }else if(hasL){
             // h0l
-            float tmpX = 1/hkl[0];
-            float tmpZ = 1/hkl[2];
+            float tmpX = 1.f/hkl[0];
+            float tmpZ = 1.f/hkl[2];
             for(int h=0; h<hkl[0]; ++h){
                 for(int l=0; l<hkl[2]; ++l){
                     vert.push_back({(h+1)*tmpX, 0, l*tmpZ});
@@ -72,7 +72,7 @@ std::vector<Vec> mkVertices(const StepProper* step,
             }
         }else{
             // h00
-            float tmpX = 1/hkl[0];
+            float tmpX = 1.f/hkl[0];
             for(int i=1; i <= hkl[0]; ++i){
                 vert.push_back({tmpX, 0, 0});
                 vert.push_back({tmpX, 1, 0});
@@ -85,8 +85,8 @@ std::vector<Vec> mkVertices(const StepProper* step,
     }else if(hasK){
         if(hasL){
             // 0lk
-            float tmpY = 1/hkl[1];
-            float tmpZ = 1/hkl[2];
+            float tmpY = 1.f/hkl[1];
+            float tmpZ = 1.f/hkl[2];
             for(int k=0; k<hkl[1]; ++k){
                 for(int l=0; l<hkl[2]; ++l){
                     vert.push_back({0, (k+1)*tmpY, l*tmpZ});
@@ -99,7 +99,7 @@ std::vector<Vec> mkVertices(const StepProper* step,
             }
         }else{
             // 0l0
-            float tmpY = 1/hkl[1];
+            float tmpY = 1.f/hkl[1];
             for(int i=1; i <= hkl[1]; ++i){
                 vert.push_back({0, tmpY, 0});
                 vert.push_back({1, tmpY, 0});
@@ -111,7 +111,7 @@ std::vector<Vec> mkVertices(const StepProper* step,
         }
     }else if(hasL){
         // 00k
-        float tmpZ = 1/hkl[2];
+        float tmpZ = 1.f/hkl[2];
         for(int i=1; i <= hkl[2]; ++i){
             vert.push_back({0, 0, tmpZ});
             vert.push_back({1, 0, tmpZ});
