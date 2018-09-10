@@ -28,7 +28,7 @@ private:
     Ui::MillerWidget *ui;
     struct MillerPlane{
         bool display;
-        std::array<uint8_t, 3> hkl;
+        std::array<int8_t, 3> hkl;
         Vipster::Vec offset;
         Vipster::GUI::MeshData gpu_data;
     };
