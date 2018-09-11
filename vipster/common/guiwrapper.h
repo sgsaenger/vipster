@@ -64,9 +64,9 @@ public:
     std::array<uint8_t,3> mult{{1,1,1}};
     StepProper* curStep{nullptr};
     StepSelection* curSel{nullptr};
-    std::unique_ptr<GUI::StepData> mainStep{nullptr};
-    std::unique_ptr<GUI::SelData> selection{nullptr};
-    std::unique_ptr<GUI::GlobalData> globals{nullptr};
+    GUI::GlobalData globals;
+    GUI::StepData mainStep{globals, nullptr};
+    GUI::SelData selection{globals, nullptr};
     std::set<GUI::Data*> extraData{};
 private:
     void updateViewUBO(void);

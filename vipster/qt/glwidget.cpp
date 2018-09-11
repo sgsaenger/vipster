@@ -47,7 +47,6 @@ void GLWidget::updateWidget(uint8_t change)
 void GLWidget::initializeGL()
 {
     makeCurrent();
-    initializeOpenGLFunctions();
     initGL("# version 330\n", ":/shaders");
 }
 

@@ -31,10 +31,15 @@ std::string readShader(const std::string &filePath)
 }
 #endif
 
-GUI::GlobalData::GlobalData(const std::string& header, const std::string& folder)
+GUI::GlobalData::GlobalData()
     : sphere_vbo{buffers[0]}, cylinder_vbo{buffers[1]},
-      cell_ibo{buffers[2]}, header{header}, folder{folder}
+      cell_ibo{buffers[2]}
+{}
+
+void GUI::GlobalData::initGL(const std::string& h, const std::string& f)
 {
+    header = h;
+    folder = f;
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
 #endif
@@ -54,6 +59,9 @@ GUI::GlobalData::GlobalData(const std::string& header, const std::string& folder
 void GUI::Data::syncToGPU()
 {
     if(!initialized){
+    #ifndef __EMSCRIPTEN__
+        initializeOpenGLFunctions();
+    #endif
         initGL();
         initialized = true;
     }
@@ -125,8 +133,4 @@ GLuint GUI::Data::loadShader(std::string vert, std::string frag)
 
 GUI::Data::Data(const GlobalData& glob)
     : global{glob}
-{
-#ifndef __EMSCRIPTEN__
-    initializeOpenGLFunctions();
-#endif
-}
+{}

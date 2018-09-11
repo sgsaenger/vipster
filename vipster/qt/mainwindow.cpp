@@ -26,11 +26,11 @@ MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent)
     path{path}
 {
     ui->setupUi(this);
+    setupUI();
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
     for(auto&& mol: d){
         newData(std::move(mol));
     }
-    setupUI();
 }
 
 MainWindow::~MainWindow()
@@ -292,7 +292,7 @@ void MainWindow::delExtraData(GUI::Data* dat)
 
 const GUI::GlobalData& MainWindow::getGLGlobals()
 {
-    return *ui->openGLWidget->globals;
+    return ui->openGLWidget->globals;
 }
 
 void MainWindow::makeGLCurrent()

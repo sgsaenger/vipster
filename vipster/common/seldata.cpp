@@ -46,8 +46,10 @@ void GUI::SelData::initGL()
 
 GUI::SelData::~SelData()
 {
-    glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao);
+    if(initialized){
+        glDeleteBuffers(1, &vbo);
+        glDeleteVertexArrays(1, &vao);
+    }
 }
 
 void GUI::SelData::drawMol()
@@ -105,9 +107,7 @@ void GUI::SelData::updateGL()
 
 void GUI::SelData::update(StepSelection* sel)
 {
-    if(sel != nullptr){
-        curSel = sel;
-    }
+    curSel = sel;
     sel_buffer.clear();
     sel_buffer.reserve(curSel->getNat());
     for(const Atom& at:*curSel){

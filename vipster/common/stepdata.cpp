@@ -193,8 +193,10 @@ void GUI::StepData::initCell()
 
 GUI::StepData::~StepData()
 {
-    glDeleteBuffers(4, vbos);
-    glDeleteVertexArrays(4, vaos);
+    if(initialized){
+        glDeleteBuffers(4, vbos);
+        glDeleteVertexArrays(4, vaos);
+    }
 }
 
 void GUI::StepData::drawMol()
@@ -360,9 +362,7 @@ void GUI::StepData::updateGL()
 
 void GUI::StepData::update(StepProper* step, bool draw_bonds)
 {
-    if (step!=nullptr) {
-        curStep = step;
-    }
+    curStep = step;
     updated = true;
 
 // CELL

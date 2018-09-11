@@ -6,21 +6,18 @@ using namespace Vipster;
 
 void GuiWrapper::initGL(const std::string& header, const std::string& folder)
 {
-    glClearColor(1,1,1,1);
 #ifndef __EMSCRIPTEN__
+    initializeOpenGLFunctions();
     glEnable(GL_MULTISAMPLE);
 #endif
+    glClearColor(1,1,1,1);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // init globals
-    globals = std::make_unique<GUI::GlobalData>(header, folder);
-
-    // init main Step
-    mainStep = std::make_unique<GUI::StepData>(*globals, curStep);
-    selection = std::make_unique<GUI::SelData>(*globals, curSel);
+    globals.initGL(header, folder);
 
     // init ViewUBO
     glGenBuffers(1, &view_ubo);
@@ -45,20 +42,20 @@ void GuiWrapper::draw(void)
     if(rMatChanged||pMatChanged||vMatChanged){
         updateViewUBO();
     }
-    mainStep->syncToGPU();
-    selection->syncToGPU();
+    mainStep.syncToGPU();
+    selection.syncToGPU();
     for(const auto& i: extraData){
         i->syncToGPU();
     }
-    if(mainStep->hasCell()){
-        mainStep->drawCell(mult);
-        selection->drawCell(mult);
+    if(mainStep.hasCell()){
+        mainStep.drawCell(mult);
+        selection.drawCell(mult);
         for(const auto& i: extraData){
             i->drawCell(mult);
         }
     }else{
-        mainStep->drawMol();
-        selection->drawMol();
+        mainStep.drawMol();
+        selection.drawMol();
         for(const auto& i: extraData){
             i->drawMol();
         }
@@ -67,8 +64,8 @@ void GuiWrapper::draw(void)
 
 void GuiWrapper::drawSel()
 {
-    mainStep->updateGL();
-    mainStep->drawSel(mult);
+    mainStep.updateGL();
+    mainStep.drawSel(mult);
 }
 
 void GuiWrapper::setMainStep(StepProper* step, StepSelection* sel, bool draw_bonds)
@@ -76,23 +73,17 @@ void GuiWrapper::setMainStep(StepProper* step, StepSelection* sel, bool draw_bon
     curStep = step;
     curSel = sel;
     extraData.clear();
-    if(mainStep){
-        mainStep->update(step, draw_bonds);
-    }
+    mainStep.update(step, draw_bonds);
 }
 
 void GuiWrapper::updateMainStep(bool draw_bonds)
 {
-    if(mainStep){
-        mainStep->update(curStep, draw_bonds);
-    }
+    mainStep.update(curStep, draw_bonds);
 }
 
 void GuiWrapper::updateMainSelection()
 {
-    if(selection){
-        selection->update(curSel);
-    }
+    selection.update(curSel);
 }
 
 void GuiWrapper::addExtraData(GUI::Data* dat)

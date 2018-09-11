@@ -18,7 +18,8 @@ struct GlobalData{
 #else
 struct GlobalData: protected QOpenGLFunctions_3_3_Core{
 #endif
-    GlobalData(const std::string& header, const std::string& folder);
+    GlobalData();
+    void initGL(const std::string& header, const std::string& folder);
     GLuint buffers[3]{0,0,0};
     GLuint& sphere_vbo, &cylinder_vbo;
     GLuint& cell_ibo;

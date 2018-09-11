@@ -40,8 +40,10 @@ GUI::MeshData::MeshData(MeshData&& dat)
 
 GUI::MeshData::~MeshData()
 {
-    glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao);
+    if(initialized){
+        glDeleteBuffers(1, &vbo);
+        glDeleteVertexArrays(1, &vao);
+    }
 }
 
 void GUI::MeshData::update(std::vector<Vec>&& vert)
