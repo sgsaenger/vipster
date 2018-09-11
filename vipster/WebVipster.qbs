@@ -1,6 +1,6 @@
 import qbs 1.0
 
-Product{
+Product {
     name: "WebVipster"
     targetName: "vipster.js"
     condition: project.webBuild
@@ -63,6 +63,8 @@ Product{
         "--embed-file", sourceDirectory.concat("/resources/bond.vert@bond.vert"),
         "--embed-file", sourceDirectory.concat("/resources/cell.vert@cell.vert"),
         "--embed-file", sourceDirectory.concat("/resources/select.vert@select.vert"),
+        "--embed-file", sourceDirectory.concat("/resources/selection.frag@selection.frag"),
+        "--embed-file", sourceDirectory.concat("/resources/selection.vert@selection.vert"),
         "--embed-file", sourceDirectory.concat("/../libvipster/default.json@vipster.json")
     ]
 }

@@ -3,6 +3,7 @@
 
 #include "step.h"
 #include "kpoints.h"
+#include <list>
 
 namespace Vipster {
 
@@ -15,11 +16,10 @@ public:
 
     StepProper& newStep(const StepProper& step);
     StepProper& newStep(StepProper&& step={});
-    std::vector<StepProper>& newSteps(const std::vector<StepProper> &v);
     StepProper& getStep(size_t idx);
     const StepProper& getStep(size_t idx) const;
-    std::vector<StepProper>& getSteps(void) noexcept;
-    const std::vector<StepProper>& getSteps(void) const noexcept;
+    std::list<StepProper>& getSteps(void) noexcept;
+    const std::list<StepProper>& getSteps(void) const noexcept;
     size_t getNstep(void) const noexcept;
 
     void setName(const std::string &s);
@@ -29,7 +29,7 @@ public:
     KPoints& getKPoints(void) noexcept;
     const KPoints& getKPoints(void) const noexcept;
 private:
-    std::vector<StepProper> steps;
+    std::list<StepProper> steps;
     std::string name;
     KPoints kpoints;
 };

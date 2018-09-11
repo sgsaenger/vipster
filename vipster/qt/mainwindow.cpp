@@ -16,8 +16,8 @@ MainWindow::MainWindow(QString path, QWidget *parent):
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol();
     setupUI();
+    newMol();
 }
 
 MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent):
@@ -129,7 +129,7 @@ AtomFmt MainWindow::getFmt()
 
 void MainWindow::setMol(int i)
 {
-    curMol = &molecules.at(static_cast<size_t>(i));
+    curMol = &*std::next(molecules.begin(), i);
     int steps = static_cast<int>(curMol->getNstep());
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
@@ -276,6 +276,28 @@ const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseParam>>>& MainWindow:
 const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseConfig>>>& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
+}
+
+void MainWindow::addExtraData(GUI::Data* dat)
+{
+    ui->openGLWidget->addExtraData(dat);
+    updateWidgets(GuiChange::extra);
+}
+
+void MainWindow::delExtraData(GUI::Data* dat)
+{
+    ui->openGLWidget->delExtraData(dat);
+    updateWidgets(GuiChange::extra);
+}
+
+const GUI::GlobalData& MainWindow::getGLGlobals()
+{
+    return *ui->openGLWidget->globals;
+}
+
+void MainWindow::makeGLCurrent()
+{
+    ui->openGLWidget->makeCurrent();
 }
 
 void MainWindow::loadParam()

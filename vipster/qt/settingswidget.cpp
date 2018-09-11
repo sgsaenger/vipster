@@ -25,6 +25,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(settings.antialias);
     registerSetting(settings.perspective);
     registerSetting(settings.selCol);
+    registerSetting(settings.milCol);
     registerSetting(settings.PWPP);
     registerSetting(settings.CPPP);
     registerSetting(settings.CPNL);

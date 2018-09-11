@@ -8,6 +8,10 @@
         <file>cell.vert</file>
         <file>select.vert</file>
         <file>select.frag</file>
+        <file>selection.frag</file>
+        <file>selection.vert</file>
+        <file>miller.frag</file>
+        <file>miller.vert</file>
     </qresource>
     <qresource prefix="/images">
         <file>vipster.png</file>

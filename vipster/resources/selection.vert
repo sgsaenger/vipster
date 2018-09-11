@@ -9,16 +9,22 @@ layout(std140, row_major) uniform viewMat{
 uniform mat3 pos_scale;
 uniform float scale_fac;
 uniform vec3 offset;
+uniform vec4 color;
 
-out vec4 color_input;
+out vec3 normals_cameraspace;
+out vec3 EyeDirection_cameraspace;
+out vec3 LightDirection_cameraspace;
+out vec4 MaterialDiffuseColor;
 
 void main(void)
 {
     gl_Position = vpMatrix * vec4(vertex * vert_scale * scale_fac +
                                   position * pos_scale +
                                   offset, 1);
-    float red=float(gl_InstanceID&0xFF)/255.;
-    float green=float((gl_InstanceID&0xFF00)>>8)/255.f;
-    float blue=float((gl_InstanceID&0xFF0000)>>16)/255.f;
-    color_input = vec4(red,green,blue,1);
+    vec3 vertex_cameraspace = (rMatrix * vec4(vertex, 1)).xyz;
+    EyeDirection_cameraspace = vec3(0,0,25) - vertex_cameraspace;
+    LightDirection_cameraspace = vec3(10,10,10) + EyeDirection_cameraspace;
+    normals_cameraspace = (rMatrix * vec4(vertex, 0)).xyz;
+    MaterialDiffuseColor = color;
 }
+

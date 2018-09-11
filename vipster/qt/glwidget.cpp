@@ -2,8 +2,6 @@
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
 #include <QApplication>
-#include "../common/atom_model.h"
-#include "../common/bond_model.h"
 
 using namespace Vipster;
 
@@ -33,27 +31,28 @@ void GLWidget::triggerUpdate(uint8_t change){
 
 void GLWidget::updateWidget(uint8_t change)
 {
-    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
-        setStep(master->curStep);
+    if((change & guiStepChanged) == guiStepChanged ){
+        setMainStep(master->curStep, master->curSel, settings.showBonds.val);
+    }else{
+        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
+            updateMainStep(settings.showBonds.val);
+            updateMainSelection();
+        }else if(change & GuiChange::selection){
+            updateMainSelection();
+        }
     }
-    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings | GuiChange::selection)){
-        setSel(master->curSel);
-    }
+    update();
 }
 
 void GLWidget::initializeGL()
 {
+    makeCurrent();
     initializeOpenGLFunctions();
-    initShaders("# version 330\n", ":/shaders");
-    initGL();
+    initGL("# version 330\n", ":/shaders");
 }
 
 void GLWidget::paintGL()
 {
-    updateViewUBO();
-    //
-    updateVBOs();
-    //
     draw();
 }
 
@@ -86,18 +85,6 @@ void GLWidget::setMult(int i)
     if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = static_cast<uint8_t>(i); }
     else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = static_cast<uint8_t>(i); }
     else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = static_cast<uint8_t>(i); }
-    update();
-}
-
-void GLWidget::setStep(StepProper* step)
-{
-    updateStepBuffers(step, settings.showBonds.val);
-    update();
-}
-
-void GLWidget::setSel(StepSelection* sel)
-{
-    updateSelBuffers(sel);
     update();
 }
 
@@ -226,7 +213,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            *curSel = curStep->select(SelectionFilter{});
+            curSel->setFilter(SelectionFilter{});
             triggerUpdate(GuiChange::selection);
         }
         break;
@@ -315,7 +302,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
             auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
-            *curSel = curStep->select(filter);
+            curSel->setFilter(filter);
             triggerUpdate(GuiChange::selection);
         }
         break;
