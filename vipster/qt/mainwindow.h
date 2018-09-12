@@ -37,7 +37,6 @@ public:
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
     const Vipster::GUI::GlobalData& getGLGlobals();
-    void makeGLCurrent();
 
 public slots:
     void setMol(int i);

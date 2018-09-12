@@ -131,6 +131,6 @@ GLuint GUI::Data::loadShader(std::string vert, std::string frag)
     return program;
 }
 
-GUI::Data::Data(const GlobalData& glob)
-    : global{glob}
+GUI::Data::Data(const GlobalData& glob, bool updated, bool initialized)
+    : global{glob}, updated{updated}, initialized{initialized}
 {}

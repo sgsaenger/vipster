@@ -42,9 +42,9 @@ public:
     GLuint loadShader(std::string vert, std::string frag);
     void syncToGPU();
 
-    bool updated{true}, initialized{false};
+    bool updated, initialized;
 
-    Data(const GlobalData&);
+    Data(const GlobalData&, bool updated=true, bool initialized=false);
     virtual ~Data() = default;
     Data(const Data&) = delete;
     Data(Data&&) = delete;

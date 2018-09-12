@@ -65,10 +65,13 @@
         <property name="text">
          <string>Show/Hide</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="1" column="0" colspan="5">
-       <widget class="QSlider" name="horizontalSlider">
+       <widget class="QSlider" name="surfSlider">
         <property name="maximum">
          <number>1000</number>
         </property>
@@ -129,7 +132,11 @@
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QLineEdit" name="surfVal"/>
+       <widget class="QLineEdit" name="surfVal">
+        <property name="text">
+         <string>0.0</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -199,6 +206,9 @@
        <widget class="QPushButton" name="sliceBut">
         <property name="text">
          <string>Show/Hide</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

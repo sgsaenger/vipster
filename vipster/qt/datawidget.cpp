@@ -4,7 +4,7 @@
 using namespace Vipster;
 
 DataBase::DataBase(QWidget *parent)
-    :QWidget{parent}
+    :BaseWidget{parent}
 {}
 
 DataWidget::DataWidget(QWidget *parent) :

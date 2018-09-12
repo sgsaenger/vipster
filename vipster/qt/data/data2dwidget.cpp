@@ -21,24 +21,37 @@ void Data2DWidget::setData(const BaseData* data)
     if(!curData){
         throw Error("Invalid dataset");
     }
-    //TODO: toggle display?
-    auto dir = ui->sliceDir->currentIndex();
-    ui->sliceVal->setValue(0);
-    ui->sliceVal->setMaximum(curData->extent[dir]);
+    QSignalBlocker block{this};
+    auto pos = planes.find(curData);
+    if(pos != planes.end()){
+        curPlane = &pos->second;
+        ui->sliceBut->setChecked(curPlane->display);
+    }else{
+        curPlane = nullptr;
+        ui->sliceBut->setChecked(false);
+    }
 }
 
-void Data2DWidget::on_sliceBut_clicked()
+void Data2DWidget::on_sliceBut_toggled(bool checked)
 {
-    //TODO: toggle display
-}
-
-void Data2DWidget::on_sliceDir_currentIndexChanged(int index)
-{
-    ui->sliceVal->setValue(0);
-    ui->sliceVal->setMaximum(curData->extent[index]);
-}
-
-void Data2DWidget::on_sliceVal_valueChanged(int)
-{
-    //TODO: create new plane, or toggle creation
+    if(curPlane){
+        curPlane->display = checked;
+        if(checked){
+            master->addExtraData(&curPlane->gpu_data);
+        }else{
+            master->delExtraData(&curPlane->gpu_data);
+        }
+    }else if(checked){
+        auto tmp = planes.emplace(curData, DatPlane{
+            true,
+            GUI::MeshData{master->getGLGlobals(),
+                          {{{{0,0,0}},{{0,1,0}},{{1,1,0}},
+                            {{0,0,0}},{{1,0,0}},{{1,1,0}}}},
+                          curData->origin,
+                          curData->cell,
+                          settings.milCol.val}
+            });
+        curPlane = &tmp.first->second;
+        master->addExtraData(&curPlane->gpu_data);
+    }
 }

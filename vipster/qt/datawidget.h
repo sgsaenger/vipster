@@ -8,7 +8,7 @@ namespace Ui {
 class DataWidget;
 }
 
-class DataBase: public QWidget
+class DataBase: public BaseWidget
 {
     Q_OBJECT
 

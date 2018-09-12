@@ -15,8 +15,7 @@ MillerWidget::~MillerWidget()
     delete ui;
 }
 
-std::vector<Vec> mkVertices(const StepProper* step,
-                            const std::array<int8_t,3>& hkl)
+std::vector<Vec> mkVertices(const std::array<int8_t,3>& hkl)
 {
     std::vector<Vec> vert{};
     auto hasH = hkl[0] != 0;
@@ -119,10 +118,6 @@ std::vector<Vec> mkVertices(const StepProper* step,
             }
         }
     }
-    auto cv = step->getCellVec() * step->getCellDim(CdmFmt::Bohr);
-    for(auto& v: vert){
-        v = v*cv;
-    }
     return vert;
 }
 
@@ -140,9 +135,8 @@ void MillerWidget::updateWidget(uint8_t change)
             ui->xOff->setValue(static_cast<double>(curPlane->offset[0]));
             ui->yOff->setValue(static_cast<double>(curPlane->offset[1]));
             ui->zOff->setValue(static_cast<double>(curPlane->offset[2]));
-            active = curPlane->display;
-            ui->pushButton->setChecked(active);
-            if(active){
+            ui->pushButton->setChecked(curPlane->display);
+            if(curPlane->display){
                 master->addExtraData(&curPlane->gpu_data);
             }
         }else{
@@ -154,12 +148,21 @@ void MillerWidget::updateWidget(uint8_t change)
             ui->yOff->setValue(0.);
             ui->zOff->setValue(0.);
             ui->pushButton->setChecked(false);
-            active = false;
         }
-    }else if(change & (GuiChange::cell|GuiChange::settings)){
-        if(curPlane){
+    }else if(curPlane){
+        if(change & GuiChange::settings){
             curPlane->gpu_data.update(settings.milCol.val);
-            curPlane->gpu_data.update(mkVertices(curStep, curPlane->hkl));
+        }
+        if(change & GuiChange::cell){
+            curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
+            if(curPlane->display != curStep->hasCell()){
+                curPlane->display = curStep->hasCell();
+                if(curPlane->display){
+                    master->addExtraData(&curPlane->gpu_data);
+                }else{
+                    master->delExtraData(&curPlane->gpu_data);
+                }
+            }
         }
     }
 }
@@ -177,10 +180,10 @@ void MillerWidget::updateIndex(int idx)
         }else{
             throw Error("Unknown sender for HKL-plane index");
         }
-        curPlane->gpu_data.update(mkVertices(curStep, curPlane->hkl));
-    }
-    if(active){
-        triggerUpdate(GuiChange::extra);
+        curPlane->gpu_data.update(mkVertices(curPlane->hkl));
+        if(curPlane->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
@@ -198,18 +201,22 @@ void MillerWidget::updateOffset(double off)
             throw Error("Unknown sender for HKL-plane offset");
         }
         curPlane->gpu_data.update(curPlane->offset);
-    }
-    if(active){
-        triggerUpdate(GuiChange::extra);
+        if(curPlane->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
 void MillerWidget::on_pushButton_toggled(bool checked)
 {
-    active = checked;
     if(curPlane){
         curPlane->display = checked;
-    }else if(active && (curPlane == nullptr)){
+        if(checked){
+            master->addExtraData(&curPlane->gpu_data);
+        }else{
+            master->delExtraData(&curPlane->gpu_data);
+        }
+    }else if(checked){
         auto hkl = std::array<int8_t,3>{
             static_cast<int8_t>(ui->hSel->value()),
             static_cast<int8_t>(ui->kSel->value()),
@@ -217,21 +224,17 @@ void MillerWidget::on_pushButton_toggled(bool checked)
         auto off = Vec{static_cast<float>(ui->xOff->value()),
                        static_cast<float>(ui->yOff->value()),
                        static_cast<float>(ui->zOff->value())};
-        master->makeGLCurrent();
         auto tmp = planes.emplace(curStep, MillerPlane{
-              true, hkl, off,
+              curStep->hasCell(), hkl, off,
               GUI::MeshData{master->getGLGlobals(),
-                            mkVertices(curStep, hkl),
-                            off, settings.milCol.val, curStep}
+                            mkVertices(hkl),
+                            off,
+                            curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
+                            settings.milCol.val}
               });
         curPlane = &tmp.first->second;
-    }
-    if(!curPlane){
-        return;
-    }
-    if(active){
-        master->addExtraData(&curPlane->gpu_data);
-    }else{
-        master->delExtraData(&curPlane->gpu_data);
+        if(curPlane->display){
+            master->addExtraData(&curPlane->gpu_data);
+        }
     }
 }

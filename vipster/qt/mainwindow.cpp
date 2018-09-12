@@ -295,11 +295,6 @@ const GUI::GlobalData& MainWindow::getGLGlobals()
     return ui->openGLWidget->globals;
 }
 
-void MainWindow::makeGLCurrent()
-{
-    ui->openGLWidget->makeCurrent();
-}
-
 void MainWindow::loadParam()
 {
     auto* s = static_cast<QAction*>(sender());
