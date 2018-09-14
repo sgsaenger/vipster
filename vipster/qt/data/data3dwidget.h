@@ -43,7 +43,7 @@ private:
 
     struct IsoSurf{
         bool display, plusmin;
-        double isoval;
+        float isoval;
         Vipster::GUI::MeshData gpu_data;
     };
     IsoSurf* curSurf{nullptr};
