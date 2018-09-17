@@ -29,42 +29,46 @@ class StepData: public Data{
     bool bonds_drawn{false};
     // GPU-State:
     GLuint vaos[4] = {0,0,0,0};
-    GLuint &atom_vao, &bond_vao, &cell_vao, &sel_vao;
+    GLuint &atom_vao{vaos[0]}, &bond_vao{vaos[1]};
+    GLuint &cell_vao{vaos[2]}, &sel_vao{vaos[3]};
     // GPU-Data:
     GLuint vbos[4] = {0,0,0,0};
-    GLuint &atom_prop_vbo, &atom_pos_vbo;
-    GLuint &bond_vbo, &cell_vbo;
+    GLuint &atom_prop_vbo{vbos[0]}, &atom_pos_vbo{vbos[1]};
+    GLuint &bond_vbo{vbos[2]}, &cell_vbo{vbos[3]};
     // Shader:
-    struct{
+    static struct{
         GLuint program;
         GLuint vertex, position, vert_scale, color;
         GLint offset, pos_scale, scale_fac;
+        bool initialized{false};
     } atom_shader;
-    struct{
+    static struct{
         GLuint program;
         GLuint vertex, position, color1, color2, mMatrix, pbc_crit;
         GLint offset, pos_scale, pbc_cell, mult;
+        bool initialized{false};
     } bond_shader;
-    struct{
+    static struct{
         GLuint program;
         GLuint vertex;
         GLint offset;
+        bool initialized{false};
     } cell_shader;
-    struct{
+    static struct{
         GLuint program;
         GLuint vertex, position, vert_scale;
         GLint offset, pos_scale, scale_fac;
+        bool initialized{false};
     } sel_shader;
 public:
     StepData(const GlobalData& glob, StepProper* step=nullptr);
     ~StepData() override;
-    void drawMol() override;
-    void drawCell(const std::array<uint8_t,3> &mult) override;
+    void drawMol(const Vec &off) override;
+    void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) override;
     void updateGL() override;
     void initGL() override;
     void update(StepProper* step, bool draw_bonds);
     void drawSel(const std::array<uint8_t,3> &mult);
-    bool hasCell() const noexcept;
 private:
     void initAtom();
     void initBond();

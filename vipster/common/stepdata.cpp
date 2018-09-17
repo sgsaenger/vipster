@@ -6,13 +6,14 @@
 
 using namespace Vipster;
 
+decltype(GUI::StepData::atom_shader) GUI::StepData::atom_shader;
+decltype(GUI::StepData::bond_shader) GUI::StepData::bond_shader;
+decltype(GUI::StepData::cell_shader) GUI::StepData::cell_shader;
+decltype(GUI::StepData::sel_shader) GUI::StepData::sel_shader;
+
 GUI::StepData::StepData(const GlobalData& glob, StepProper* step)
     : Data{glob},
-      curStep{step},
-      atom_vao{vaos[0]}, bond_vao{vaos[1]},
-      cell_vao{vaos[2]}, sel_vao{vaos[3]},
-      atom_prop_vbo{vbos[0]}, atom_pos_vbo{vbos[1]},
-      bond_vbo{vbos[2]}, cell_vbo{vbos[3]}
+      curStep{step}
 {}
 
 void GUI::StepData::initGL()
@@ -29,13 +30,16 @@ void GUI::StepData::initGL()
 
 void GUI::StepData::initSel()
 {
-    sel_shader.program = loadShader("/select.vert", "/select.frag");
-    READATTRIB(sel_shader, vertex);
-    READATTRIB(sel_shader, position);
-    READATTRIB(sel_shader, vert_scale);
-    READUNIFORM(sel_shader, pos_scale);
-    READUNIFORM(sel_shader, scale_fac);
-    READUNIFORM(sel_shader, offset);
+    if(!sel_shader.initialized){
+        sel_shader.program = loadShader("/select.vert", "/select.frag");
+        READATTRIB(sel_shader, vertex);
+        READATTRIB(sel_shader, position);
+        READATTRIB(sel_shader, vert_scale);
+        READUNIFORM(sel_shader, pos_scale);
+        READUNIFORM(sel_shader, scale_fac);
+        READUNIFORM(sel_shader, offset);
+        sel_shader.initialized = true;
+    }
 
     glBindVertexArray(sel_vao);
 
@@ -64,14 +68,17 @@ void GUI::StepData::initSel()
 
 void GUI::StepData::initAtom()
 {
-    atom_shader.program = loadShader("/atom.vert", "/atom.frag");
-    READATTRIB(atom_shader, vertex);
-    READATTRIB(atom_shader, position);
-    READATTRIB(atom_shader, vert_scale);
-    READATTRIB(atom_shader, color);
-    READUNIFORM(atom_shader, offset);
-    READUNIFORM(atom_shader, pos_scale);
-    READUNIFORM(atom_shader, scale_fac);
+    if(!atom_shader.initialized){
+        atom_shader.program = loadShader("/atom.vert", "/atom.frag");
+        READATTRIB(atom_shader, vertex);
+        READATTRIB(atom_shader, position);
+        READATTRIB(atom_shader, vert_scale);
+        READATTRIB(atom_shader, color);
+        READUNIFORM(atom_shader, offset);
+        READUNIFORM(atom_shader, pos_scale);
+        READUNIFORM(atom_shader, scale_fac);
+        atom_shader.initialized = true;
+    }
 
     glBindVertexArray(atom_vao);
 
@@ -106,17 +113,20 @@ void GUI::StepData::initAtom()
 
 void GUI::StepData::initBond()
 {
-    bond_shader.program = loadShader("/bond.vert", "/bond.frag");
-    READATTRIB(bond_shader, vertex);
-    READATTRIB(bond_shader, position);
-    READATTRIB(bond_shader, color1);
-    READATTRIB(bond_shader, color2);
-    READATTRIB(bond_shader, mMatrix);
-    READATTRIB(bond_shader, pbc_crit);
-    READUNIFORM(bond_shader, offset);
-    READUNIFORM(bond_shader, pos_scale);
-    READUNIFORM(bond_shader, pbc_cell);
-    READUNIFORM(bond_shader, mult);
+    if(!bond_shader.initialized){
+        bond_shader.program = loadShader("/bond.vert", "/bond.frag");
+        READATTRIB(bond_shader, vertex);
+        READATTRIB(bond_shader, position);
+        READATTRIB(bond_shader, color1);
+        READATTRIB(bond_shader, color2);
+        READATTRIB(bond_shader, mMatrix);
+        READATTRIB(bond_shader, pbc_crit);
+        READUNIFORM(bond_shader, offset);
+        READUNIFORM(bond_shader, pos_scale);
+        READUNIFORM(bond_shader, pbc_cell);
+        READUNIFORM(bond_shader, mult);
+        bond_shader.initialized = true;
+    }
 
     glBindVertexArray(bond_vao);
 
@@ -180,9 +190,12 @@ void GUI::StepData::initBond()
 
 void GUI::StepData::initCell()
 {
-    cell_shader.program = loadShader("/cell.vert", "/cell.frag");
-    READATTRIB(cell_shader, vertex);
-    READUNIFORM(cell_shader, offset);
+    if(!cell_shader.initialized){
+        cell_shader.program = loadShader("/cell.vert", "/cell.frag");
+        READATTRIB(cell_shader, vertex);
+        READUNIFORM(cell_shader, offset);
+        cell_shader.initialized = true;
+    }
 
     glBindVertexArray(cell_vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
@@ -199,14 +212,13 @@ GUI::StepData::~StepData()
     }
 }
 
-void GUI::StepData::drawMol()
+void GUI::StepData::drawMol(const Vec &off)
 {
-    Vec center = -curStep->getCenter(CdmFmt::Bohr);
 // ATOMS
     glBindVertexArray(atom_vao);
     glUseProgram(atom_shader.program);
     glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
-    glUniform3fv(atom_shader.offset, 1, center.data());
+    glUniform3fv(atom_shader.offset, 1, off.data());
     glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
     glDrawArraysInstanced(GL_TRIANGLES, 0,
                           atom_model_npoly,
@@ -217,7 +229,7 @@ void GUI::StepData::drawMol()
         glUseProgram(bond_shader.program);
         glUniform3ui(bond_shader.mult, 1, 1, 1);
         glUniformMatrix3fv(bond_shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform3fv(bond_shader.offset, 1, center.data());
+        glUniform3fv(bond_shader.offset, 1, off.data());
         glUniform3ui(bond_shader.pbc_cell, 0, 0, 0);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               bond_model_npoly,
@@ -225,14 +237,10 @@ void GUI::StepData::drawMol()
     }
 }
 
-void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
+void GUI::StepData::drawCell(const Vec &off, const std::array<uint8_t,3>& mult)
 {
-    Vec off;
-    Vec center = -curStep->getCenter(CdmFmt::Bohr);
+    Vec tmp;
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
-    center -= (mult[0]-1)*cv[0]/2.;
-    center -= (mult[1]-1)*cv[1]/2.;
-    center -= (mult[2]-1)*cv[2]/2.;
     // atoms
     glBindVertexArray(atom_vao);
     glUseProgram(atom_shader.program);
@@ -241,8 +249,8 @@ void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
-                off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                glUniform3fv(atom_shader.offset, 1, off.data());
+                tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
+                glUniform3fv(atom_shader.offset, 1, tmp.data());
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       atom_model_npoly,
                                       static_cast<GLsizei>(atom_buffer.size()));
@@ -258,8 +266,8 @@ void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
         for(GLuint x=0;x<mult[0];++x){
             for(GLuint y=0;y<mult[1];++y){
                 for(GLuint z=0;z<mult[2];++z){
-                    off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(bond_shader.offset, 1, off.data());
+                    tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
+                    glUniform3fv(bond_shader.offset, 1, tmp.data());
                     glUniform3ui(bond_shader.pbc_cell, x, y, z);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           bond_model_npoly,
@@ -275,8 +283,8 @@ void GUI::StepData::drawCell(const std::array<uint8_t,3>& mult)
         for(int x=0;x<mult[0];++x){
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
-                    off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(cell_shader.offset, 1, off.data());
+                    tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
+                    glUniform3fv(cell_shader.offset, 1, tmp.data());
                     glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
                 }
             }
@@ -484,9 +492,4 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
         bond_buffer.clear();
         bonds_drawn = false;
     }
-}
-
-bool GUI::StepData::hasCell() const noexcept
-{
-    return (curStep)?curStep->hasCell():false;
 }

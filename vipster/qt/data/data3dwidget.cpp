@@ -69,18 +69,18 @@ void Data3DWidget::setData(const BaseData* data)
     }
 }
 
-std::vector<Vec> mkSlice(size_t dir)
+std::vector<Vec> mkSlice(size_t dir, float off)
 {
     switch(dir){
     case 0:
-        return {{{{0,0,0}},{{0,1,0}},{{0,1,1}},
-                 {{0,0,0}},{{0,0,1}},{{0,1,1}}}};
+        return {{{{off,0,0}},{{off,1,0}},{{off,1,1}},
+                 {{off,0,0}},{{off,0,1}},{{off,1,1}}}};
     case 1:
-        return {{{{0,0,0}},{{1,0,0}},{{1,0,1}},
-                 {{0,0,0}},{{0,0,1}},{{1,0,1}}}};
+        return {{{{0,off,0}},{{1,off,0}},{{1,off,1}},
+                 {{0,off,0}},{{0,off,1}},{{1,off,1}}}};
     case 2:
-        return {{{{0,0,0}},{{0,1,0}},{{1,1,0}},
-                 {{0,0,0}},{{1,0,0}},{{1,1,0}}}};
+        return {{{{0,0,off}},{{0,1,off}},{{1,1,off}},
+                 {{0,0,off}},{{1,0,off}},{{1,1,off}}}};
     default:
         throw Error("Invalid direction for data slicing");
     }
@@ -94,7 +94,6 @@ void Data3DWidget::on_sliceDir_currentIndexChanged(int index)
     ui->sliceVal->setMaximum(static_cast<int>(curData->extent[_index]));
     if(curSlice){
         curSlice->dir = _index;
-        curSlice->gpu_data.update(mkSlice(_index));
         auto newPos = static_cast<int>(std::min(curSlice->pos, curData->extent[_index]));
         ui->sliceVal->setValue(newPos);
         //trigger manually
@@ -107,7 +106,7 @@ void Data3DWidget::on_sliceVal_valueChanged(int pos)
     if(curSlice){
         curSlice->pos = static_cast<size_t>(pos);
         auto off = static_cast<float>(pos)/curData->extent[curSlice->dir];
-        curSlice->gpu_data.update(curData->origin + off*curData->cell[curSlice->dir]);
+        curSlice->gpu_data.update(mkSlice(static_cast<size_t>(ui->sliceDir->currentIndex()), off));
         triggerUpdate(GuiChange::extra);
     }
 }
@@ -128,8 +127,8 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
         auto tmp = slices.emplace(curData, DatSlice{
             true, dir, pos,
             GUI::MeshData{master->getGLGlobals(),
-                          mkSlice(dir),
-                          curData->origin + off*curData->cell[dir],
+                          mkSlice(dir, off),
+                          curData->origin,
                           curData->cell,
                           settings.milCol.val}
             });

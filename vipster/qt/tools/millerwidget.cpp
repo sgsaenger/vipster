@@ -15,7 +15,7 @@ MillerWidget::~MillerWidget()
     delete ui;
 }
 
-std::vector<Vec> mkVertices(const std::array<int8_t,3>& hkl)
+std::vector<Vec> mkVertices(const std::array<int8_t,3>& hkl, Vec off)
 {
     std::vector<Vec> vert{};
     auto hasH = hkl[0] != 0;
@@ -118,6 +118,9 @@ std::vector<Vec> mkVertices(const std::array<int8_t,3>& hkl)
             }
         }
     }
+    for(auto& v: vert){
+        v += off;
+    }
     return vert;
 }
 
@@ -155,6 +158,7 @@ void MillerWidget::updateWidget(uint8_t change)
         }
         if(change & GuiChange::cell){
             curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
+            curPlane->gpu_data.update(mkVertices(curPlane->hkl, curPlane->offset));
             if(curPlane->display != curStep->hasCell()){
                 curPlane->display = curStep->hasCell();
                 if(curPlane->display){
@@ -180,7 +184,7 @@ void MillerWidget::updateIndex(int idx)
         }else{
             throw Error("Unknown sender for HKL-plane index");
         }
-        curPlane->gpu_data.update(mkVertices(curPlane->hkl));
+        curPlane->gpu_data.update(mkVertices(curPlane->hkl, curPlane->offset));
         if(curPlane->display){
             triggerUpdate(GuiChange::extra);
         }
@@ -200,7 +204,7 @@ void MillerWidget::updateOffset(double off)
         }else{
             throw Error("Unknown sender for HKL-plane offset");
         }
-        curPlane->gpu_data.update(curPlane->offset);
+        curPlane->gpu_data.update(mkVertices(curPlane->hkl, curPlane->offset));
         if(curPlane->display){
             triggerUpdate(GuiChange::extra);
         }
@@ -227,8 +231,8 @@ void MillerWidget::on_pushButton_toggled(bool checked)
         auto tmp = planes.emplace(curStep, MillerPlane{
               curStep->hasCell(), hkl, off,
               GUI::MeshData{master->getGLGlobals(),
-                            mkVertices(hkl),
-                            off,
+                            mkVertices(hkl, off),
+                            Vec{},
                             curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
                             settings.milCol.val}
               });
