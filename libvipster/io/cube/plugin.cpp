@@ -68,7 +68,6 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
         lstream >> nmo;
         std::vector<size_t> mo_indices(nmo);
         std::vector<DataGrid3D_f> grids;
-        std::vector<DataGrid3D_f::iterator> iters;
         for(size_t i=0; i<nmo; ++i){
             lstream >> mo_indices[i];
             grids.emplace_back(extent);
@@ -76,13 +75,13 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
             grids.back().cell = cell;
             grids.back().name = name + " MO: " + std::to_string(mo_indices[i]);
         }
-        for(auto& grid: grids){
-            iters.emplace_back(grid.begin());
-        }
-        for(size_t i=0; i<grids.back().size; ++i){
-            for(auto& it: iters){
-                file >> *it;
-                it++;
+        for(size_t i=0; i<extent[0]; ++i){
+            for(size_t j=0; j<extent[1]; ++j){
+                for(size_t k=0; k<extent[2]; ++k){
+                    for(auto& grid: grids){
+                        file >> grid(i,j,k);
+                    }
+                }
             }
         }
         for(auto&& grid: grids){
@@ -94,8 +93,12 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
             grid.origin = origin;
             grid.cell = cell;
             grid.name = name;
-            for(auto& p: grid){
-                file >> p;
+            for(size_t i=0; i<extent[0]; ++i){
+                for(size_t j=0; j<extent[1]; ++j){
+                    for(size_t k=0; k<extent[2]; ++k){
+                        file >> grid(i,j,k);
+                    }
+                }
             }
             d.data.emplace_back(std::make_unique<const DataGrid3D_f>(std::move(grid)));
         }else if(nval==4){
@@ -107,13 +110,14 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
             gradient.origin = origin;
             gradient.cell = cell;
             gradient.name = name + " Gradient";
-            auto s_it = density.begin();
-            auto v_it = gradient.begin();
-            while(s_it != density.end()){
-                auto& v = *v_it;
-                file >> *s_it >> v[0] >> v[1] >> v[2];
-                s_it++;
-                v_it++;
+            for(size_t i=0; i<extent[0]; ++i){
+                for(size_t j=0; j<extent[1]; ++j){
+                    for(size_t k=0; k<extent[2]; ++k){
+                        file >> density(i,j,k);
+                        auto& tmp = gradient(i,j,k);
+                        file >> tmp[0] >> tmp[1] >> tmp[2];
+                    }
+                }
             }
             d.data.emplace_back(std::make_unique<const DataGrid3D_f>(std::move(density)));
             d.data.emplace_back(std::make_unique<const DataGrid3D_v>(std::move(gradient)));
