@@ -4,6 +4,7 @@
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
 #include <string>
+#include <vector>
 #else
 #include <QOpenGLFunctions_3_3_Core>
 #endif
