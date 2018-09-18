@@ -127,6 +127,11 @@ std::vector<Vec> mkVertices(const std::array<int8_t,3>& hkl, Vec off)
 void MillerWidget::updateWidget(uint8_t change)
 {
     if((change & guiStepChanged) == guiStepChanged){
+        //disable previous plane if necessary
+        if(curPlane && curPlane->display){
+            master->delExtraData(&curPlane->gpu_data);
+        }
+        // set new pointers
         curStep = master->curStep;
         auto pos = planes.find(curStep);
         QSignalBlocker block{this};

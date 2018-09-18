@@ -78,7 +78,6 @@ void GuiWrapper::setMainStep(StepProper* step, StepSelection* sel, bool draw_bon
 {
     curStep = step;
     curSel = sel;
-    extraData.clear();
     mainStep.update(step, draw_bonds);
 }
 
