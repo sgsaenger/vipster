@@ -45,8 +45,8 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
         auto tmp = planes.emplace(curData, DatPlane{
             true,
             GUI::MeshData{master->getGLGlobals(),
-                          {{{{0,0,0}},{{0,1,0}},{{1,1,0}},
-                            {{0,0,0}},{{1,0,0}},{{1,1,0}}}},
+                          {{{0,0,0},{}},{{0,1,0},{}},{{1,1,0},{}},
+                           {{0,0,0},{}},{{1,0,0},{}},{{1,1,0},{}}},
                           curData->origin,
                           curData->cell,
                           settings.milCol.val}

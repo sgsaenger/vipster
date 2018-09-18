@@ -139,7 +139,7 @@
     "Default CPMD PP-suffix": ".uspp736.pbe BINARY",
     "Default CPMD Nonlocality": "LMAX=F",
     "Selection color": [0, 0, 80, 80],
-    "Miller-plane color": [80, 0, 0, 80]
+    "Miller-plane color": [130, 0, 0, 80]
   },
   "Parameters": {
     "PWI": [

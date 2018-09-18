@@ -5,9 +5,9 @@ using namespace Vipster;
 decltype (GUI::MeshData::mesh_shader) GUI::MeshData::mesh_shader;
 decltype (GUI::MeshData::cell_shader) GUI::MeshData::cell_shader;
 
-GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
+GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Face>&& faces,
                         Vec offset, Mat cell, ColVec color)
-    : Data{glob}, vertices{std::move(vertices)},
+    : Data{glob}, faces{std::move(faces)},
       offset{offset}, cell{cell}, color{color}
 {
     cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],
@@ -19,7 +19,7 @@ GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
 
 GUI::MeshData::MeshData(MeshData&& dat)
     : Data{dat.global, dat.updated, dat.initialized},
-      vertices{std::move(dat.vertices)},
+      faces{std::move(dat.faces)},
       offset{dat.offset},
       cell{dat.cell},
       cell_buffer{dat.cell_buffer},
@@ -47,6 +47,7 @@ void GUI::MeshData::initMesh()
     if(!mesh_shader.initialized){
         mesh_shader.program = loadShader("/mesh.vert", "/mesh.frag");
         READATTRIB(mesh_shader, vertex);
+        READATTRIB(mesh_shader, normal);
         READUNIFORM(mesh_shader, pos_scale);
         READUNIFORM(mesh_shader, offset);
         READUNIFORM(mesh_shader, color);
@@ -55,8 +56,12 @@ void GUI::MeshData::initMesh()
 
     glBindVertexArray(mesh_vao);
     glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
-    glVertexAttribPointer(mesh_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(mesh_shader.vertex, 3, GL_FLOAT, GL_FALSE, sizeof(Face),
+                          reinterpret_cast<const GLvoid*>(offsetof(Face, pos)));
     glEnableVertexAttribArray(mesh_shader.vertex);
+    glVertexAttribPointer(mesh_shader.normal, 3, GL_FLOAT, GL_FALSE, sizeof(Face),
+                          reinterpret_cast<const GLvoid*>(offsetof(Face, norm)));
+    glEnableVertexAttribArray(mesh_shader.normal);
     glBindVertexArray(0);
 }
 
@@ -85,9 +90,9 @@ GUI::MeshData::~MeshData()
     }
 }
 
-void GUI::MeshData::update(std::vector<Vec>&& vert)
+void GUI::MeshData::update(std::vector<Face>&& face)
 {
-    vertices = std::move(vert);
+    faces = std::move(face);
     updated = true;
 }
 
@@ -110,8 +115,8 @@ void GUI::MeshData::update(Mat c)
 void GUI::MeshData::updateGL()
 {
     glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof(Vec)*vertices.size()),
-                 static_cast<const void*>(vertices.data()), GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sizeof(Face)*faces.size()),
+                 static_cast<const void*>(faces.data()), GL_STREAM_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cell_buffer),
                  static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
@@ -129,7 +134,7 @@ void GUI::MeshData::drawMol(const Vec& off)
                               color[2]/255.f,
                               color[3]/255.f);
     glUniform3fv(mesh_shader.offset, 1, tmp.data());
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(faces.size()));
     glEnable(GL_CULL_FACE);
 }
 
@@ -137,9 +142,6 @@ void GUI::MeshData::drawCell(const Vec& off, const std::array<uint8_t,3>& mult)
 {
     glDisable(GL_CULL_FACE);
     Vec tmp = offset + off;
-//    tmp -= (mult[0]-1)*cell[0]/2.;
-//    tmp -= (mult[1]-1)*cell[1]/2.;
-//    tmp -= (mult[2]-1)*cell[2]/2.;
     Vec tmp2;
     glBindVertexArray(mesh_vao);
     glUseProgram(mesh_shader.program);
@@ -153,7 +155,7 @@ void GUI::MeshData::drawCell(const Vec& off, const std::array<uint8_t,3>& mult)
             for(int z=0;z<mult[2];++z){
                 tmp2 = (tmp + x*cell[0] + y*cell[1] + z*cell[2]);
                 glUniform3fv(mesh_shader.offset, 1, tmp2.data());
-                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
+                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(faces.size()));
             }
         }
     }

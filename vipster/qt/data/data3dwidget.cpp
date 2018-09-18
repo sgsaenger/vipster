@@ -69,18 +69,18 @@ void Data3DWidget::setData(const BaseData* data)
     }
 }
 
-std::vector<Vec> mkSlice(size_t dir, float off)
+std::vector<GUI::MeshData::Face> mkSlice(size_t dir, float off)
 {
     switch(dir){
     case 0:
-        return {{{{off,0,0}},{{off,1,0}},{{off,1,1}},
-                 {{off,0,0}},{{off,0,1}},{{off,1,1}}}};
+        return {{{off,0,0},{}},{{off,1,0},{}},{{off,1,1},{}},
+                {{off,0,0},{}},{{off,0,1},{}},{{off,1,1},{}}};
     case 1:
-        return {{{{0,off,0}},{{1,off,0}},{{1,off,1}},
-                 {{0,off,0}},{{0,off,1}},{{1,off,1}}}};
+        return {{{0,off,0},{}},{{1,off,0},{}},{{1,off,1},{}},
+                {{0,off,0},{}},{{0,off,1},{}},{{1,off,1},{}}};
     case 2:
-        return {{{{0,0,off}},{{0,1,off}},{{1,1,off}},
-                 {{0,0,off}},{{1,0,off}},{{1,1,off}}}};
+        return {{{0,0,off},{}},{{1,0,off},{}},{{1,1,off},{}},
+                {{0,0,off},{}},{{0,1,off},{}},{{1,1,off},{}}};
     default:
         throw Error("Invalid direction for data slicing");
     }
@@ -506,28 +506,26 @@ DataGrid3D_v makeGradient(const DataGrid3D_f& dat)
                 }else{
                     kl = k-1; kh = k+1;
                 }
-                grad[i*y*z + j*z + k] = {dat(il, j , k ) - dat(ih, j , k ),
-                                         dat(i , jl, k ) - dat(i , jh, k ),
-                                         dat(i , j , kl) - dat(i , j , kh)};
+                grad(i, j, k) = {
+                        dat(il, j , k ) - dat(ih, j , k ),
+                        dat(i , jl, k ) - dat(i , jh, k ),
+                        dat(i , j , kl) - dat(i , j , kh),
+                };
             }
         }
     }
     return grad;
 }
 
-std::vector<Vec> marchingCubes(const DataGrid3D_f& dat, float isoval)
+std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float isoval)
 {
-    std::vector<Vec> vec;
+    std::vector<GUI::MeshData::Face> faces;
     auto grad = makeGradient(dat);
     auto x = dat.extent[0];
     auto y = dat.extent[1];
     auto z = dat.extent[2];
     float normdir = isoval<0 ? -1.f: 1.f;
 
-    struct face{
-        Vec pos, norm;
-    };
-    std::vector<face> faces;
     faces.reserve(4*x*y*z);
 
     // tmp-variables for interpolation-macro
@@ -573,18 +571,15 @@ std::vector<Vec> marchingCubes(const DataGrid3D_f& dat, float isoval)
                 for(int l=0; l<nvert_lut[vert_sum]; ++l){
                     for(const auto& vert: tri_lut[vert_sum][l]){
                         faces.push_back({Vec{(i + tmppos[vert][0])/x,
-                                               (j + tmppos[vert][1])/y,
-                                               (k + tmppos[vert][2])/z},
+                                             (j + tmppos[vert][1])/y,
+                                             (k + tmppos[vert][2])/z},
                                          normdir * tmpnorm[vert]});
                     }
                 }
             }
         }
     }
-    for(const auto& face: faces){
-        vec.push_back(face.pos);
-    }
-    return vec;
+    return faces;
 }
 
 void Data3DWidget::on_surfToggle_stateChanged(int state)
@@ -641,7 +636,7 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                           marchingCubes(*curData, isoval),
                           curData->origin,
                           curData->cell,
-                          ColVec{0,255,0,155}}
+                          ColVec{0,255,0,255}}
             });
         curSurf = &tmp.first->second;
         master->addExtraData(&curSurf->gpu_data);

@@ -8,8 +8,13 @@ namespace Vipster{
 namespace GUI {
 
 class MeshData: public Data{
+public:
+    struct Face{
+        Vec pos, norm;
+    };
+private:
     // CPU-Data:
-    std::vector<Vec> vertices;
+    std::vector<Face> faces;
     Vec offset;
     Mat cell;
     std::array<Vec, 8> cell_buffer;
@@ -23,7 +28,7 @@ class MeshData: public Data{
     // Shader:
     static struct{
         GLuint program;
-        GLuint vertex;
+        GLuint vertex, normal;
         GLint pos_scale, offset, color;
         bool initialized{false};
     } mesh_shader;
@@ -34,7 +39,7 @@ class MeshData: public Data{
         bool initialized{false};
     } cell_shader;
 public:
-    MeshData(const GlobalData& glob, std::vector<Vec>&& vertices,
+    MeshData(const GlobalData& glob, std::vector<Face>&& faces,
              Vec offset, Vipster::Mat cell, ColVec color);
     MeshData(MeshData&& dat);
     ~MeshData() override;
@@ -44,7 +49,7 @@ public:
     void initGL(void) override;
     void initMesh();
     void initCell();
-    void update(std::vector<Vec>&& vertices);
+    void update(std::vector<Face>&& faces);
     void update(const ColVec& color);
     void update(Vipster::Mat cell);
 };

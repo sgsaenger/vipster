@@ -99,13 +99,13 @@ GLuint GUI::Data::loadShader(std::string vert, std::string frag)
     glCompileShader(fragShader);
     glGetShaderiv(fragShader, GL_COMPILE_STATUS, &gl_ok);
     if(gl_ok == 0){
-        std::cout << "Shader does not compile" << std::endl;
+        std::cout << "Fragment-Shader does not compile" << std::endl;
         GLint infoLen = 0;
         glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &infoLen);
         std::vector<char> infoLog(infoLen > 1?static_cast<size_t>(infoLen):1);
         glGetShaderInfoLog(fragShader, infoLen, nullptr, &infoLog[0]);
         std::cout << &infoLog[0] << std::endl;
-        throw std::invalid_argument{"Shader does not compile"};
+        throw std::invalid_argument{"Fragment-Shader does not compile"};
     }
 
     GLuint program = glCreateProgram();

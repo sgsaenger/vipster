@@ -28,7 +28,7 @@ struct Settings{
     Setting<bool> antialias{"Antialiasing", true};
     Setting<bool> perspective{"Perspective projection", false};
     Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
-    Setting<ColVec> milCol{"Miller-plane color", ColVec{80, 0, 0, 80}};
+    Setting<ColVec> milCol{"Miller-plane color", ColVec{130, 0, 0, 80}};
     Setting<std::string> PWPP{"Default PWScf PP-suffix", ""};
     Setting<std::string> CPPP{"Default CPMD PP-suffix", ""};
     Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
