@@ -23,9 +23,12 @@ auto mkparser(){
         T grid{extent};
         grid.name = n;
         f >> grid.origin[0] >> grid.origin[1] >> grid.origin[2];
+        grid.origin *= invbohr;
         for(size_t i=0; i<N; ++i){
             f >> grid.cell[i][0] >> grid.cell[i][1] >> grid.cell[i][2];
         }
+        grid.cell *= invbohr;
+        grid.origin += Vec{0.5f/extent[0], 0.5f/extent[1], 0.5f/extent[2]}*grid.cell;
         for(auto& val: grid){
             f >> val;
         }

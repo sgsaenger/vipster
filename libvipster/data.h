@@ -49,11 +49,11 @@ struct DataGrid2D: public DataGrid<2, T>
 {
     T& operator()(size_t x, size_t y)
     {
-        return this->grid[this->extent[0]*x+y];
+        return (*this)[this->extent[0]*y+x];
     }
     T operator()(size_t x, size_t y)const
     {
-        return this->grid[this->extent[0]*x+y];
+        return (*this)[this->extent[0]*y+x];
     }
     using DataGrid<2, T>::DataGrid;
 };
@@ -63,15 +63,15 @@ struct DataGrid3D: public DataGrid<3, T>
 {
     T& operator()(size_t x, size_t y, size_t z)
     {
-        return this->grid[this->extent[1]*this->extent[0]*x +
-                          this->extent[1]*y +
-                          z];
+        return (*this)[this->extent[1]*this->extent[0]*z +
+                       this->extent[0]*y +
+                       x];
     }
     T operator()(size_t x, size_t y, size_t z)const
     {
-        return this->grid[this->extent[1]*this->extent[0]*x +
-                          this->extent[1]*y +
-                          z];
+        return (*this)[this->extent[1]*this->extent[0]*z +
+                       this->extent[0]*y +
+                       x];
     }
     using DataGrid<3, T>::DataGrid;
 };

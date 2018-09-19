@@ -15,10 +15,9 @@ MillerWidget::~MillerWidget()
     delete ui;
 }
 
-std::vector<Vec> mkVertices(const StepProper* step,
-                            const std::array<int8_t,3>& hkl)
+std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec off)
 {
-    std::vector<Vec> vert{};
+    std::vector<GUI::MeshData::Face> faces{};
     auto hasH = hkl[0] != 0;
     auto hasK = hkl[1] != 0;
     auto hasL = hkl[2] != 0;
@@ -32,12 +31,12 @@ std::vector<Vec> mkVertices(const StepProper* step,
                 for(int h=0; h < abs(hkl[0]); ++h){
                     for(int k=0; k < abs(hkl[1]); ++k){
                         for(int l=0; l < abs(hkl[2]); ++l){
-                            vert.push_back({(h+1)*valX, k*valY,     l*valZ});
-                            vert.push_back({h*valX,     (k+1)*valY, l*valZ});
-                            vert.push_back({h*valX,     k*valY,     (l+1)*valZ});
-                            vert.push_back({(h+1)*valX, (k+1)*valY, l*valZ});
-                            vert.push_back({h*valX,     (k+1)*valY, (l+1)*valZ});
-                            vert.push_back({(h+1)*valX, k*valY,     (l+1)*valZ});
+                            faces.push_back({{(h+1)*valX, k*valY,     l*valZ    },{},{}});
+                            faces.push_back({{h*valX,     (k+1)*valY, l*valZ    },{},{}});
+                            faces.push_back({{h*valX,     k*valY,     (l+1)*valZ},{},{}});
+                            faces.push_back({{(h+1)*valX, (k+1)*valY, l*valZ    },{},{}});
+                            faces.push_back({{h*valX,     (k+1)*valY, (l+1)*valZ},{},{}});
+                            faces.push_back({{(h+1)*valX, k*valY,     (l+1)*valZ},{},{}});
                         }
                     }
                 }
@@ -45,12 +44,12 @@ std::vector<Vec> mkVertices(const StepProper* step,
                 // hk0
                 for(int h=0; h < abs(hkl[0]); ++h){
                     for(int k=0; k < abs(hkl[1]); ++k){
-                        vert.push_back({(h+1)*valX, k*valY, 0});
-                        vert.push_back({(h+1)*valX, k*valY, 1});
-                        vert.push_back({h*valX, (k+1)*valY, 0});
-                        vert.push_back({(h+1)*valX, k*valY, 1});
-                        vert.push_back({h*valX, (k+1)*valY, 0});
-                        vert.push_back({h*valX, (k+1)*valY, 1});
+                        faces.push_back({{(h+1)*valX, k*valY, 0},{},{}});
+                        faces.push_back({{(h+1)*valX, k*valY, 1},{},{}});
+                        faces.push_back({{h*valX, (k+1)*valY, 0},{},{}});
+                        faces.push_back({{(h+1)*valX, k*valY, 1},{},{}});
+                        faces.push_back({{h*valX, (k+1)*valY, 0},{},{}});
+                        faces.push_back({{h*valX, (k+1)*valY, 1},{},{}});
                     }
                 }
             }
@@ -58,23 +57,23 @@ std::vector<Vec> mkVertices(const StepProper* step,
             // h0l
             for(int h=0; h < abs(hkl[0]); ++h){
                 for(int l=0; l < abs(hkl[2]); ++l){
-                    vert.push_back({(h+1)*valX, 0, l*valZ});
-                    vert.push_back({(h+1)*valX, 1, l*valZ});
-                    vert.push_back({h*valX, 0, (l+1)*valZ});
-                    vert.push_back({(h+1)*valX, 1, l*valZ});
-                    vert.push_back({h*valX, 0, (l+1)*valZ});
-                    vert.push_back({h*valX, 1, (l+1)*valZ});
+                    faces.push_back({{(h+1)*valX, 0, l*valZ},{},{}});
+                    faces.push_back({{(h+1)*valX, 1, l*valZ},{},{}});
+                    faces.push_back({{h*valX, 0, (l+1)*valZ},{},{}});
+                    faces.push_back({{(h+1)*valX, 1, l*valZ},{},{}});
+                    faces.push_back({{h*valX, 0, (l+1)*valZ},{},{}});
+                    faces.push_back({{h*valX, 1, (l+1)*valZ},{},{}});
                 }
             }
         }else{
             // h00
             for(int h=1; h <= abs(hkl[0]); ++h){
-                vert.push_back({h*valX, 0, 0});
-                vert.push_back({h*valX, 1, 0});
-                vert.push_back({h*valX, 0, 1});
-                vert.push_back({h*valX, 1, 0});
-                vert.push_back({h*valX, 0, 1});
-                vert.push_back({h*valX, 1, 1});
+                faces.push_back({{h*valX, 0, 0},{},{}});
+                faces.push_back({{h*valX, 1, 0},{},{}});
+                faces.push_back({{h*valX, 0, 1},{},{}});
+                faces.push_back({{h*valX, 1, 0},{},{}});
+                faces.push_back({{h*valX, 0, 1},{},{}});
+                faces.push_back({{h*valX, 1, 1},{},{}});
             }
         }
     }else if(hasK){
@@ -82,53 +81,57 @@ std::vector<Vec> mkVertices(const StepProper* step,
             // 0lk
             for(int k=0; k < abs(hkl[1]); ++k){
                 for(int l=0; l < abs(hkl[2]); ++l){
-                    vert.push_back({0, (k+1)*valY, l*valZ});
-                    vert.push_back({1, (k+1)*valY, l*valZ});
-                    vert.push_back({0, k*valY, (l+1)*valZ});
-                    vert.push_back({1, (k+1)*valY, l*valZ});
-                    vert.push_back({0, k*valY, (l+1)*valZ});
-                    vert.push_back({1, k*valY, (l+1)*valZ});
+                    faces.push_back({{0, (k+1)*valY, l*valZ},{},{}});
+                    faces.push_back({{1, (k+1)*valY, l*valZ},{},{}});
+                    faces.push_back({{0, k*valY, (l+1)*valZ},{},{}});
+                    faces.push_back({{1, (k+1)*valY, l*valZ},{},{}});
+                    faces.push_back({{0, k*valY, (l+1)*valZ},{},{}});
+                    faces.push_back({{1, k*valY, (l+1)*valZ},{},{}});
                 }
             }
         }else{
             // 0l0
             for(int k=1; k <= abs(hkl[1]); ++k){
-                vert.push_back({0, k*valY, 0});
-                vert.push_back({1, k*valY, 0});
-                vert.push_back({0, k*valY, 1});
-                vert.push_back({1, k*valY, 0});
-                vert.push_back({0, k*valY, 1});
-                vert.push_back({1, k*valY, 1});
+                faces.push_back({{0, k*valY, 0},{},{}});
+                faces.push_back({{1, k*valY, 0},{},{}});
+                faces.push_back({{0, k*valY, 1},{},{}});
+                faces.push_back({{1, k*valY, 0},{},{}});
+                faces.push_back({{0, k*valY, 1},{},{}});
+                faces.push_back({{1, k*valY, 1},{},{}});
             }
         }
     }else if(hasL){
         // 00k
         for(int l=1; l <= abs(hkl[2]); ++l){
-            vert.push_back({0, 0, l*valZ});
-            vert.push_back({1, 0, l*valZ});
-            vert.push_back({0, 1, l*valZ});
-            vert.push_back({1, 0, l*valZ});
-            vert.push_back({0, 1, l*valZ});
-            vert.push_back({1, 1, l*valZ});
+            faces.push_back({{0, 0, l*valZ},{},{}});
+            faces.push_back({{1, 0, l*valZ},{},{}});
+            faces.push_back({{0, 1, l*valZ},{},{}});
+            faces.push_back({{1, 0, l*valZ},{},{}});
+            faces.push_back({{0, 1, l*valZ},{},{}});
+            faces.push_back({{1, 1, l*valZ},{},{}});
         }
     }
     for(size_t i=0; i<3; ++i){
         if(hkl[i] < 0){
-            for(auto& v: vert){
-                v[i] += 1;
+            for(auto& f: faces){
+                f.pos[i] += 1;
             }
         }
     }
-    auto cv = step->getCellVec() * step->getCellDim(CdmFmt::Bohr);
-    for(auto& v: vert){
-        v = v*cv;
+    for(auto& f: faces){
+        f.pos += off;
     }
-    return vert;
+    return faces;
 }
 
 void MillerWidget::updateWidget(uint8_t change)
 {
     if((change & guiStepChanged) == guiStepChanged){
+        //disable previous plane if necessary
+        if(curPlane && curPlane->display){
+            master->delExtraData(&curPlane->gpu_data);
+        }
+        // set new pointers
         curStep = master->curStep;
         auto pos = planes.find(curStep);
         QSignalBlocker block{this};
@@ -140,9 +143,8 @@ void MillerWidget::updateWidget(uint8_t change)
             ui->xOff->setValue(static_cast<double>(curPlane->offset[0]));
             ui->yOff->setValue(static_cast<double>(curPlane->offset[1]));
             ui->zOff->setValue(static_cast<double>(curPlane->offset[2]));
-            active = curPlane->display;
-            ui->pushButton->setChecked(active);
-            if(active){
+            ui->pushButton->setChecked(curPlane->display);
+            if(curPlane->display){
                 master->addExtraData(&curPlane->gpu_data);
             }
         }else{
@@ -154,12 +156,22 @@ void MillerWidget::updateWidget(uint8_t change)
             ui->yOff->setValue(0.);
             ui->zOff->setValue(0.);
             ui->pushButton->setChecked(false);
-            active = false;
         }
-    }else if(change & (GuiChange::cell|GuiChange::settings)){
-        if(curPlane){
-            curPlane->gpu_data.update(settings.milCol.val);
-            curPlane->gpu_data.update(mkVertices(curStep, curPlane->hkl));
+    }else if(curPlane){
+        if(change & GuiChange::settings){
+            curPlane->gpu_data.update({{settings.milCol.val}, 1, 1});
+        }
+        if(change & GuiChange::cell){
+            curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
+            curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
+            if(curPlane->display != curStep->hasCell()){
+                curPlane->display = curStep->hasCell();
+                if(curPlane->display){
+                    master->addExtraData(&curPlane->gpu_data);
+                }else{
+                    master->delExtraData(&curPlane->gpu_data);
+                }
+            }
         }
     }
 }
@@ -177,10 +189,10 @@ void MillerWidget::updateIndex(int idx)
         }else{
             throw Error("Unknown sender for HKL-plane index");
         }
-        curPlane->gpu_data.update(mkVertices(curStep, curPlane->hkl));
-    }
-    if(active){
-        triggerUpdate(GuiChange::extra);
+        curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
+        if(curPlane->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
@@ -197,19 +209,23 @@ void MillerWidget::updateOffset(double off)
         }else{
             throw Error("Unknown sender for HKL-plane offset");
         }
-        curPlane->gpu_data.update(curPlane->offset);
-    }
-    if(active){
-        triggerUpdate(GuiChange::extra);
+        curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
+        if(curPlane->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
 void MillerWidget::on_pushButton_toggled(bool checked)
 {
-    active = checked;
     if(curPlane){
         curPlane->display = checked;
-    }else if(active && (curPlane == nullptr)){
+        if(checked){
+            master->addExtraData(&curPlane->gpu_data);
+        }else{
+            master->delExtraData(&curPlane->gpu_data);
+        }
+    }else if(checked){
         auto hkl = std::array<int8_t,3>{
             static_cast<int8_t>(ui->hSel->value()),
             static_cast<int8_t>(ui->kSel->value()),
@@ -217,21 +233,17 @@ void MillerWidget::on_pushButton_toggled(bool checked)
         auto off = Vec{static_cast<float>(ui->xOff->value()),
                        static_cast<float>(ui->yOff->value()),
                        static_cast<float>(ui->zOff->value())};
-        master->makeGLCurrent();
         auto tmp = planes.emplace(curStep, MillerPlane{
-              true, hkl, off,
+              curStep->hasCell(), hkl, off,
               GUI::MeshData{master->getGLGlobals(),
-                            mkVertices(curStep, hkl),
-                            off, settings.milCol.val, curStep}
+                            mkFaces(hkl, off),
+                            Vec{},
+                            curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
+                            {{settings.milCol.val}, 1, 1}}
               });
         curPlane = &tmp.first->second;
-    }
-    if(!curPlane){
-        return;
-    }
-    if(active){
-        master->addExtraData(&curPlane->gpu_data);
-    }else{
-        master->delExtraData(&curPlane->gpu_data);
+        if(curPlane->display){
+            master->addExtraData(&curPlane->gpu_data);
+        }
     }
 }

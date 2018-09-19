@@ -3,20 +3,25 @@
 
 using namespace Vipster;
 
+decltype(GUI::SelData::shader) GUI::SelData::shader;
+
 GUI::SelData::SelData(const GUI::GlobalData& glob, StepSelection *sel)
     : Data{glob}, curSel{sel}
 {}
 
 void GUI::SelData::initGL()
 {
-    shader.program = loadShader("/selection.vert", "/selection.frag");
-    READATTRIB(shader, vertex);
-    READATTRIB(shader, position);
-    READATTRIB(shader, vert_scale);
-    READUNIFORM(shader, color);
-    READUNIFORM(shader, offset);
-    READUNIFORM(shader, pos_scale);
-    READUNIFORM(shader, scale_fac);
+    if(!shader.initialized){
+        shader.program = loadShader("/selection.vert", "/selection.frag");
+        READATTRIB(shader, vertex);
+        READATTRIB(shader, position);
+        READATTRIB(shader, vert_scale);
+        READUNIFORM(shader, color);
+        READUNIFORM(shader, offset);
+        READUNIFORM(shader, pos_scale);
+        READUNIFORM(shader, scale_fac);
+        shader.initialized = true;
+    }
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -52,14 +57,13 @@ GUI::SelData::~SelData()
     }
 }
 
-void GUI::SelData::drawMol()
+void GUI::SelData::drawMol(const Vec &off)
 {
     if(sel_buffer.size()){
-        Vec center = -curSel->getCenter(CdmFmt::Bohr);
         glBindVertexArray(vao);
         glUseProgram(shader.program);
         glUniform1f(shader.scale_fac, settings.atRadFac.val);
-        glUniform3fv(shader.offset, 1, center.data());
+        glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
         glUniform4f(shader.color, settings.selCol.val[0]/255.f,
                                   settings.selCol.val[1]/255.f,
@@ -71,18 +75,13 @@ void GUI::SelData::drawMol()
     }
 }
 
-void GUI::SelData::drawCell(const std::array<uint8_t, 3> &mult)
+void GUI::SelData::drawCell(const Vec &off, const std::array<uint8_t, 3> &)
 {
     if(sel_buffer.size()){
-        Vec center = -curSel->getCenter(CdmFmt::Bohr);
-        Mat cv = curSel->getCellVec() * curSel->getCellDim(CdmFmt::Bohr);
-        center -= (mult[0]-1)*cv[0]/2.;
-        center -= (mult[1]-1)*cv[1]/2.;
-        center -= (mult[2]-1)*cv[2]/2.;
         glBindVertexArray(vao);
         glUseProgram(shader.program);
         glUniform1f(shader.scale_fac, settings.atRadFac.val);
-        glUniform3fv(shader.offset, 1, center.data());
+        glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
         glUniform4f(shader.color, settings.selCol.val[0]/255.f,
                                   settings.selCol.val[1]/255.f,

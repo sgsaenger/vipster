@@ -21,7 +21,7 @@ void CPConfig::setConfig(IO::BaseConfig *c)
     if(!curConfig){
         throw Error("Invalid configuration preset");
     }
-    QSignalBlocker{this};
+    QSignalBlocker block{this};
     ui->angstromSel->setCheckState(Qt::CheckState(curConfig->angstrom*2));
     ui->scaleSel->setCurrentIndex(static_cast<int>(curConfig->scale));
 }

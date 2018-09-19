@@ -4,6 +4,7 @@
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
 #include <string>
+#include <vector>
 #else
 #include <QOpenGLFunctions_3_3_Core>
 #endif
@@ -35,16 +36,16 @@ class Data: protected QOpenGLFunctions_3_3_Core
 public:
     const GlobalData& global;
 
-    virtual void drawMol() = 0;
-    virtual void drawCell(const std::array<uint8_t,3> &mult) = 0;
+    virtual void drawMol(const Vec &off) = 0;
+    virtual void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) = 0;
     virtual void updateGL() = 0;
     virtual void initGL() = 0;
     GLuint loadShader(std::string vert, std::string frag);
     void syncToGPU();
 
-    bool updated{true}, initialized{false};
+    bool updated, initialized;
 
-    Data(const GlobalData&);
+    Data(const GlobalData&, bool updated=true, bool initialized=false);
     virtual ~Data() = default;
     Data(const Data&) = delete;
     Data(Data&&) = delete;

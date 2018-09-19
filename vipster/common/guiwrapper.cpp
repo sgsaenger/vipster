@@ -47,17 +47,23 @@ void GuiWrapper::draw(void)
     for(const auto& i: extraData){
         i->syncToGPU();
     }
-    if(mainStep.hasCell()){
-        mainStep.drawCell(mult);
-        selection.drawCell(mult);
+    Vec off = -curStep->getCenter(CdmFmt::Bohr);
+    if(curStep->hasCell()){
+        Mat cv = curStep->getCellVec() *
+                 curStep->getCellDim(CdmFmt::Bohr);
+        off -= (mult[0]-1)*cv[0]/2.;
+        off -= (mult[1]-1)*cv[1]/2.;
+        off -= (mult[2]-1)*cv[2]/2.;
+        mainStep.drawCell(off, mult);
+        selection.drawCell(off, mult);
         for(const auto& i: extraData){
-            i->drawCell(mult);
+            i->drawCell(off, mult);
         }
     }else{
-        mainStep.drawMol();
-        selection.drawMol();
+        mainStep.drawMol(off);
+        selection.drawMol(off);
         for(const auto& i: extraData){
-            i->drawMol();
+            i->drawMol(off);
         }
     }
 }
@@ -72,7 +78,6 @@ void GuiWrapper::setMainStep(StepProper* step, StepSelection* sel, bool draw_bon
 {
     curStep = step;
     curSel = sel;
-    extraData.clear();
     mainStep.update(step, draw_bonds);
 }
 

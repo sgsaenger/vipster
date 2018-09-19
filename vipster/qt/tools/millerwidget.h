@@ -32,7 +32,6 @@ private:
         Vipster::Vec offset;
         Vipster::GUI::MeshData gpu_data;
     };
-    bool active{false};
     Vipster::StepProper* curStep{nullptr};
     MillerPlane* curPlane{nullptr};
     std::map<Vipster::StepProper*, MillerPlane> planes;

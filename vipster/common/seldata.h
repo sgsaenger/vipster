@@ -19,16 +19,17 @@ namespace GUI {
         // GPU-State/Data:
         GLuint vao{0}, vbo{0};
         // Shader:
-        struct{
+        static struct{
             GLuint program;
             GLuint vertex, position, vert_scale;
             GLint offset, pos_scale, scale_fac, color;
+            bool initialized{false};
         } shader;
     public:
         SelData(const GlobalData& glob, StepSelection* sel=nullptr);
         ~SelData() override;
-        void drawMol() override;
-        void drawCell(const std::array<uint8_t,3> &mult) override;
+        void drawMol(const Vec &off) override;
+        void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) override;
         void updateGL() override;
         void initGL() override;
         void update(StepSelection* sel);
