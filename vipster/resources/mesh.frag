@@ -1,15 +1,15 @@
-in vec4 color_input;
 in vec3 normals_cameraspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
-//in vec2 UV;
+in vec2 UV;
 
-//uniform sampler2D tex;
+uniform sampler2D tex;
 
 out vec4 color_output;
 
 void main(void)
 {
+    vec4 color_input = texture(tex, UV);
     //hardcoded lighting parameters.
     //think about putting them as uniforms.
     vec3 LightColor = vec3(1,1,1);

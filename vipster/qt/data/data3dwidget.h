@@ -48,6 +48,7 @@ private:
     };
     IsoSurf* curSurf{nullptr};
     std::map<const Vipster::DataGrid3D_f*, IsoSurf> surfaces;
+    std::vector<Vipster::GUI::MeshData::Face> mkSurf(float isoval, bool pm);
 };
 
 #endif // DATA3DWIDGET_H

@@ -73,17 +73,64 @@ std::vector<GUI::MeshData::Face> mkSlice(size_t dir, float off)
 {
     switch(dir){
     case 0:
-        return {{{off,0,0},{}},{{off,1,0},{}},{{off,1,1},{}},
-                {{off,0,0},{}},{{off,0,1},{}},{{off,1,1},{}}};
+        return {{{off,0,0},{},{0,0}},{{off,1,0},{},{1,0}},{{off,1,1},{},{1,1}},
+                {{off,0,0},{},{0,0}},{{off,0,1},{},{0,1}},{{off,1,1},{},{1,1}}};
     case 1:
-        return {{{0,off,0},{}},{{1,off,0},{}},{{1,off,1},{}},
-                {{0,off,0},{}},{{0,off,1},{}},{{1,off,1},{}}};
+        return {{{0,off,0},{},{0,0}},{{1,off,0},{},{1,0}},{{1,off,1},{},{1,1}},
+                {{0,off,0},{},{0,0}},{{0,off,1},{},{0,1}},{{1,off,1},{},{1,1}}};
     case 2:
-        return {{{0,0,off},{}},{{1,0,off},{}},{{1,1,off},{}},
-                {{0,0,off},{}},{{0,1,off},{}},{{1,1,off},{}}};
+        return {{{0,0,off},{},{0,0}},{{1,0,off},{},{1,0}},{{1,1,off},{},{1,1}},
+                {{0,0,off},{},{0,0}},{{0,1,off},{},{0,1}},{{1,1,off},{},{1,1}}};
     default:
-        throw Error("Invalid direction for data slicing");
+        throw Error("Data3DWidget: Invalid direction for data slicing");
     }
+}
+
+GUI::MeshData::Texture mkSliceTex(const DataGrid3D_f& dat, size_t dir, size_t off)
+{
+    GUI::MeshData::Texture texture;
+    size_t xl{0}, xh{dat.extent[0]};
+    size_t yl{0}, yh{dat.extent[1]};
+    size_t zl{0}, zh{dat.extent[2]};
+    switch(dir){
+    case 0:
+        xl = off;
+        xh = xl+1;
+        texture.width = static_cast<int>(yh);
+        texture.height = static_cast<int>(zh);
+        break;
+    case 1:
+        yl = off;
+        yh = yl+1;
+        texture.width = static_cast<int>(xh);
+        texture.height = static_cast<int>(zh);
+        break;
+    case 2:
+        zl = off;
+        zh = zl+1;
+        texture.width = static_cast<int>(xh);
+        texture.height = static_cast<int>(yh);
+        break;
+    default:
+        throw Error("Data3DWidget: Invalid direction for data slicing");
+    }
+    auto minmax = std::minmax_element(dat.begin(), dat.end());
+    auto min = *minmax.first;
+    auto max = *minmax.second;
+    auto factor = 100/(max-min);
+    for(auto z=zl; z < zh; ++z){
+        for(auto y=yl; y < yh; ++y){
+            for(auto x=xl; x < xh; ++x){
+                const auto& val = dat(x,y,z);
+                auto tmp = (val-min)*factor;
+                texture.data.push_back({static_cast<uint8_t>(std::round(2.55f*tmp)),
+                                        static_cast<uint8_t>(std::round(2.55f*(100-abs(2*tmp-100)))),
+                                        static_cast<uint8_t>(std::round(2.55f*(100-tmp))),
+                                        128});
+            }
+        }
+    }
+    return texture;
 }
 
 void Data3DWidget::on_sliceDir_currentIndexChanged(int index)
@@ -106,7 +153,9 @@ void Data3DWidget::on_sliceVal_valueChanged(int pos)
     if(curSlice){
         curSlice->pos = static_cast<size_t>(pos);
         auto off = static_cast<float>(pos)/curData->extent[curSlice->dir];
-        curSlice->gpu_data.update(mkSlice(static_cast<size_t>(ui->sliceDir->currentIndex()), off));
+        auto _dir = static_cast<size_t>(ui->sliceDir->currentIndex());
+        curSlice->gpu_data.update(mkSlice(_dir, off));
+        curSlice->gpu_data.update(mkSliceTex(*curData, _dir, static_cast<size_t>(pos)));
         triggerUpdate(GuiChange::extra);
     }
 }
@@ -130,7 +179,7 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
                           mkSlice(dir, off),
                           curData->origin,
                           curData->cell,
-                          settings.milCol.val}
+                          mkSliceTex(*curData, dir, pos)}
             });
         curSlice = &tmp.first->second;
         master->addExtraData(&curSlice->gpu_data);
@@ -525,10 +574,11 @@ std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float is
     auto y = dat.extent[1];
     auto z = dat.extent[2];
     float normdir = isoval<0 ? -1.f: 1.f;
+    decltype(GUI::MeshData::Face::uv)::value_type color_u = isoval<0 ? 1 : 0;
 
     faces.reserve(4*x*y*z);
 
-    // tmp-variables for interpolation-macro
+    // tmp-variables for multiple interpolation-invocations
     Vec tmppos[12], tmpnorm[12];
 
     auto interpol = [&](size_t n, size_t e1, size_t e2,
@@ -573,7 +623,8 @@ std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float is
                         faces.push_back({Vec{(i + tmppos[vert][0])/x,
                                              (j + tmppos[vert][1])/y,
                                              (k + tmppos[vert][2])/z},
-                                         normdir * tmpnorm[vert]});
+                                         normdir * tmpnorm[vert],
+                                         {color_u,0}});
                     }
                 }
             }
@@ -582,10 +633,30 @@ std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float is
     return faces;
 }
 
+std::vector<GUI::MeshData::Face> Data3DWidget::mkSurf(float isoval, bool pm)
+{
+    std::vector<GUI::MeshData::Face> retval;
+    if(isoval > static_cast<float>(validator.top()) ||
+       isoval < static_cast<float>(validator.bottom())){
+        retval = {};
+    }else{
+        retval = marchingCubes(*curData, isoval);
+    }
+    if(pm){
+        auto tmp = mkSurf(-isoval, false);
+        retval.insert(retval.end(), tmp.begin(), tmp.end());
+    }
+    return retval;
+}
+
 void Data3DWidget::on_surfToggle_stateChanged(int state)
 {
     if(curSurf){
         curSurf->plusmin = state;
+        curSurf->gpu_data.update(mkSurf(curSurf->isoval, curSurf->plusmin));
+        if(curSurf->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
@@ -597,8 +668,10 @@ void Data3DWidget::on_surfSlider_valueChanged(int val)
     ui->surfVal->setText(QString::number(_val));
     if(curSurf){
         curSurf->isoval = static_cast<float>(_val);
-        curSurf->gpu_data.update(marchingCubes(*curData, curSurf->isoval));
-        triggerUpdate(GuiChange::extra);
+        curSurf->gpu_data.update(mkSurf(curSurf->isoval, curSurf->plusmin));
+        if(curSurf->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
@@ -612,8 +685,10 @@ void Data3DWidget::on_surfVal_editingFinished()
     ui->surfSlider->setValue(static_cast<int>(_val));
     if(curSurf){
         curSurf->isoval = val;
-        curSurf->gpu_data.update(marchingCubes(*curData, val));
-        triggerUpdate(GuiChange::extra);
+        curSurf->gpu_data.update(mkSurf(val, curSurf->plusmin));
+        if(curSurf->display){
+            triggerUpdate(GuiChange::extra);
+        }
     }
 }
 
@@ -628,15 +703,15 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
         }
     }else if(checked){
         auto isoval = ui->surfVal->text().toFloat();
+        auto pm = static_cast<bool>(ui->surfToggle->checkState());
         auto tmp = surfaces.emplace(curData, IsoSurf{
-            true,
-            static_cast<bool>(ui->surfToggle->checkState()),
-            isoval,
+            true, pm, isoval,
             GUI::MeshData{master->getGLGlobals(),
-                          marchingCubes(*curData, isoval),
+                          mkSurf(isoval, pm),
                           curData->origin,
                           curData->cell,
-                          ColVec{0,255,0,255}}
+                          {{ColVec{255,0,0,155},
+                            ColVec{0,0,255,155}}, 2, 1}}
             });
         curSurf = &tmp.first->second;
         master->addExtraData(&curSurf->gpu_data);

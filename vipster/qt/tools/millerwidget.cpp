@@ -31,12 +31,12 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
                 for(int h=0; h < abs(hkl[0]); ++h){
                     for(int k=0; k < abs(hkl[1]); ++k){
                         for(int l=0; l < abs(hkl[2]); ++l){
-                            faces.push_back({{(h+1)*valX, k*valY,     l*valZ    },{}});
-                            faces.push_back({{h*valX,     (k+1)*valY, l*valZ    },{}});
-                            faces.push_back({{h*valX,     k*valY,     (l+1)*valZ},{}});
-                            faces.push_back({{(h+1)*valX, (k+1)*valY, l*valZ    },{}});
-                            faces.push_back({{h*valX,     (k+1)*valY, (l+1)*valZ},{}});
-                            faces.push_back({{(h+1)*valX, k*valY,     (l+1)*valZ},{}});
+                            faces.push_back({{(h+1)*valX, k*valY,     l*valZ    },{},{}});
+                            faces.push_back({{h*valX,     (k+1)*valY, l*valZ    },{},{}});
+                            faces.push_back({{h*valX,     k*valY,     (l+1)*valZ},{},{}});
+                            faces.push_back({{(h+1)*valX, (k+1)*valY, l*valZ    },{},{}});
+                            faces.push_back({{h*valX,     (k+1)*valY, (l+1)*valZ},{},{}});
+                            faces.push_back({{(h+1)*valX, k*valY,     (l+1)*valZ},{},{}});
                         }
                     }
                 }
@@ -44,12 +44,12 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
                 // hk0
                 for(int h=0; h < abs(hkl[0]); ++h){
                     for(int k=0; k < abs(hkl[1]); ++k){
-                        faces.push_back({{(h+1)*valX, k*valY, 0},{}});
-                        faces.push_back({{(h+1)*valX, k*valY, 1},{}});
-                        faces.push_back({{h*valX, (k+1)*valY, 0},{}});
-                        faces.push_back({{(h+1)*valX, k*valY, 1},{}});
-                        faces.push_back({{h*valX, (k+1)*valY, 0},{}});
-                        faces.push_back({{h*valX, (k+1)*valY, 1},{}});
+                        faces.push_back({{(h+1)*valX, k*valY, 0},{},{}});
+                        faces.push_back({{(h+1)*valX, k*valY, 1},{},{}});
+                        faces.push_back({{h*valX, (k+1)*valY, 0},{},{}});
+                        faces.push_back({{(h+1)*valX, k*valY, 1},{},{}});
+                        faces.push_back({{h*valX, (k+1)*valY, 0},{},{}});
+                        faces.push_back({{h*valX, (k+1)*valY, 1},{},{}});
                     }
                 }
             }
@@ -57,23 +57,23 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
             // h0l
             for(int h=0; h < abs(hkl[0]); ++h){
                 for(int l=0; l < abs(hkl[2]); ++l){
-                    faces.push_back({{(h+1)*valX, 0, l*valZ},{}});
-                    faces.push_back({{(h+1)*valX, 1, l*valZ},{}});
-                    faces.push_back({{h*valX, 0, (l+1)*valZ},{}});
-                    faces.push_back({{(h+1)*valX, 1, l*valZ},{}});
-                    faces.push_back({{h*valX, 0, (l+1)*valZ},{}});
-                    faces.push_back({{h*valX, 1, (l+1)*valZ},{}});
+                    faces.push_back({{(h+1)*valX, 0, l*valZ},{},{}});
+                    faces.push_back({{(h+1)*valX, 1, l*valZ},{},{}});
+                    faces.push_back({{h*valX, 0, (l+1)*valZ},{},{}});
+                    faces.push_back({{(h+1)*valX, 1, l*valZ},{},{}});
+                    faces.push_back({{h*valX, 0, (l+1)*valZ},{},{}});
+                    faces.push_back({{h*valX, 1, (l+1)*valZ},{},{}});
                 }
             }
         }else{
             // h00
             for(int h=1; h <= abs(hkl[0]); ++h){
-                faces.push_back({{h*valX, 0, 0},{}});
-                faces.push_back({{h*valX, 1, 0},{}});
-                faces.push_back({{h*valX, 0, 1},{}});
-                faces.push_back({{h*valX, 1, 0},{}});
-                faces.push_back({{h*valX, 0, 1},{}});
-                faces.push_back({{h*valX, 1, 1},{}});
+                faces.push_back({{h*valX, 0, 0},{},{}});
+                faces.push_back({{h*valX, 1, 0},{},{}});
+                faces.push_back({{h*valX, 0, 1},{},{}});
+                faces.push_back({{h*valX, 1, 0},{},{}});
+                faces.push_back({{h*valX, 0, 1},{},{}});
+                faces.push_back({{h*valX, 1, 1},{},{}});
             }
         }
     }else if(hasK){
@@ -81,34 +81,34 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
             // 0lk
             for(int k=0; k < abs(hkl[1]); ++k){
                 for(int l=0; l < abs(hkl[2]); ++l){
-                    faces.push_back({{0, (k+1)*valY, l*valZ},{}});
-                    faces.push_back({{1, (k+1)*valY, l*valZ},{}});
-                    faces.push_back({{0, k*valY, (l+1)*valZ},{}});
-                    faces.push_back({{1, (k+1)*valY, l*valZ},{}});
-                    faces.push_back({{0, k*valY, (l+1)*valZ},{}});
-                    faces.push_back({{1, k*valY, (l+1)*valZ},{}});
+                    faces.push_back({{0, (k+1)*valY, l*valZ},{},{}});
+                    faces.push_back({{1, (k+1)*valY, l*valZ},{},{}});
+                    faces.push_back({{0, k*valY, (l+1)*valZ},{},{}});
+                    faces.push_back({{1, (k+1)*valY, l*valZ},{},{}});
+                    faces.push_back({{0, k*valY, (l+1)*valZ},{},{}});
+                    faces.push_back({{1, k*valY, (l+1)*valZ},{},{}});
                 }
             }
         }else{
             // 0l0
             for(int k=1; k <= abs(hkl[1]); ++k){
-                faces.push_back({{0, k*valY, 0},{}});
-                faces.push_back({{1, k*valY, 0},{}});
-                faces.push_back({{0, k*valY, 1},{}});
-                faces.push_back({{1, k*valY, 0},{}});
-                faces.push_back({{0, k*valY, 1},{}});
-                faces.push_back({{1, k*valY, 1},{}});
+                faces.push_back({{0, k*valY, 0},{},{}});
+                faces.push_back({{1, k*valY, 0},{},{}});
+                faces.push_back({{0, k*valY, 1},{},{}});
+                faces.push_back({{1, k*valY, 0},{},{}});
+                faces.push_back({{0, k*valY, 1},{},{}});
+                faces.push_back({{1, k*valY, 1},{},{}});
             }
         }
     }else if(hasL){
         // 00k
         for(int l=1; l <= abs(hkl[2]); ++l){
-            faces.push_back({{0, 0, l*valZ},{}});
-            faces.push_back({{1, 0, l*valZ},{}});
-            faces.push_back({{0, 1, l*valZ},{}});
-            faces.push_back({{1, 0, l*valZ},{}});
-            faces.push_back({{0, 1, l*valZ},{}});
-            faces.push_back({{1, 1, l*valZ},{}});
+            faces.push_back({{0, 0, l*valZ},{},{}});
+            faces.push_back({{1, 0, l*valZ},{},{}});
+            faces.push_back({{0, 1, l*valZ},{},{}});
+            faces.push_back({{1, 0, l*valZ},{},{}});
+            faces.push_back({{0, 1, l*valZ},{},{}});
+            faces.push_back({{1, 1, l*valZ},{},{}});
         }
     }
     for(size_t i=0; i<3; ++i){
@@ -159,7 +159,7 @@ void MillerWidget::updateWidget(uint8_t change)
         }
     }else if(curPlane){
         if(change & GuiChange::settings){
-            curPlane->gpu_data.update(settings.milCol.val);
+            curPlane->gpu_data.update({{settings.milCol.val}, 1, 1});
         }
         if(change & GuiChange::cell){
             curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
@@ -239,7 +239,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
                             mkFaces(hkl, off),
                             Vec{},
                             curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
-                            settings.milCol.val}
+                            {{settings.milCol.val}, 1, 1}}
               });
         curPlane = &tmp.first->second;
         if(curPlane->display){
