@@ -160,11 +160,12 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
 }
 
 void parseCell(std::string name, std::ifstream& file,
-               Molecule& m, IO::PWParam& p, CellFmt &cellFmt)
+               Molecule& m, IO::PWParam& p, CellFmt &cellFmt, int &ibrav)
 {
-    auto ibrav = p.system.find("ibrav");
-    if (ibrav == p.system.end()) throw IO::Error{"ibrav not specified"};
-    if(!std::stoi(ibrav->second)) {
+    auto ibr = p.system.find("ibrav");
+    if (ibr == p.system.end()) throw IO::Error{"ibrav not specified"};
+    ibrav = std::stoi(ibr->second);
+    if(ibrav == 0) {
         std::string line;
         Mat cell;
         for(size_t i=0; i<3; ++i){
@@ -182,7 +183,7 @@ void parseCell(std::string name, std::ifstream& file,
     }
 }
 
-void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
+void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt, int &ibrav)
 {
     StepProper &s = m.getStep(0);
     CdmFmt cdmFmt;
@@ -219,9 +220,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
     }
         break;
     case CellFmt::None:
-        auto ibrav = p.system.find("ibrav");
-        if (ibrav == p.system.end()) throw IO::Error{"ibrav not specified"};
-        if(!std::stoi(ibrav->second)) throw IO::Error("ibrav=0, but no CELL_PARAMETERS were given");
+        if(ibrav == 0) throw IO::Error("ibrav=0, but no CELL_PARAMETERS were given");
         //TODO
         throw IO::Error("Creating Cells based on ibrav not supported yet");
 //        break;
@@ -230,12 +229,12 @@ void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt)
 
 void parseCard(std::string name, std::ifstream& file,
                Molecule& m, IO::PWParam& p,
-               CellFmt &cellFmt)
+               CellFmt &cellFmt, int &ibrav)
 {
     if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, m, p);
     else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, m, p);
     else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, m);
-    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, m, p, cellFmt);
+    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, m, p, cellFmt, ibrav);
     else if (name.find("OCCUPATIONS") != name.npos) throw IO::Error("OCCUPATIONS not implemented");
     else if (name.find("CONSTRAINTS") != name.npos) throw IO::Error("CONSTRAINTS not implemented");
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("ATOMIC_FORCES not implemented");
@@ -263,6 +262,7 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
     IO::PWParam &p = *static_cast<IO::PWParam*>(d.param.get());
     p.name = name;
     CellFmt cellFmt = CellFmt::None;
+    int ibrav = 0;
 
     std::string buf, line;
     while (std::getline(file, buf)) {
@@ -270,10 +270,10 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
         if (line.empty() || line[0] == '!' || line[0] == '#') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if (line[0] == '&') parseNamelist(line, file, p);
-        else parseCard(line, file, m, p, cellFmt);
+        else parseCard(line, file, m, p, cellFmt, ibrav);
     }
 
-    createCell(m, p, cellFmt);
+    createCell(m, p, cellFmt, ibrav);
 
     return d;
 }
@@ -304,6 +304,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     for(auto &nl: outNL){
         file << '&' << nl.first << '\n';
         if(nl.second == &pp->system){
+            file << " ibrav = 0\n";
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
             auto cell_fmt = (cc->cell == IO::PWConfig::CellFmt::Current) ?
