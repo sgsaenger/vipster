@@ -104,7 +104,7 @@ void GUI::MeshData::update(std::vector<Face>&& face)
     updated = true;
 }
 
-void GUI::MeshData::update(Texture tex)
+void GUI::MeshData::update(const Texture& tex)
 {
     texture = tex;
     updated = true;

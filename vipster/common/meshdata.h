@@ -56,7 +56,7 @@ public:
     void initMesh();
     void initCell();
     void update(std::vector<Face>&& faces);
-    void update(Texture tex);
+    void update(const Texture& tex);
     void update(Vipster::Mat cell);
 };
 

@@ -44,7 +44,7 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
     }else if(checked){
         GUI::MeshData::Texture texture;
         texture.width = static_cast<int>(curData->extent[0]);
-        texture.width = static_cast<int>(curData->extent[1]);
+        texture.height = static_cast<int>(curData->extent[1]);
         auto minmax = std::minmax_element(curData->begin(), curData->end());
         auto min = *minmax.first;
         auto max = *minmax.second;
