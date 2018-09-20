@@ -15,9 +15,13 @@ LmpConfig::~LmpConfig()
     delete ui;
 }
 
-void LmpConfig::setConfig(BaseConfig *c)
+void LmpConfig::setConfig(IO::BaseConfig *c)
 {
-    curConfig = static_cast<IO::LmpConfig*>(c);
+    curConfig = dynamic_cast<IO::LmpConfig*>(c);
+    if(!curConfig){
+        throw Error("Invalid configuration preset");
+    }
+    QSignalBlocker block{this};
     ui->atomSel->setCurrentIndex(static_cast<int>(curConfig->style));
     ui->bondCheck->setCheckState(Qt::CheckState(curConfig->bonds*2));
     ui->angleCheck->setCheckState(Qt::CheckState(curConfig->angles*2));
@@ -47,5 +51,5 @@ void LmpConfig::on_impropCheck_stateChanged(int arg1)
 
 void LmpConfig::on_atomSel_currentIndexChanged(int index)
 {
-    curConfig->style = static_cast<IO::LmpAtomStyle>(index);
+    curConfig->style = static_cast<IO::LmpConfig::AtomStyle>(index);
 }

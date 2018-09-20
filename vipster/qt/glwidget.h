@@ -6,7 +6,7 @@
 #include "mainwindow.h"
 #include "../common/guiwrapper.h"
 
-class GLWidget: public QOpenGLWidget, public BaseWidget, private Vipster::GuiWrapper
+class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
 {
     Q_OBJECT
 
@@ -21,14 +21,15 @@ public:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-    void updateWidget(uint8_t change) override;
+    void triggerUpdate(uint8_t change);
+    void updateWidget(uint8_t change);
 public slots:
     void setMode(int i,bool t);
     void setMult(int i);
     void setCamera(int i);
 private:
-    void setStep(Vipster::StepProper* step);
-    void setSel(Vipster::StepSelection* sel);
+    bool updateTriggered{false};
+    MainWindow* master;
     // Input handling
     enum class MouseMode { Camera=-2, Select=-3, Modify=-4 };
     MouseMode mouseMode{MouseMode::Camera};

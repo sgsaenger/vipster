@@ -26,7 +26,7 @@ void PSEWidget::registerProperty(QWidget* w, float PseEntry::* prop)
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
-                    QSignalBlocker{w};
+                    QSignalBlocker block{w};
                     static_cast<QDoubleSpinBox*>(w)->setValue(
                                 static_cast<double>(currentEntry->*prop));
                 }else{
@@ -50,9 +50,9 @@ void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
-                    QSignalBlocker{w};
+                    QSignalBlocker block{w};
                     static_cast<QSpinBox*>(w)->setValue(
-                                static_cast<unsigned int>(currentEntry->*prop));
+                                static_cast<int>(currentEntry->*prop));
                 }else{
                     w->setDisabled(true);
                 }
@@ -74,7 +74,7 @@ void PSEWidget::registerProperty(QWidget* w, std::string PseEntry::* prop)
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
-                    QSignalBlocker{w};
+                    QSignalBlocker block{w};
                     static_cast<QLineEdit*>(w)->setText(
                                 QString::fromStdString(currentEntry->*prop));
                 }else{
@@ -94,6 +94,9 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
                 auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
                 auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                                      QColorDialog::ShowAlphaChannel);
+                if(!newCol.isValid()){
+                    return;
+                }
                 col = {static_cast<uint8_t>(newCol.red()),
                        static_cast<uint8_t>(newCol.green()),
                        static_cast<uint8_t>(newCol.blue()),
@@ -117,7 +120,7 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
 }
 
 PSEWidget::PSEWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::PSEWidget)
 {
     ui->setupUi(this);
@@ -130,6 +133,7 @@ PSEWidget::PSEWidget(QWidget *parent) :
     registerProperty(ui->pwppSel, &PseEntry::PWPP);
     registerProperty(ui->colSel, &PseEntry::col);
     registerProperty(ui->cutSel, &PseEntry::bondcut);
+    emit(currentEntryChanged());
 }
 
 PSEWidget::~PSEWidget()
@@ -139,10 +143,11 @@ PSEWidget::~PSEWidget()
 
 void PSEWidget::setEntry(QListWidgetItem *item)
 {
-    if(!pse){
-        return;
+    if(item && pse){
+        currentEntry = &pse->at(item->text().toStdString());
+    }else{
+        currentEntry = nullptr;
     }
-    currentEntry = &pse->at(item->text().toStdString());
     emit(currentEntryChanged());
 }
 

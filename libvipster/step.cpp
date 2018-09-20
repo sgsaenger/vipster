@@ -98,9 +98,10 @@ void Step::newAtoms(const AtomList& atoms){
     al.prop_changed = true;
 }
 
-void Step::delAtom(long i){
+void Step::delAtom(size_t _i){
     evaluateCache();
     AtomList& al = *atoms;
+    auto i = static_cast<long>(_i);
     // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].erase(
         al.coordinates[static_cast<size_t>(at_fmt)].begin()+i);
@@ -262,6 +263,15 @@ void Step::setCellVec(const Mat &vec, bool scale)
         }
     }
     atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
+}
+
+Vec Step::getCenter(CdmFmt fmt, bool com) const noexcept
+{
+    if(com || !cell->enabled){
+        return getCom(static_cast<AtomFmt>(fmt));
+    }
+    const Mat& cv = cell->cellvec;
+    return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
 }
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)

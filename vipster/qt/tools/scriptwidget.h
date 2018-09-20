@@ -8,7 +8,7 @@ namespace Ui {
 class ScriptWidget;
 }
 
-class ScriptWidget : public QWidget, public BaseWidget
+class ScriptWidget : public BaseWidget
 {
     Q_OBJECT
 

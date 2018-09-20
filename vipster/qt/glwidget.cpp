@@ -1,14 +1,21 @@
 #include "glwidget.h"
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
-#include "../common/atom_model.h"
-#include "../common/bond_model.h"
-#include <iostream>
+#include <QApplication>
 
 using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent):
-    QOpenGLWidget(parent) {}
+    QOpenGLWidget(parent)
+{
+    for(auto *w: qApp->topLevelWidgets()){
+        if(auto *t = qobject_cast<MainWindow*>(w)){
+            master = t;
+            return;
+        }
+    }
+    throw Error("Could not determine MainWindow-instance.");
+}
 
 GLWidget::~GLWidget()
 {
@@ -17,29 +24,34 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
+void GLWidget::triggerUpdate(uint8_t change){
+    updateTriggered = true;
+    master->updateWidgets(change);
+}
+
 void GLWidget::updateWidget(uint8_t change)
 {
-    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
-        setStep(master->curStep);
+    if((change & guiStepChanged) == guiStepChanged ){
+        setMainStep(master->curStep, master->curSel, settings.showBonds.val);
+    }else{
+        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
+            updateMainStep(settings.showBonds.val);
+            updateMainSelection();
+        }else if(change & GuiChange::selection){
+            updateMainSelection();
+        }
     }
-    if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings | GuiChange::selection)){
-        setSel(master->curSel);
-    }
+    update();
 }
 
 void GLWidget::initializeGL()
 {
-    initializeOpenGLFunctions();
-    initShaders("# version 330\n", ":/shaders");
-    initGL();
+    makeCurrent();
+    initGL("# version 330\n", ":/shaders");
 }
 
 void GLWidget::paintGL()
 {
-    updateViewUBO();
-    //
-    updateVBOs();
-    //
     draw();
 }
 
@@ -72,18 +84,6 @@ void GLWidget::setMult(int i)
     if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = static_cast<uint8_t>(i); }
     else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = static_cast<uint8_t>(i); }
     else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = static_cast<uint8_t>(i); }
-    update();
-}
-
-void GLWidget::setStep(StepProper* step)
-{
-    updateStepBuffers(step, settings.showBonds.val);
-    update();
-}
-
-void GLWidget::setSel(StepSelection* sel)
-{
-    updateSelBuffers(sel);
     update();
 }
 
@@ -169,9 +169,9 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
     if(curSel->getNat()){
-        curSel->modShift(axis, 0.1f);
+        curSel->modShift(axis, 0.01f);
     }else{
-        curStep->modShift(axis, 0.1f);
+        curStep->modShift(axis, 0.01f);
     }
     triggerUpdate(GuiChange::atoms);
 }
@@ -179,7 +179,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
 void GLWidget::shiftAtomsZ(QPoint delta)
 {
     auto axes = Mat_trans(Mat_inv(getAxes()));
-    float fac = 0.1f * (delta.x() + delta.y());
+    float fac = 0.01f * (delta.x() + delta.y());
     if(curSel->getNat()){
         curSel->modShift(axes[2], fac);
     }else{
@@ -212,7 +212,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            *curSel = curStep->select(SelectionFilter{});
+            curSel->setFilter(SelectionFilter{});
             triggerUpdate(GuiChange::selection);
         }
         break;
@@ -301,7 +301,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
             auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
-            *curSel = curStep->select(filter);
+            curSel->setFilter(filter);
             triggerUpdate(GuiChange::selection);
         }
         break;

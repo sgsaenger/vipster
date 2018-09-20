@@ -6,7 +6,7 @@
 using namespace Vipster;
 
 MolWidget::MolWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
@@ -260,7 +260,7 @@ void MolWidget::on_atomTable_itemSelectionChanged()
     for(const auto& i: idx){
         filter.indices.insert(static_cast<size_t>(i.row()));
     }
-    master->curSel = &curStep->select(filter);
+    master->curSel->setFilter(filter);
     triggerUpdate(GuiChange::selection);
 }
 

@@ -1,6 +1,6 @@
 #include "paramwidget.h"
 #include "ui_paramwidget.h"
-#include "iowrapper.h"
+#include "io.h"
 
 using namespace Vipster;
 
@@ -9,7 +9,7 @@ ParamBase::ParamBase(QWidget *parent):
 {}
 
 ParamWidget::ParamWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::ParamWidget)
 {
     ui->setupUi(this);
@@ -27,13 +27,14 @@ void ParamWidget::clearParams()
 }
 
 void ParamWidget::registerParam(Vipster::IOFmt fmt,
-                                std::unique_ptr<Vipster::BaseParam>&& data)
+                                std::unique_ptr<Vipster::IO::BaseParam>&& data)
 {
     params.emplace_back(fmt, std::move(data));
     ui->paramSel->addItem(QString::fromStdString(
                           "(" +  IOPlugins.at(fmt)->command +
                            ") " + params.back().second->name
                          ));
+    ui->paramSel->setCurrentIndex(ui->paramSel->count()-1);
 }
 
 void ParamWidget::on_paramSel_currentIndexChanged(int index)
@@ -52,6 +53,10 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
     case IOFmt::PWI:
         ui->paramStack->setCurrentWidget(ui->PWWidget);
         ui->PWWidget->setParam(curParam);
+        break;
+    case IOFmt::CPI:
+        ui->paramStack->setCurrentWidget(ui->CPWidget);
+        ui->CPWidget->setParam(curParam);
         break;
     default:
         throw Error("Invalid parameter format");

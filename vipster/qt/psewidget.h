@@ -9,13 +9,13 @@ namespace Ui {
 class PSEWidget;
 }
 
-class PSEWidget : public QWidget, public BaseWidget
+class PSEWidget : public BaseWidget
 {
     Q_OBJECT
 
 public:
     explicit PSEWidget(QWidget *parent = nullptr);
-    ~PSEWidget();
+    ~PSEWidget() override;
     void setPSE(Vipster::PseMap* pse);
     void updateWidget(uint8_t) override;
 

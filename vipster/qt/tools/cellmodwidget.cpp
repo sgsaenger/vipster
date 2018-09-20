@@ -4,7 +4,7 @@
 using namespace Vipster;
 
 CellModWidget::CellModWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::CellModWidget)
 {
     ui->setupUi(this);

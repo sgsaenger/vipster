@@ -9,7 +9,7 @@ namespace Ui {
 class SettingsWidget;
 }
 
-class SettingsWidget : public QWidget, public BaseWidget
+class SettingsWidget : public BaseWidget
 {
     Q_OBJECT
 

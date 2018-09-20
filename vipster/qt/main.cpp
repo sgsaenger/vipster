@@ -1,5 +1,6 @@
 #include "mainwindow.h"
-#include "iowrapper.h"
+#include "io.h"
+#include "configfile.h"
 #include "CLI11.hpp"
 #include <QApplication>
 #include <QCommandLineParser>
@@ -7,22 +8,22 @@
 
 using namespace Vipster;
 
-void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
+[[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
     QSurfaceFormat format;
     format.setVersion(3,3);
     format.setSamples(8);
-    format.setAlphaBufferSize(8);
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
-    QApplication::setApplicationVersion("1.10a");
+    QApplication::setApplicationVersion("1.12a");
+    QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
     if(!data.empty()){
-        MainWindow w{std::move(data)};
+        MainWindow w{QDir::currentPath(), std::move(data)};
         w.show();
         throw CLI::RuntimeError(QApplication::exec());
     }else{
-        MainWindow w{};
+        MainWindow w{QDir::currentPath()};
         w.show();
         throw CLI::RuntimeError(QApplication::exec());
     }
@@ -31,6 +32,7 @@ void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
 int main(int argc, char *argv[])
 {
     // main parser + data-targets
+    Vipster::readConfig();
     CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
@@ -94,8 +96,7 @@ int main(int argc, char *argv[])
         std::vector<std::string> output;
         std::vector<std::string> kpoints;
         std::string param;
-        // TODO
-//        std::unique_ptr<BaseConfig> config{};
+        std::string config;
     }conv_data;
     [[maybe_unused]]
     auto conv_kpoints = convert->add_option("-k", conv_data.kpoints,
@@ -104,6 +105,10 @@ int main(int argc, char *argv[])
     auto conv_param = convert->add_option("-p", conv_data.param,
         "Specify parameter set (defaults to parsed one, if present)");
     conv_param->expected(1);
+
+    auto conv_config = convert->add_option("-c", conv_data.config,
+         "Specify behavior-preset for output-plugin");
+    conv_config->expected(1);
 
     auto conv_in = convert->add_option("in", conv_data.input,
                                        "fmt and filename of input");
@@ -115,6 +120,7 @@ int main(int argc, char *argv[])
     conv_out->expected(2);
 
     convert->set_callback([&](){
+        // determine/check in&out formats
         IOFmt fmt_in, fmt_out;
         const auto IOCmdIn = [](){
             std::map<std::string, IOFmt> fmts_in;
@@ -144,22 +150,52 @@ int main(int argc, char *argv[])
         }else{
             fmt_out = pos_out->second;
         }
+        // read input
         //TODO: c++17
         //auto [mol, fmt, param] = readFile(conv_data.input[1], fmt_in);
         auto data = readFile(conv_data.input[1], fmt_in);
+        // prepare output
         auto mol = std::move(data.mol);
         auto param = std::move(data.param);
-        if(!conv_data.param.empty()){
-            auto tmp = params.equal_range(fmt_in);
-            auto pos_par = std::find_if(tmp.first, tmp.second,
-                                        [&](const decltype(params)::value_type& p){
-                                            return p.second->name == conv_data.param;
-                                        });
-            if(pos_par == params.end()){
-                throw CLI::ParseError("Invalid parameter \""+conv_data.param+
-                                      "\" for format "+conv_data.input[0], 1);
+        std::unique_ptr<IO::BaseConfig> config{nullptr};
+        auto arguments = IOPlugins.at(fmt_out)->arguments;
+        if(arguments & IO::Plugin::Args::Param){
+            std::string par_name;
+            if(!conv_data.param.empty()){
+                par_name = conv_data.param;
+            }else if(!param){
+                par_name = "default";
             }
-            param = pos_par->second->copy();
+            if(!par_name.empty()){
+                auto tmp = params.equal_range(fmt_out);
+                auto pos_par = std::find_if(tmp.first, tmp.second,
+                                            [&](const decltype(params)::value_type& p){
+                                                return p.second->name == par_name;
+                                            });
+                if(pos_par == tmp.second){
+                    throw CLI::ParseError("Invalid parameter \""+par_name+
+                                          "\" for format "+conv_data.output[0], 1);
+                }
+                param = pos_par->second->copy();
+            }
+        }
+        if(arguments & IO::Plugin::Args::Config){
+            std::string conf_name;
+            if(!conv_data.config.empty()){
+                conf_name = conv_data.config;
+            }else{
+                conf_name = "default";
+            }
+            auto tmp = configs.equal_range(fmt_out);
+            auto pos_cfg = std::find_if(tmp.first, tmp.second,
+                                        [&](const decltype(configs)::value_type& c){
+                                            return c.second->name == conf_name;
+                                        });
+            if(pos_cfg == tmp.second){
+                throw CLI::ParseError("Invalid configuration preset \""+conf_name+
+                                      "\" for format "+conv_data.output[0], 1);
+            }
+            config = pos_cfg->second->copy();
         }
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;
@@ -189,13 +225,13 @@ int main(int argc, char *argv[])
                                    }, {}});
                 } catch (...) {
                     throw CLI::ParseError(mpg_err+kp_err, 1);
-                }{}
+                }
             //TODO: discrete
             }else{
                 throw CLI::ParseError("Invalid KPoint style\n"+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, param.get());
+        writeFile(conv_data.output[1], fmt_out, mol, param.get(), config.get());
         throw CLI::Success();
     });
 

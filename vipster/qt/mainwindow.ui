@@ -16,12 +16,6 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>800</width>
-    <height>600</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Vipster</string>
   </property>
@@ -30,7 +24,7 @@
     <normaloff>:/images/vipster.png</normaloff>:/images/vipster.png</iconset>
   </property>
   <property name="dockOptions">
-   <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::ForceTabbedDocks|QMainWindow::VerticalTabs</set>
+   <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::VerticalTabs</set>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
@@ -40,6 +34,9 @@
        <widget class="QPushButton" name="camButton">
         <property name="text">
          <string>Camera</string>
+        </property>
+        <property name="shortcut">
+         <string>R</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -57,6 +54,9 @@
         <property name="text">
          <string>Select</string>
         </property>
+        <property name="shortcut">
+         <string>S</string>
+        </property>
         <property name="checkable">
          <bool>true</bool>
         </property>
@@ -69,6 +69,9 @@
        <widget class="QPushButton" name="modButton">
         <property name="text">
          <string>Modify</string>
+        </property>
+        <property name="shortcut">
+         <string>M</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -465,6 +468,12 @@
    <widget class="ConfigWidget" name="configWidget"/>
   </widget>
   <widget class="QDockWidget" name="settingsDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>Setti&amp;ngs</string>
    </property>
@@ -474,8 +483,11 @@
    <widget class="SettingsWidget" name="settingsWidget"/>
   </widget>
   <widget class="QDockWidget" name="cellModDock">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
-    <string>Modify Cell</string>
+    <string>Modif&amp;y Cell</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -483,6 +495,12 @@
    <widget class="CellModWidget" name="cellModWidget"/>
   </widget>
   <widget class="QDockWidget" name="pseDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>PSE (&amp;global)</string>
    </property>
@@ -492,6 +510,12 @@
    <widget class="PSEWidget" name="pseWidget"/>
   </widget>
   <widget class="QDockWidget" name="mpseDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
     <string>PSE (Molec&amp;ule)</string>
    </property>
@@ -499,6 +523,36 @@
     <number>1</number>
    </attribute>
    <widget class="PSEWidget" name="mpseWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="dataDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Add. Data</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="DataWidget" name="dataWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="millerDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Lattice planes</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="MillerWidget" name="millerWidget"/>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -684,6 +738,18 @@
    <class>PSEWidget</class>
    <extends>QWidget</extends>
    <header>qt/psewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DataWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/datawidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MillerWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/tools/millerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -995,8 +1061,8 @@
   <slot>saveMol()</slot>
  </slots>
  <buttongroups>
+  <buttongroup name="cameraGroup"/>
   <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
-  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

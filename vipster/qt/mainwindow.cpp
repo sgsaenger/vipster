@@ -9,26 +9,28 @@
 
 using namespace Vipster;
 
-MainWindow::MainWindow(QWidget *parent):
+MainWindow::MainWindow(QString path, QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow}
+    ui{new Ui::MainWindow},
+    path{path}
 {
     ui->setupUi(this);
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
-    newMol();
     setupUI();
+    newMol();
 }
 
-MainWindow::MainWindow(std::vector<IO::Data> &&d, QWidget *parent):
+MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow}
+    ui{new Ui::MainWindow},
+    path{path}
 {
     ui->setupUi(this);
+    setupUI();
     connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
     for(auto&& mol: d){
         newData(std::move(mol));
     }
-    setupUI();
 }
 
 MainWindow::~MainWindow()
@@ -44,12 +46,31 @@ void MainWindow::setupUI()
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     // setup left dock-area
-    tabifyDockWidget(ui->molDock, ui->paramDock);
-    tabifyDockWidget(ui->paramDock, ui->configDock);
-    tabifyDockWidget(ui->configDock, ui->settingsDock);
-    tabifyDockWidget(ui->settingsDock, ui->mpseDock);
-    tabifyDockWidget(ui->mpseDock, ui->pseDock);
+    baseWidgets = {
+        ui->paramDock,
+        ui->configDock,
+        ui->settingsDock,
+        ui->mpseDock,
+        ui->pseDock,
+        ui->dataDock,
+    };
+    for(auto& w: baseWidgets){
+        tabifyDockWidget(ui->molDock, w);
+    }
     ui->molDock->raise();
+    // setup right dock-area
+    toolWidgets = {
+        ui->scriptDock,
+        ui->pickDock,
+        ui->cellModDock,
+        ui->millerDock,
+    };
+    for(auto& w: toolWidgets){
+        auto action = ui->toolBar->addAction(w->windowTitle());
+        action->setCheckable(true);
+        connect(action, SIGNAL(toggled(bool)), w, SLOT(setVisible(bool)));
+        w->hide();
+    }
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
@@ -82,9 +103,12 @@ void MainWindow::updateWidgets(uint8_t change)
 {
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
-    ui->scriptWidget->updateWidget(change);
-    ui->pickWidget->updateWidget(change);
-    ui->mpseWidget->updateWidget(change);
+    for(auto& w: baseWidgets){
+        static_cast<BaseWidget*>(w->widget())->updateWidget(change);
+    }
+    for(auto& w: toolWidgets){
+        static_cast<BaseWidget*>(w->widget())->updateWidget(change);
+    }
 }
 
 void MainWindow::setFmt(int i, bool apply, bool scale)
@@ -105,7 +129,7 @@ AtomFmt MainWindow::getFmt()
 
 void MainWindow::setMol(int i)
 {
-    curMol = &molecules.at(static_cast<size_t>(i));
+    curMol = &*std::next(molecules.begin(), i);
     int steps = static_cast<int>(curMol->getNstep());
     //Step-control
     ui->stepLabel->setText(QString::number(steps));
@@ -168,11 +192,9 @@ void MainWindow::editAtoms()
     const QObject *sender = QObject::sender();
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
+    }else if ( sender == ui->actionDelete_Atom_s){
+        curSel->delAtoms();
     }
-    //TODO when selection stuff is implemented
-//    }else if ( sender == ui->actionDelete_Atom_s){
-//        curMol->curStep().delAtom();
-//    }
     updateWidgets(GuiChange::atoms);
 }
 
@@ -188,6 +210,10 @@ void MainWindow::newData(IO::Data &&d)
     ui->molWidget->registerMol(molecules.back().getName());
     if(d.param){
         ui->paramWidget->registerParam(d.fmt, std::move(d.param));
+    }
+    for(auto& dat: d.data){
+        data.push_back(std::move(dat));
+        ui->dataWidget->registerData(data.back()->name);
     }
 }
 
@@ -242,13 +268,31 @@ void MainWindow::saveMol()
 }
 
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<BaseParam>>>& MainWindow::getParams() const noexcept
+const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseParam>>>& MainWindow::getParams() const noexcept
 {
     return ui->paramWidget->params;
 }
-const std::vector<std::pair<IOFmt, std::unique_ptr<BaseConfig>>>& MainWindow::getConfigs() const noexcept
+
+const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseConfig>>>& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
+}
+
+void MainWindow::addExtraData(GUI::Data* dat)
+{
+    ui->openGLWidget->addExtraData(dat);
+    updateWidgets(GuiChange::extra);
+}
+
+void MainWindow::delExtraData(GUI::Data* dat)
+{
+    ui->openGLWidget->delExtraData(dat);
+    updateWidgets(GuiChange::extra);
+}
+
+const GUI::GlobalData& MainWindow::getGLGlobals()
+{
+    return ui->openGLWidget->globals;
 }
 
 void MainWindow::loadParam()
@@ -317,7 +361,8 @@ void MainWindow::about()
             "</p>"));
 }
 
-BaseWidget::BaseWidget()
+BaseWidget::BaseWidget(QWidget* parent)
+    :QWidget{parent}
 {
     for(auto *w: qApp->topLevelWidgets()){
         if(auto *t = qobject_cast<MainWindow*>(w)){

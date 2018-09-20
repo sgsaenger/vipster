@@ -59,4 +59,12 @@ QtGuiApplication {
                      && !qbs.targetOS.contains("macos")
         qbs.installDir: "share/applications"
     }
+
+    Group {
+        name: "AppstreamFile"
+        files: ["resources/vipster.appdata.xml"]
+        qbs.install: !qbs.targetOS.contains("windows")
+                     && !qbs.targetOS.contains("macos")
+        qbs.installDir: "share/metainfo"
+    }
 }

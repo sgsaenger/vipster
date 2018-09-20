@@ -40,7 +40,7 @@ public:
     void            newAtom(const Atom& at);
     void            newAtoms(size_t i);
     void            newAtoms(const AtomList& atoms);
-    void            delAtom(long i);
+    void            delAtom(size_t i);
     using           iterator = AtomListIterator<Atom>;
     using           constIterator = AtomListIterator<const Atom>;
     Atom            operator[](size_t i);
@@ -61,6 +61,7 @@ public:
     void    enableCell(bool) noexcept;
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
     void    setCellVec(const Mat &vec, bool scale=false);
+    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept override;
 
 protected:
     Step(std::shared_ptr<PseMap>, AtomFmt, std::shared_ptr<BondList>,

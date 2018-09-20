@@ -5,7 +5,7 @@
 #include <QAbstractButton>
 #include <QDir>
 #include <vector>
-#include "iowrapper.h"
+#include "io.h"
 #include "stepsel.h"
 #include "../common/guiwrapper.h"
 
@@ -18,8 +18,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    explicit MainWindow(std::vector<Vipster::IO::Data> &&d, QWidget *parent = nullptr);
+    explicit MainWindow(QString path, QWidget *parent = nullptr);
+    explicit MainWindow(QString path,
+                        std::vector<Vipster::IO::Data> &&d,
+                        QWidget *parent = nullptr);
     ~MainWindow() override;
     Vipster::Molecule* curMol{nullptr};
     Vipster::StepProper* curStep{nullptr};
@@ -28,9 +30,13 @@ public:
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
-    std::vector<Vipster::Molecule> molecules;
-    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::BaseParam>>>& getParams() const noexcept;
-    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::BaseConfig>>>& getConfigs() const noexcept;
+    std::list<Vipster::Molecule> molecules;
+    std::list<std::unique_ptr<const Vipster::BaseData>> data;
+    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>>& getParams() const noexcept;
+    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>>& getConfigs() const noexcept;
+    void addExtraData(Vipster::GUI::Data* dat);
+    void delExtraData(Vipster::GUI::Data* dat);
+    const Vipster::GUI::GlobalData& getGLGlobals();
 
 public slots:
     void setMol(int i);
@@ -49,15 +55,20 @@ private:
 
     Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
-    QDir path{QString{std::getenv("HOME")}};
+    QDir path{};
+    std::vector<QDockWidget*> baseWidgets;
+    std::vector<QDockWidget*> toolWidgets;
 };
 
-class BaseWidget{
+class BaseWidget: public QWidget{
+    Q_OBJECT
+
 public:
-    BaseWidget();
+    BaseWidget(QWidget *parent = nullptr);
     void triggerUpdate(uint8_t change);
     virtual void updateWidget(uint8_t){}
     virtual ~BaseWidget()=default;
+
 protected:
     bool updateTriggered{false};
     MainWindow* master;

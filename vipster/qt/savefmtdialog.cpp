@@ -38,7 +38,9 @@ void SaveFmtDialog::enableParamWidget(bool on)
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(auto& p: mw.getParams()){
-            widget->registerParam(fmt, p.second->copy());
+            if(p.first == fmt){
+                widget->registerParam(fmt, p.second->copy());
+            }
         }
         auto param_range = Vipster::params.equal_range(fmt);
         for(auto it=param_range.first; it!=param_range.second; ++it){
@@ -57,7 +59,9 @@ void SaveFmtDialog::enableConfWidget(bool on)
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(auto& p: mw.getConfigs()){
-            widget->registerConfig(fmt, p.second->copy());
+            if(p.first == fmt){
+                widget->registerConfig(fmt, p.second->copy());
+            }
         }
         auto config_range = Vipster::configs.equal_range(fmt);
         for(auto it=config_range.first; it!=config_range.second; ++it){
@@ -68,12 +72,12 @@ void SaveFmtDialog::enableConfWidget(bool on)
     }
 }
 
-BaseConfig* SaveFmtDialog::getConfig()
+IO::BaseConfig* SaveFmtDialog::getConfig()
 {
     return ui->configWidget->curConfig;
 }
 
-BaseParam* SaveFmtDialog::getParam()
+IO::BaseParam* SaveFmtDialog::getParam()
 {
     return ui->paramWidget->curParam;
 }

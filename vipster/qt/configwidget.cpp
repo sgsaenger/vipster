@@ -1,6 +1,6 @@
 #include "configwidget.h"
 #include "ui_configwidget.h"
-#include "iowrapper.h"
+#include "io.h"
 
 using namespace Vipster;
 
@@ -9,7 +9,7 @@ ConfigBase::ConfigBase(QWidget *parent):
 {}
 
 ConfigWidget::ConfigWidget(QWidget *parent) :
-    QWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::ConfigWidget)
 {
     ui->setupUi(this);
@@ -27,13 +27,14 @@ void ConfigWidget::clearConfigs()
 }
 
 void ConfigWidget::registerConfig(Vipster::IOFmt fmt,
-                                  std::unique_ptr<Vipster::BaseConfig>&& data)
+                                  std::unique_ptr<Vipster::IO::BaseConfig>&& data)
 {
     configs.emplace_back(fmt, std::move(data));
     ui->configSel->addItem(QString::fromStdString(
                                "(" + IOPlugins.at(fmt)->command +
                                ") " + configs.back().second->name
                                ));
+    ui->configSel->setCurrentIndex(ui->configSel->count()-1);
 }
 
 void ConfigWidget::on_configSel_currentIndexChanged(int index)
@@ -49,6 +50,10 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
     const auto& pair = configs.at(static_cast<size_t>(index));
     curConfig = pair.second.get();
     switch (pair.first) {
+    case IOFmt::XYZ:
+        ui->configStack->setCurrentWidget(ui->XYZWidget);
+        ui->XYZWidget->setConfig(curConfig);
+        break;
     case IOFmt::PWI:
         ui->configStack->setCurrentWidget(ui->PWWidget);
         ui->PWWidget->setConfig(curConfig);
@@ -56,6 +61,10 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
     case IOFmt::LMP:
         ui->configStack->setCurrentWidget(ui->LmpWidget);
         ui->LmpWidget->setConfig(curConfig);
+        break;
+    case IOFmt::CPI:
+        ui->configStack->setCurrentWidget(ui->CPWidget);
+        ui->CPWidget->setConfig(curConfig);
         break;
     default:
         throw Error("Invalid config format");

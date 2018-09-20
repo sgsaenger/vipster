@@ -15,21 +15,21 @@ class ParamBase: public QWidget
 public:
     explicit ParamBase(QWidget *parent = nullptr);
     virtual ~ParamBase() = default;
-    virtual void setParam(Vipster::BaseParam *p)=0;
+    virtual void setParam(Vipster::IO::BaseParam *p)=0;
 };
 
-class ParamWidget : public QWidget
+class ParamWidget : public BaseWidget
 {
     Q_OBJECT
 
 public:
     explicit ParamWidget(QWidget *parent = nullptr);
     ~ParamWidget() override;
-    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::BaseParam>>> params;
+    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>> params;
     void registerParam(Vipster::IOFmt fmt,
-                       std::unique_ptr<Vipster::BaseParam>&& data);
+                       std::unique_ptr<Vipster::IO::BaseParam>&& data);
     void clearParams();
-    Vipster::BaseParam *curParam;
+    Vipster::IO::BaseParam *curParam;
 
 private slots:
     void on_paramSel_currentIndexChanged(int index);

@@ -8,7 +8,7 @@
 
 #include "vec.h"
 #include "atompropref.h"
-#include "config.h"
+#include "pse.h"
 
 //TODO: track changes in properties?
 //TODO: forces, other properties

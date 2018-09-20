@@ -5,7 +5,7 @@
 #include "bond.h"
 #include "cell.h"
 #include "vec.h"
-#include "config.h"
+#include "settings.h"
 
 #include <memory>
 #include <vector>
@@ -240,15 +240,7 @@ public:
         return formatVec((min+max)/2, at_fmt, fmt);
     }
 
-    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
-    {
-        if(com || !cell->enabled){
-            return getCom(static_cast<AtomFmt>(fmt));
-        }
-        const Mat& cv = cell->cellvec;
-        return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
-    }
-
+    virtual Vec  getCenter(CdmFmt fmt, bool com=false) const noexcept =0;
     virtual void evaluateCache()const =0;
 
     // Modifier functions
