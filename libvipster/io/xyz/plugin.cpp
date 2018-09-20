@@ -146,7 +146,7 @@ bool XYZWriter(const Molecule& m, std::ofstream &file,
         break;
     case IO::XYZConfig::Mode::Trajec:
         for(const auto& step: m.getSteps()){
-            stepWriter(step);
+            stepWriter(step.asAngstrom);
         }
         break;
     }
