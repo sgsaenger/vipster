@@ -115,11 +115,11 @@ void parseCoordinates(std::string name, std::ifstream& file,
         if (linestream.fail()) {
             throw IO::Error{"Failed to parse atom"};
         }
-        bool x{0},y{0},z{0};
+        bool x{1},y{1},z{1};
         linestream >> x >> y >> z;
-        at.properties->flags[AtomFlag::FixX] = x;
-        at.properties->flags[AtomFlag::FixY] = y;
-        at.properties->flags[AtomFlag::FixZ] = z;
+        at.properties->flags[AtomFlag::FixX] = !x;
+        at.properties->flags[AtomFlag::FixY] = !y;
+        at.properties->flags[AtomFlag::FixZ] = !z;
     }
 }
 
@@ -349,9 +349,9 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
              << ' ' << std::right << std::setw(10) << at.coord[1]
              << ' ' << std::right << std::setw(10) << at.coord[2];
         if((at.properties->flags & fixComp).any()){
-            file << ' ' << at.properties->flags[AtomFlag::FixX]
-                 << ' ' << at.properties->flags[AtomFlag::FixY]
-                 << ' ' << at.properties->flags[AtomFlag::FixZ];
+            file << ' ' << !at.properties->flags[AtomFlag::FixX]
+                 << ' ' << !at.properties->flags[AtomFlag::FixY]
+                 << ' ' << !at.properties->flags[AtomFlag::FixZ];
         }
         file << '\n';
     }
