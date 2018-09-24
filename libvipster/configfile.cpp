@@ -14,33 +14,19 @@ using namespace Vipster;
 
 bool readConfig();
 
-namespace Vipster{
-PseMap pse;
-Settings settings;
-IO::Parameters params;
-IO::Configs configs;
-}
-
 bool Vipster::readConfig()
 {
-    PseMap pse{true};
-    Settings settings;
-    IO::Parameters params;
-    IO::Configs configs;
     std::ifstream conf_file{user_config};
-    if(!conf_file){
-        conf_file = std::ifstream{sys_config};
-    }
     if(conf_file){
         json loc_file;
         conf_file >> loc_file;
         // PSE
         if(loc_file.find("PSE") != loc_file.end()){
-            pse = loc_file["PSE"];
+            from_json(loc_file["PSE"], pse);
         }
         // General settings
         if(loc_file.find("Settings") != loc_file.end()){
-            settings = loc_file["Settings"];
+            from_json(loc_file["Settings"], settings);
         }
         // Parameter sets
         if(loc_file.find("Parameters") != loc_file.end()){
@@ -74,26 +60,6 @@ bool Vipster::readConfig()
             }
         }
     }
-    // ensure fallback-values are present
-    if(pse.find("")==pse.end()){
-        pse.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
-    }
-    for(const auto& pair: IOPlugins){
-        auto fmt = pair.first;
-        const auto& plugin = pair.second;
-        if(plugin->arguments & IO::Plugin::Args::Config &&
-           configs.find(fmt) == configs.end()){
-           configs.emplace(fmt, plugin->makeConfig("default"));
-        }
-        if(plugin->arguments & IO::Plugin::Args::Param &&
-           params.find(fmt) == params.end()){
-           params.emplace(fmt, plugin->makeParam("default"));
-        }
-    }
-    Vipster::pse = std::move(pse);
-    Vipster::settings = std::move(settings);
-    Vipster::params = std::move(params);
-    Vipster::configs = std::move(configs);
     return true;
 }
 

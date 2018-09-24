@@ -37,16 +37,6 @@ where `$VIPSTER_SOURCE` shall be the directory you cloned the git/unpacked the a
 `$VARIANT` can be one of debug, release, or profile.
 Debug will be the default, so please set it to release if you just want a working program.
 
-### For Linux (and other Unices):
-The default configuration expects to be installed under /usr/{bin,include,lib,share}.
-If you would like to specify another install prefix, please add `project.prefix:"/target/prefix"` to the qbs line.
-When installing in your home-directory (or for creating an AppImage or similar), set `project.relpath` to `true`.
-
-Example for a user-specific install:
-```
-qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:release project.prefix:"/home/NAME/.local"
-```
-
 ### Windows, MacOS X:
 
 Adding `project.winInstall:true` or `project.macInstall:true` will create the respective installers.
