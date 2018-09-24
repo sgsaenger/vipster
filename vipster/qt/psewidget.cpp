@@ -155,6 +155,9 @@ void PSEWidget::setPSE(PseMap* pse)
 {
     this->pse = pse;
     ui->pseList->clear();
+    if(pse == &Vipster::pse){
+        isGlobal = true;
+    }
     if(pse){
         for(const auto& entry: *pse){
             ui->pseList->addItem(QString::fromStdString(entry.first));
@@ -164,9 +167,13 @@ void PSEWidget::setPSE(PseMap* pse)
 
 void PSEWidget::updateWidget(uint8_t change)
 {
-    if(change == guiMolChanged){
-        setPSE(master->curMol->pse.get());
-    }else if(change & GuiChange::atoms){
+    if(isGlobal && GuiChange::settings){
         setPSE(this->pse);
+    }else{
+        if(change == guiMolChanged){
+            setPSE(master->curMol->pse.get());
+        }else if(change & GuiChange::atoms){
+            setPSE(this->pse);
+        }
     }
 }
