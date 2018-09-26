@@ -52,6 +52,7 @@ public slots:
     void saveParam();
     void loadConfig();
     void saveConfig();
+    void saveScreenshot();
 
 private:
     void setupUI(void);

@@ -1111,6 +1111,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionScreenshot</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveScreenshot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -1123,6 +1139,7 @@
   <slot>saveMol()</slot>
   <slot>saveConfig()</slot>
   <slot>saveParam()</slot>
+  <slot>saveScreenshot()</slot>
  </slots>
  <buttongroups>
   <buttongroup name="cameraGroup"/>

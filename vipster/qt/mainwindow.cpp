@@ -273,11 +273,11 @@ void MainWindow::saveMol()
     QFileDialog fileDiag{this};
     fileDiag.setDirectory(path);
     fileDiag.setAcceptMode(QFileDialog::AcceptSave);
-    if(fileDiag.exec() != 0){
+    if(fileDiag.exec() == QDialog::Accepted){
         auto target = fileDiag.selectedFiles()[0].toStdString();
         path = fileDiag.directory();
         SaveFmtDialog sfd{this};
-        if(sfd.exec() != 0){
+        if(sfd.exec() == QDialog::Accepted){
             writeFile(target, sfd.fmt, *curMol,
                       sfd.getParam(), sfd.getConfig(),
                       IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
@@ -403,6 +403,28 @@ void MainWindow::about()
             "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
             "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
+}
+
+void MainWindow::saveScreenshot()
+{
+    QFileDialog diag{this};
+    diag.setDirectory(path);
+    diag.setAcceptMode(QFileDialog::AcceptSave);
+    diag.setMimeTypeFilters({"image/png"});
+    if(diag.exec() == QDialog::Accepted){
+        auto target = diag.selectedFiles()[0];
+        if(!target.endsWith(".png", Qt::CaseInsensitive)){
+            target += ".png";
+        }
+        path = diag.directory();
+
+        auto aa = settings.antialias.val;
+        settings.antialias.val = false;
+        auto img = ui->openGLWidget->grabFramebuffer();
+        img.save(target);
+        settings.antialias.val = aa;
+        updateWidgets(0);
+    }
 }
 
 BaseWidget::BaseWidget(QWidget* parent)
