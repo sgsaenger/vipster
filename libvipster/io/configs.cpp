@@ -11,7 +11,7 @@ IO::Configs Vipster::configs = [](){
     IO::Configs tmp;
     for(const auto& p: IOPlugins){
         if(p.second->arguments & IO::Plugin::Args::Config){
-            tmp.emplace(p.first, p.second->makeConfig("default"));
+            tmp[p.first]["default"] = p.second->makeConfig("default");
         }
     }
     return tmp;

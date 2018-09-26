@@ -78,22 +78,22 @@ void MainWindow::setupUI()
     ui->pseWidget->setPSE(&Vipster::pse);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
-        auto param_range = Vipster::params.equal_range(pair.first);
-        if(param_range.first != param_range.second){
+        const auto& param_map = Vipster::params[pair.first];
+        if(!param_map.empty()){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(auto it=param_range.first; it!=param_range.second; ++it){
-                param_menu->addAction(QString::fromStdString(it->second->name),
+            for(const auto& p: param_map){
+                param_menu->addAction(QString::fromStdString(p.first),
                                       this, &MainWindow::loadParam);
             }
         }
-        auto config_range = Vipster::configs.equal_range(pair.first);
-        if(config_range.first != config_range.second){
-            auto* config_menu = ui->menuLoad_IO_Config->addMenu(
+        const auto& conf_map = Vipster::configs[pair.first];
+        if(!conf_map.empty()){
+            auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(auto it=config_range.first; it!=config_range.second; ++it){
-                config_menu->addAction(QString::fromStdString(it->second->name),
-                                      this, &MainWindow::loadConfig);
+            for(const auto& p: conf_map){
+                conf_menu->addAction(QString::fromStdString(p.first),
+                                     this, &MainWindow::loadConfig);
             }
         }
     }
@@ -307,14 +307,12 @@ void MainWindow::loadParam()
         }
         throw Error("Invalid parameter set");
     }(p->title());
-    auto range = Vipster::params.equal_range(fmt);
-    for(auto it=range.first; it!=range.second; ++it){
-        if (it->second->name.c_str() == s->text()){
-            ui->paramWidget->registerParam(fmt, it->second->copy());
-            return;
-        }
+    auto pos = Vipster::params[fmt].find(s->text().toStdString());
+    if(pos != Vipster::params[fmt].end()){
+        ui->paramWidget->registerParam(fmt, pos->second->copy());
+    }else{
+        throw Error("Invalid parameter set");
     }
-    throw Error("Invalid parameter set");
 }
 
 void MainWindow::loadConfig()
@@ -329,15 +327,12 @@ void MainWindow::loadConfig()
         }
         throw Error("Invalid config");
     }(p->title());
-    auto range = Vipster::configs.equal_range(fmt);
-    const auto& name = s->text();
-    for(auto it=range.first; it!=range.second; ++it){
-        if(name == it->second->name.c_str()){
-            ui->configWidget->registerConfig(fmt, it->second->copy());
-            return;
-        }
+    auto pos = Vipster::configs[fmt].find(s->text().toStdString());
+    if(pos != Vipster::configs[fmt].end()){
+        ui->configWidget->registerConfig(fmt, pos->second->copy());
+    }else{
+        throw Error("Invalid config");
     }
-    throw Error("Invalid config");
 }
 
 void MainWindow::about()

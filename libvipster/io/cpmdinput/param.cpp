@@ -36,9 +36,10 @@ const std::map<std::string, IO::CPParam::Section IO::CPParam::*> IO::CPParam::st
     {"&QMMM", &IO::CPParam::qmmm},
 };
 
-void IO::CPParam::parseJson(const nlohmann::json& j)
+void IO::CPParam::parseJson(const nlohmann::json::iterator& it)
 {
-    from_json(j, *this);
+    name = it.key();
+    from_json(it.value(), *this);
 }
 
 nlohmann::json IO::CPParam::toJson()
@@ -50,7 +51,6 @@ nlohmann::json IO::CPParam::toJson()
 
 void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
 {
-    p.name = j.at("name");
     for(const auto& pair: CPParam::str2section){
         p.*pair.second = j.at(pair.first).get<CPParam::Section>();
     }
@@ -58,7 +58,6 @@ void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
 
 void IO::to_json(nlohmann::json& j,const CPParam& p)
 {
-    j["name"] = p.name;
     for(const auto& pair: CPParam::str2section){
         j[pair.first] = p.*pair.second;
     }

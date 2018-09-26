@@ -15,9 +15,10 @@ std::unique_ptr<IO::BaseConfig> IO::LmpConfig::copy()
     return std::make_unique<IO::LmpConfig>(*this);
 }
 
-void IO::LmpConfig::parseJson(const nlohmann::json& j)
+void IO::LmpConfig::parseJson(const nlohmann::json::iterator& it)
 {
-    from_json(j, *this);
+    name = it.key();
+    from_json(it.value(), *this);
 }
 
 nlohmann::json IO::LmpConfig::toJson()
@@ -29,7 +30,6 @@ nlohmann::json IO::LmpConfig::toJson()
 
 void IO::from_json(const nlohmann::json& j, IO::LmpConfig& c)
 {
-    c.name = j.at("name");
     c.angles = j.at("angles");
     c.bonds = j.at("bonds");
     c.dihedrals = j.at("dihedrals");
@@ -43,7 +43,6 @@ void IO::from_json(const nlohmann::json& j, IO::LmpConfig& c)
 
 void IO::to_json(nlohmann::json &j, const IO::LmpConfig& c)
 {
-    j["name"] = c.name;
     j["angles"] = c.angles;
     j["bonds"] = c.bonds;
     j["dihedrals"] = c.dihedrals;

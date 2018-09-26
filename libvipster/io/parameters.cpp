@@ -4,14 +4,14 @@
 using namespace Vipster;
 
 IO::BaseParam::BaseParam(std::string name)
-    :name{name}
+    : name{name}
 {}
 
 IO::Parameters Vipster::params = [](){
     IO::Parameters tmp;
     for(const auto& p: IOPlugins){
         if(p.second->arguments & IO::Plugin::Args::Param){
-            tmp.emplace(p.first, p.second->makeParam("default"));
+            tmp[p.first]["default"] = p.second->makeParam("default");
         }
     }
     return tmp;

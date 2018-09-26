@@ -258,9 +258,8 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
     Molecule &m = d.mol;
     m.setName(name);
     m.newStep();
-    d.param = std::make_unique<IO::PWParam>();
+    d.param = std::make_unique<IO::PWParam>(name);
     IO::PWParam &p = *static_cast<IO::PWParam*>(d.param.get());
-    p.name = name;
     CellFmt cellFmt = CellFmt::None;
     int ibrav = 0;
 

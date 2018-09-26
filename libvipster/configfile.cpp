@@ -35,10 +35,9 @@ bool Vipster::readConfig()
                 for(const auto& pair: IOPlugins){
                     const auto& plugin = pair.second;
                     if(it.key() == plugin->command){
-                        for(const auto& entry: it.value()){
-                            auto tmp = plugin->makeParam("");
-                            tmp->parseJson(entry);
-                            params.emplace(pair.first, std::move(tmp));
+                        auto& tmp = params[pair.first];
+                        for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
+                            tmp[it2.key()]->parseJson(it2);
                         }
                     }
                 }
@@ -50,10 +49,9 @@ bool Vipster::readConfig()
                 for(const auto& pair: IOPlugins){
                     const auto& plugin = pair.second;
                     if(it.key() == plugin->command){
-                        for(const auto& entry: it.value()){
-                            auto tmp = plugin->makeConfig("");
-                            tmp->parseJson(entry);
-                            configs.emplace(pair.first, std::move(tmp));
+                        auto& tmp = configs[pair.first];
+                        for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
+                            tmp[it2.key()]->parseJson(it2);
                         }
                     }
                 }
@@ -75,24 +73,18 @@ bool Vipster::saveConfig()
     json_buf["Parameters"] = json{};
     for(const auto& plug: IOPlugins){
         if(plug.second->arguments & IO::Plugin::Args::Param){
-            json_buf["Parameters"][plug.second->command] = json::array();
             json& j = json_buf["Parameters"][plug.second->command];
-            for(const auto& p: params){
-                if(p.first == plug.first){
-                    j.push_back(p.second->toJson());
-                }
+            for(const auto& p: params[plug.first]){
+                j[p.first] = p.second->toJson();
             }
         }
     }
     json_buf["Configs"] = json{};
     for(const auto& plug: IOPlugins){
         if(plug.second->arguments & IO::Plugin::Args::Config){
-            json_buf["Configs"][plug.second->command] = json::array();
             json& j = json_buf["Configs"][plug.second->command];
-            for(const auto& p: configs){
-                if(p.first == plug.first){
-                    j.push_back(p.second->toJson());
-                }
+            for(const auto& p: configs[plug.first]){
+                j[p.first] = p.second->toJson();
             }
         }
     }

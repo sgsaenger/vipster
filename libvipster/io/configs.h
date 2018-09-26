@@ -16,14 +16,18 @@ class BaseConfig
 public:
     std::string name;
     virtual std::unique_ptr<BaseConfig> copy() = 0;
-    virtual void parseJson(const nlohmann::json&) = 0;
+    virtual void parseJson(const nlohmann::json::iterator&) = 0;
     virtual nlohmann::json toJson() = 0;
     virtual ~BaseConfig() = default;
 protected:
     BaseConfig(std::string);
+    BaseConfig(const BaseConfig&) = default;
+    BaseConfig(BaseConfig &&) = default;
+    BaseConfig& operator=(const BaseConfig&) = default;
+    BaseConfig& operator=(BaseConfig&&) = default;
 };
 
-using Configs = std::multimap<IOFmt, std::unique_ptr<BaseConfig>>;
+using Configs = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseConfig>>>;
 
 }
 
