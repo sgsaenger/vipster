@@ -29,7 +29,8 @@ public:
     void registerConfig(Vipster::IOFmt fmt,
                         std::unique_ptr<Vipster::IO::BaseConfig>&& data);
     void clearConfigs();
-    Vipster::IO::BaseConfig* curConfig;
+    Vipster::IOFmt curFmt;
+    Vipster::IO::BaseConfig* curConfig{nullptr};
 
 private slots:
     void on_configSel_currentIndexChanged(int index);

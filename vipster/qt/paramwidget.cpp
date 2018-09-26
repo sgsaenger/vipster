@@ -48,8 +48,9 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
         throw Error("Invalid parameter set selected");
     }
     const auto& pair = params.at(static_cast<size_t>(index));
+    curFmt = pair.first;
     curParam = pair.second.get();
-    switch(pair.first){
+    switch(curFmt){
     case IOFmt::PWI:
         ui->paramStack->setCurrentWidget(ui->PWWidget);
         ui->PWWidget->setParam(curParam);

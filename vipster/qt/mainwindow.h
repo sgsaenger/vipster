@@ -49,7 +49,9 @@ public slots:
     void saveMol();
     void editAtoms(void);
     void loadParam();
+    void saveParam();
     void loadConfig();
+    void saveConfig();
 
 private:
     void setupUI(void);

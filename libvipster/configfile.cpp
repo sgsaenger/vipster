@@ -37,8 +37,10 @@ bool Vipster::readConfig()
                     if(it.key() == plugin->command){
                         auto& tmp = params[pair.first];
                         for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
+                            tmp[it2.key()] = plugin->makeParam(it2.key());
                             tmp[it2.key()]->parseJson(it2);
                         }
+                        continue;
                     }
                 }
             }
@@ -51,8 +53,10 @@ bool Vipster::readConfig()
                     if(it.key() == plugin->command){
                         auto& tmp = configs[pair.first];
                         for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
+                            tmp[it2.key()] = plugin->makeConfig(it2.key());
                             tmp[it2.key()]->parseJson(it2);
                         }
+                        continue;
                     }
                 }
             }

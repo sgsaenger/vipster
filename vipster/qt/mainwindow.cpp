@@ -70,7 +70,7 @@ void MainWindow::setupUI()
     for(auto& w: toolWidgets){
         auto action = ui->toolBar->addAction(w->windowTitle());
         action->setCheckable(true);
-        connect(action, SIGNAL(toggled(bool)), w, SLOT(setVisible(bool)));
+        connect(action, &QAction::toggled, w, &QWidget::setVisible);
         w->hide();
     }
 #ifdef Q_OS_MACOS
@@ -337,13 +337,41 @@ void MainWindow::loadConfig()
                 return pair.first;
             }
         }
-        throw Error("Invalid config");
+        throw Error("Invalid IO-config");
     }(p->title());
     auto pos = Vipster::configs[fmt].find(s->text().toStdString());
     if(pos != Vipster::configs[fmt].end()){
         ui->configWidget->registerConfig(fmt, pos->second->copy());
     }else{
-        throw Error("Invalid config");
+        throw Error("Invalid IO-config");
+    }
+}
+
+void MainWindow::saveParam()
+{
+    if(!ui->paramWidget->curParam){
+        return;
+    }
+    bool ok;
+    auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
+                                      QLineEdit::Normal, QString(), &ok);
+    if(ok){
+        Vipster::params[ui->paramWidget->curFmt][name.toStdString()] =
+                ui->paramWidget->curParam->copy();
+    }
+}
+
+void MainWindow::saveConfig()
+{
+    if(!ui->configWidget->curConfig){
+        return;
+    }
+    bool ok;
+    auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
+                                      QLineEdit::Normal, QString(), &ok);
+    if(ok){
+        Vipster::configs[ui->configWidget->curFmt][name.toStdString()] =
+                ui->configWidget->curConfig->copy();
     }
 }
 

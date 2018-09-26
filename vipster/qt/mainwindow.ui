@@ -1049,6 +1049,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave_IO_Config</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveConfig()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave_Parameter_set</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveParam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -1059,10 +1091,12 @@
   <slot>stepBut(QAbstractButton*)</slot>
   <slot>loadMol()</slot>
   <slot>saveMol()</slot>
+  <slot>saveConfig()</slot>
+  <slot>saveParam()</slot>
  </slots>
  <buttongroups>
   <buttongroup name="cameraGroup"/>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
+  <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>
