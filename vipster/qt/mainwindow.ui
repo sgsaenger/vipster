@@ -373,8 +373,6 @@
     <addaction name="separator"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
-    <addaction name="separator"/>
-    <addaction name="actionUndo"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1070,6 +1068,38 @@
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>saveParam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionHide_Atom_s</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editAtoms()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShow_Atom_s</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editAtoms()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

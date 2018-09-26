@@ -206,6 +206,14 @@ void MainWindow::editAtoms()
         curStep->newAtom();
     }else if ( sender == ui->actionDelete_Atom_s){
         curSel->delAtoms();
+    }else if ( sender == ui->actionHide_Atom_s){
+        for(auto& at: *curSel){
+            at.properties->flags[AtomFlag::Hidden] = 1;
+        }
+    }else if ( sender == ui->actionShow_Atom_s){
+        for(auto& at: *curSel){
+            at.properties->flags[AtomFlag::Hidden] = 0;
+        }
     }
     updateWidgets(GuiChange::atoms);
 }
