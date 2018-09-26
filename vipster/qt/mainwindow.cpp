@@ -15,7 +15,8 @@ MainWindow::MainWindow(QString path, QWidget *parent):
     path{path}
 {
     ui->setupUi(this);
-    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
     setupUI();
     newMol();
 }
@@ -27,7 +28,8 @@ MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent)
 {
     ui->setupUi(this);
     setupUI();
-    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
     for(auto&& mol: d){
         newData(std::move(mol));
     }
@@ -150,6 +152,10 @@ void MainWindow::setMol(int i)
 
 void MainWindow::setStep(int i)
 {
+    if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
+        playTimer.stop();
+        ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    }
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
     curSel = &curStep->getLastSelection();
     fmt = curStep->getFmt();
@@ -183,7 +189,13 @@ void MainWindow::stepBut(QAbstractButton* but)
     }else if(but == ui->lastStepButton){
         setStep(static_cast<int>(curMol->getNstep()));
     }else if(but == ui->playButton){
-        //TODO
+        if(playTimer.isActive()){
+            playTimer.stop();
+            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        }else{
+            playTimer.start(1000);
+            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+        }
     }
 }
 

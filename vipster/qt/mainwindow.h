@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QAbstractButton>
 #include <QDir>
+#include <QTimer>
 #include <vector>
 #include "io.h"
 #include "stepsel.h"
@@ -56,6 +57,7 @@ private:
     Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
     QDir path{};
+    QTimer playTimer{};
     std::vector<QDockWidget*> baseWidgets;
     std::vector<QDockWidget*> toolWidgets;
 };
