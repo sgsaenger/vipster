@@ -298,7 +298,9 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
     // with selection shader -> color by gl_InstanceID
     // to seperate Framebuffer
 #ifndef __EMSCRIPTEN__
-    glDisable(GL_MULTISAMPLE);
+    if(settings.antialias.val){
+        glDisable(GL_MULTISAMPLE);
+    }
 #endif
     glClearColor(1,1,1,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -331,7 +333,9 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
                               static_cast<GLsizei>(atom_buffer.size()));
     }
 #ifndef __EMSCRIPTEN__
-    glEnable(GL_MULTISAMPLE);
+    if(settings.antialias.val){
+        glEnable(GL_MULTISAMPLE);
+    }
 #endif
 }
 

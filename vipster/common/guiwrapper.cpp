@@ -8,7 +8,6 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
 {
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
-    glEnable(GL_MULTISAMPLE);
 #endif
     glClearColor(1,1,1,1);
     glEnable(GL_DEPTH_TEST);
@@ -37,6 +36,13 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
 
 void GuiWrapper::draw(void)
 {
+#ifndef __EMSCRIPTEN__
+    if(settings.antialias.val){
+        glEnable(GL_MULTISAMPLE);
+    }else{
+        glDisable(GL_MULTISAMPLE);
+    }
+#endif
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if(rMatChanged||pMatChanged||vMatChanged){
