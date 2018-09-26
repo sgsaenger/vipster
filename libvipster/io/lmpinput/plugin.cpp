@@ -585,9 +585,9 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
 
     file << "\nMasses\n\n";
     std::map<std::string, size_t> atomtypemap;
-    for(const auto& i: step.getTypes()){
-        atomtypemap.emplace(i, atomtypemap.size()+1);
-        file << step.pse->at(i).m << " # " << i << '\n';
+    for(const auto& t: step.getTypes()){
+        atomtypemap.emplace(t, atomtypemap.size()+1);
+        file << atomtypemap.size() << ' ' << step.pse->at(t).m << " # " << t << '\n';
     }
 
     file << "\nAtoms # " << IO::LmpConfig::fmt2str.at(cc->style) << "\n\n";
