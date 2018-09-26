@@ -399,6 +399,7 @@ void MainWindow::about()
             "<br>"
             "It uses"
             "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>, "
+            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,"
             "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
             "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
