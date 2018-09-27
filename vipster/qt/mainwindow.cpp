@@ -118,6 +118,9 @@ void MainWindow::setFmt(int i, bool apply, bool scale)
     fmt = static_cast<AtomFmt>(i);
     if(apply){
         curStep->setFmt(fmt, scale);
+        if(curSel){
+            curSel->setFmt(fmt);
+        }
         updateWidgets(guiStepChanged);
     }else{
         updateWidgets(GuiChange::fmt);
