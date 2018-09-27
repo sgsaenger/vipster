@@ -25,9 +25,8 @@ public:
     ~Step() override = default;
     //TODO: make move-able
 
-    StepSelection&  select(std::string);
-    StepSelection&  select(SelectionFilter);
-    StepSelection&  getLastSelection();
+    StepSelection   select(std::string);
+    StepSelection   select(SelectionFilter);
     StepSelConst    select(std::string) const;
     StepSelConst    select(SelectionFilter) const;
 
@@ -69,7 +68,6 @@ protected:
          std::shared_ptr<AtomList>);
     Step(const Step& s);
     std::shared_ptr<AtomList>       atoms;
-    StepSelection                   lastSel{*this};
 };
 
 /*

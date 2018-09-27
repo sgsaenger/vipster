@@ -9,6 +9,8 @@
 #include "io.h"
 #include "stepsel.h"
 #include "../common/guiwrapper.h"
+#include "paramwidget.h"
+#include "configwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -31,10 +33,18 @@ public:
     void setFmt(int i, bool apply, bool scale);
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
+    struct MolExtras{
+        int curStep{-1};
+    };
+    struct StepExtras{
+        std::unique_ptr<Vipster::StepSelection> sel{nullptr};
+    };
     std::list<Vipster::Molecule> molecules;
+    std::map<Vipster::Molecule*, MolExtras> moldata;
+    std::map<Vipster::StepProper*, StepExtras> stepdata;
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
-    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>>& getParams() const noexcept;
-    const std::vector<std::pair<Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>>& getConfigs() const noexcept;
+    const decltype (ParamWidget::params)& getParams() const noexcept;
+    const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
     const Vipster::GUI::GlobalData& getGLGlobals();
@@ -64,19 +74,4 @@ private:
     std::vector<QDockWidget*> baseWidgets;
     std::vector<QDockWidget*> toolWidgets;
 };
-
-class BaseWidget: public QWidget{
-    Q_OBJECT
-
-public:
-    BaseWidget(QWidget *parent = nullptr);
-    void triggerUpdate(uint8_t change);
-    virtual void updateWidget(uint8_t){}
-    virtual ~BaseWidget()=default;
-
-protected:
-    bool updateTriggered{false};
-    MainWindow* master;
-};
-
 #endif // MAINWINDOW_H

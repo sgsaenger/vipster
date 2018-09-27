@@ -47,7 +47,8 @@ public:
     void initGL(const std::string& header, const std::string& folder);
     void draw(void);
     void drawSel(void);
-    void setMainStep(StepProper* step, StepSelection* sel, bool draw_bonds=true);
+    void setMainStep(StepProper* step, bool draw_bonds=true);
+    void setMainSel(StepSelection* sel);
     void updateMainStep(bool draw_bonds=true);
     void updateMainSelection();
     void addExtraData(GUI::Data* dat);

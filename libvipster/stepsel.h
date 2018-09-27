@@ -50,7 +50,6 @@ struct SelectionFilter{
     SelectionFilter() = default;
     SelectionFilter(const SelectionFilter& f) {
         *this = f;
-        op |= Op::UPDATE;
     }
     SelectionFilter& operator=(const SelectionFilter& f){
         mode = f.mode; op = f.op | Op::UPDATE;

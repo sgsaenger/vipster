@@ -172,21 +172,14 @@ Atom Step::operator[](size_t i) {
     return *iterator{atoms, at_fmt, i};
 }
 
-StepSelection& Step::select(std::string filter)
+StepSelection Step::select(std::string filter)
 {
-    lastSel = StepSelection{*this, filter};
-    return lastSel;
+    return StepSelection{*this, filter};
 }
 
-StepSelection& Step::select(SelectionFilter filter)
+StepSelection Step::select(SelectionFilter filter)
 {
-    lastSel = StepSelection{*this, filter};
-    return lastSel;
-}
-
-StepSelection& Step::getLastSelection()
-{
-    return lastSel;
+    return StepSelection{*this, filter};
 }
 
 StepSelConst Step::select(std::string filter) const

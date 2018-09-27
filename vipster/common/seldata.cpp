@@ -108,6 +108,9 @@ void GUI::SelData::update(StepSelection* sel)
 {
     curSel = sel;
     sel_buffer.clear();
+    if(!curSel){
+        return;
+    }
     sel_buffer.reserve(curSel->getNat());
     for(const Atom& at:*curSel){
         sel_buffer.push_back({at.coord, at.pse->covr*1.3f});

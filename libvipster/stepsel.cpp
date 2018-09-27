@@ -247,6 +247,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
     using Op = SelectionFilter::Op;
     std::string token;
     char c;
+    filter = SelectionFilter{};
     filter.op = Op::UPDATE;
     is >> c;
     if(c == '('){

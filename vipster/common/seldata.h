@@ -15,7 +15,7 @@ namespace GUI {
         // CPU-Data:
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
-        StepSelection* curSel;
+        StepSelection* curSel{nullptr};
         // GPU-State/Data:
         GLuint vao{0}, vbo{0};
         // Shader:

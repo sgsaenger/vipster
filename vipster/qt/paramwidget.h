@@ -2,7 +2,8 @@
 #define PARAMWIDGET_H
 
 #include <QWidget>
-#include "mainwindow.h"
+#include "basewidget.h"
+#include "io.h"
 
 namespace Ui {
 class ParamWidget;

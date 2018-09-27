@@ -132,34 +132,43 @@ AtomFmt MainWindow::getFmt()
 void MainWindow::setMol(int i)
 {
     curMol = &*std::next(molecules.begin(), i);
-    int steps = static_cast<int>(curMol->getNstep());
+    int nstep = static_cast<int>(curMol->getNstep());
+    if(moldata[curMol].curStep < 0){
+        moldata[curMol].curStep = nstep;
+    }
     //Step-control
-    ui->stepLabel->setText(QString::number(steps));
+    ui->stepLabel->setText(QString::number(nstep));
     QSignalBlocker boxBlocker(ui->stepEdit);
     QSignalBlocker slideBlocker(ui->stepSlider);
-    ui->stepEdit->setMaximum(steps);
-    ui->stepSlider->setMaximum(steps);
-    if(steps == 1){
+    ui->stepEdit->setMaximum(nstep);
+    ui->stepSlider->setMaximum(nstep);
+    if(nstep == 1){
         ui->stepEdit->setDisabled(true);
         ui->stepSlider->setDisabled(true);
     }else{
         ui->stepEdit->setEnabled(true);
         ui->stepSlider->setEnabled(true);
     }
-    setStep(static_cast<int>(steps));
+    setStep(moldata[curMol].curStep);
     updateWidgets(guiMolChanged);
 }
 
 void MainWindow::setStep(int i)
 {
+    moldata[curMol].curStep = i;
+    curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    fmt = curStep->getFmt();
+    // if no previous selection exists, create one, afterwards assign it
+    auto& tmpSel = stepdata[curStep].sel;
+    if(!tmpSel && curStep){
+        tmpSel = std::make_unique<StepSelection>(*curStep);
+    }
+    curSel = tmpSel.get();
+    //Handle control-elements
     if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
         playTimer.stop();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     }
-    curStep = &curMol->getStep(static_cast<size_t>(i-1));
-    curSel = &curStep->getLastSelection();
-    fmt = curStep->getFmt();
-    //Handle control-elements
     QSignalBlocker boxBlocker(ui->stepEdit);
     QSignalBlocker slideBlocker(ui->stepSlider);
     ui->stepEdit->setValue(i);
@@ -287,12 +296,12 @@ void MainWindow::saveMol()
 }
 
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseParam>>>& MainWindow::getParams() const noexcept
+const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
 {
     return ui->paramWidget->params;
 }
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseConfig>>>& MainWindow::getConfigs() const noexcept
+const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
 }
@@ -424,22 +433,4 @@ void MainWindow::saveScreenshot()
         settings.antialias.val = aa;
         updateWidgets(0);
     }
-}
-
-BaseWidget::BaseWidget(QWidget* parent)
-    :QWidget{parent}
-{
-    for(auto *w: qApp->topLevelWidgets()){
-        if(auto *t = qobject_cast<MainWindow*>(w)){
-            master = t;
-            return;
-        }
-    }
-    throw Error("Could not determine MainWindow-instance.");
-}
-
-void BaseWidget::triggerUpdate(uint8_t change)
-{
-    updateTriggered = true;
-    master->updateWidgets(change);
 }
