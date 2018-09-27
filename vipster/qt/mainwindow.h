@@ -43,11 +43,11 @@ public slots:
     void setMol(int i);
     void setStep(int i);
     void stepBut(QAbstractButton *but);
-    void about(void);
+    void about();
     void newMol();
     void loadMol();
     void saveMol();
-    void editAtoms(void);
+    void editAtoms(QAction *sender);
     void loadParam();
     void saveParam();
     void loadConfig();

@@ -199,9 +199,8 @@ void MainWindow::stepBut(QAbstractButton* but)
     }
 }
 
-void MainWindow::editAtoms()
+void MainWindow::editAtoms(QAction* sender)
 {
-    const QObject *sender = QObject::sender();
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
     }else if ( sender == ui->actionDelete_Atom_s){
