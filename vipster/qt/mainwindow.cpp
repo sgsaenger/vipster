@@ -103,6 +103,14 @@ void MainWindow::setupUI()
 
 void MainWindow::updateWidgets(uint8_t change)
 {
+    // if necessary, make sure that data is up to date
+    if(change & (GuiChange::atoms | GuiChange::fmt)){
+        curStep->evaluateCache();
+    }
+    if(change & GuiChange::selection){
+        curSel->evaluateCache();
+    }
+    // notify widgets
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
     for(auto& w: baseWidgets){
