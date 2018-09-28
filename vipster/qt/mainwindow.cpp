@@ -373,10 +373,11 @@ void MainWindow::saveParam()
     }
     bool ok;
     auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
-                                      QLineEdit::Normal, QString(), &ok);
+                                      QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::params[ui->paramWidget->curFmt][name.toStdString()] =
+        Vipster::params[ui->paramWidget->curFmt][name] =
                 ui->paramWidget->curParam->copy();
+        Vipster::params[ui->paramWidget->curFmt][name]->name = name;
     }
 }
 
@@ -387,10 +388,11 @@ void MainWindow::saveConfig()
     }
     bool ok;
     auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
-                                      QLineEdit::Normal, QString(), &ok);
+                                      QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::configs[ui->configWidget->curFmt][name.toStdString()] =
+        Vipster::configs[ui->configWidget->curFmt][name] =
                 ui->configWidget->curConfig->copy();
+        Vipster::configs[ui->configWidget->curFmt][name]->name = name;
     }
 }
 
