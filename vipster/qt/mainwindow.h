@@ -29,8 +29,6 @@ public:
     Vipster::Molecule* curMol{nullptr};
     Vipster::StepProper* curStep{nullptr};
     Vipster::StepSelection* curSel{nullptr};
-    Vipster::AtomFmt getFmt();
-    void setFmt(int i, bool apply, bool scale);
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
     struct MolExtras{
@@ -67,7 +65,6 @@ public slots:
 private:
     void setupUI(void);
 
-    Vipster::AtomFmt fmt{Vipster::AtomFmt::Bohr};
     Ui::MainWindow *ui;
     QDir path{};
     QTimer playTimer{};

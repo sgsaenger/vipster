@@ -39,9 +39,6 @@ void MolWidget::updateWidget(uint8_t change)
     if ((change & guiStepChanged) == guiStepChanged) {
         curStep = master->curStep;
         ui->atomFmtBox->setCurrentIndex(static_cast<int>(curStep->getFmt()));
-    }else if((change & GuiChange::fmt) != 0){
-        curStep = &master->curStep->asFmt(master->getFmt());
-        ui->atomFmtBox->setCurrentIndex(static_cast<int>(master->getFmt()));
     }
     if (change & (GuiChange::atoms | GuiChange::fmt)) {
         fillAtomTable();
@@ -172,7 +169,7 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     // if needed, trigger atom update
     uint8_t change = GuiChange::cell;
     if(ui->cellScaleBox->isChecked() != (curStep->getFmt()>=AtomFmt::Crystal)){
-        change = GuiChange::cell | GuiChange::atoms;
+        change |= GuiChange::atoms;
         fillAtomTable();
     }
     ui->cellEnabled->setCheckState(Qt::CheckState::Checked);
@@ -218,6 +215,11 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
     }
 }
 
+AtomFmt MolWidget::getAtomFmt()
+{
+    return static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
+}
+
 CdmFmt MolWidget::getCellFmt()
 {
     return static_cast<CdmFmt>(ui->cellFmt->currentIndex());
@@ -225,12 +227,15 @@ CdmFmt MolWidget::getCellFmt()
 
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
-    master->setFmt(index, false, false);
+    curStep = &curStep->asFmt(static_cast<AtomFmt>(ui->atomFmtBox->currentIndex()));
+    fillAtomTable();
 }
 
 void MolWidget::on_atomFmtButton_clicked()
 {
-    master->setFmt(ui->atomFmtBox->currentIndex(), true, false);
+    master->curStep->setFmt(static_cast<AtomFmt>(ui->atomFmtBox->currentIndex()));
+    master->curSel->setFmt(static_cast<AtomFmt>(ui->atomFmtBox->currentIndex()));
+    triggerUpdate(GuiChange::fmt);
 }
 
 void MolWidget::on_molList_currentIndexChanged(int index)

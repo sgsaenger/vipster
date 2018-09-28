@@ -113,25 +113,6 @@ void MainWindow::updateWidgets(uint8_t change)
     }
 }
 
-void MainWindow::setFmt(int i, bool apply, bool scale)
-{
-    fmt = static_cast<AtomFmt>(i);
-    if(apply){
-        curStep->setFmt(fmt, scale);
-        if(curSel){
-            curSel->setFmt(fmt);
-        }
-        updateWidgets(guiStepChanged);
-    }else{
-        updateWidgets(GuiChange::fmt);
-    }
-}
-
-AtomFmt MainWindow::getFmt()
-{
-    return fmt;
-}
-
 void MainWindow::setMol(int i)
 {
     curMol = &*std::next(molecules.begin(), i);
@@ -160,7 +141,6 @@ void MainWindow::setStep(int i)
 {
     moldata[curMol].curStep = i;
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
-    fmt = curStep->getFmt();
     // if no previous selection exists, create one, afterwards assign it
     auto& tmpSel = stepdata[curStep].sel;
     if(!tmpSel && curStep){
@@ -292,7 +272,7 @@ void MainWindow::saveMol()
             writeFile(target, sfd.fmt, *curMol,
                       sfd.getParam(), sfd.getConfig(),
                       IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
-                                this->fmt,
+                                ui->molWidget->getAtomFmt(),
                                 ui->molWidget->getCellFmt()});
         }
     }
