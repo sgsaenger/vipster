@@ -147,22 +147,17 @@ public:
     }
 
     // Bonds
-    const std::vector<Bond>&    getBonds(BondLevel l=BondLevel::Cell,
-                                         BondFrequency update=BondFrequency::Always) const
-    {
-        return getBonds(bonds->cutoff_factor, l, update);
-    }
-    const std::vector<Bond>&    getBonds(float cutfac,
-                                         BondLevel l=BondLevel::Cell,
-                                         BondFrequency update=BondFrequency::Always) const
+    const std::vector<Bond>&    getBonds(float cutfac=settings.bondCutFac.val,
+                                         BondLevel l=settings.bondLvl.val,
+                                         BondFrequency update=settings.bondFreq.val) const
     {
         evaluateCache();
         if(((update == BondFrequency::Always) or
             ((update == BondFrequency::Once) and not bonds->setOnce))
            and
            (bonds->outdated or
-            (float_comp(cutfac, bonds->cutoff_factor)) or
-            (bonds->level < l)))
+            (!float_comp(cutfac, bonds->cutoff_factor)) or
+            (bonds->level != l)))
         {
             setBonds(l, cutfac);
         }

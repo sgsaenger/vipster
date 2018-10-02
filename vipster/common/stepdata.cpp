@@ -412,7 +412,7 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
 // BONDS
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        const auto& bonds = curStep->getBonds(settings.bondLvl.val);
+        const auto& bonds = curStep->getBonds();
         const auto& pse = curStep->getPseEntries();
         float c, s, ic;
         float rad = settings.bondRad.val;

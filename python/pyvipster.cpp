@@ -195,8 +195,6 @@ PYBIND11_MODULE(vipster, m) {
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
         .def("getCenter", &Step::getCenter, "fmt"_a, "com"_a=false)
     //BONDS
-        .def("getBonds", py::overload_cast<BondLevel, BondFrequency>(&Step::getBonds, py::const_),
-             "level"_a=BondLevel::Cell, "update"_a=BondFrequency::Always)
         .def("getBonds", py::overload_cast<float, BondLevel, BondFrequency>(&StepProper::getBonds, py::const_),
              "cutfac"_a, "level"_a=BondLevel::Cell, "update"_a=BondFrequency::Always)
         .def_property_readonly("nbond", &StepProper::getNbond)
