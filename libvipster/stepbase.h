@@ -35,6 +35,10 @@ class StepBase
 public:
     virtual ~StepBase()=default;
 
+    virtual T&          asFmt(AtomFmt)=0;
+    virtual const T&    asFmt(AtomFmt) const=0;
+    virtual void evaluateCache()const =0;
+
     // Don't know how to mask this yet
     std::shared_ptr<PseMap> pse;
 
@@ -63,8 +67,6 @@ public:
     AtomFmt getFmt() const noexcept{
         return at_fmt;
     }
-    virtual T&          asFmt(AtomFmt)=0;
-    virtual const T&    asFmt(AtomFmt) const=0;
     std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
                                                  AtomFmt target) const
     {
@@ -151,7 +153,6 @@ public:
                                          BondLevel l=settings.bondLvl.val,
                                          BondFrequency update=settings.bondFreq.val) const
     {
-        evaluateCache();
         if(((update == BondFrequency::Always) or
             ((update == BondFrequency::Once) and not bonds->setOnce))
            and
@@ -167,11 +168,7 @@ public:
     {
         return getBonds().size();
     }
-    void    setBonds(BondLevel l) const
-    {
-        setBonds(l, settings.bondCutFac.val);
-    }
-    void    setBonds(BondLevel l, float cutfac) const
+    void    setBonds(BondLevel l=settings.bondLvl.val, float cutfac=settings.bondCutFac.val) const
     {
         bonds->bonds.clear();
         if(!static_cast<const T*>(this)->getNat()){
@@ -235,8 +232,14 @@ public:
         return formatVec((min+max)/2, at_fmt, fmt);
     }
 
-    virtual Vec  getCenter(CdmFmt fmt, bool com=false) const noexcept =0;
-    virtual void evaluateCache()const =0;
+    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
+    {
+        if(com || !cell->enabled){
+            return getCom(static_cast<AtomFmt>(fmt));
+        }
+        const Mat& cv = cell->cellvec;
+        return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
+    }
 
     // Modifier functions
     void modShift(Vec shift, float fac=1.0f){
@@ -411,9 +414,9 @@ private:
     // Bonds
     void    setBondsMolecule(float cutfac) const
     {
-        AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
-        float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
-        const T& tgtFmt = asFmt(fmt);
+        const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
+        const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
+        const auto& tgtFmt = asFmt(fmt);
         tgtFmt.evaluateCache();
         std::vector<Bond>& bonds = this->bonds->bonds;
         auto at_i = tgtFmt.begin();

@@ -35,7 +35,7 @@ void GLWidget::updateWidget(uint8_t change)
         setMainStep(master->curStep, settings.showBonds.val);
         setMainSel(master->curSel);
     }else{
-        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::settings)) {
+        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::settings)) {
             updateMainStep(settings.showBonds.val);
             updateMainSelection();
         }else if(change & GuiChange::selection){

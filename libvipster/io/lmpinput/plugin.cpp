@@ -192,7 +192,7 @@ auto makeWriter(const std::vector<lmpTok>& fmt,
                 const std::vector<size_t>& molID,
                 const std::map<std::string, size_t>& atomtypemap){
     return [&](std::ostream& file, const Step& s){
-        for(Step::constIterator it=s.begin(); it!=s.end(); ++it){
+        for(auto it=s.begin(); it!=s.end(); ++it){
             file << std::left << std::setw(3) << (it.getIdx()+1);
             for(const auto& tok: fmt){
                 file << ' ';

@@ -10,12 +10,10 @@ void Step::enableCell(bool b) noexcept
 }
 
 size_t Step::getNat() const noexcept{
-    evaluateCache();
     return atoms->names.size();
 }
 
 void Step::newAtom(){
-    evaluateCache();
     AtomList& al = *atoms;
     // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].emplace_back();
@@ -31,7 +29,6 @@ void Step::newAtom(){
 
 void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
 {
-    evaluateCache();
     AtomList& al = *atoms;
     // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].emplace_back(coord);
@@ -46,7 +43,6 @@ void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
 }
 
 void Step::newAtom(const Atom& at){
-    evaluateCache();
     AtomList& al = *atoms;
     // Coordinates
     al.coordinates[static_cast<size_t>(at_fmt)].push_back(at.coord);
@@ -61,7 +57,6 @@ void Step::newAtom(const Atom& at){
 }
 
 void Step::newAtoms(size_t i){
-    evaluateCache();
     size_t nat = getNat()+i;
     // Coordinates
     AtomList& al = *atoms;
@@ -77,7 +72,6 @@ void Step::newAtoms(size_t i){
 }
 
 void Step::newAtoms(const AtomList& atoms){
-    evaluateCache();
     size_t nat = getNat() + atoms.names.size();
     // Coordinates
     AtomList& al = *this->atoms;
@@ -99,7 +93,6 @@ void Step::newAtoms(const AtomList& atoms){
 }
 
 void Step::delAtom(size_t _i){
-    evaluateCache();
     AtomList& al = *atoms;
     auto i = static_cast<long>(_i);
     // Coordinates
@@ -116,17 +109,14 @@ void Step::delAtom(size_t _i){
 }
 
 Step::iterator Step::begin() noexcept {
-    evaluateCache();
     return {atoms, at_fmt, 0};
 }
 
 Step::constIterator Step::begin() const noexcept {
-    evaluateCache();
     return {atoms, at_fmt, 0};
 }
 
 Step::constIterator Step::cbegin() const noexcept {
-    evaluateCache();
     return {atoms, at_fmt, 0};
 }
 
@@ -143,32 +133,26 @@ Step::constIterator Step::cend() const noexcept {
 }
 
 const AtomList& Step::getAtoms() const noexcept {
-    evaluateCache();
     return *atoms;
 }
 
 const std::vector<Vec>& Step::getCoords() const noexcept {
-    evaluateCache();
     return atoms->coordinates[static_cast<size_t>(at_fmt)];
 }
 
 const std::vector<std::string>& Step::getNames() const noexcept {
-    evaluateCache();
     return atoms->names;
 }
 
 const std::vector<PseEntry*>& Step::getPseEntries() const noexcept {
-    evaluateCache();
     return atoms->pse;
 }
 
 const std::vector<AtomProperties>& Step::getProperties() const noexcept {
-    evaluateCache();
     return atoms->properties;
 }
 
 Atom Step::operator[](size_t i) {
-    evaluateCache();
     return *iterator{atoms, at_fmt, i};
 }
 
@@ -196,7 +180,6 @@ void Step::setCellVec(const Mat &vec, bool scale)
 {
     Mat inv = Mat_inv(vec);
     cell->enabled = true;
-    evaluateCache();
     if (scale) {
         if (at_fmt == AtomFmt::Crystal) {
             /*
@@ -204,12 +187,12 @@ void Step::setCellVec(const Mat &vec, bool scale)
              */
             cell->cellvec = vec;
             cell->invvec = inv;
+            atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
         } else {
             /*
              * All other cases need to be reformatted
              *
              * calculates crystal-coordinates as intermediate
-             * TODO: manually validate buffer
              */
             asFmt(AtomFmt::Crystal).evaluateCache();
             cell->cellvec = vec;
@@ -219,6 +202,14 @@ void Step::setCellVec(const Mat &vec, bool scale)
             atoms->coordinates[target] =
                     formatAll(atoms->coordinates[crystal],
                               AtomFmt::Crystal, at_fmt);
+            for(size_t i=0; i<nAtFmt; ++i){
+                if ((i == target) || (i == crystal)){
+                    atoms->coord_changed[i] = false;
+                    atoms->coord_outdated[i] = false;
+                }else{
+                    atoms->coord_outdated[i] = true;
+                }
+            }
         }
     } else {
         if (at_fmt == AtomFmt::Crystal) {
@@ -226,7 +217,6 @@ void Step::setCellVec(const Mat &vec, bool scale)
              * Crystal needs to be reformatted
              *
              * Determine a valid buffer or use Alat
-             * TODO: manually validate buffer
              */
             size_t buf = nAtFmt;
             for (size_t i=0; i<nAtFmt; ++i){
@@ -247,24 +237,23 @@ void Step::setCellVec(const Mat &vec, bool scale)
             atoms->coordinates[target] =
                     formatAll(atoms->coordinates[buf],
                               static_cast<AtomFmt>(buf), AtomFmt::Crystal);
+            for(size_t i=0; i<nAtFmt; ++i){
+                if ((i == target) || (i == buf)){
+                    atoms->coord_changed[i] = false;
+                    atoms->coord_outdated[i] = false;
+                }else{
+                    atoms->coord_outdated[i] = true;
+                }
+            }
         } else {
             /*
              * All but crystal stay as-is
              */
             cell->cellvec = vec;
             cell->invvec = inv;
+            atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
         }
     }
-    atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
-}
-
-Vec Step::getCenter(CdmFmt fmt, bool com) const noexcept
-{
-    if(com || !cell->enabled){
-        return getCom(static_cast<AtomFmt>(fmt));
-    }
-    const Mat& cv = cell->cellvec;
-    return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
 }
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
@@ -278,7 +267,6 @@ void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
      * => relative coordinates stay the same
      */
     cell->enabled = true;
-    evaluateCache();
     size_t int_fmt = static_cast<size_t>(at_fmt);
     bool relative = at_fmt>=AtomFmt::Crystal;
     if (scale != relative){
@@ -334,7 +322,9 @@ void StepProper::setFmt(AtomFmt at_fmt, bool scale){
          */
         evaluateCache(); // pull in changes from elsewhere
         std::swap(atoms.coordinates[source], atoms.coordinates[target]);
-        atoms.coord_changed[target] = true; // make sure other caches are invalidated
+        // make sure cache state is coherent
+        atoms.coord_outdated[target] = false;
+        atoms.coord_changed[target] = true;
     } else {
         /*
          * without scaling, we just change which buffer we're pulling data from

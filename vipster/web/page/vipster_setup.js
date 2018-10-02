@@ -275,6 +275,7 @@ function setMult() {
 
 function update(arg) {
     if (arg & (change.atoms | change.cell)) {
+        Module.evalCache();
         fillAtoms();
     }
 

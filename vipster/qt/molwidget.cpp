@@ -35,9 +35,9 @@ void MolWidget::updateWidget(uint8_t change)
     if ((change & guiMolChanged) == guiMolChanged) {
         curMol = master->curMol;
     }
-    QSignalBlocker blockAtFmt(ui->atomFmtBox);
     if ((change & guiStepChanged) == guiStepChanged) {
         curStep = master->curStep;
+        QSignalBlocker blockAtFmt(ui->atomFmtBox);
         ui->atomFmtBox->setCurrentIndex(static_cast<int>(curStep->getFmt()));
     }
     if (change & (GuiChange::atoms | GuiChange::fmt)) {
@@ -79,6 +79,7 @@ void MolWidget::fillAtomTable(void)
         return;
     }
     //Fill atom list
+    curStep->evaluateCache(); // manual because curStep may be formatter (TODO: _will_ be after rework)
     QSignalBlocker blockTable(ui->atomTable);
     int oldCount = ui->atomTable->rowCount();
     auto nat = static_cast<int>(curStep->getNat());
@@ -94,7 +95,7 @@ void MolWidget::fillAtomTable(void)
             }
         }
     }
-    auto at = curStep->begin();
+    auto at = curStep->cbegin();
     for(int j=0;j!=nat;++j){
         ui->atomTable->item(j,0)->setText(at->name.c_str());
         ui->atomTable->item(j,0)->setCheckState(

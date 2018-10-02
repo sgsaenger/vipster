@@ -130,7 +130,6 @@ public:
     // TODO: direct Prop-getters?
     const std::vector<size_t>& getIndices() const noexcept
     {
-        evaluateCache();
         return selection->indices;
     }
 
@@ -144,10 +143,6 @@ public:
         if(filter->op & SelectionFilter::UPDATE){
             selection->indices = evalFilter(step, *filter);
         }
-    }
-    Vec   getCenter(CdmFmt fmt, bool com=false) const noexcept override
-    {
-        return step.getCenter(fmt, com);
     }
     const SelectionFilter& getFilter() const noexcept
     {
@@ -170,44 +165,36 @@ public:
     // Atoms
     size_t          getNat() const noexcept
     {
-        evaluateCache();
         return selection->indices.size();
     }
     using           iterator = AtomSelIterator<Atom>;
     using           constIterator = AtomSelIterator<const Atom>;
     Atom            operator[](size_t i)
     {
-        evaluateCache();
         return *iterator{selection, this->at_fmt, i};
     }
     iterator        begin() noexcept
     {
-        evaluateCache();
         return iterator{selection, this->at_fmt, 0};
     }
     constIterator   begin() const noexcept
     {
-        evaluateCache();
         return constIterator{selection, this->at_fmt, 0};
     }
     constIterator   cbegin() const noexcept
     {
-        evaluateCache();
         return constIterator{selection, this->at_fmt, 0};
     }
     iterator        end() noexcept
     {
-        evaluateCache();
         return iterator{selection, this->at_fmt, selection->indices.size()};
     }
     constIterator   end() const noexcept
     {
-        evaluateCache();
         return constIterator{selection, this->at_fmt, selection->indices.size()};
     }
     constIterator   cend() const noexcept
     {
-        evaluateCache();
         return constIterator{selection, this->at_fmt, selection->indices.size()};
     }
     void delAtoms()

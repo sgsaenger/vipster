@@ -61,7 +61,11 @@ void emZoom(int val){gui.zoomViewMat(val);}
 void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
 void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
 
+// validate Cache
+void emEvalCache(void){ gui.curStep->evaluateCache(); }
+
 EMSCRIPTEN_BINDINGS(vipster){
+    em::function("evalCache", &emEvalCache);
     em::function("getNMol", &emGetNMol);
     em::function("getMolNStep", &emGetMolNstep);
     em::function("getMolName", &emGetMolName);
