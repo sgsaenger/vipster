@@ -5,7 +5,6 @@
 using namespace Vipster;
 
 TEST_CASE("Vipster::StepSel", "[step]") {
-    Vipster::readConfig();
     StepProper s{};
     (*s.pse)["C"].bondcut = 1.46f;
     (*s.pse)["H"].bondcut = 0.72f;

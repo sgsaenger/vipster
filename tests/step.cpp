@@ -24,7 +24,6 @@ static std::ostream& operator<<(std::ostream& os, const Atom& at)
 #include "catch.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
-    Vipster::readConfig();
     Mat cv = {{{{1,2,3}},{{0,1,0}},{{0,0,1.5}}}};
     std::string fmtNames[nAtFmt] = {"Bohr", "Angstrom", "Crystal", "Alat"};
     // s will be checked
@@ -61,7 +60,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         REQUIRE( s.getNat() == 3 );
         REQUIRE( s.getNtyp() == 1 );
         REQUIRE( s.getTypes() == std::set<std::string>{""} );
-        for(auto& at: s) {
+        for(const auto& at: s) {
             REQUIRE( at == s[0] );
         }
     }
@@ -122,6 +121,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
             for (size_t j=0; j<nAtFmt; ++j){
                 auto fmt_j = static_cast<AtomFmt>(j);
                 auto& f = s.asFmt(fmt_j);
+                f.evaluateCache();
                 if(fmt_j != fmt_i){
                     REQUIRE( f[1] != s[1] );
                 } else {
@@ -171,6 +171,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     INFO(fmtNames[j]);
                     auto fmt_j = static_cast<AtomFmt>(j);
                     auto& f = s.asFmt(fmt_j);
+                    f.evaluateCache();
                     bool rel_i = fmt_i>=AtomFmt::Crystal;
                     bool abs_i = !rel_i;
                     bool rel_j = fmt_j>=AtomFmt::Crystal;
@@ -178,15 +179,19 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                     f.setCellDim(6, CdmFmt::Bohr, false);
+                    f.evaluateCache();
                     CHECK(s[0] == sd[2*i+rel_i]);
                     CHECK(f[0] == sd[2*j+rel_j]);
                     f.setCellDim(5, CdmFmt::Bohr, false);
+                    f.evaluateCache();
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                     f.setCellDim(6, CdmFmt::Bohr, true);
+                    f.evaluateCache();
                     CHECK(s[0] == sd[2*i+abs_i]);
                     CHECK(f[0] == sd[2*j+abs_j]);
                     f.setCellDim(5, CdmFmt::Bohr, true);
+                    f.evaluateCache();
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                 }
@@ -233,20 +238,25 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     INFO(fmtNames[j]);
                     auto fmt_j = static_cast<AtomFmt>(j);
                     auto &f = s.asFmt(fmt_j);
+                    f.evaluateCache();
                     bool rel_j = fmt_j == AtomFmt::Crystal;
                     bool abs_j = !rel_j;
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                     f.setCellVec(cv2, false);
+                    f.evaluateCache();
                     CHECK(s[0] == sv[2*i+rel_i]);
                     CHECK(f[0] == sv[2*j+rel_j]);
                     f.setCellVec(cv, false);
+                    f.evaluateCache();
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                     f.setCellVec(cv2, true);
+                    f.evaluateCache();
                     CHECK(s[0] == sv[2*i+abs_i]);
                     CHECK(f[0] == sv[2*j+abs_j]);
                     f.setCellVec(cv, true);
+                    f.evaluateCache();
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                 }

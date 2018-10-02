@@ -180,6 +180,7 @@ void Step::setCellVec(const Mat &vec, bool scale)
 {
     Mat inv = Mat_inv(vec);
     cell->enabled = true;
+    evaluateCache();
     if (scale) {
         if (at_fmt == AtomFmt::Crystal) {
             /*
@@ -187,7 +188,6 @@ void Step::setCellVec(const Mat &vec, bool scale)
              */
             cell->cellvec = vec;
             cell->invvec = inv;
-            atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
         } else {
             /*
              * All other cases need to be reformatted
@@ -202,14 +202,6 @@ void Step::setCellVec(const Mat &vec, bool scale)
             atoms->coordinates[target] =
                     formatAll(atoms->coordinates[crystal],
                               AtomFmt::Crystal, at_fmt);
-            for(size_t i=0; i<nAtFmt; ++i){
-                if ((i == target) || (i == crystal)){
-                    atoms->coord_changed[i] = false;
-                    atoms->coord_outdated[i] = false;
-                }else{
-                    atoms->coord_outdated[i] = true;
-                }
-            }
         }
     } else {
         if (at_fmt == AtomFmt::Crystal) {
@@ -237,23 +229,15 @@ void Step::setCellVec(const Mat &vec, bool scale)
             atoms->coordinates[target] =
                     formatAll(atoms->coordinates[buf],
                               static_cast<AtomFmt>(buf), AtomFmt::Crystal);
-            for(size_t i=0; i<nAtFmt; ++i){
-                if ((i == target) || (i == buf)){
-                    atoms->coord_changed[i] = false;
-                    atoms->coord_outdated[i] = false;
-                }else{
-                    atoms->coord_outdated[i] = true;
-                }
-            }
         } else {
             /*
              * All but crystal stay as-is
              */
             cell->cellvec = vec;
             cell->invvec = inv;
-            atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
         }
     }
+    atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
 }
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)

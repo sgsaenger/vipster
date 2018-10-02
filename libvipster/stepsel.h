@@ -272,23 +272,29 @@ class SelectionProper: public SelectionBase<T>
 {
     friend class SelectionFormatter<T>;
 public:
+    //TODO: defer cache-stuff?
     SelectionProper(T& step)
         : SelectionBase<T>{step}
-    {}
+    {
+        this->evaluateCache();
+    }
     SelectionProper(T& step, std::string filter)
         : SelectionProper{step}
     {
         this->setFilter(filter);
+        this->evaluateCache();
     }
     SelectionProper(T& step, SelectionFilter filter)
         : SelectionProper{step}
     {
         this->setFilter(filter);
+        this->evaluateCache();
     }
     SelectionProper(const SelectionProper& s)
         :SelectionBase<T>{s}
     {}
-    SelectionProper& operator=(const SelectionProper& s){
+    SelectionProper& operator=(const SelectionProper& s)
+    {
         *static_cast<SelectionBase<T>*>(this) = s;
         return *this;
     }
