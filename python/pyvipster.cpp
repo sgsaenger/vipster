@@ -152,9 +152,8 @@ PYBIND11_MODULE(vipster, m) {
     py::class_<Step>(m, "Step")
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
-        .def("newAtom", [](Step& s){s.newAtom();})
         .def("newAtom", py::overload_cast<std::string, Vec, AtomProperties>(&StepProper::newAtom),
-             "name"_a, "coord"_a=Vec{}, "properties"_a=AtomProperties{})
+             "name"_a="", "coord"_a=Vec{}, "properties"_a=AtomProperties{})
         .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
         .def("__getitem__", [](Step& s, int i){
                 if (i<0){

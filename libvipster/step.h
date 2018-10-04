@@ -32,8 +32,7 @@ public:
 
     // Atoms
     size_t          getNat() const noexcept;
-    void            newAtom();
-    void            newAtom(std::string name,
+    void            newAtom(std::string name="",
                             Vec coord=Vec{},
                             AtomProperties prop=AtomProperties{});
     void            newAtom(const Atom& at);

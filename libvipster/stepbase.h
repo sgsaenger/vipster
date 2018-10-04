@@ -15,14 +15,6 @@
 
 namespace Vipster {
 
-// Bond container
-struct BondList{
-    bool                outdated{true}, setOnce{false};
-    BondLevel           level{BondLevel::None};
-    float               cutoff_factor{settings.bondCutFac.val};
-    std::vector<Bond>   bonds;
-};
-
 /*
  * Base for all Step-like containers
  *
@@ -153,6 +145,9 @@ public:
                                          BondLevel l=settings.bondLvl.val,
                                          BondFrequency update=settings.bondFreq.val) const
     {
+        if(cutfac <= 0){
+            throw Error("bond cutoff factor must be positive");
+        }
         if(((update == BondFrequency::Always) or
             ((update == BondFrequency::Once) and not bonds->setOnce))
            and
@@ -170,6 +165,9 @@ public:
     }
     void    setBonds(BondLevel l=settings.bondLvl.val, float cutfac=settings.bondCutFac.val) const
     {
+        if(cutfac <= 0){
+            throw Error("bond cutoff factor must be positive");
+        }
         bonds->bonds.clear();
         if(!static_cast<const T*>(this)->getNat()){
             l = BondLevel::None;

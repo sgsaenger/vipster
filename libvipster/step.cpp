@@ -13,20 +13,6 @@ size_t Step::getNat() const noexcept{
     return atoms->names.size();
 }
 
-void Step::newAtom(){
-    AtomList& al = *atoms;
-    // Coordinates
-    al.coordinates[static_cast<size_t>(at_fmt)].emplace_back();
-    al.coord_changed[static_cast<size_t>(at_fmt)] = true;
-    // Type
-    al.names.emplace_back();
-    al.name_changed = true;
-    al.pse.push_back(&(*pse)[""]);
-    // Properties
-    al.properties.emplace_back();
-    al.prop_changed = true;
-}
-
 void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
 {
     AtomList& al = *atoms;
