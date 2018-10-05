@@ -12,7 +12,12 @@ namespace Vipster{
  *
  * Stores atom in separate vectors
  */
+template<typename T>
+class AtomListIterator;
 struct AtomList{
+    using iterator = AtomListIterator<Atom>;
+    using constIterator = AtomListIterator<const Atom>;
+    size_t size(void) {return names.size();}
     // Coordinates
     // one buffer per Vipster::AtomFmt
     std::array<std::vector<Vec>, nAtFmt> coordinates;
@@ -32,7 +37,13 @@ struct AtomList{
  *
  * contains indices of selected atoms in AtomList
  */
+template<typename T>
+class AtomSelIterator;
 struct AtomSelection{
+    using iterator = AtomSelIterator<Atom>;
+    using constIterator = AtomSelIterator<const Atom>;
+    size_t size(void) {return indices.size();}
+
     std::vector<size_t> indices;
     std::shared_ptr<AtomList> atoms;
 };

@@ -10,40 +10,41 @@ Molecule::Molecule(const std::string &name, unsigned long s):
     kpoints{}
 {
     for(decltype(steps)::size_type i=0; i!=s; ++i){
-        steps.emplace_back(pse);
+        steps.emplace_back();
+        steps.back().pse = pse;
     }
 }
 
-StepProper& Molecule::newStep(const StepProper &step)
+Step& Molecule::newStep(const Step&step)
 {
     steps.push_back(step);
     steps.back().pse = pse;
     return steps.back();
 }
 
-StepProper& Molecule::newStep(StepProper &&step)
+Step& Molecule::newStep(Step&&step)
 {
     steps.push_back(std::move(step));
     steps.back().pse = pse;
     return steps.back();
 }
 
-StepProper& Molecule::getStep(size_t idx)
+Step& Molecule::getStep(size_t idx)
 {
     return *std::next(steps.begin(), idx);
 }
 
-const StepProper& Molecule::getStep(size_t idx) const
+const Step& Molecule::getStep(size_t idx) const
 {
     return *std::next(steps.begin(), idx);
 }
 
-std::list<StepProper>& Molecule::getSteps() noexcept
+std::list<Step>& Molecule::getSteps() noexcept
 {
     return steps;
 }
 
-const std::list<StepProper>& Molecule::getSteps() const noexcept
+const std::list<Step>& Molecule::getSteps() const noexcept
 {
     return steps;
 }

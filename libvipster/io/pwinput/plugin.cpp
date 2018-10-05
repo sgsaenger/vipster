@@ -77,7 +77,7 @@ void parseCoordinates(std::string name, std::ifstream& file,
     if (dataentry == p.system.end()) throw IO::Error("nat not specified");
     size_t nat = std::stoul(dataentry->second);
     p.system.erase(dataentry);
-    StepProper &s = m.getStep(0);
+    Step &s = m.getStep(0);
 
     size_t pos = name.find_first_of(' ');
     pos = name.find_first_not_of(' ', pos);
@@ -185,7 +185,7 @@ void parseCell(std::string name, std::ifstream& file,
 
 void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt, int &ibrav)
 {
-    StepProper &s = m.getStep(0);
+    Step &s = m.getStep(0);
     CdmFmt cdmFmt;
     IO::PWParam::Namelist& sys = p.system;
     bool scale = (s.getFmt() >= AtomFmt::Crystal);

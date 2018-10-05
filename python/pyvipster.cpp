@@ -67,7 +67,7 @@ PYBIND11_MODULE(vipster, m) {
     bind_array<Vec>(m, "Vec");
     bind_array<Mat>(m, "Mat");
     bind_array<ColVec>(m, "ColVec");
-    py::bind_vector<std::vector<StepProper>>(m,"__StepVector__");
+    py::bind_vector<std::vector<Step>>(m,"__StepVector__");
     py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
     py::bind_vector<std::vector<std::string>>(m,"__StringVector__");
     py::bind_map<std::map<std::string,std::string>>(m,"__StrStrMap__");
@@ -152,9 +152,9 @@ PYBIND11_MODULE(vipster, m) {
     py::class_<Step>(m, "Step")
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
-        .def("newAtom", py::overload_cast<std::string, Vec, AtomProperties>(&StepProper::newAtom),
+        .def("newAtom", py::overload_cast<std::string, Vec, AtomProperties>(&Step::newAtom),
              "name"_a="", "coord"_a=Vec{}, "properties"_a=AtomProperties{})
-        .def("newAtom", py::overload_cast<const Atom&>(&StepProper::newAtom), "at"_a)
+        .def("newAtom", py::overload_cast<const Atom&>(&Step::newAtom), "at"_a)
         .def("__getitem__", [](Step& s, int i){
                 if (i<0){
                     i = i+static_cast<int>(s.getNat());
@@ -186,6 +186,7 @@ PYBIND11_MODULE(vipster, m) {
         .def("getFmt", &Step::getFmt)
         .def("asFmt", py::overload_cast<AtomFmt>(&Step::asFmt), "fmt"_a,
              py::return_value_policy::reference_internal)
+        .def("setFmt", &Step::setFmt, "fmt"_a)
     //CELL
         .def("enableCell", &Step::enableCell, "enable"_a)
         .def("getCellDim", &Step::getCellDim)
@@ -194,15 +195,10 @@ PYBIND11_MODULE(vipster, m) {
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
         .def("getCenter", &Step::getCenter, "fmt"_a, "com"_a=false)
     //BONDS
-        .def("getBonds", py::overload_cast<float, BondLevel, BondFrequency>(&StepProper::getBonds, py::const_),
+        .def("getBonds", py::overload_cast<float, BondLevel, BondFrequency>(&Step::getBonds, py::const_),
              "cutfac"_a, "level"_a=BondLevel::Cell, "update"_a=BondFrequency::Always)
-        .def_property_readonly("nbond", &StepProper::getNbond)
+        .def_property_readonly("nbond", &Step::getNbond)
     ;
-
-    //TODO: allow construction?
-    py::class_<StepProper, Step>(m, "StepProper")
-        .def("setFmt", &StepProper::setFmt, "fmt"_a, "scale"_a=false);
-    py::class_<StepFormatter, Step>(m, "StepFormatter");
 
     /*
      * K-Points
@@ -256,7 +252,7 @@ PYBIND11_MODULE(vipster, m) {
         .def(py::init())
         .def_readonly("pse", &Molecule::pse)
         .def("newStep", [](Molecule& m){m.newStep();})
-        .def("newStep", py::overload_cast<const StepProper&>(&Molecule::newStep), "step"_a)
+        .def("newStep", py::overload_cast<const Step&>(&Molecule::newStep), "step"_a)
         .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a, py::return_value_policy::reference_internal)
         .def("getSteps",py::overload_cast<>(&Molecule::getSteps), py::return_value_policy::reference_internal)
         .def_property_readonly("nstep", &Molecule::getNstep)

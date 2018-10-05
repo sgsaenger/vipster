@@ -13,13 +13,12 @@ public:
     Molecule(const std::string &name="New Molecule",unsigned long s=1);
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
 
-
-    StepProper& newStep(const StepProper& step);
-    StepProper& newStep(StepProper&& step={});
-    StepProper& getStep(size_t idx);
-    const StepProper& getStep(size_t idx) const;
-    std::list<StepProper>& getSteps(void) noexcept;
-    const std::list<StepProper>& getSteps(void) const noexcept;
+    Step& newStep(const Step& step);
+    Step& newStep(Step&& step={});
+    Step& getStep(size_t idx);
+    const Step& getStep(size_t idx) const;
+    std::list<Step>& getSteps(void) noexcept;
+    const std::list<Step>& getSteps(void) const noexcept;
     size_t getNstep(void) const noexcept;
 
     void setName(const std::string &s);
@@ -29,7 +28,7 @@ public:
     KPoints& getKPoints(void) noexcept;
     const KPoints& getKPoints(void) const noexcept;
 private:
-    std::list<StepProper> steps;
+    std::list<Step> steps;
     std::string name;
     KPoints kpoints;
 };

@@ -65,7 +65,7 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
                 }
             }
         }
-        StepProper &sp = m.newStep();
+        Step &sp = m.newStep();
         sp.setFmt(AtomFmt::Angstrom);
         sp.enableCell(false);
         sp.newAtoms(nat);
@@ -97,7 +97,7 @@ bool XYZWriter(const Molecule& m, std::ofstream &file,
 {
     const auto *cc = dynamic_cast<const IO::XYZConfig*>(c);
     if(!cc) throw IO::Error("XYZ-Writer needs configuration preset");
-    const Step& s = m.getStep(state.index).asAngstrom;
+    const Step& s = m.getStep(state.index).asFmt(AtomFmt::Angstrom);
     auto stepWriter = [&file, cc](const Step& s){
         file << s.getNat() << '\n';
         file << s.getComment() << '\n';
@@ -146,7 +146,7 @@ bool XYZWriter(const Molecule& m, std::ofstream &file,
         break;
     case IO::XYZConfig::Mode::Trajec:
         for(const auto& step: m.getSteps()){
-            stepWriter(step.asAngstrom);
+            stepWriter(step.asFmt(AtomFmt::Angstrom));
         }
         break;
     }

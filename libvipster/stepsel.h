@@ -1,7 +1,7 @@
 #ifndef LIBVIPSTER_STEPSEL_H
 #define LIBVIPSTER_STEPSEL_H
 
-#include "stepbase.h"
+#include "stepmutable.h"
 #include "atomcontainers.h"
 
 namespace Vipster {
@@ -11,9 +11,9 @@ template<typename T>
 class SelectionProper;
 using StepSelection = SelectionProper<Step>;
 using StepSelConst = SelectionProper<const Step>;
-template<typename T>
-class SelectionFormatter;
-using StepSelFormatter = SelectionFormatter<Step>;
+//template<typename T>
+//class SelectionFormatter;
+//using StepSelFormatter = SelectionFormatter<Step>;
 
 /*
  * Wrap multiple filter criteria without polymorphism
@@ -111,7 +111,7 @@ struct SelectionFilter{
  * Shall be instanced with `Step` or `const Step` as template argument
  */
 template<typename T>
-class SelectionBase: public StepBase<SelectionBase<T>>
+class SelectionBase: public StepMutable<AtomSelection>
 {
 public:
     SelectionBase& operator=(const SelectionBase& s)
@@ -121,7 +121,7 @@ public:
         *this->bonds = *s.bonds;
         this->cell = s.cell;
         *this->comment = *s.comment;
-        *this->selection = *s.selection;
+        *this->atoms = *s.atoms;
         *this->filter = *s.filter;
         this->step = s.step;
         return *this;
@@ -130,7 +130,7 @@ public:
     // TODO: direct Prop-getters?
     const std::vector<size_t>& getIndices() const noexcept
     {
-        return selection->indices;
+        return atoms->indices;
     }
 
     void        evaluateCache() const override
@@ -141,7 +141,7 @@ public:
                     this->at_fmt;
         step.asFmt(fmt).evaluateCache();
         if(filter->op & SelectionFilter::UPDATE){
-            selection->indices = evalFilter(step, *filter);
+            atoms->indices = evalFilter(step, *filter);
         }
     }
     const SelectionFilter& getFilter() const noexcept
@@ -159,47 +159,13 @@ public:
     }
     void evaluateFilter() const
     {
-        selection->indices = evalFilter(step, *filter);
+        atoms->indices = evalFilter(step, *filter);
     }
 
     // Atoms
-    size_t          getNat() const noexcept
-    {
-        return selection->indices.size();
-    }
-    using           iterator = AtomSelIterator<Atom>;
-    using           constIterator = AtomSelIterator<const Atom>;
-    Atom            operator[](size_t i)
-    {
-        return *iterator{selection, this->at_fmt, i};
-    }
-    iterator        begin() noexcept
-    {
-        return iterator{selection, this->at_fmt, 0};
-    }
-    constIterator   begin() const noexcept
-    {
-        return constIterator{selection, this->at_fmt, 0};
-    }
-    constIterator   cbegin() const noexcept
-    {
-        return constIterator{selection, this->at_fmt, 0};
-    }
-    iterator        end() noexcept
-    {
-        return iterator{selection, this->at_fmt, selection->indices.size()};
-    }
-    constIterator   end() const noexcept
-    {
-        return constIterator{selection, this->at_fmt, selection->indices.size()};
-    }
-    constIterator   cend() const noexcept
-    {
-        return constIterator{selection, this->at_fmt, selection->indices.size()};
-    }
     void delAtoms()
     {
-        auto& idx = selection->indices;
+        auto& idx = atoms->indices;
         for(auto it=idx.rbegin(); it!= idx.rend(); ++it){
             step.delAtom(*it);
         }
@@ -207,23 +173,22 @@ public:
     }
 protected:
     SelectionBase(T& step)
-        : StepBase<SelectionBase<T>>{step.pse,
+        : StepMutable<AtomSelection>{step.pse,
                    step.at_fmt,
+                   std::make_shared<AtomSelection>(AtomSelection{std::vector<size_t>{}, step.atoms}),
                    std::make_shared<BondList>(),
                    step.cell,
                    std::make_shared<std::string>(*step.comment)},
-          selection{std::make_shared<AtomSelection>(
-                        AtomSelection{std::vector<size_t>{}, step.atoms})},
           filter{std::make_shared<SelectionFilter>()},
           step{step}
     {}
     SelectionBase(const SelectionBase& s)
-        : StepBase<SelectionBase<T>>{s.pse,
+        : StepMutable<AtomSelection>{s.pse,
                    s.at_fmt,
+                   std::make_shared<AtomSelection>(*s.atoms),
                    std::make_shared<BondList>(*s.bonds),
                    s.cell,
                    std::make_shared<std::string>(*s.comment)},
-          selection{std::make_shared<AtomSelection>(*s.selection)},
           filter{std::make_shared<SelectionFilter>(*s.filter)},
           step{s.step}
     {}
@@ -231,46 +196,45 @@ protected:
          std::shared_ptr<CellData> c, std::shared_ptr<std::string> s,
          std::shared_ptr<AtomSelection> a, std::shared_ptr<SelectionFilter> sf,
          T& step)
-        : StepBase<SelectionBase<T>>{std::move(p), std::move(f),
+        : StepMutable<AtomSelection>{std::move(p), f, std::move(a),
                    std::move(b), std::move(c), std::move(s)},
-          selection{std::move(a)}, filter{std::move(sf)}, step{step}
+          filter{std::move(sf)}, step{step}
     {}
-    std::shared_ptr<AtomSelection>      selection;
     std::shared_ptr<SelectionFilter>    filter;
     T&                                  step;
 };
 
-template<typename T>
-class SelectionFormatter: public SelectionBase<T>
-{
-public:
-    SelectionFormatter(SelectionProper<T>& sel, AtomFmt at_fmt)
-        : SelectionBase<T>{sel.pse,
-                           at_fmt,
-                           sel.bonds,
-                           sel.cell,
-                           sel.comment,
-                           sel.selection,
-                           sel.filter,
-                           sel.step},
-          sel{sel}
-    {}
-    SelectionBase<T>&       asFmt(AtomFmt fmt) override
-    {
-        return sel.asFmt(fmt);
-    }
-    const SelectionBase<T>& asFmt(AtomFmt fmt) const override
-    {
-        return sel.asFmt(fmt);
-    }
-private:
-    SelectionProper<T>& sel;
-};
+//template<typename T>
+//class SelectionFormatter: public SelectionBase<T>
+//{
+//public:
+//    SelectionFormatter(SelectionProper<T>& sel, AtomFmt at_fmt)
+//        : SelectionBase<T>{sel.pse,
+//                           at_fmt,
+//                           sel.bonds,
+//                           sel.cell,
+//                           sel.comment,
+//                           sel.atoms,
+//                           sel.filter,
+//                           sel.step},
+//          sel{sel}
+//    {}
+//    SelectionBase<T>&       asFmt(AtomFmt fmt) override
+//    {
+//        return sel.asFmt(fmt);
+//    }
+//    const SelectionBase<T>& asFmt(AtomFmt fmt) const override
+//    {
+//        return sel.asFmt(fmt);
+//    }
+//private:
+//    SelectionProper<T>& sel;
+//};
 
 template<typename T>
 class SelectionProper: public SelectionBase<T>
 {
-    friend class SelectionFormatter<T>;
+//    friend class SelectionFormatter<T>;
 public:
     //TODO: defer cache-stuff?
     SelectionProper(T& step)
@@ -302,27 +266,27 @@ public:
     {
         this->at_fmt = at_fmt;
     }
-    SelectionFormatter<T>   asBohr{*this, AtomFmt::Bohr};
-    SelectionFormatter<T>   asAngstrom{*this, AtomFmt::Angstrom};
-    SelectionFormatter<T>   asCrystal{*this, AtomFmt::Crystal};
-    SelectionFormatter<T>   asAlat{*this, AtomFmt::Alat};
-    SelectionBase<T>&       asFmt(AtomFmt fmt) override
-    {
-        switch(fmt){
-        case AtomFmt::Bohr:
-            return asBohr;
-        case AtomFmt::Angstrom:
-            return asAngstrom;
-        case AtomFmt::Crystal:
-            return asCrystal;
-        default:
-            return asAlat;
-        }
-    }
-    const SelectionBase<T>& asFmt(AtomFmt fmt) const override
-    {
-        return const_cast<SelectionProper<T>*>(this)->asFmt(fmt);
-    }
+//    SelectionFormatter<T>   asBohr{*this, AtomFmt::Bohr};
+//    SelectionFormatter<T>   asAngstrom{*this, AtomFmt::Angstrom};
+//    SelectionFormatter<T>   asCrystal{*this, AtomFmt::Crystal};
+//    SelectionFormatter<T>   asAlat{*this, AtomFmt::Alat};
+//    SelectionBase<T>&       asFmt(AtomFmt fmt) override
+//    {
+//        switch(fmt){
+//        case AtomFmt::Bohr:
+//            return asBohr;
+//        case AtomFmt::Angstrom:
+//            return asAngstrom;
+//        case AtomFmt::Crystal:
+//            return asCrystal;
+//        default:
+//            return asAlat;
+//        }
+//    }
+//    const SelectionBase<T>& asFmt(AtomFmt fmt) const override
+//    {
+//        return const_cast<SelectionProper<T>*>(this)->asFmt(fmt);
+//    }
 };
 
 }

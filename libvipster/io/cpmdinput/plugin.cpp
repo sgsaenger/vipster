@@ -106,7 +106,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
     d.fmt = IOFmt::CPI;
     Molecule &m = d.mol;
     m.setName(name);
-    StepProper &s = m.newStep();
+    Step &s = m.newStep();
     d.param = std::make_unique<IO::CPParam>(name);
     IO::CPParam &p = *static_cast<IO::CPParam*>(d.param.get());
     IO::CPParam::Section IO::CPParam::* curSection{nullptr};
@@ -402,7 +402,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
 
     // apply scaling
     s.setCellDim(cellDim, cf);
-    s.setFmt(af, true);
+    s.modScale(af);
     if(scale){
         for(auto& at: s){
             at.coord[0] /= scaleVec[0];

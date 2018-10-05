@@ -318,9 +318,9 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
 static std::vector<size_t> evalType(const Step& step, const SelectionFilter& filter){
     std::vector<size_t> tmp;
     size_t idx{0};
-    for(const auto& at: step.getNames()){
+    for(const auto& at: step){
         for(const auto& type: filter.types){
-            if(at == type){
+            if(at.name == type){
                 tmp.push_back(idx);
                 break;
             }
@@ -351,9 +351,8 @@ static std::vector<size_t> evalPos(const Step& step, const SelectionFilter& filt
         }
         return at[dir] > filter.posVal;
     };
-    for(const auto& at: step.asFmt(static_cast<AtomFmt>(filter.pos & filter.FMT_MASK))
-                            .getCoords()){
-        if(cmp(at)){
+    for(const auto& at: step.asFmt(static_cast<AtomFmt>(filter.pos & filter.FMT_MASK))){
+        if(cmp(at.coord)){
             tmp.push_back(idx);
         }
         ++idx;

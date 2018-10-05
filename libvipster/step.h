@@ -1,7 +1,7 @@
 #ifndef LIBVIPSTER_STEP_H
 #define LIBVIPSTER_STEP_H
 
-#include "stepbase.h"
+#include "stepmutable.h"
 #include "atomcontainers.h"
 #include "stepsel.h"
 
@@ -11,116 +11,88 @@
 namespace Vipster {
 
 /*
- * Basic Step-class
+ * Main Step-class
  *
- * Instantiation of Bond- and Cell-getters with AtomList as Atom-source
+ * with AtomList as source, this is the main class to use for atom-storage
  */
 
-class Step: public StepBase<Step>
+class Step: public StepMutable<AtomList>
 {
     template<typename T>
     friend class SelectionBase;
 public:
+    Step(AtomFmt at_fmt=AtomFmt::Bohr,
+         std::string comment="");
+    Step(const Step& s);
+    template<typename T>
+    Step(const StepConst<T>& s)
+        : StepMutable{s.pse, s.getFmt(),
+                      std::make_shared<AtomList>(),
+                      std::make_shared<BondList>(),
+                      std::make_shared<CellData>(),
+                      std::make_shared<std::string>(s.getComment())}
+    {
+        enableCell(s.hasCell());
+        setCellDim(s.getCellDim(CdmFmt::Bohr), CdmFmt::Bohr);
+        setCellVec(s.getCellVec());
+        newAtoms(s);
+    }
+//    Step(Step&& s);
     Step& operator=(const Step& s);
+//    Step& operator=(Step&& s);
     ~Step() override = default;
     //TODO: make move-able
 
+    void evaluateCache() const override;
+    Step        asFmt(AtomFmt);
+    using StepConst<AtomList>::asFmt;
+
     StepSelection   select(std::string);
     StepSelection   select(SelectionFilter);
+    // TODO: move up in hierarchy?
     StepSelConst    select(std::string) const;
     StepSelConst    select(SelectionFilter) const;
 
     // Atoms
-    size_t          getNat() const noexcept;
     void            newAtom(std::string name="",
                             Vec coord=Vec{},
                             AtomProperties prop=AtomProperties{});
     void            newAtom(const Atom& at);
     void            newAtoms(size_t i);
-    void            newAtoms(const AtomList& atoms);
+    template<typename T>
+    void            newAtoms(const StepConst<T>& s)
+    {
+        const size_t oldNat = getNat();
+        const size_t nat = oldNat + s.getNat();
+        // Coordinates
+        AtomList& al = *this->atoms;
+        al.coordinates[static_cast<size_t>(at_fmt)].reserve(nat);
+        al.names.reserve(nat);
+        al.properties.reserve(nat);
+        al.pse.reserve(nat);
+        al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+        al.name_changed = true;
+        al.prop_changed = true;
+        auto i = oldNat;
+        for(const auto& at: s){
+            al.coordinates[static_cast<size_t>(at_fmt)][i] = at.coord;
+            al.names[i] = at.name;
+            al.pse[i] = &(*pse)[at.name];
+            al.properties[i] = at.properties;
+        }
+    }
     void            delAtom(size_t i);
-    using           iterator = AtomListIterator<Atom>;
-    using           constIterator = AtomListIterator<const Atom>;
-    Atom            operator[](size_t i);
-    iterator        begin() noexcept;
-    constIterator   begin() const noexcept;
-    constIterator   cbegin() const noexcept;
-    iterator        end() noexcept;
-    constIterator   end() const noexcept;
-    constIterator   cend() const noexcept;
-    // Prop-getters
-    const AtomList&                     getAtoms() const noexcept;
-    const std::vector<Vec>&             getCoords() const noexcept;
-    const std::vector<std::string>&     getNames() const noexcept;
-    const std::vector<PseEntry*>&       getPseEntries() const noexcept;
-    const std::vector<AtomProperties>&  getProperties() const noexcept;
 
-    // Cell-setters
-    void    enableCell(bool) noexcept;
+    // Cell
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
     void    setCellVec(const Mat &vec, bool scale=false);
 
 protected:
-    Step(std::shared_ptr<PseMap>, AtomFmt, std::shared_ptr<BondList>,
-         std::shared_ptr<CellData>, std::shared_ptr<std::string>,
-         std::shared_ptr<AtomList>);
-    Step(const Step& s);
-    std::shared_ptr<AtomList>       atoms;
+    Step(std::shared_ptr<PseMap>, AtomFmt,
+         std::shared_ptr<AtomList>, std::shared_ptr<BondList>,
+         std::shared_ptr<CellData>, std::shared_ptr<std::string>);
 };
 
-/*
- * Wrapper to access AtomFmt-cache
- */
-class StepProper;
-class StepFormatter: public Step
-{
-public:
-    StepFormatter(StepProper& step, AtomFmt at_fmt);
-    ~StepFormatter() override = default;
-    Step&       asFmt(AtomFmt at_fmt) override;
-    const Step& asFmt(AtomFmt at_fmt) const override;
-    void evaluateCache() const override;
-private:
-    StepProper& step;
-};
-
-//TODO: make constructible from Step
-/*
- * Concrete Step
- *
- * main owner of all data
- * contains static formatter instances
- */
-class StepProper: public Step
-{
-    friend class StepFormatter;
-public:
-    StepProper(std::shared_ptr<PseMap> pse = std::make_shared<PseMap>(),
-               AtomFmt at_fmt=AtomFmt::Bohr,
-               std::string comment="");
-    StepProper(const StepProper& s);
-    StepProper& operator=(const StepProper& s);
-    ~StepProper() override = default;
-    //TODO: make move-able
-
-    // Format
-    void            setFmt(AtomFmt at_fmt, bool scale=false);
-    StepFormatter   asBohr{*this, AtomFmt::Bohr};
-    StepFormatter   asAngstrom{*this, AtomFmt::Angstrom};
-    StepFormatter   asCrystal{*this, AtomFmt::Crystal};
-    StepFormatter   asAlat{*this, AtomFmt::Alat};
-    Step&           asFmt(AtomFmt at_fmt) override;
-    const Step&     asFmt(AtomFmt at_fmt) const override;
-
-    void evaluateCache() const override;
-private:
-    static constexpr StepFormatter StepProper::* fmtmap[] = {
-        &StepProper::asBohr,
-        &StepProper::asAngstrom,
-        &StepProper::asCrystal,
-        &StepProper::asAlat,
-    };
-};
 }
 
 #endif // LIBVIPSTER_STEP_H

@@ -10,7 +10,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
     d.fmt = IOFmt::PWO;
     Molecule& m = d.mol;
     m.setName(name);
-    StepProper *s = &m.newStep();
+    Step *s = &m.newStep();
 
     std::string line, dummy_s;
     size_t nat{}, ntype{};

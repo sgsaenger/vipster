@@ -347,7 +347,9 @@ void GUI::StepData::updateGL()
     auto nat = atom_buffer.size();
     if (nat != 0u) {
         glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
-                     static_cast<const void*>(curStep->getCoords().data()), GL_STREAM_DRAW);
+                     static_cast<const void*>(
+                     curStep->getAtoms().coordinates[static_cast<size_t>(curStep->getFmt())].data()
+                     ), GL_STREAM_DRAW);
     } else {
         glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
@@ -405,22 +407,23 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
-    for (const PseEntry* at:curStep->getPseEntries()){
-        atom_buffer.push_back({at->covr, at->col});
+    for (const auto& at: *curStep){
+        atom_buffer.push_back({at.pse->covr, at.pse->col});
     }
 
 // BONDS
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
         const auto& bonds = curStep->getBonds();
-        const auto& pse = curStep->getPseEntries();
+        const auto& pse = curStep->getAtoms().pse;
+        const auto& at_coord = curStep->getAtoms().coordinates[
+                static_cast<size_t>(curStep->getFmt())];
+        auto fmt = curStep->getFmt();
+        auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         float c, s, ic;
         float rad = settings.bondRad.val;
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
-        const auto& at_coord = curStep->getCoords();
-        auto fmt = curStep->getFmt();
-        auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         switch(fmt){
         case AtomFmt::Crystal:
             cv = Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};

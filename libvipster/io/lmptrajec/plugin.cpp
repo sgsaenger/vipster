@@ -48,11 +48,11 @@ auto IdentifyColumns(std::string& line)
     case unscaled:
         [[fallthrough]];
     case scaled:
-        return [=](std::ifstream &file, StepProper& s){
+        return [=](std::ifstream &file, Step& s){
             if(cs == scaled) {
-                s.setFmt(AtomFmt::Crystal, true);
+                s.modScale(AtomFmt::Crystal);
             } else {
-                s.setFmt(AtomFmt::Angstrom, true);
+                s.modScale(AtomFmt::Angstrom);
             }
             std::string line;
             for (auto& at:s) {
@@ -84,7 +84,7 @@ LmpTrajecParser(const std::string& name, std::ifstream &file)
     data.fmt = IOFmt::DMP;
     Molecule& m = data.mol;
     m.setName(name);
-    StepProper* s = nullptr;
+    Step* s = nullptr;
 
     std::string line;
     size_t nat;
