@@ -44,22 +44,26 @@ Step Step::asFmt(AtomFmt tgt)
 
 StepSelection Step::select(std::string filter)
 {
-    return StepSelection{*this, filter};
+    return StepSelection{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
+                         bonds, cell, comment, filter};
 }
 
 StepSelection Step::select(SelectionFilter filter)
 {
-    return StepSelection{*this, filter};
+    return StepSelection{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
+                         bonds, cell, comment, filter};
 }
 
 StepSelConst Step::select(std::string filter) const
 {
-    return StepSelConst{*this, filter};
+    return StepSelConst{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
+                        bonds, cell, comment, filter};
 }
 
 StepSelConst Step::select(SelectionFilter filter) const
 {
-    return StepSelConst{*this, filter};
+    return StepSelConst{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
+                        bonds, cell, comment, filter};
 }
 
 void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
@@ -220,7 +224,14 @@ void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
     }
 }
 
-void Step::evaluateCache() const
+template<>
+size_t StepConst<AtomList>::getNat() const noexcept
+{
+    return atoms->names.size();
+}
+
+template<>
+void StepConst<AtomList>::evaluateCache() const
 {
     auto fmt = static_cast<size_t>(this->at_fmt);
     auto& atoms = *this->atoms;

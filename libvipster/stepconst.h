@@ -29,28 +29,25 @@ template<typename T>
 class StepConst
 {
 public:
-    virtual ~StepConst()=default;
+    virtual ~StepConst() = default;
 
-    using iterator = typename T::iterator;
+    using source = T;
     using constIterator = typename T::constIterator;
 
-    virtual void evaluateCache() const =0;
+    void evaluateCache() const; // must be implemented in specialization
 
     // Don't know how to mask this yet
     std::shared_ptr<PseMap> pse;
 
     // Atoms
+    size_t          getNat() const noexcept; // must be implemented in specialization
     const Atom&     operator[](size_t i) const noexcept
     {
         return *constIterator{atoms, at_fmt, i};
     }
-    const T&        getAtoms() const noexcept
+    const source&        getAtoms() const noexcept
     {
         return *atoms;
-    }
-    size_t          getNat() const noexcept
-    {
-        return atoms->size();
     }
     constIterator   begin() const noexcept
     {
@@ -103,10 +100,9 @@ public:
         }
         at_fmt = tgt;
     }
-    const StepConst&    asFmt(AtomFmt) const
+    StepConst           asFmt(AtomFmt tgt) const
     {
-        //TODO: BROKEN, IMPLEMENT!
-        return *this;
+        return StepConst{pse, tgt, atoms, bonds, cell, comment};
     }
     std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
                                                  AtomFmt target) const
@@ -259,6 +255,10 @@ public:
     {
         return cell->cellvec;
     }
+    Vec     getCom() const noexcept
+    {
+        return getCom(at_fmt);
+    }
     Vec     getCom(AtomFmt fmt) const noexcept
     {
         if(!getNat()){
@@ -291,13 +291,13 @@ public:
 
 protected:
     StepConst(std::shared_ptr<PseMap> pse, AtomFmt fmt,
-             std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
+             std::shared_ptr<source> atoms, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
         : pse{pse}, at_fmt{fmt}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}
     {}
     // Data
     mutable AtomFmt                 at_fmt; // mutable, only controls visibility
-    std::shared_ptr<T>              atoms;  // immutable
+    std::shared_ptr<source>         atoms;  // immutable
     std::shared_ptr<BondList>       bonds;  // mutable, is only cache
     std::shared_ptr<CellData>       cell;   // immutable except enabled/disable-state
     std::shared_ptr<std::string>    comment; // immutable
@@ -308,7 +308,7 @@ private:
     {
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
-        const auto& tgtFmt = asFmt(fmt);
+        auto tgtFmt = asFmt(fmt);
         tgtFmt.evaluateCache();
         std::vector<Bond>& bonds = this->bonds->bonds;
         auto at_i = tgtFmt.begin();
@@ -340,6 +340,7 @@ private:
         this->bonds->level = BondLevel::Molecule;
     }
 
+    //TODO: move to lambda
     void checkBond(std::size_t i, std::size_t j, float effcut,
                    const Vec& dist, const std::array<int16_t, 3>& offset) const
     {

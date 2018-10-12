@@ -16,22 +16,23 @@ template<typename T>
 class StepMutable: public StepConst<T>
 {
 public:
-    virtual ~StepMutable()=default;
+    virtual ~StepMutable() = default;
 
     using iterator = typename T::iterator;
-    using constIterator = typename T::constIterator;
-
-    using StepConst<T>::asFmt;
-    StepMutable&    asFmt(AtomFmt)
-    {
-        //TODO: BROKEN, IMPLEMENT!
-        return *this;
-    }
 
     // Comment
     void                setComment(const std::string& s)
     {
         *this->comment = s;
+    }
+
+    // Format
+    using StepConst<T>::asFmt;
+    StepMutable asFmt(AtomFmt tgt)
+    {
+        return StepMutable{this->pse, tgt,
+                           this->atoms, this->bonds,
+                           this->cell, this->comment};
     }
 
     // Atoms
@@ -56,8 +57,8 @@ public:
         if(tgt == this->at_fmt){ return; }
         this->evaluateCache();
         asFmt(tgt).evaluateCache();
-        typename T::iterator source{this->atoms, this->at_fmt, 0};
-        typename T::iterator target{this->atoms, tgt, 0};
+        iterator source{this->atoms, this->at_fmt, 0};
+        iterator target{this->atoms, tgt, 0};
         while(source.getIdx() != this->getNat()){
             target->coord = source->coord;
             ++target;
@@ -101,7 +102,7 @@ public:
         }
     }
     void modWrap(){
-        for(Atom& at:asFmt(AtomFmt::Crystal)){
+        for(Atom& at: asFmt(AtomFmt::Crystal)){
             at.coord[0] -= std::floor(at.coord[0]);
             at.coord[1] -= std::floor(at.coord[1]);
             at.coord[2] -= std::floor(at.coord[2]);
@@ -110,7 +111,8 @@ public:
     void modCrop(){
         std::vector<size_t> toRemove;
         toRemove.reserve(this->getNat());
-        for(auto it=asFmt(AtomFmt::Crystal).begin(); it!=asFmt(AtomFmt::Crystal).end(); ++it){
+        auto handle = asFmt(AtomFmt::Crystal);
+        for(auto it=handle.begin(); it!=handle.end(); ++it){
             if((it->coord[0]>=1) | (it->coord[0]<0) |
                (it->coord[1]>=1) | (it->coord[1]<0) |
                (it->coord[2]>=1) | (it->coord[2]<0)){
@@ -118,7 +120,7 @@ public:
             }
         }
         for(auto it=toRemove.rbegin(); it!=toRemove.rend(); ++it){
-            static_cast<T*>(this)->delAtom(*it);
+            this->delAtom(*it);
         }
     }
     void modMultiply(size_t x, size_t y, size_t z){
@@ -151,7 +153,7 @@ public:
         if(z>1){
             multiply(2, z);
         }
-        static_cast<T*>(this)->setCellVec(cell);
+        setCellVec(cell);
     }
     void modAlign(uint8_t step_dir, uint8_t target_dir){
         auto target = Vec{};
@@ -177,7 +179,7 @@ public:
                           icos * axis[2] * axis[2] + cos}};
         Mat oldCell = this->getCellVec();
         Mat newCell = oldCell*rotMat;
-        static_cast<T*>(this)->setCellVec(newCell, true);
+        this->setCellVec(newCell, true);
     }
     void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
         auto oldCdm = this->getCellDim(cdmFmt);
@@ -186,7 +188,6 @@ public:
             return;
         }
         modWrap();
-        auto& handle = *static_cast<T*>(this);
         size_t fac;
         if(newMat == oldMat){
             // only changing cdm
@@ -210,8 +211,8 @@ public:
             }
         }
         modMultiply(fac, fac, fac);
-        handle.setCellVec(newMat);
-        handle.setCellDim(newCdm, cdmFmt);
+        this->setCellVec(newMat);
+        this->setCellDim(newCdm, cdmFmt);
         modCrop();
     }
 
