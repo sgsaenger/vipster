@@ -44,26 +44,26 @@ Step Step::asFmt(AtomFmt tgt)
 
 StepSelection Step::select(std::string filter)
 {
-    return StepSelection{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
-                         bonds, cell, comment, filter};
+    return StepSelection{pse, at_fmt, this, filter,
+                         bonds, cell, comment};
 }
 
 StepSelection Step::select(SelectionFilter filter)
 {
-    return StepSelection{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
-                         bonds, cell, comment, filter};
+    return StepSelection{pse, at_fmt, this, filter,
+                         bonds, cell, comment};
 }
 
 StepSelConst Step::select(std::string filter) const
 {
-    return StepSelConst{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
-                        bonds, cell, comment, filter};
+    return StepSelConst{pse, at_fmt, this, filter,
+                        bonds, cell, comment};
 }
 
 StepSelConst Step::select(SelectionFilter filter) const
 {
-    return StepSelConst{pse, at_fmt, std::make_shared<AtomSelection>(AtomSelection{{}, atoms}),
-                        bonds, cell, comment, filter};
+    return StepSelConst{pse, at_fmt, this, filter,
+                        bonds, cell, comment};
 }
 
 void Step::newAtom(std::string name, Vec coord, AtomProperties prop)

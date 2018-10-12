@@ -462,13 +462,13 @@ std::vector<size_t> Vipster::evalFilter(const Step& step, SelectionFilter& filte
 }
 
 template<>
-size_t StepConst<AtomSelection>::getNat() const noexcept
+size_t StepConst<AtomSelection<Step>>::getNat() const noexcept
 {
     return atoms->indices.size();
 }
 
 template<>
-void StepConst<AtomSelection>::evaluateCache() const
+void StepConst<AtomSelection<Step>>::evaluateCache() const
 {
 //        // make sure that caches are clean, for pos even the needed formatted cache
 //        auto fmt = (filter->mode == SelectionFilter::Mode::Pos) ?
