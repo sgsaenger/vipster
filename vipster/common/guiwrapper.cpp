@@ -80,7 +80,7 @@ void GuiWrapper::drawSel()
     mainStep.drawSel(mult);
 }
 
-void GuiWrapper::setMainStep(StepProper* step, bool draw_bonds)
+void GuiWrapper::setMainStep(Step* step, bool draw_bonds)
 {
     curStep = step;
     mainStep.update(step, draw_bonds);

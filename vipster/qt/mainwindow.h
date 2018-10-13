@@ -27,7 +27,7 @@ public:
                         QWidget *parent = nullptr);
     ~MainWindow() override;
     Vipster::Molecule* curMol{nullptr};
-    Vipster::StepProper* curStep{nullptr};
+    Vipster::Step* curStep{nullptr};
     Vipster::StepSelection* curSel{nullptr};
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
@@ -39,7 +39,7 @@ public:
     };
     std::list<Vipster::Molecule> molecules;
     std::map<Vipster::Molecule*, MolExtras> moldata;
-    std::map<Vipster::StepProper*, StepExtras> stepdata;
+    std::map<Vipster::Step*, StepExtras> stepdata;
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
     const decltype (ParamWidget::params)& getParams() const noexcept;
     const decltype (ConfigWidget::configs)& getConfigs() const noexcept;

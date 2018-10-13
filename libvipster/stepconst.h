@@ -102,7 +102,9 @@ public:
     }
     StepConst           asFmt(AtomFmt tgt) const
     {
-        return StepConst{pse, tgt, atoms, bonds, cell, comment};
+        auto tmp = StepConst{pse, tgt, atoms, bonds, cell, comment};
+        tmp.evaluateCache();
+        return tmp;
     }
     std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
                                                  AtomFmt target) const

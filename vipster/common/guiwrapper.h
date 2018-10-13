@@ -47,7 +47,7 @@ public:
     void initGL(const std::string& header, const std::string& folder);
     void draw(void);
     void drawSel(void);
-    void setMainStep(StepProper* step, bool draw_bonds=true);
+    void setMainStep(Step* step, bool draw_bonds=true);
     void setMainSel(StepSelection* sel);
     void updateMainStep(bool draw_bonds=true);
     void updateMainSelection();
@@ -63,7 +63,7 @@ public:
     Mat getAxes();
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
-    StepProper* curStep{nullptr};
+    Step* curStep{nullptr};
     StepSelection* curSel{nullptr};
     GUI::GlobalData globals;
     GUI::StepData mainStep{globals, nullptr};

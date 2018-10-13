@@ -11,7 +11,7 @@ decltype(GUI::StepData::bond_shader) GUI::StepData::bond_shader;
 decltype(GUI::StepData::cell_shader) GUI::StepData::cell_shader;
 decltype(GUI::StepData::sel_shader) GUI::StepData::sel_shader;
 
-GUI::StepData::StepData(const GlobalData& glob, StepProper* step)
+GUI::StepData::StepData(const GlobalData& glob, Step* step)
     : Data{glob},
       curStep{step}
 {}
@@ -374,7 +374,7 @@ void GUI::StepData::updateGL()
                  static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
 }
 
-void GUI::StepData::update(StepProper* step, bool draw_bonds)
+void GUI::StepData::update(Step* step, bool draw_bonds)
 {
     curStep = step;
     updated = true;

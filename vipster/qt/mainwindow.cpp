@@ -152,7 +152,7 @@ void MainWindow::setStep(int i)
     // if no previous selection exists, create one, afterwards assign it
     auto& tmpSel = stepdata[curStep].sel;
     if(!tmpSel && curStep){
-        tmpSel = std::make_unique<StepSelection>(*curStep);
+        tmpSel = std::make_unique<StepSelection>(curStep->select(SelectionFilter{}));
     }
     curSel = tmpSel.get();
     //Handle control-elements
@@ -204,7 +204,7 @@ void MainWindow::editAtoms(QAction* sender)
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
     }else if ( sender == ui->actionDelete_Atom_s){
-        curSel->delAtoms();
+//        curStep->delAtoms(curSel);
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 1;

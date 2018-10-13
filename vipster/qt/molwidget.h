@@ -38,7 +38,7 @@ private:
     void fillKPoints(void);
     void setSelection(void);
     Ui::MolWidget *ui;
-    Vipster::Step *curStep;
+    Vipster::Step curStep;
     Vipster::Molecule* curMol;
     bool atomsOutdated{true};
 };

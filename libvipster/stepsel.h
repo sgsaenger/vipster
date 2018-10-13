@@ -105,12 +105,12 @@ struct SelectionFilter{
  *
  * contains indices of selected atoms in Step-like
  */
-template<typename T>
+template<typename T, typename A>
 class AtomSelIterator;
 template<typename T>
 struct AtomSelection{
-    using iterator = AtomSelIterator<T>;
-    using constIterator = AtomSelIterator<const T>;
+    using iterator = AtomSelIterator<T, Atom>;
+    using constIterator = AtomSelIterator<T, const Atom>;
 
     std::vector<size_t> indices;
     T*                  step;
@@ -122,7 +122,7 @@ struct AtomSelection{
  *
  * dereferences selection-indices
  */
-template<typename T>
+template<typename T, typename A>
 class AtomSelIterator: private decltype(std::declval<T>().begin())
 {
 private:
@@ -150,10 +150,10 @@ public:
         AtomSelIterator copy{*this};
         return copy+=i;
     }
-    decltype(auto)  operator*() const {
+    A&  operator*() const {
         return static_cast<const Base*>(this)->operator*();
     }
-    decltype(auto)  operator->() const {
+    A*  operator->() const {
         return static_cast<const Base*>(this)->operator->();
     }
     bool    operator==(const AtomSelIterator& rhs) const noexcept{
@@ -206,6 +206,12 @@ public:
         setFilter(sf);
         this->evaluateCache();
     }
+    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+                  std::shared_ptr<AtomSelection<T>> a,
+                  std::shared_ptr<BondList> b,
+                  std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)
+        : B<AtomSelection<T>>{p, f, a, b, c, co}
+    {}
     SelectionBase(const SelectionBase& s)
         : B<AtomSelection<T>>{s.pse,
                         s.at_fmt,
@@ -225,6 +231,15 @@ public:
         this->evaluateCache();
         return *this;
     }
+
+    SelectionBase asFmt(AtomFmt tgt) // hides StepMutable::asFmt
+    {
+        auto tmp = SelectionBase{this->pse, tgt, this->atoms,
+                this->bonds, this->cell, this->comment};
+        tmp.evaluateCache();
+        return tmp;
+    }
+    using StepConst<AtomSelection<T>>::asFmt;
 
     const std::vector<size_t>& getIndices() const noexcept
     {

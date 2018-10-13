@@ -139,6 +139,7 @@ public:
                     AtomProperties prop=AtomProperties{});
     void    newAtom(const Atom& at);
     void    newAtoms(size_t i);
+    void    newAtoms(const AtomList& atoms);
     template<typename T>
     void    newAtoms(const StepConst<T>& s)
     {
@@ -167,6 +168,12 @@ public:
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
     void    setCellVec(const Mat &vec, bool scale=false);
 
+    // Modifier functions
+    void modWrap();
+    void modCrop();
+    void modMultiply(size_t x, size_t y, size_t z);
+    void modAlign(uint8_t step_dir, uint8_t target_dir);
+    void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt);
 };
 
 template<>

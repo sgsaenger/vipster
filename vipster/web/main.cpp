@@ -195,7 +195,7 @@ int main()
     gui.initGL("# version 300 es\nprecision highp float;\n", "");
 
     // init examples (something needs to be displayed for the renderer to not fail
-    StepProper* step;
+    Step* step;
     //example H2O-vibration (crude approximation)
     molecules.emplace_back("Example Molecule", 0);
     float vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};
