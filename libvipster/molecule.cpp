@@ -5,7 +5,7 @@
 using namespace Vipster;
 
 
-Molecule::Molecule(const std::string &name, unsigned long s):
+Molecule::Molecule(const std::string &name, size_t s):
     name{name},
     kpoints{}
 {

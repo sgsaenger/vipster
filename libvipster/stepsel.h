@@ -6,10 +6,10 @@
 namespace Vipster {
 // Forward declarations
 class Step;
-template<typename T>
+template<template<typename> class B, typename S>
 class SelectionBase;
-using StepSelection = SelectionBase<Step>;
-using StepSelConst = SelectionBase<const Step>;
+using StepSelection = SelectionBase<StepMutable, Step>;
+using StepSelConst = SelectionBase<StepConst, Step>;
 
 /*
  * Wrap multiple filter criteria without polymorphism
@@ -134,7 +134,8 @@ public:
         : Base{selection->step->begin()},
           selection{selection}, idx{idx}
     {
-        static_cast<Base*>(this)->operator+=(idx);
+        static_cast<Base*>(this)->operator+=(
+                    selection->indices[idx]);
     }
     AtomSelIterator& operator++(){
         return operator+=(1);
@@ -173,38 +174,40 @@ private:
  * Basic Selection-class template
  *
  * Instantiation of Bond- and Cell-getters with AtomSelection as Atom-source
- * Shall be instanced with `Step` or `const Step` as template argument
+ * Shall be instantiated with StepConst or StepMutable depending on desired const-ness,
+ * and Step-like with desired target AtomSource
  */
 
-template<typename T>
-class SelectionBase: public StepMutable<AtomSelection<T>>
+template<template<typename> class B, typename T>
+class SelectionBase: public B<AtomSelection<T>>
 {
 public:
     SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
-                  T* s, SelectionFilter sf,
+                  const T* s, SelectionFilter sf,
                   std::shared_ptr<BondList> b,
                   std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)
-        : StepMutable<AtomSelection<T>>{p, f,
+        : B<AtomSelection<T>>{p, f,
             std::make_shared<AtomSelection<T>>(),
-//            std::make_shared<AtomSelection<T>>(evalFilter(*s, sf), s, sf),
                                         b, c, co}
     {
-        this->atoms->step = s;
+        this->atoms->step = const_cast<T*>(s);
         setFilter(sf);
+        this->evaluateCache();
     }
     SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
-                  T* s, std::string sf,
+                  const T* s, std::string sf,
                   std::shared_ptr<BondList> b,
                   std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)
-        : StepMutable<AtomSelection<T>>{p, f,
+        : B<AtomSelection<T>>{p, f,
             std::make_shared<AtomSelection<T>>(),
                                         b, c, co}
     {
-        this->atoms->step = s;
+        this->atoms->step = const_cast<T*>(s);
         setFilter(sf);
+        this->evaluateCache();
     }
     SelectionBase(const SelectionBase& s)
-        : StepMutable<AtomSelection<T>>{s.pse,
+        : B<AtomSelection<T>>{s.pse,
                         s.at_fmt,
                         std::make_shared<AtomSelection<T>>(*s.atoms),
                         std::make_shared<BondList>(*s.bonds),
@@ -219,6 +222,7 @@ public:
         this->cell = s.cell;
         *this->comment = *s.comment;
         *this->atoms = *s.atoms;
+        this->evaluateCache();
         return *this;
     }
 

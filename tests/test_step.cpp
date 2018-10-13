@@ -180,18 +180,22 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     CHECK(f[0] == sd[2*j]);
                     f.setCellDim(6, CdmFmt::Bohr, false);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i+rel_i]);
                     CHECK(f[0] == sd[2*j+rel_j]);
                     f.setCellDim(5, CdmFmt::Bohr, false);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                     f.setCellDim(6, CdmFmt::Bohr, true);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i+abs_i]);
                     CHECK(f[0] == sd[2*j+abs_j]);
                     f.setCellDim(5, CdmFmt::Bohr, true);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                 }
@@ -245,18 +249,22 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     CHECK(f[0] == sv[2*j]);
                     f.setCellVec(cv2, false);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i+rel_i]);
                     CHECK(f[0] == sv[2*j+rel_j]);
                     f.setCellVec(cv, false);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                     f.setCellVec(cv2, true);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i+abs_i]);
                     CHECK(f[0] == sv[2*j+abs_j]);
                     f.setCellVec(cv, true);
                     f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                 }

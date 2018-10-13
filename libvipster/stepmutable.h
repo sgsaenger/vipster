@@ -64,6 +64,7 @@ public:
             ++target;
             ++source;
         }
+        this->at_fmt = tgt;
     }
     void modShift(Vec shift, float fac=1.0f){
         shift *= fac;
