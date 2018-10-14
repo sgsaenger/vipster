@@ -42,7 +42,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{4740a3db-a008-480e-8251-c2b9ad2dcbcf}</uid>
+                    <uid>{886aa422-8ccc-4882-b784-c248d40c1367}</uid>
                     <group>Coordinates</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -51,7 +51,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{bf1e6459-8443-45af-ab44-f035fadb8f2b}</uid>
+                    <uid>{3a3d0546-8e47-4c27-b038-f3468e48b655}</uid>
                     <group>Coordinates</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -60,7 +60,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{cca21fe7-c555-4db8-a666-98c5697d6daa}</uid>
+                    <uid>{0d14e46d-1192-4458-bb4d-89a4684aaf90}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -69,7 +69,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{f5e7c73b-bb04-465d-8019-226e7a0a942d}</uid>
+                    <uid>{fcb9572f-77f3-43e3-b84d-2ae4cf724a88}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -78,7 +78,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{30a993b8-2759-4ecf-a046-dfece7b04011}</uid>
+                    <uid>{46ff78b8-b150-4f87-a8df-7a79c7f719cc}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -87,7 +87,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{66e57b05-bf7c-4a83-a700-fdcd1bc5ac41}</uid>
+                    <uid>{7aece41b-cb59-4fbd-9cce-ea8c3d8a2852}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -126,7 +126,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{8c596ab4-a616-4d1a-99b0-0a8b73277b5d}</uid>
+                    <uid>{a1d9f7d5-999b-4fc1-a2c3-6da188422712}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>bool outdated</declaration>
@@ -134,7 +134,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8582f980-6e88-4262-82ee-6c8ddcfcd555}</uid>
+                    <uid>{f6b94a94-e50e-4cc6-af43-7700c47445e9}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>BondLevel bonds_level</declaration>
@@ -142,7 +142,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{3818d669-8221-43b8-9584-78cf1a351f25}</uid>
+                    <uid>{03497157-8d6d-4447-a4f2-f4047b9afcf4}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>float cutoff_fac</declaration>
@@ -150,7 +150,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7476abe5-5530-4075-a4d5-1549a8907f7e}</uid>
+                    <uid>{fd07cd54-7003-4a91-a9c6-5b74433c15bd}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>vector&lt;Bond&gt; bonds</declaration>
@@ -188,7 +188,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{8a752797-580c-4247-b19c-38b807f1e7ab}</uid>
+                    <uid>{a8819411-2a98-4056-b51c-2395b48155cb}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>bool cell_enabled</declaration>
@@ -196,7 +196,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{37fd17ce-cc54-4ee1-8fb6-0242785072aa}</uid>
+                    <uid>{0d2b3a6c-4fce-47ef-94c0-819b8e32019d}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>bool cell_changed</declaration>
@@ -204,7 +204,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c45b028c-2305-4836-a34c-18e9405a1eb6}</uid>
+                    <uid>{c3919142-7442-4a0e-b73f-0a1984e48d5a}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>float celldimA</declaration>
@@ -212,7 +212,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{1b6ec032-9157-4b27-887b-51267b872cd9}</uid>
+                    <uid>{ce588efa-3268-4b99-ba89-c33aee0f46ef}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>float celldimB</declaration>
@@ -220,7 +220,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7df79940-d33c-42d4-becc-6fa1c20a1328}</uid>
+                    <uid>{41ec4281-6815-49d4-88d6-1e0ecf9c277b}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>Mat cellvec</declaration>
@@ -228,168 +228,10 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5bd71c5b-179b-48ce-866d-32f81ccb82ba}</uid>
+                    <uid>{739ccca8-74f9-49ac-93ee-b458b89d3334}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>Mat invvec</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{6b6a0e10-39ab-4967-aebc-33fb0e338c12}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{6b6a0e10-39ab-4967-aebc-33fb0e338c12}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>control</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>AtomListInterface</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{1db1235b-f805-4938-b9c4-13332fe7865b}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{1db1235b-f805-4938-b9c4-13332fe7865b}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{6b6a0e10-39ab-4967-aebc-33fb0e338c12}</a>
-                             <b>{405aa7f9-f018-4687-950f-ed067e3cd4e1}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{1037c6f7-e037-4520-90e7-1cb0029a2daa}</uid>
-                    <visibility>2</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{10831619-0cef-432b-84c8-f6a10e64fdc9}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNat()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{6e3adb08-1264-441a-b5f4-d1a830e00c25}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNtyp()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{49e77f8e-baf2-4609-9b42-ee58af201c82}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>set&lt;string&gt; getTypes()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{edbdc2bc-7fc7-4c22-ae57-47017989c661}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>Atom operator[](size_t idx)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{0700fb4b-b0bd-41c0-a913-3860311fc8b4}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>AtomIterator begin()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{c45bdcb8-0b78-4ba0-b00c-74aea2371ef5}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>AtomIterator end()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{254e7448-469d-4a11-8d8c-dfc09acd8a3d}</uid>
-                    <group>Atom setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtom()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b10059fc-0543-4283-b93c-19b7f5820faa}</uid>
-                    <group>Atom setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtom(const Atom&amp; at)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{f579e5e8-b012-449a-8e38-fd3145852d57}</uid>
-                    <group>Atom setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtoms(size_t i)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{33877ace-c336-412f-afa3-0d701e6ab692}</uid>
-                    <group>Atom setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void delAtom(size_t i)</declaration>
                    </MClassMember>
                   </item>
                  </qlist>
@@ -461,7 +303,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{532380e7-247c-4528-b22a-c6e87cac717c}</uid>
+                    <uid>{f8c396f7-11fb-4012-a40e-c1cf6304d699}</uid>
                     <visibility>1</visibility>
                     <type>1</type>
                     <declaration>vector&lt;size_t&gt; indices</declaration>
@@ -469,132 +311,10 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{478063c9-fd7d-4dce-a669-0f172f025041}</uid>
+                    <uid>{491b3d57-ec28-474d-b7c3-32118ae405c0}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{39c2ab8f-22db-4fcd-b6c2-2f35dc33879b}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{39c2ab8f-22db-4fcd-b6c2-2f35dc33879b}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>control</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>SelectionInterface</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{65da9b32-c54e-4995-a529-2a2a08a49340}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{65da9b32-c54e-4995-a529-2a2a08a49340}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{39c2ab8f-22db-4fcd-b6c2-2f35dc33879b}</a>
-                             <b>{405aa7f9-f018-4687-950f-ed067e3cd4e1}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{1f88c605-54da-401d-b51d-ee2cb18c9ed3}</uid>
-                    <visibility>2</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;AtomSelection&gt; atoms</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{88f7f741-ecc9-485b-abfd-e5e8d147b17b}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNat()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{508abcac-5de8-481a-8fd4-a8778c4b1241}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNtyp()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{4dcf6470-3da2-4617-af84-0bbc5e35d9ee}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>set&lt;string&gt; getTypes()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{d8a9633a-9885-4320-a219-609fc0d650b0}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>Atom operator[](size_t idx)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{18198c56-5558-4c8d-bb14-42bd75999093}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>SelectionIterator begin()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{bf1dcc7a-8465-41cc-b398-2824c0b4d686}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>SelectionIterator end()</declaration>
                    </MClassMember>
                   </item>
                  </qlist>
@@ -622,7 +342,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>iterator</name>
+                  <name>AtomSelIterator</name>
                   <relations>
                    <handles>
                     <handles>
@@ -684,12 +404,11 @@
                   </relations>
                  </MObject>
                 </base-MObject>
-                <namespace>SelectionInterface</namespace>
                 <members>
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{e3d7e8a3-fa75-454a-b680-05fcda714322}</uid>
+                    <uid>{4d1e7e71-fcc6-405d-ba38-d89b87bf813b}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>Atom&amp; operator*()</declaration>
@@ -697,7 +416,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{65db5284-5b1f-490c-bf86-2aedb9bb3510}</uid>
+                    <uid>{3c63f04a-084c-4340-a1c2-90a7de9d70a4}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>SelectionIterator&amp; operator++()</declaration>
@@ -705,7 +424,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{674bd4c0-4bfb-428c-a4ff-af7c7c22057a}</uid>
+                    <uid>{fe6807d4-13e1-48cf-bde3-d1a3d06c94ef}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>bool cmp(const SelectionIterator&amp;)</declaration>
@@ -713,7 +432,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{29e2c164-d70f-4cb6-abd9-d8ec812ab4b6}</uid>
+                    <uid>{a6e0683b-6b74-422f-98f4-cee0e7f1e74a}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomSelection&gt; sel</declaration>
@@ -744,7 +463,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>iterator</name>
+                  <name>AtomListIterator</name>
                   <relations>
                    <handles>
                     <handles>
@@ -806,12 +525,11 @@
                   </relations>
                  </MObject>
                 </base-MObject>
-                <namespace>AtomListInterface</namespace>
                 <members>
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{5052059d-5051-405b-8013-15017f12c225}</uid>
+                    <uid>{61b4536c-a406-4589-ab42-7e09aa4b3263}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>Atom&amp; operator*()</declaration>
@@ -819,7 +537,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{fe1c23c7-f9f5-4da9-88ef-c57181e1e8e7}</uid>
+                    <uid>{83e9109b-9ba4-4d78-81c3-d6c53d73b2d2}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>AtomIterator&amp; operator++()</declaration>
@@ -827,7 +545,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{277f69d6-416b-45c7-a784-c4e7cd2b07be}</uid>
+                    <uid>{0b5dace1-0be5-4e39-9dba-18dfb9b725d6}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>bool cmp(const AtomIterator&amp;)</declaration>
@@ -835,7 +553,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{837b946d-92b9-4bb6-81d1-edb85ed05913}</uid>
+                    <uid>{00e4483a-ea22-474a-bc24-e3d30e09d63e}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
@@ -915,7 +633,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{9ba86275-60c8-417d-aa6b-92da56d31ddf}</uid>
+                    <uid>{932d4616-08ce-4e70-a9f9-ceb908cb1e01}</uid>
                     <group>Coordinates</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -924,7 +642,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{3b6335c2-0338-4b5d-a45b-238fb2e7e3cf}</uid>
+                    <uid>{7f4d15c1-e4b8-4ec7-bda1-d3ef7a7dcf6f}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -933,7 +651,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7b5732ff-eca4-461b-96d0-fdeae61aab0c}</uid>
+                    <uid>{76dc0d71-9ea1-4b64-a57d-c56e0ebdc486}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -942,7 +660,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{2223ef81-8042-4808-9bf6-b65e9e74c045}</uid>
+                    <uid>{0264303d-c3a6-4768-9f7b-f677eaf9b382}</uid>
                     <group>Properties</group>
                     <visibility>1</visibility>
                     <type>1</type>
@@ -951,7 +669,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{8d77d489-706c-41e5-b7f4-4fa5a24fb2e7}</uid>
+                    <uid>{c5ec5fa3-7815-41fe-a476-e02b2705d3aa}</uid>
                     <group>Coordinates</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -960,7 +678,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{51c9ff8b-ec73-448e-9fd8-efd5a88bdcfd}</uid>
+                    <uid>{5c6c7cb7-5171-4bcb-85be-10f83b12e2e7}</uid>
                     <group>Coordinates</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -969,7 +687,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c637ceab-e3a5-4e25-bca5-0f4515c602cb}</uid>
+                    <uid>{502a6fa2-1071-45ca-b32f-80ed91166be3}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -978,7 +696,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5b2ae5e4-c233-4d7d-9ba3-ed8096faf2bf}</uid>
+                    <uid>{a7c33950-4a50-498c-95bc-93ede2c480ef}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -987,7 +705,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9f16d524-d5b5-4565-aa3b-83fe11cb7b32}</uid>
+                    <uid>{777ce25a-8f83-40b1-9f71-74f339374e50}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -996,7 +714,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ccfbb426-3df0-487b-958c-1fccbfd6b646}</uid>
+                    <uid>{00a2a224-3dc3-4be4-a325-b0b56fcc46e2}</uid>
                     <group>Properties</group>
                     <visibility>3</visibility>
                     <type>1</type>
@@ -1048,7 +766,7 @@
                          </stereotypes>
                          <name>Atom</name>
                          <pos>x:400;y:465</pos>
-                         <rect>x:-160;y:-135;w:320;h:270</rect>
+                         <rect>x:-145;y:-130;w:290;h:260</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1074,7 +792,7 @@
                          </stereotypes>
                          <name>PropRef</name>
                          <pos>x:355;y:160</pos>
-                         <rect>x:-55;y:-55;w:110;h:110</rect>
+                         <rect>x:-50;y:-55;w:100;h:110</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1168,7 +886,7 @@
                          </stereotypes>
                          <name>AtomList</name>
                          <pos>x:590;y:235</pos>
-                         <rect>x:-105;y:-95;w:210;h:190</rect>
+                         <rect>x:-90;y:-90;w:180;h:180</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1194,7 +912,7 @@
                          </stereotypes>
                          <name>BondData</name>
                          <pos>x:1120;y:175</pos>
-                         <rect>x:-80;y:-65;w:160;h:130</rect>
+                         <rect>x:-70;y:-65;w:140;h:130</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1220,61 +938,7 @@
                          </stereotypes>
                          <name>CellData</name>
                          <pos>x:1340;y:180</pos>
-                         <rect>x:-65;y:-80;w:130;h:160</rect>
-                         <visual-role>0</visual-role>
-                        </DObject>
-                       </base-DObject>
-                       <show-all-members>true</show-all-members>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{f16efe09-2566-4421-84ae-15170c3f6796}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{361f10eb-efb7-4085-b9ee-95cf146621ac}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>boundary</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepProper</name>
-                         <pos>x:600;y:1050</pos>
-                         <rect>x:-125;y:-90;w:250;h:180</rect>
-                         <auto-sized>false</auto-sized>
-                         <visual-role>0</visual-role>
-                        </DObject>
-                       </base-DObject>
-                       <show-all-members>true</show-all-members>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{bd0b7eb8-8026-48b9-ac64-372521166843}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{c1cf73b1-7d38-44e1-9d7c-a6c60593280e}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>boundary</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepFormatter</name>
-                         <pos>x:870;y:1300</pos>
-                         <rect>x:-105;y:-70;w:210;h:140</rect>
-                         <auto-sized>false</auto-sized>
+                         <rect>x:-60;y:-80;w:120;h:160</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1298,9 +962,9 @@
                            <item>control</item>
                           </qlist>
                          </stereotypes>
-                         <name>StepBase</name>
+                         <name>StepMutable</name>
                          <pos>x:1295;y:560</pos>
-                         <rect>x:-120;y:-220;w:240;h:440</rect>
+                         <rect>x:-105;y:-205;w:210;h:410</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -1311,42 +975,6 @@
                        </template>
                        <show-all-members>true</show-all-members>
                       </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DInheritance">
-                      <DInheritance>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{3f9ad1ed-f77d-49f6-9d43-41a1c03495b1}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{6f20453d-192c-41f7-82a4-e244966566bc}</object>
-                         <a>{bd0b7eb8-8026-48b9-ac64-372521166843}</a>
-                         <b>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DInheritance>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DInheritance">
-                      <DInheritance>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{f3b93af5-3356-45b2-a7e1-da7262167229}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{d0c9fa81-fe51-4cce-ac7d-cc8cc5f19d78}</object>
-                         <a>{f16efe09-2566-4421-84ae-15170c3f6796}</a>
-                         <b>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DInheritance>
                      </instance>
                     </item>
                     <item>
@@ -1400,63 +1028,6 @@
                      </instance>
                     </item>
                     <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{54b92b02-a87f-4359-8eb5-1b477b936398}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{9e1816a3-3b43-4b81-8e80-4cb40b27ca22}</object>
-                         <a>{f16efe09-2566-4421-84ae-15170c3f6796}</a>
-                         <b>{bd0b7eb8-8026-48b9-ac64-372521166843}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <cradinality>4</cradinality>
-                         <navigable>true</navigable>
-                         <kind>2</kind>
-                        </DAssociationEnd>
-                       </a>
-                       <b>
-                        <DAssociationEnd>
-                         <cradinality>1</cradinality>
-                         <navigable>true</navigable>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </b>
-                      </DAssociation>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{0e2c6817-22a8-4f46-823d-8f841e237f15}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{b46d76f6-cab8-4cbe-9c37-d3a41afe4685}</object>
-                         <a>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</a>
-                         <b>{0c8f6260-d477-465c-ba40-9e2cd5982cfb}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <cradinality>*</cradinality>
-                         <navigable>true</navigable>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </a>
-                      </DAssociation>
-                     </instance>
-                    </item>
-                    <item>
                      <instance type="DClass">
                       <DClass>
                        <base-DObject>
@@ -1474,37 +1045,12 @@
                          </stereotypes>
                          <name>AtomSelection</name>
                          <pos>x:130;y:215</pos>
-                         <rect>x:-95;y:-55;w:190;h:110</rect>
+                         <rect>x:-85;y:-50;w:170;h:100</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
                        <show-all-members>true</show-all-members>
                       </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{2d07155b-dc12-4ae2-9daf-6d920bb281d1}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{c6400b1a-c8af-401b-af4c-8e625248fa56}</object>
-                         <a>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</a>
-                         <b>{8aad22fa-787d-4db0-ab89-361751d6cfc6}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <cradinality>*</cradinality>
-                         <navigable>true</navigable>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </a>
-                      </DAssociation>
                      </instance>
                     </item>
                     <item>
@@ -1548,33 +1094,14 @@
                            <item>boundary</item>
                           </qlist>
                          </stereotypes>
-                         <name>iterator</name>
+                         <name>AtomSelIterator</name>
                          <pos>x:295;y:380</pos>
-                         <rect>x:-115;y:-75;w:230;h:150</rect>
+                         <rect>x:-100;y:-70;w:200;h:140</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
-                       <namespace>SelectionInterface</namespace>
                        <show-all-members>true</show-all-members>
                       </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DDependency">
-                      <DDependency>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{0ab659bf-9aea-4dcc-8907-b0766ce56a3c}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{3741fc96-1cb7-4934-ad51-3fc3c16a1963}</object>
-                         <a>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</a>
-                         <b>{2547533a-9b23-4f9f-8481-4fa8625ef4f0}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DDependency>
                      </instance>
                     </item>
                     <item>
@@ -1593,33 +1120,14 @@
                            <item>boundary</item>
                           </qlist>
                          </stereotypes>
-                         <name>iterator</name>
+                         <name>AtomListIterator</name>
                          <pos>x:830;y:375</pos>
-                         <rect>x:-100;y:-75;w:200;h:150</rect>
+                         <rect>x:-90;y:-70;w:180;h:140</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
-                       <namespace>AtomListInterface</namespace>
                        <show-all-members>true</show-all-members>
                       </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DDependency">
-                      <DDependency>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{897932bf-b8a8-41dc-8af3-2ad542e4efcc}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{e0d9c87f-66d9-4783-89c7-5768f580efea}</object>
-                         <a>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</a>
-                         <b>{51f3c558-be69-4f25-a712-35a408f7057e}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DDependency>
                      </instance>
                     </item>
                     <item>
@@ -1741,363 +1249,6 @@
                         <DObject>
                          <base-DElement>
                           <DElement>
-                           <uid>{c37de36e-f176-4b24-8cd9-227cf5b6be2f}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>control</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepBase</name>
-                         <pos>x:1025;y:620</pos>
-                         <rect>x:-40;y:-35;w:80;h:70</rect>
-                         <visual-role>0</visual-role>
-                         <stereotype-display>2</stereotype-display>
-                        </DObject>
-                       </base-DObject>
-                       <template>
-                        <qlist>
-                         <item>Step</item>
-                        </qlist>
-                       </template>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{1b36937c-fda0-4751-95f5-b0c4c8b79cf0}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{5f36f079-45ea-48ae-83f6-f6bd00c74abf}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>control</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepBase</name>
-                         <pos>x:485;y:575</pos>
-                         <rect>x:-40;y:-35;w:80;h:70</rect>
-                         <visual-role>0</visual-role>
-                         <stereotype-display>2</stereotype-display>
-                        </DObject>
-                       </base-DObject>
-                       <template>
-                        <qlist>
-                         <item>StepSelection</item>
-                        </qlist>
-                       </template>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DDependency">
-                      <DDependency>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{5f647a11-04c2-4b12-92f1-fdfe2eef1847}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{b0f068e3-95d3-4d08-9fb1-38db538271ba}</object>
-                         <a>{c37de36e-f176-4b24-8cd9-227cf5b6be2f}</a>
-                         <b>{b66a7402-b995-4654-b9ed-61d4965a620d}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DDependency>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{8de526df-dfea-4678-a68c-6867f6d85c7e}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>boundary</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>Step</name>
-                         <pos>x:875;y:835</pos>
-                         <rect>x:-135;y:-170;w:270;h:340</rect>
-                         <visual-role>0</visual-role>
-                        </DObject>
-                       </base-DObject>
-                       <show-all-members>true</show-all-members>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DInheritance">
-                      <DInheritance>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{29a30850-4725-456b-a992-20e1a40a702d}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{21f2f642-6767-4fdc-a51d-7968bfd0e26d}</object>
-                         <a>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</a>
-                         <b>{c37de36e-f176-4b24-8cd9-227cf5b6be2f}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DInheritance>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DDependency">
-                      <DDependency>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{31ba1501-a5b8-4a48-b767-095da6d2b83c}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{77046b38-9aab-4988-8e6c-6d84243bd82c}</object>
-                         <a>{1b36937c-fda0-4751-95f5-b0c4c8b79cf0}</a>
-                         <b>{b66a7402-b995-4654-b9ed-61d4965a620d}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DDependency>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{65ee1259-fef5-4ac4-ad05-9810d829b4ae}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{27e56d7c-1832-4a45-8f86-dd7f4c347a06}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>boundary</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepSelProper</name>
-                         <pos>x:155;y:1045</pos>
-                         <rect>x:-130;y:-100;w:260;h:200</rect>
-                         <visual-role>0</visual-role>
-                        </DObject>
-                       </base-DObject>
-                       <show-all-members>true</show-all-members>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{10473aff-f1ff-4c73-b29e-3a14b650a737}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{e0285337-564b-43ed-98c4-ba4835d62252}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>boundary</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepSelFormatter</name>
-                         <pos>x:395;y:1305</pos>
-                         <rect>x:-130;y:-80;w:260;h:160</rect>
-                         <auto-sized>false</auto-sized>
-                         <visual-role>0</visual-role>
-                        </DObject>
-                       </base-DObject>
-                       <show-all-members>true</show-all-members>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DInheritance">
-                      <DInheritance>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{d5038c26-7ea3-4fb3-833f-56d7c0cc1051}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{b476140a-72f2-409a-be6c-238dcc2faf15}</object>
-                         <a>{65ee1259-fef5-4ac4-ad05-9810d829b4ae}</a>
-                         <b>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DInheritance>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DInheritance">
-                      <DInheritance>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{59fb1a93-cbdb-48cf-8763-ebff387e43d5}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{9abac572-40f2-4782-b6c2-7daa84020089}</object>
-                         <a>{10473aff-f1ff-4c73-b29e-3a14b650a737}</a>
-                         <b>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DInheritance>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{131a6022-a4f6-49a8-93a8-dcf95e0af885}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{808649f3-ebfb-489e-8062-4f82abb1ebf2}</object>
-                         <a>{65ee1259-fef5-4ac4-ad05-9810d829b4ae}</a>
-                         <b>{f16efe09-2566-4421-84ae-15170c3f6796}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <cradinality>*</cradinality>
-                         <navigable>true</navigable>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </a>
-                      </DAssociation>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{ea2d67b9-c81a-421a-85c8-b6b25003b6bc}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{b9d7c3a1-49c7-4014-b2dd-c1e7a35e8dd8}</object>
-                         <a>{10473aff-f1ff-4c73-b29e-3a14b650a737}</a>
-                         <b>{bd0b7eb8-8026-48b9-ac64-372521166843}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <cradinality>*</cradinality>
-                         <navigable>true</navigable>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </a>
-                      </DAssociation>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{9467c5be-3210-42cc-bdfb-ff044e153e81}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{ab5ec795-4ee3-4bf3-a9e5-29dbd26cdb9b}</object>
-                         <a>{10473aff-f1ff-4c73-b29e-3a14b650a737}</a>
-                         <b>{65ee1259-fef5-4ac4-ad05-9810d829b4ae}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <cradinality>1</cradinality>
-                         <navigable>true</navigable>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </a>
-                       <b>
-                        <DAssociationEnd>
-                         <cradinality>4</cradinality>
-                         <navigable>true</navigable>
-                         <kind>2</kind>
-                        </DAssociationEnd>
-                       </b>
-                      </DAssociation>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{77cc3035-8c86-4856-b2d4-6953574e4212}</object>
-                         <stereotypes>
-                          <qlist>
-                           <item>boundary</item>
-                          </qlist>
-                         </stereotypes>
-                         <name>StepSelection</name>
-                         <pos>x:240;y:730</pos>
-                         <rect>x:-115;y:-85;w:230;h:170</rect>
-                         <visual-role>0</visual-role>
-                        </DObject>
-                       </base-DObject>
-                       <show-all-members>true</show-all-members>
-                      </DClass>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DInheritance">
-                      <DInheritance>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{4678b204-fe53-4c28-b371-c0ed4346d13e}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{1e76f50a-572b-49fd-8748-6a365a5fafbe}</object>
-                         <a>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</a>
-                         <b>{1b36937c-fda0-4751-95f5-b0c4c8b79cf0}</b>
-                        </DRelation>
-                       </base-DRelation>
-                      </DInheritance>
-                     </instance>
-                    </item>
-                    <item>
-                     <instance type="DClass">
-                      <DClass>
-                       <base-DObject>
-                        <DObject>
-                         <base-DElement>
-                          <DElement>
                            <uid>{e8f2a179-8839-4b3c-8a18-934ed0caed7e}</uid>
                           </DElement>
                          </base-DElement>
@@ -2137,277 +1288,13 @@
                       </DAssociation>
                      </instance>
                     </item>
-                    <item>
-                     <instance type="DAssociation">
-                      <DAssociation>
-                       <base-DRelation>
-                        <DRelation>
-                         <base-DElement>
-                          <DElement>
-                           <uid>{20ea789e-a80a-4773-930e-3966866c89b4}</uid>
-                          </DElement>
-                         </base-DElement>
-                         <object>{7de018fc-7e56-4b7d-94b2-65f12f05a0f7}</object>
-                         <a>{57ffb066-7c18-4b08-bf2f-0f5326fadfa1}</a>
-                         <b>{af89ea56-b3db-4947-a3b9-34c0f1ed225f}</b>
-                        </DRelation>
-                       </base-DRelation>
-                       <a>
-                        <DAssociationEnd>
-                         <navigable>true</navigable>
-                         <kind>2</kind>
-                        </DAssociationEnd>
-                       </a>
-                      </DAssociation>
-                     </instance>
-                    </item>
                    </qlist>
                   </elements>
-                  <last-modified>1527157861245</last-modified>
+                  <last-modified>1539429288577</last-modified>
                   <toolbarid>General</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
                </MCanvasDiagram>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{361f10eb-efb7-4085-b9ee-95cf146621ac}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{361f10eb-efb7-4085-b9ee-95cf146621ac}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>boundary</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepProper</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{d0c9fa81-fe51-4cce-ac7d-cc8cc5f19d78}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{d0c9fa81-fe51-4cce-ac7d-cc8cc5f19d78}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{361f10eb-efb7-4085-b9ee-95cf146621ac}</a>
-                             <b>{8de526df-dfea-4678-a68c-6867f6d85c7e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{9e1816a3-3b43-4b81-8e80-4cb40b27ca22}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{9e1816a3-3b43-4b81-8e80-4cb40b27ca22}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{361f10eb-efb7-4085-b9ee-95cf146621ac}</a>
-                             <b>{c1cf73b1-7d38-44e1-9d7c-a6c60593280e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>4</cardinality>
-                             <navigable>true</navigable>
-                             <kind>2</kind>
-                            </MAssociationEnd>
-                           </a>
-                           <b>
-                            <MAssociationEnd>
-                             <cardinality>1</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </b>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{0844f7ec-71e3-42f3-80e0-ac5486ccc67f}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepFormatter asAlat</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{081e4c2c-532b-4e1d-b70c-ac279c0c77f4}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepFormatter asBohr</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{e70bad85-76fb-42f6-acf3-1035ca68fd4f}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepFormatter asCrystal</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{c0108011-0bb4-4f2c-8bd6-10ee97730b5d}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepFormatter asAngstrom</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{40002574-81c2-4c58-a64d-68234e2af88e}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void setFmt(AtomFmt, bool)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{76b7cafa-b945-47c5-83ff-384df7ae69cc}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>Step&amp; asFmt(AtomFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{e7073d6c-013a-4ffc-a8cb-8a7d23dd3214}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>void evaluateCache()</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{c1cf73b1-7d38-44e1-9d7c-a6c60593280e}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{c1cf73b1-7d38-44e1-9d7c-a6c60593280e}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>boundary</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepFormatter</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{6f20453d-192c-41f7-82a4-e244966566bc}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{6f20453d-192c-41f7-82a4-e244966566bc}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{c1cf73b1-7d38-44e1-9d7c-a6c60593280e}</a>
-                             <b>{8de526df-dfea-4678-a68c-6867f6d85c7e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{fcbd0b6c-7f1d-45aa-8771-bb14849c83b5}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>StepProper&amp; step</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{008fe3a8-dabf-4d81-bd24-8d934f400236}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>void evaluateCache()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{fdbfbb62-4aa5-4f05-bbc3-38c9df9dc85d}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>Step&amp; asFmt(AtomFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
               </instance>
              </target>
             </handle>
@@ -2430,7 +1317,7 @@
                     </stereotypes>
                    </MElement>
                   </base-MElement>
-                  <name>StepBase</name>
+                  <name>StepMutable</name>
                   <relations>
                    <handles>
                     <handles>
@@ -2524,50 +1411,6 @@
                       </item>
                       <item>
                        <handle>
-                        <uid>{de2828ee-d3a8-4431-a6a3-b5d27034b9b2}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{de2828ee-d3a8-4431-a6a3-b5d27034b9b2}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{a136f1f6-c4e4-4729-ac57-d0261c08a25c}</a>
-                             <b>{6b6a0e10-39ab-4967-aebc-33fb0e338c12}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{df731137-adfe-444f-89a1-004546fea066}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{df731137-adfe-444f-89a1-004546fea066}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{a136f1f6-c4e4-4729-ac57-d0261c08a25c}</a>
-                             <b>{39c2ab8f-22db-4fcd-b6c2-2f35dc33879b}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
                         <uid>{b4520a79-8335-4bb7-917a-83998d77d2b1}</uid>
                         <target>
                          <instance type="MInheritance">
@@ -2632,7 +1475,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{4fb94a03-7500-4740-86b5-75031e8b48ef}</uid>
+                    <uid>{98b39fc9-d162-4721-b255-1c96166ec92d}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;BondData&gt; bonds</declaration>
@@ -2640,7 +1483,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{7cbcbb3e-5b01-4d12-9be8-93dca0f55bfe}</uid>
+                    <uid>{8463e1b4-5b5b-429e-8933-e3a33e95cc98}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;CellData&gt; cell</declaration>
@@ -2648,7 +1491,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{919cc3ba-bb2c-4e26-9a27-6a2e6289ec8d}</uid>
+                    <uid>{d7fb9976-fa2d-4cc3-8ab4-409168802fd5}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>shared_ptr&lt;string&gt; comment</declaration>
@@ -2656,7 +1499,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{a0cf2cc9-deac-4782-ab6b-a754e175628b}</uid>
+                    <uid>{9fde983c-21ed-4970-b393-53266a5ee2cb}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>AtomFmt at_fmt</declaration>
@@ -2664,7 +1507,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{fa4a81e4-9adf-4f5a-a835-12bc6b827730}</uid>
+                    <uid>{9d6bf769-0ea1-4bcf-a8e0-80026f3e4100}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <properties>3</properties>
@@ -2673,7 +1516,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{066dd3f8-b033-4eb8-a344-586b0e958e95}</uid>
+                    <uid>{a4f8bdd1-4670-4c13-9515-303063c204b6}</uid>
                     <group>Types</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2682,7 +1525,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{c3ca21ba-c384-4b3c-ae1d-884fc9f35aaf}</uid>
+                    <uid>{fa06c782-f272-467e-9f3c-432f396ad6cc}</uid>
                     <group>Types</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2691,7 +1534,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{9547f5e2-2119-417b-a635-bcfcbf587808}</uid>
+                    <uid>{b5fbeadc-f9b1-45ec-9bce-d4877fa18f99}</uid>
                     <group>Format</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2700,7 +1543,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{0d4678af-687e-44ee-9b5b-8707cbea0de3}</uid>
+                    <uid>{7b38a863-f273-4baf-9e60-12e7e669a4ac}</uid>
                     <group>Format</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2710,7 +1553,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{36dcd376-0ddd-4455-be0b-adfa4176c563}</uid>
+                    <uid>{ea72494e-e4de-4791-b039-dac5577f44f2}</uid>
                     <group>Comment</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2719,7 +1562,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{877e2fcc-1ed1-4aff-b082-d45c29b57b26}</uid>
+                    <uid>{beaf942b-9424-4852-b023-2161ff958f6e}</uid>
                     <group>Comment</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2728,7 +1571,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{5bba586e-38b3-4c98-8edb-9ccf479a7a67}</uid>
+                    <uid>{a7b7c210-62b7-475f-b00f-3b81831cf563}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2737,7 +1580,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ad971964-b30f-474f-a202-caccde4ea323}</uid>
+                    <uid>{94272c2f-84ea-4dab-92ec-1bea0008bec8}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2746,7 +1589,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{67b424bb-7225-427a-adec-5616b6bf4130}</uid>
+                    <uid>{6dab963b-1f74-4f94-8022-c25bf9649d3c}</uid>
                     <group>Bond</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2755,7 +1598,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{16c47957-cd52-46cc-adda-a5bee510993d}</uid>
+                    <uid>{7733aaad-b82a-412e-a41b-7d6550f991a9}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2764,7 +1607,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{ac559a40-5c80-43b4-8bf6-a7a23fe681e5}</uid>
+                    <uid>{47f384c7-c2cc-4863-aebd-b981939a4f79}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2773,7 +1616,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{1c96d4a6-abc0-4ac5-aa31-1c30a65be371}</uid>
+                    <uid>{a2db3255-1ca2-47d2-84eb-d05fd31d75fb}</uid>
                     <group>Bond</group>
                     <visibility>3</visibility>
                     <type>2</type>
@@ -2782,7 +1625,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{e7b657dc-662e-4fd5-80e5-16111cc3f348}</uid>
+                    <uid>{251af324-994d-4147-a69f-3df966df22c4}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2791,7 +1634,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{dd2a9e6f-80ba-40db-b06b-3a02860c2627}</uid>
+                    <uid>{4ff14c84-3250-45d5-9fe5-902546cb5319}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2800,7 +1643,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{06e773f3-58ec-4008-8134-30290090234c}</uid>
+                    <uid>{9c0895c8-7d0f-487b-a1b8-af04f11b22a9}</uid>
                     <group>Cell-getters</group>
                     <visibility>1</visibility>
                     <type>2</type>
@@ -2883,7 +1726,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{b39d3f53-00c2-4cd9-ad24-bbd2996b4581}</uid>
+                    <uid>{f32ce4cf-6298-4252-8a19-f799eaf2977a}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>operator T&amp;()</declaration>
@@ -2891,1079 +1734,10 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{4cfa7137-53c3-42d9-947e-915db9428fbd}</uid>
+                    <uid>{f4635c40-7ba7-4478-84ba-7c80eedf5fa7}</uid>
                     <visibility>3</visibility>
                     <type>1</type>
                     <declaration>Atom&amp; at</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{c4f6e3bf-da62-43b8-a4a2-c4f25eb88e2e}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{c4f6e3bf-da62-43b8-a4a2-c4f25eb88e2e}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>entity</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>AtomProper</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{38f9f871-3bac-4a01-aef1-48c1e5fad901}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{38f9f871-3bac-4a01-aef1-48c1e5fad901}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{c4f6e3bf-da62-43b8-a4a2-c4f25eb88e2e}</a>
-                             <b>{1089a227-9915-4d58-b5a4-47b8ad6a9c87}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{a4d36bf4-17c6-42f0-8b4a-d2f04c6c2f90}</uid>
-                    <group>Coordinates</group>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>Vec coord_impl</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{bf43e887-6766-4327-84cd-7499c78fc22c}</uid>
-                    <group>Coordinates</group>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>bool co_ch_impl</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{20abc854-e6ca-4651-8af6-65ae07287993}</uid>
-                    <group>Properties</group>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>string name_impl</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{7d64c2ee-4086-4e39-a8c7-8e3bc137856f}</uid>
-                    <group>Properties</group>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>float charge_impl</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{4f561348-3f19-4d40-9d71-d0ff0fe6d1dd}</uid>
-                    <group>Properties</group>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>uint8_t prop_impl</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>control</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepBase</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{fde24308-dfb0-4e93-942c-3fcefddfd77f}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{fde24308-dfb0-4e93-942c-3fcefddfd77f}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</a>
-                             <b>{6b6a0e10-39ab-4967-aebc-33fb0e338c12}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{b0f068e3-95d3-4d08-9fb1-38db538271ba}</uid>
-                        <target>
-                         <instance type="MDependency">
-                          <MDependency>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{b0f068e3-95d3-4d08-9fb1-38db538271ba}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</a>
-                             <b>{a136f1f6-c4e4-4729-ac57-d0261c08a25c}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MDependency>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{814912d8-cb63-44c6-bcfa-6823de9ccc1c}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{814912d8-cb63-44c6-bcfa-6823de9ccc1c}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</a>
-                             <b>{8de526df-dfea-4678-a68c-6867f6d85c7e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <template>
-                 <qlist>
-                  <item>Step</item>
-                 </qlist>
-                </template>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{e9f5c276-4bbd-4c44-8123-1d5420d90d74}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;BondData&gt; bonds</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b1573404-93c9-4a35-a28d-173c221ddc6a}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;CellData&gt; cell</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{c911dd31-21a3-4cfe-b150-a9e37b826b05}</uid>
-                    <visibility>3</visibility>
-                    <type>2</type>
-                    <properties>3</properties>
-                    <declaration>void evaluateCache()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{26c5a1b7-bcd2-4cf7-a4cf-30d0262826f3}</uid>
-                    <group>Bond</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>vector&lt;Bond&gt; getBonds(BondLevel)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{25050743-a3a4-4942-a32b-00fae94b87be}</uid>
-                    <group>Bond</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>vector&lt;Bond&gt;getBonds(float)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{2719a488-e553-4f59-a42c-4b4189e21e13}</uid>
-                    <group>Bond</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNBond()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{28a6232c-5280-4799-a0e4-50b921ab6e34}</uid>
-                    <group>Cell-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>float getCellDim(CdmFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{5941bc5c-60f4-4cad-8ae6-97e232228577}</uid>
-                    <group>Cell-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>Mat getCellVec()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b052aa78-190c-45e7-adf4-c88b08fbe43a}</uid>
-                    <group>Cell-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>bool hasCell()</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{5f36f079-45ea-48ae-83f6-f6bd00c74abf}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{5f36f079-45ea-48ae-83f6-f6bd00c74abf}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>control</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepBase</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{77046b38-9aab-4988-8e6c-6d84243bd82c}</uid>
-                        <target>
-                         <instance type="MDependency">
-                          <MDependency>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{77046b38-9aab-4988-8e6c-6d84243bd82c}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{5f36f079-45ea-48ae-83f6-f6bd00c74abf}</a>
-                             <b>{a136f1f6-c4e4-4729-ac57-d0261c08a25c}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MDependency>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{bdb49e04-5f54-44de-89d7-b9adb0c8e476}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{bdb49e04-5f54-44de-89d7-b9adb0c8e476}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{5f36f079-45ea-48ae-83f6-f6bd00c74abf}</a>
-                             <b>{39c2ab8f-22db-4fcd-b6c2-2f35dc33879b}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <template>
-                 <qlist>
-                  <item>StepSelection</item>
-                 </qlist>
-                </template>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{a00d0060-9af9-42bb-98e9-b876a8fd4e3f}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;BondData&gt; bonds</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{929a66b2-45f3-4e90-8324-59427f684571}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;CellData&gt; cell</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{3da4471a-62c3-42e7-abbc-29dcc3908787}</uid>
-                    <visibility>3</visibility>
-                    <type>2</type>
-                    <properties>3</properties>
-                    <declaration>void evaluateCache()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b6512e95-4f2b-43a0-b24d-134dba129169}</uid>
-                    <group>Bond</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>vector&lt;Bond&gt; getBonds(BondLevel)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{ec92674c-a392-48a1-bf77-a826c49ab8cd}</uid>
-                    <group>Bond</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>vector&lt;Bond&gt;getBonds(float)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b39b4128-1f1d-4a2c-8282-0f8061216574}</uid>
-                    <group>Bond</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNBond()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{be1a5321-4241-4f31-b1d5-15d8fcf749cf}</uid>
-                    <group>Cell-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>float getCellDim(CdmFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{20f5791d-1e12-4993-864b-2983801dfd67}</uid>
-                    <group>Cell-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>Mat getCellVec()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{e1fc0866-ed9f-4de2-95ff-7365a25dde2d}</uid>
-                    <group>Cell-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>bool hasCell()</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{8de526df-dfea-4678-a68c-6867f6d85c7e}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{8de526df-dfea-4678-a68c-6867f6d85c7e}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>boundary</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>Step</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{21f2f642-6767-4fdc-a51d-7968bfd0e26d}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{21f2f642-6767-4fdc-a51d-7968bfd0e26d}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{8de526df-dfea-4678-a68c-6867f6d85c7e}</a>
-                             <b>{d5ff9f09-4659-4ace-953d-a5645738ddf4}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{b29cd962-fcac-4599-b1eb-3a16e93ffcde}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{b29cd962-fcac-4599-b1eb-3a16e93ffcde}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{8de526df-dfea-4678-a68c-6867f6d85c7e}</a>
-                             <b>{6b6a0e10-39ab-4967-aebc-33fb0e338c12}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{b46d76f6-cab8-4cbe-9c37-d3a41afe4685}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{b46d76f6-cab8-4cbe-9c37-d3a41afe4685}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{8de526df-dfea-4678-a68c-6867f6d85c7e}</a>
-                             <b>{d778192e-809c-4274-93f3-1d8bc1f74eb9}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>*</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{e0d9c87f-66d9-4783-89c7-5768f580efea}</uid>
-                        <target>
-                         <instance type="MDependency">
-                          <MDependency>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{e0d9c87f-66d9-4783-89c7-5768f580efea}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{8de526df-dfea-4678-a68c-6867f6d85c7e}</a>
-                             <b>{85bb5edc-9246-4230-a24f-7e3e6f80e46a}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MDependency>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{7de018fc-7e56-4b7d-94b2-65f12f05a0f7}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{7de018fc-7e56-4b7d-94b2-65f12f05a0f7}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{8de526df-dfea-4678-a68c-6867f6d85c7e}</a>
-                             <b>{77cc3035-8c86-4856-b2d4-6953574e4212}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <navigable>true</navigable>
-                             <kind>2</kind>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{bb1e7b4a-07c2-4345-9d1b-18deb36da654}</uid>
-                    <visibility>2</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;AtomList&gt; atoms</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{2f016d4e-10e6-4c4b-be84-6d663e1303dd}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>3</properties>
-                    <declaration>StepSelProper select(std::string)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{06715d34-5b8c-4489-86d3-73a8e61f6650}</uid>
-                    <group>Atom-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNat()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b49c63ea-ddfd-4750-ae8f-994f2574cd2b}</uid>
-                    <group>Atom-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>Atom operator[](size_t)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{8ba294c8-f947-4514-9712-ef289f9a56bd}</uid>
-                    <group>Atom-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>AtomIterator begin()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{334aea53-d811-4c6f-b37d-80c3a7cc8a57}</uid>
-                    <group>Atom-getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>AtomIterator end()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{e8ea5683-31a0-48a1-bcd5-ffb74bd3060e}</uid>
-                    <group>Atom-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtom()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b4fe4f35-8292-4705-b69f-71ba68482f64}</uid>
-                    <group>Atom-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtom(...properties)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{04370166-fd93-4fd5-b311-a08d0879482b}</uid>
-                    <group>Atom-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtom(const Atom&amp; at)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{b0eea100-5af7-4123-9288-96b75d0441d4}</uid>
-                    <group>Atom-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void newAtoms(size_t)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{a992a75f-9390-45a3-8a0d-012eb6719e0e}</uid>
-                    <group>Atom-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void delAtom(size_t)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{2a04798f-65ab-46fa-ae8c-389375e7c184}</uid>
-                    <group>Cell-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void setCellDim(float, CdmFmt, bool)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{149d9ff5-994b-44c5-85af-486e7eb1af4a}</uid>
-                    <group>Cell-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void setCellVec(Mat, bool)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{7f740222-99a1-40a6-826f-5ae852c0be2d}</uid>
-                    <group>Cell-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void enableCell(bool)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{48c0ad95-8e28-430a-9524-991c1433be90}</uid>
-                    <group>Cell-setters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>1</properties>
-                    <declaration>Step&amp; asFmt(AtomFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{27e56d7c-1832-4a45-8f86-dd7f4c347a06}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{27e56d7c-1832-4a45-8f86-dd7f4c347a06}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>boundary</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepSelProper</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{b476140a-72f2-409a-be6c-238dcc2faf15}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{b476140a-72f2-409a-be6c-238dcc2faf15}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{27e56d7c-1832-4a45-8f86-dd7f4c347a06}</a>
-                             <b>{77cc3035-8c86-4856-b2d4-6953574e4212}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{808649f3-ebfb-489e-8062-4f82abb1ebf2}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{808649f3-ebfb-489e-8062-4f82abb1ebf2}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{27e56d7c-1832-4a45-8f86-dd7f4c347a06}</a>
-                             <b>{361f10eb-efb7-4085-b9ee-95cf146621ac}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>*</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{b6656bca-08be-4c25-8fd0-e55fa0f919cd}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepSelFormatter asAlat</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{f442990a-240f-4de2-a2df-565b4367ef5e}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepSelFormatter asBohr</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{4250ac21-6ce8-401a-9b7f-6502a667d4ae}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepSelFormatter asCrystal</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{5a5843d8-c02f-45fb-b1d1-d4aefe883c85}</uid>
-                    <visibility>1</visibility>
-                    <type>1</type>
-                    <declaration>StepSelFormatter asAngstrom</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{8e4b3a9e-a9af-4c73-97ac-2d9206adc9a4}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>void setFmt(AtomFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{18c8e8de-c0d2-44d0-93a0-49fdcc681440}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>StepSelection&amp; asFmt(AtomFmt)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{7b47bc49-ef02-4dc3-b5c5-f37292c7b202}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>StepProper* step</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{85fc6e54-b19a-4cd8-a7b9-c0a73e5d9230}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>void evaluateCache()</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{e0285337-564b-43ed-98c4-ba4835d62252}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{e0285337-564b-43ed-98c4-ba4835d62252}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>boundary</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepSelFormatter</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{9abac572-40f2-4782-b6c2-7daa84020089}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{9abac572-40f2-4782-b6c2-7daa84020089}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{e0285337-564b-43ed-98c4-ba4835d62252}</a>
-                             <b>{77cc3035-8c86-4856-b2d4-6953574e4212}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{b9d7c3a1-49c7-4014-b2dd-c1e7a35e8dd8}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{b9d7c3a1-49c7-4014-b2dd-c1e7a35e8dd8}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{e0285337-564b-43ed-98c4-ba4835d62252}</a>
-                             <b>{c1cf73b1-7d38-44e1-9d7c-a6c60593280e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>*</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{ab5ec795-4ee3-4bf3-a9e5-29dbd26cdb9b}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{ab5ec795-4ee3-4bf3-a9e5-29dbd26cdb9b}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{e0285337-564b-43ed-98c4-ba4835d62252}</a>
-                             <b>{27e56d7c-1832-4a45-8f86-dd7f4c347a06}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>1</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                           <b>
-                            <MAssociationEnd>
-                             <cardinality>4</cardinality>
-                             <navigable>true</navigable>
-                             <kind>2</kind>
-                            </MAssociationEnd>
-                           </b>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{7eff0451-24cb-4f53-b0ad-09f802cff280}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>StepSelection&amp; sel</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{795971de-aff6-4778-bfb2-f6f8096dacb0}</uid>
-                    <visibility>3</visibility>
-                    <type>1</type>
-                    <declaration>StepFormatter* step</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{a140ecf6-92a4-4f2f-86f7-1ce74fd9a685}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>void evaluateCache()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{ed49f8bd-38a1-4906-b133-81f41a09d58a}</uid>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <properties>8</properties>
-                    <declaration>StepSelection&amp; asFmt(AtomFmt)</declaration>
                    </MClassMember>
                   </item>
                  </qlist>
@@ -3998,7 +1772,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{da1c39e4-6237-4cfe-bab6-ad94c58561ed}</uid>
+                    <uid>{033f89c7-f415-4e27-9973-f2c5cc24a712}</uid>
                     <visibility>2</visibility>
                     <type>2</type>
                     <properties>3</properties>
@@ -4007,7 +1781,7 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{11e0ac5e-586a-4080-859e-ed48c2566d57}</uid>
+                    <uid>{ae6e05ea-38b9-4d5d-92d1-cfea85739396}</uid>
                     <visibility>2</visibility>
                     <type>1</type>
                     <declaration>AtomFmt fmt</declaration>
@@ -4015,192 +1789,10 @@
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{be16cc49-a6b8-4327-b7a2-157c63806ec8}</uid>
+                    <uid>{c8d38b4c-9966-454c-84db-014cd0fd17e2}</uid>
                     <visibility>1</visibility>
                     <type>2</type>
                     <declaration>AtomFmt getFmt()</declaration>
-                   </MClassMember>
-                  </item>
-                 </qlist>
-                </members>
-               </MClass>
-              </instance>
-             </target>
-            </handle>
-           </item>
-           <item>
-            <handle>
-             <uid>{77cc3035-8c86-4856-b2d4-6953574e4212}</uid>
-             <target>
-              <instance type="MClass">
-               <MClass>
-                <base-MObject>
-                 <MObject>
-                  <base-MElement>
-                   <MElement>
-                    <uid>{77cc3035-8c86-4856-b2d4-6953574e4212}</uid>
-                    <stereotypes>
-                     <qlist>
-                      <item>boundary</item>
-                     </qlist>
-                    </stereotypes>
-                   </MElement>
-                  </base-MElement>
-                  <name>StepSelection</name>
-                  <relations>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{1e76f50a-572b-49fd-8748-6a365a5fafbe}</uid>
-                        <target>
-                         <instance type="MInheritance">
-                          <MInheritance>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{1e76f50a-572b-49fd-8748-6a365a5fafbe}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{77cc3035-8c86-4856-b2d4-6953574e4212}</a>
-                             <b>{5f36f079-45ea-48ae-83f6-f6bd00c74abf}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MInheritance>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{c6400b1a-c8af-401b-af4c-8e625248fa56}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{c6400b1a-c8af-401b-af4c-8e625248fa56}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{77cc3035-8c86-4856-b2d4-6953574e4212}</a>
-                             <b>{61657242-549a-4e45-8e1a-d7676f44119e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <cardinality>*</cardinality>
-                             <navigable>true</navigable>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{3741fc96-1cb7-4934-ad51-3fc3c16a1963}</uid>
-                        <target>
-                         <instance type="MDependency">
-                          <MDependency>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{3741fc96-1cb7-4934-ad51-3fc3c16a1963}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{77cc3035-8c86-4856-b2d4-6953574e4212}</a>
-                             <b>{55dd66df-0145-4db9-bf62-b5874acc21a4}</b>
-                            </MRelation>
-                           </base-MRelation>
-                          </MDependency>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{ecad6cca-c6c7-4916-b372-cffc8c29da92}</uid>
-                        <target>
-                         <instance type="MAssociation">
-                          <MAssociation>
-                           <base-MRelation>
-                            <MRelation>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{ecad6cca-c6c7-4916-b372-cffc8c29da92}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <a>{77cc3035-8c86-4856-b2d4-6953574e4212}</a>
-                             <b>{8de526df-dfea-4678-a68c-6867f6d85c7e}</b>
-                            </MRelation>
-                           </base-MRelation>
-                           <a>
-                            <MAssociationEnd>
-                             <navigable>true</navigable>
-                            </MAssociationEnd>
-                           </a>
-                          </MAssociation>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </relations>
-                 </MObject>
-                </base-MObject>
-                <members>
-                 <qlist>
-                  <item>
-                   <MClassMember>
-                    <uid>{f8e40a1a-e116-4136-8311-f34baa45d161}</uid>
-                    <visibility>2</visibility>
-                    <type>1</type>
-                    <declaration>shared_ptr&lt;AtomSelection&gt; atoms</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{2ba42250-ca3c-468e-a378-8c188325ccf4}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>size_t getNat()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{54e25f7a-8410-41da-abcf-7813312ab6e0}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>Atom operator[](size_t idx)</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{56314c92-1e4e-419c-b45f-f85a8297c5ba}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>SelectionIterator begin()</declaration>
-                   </MClassMember>
-                  </item>
-                  <item>
-                   <MClassMember>
-                    <uid>{edf5d32f-e382-4ed8-ada2-2980a8671256}</uid>
-                    <group>Atom getters</group>
-                    <visibility>1</visibility>
-                    <type>2</type>
-                    <declaration>SelectionIterator end()</declaration>
                    </MClassMember>
                   </item>
                  </qlist>

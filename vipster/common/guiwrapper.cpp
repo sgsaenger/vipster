@@ -86,7 +86,7 @@ void GuiWrapper::setMainStep(Step* step, bool draw_bonds)
     mainStep.update(step, draw_bonds);
 }
 
-void GuiWrapper::setMainSel(StepSelection* sel)
+void GuiWrapper::setMainSel(Step::selection* sel)
 {
     curSel = sel;
     selection.update(sel);

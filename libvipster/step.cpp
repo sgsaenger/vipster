@@ -20,6 +20,12 @@ Step::Step(const Step& s)
                   std::make_shared<std::string>(*s.comment)}
 {}
 
+Step::Step(Step&& s)
+    : StepMutable{s.pse, s.at_fmt,
+                  s.atoms, s.bonds,
+                  s.cell, s.comment}
+{}
+
 Step::Step(std::shared_ptr<PseMap> p, AtomFmt f,
            std::shared_ptr<AtomList> a, std::shared_ptr<BondList> b,
            std::shared_ptr<CellData> c, std::shared_ptr<std::string> s)
@@ -37,35 +43,22 @@ Step& Step::operator=(const Step& s)
     return *this;
 }
 
+Step& Step::operator=(Step&& s)
+{
+    pse = std::move(s.pse);
+    at_fmt = s.at_fmt;
+    atoms = std::move(s.atoms);
+    bonds = std::move(s.bonds);
+    cell = std::move(s.cell);
+    comment = std::move(s.comment);
+    return *this;
+}
+
 Step Step::asFmt(AtomFmt tgt)
 {
     auto tmp = Step{pse, tgt, atoms, bonds, cell, comment};
     tmp.evaluateCache();
     return tmp;
-}
-
-StepSelection Step::select(std::string filter)
-{
-    return StepSelection{pse, at_fmt, this, filter,
-                         bonds, cell, comment};
-}
-
-StepSelection Step::select(SelectionFilter filter)
-{
-    return StepSelection{pse, at_fmt, this, filter,
-                         bonds, cell, comment};
-}
-
-StepSelConst Step::select(std::string filter) const
-{
-    return StepSelConst{pse, at_fmt, this, filter,
-                        bonds, cell, comment};
-}
-
-StepSelConst Step::select(SelectionFilter filter) const
-{
-    return StepSelConst{pse, at_fmt, this, filter,
-                        bonds, cell, comment};
 }
 
 void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
@@ -446,4 +439,23 @@ void Step::modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
     setCellVec(newMat);
     setCellDim(newCdm, cdmFmt);
     modCrop();
+}
+
+template<>
+size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept
+{
+    return atoms->indices.size();
+}
+
+template<>
+void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const
+{
+        // make sure that caches are clean, for pos even the needed formatted cache
+        auto fmt = (atoms->filter.mode == SelectionFilter::Mode::Pos) ?
+                    static_cast<AtomFmt>(atoms->filter.pos & SelectionFilter::FMT_MASK) :
+                    this->at_fmt;
+        atoms->step->asFmt(fmt).evaluateCache();
+        if(atoms->filter.op & SelectionFilter::UPDATE){
+            this->atoms->indices = evalFilter(*atoms->step, atoms->filter);
+        }
 }

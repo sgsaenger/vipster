@@ -5,7 +5,7 @@ using namespace Vipster;
 
 decltype(GUI::SelData::shader) GUI::SelData::shader;
 
-GUI::SelData::SelData(const GUI::GlobalData& glob, StepSelection *sel)
+GUI::SelData::SelData(const GUI::GlobalData& glob, Step::selection *sel)
     : Data{glob}, curSel{sel}
 {}
 
@@ -104,7 +104,7 @@ void GUI::SelData::updateGL()
     }
 }
 
-void GUI::SelData::update(StepSelection* sel)
+void GUI::SelData::update(Step::selection* sel)
 {
     curSel = sel;
     sel_buffer.clear();

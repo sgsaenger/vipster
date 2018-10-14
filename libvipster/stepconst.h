@@ -6,6 +6,7 @@
 #include "cell.h"
 #include "vec.h"
 #include "settings.h"
+#include "stepsel.h"
 
 #include <memory>
 #include <vector>
@@ -32,12 +33,24 @@ public:
     virtual ~StepConst() = default;
 
     using source = T;
+    using iterator = typename T::constIterator;
     using constIterator = typename T::constIterator;
+    using constSelection = SelectionBase<StepConst, T>;
 
     void evaluateCache() const; // must be implemented in specialization
 
     // Don't know how to mask this yet
     std::shared_ptr<PseMap> pse;
+
+    // Selection
+    constSelection select(std::string filter) const
+    {
+        return {pse, at_fmt, this, filter, bonds, cell, comment};
+    }
+    constSelection select(SelectionFilter filter) const
+    {
+        return {pse, at_fmt, this, filter, bonds, cell, comment};
+    }
 
     // Atoms
     size_t          getNat() const noexcept; // must be implemented in specialization
@@ -51,19 +64,19 @@ public:
     }
     constIterator   begin() const noexcept
     {
-        return {atoms, at_fmt, 0};
+        return constIterator{atoms, at_fmt, 0};
     }
     constIterator   cbegin() const noexcept
     {
-        return {atoms, at_fmt, 0};
+        return constIterator{atoms, at_fmt, 0};
     }
     constIterator   end() const noexcept
     {
-        return {atoms, at_fmt, getNat()};
+        return constIterator{atoms, at_fmt, getNat()};
     }
     constIterator   cend() const noexcept
     {
-        return {atoms, at_fmt, getNat()};
+        return constIterator{atoms, at_fmt, getNat()};
     }
 
     // Comment
@@ -95,9 +108,6 @@ public:
     {
         if(tgt == at_fmt){ return; }
         asFmt(tgt).evaluateCache();
-        if(tgt >= AtomFmt::Crystal){
-            cell->enabled = true;
-        }
         at_fmt = tgt;
     }
     StepConst           asFmt(AtomFmt tgt) const
@@ -305,6 +315,7 @@ protected:
     std::shared_ptr<std::string>    comment; // immutable
 
 private:
+
     // Bonds
     void    setBondsMolecule(float cutfac) const
     {
@@ -374,14 +385,18 @@ private:
         const Vec xmyz = xz - y;
         const Vec mxyz = yz - x;
         std::array<int16_t, 3> diff_v, crit_v;
-        auto at_i = asCrystal.begin();
-        for (size_t i=0; i<getNat(); ++i) {
+        for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
+            size_t i = at_i.getIdx();
+//        auto at_i = asCrystal.begin();
+//        for (size_t i=0; i<getNat(); ++i) {
             float cut_i = at_i->pse->bondcut;
             if (cut_i<0) {
                 continue;
             }
-            auto at_j = asCrystal.begin();
-            for (size_t j=0; j<getNat(); ++j) {
+            for(auto at_j = asCrystal.begin(); at_j != asCrystal.end(); ++at_j){
+                size_t j = at_j.getIdx();
+//            auto at_j = asCrystal.begin();
+//            for (size_t j=0; j<getNat(); ++j) {
                 float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
                     continue;
@@ -494,9 +509,7 @@ private:
                         }
                     }
                 }
-                ++at_j;
             }
-            ++at_i;
         }
         bonds->outdated = false;
         bonds->level = BondLevel::Cell;

@@ -19,6 +19,17 @@ public:
     virtual ~StepMutable() = default;
 
     using iterator = typename T::iterator;
+    using selection = SelectionBase<StepMutable, T>;
+
+    // Selection
+    selection select(std::string filter)
+    {
+        return selection{this->pse, this->at_fmt, this, filter, this->bonds, this->cell, this->comment};
+    }
+    selection select(SelectionFilter filter)
+    {
+        return selection{this->pse, this->at_fmt, this, filter, this->bonds, this->cell, this->comment};
+    }
 
     // Comment
     void                setComment(const std::string& s)
@@ -111,6 +122,12 @@ protected:
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
         : StepConst<T>{pse, fmt, atoms, bonds, cell, comment}
     {}
+private:
+    // Interface only:
+    StepMutable(const StepMutable&) = default;
+    StepMutable(StepMutable&&) = default;
+    StepMutable& operator=(const StepMutable&) = default;
+    StepMutable& operator=(StepMutable&&) = default;
 };
 
 }

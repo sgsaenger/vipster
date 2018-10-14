@@ -28,14 +28,14 @@ public:
     ~MainWindow() override;
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
-    Vipster::StepSelection* curSel{nullptr};
+    Vipster::Step::selection* curSel{nullptr};
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
     struct MolExtras{
         int curStep{-1};
     };
     struct StepExtras{
-        std::unique_ptr<Vipster::StepSelection> sel{nullptr};
+        std::unique_ptr<Vipster::Step::selection> sel{nullptr};
     };
     std::list<Vipster::Molecule> molecules;
     std::map<Vipster::Molecule*, MolExtras> moldata;

@@ -48,7 +48,7 @@ public:
     void draw(void);
     void drawSel(void);
     void setMainStep(Step* step, bool draw_bonds=true);
-    void setMainSel(StepSelection* sel);
+    void setMainSel(Step::selection* sel);
     void updateMainStep(bool draw_bonds=true);
     void updateMainSelection();
     void addExtraData(GUI::Data* dat);
@@ -64,7 +64,7 @@ public:
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
     Step* curStep{nullptr};
-    StepSelection* curSel{nullptr};
+    Step::selection* curSel{nullptr};
     GUI::GlobalData globals;
     GUI::StepData mainStep{globals, nullptr};
     GUI::SelData selection{globals, nullptr};

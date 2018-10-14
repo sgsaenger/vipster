@@ -152,7 +152,7 @@ void MainWindow::setStep(int i)
     // if no previous selection exists, create one, afterwards assign it
     auto& tmpSel = stepdata[curStep].sel;
     if(!tmpSel && curStep){
-        tmpSel = std::make_unique<StepSelection>(curStep->select(SelectionFilter{}));
+        tmpSel = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
     }
     curSel = tmpSel.get();
     //Handle control-elements

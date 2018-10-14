@@ -108,6 +108,9 @@ public:
          std::shared_ptr<AtomList>, std::shared_ptr<BondList>,
          std::shared_ptr<CellData>, std::shared_ptr<std::string>);
     Step(const Step& s);
+    Step(Step&& s);
+    Step& operator=(const Step& s);
+    Step& operator=(Step&& s);
     template<typename T>
     Step(const StepConst<T>& s)
         : StepMutable<AtomList>{s.pse, s.getFmt(),
@@ -121,17 +124,9 @@ public:
         setCellVec(s.getCellVec());
         newAtoms(s);
     }
-//    Step(Step&& s);
-    Step& operator=(const Step& s);
-//    Step& operator=(Step&& s);
 
     Step    asFmt(AtomFmt); // hides StepMutable::asFmt
     using StepConst<AtomList>::asFmt;
-
-    StepSelection   select(std::string);
-    StepSelection   select(SelectionFilter);
-    StepSelConst    select(std::string) const;
-    StepSelConst    select(SelectionFilter) const;
 
     // Atoms
     void    newAtom(std::string name="",
@@ -145,21 +140,21 @@ public:
     {
         const size_t oldNat = this->getNat();
         const size_t nat = oldNat + s.getNat();
+        const size_t fmt = static_cast<size_t>(at_fmt);
         // Coordinates
         AtomList& al = *this->atoms;
-        al.coordinates[static_cast<size_t>(at_fmt)].reserve(nat);
+        al.coordinates[fmt].reserve(nat);
         al.names.reserve(nat);
         al.properties.reserve(nat);
         al.pse.reserve(nat);
-        al.coord_changed[static_cast<size_t>(at_fmt)] = true;
+        al.coord_changed[fmt] = true;
         al.name_changed = true;
         al.prop_changed = true;
-        auto i = oldNat;
         for(const auto& at: s){
-            al.coordinates[static_cast<size_t>(at_fmt)][i] = at.coord;
-            al.names[i] = at.name;
-            al.pse[i] = &(*pse)[at.name];
-            al.properties[i] = at.properties;
+            al.coordinates[fmt].push_back(at.coord);
+            al.names.push_back(at.name);
+            al.pse.push_back(&(*pse)[at.name]);
+            al.properties.push_back(at.properties);
         }
     }
     void    delAtom(size_t i);
@@ -182,6 +177,11 @@ size_t StepConst<AtomList>::getNat() const noexcept;
 template<>
 void StepConst<AtomList>::evaluateCache() const;
 
+template<>
+size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept;
+
+template<>
+void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const;
 }
 
 #endif // LIBVIPSTER_STEP_H

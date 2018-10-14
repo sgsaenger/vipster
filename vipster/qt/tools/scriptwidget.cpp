@@ -84,7 +84,7 @@ void ScriptWidget::evalScript()
     auto script = std::stringstream{script_str};
     uint8_t change{};
     Step& step = *master->curStep;
-    std::map<std::string, StepSelection> definitions{};
+    std::map<std::string, Step::selection> definitions{};
     std::map<std::string, ScriptOp> operations{};
     std::string line, op_pre, op(3, ' '), name;
     const bool _false{false}, _true{true};
