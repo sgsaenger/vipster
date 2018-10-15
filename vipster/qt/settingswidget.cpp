@@ -27,6 +27,8 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(settings.animstep);
     registerSetting(settings.selCol);
     registerSetting(settings.milCol);
+    registerSetting(settings.posCol);
+    registerSetting(settings.negCol);
     registerSetting(settings.PWPP);
     registerSetting(settings.CPPP);
     registerSetting(settings.CPNL);

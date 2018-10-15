@@ -16,6 +16,16 @@ Data3DWidget::~Data3DWidget()
     delete ui;
 }
 
+void Data3DWidget::updateWidget(uint8_t change)
+{
+    if(change & GuiChange::settings){
+        for(auto& p: surfaces){
+            p.second.gpu_data.update({{settings.posCol.val,
+                                       settings.negCol.val}, 2, 1});
+        }
+    }
+}
+
 void Data3DWidget::setData(const BaseData* data)
 {
     curData = dynamic_cast<const DataGrid3D_f*>(data);
@@ -710,8 +720,8 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                           mkSurf(isoval, pm),
                           curData->origin,
                           curData->cell,
-                          {{ColVec{255,0,0,155},
-                            ColVec{0,0,255,155}}, 2, 1}}
+                          {{settings.posCol.val,
+                            settings.negCol.val}, 2, 1}}
             });
         curSurf = &tmp.first->second;
         master->addExtraData(&curSurf->gpu_data);

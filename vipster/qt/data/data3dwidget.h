@@ -18,6 +18,7 @@ public:
     explicit Data3DWidget(QWidget *parent = nullptr);
     ~Data3DWidget() override;
     void setData(const Vipster::BaseData *data) override;
+    void updateWidget(uint8_t change) override;
 
 private slots:
     void on_sliceDir_currentIndexChanged(int index);
