@@ -193,7 +193,7 @@ void MainWindow::stepBut(QAbstractButton* but)
             playTimer.stop();
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
         }else{
-            playTimer.start(1000);
+            playTimer.start(static_cast<int>(settings.animstep.val));
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
         }
     }

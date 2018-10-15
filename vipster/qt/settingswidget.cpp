@@ -24,6 +24,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(settings.showCell);
     registerSetting(settings.antialias);
     registerSetting(settings.perspective);
+    registerSetting(settings.animstep);
     registerSetting(settings.selCol);
     registerSetting(settings.milCol);
     registerSetting(settings.PWPP);
@@ -50,6 +51,21 @@ QWidget* SettingsWidget::makeWidget(bool& setting)
     connect(widget, &QCheckBox::toggled, this,
             [&setting, this](bool checked){
                 setting = checked;
+                triggerUpdate(GuiChange::settings);
+            }
+    );
+    return widget;
+}
+
+template<>
+QWidget* SettingsWidget::makeWidget(size_t& setting)
+{
+    auto* widget = new QSpinBox(ui->settingsContainer);
+    widget->setMaximum(10000);
+    widget->setValue(static_cast<int>(setting));
+    connect(widget, qOverload<int>(&QSpinBox::valueChanged), this,
+            [&setting, this](int newVal){
+                setting = static_cast<size_t>(newVal);
                 triggerUpdate(GuiChange::settings);
             }
     );
