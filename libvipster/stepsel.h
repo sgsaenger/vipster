@@ -266,8 +266,6 @@ std::vector<size_t> evalFilter(const T& step, SelectionFilter& filter)
  *
  * contains indices of selected atoms in Step-like
  */
-//template<typename T, typename A>
-//class AtomSelIterator;
 template<typename T>
 struct AtomSelection{
     std::vector<size_t> indices;
@@ -286,7 +284,8 @@ struct AtomSelection{
             : Base{selection->step->begin()},
               selection{selection}, idx{idx}
         {
-            Base::operator+=(selection->indices[idx]);
+            size_t diff = selection->indices.empty() ? 0 : selection->indices[idx];
+            Base::operator+=(diff);
         }
         AtomSelIterator& operator++(){
             return operator+=(1);
