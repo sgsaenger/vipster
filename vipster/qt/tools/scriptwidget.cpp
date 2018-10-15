@@ -61,7 +61,7 @@ std::istream& operator>>(std::istream& is, std::tuple<Step&, Vec&, bool> dat){
         vec = -step[id].coord;
     }else{
         // position or difference vector
-        int id1{}, id2{};
+        float id1{}, id2{};
         is >> id1 >> id2;
         if(id2<0){
             vec = step[static_cast<size_t>(id1)].coord - step[static_cast<size_t>(-id2)].coord;

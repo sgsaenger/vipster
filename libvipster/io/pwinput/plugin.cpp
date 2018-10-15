@@ -165,6 +165,7 @@ void parseCell(std::string name, std::ifstream& file,
     auto ibr = p.system.find("ibrav");
     if (ibr == p.system.end()) throw IO::Error{"ibrav not specified"};
     ibrav = std::stoi(ibr->second);
+    p.system.erase(ibr);
     if(ibrav == 0) {
         std::string line;
         Mat cell;

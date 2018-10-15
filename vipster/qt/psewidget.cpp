@@ -167,9 +167,7 @@ void PSEWidget::setPSE(PseMap* pse)
 
 void PSEWidget::updateWidget(uint8_t change)
 {
-    if(isGlobal & GuiChange::settings){
-        setPSE(this->pse);
-    }else{
+    if(!isGlobal){
         if((change & guiMolChanged) == guiMolChanged){
             setPSE(master->curMol->pse.get());
         }else if(change & GuiChange::atoms){
