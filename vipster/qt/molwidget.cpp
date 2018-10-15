@@ -229,14 +229,18 @@ CdmFmt MolWidget::getCellFmt()
 
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
-    curStep = curStep.asFmt(static_cast<AtomFmt>(ui->atomFmtBox->currentIndex()));
+    curStep = curStep.asFmt(static_cast<AtomFmt>(index));
     fillAtomTable();
 }
 
 void MolWidget::on_atomFmtButton_clicked()
 {
-    master->curStep->setFmt(static_cast<AtomFmt>(ui->atomFmtBox->currentIndex()));
-    master->curSel->setFmt(static_cast<AtomFmt>(ui->atomFmtBox->currentIndex()));
+    auto fmt = static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
+    master->curStep->setFmt(fmt);
+    master->curSel->setFmt(fmt);
+    if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){
+        ui->cellEnabled->setChecked(true);
+    }
     triggerUpdate(GuiChange::fmt);
 }
 
