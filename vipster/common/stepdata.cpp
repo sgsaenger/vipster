@@ -304,7 +304,7 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
 #endif
     glClearColor(1,1,1,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Vec center = -curStep->getCenter(CdmFmt::Bohr);
+    Vec center = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     glBindVertexArray(sel_vao);
     glUseProgram(sel_shader.program);
     glUniform1f(sel_shader.scale_fac, settings.atRadFac.val);
@@ -407,8 +407,14 @@ void GUI::StepData::update(Step* step, bool draw_bonds)
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
-    for (const auto& at: *curStep){
-        atom_buffer.push_back({at.pse->covr, at.pse->col});
+    if(settings.atRadVdW.val){
+        for (const auto& at: *curStep){
+            atom_buffer.push_back({at.pse->vdwr, at.pse->col});
+        }
+    }else{
+        for (const auto& at: *curStep){
+            atom_buffer.push_back({at.pse->covr, at.pse->col});
+        }
     }
 
 // BONDS

@@ -24,6 +24,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(settings.showCell);
     registerSetting(settings.antialias);
     registerSetting(settings.perspective);
+    registerSetting(settings.rotCom);
     registerSetting(settings.animstep);
     registerSetting(settings.selCol);
     registerSetting(settings.milCol);

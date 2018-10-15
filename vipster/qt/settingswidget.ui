@@ -40,7 +40,7 @@
         <x>0</x>
         <y>0</y>
         <width>400</width>
-        <height>298</height>
+        <height>557</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="settingsLayout"/>
@@ -51,6 +51,9 @@
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Preferred</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>

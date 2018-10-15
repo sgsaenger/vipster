@@ -27,6 +27,7 @@ struct Settings{
     Setting<bool> showCell{"Show cell", true};
     Setting<bool> antialias{"Antialiasing", true};
     Setting<bool> perspective{"Perspective projection", false};
+    Setting<bool> rotCom{"Rotate around center of mass", false};
     Setting<size_t> animstep{"Animation step (ms)", 1000};
     Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
     Setting<ColVec> milCol{"Miller-plane color", ColVec{130, 0, 0, 80}};

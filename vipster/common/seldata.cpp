@@ -112,8 +112,14 @@ void GUI::SelData::update(Step::selection* sel)
         return;
     }
     sel_buffer.reserve(curSel->getNat());
-    for(const Atom& at:*curSel){
-        sel_buffer.push_back({at.coord, at.pse->covr*1.3f});
+    if(settings.atRadVdW.val){
+        for(const Atom& at:*curSel){
+            sel_buffer.push_back({at.coord, at.pse->vdwr*1.3f});
+        }
+    }else{
+        for(const Atom& at:*curSel){
+            sel_buffer.push_back({at.coord, at.pse->covr*1.3f});
+        }
     }
     updated = true;
 

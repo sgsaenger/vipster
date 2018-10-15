@@ -53,7 +53,7 @@ void GuiWrapper::draw(void)
     for(const auto& i: extraData){
         i->syncToGPU();
     }
-    Vec off = -curStep->getCenter(CdmFmt::Bohr);
+    Vec off = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     if(curStep->hasCell()){
         Mat cv = curStep->getCellVec() *
                  curStep->getCellDim(CdmFmt::Bohr);
