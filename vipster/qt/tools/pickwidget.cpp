@@ -52,8 +52,7 @@ void PickWidget::updateWidget(uint8_t change)
     if((change & (GuiChange::atoms|GuiChange::selection)) == 0u){
         return;
     }
-    auto& curSel = *master->curSel;
-    auto& asAng = curSel.asAngstrom;
+    auto curSel = master->curSel->asFmt(AtomFmt::Angstrom);
     auto& text = *ui->PickText;
     auto idx = curSel.getIndices().begin();
     text.setPlainText("Atoms:");
@@ -78,12 +77,12 @@ void PickWidget::updateWidget(uint8_t change)
      *  |-----|------|-----|-------|
      */
     if(nat>1){
-        auto diff01 = asAng[0].coord - asAng[1].coord;
+        auto diff01 = curSel[0].coord - curSel[1].coord;
         auto dist01 = Vec_length(diff01);
         printDist(text, 0, 1, dist01);
         if(nat>2){
-            auto diff02 = asAng[0].coord - asAng[2].coord;
-            auto diff12 = asAng[1].coord - asAng[2].coord;
+            auto diff02 = curSel[0].coord - curSel[2].coord;
+            auto diff12 = curSel[1].coord - curSel[2].coord;
             auto dist02 = Vec_length(diff02);
             auto dist12 = Vec_length(diff12);
             printDist(text, 0, 2, dist02);
@@ -99,9 +98,9 @@ void PickWidget::updateWidget(uint8_t change)
                 printAngle(text, 1, 2, 0, ang120);
                 printAngle(text, 2, 0, 1, ang201);
             }else{
-                auto diff03 = asAng[0].coord - asAng[3].coord;
-                auto diff13 = asAng[1].coord - asAng[3].coord;
-                auto diff23 = asAng[2].coord - asAng[3].coord;
+                auto diff03 = curSel[0].coord - curSel[3].coord;
+                auto diff13 = curSel[1].coord - curSel[3].coord;
+                auto diff23 = curSel[2].coord - curSel[3].coord;
                 auto dist03 = Vec_length(diff03);
                 auto dist13 = Vec_length(diff13);
                 auto dist23 = Vec_length(diff23);

@@ -14,7 +14,7 @@ struct LmpConfig: BaseConfig{
     LmpConfig(std::string="", AtomStyle=AtomStyle::Atomic,
               bool=false, bool=false, bool=false, bool=false);
     std::unique_ptr<BaseConfig> copy() override;
-    void parseJson(const nlohmann::json&) override;
+    void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() override;
 };
 

@@ -2,6 +2,8 @@
 
 using namespace Vipster;
 
+Vipster::Settings Vipster::settings;
+
 template<typename T>
 void readSetting(const nlohmann::json& j, Setting<T>& s)
 {
@@ -22,8 +24,12 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
     readSetting(j, s.showCell);
     readSetting(j, s.antialias);
     readSetting(j, s.perspective);
+    readSetting(j, s.rotCom);
+    readSetting(j, s.animstep);
     readSetting(j, s.selCol);
     readSetting(j, s.milCol);
+    readSetting(j, s.posCol);
+    readSetting(j, s.negCol);
     readSetting(j, s.PWPP);
     readSetting(j, s.CPPP);
     readSetting(j, s.CPNL);
@@ -40,8 +46,12 @@ void Vipster::to_json(nlohmann::json& j, const Settings& s){
     j[s.showCell.name] = s.showCell.val;
     j[s.antialias.name] = s.antialias.val;
     j[s.perspective.name] = s.perspective.val;
+    j[s.rotCom.name] = s.rotCom.val;
+    j[s.animstep.name] = s.animstep.val;
     j[s.selCol.name] = s.selCol.val;
     j[s.milCol.name] = s.milCol.val;
+    j[s.posCol.name] = s.posCol.val;
+    j[s.negCol.name] = s.negCol.val;
     j[s.PWPP.name] = s.PWPP.val;
     j[s.CPPP.name] = s.CPPP.val;
     j[s.CPNL.name] = s.CPNL.val;

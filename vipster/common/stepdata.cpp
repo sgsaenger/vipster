@@ -2,8 +2,6 @@
 #include "atom_model.h"
 #include "bond_model.h"
 
-#include <iostream>
-
 using namespace Vipster;
 
 decltype(GUI::StepData::atom_shader) GUI::StepData::atom_shader;
@@ -11,7 +9,7 @@ decltype(GUI::StepData::bond_shader) GUI::StepData::bond_shader;
 decltype(GUI::StepData::cell_shader) GUI::StepData::cell_shader;
 decltype(GUI::StepData::sel_shader) GUI::StepData::sel_shader;
 
-GUI::StepData::StepData(const GlobalData& glob, StepProper* step)
+GUI::StepData::StepData(const GlobalData& glob, Step* step)
     : Data{glob},
       curStep{step}
 {}
@@ -298,11 +296,13 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
     // with selection shader -> color by gl_InstanceID
     // to seperate Framebuffer
 #ifndef __EMSCRIPTEN__
-    glDisable(GL_MULTISAMPLE);
+    if(settings.antialias.val){
+        glDisable(GL_MULTISAMPLE);
+    }
 #endif
     glClearColor(1,1,1,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Vec center = -curStep->getCenter(CdmFmt::Bohr);
+    Vec center = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     glBindVertexArray(sel_vao);
     glUseProgram(sel_shader.program);
     glUniform1f(sel_shader.scale_fac, settings.atRadFac.val);
@@ -331,7 +331,9 @@ void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
                               static_cast<GLsizei>(atom_buffer.size()));
     }
 #ifndef __EMSCRIPTEN__
-    glEnable(GL_MULTISAMPLE);
+    if(settings.antialias.val){
+        glEnable(GL_MULTISAMPLE);
+    }
 #endif
 }
 
@@ -343,7 +345,9 @@ void GUI::StepData::updateGL()
     auto nat = atom_buffer.size();
     if (nat != 0u) {
         glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
-                     static_cast<const void*>(curStep->getCoords().data()), GL_STREAM_DRAW);
+                     static_cast<const void*>(
+                     curStep->getAtoms().coordinates[static_cast<size_t>(curStep->getFmt())].data()
+                     ), GL_STREAM_DRAW);
     } else {
         glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
@@ -368,7 +372,7 @@ void GUI::StepData::updateGL()
                  static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
 }
 
-void GUI::StepData::update(StepProper* step, bool draw_bonds)
+void GUI::StepData::update(Step* step, bool draw_bonds)
 {
     curStep = step;
     updated = true;
@@ -401,22 +405,29 @@ void GUI::StepData::update(StepProper* step, bool draw_bonds)
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
-    for (const PseEntry* at:curStep->getPseEntries()){
-        atom_buffer.push_back({at->covr, at->col});
+    if(settings.atRadVdW.val){
+        for (const auto& at: *curStep){
+            atom_buffer.push_back({at.pse->vdwr, at.pse->col});
+        }
+    }else{
+        for (const auto& at: *curStep){
+            atom_buffer.push_back({at.pse->covr, at.pse->col});
+        }
     }
 
 // BONDS
     if(draw_bonds){
         constexpr Vec x_axis{{1,0,0}};
-        const auto& bonds = curStep->getBonds(settings.bondLvl.val);
-        const auto& pse = curStep->getPseEntries();
+        const auto& bonds = curStep->getBonds();
+        const auto& pse = curStep->getAtoms().pse;
+        const auto& at_coord = curStep->getAtoms().coordinates[
+                static_cast<size_t>(curStep->getFmt())];
+        auto fmt = curStep->getFmt();
+        auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         float c, s, ic;
         float rad = settings.bondRad.val;
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
-        const auto& at_coord = curStep->getCoords();
-        auto fmt = curStep->getFmt();
-        auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         switch(fmt){
         case AtomFmt::Crystal:
             cv = Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};

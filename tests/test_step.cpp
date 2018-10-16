@@ -24,13 +24,12 @@ static std::ostream& operator<<(std::ostream& os, const Atom& at)
 #include "catch.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
-    Vipster::readConfig();
     Mat cv = {{{{1,2,3}},{{0,1,0}},{{0,0,1.5}}}};
     std::string fmtNames[nAtFmt] = {"Bohr", "Angstrom", "Crystal", "Alat"};
     // s will be checked
 
     SECTION( "Defaults, Format, Cell" ) {
-        StepProper s{};
+        Step s{};
         // basic fmt-query
         REQUIRE( s.getFmt() == AtomFmt::Bohr );
         s.setFmt(AtomFmt::Crystal);
@@ -56,24 +55,24 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
 
     SECTION( "Basic atom-access" ){
         // empty coordinates don't care for format
-        StepProper s{};
+        Step s{};
         s.newAtoms(3);
         REQUIRE( s.getNat() == 3 );
         REQUIRE( s.getNtyp() == 1 );
         REQUIRE( s.getTypes() == std::set<std::string>{""} );
-        for(auto& at: s) {
+        for(const auto& at: s) {
             REQUIRE( at == s[0] );
         }
     }
 
     SECTION( "Formatted coordinates") {
-        StepProper s{};
+        Step s{};
         s.setCellDim(5, CdmFmt::Bohr);
         s.setCellVec(cv);
         s.newAtom();
         s.newAtom("H", {{1,2,3}});
         // s_comp will be checked against
-        StepProper s_comp[nAtFmt];
+        Step s_comp[nAtFmt];
         for(size_t i=0; i<nAtFmt; ++i){
             s_comp[i].setFmt(static_cast<AtomFmt>(i));
             s_comp[i].setCellDim(5, CdmFmt::Bohr);
@@ -106,7 +105,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         for(size_t i=0; i<nAtFmt; ++i){
         SECTION( fmtNames[i] ){
             auto fmt_i = static_cast<AtomFmt>(i);
-            s.setFmt(fmt_i, true);
+            s.modScale(fmt_i);
 
             REQUIRE( s[0] == s_comp[i][0] );
             REQUIRE( s[1] == s_comp[i][1] );
@@ -121,7 +120,8 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
             }
             for (size_t j=0; j<nAtFmt; ++j){
                 auto fmt_j = static_cast<AtomFmt>(j);
-                auto& f = s.asFmt(fmt_j);
+                auto f = s.asFmt(fmt_j);
+                f.evaluateCache();
                 if(fmt_j != fmt_i){
                     REQUIRE( f[1] != s[1] );
                 } else {
@@ -140,16 +140,16 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
 
     SECTION( "Cell modification" ){
         Vec v = {{1,2,3}};
-        StepProper s{};
+        Step s{};
         s.setCellDim(5, CdmFmt::Bohr);
         s.setCellVec(cv);
         s.newAtom("H", v);
         for(size_t i=0; i<nAtFmt; ++i){
         SECTION( fmtNames[i] ){
             auto fmt_i = static_cast<AtomFmt>(i);
-            s.setFmt(fmt_i, true);
+            s.modScale(fmt_i);
             SECTION("CellDim"){
-                StepProper sd{}; // alternating unscaled and scaled for each format
+                Step sd{}; // alternating unscaled and scaled for each format
                 sd.setCellDim(5, CdmFmt::Bohr);
                 sd.setCellVec(cv);
                 // Bohr:
@@ -165,12 +165,13 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                 sd.newAtom("H", v/5);
                 sd.newAtom("H", v/6);
                 // scale it so `v` is at the position of proper fmt
-                sd.setFmt(fmt_i, true);
-                sd.setFmt(AtomFmt::Bohr, false);
+                sd.modScale(fmt_i);
+                sd.setFmt(AtomFmt::Bohr);
                 for(size_t j=0; j<nAtFmt; ++j){
                     INFO(fmtNames[j]);
                     auto fmt_j = static_cast<AtomFmt>(j);
-                    auto& f = s.asFmt(fmt_j);
+                    auto f = s.asFmt(fmt_j);
+                    f.evaluateCache();
                     bool rel_i = fmt_i>=AtomFmt::Crystal;
                     bool abs_i = !rel_i;
                     bool rel_j = fmt_j>=AtomFmt::Crystal;
@@ -178,21 +179,29 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                     f.setCellDim(6, CdmFmt::Bohr, false);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i+rel_i]);
                     CHECK(f[0] == sd[2*j+rel_j]);
                     f.setCellDim(5, CdmFmt::Bohr, false);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                     f.setCellDim(6, CdmFmt::Bohr, true);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i+abs_i]);
                     CHECK(f[0] == sd[2*j+abs_j]);
                     f.setCellDim(5, CdmFmt::Bohr, true);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sd[2*i]);
                     CHECK(f[0] == sd[2*j]);
                 }
             }
             SECTION("CellVec"){
-                StepProper sv{}; // alternating unscaled and scaled for each format
+                Step sv{}; // alternating unscaled and scaled for each format
                 bool rel_i = fmt_i == AtomFmt::Crystal;
                 bool abs_i = !rel_i;
                 Mat cv2 = {{{{1,0,4}},{{0,1,0}},{{0,0,2}}}};
@@ -232,21 +241,30 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                 for(size_t j=0; j<nAtFmt; ++j){
                     INFO(fmtNames[j]);
                     auto fmt_j = static_cast<AtomFmt>(j);
-                    auto &f = s.asFmt(fmt_j);
+                    auto f = s.asFmt(fmt_j);
+                    f.evaluateCache();
                     bool rel_j = fmt_j == AtomFmt::Crystal;
                     bool abs_j = !rel_j;
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                     f.setCellVec(cv2, false);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i+rel_i]);
                     CHECK(f[0] == sv[2*j+rel_j]);
                     f.setCellVec(cv, false);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                     f.setCellVec(cv2, true);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i+abs_i]);
                     CHECK(f[0] == sv[2*j+abs_j]);
                     f.setCellVec(cv, true);
+                    f.evaluateCache();
+                    s.evaluateCache();
                     CHECK(s[0] == sv[2*i]);
                     CHECK(f[0] == sv[2*j]);
                 }

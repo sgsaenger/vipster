@@ -84,7 +84,7 @@ matrix:
               - wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so -O AppDir/usr/optional/exec.so
               - cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/
               - rm AppDir/AppRun
-              - wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64 -O AppDir/AppRun
+              - cp $TRAVIS_BUILD_DIR/dist/AppRun AppDir
               - chmod a+x AppDir/AppRun
               - wget -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
               - chmod +x appimagetool

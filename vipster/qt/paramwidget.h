@@ -2,7 +2,8 @@
 #define PARAMWIDGET_H
 
 #include <QWidget>
-#include "mainwindow.h"
+#include "basewidget.h"
+#include "io.h"
 
 namespace Ui {
 class ParamWidget;
@@ -29,7 +30,8 @@ public:
     void registerParam(Vipster::IOFmt fmt,
                        std::unique_ptr<Vipster::IO::BaseParam>&& data);
     void clearParams();
-    Vipster::IO::BaseParam *curParam;
+    Vipster::IOFmt curFmt;
+    Vipster::IO::BaseParam *curParam{nullptr};
 
 private slots:
     void on_paramSel_currentIndexChanged(int index);

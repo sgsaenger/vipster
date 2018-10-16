@@ -335,6 +335,7 @@
       <string>&amp;From existing Molecule</string>
      </property>
      <addaction name="actionCopy_single_Step"/>
+     <addaction name="actionCopy_current_Selection"/>
      <addaction name="actionCopy_Trajector"/>
     </widget>
     <widget class="QMenu" name="menuLoad_Parameter_set">
@@ -368,13 +369,14 @@
     </property>
     <addaction name="actionNew_Atom"/>
     <addaction name="actionDelete_Atom_s"/>
+    <addaction name="actionCut_Atom_s"/>
     <addaction name="actionCopy_Atom_s"/>
     <addaction name="actionPaste_Atom_s"/>
     <addaction name="separator"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
     <addaction name="separator"/>
-    <addaction name="actionUndo"/>
+    <addaction name="actionSet_Bonds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -619,10 +621,16 @@
    <property name="text">
     <string>&amp;Copy Atom(s)</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
   </action>
   <action name="actionPaste_Atom_s">
    <property name="text">
     <string>&amp;Paste Atom(s)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
    </property>
   </action>
   <action name="actionHide_Atom_s">
@@ -673,6 +681,24 @@
   <action name="actiondummy">
    <property name="text">
     <string>dummy</string>
+   </property>
+  </action>
+  <action name="actionCut_Atom_s">
+   <property name="text">
+    <string>C&amp;ut Atom(s)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionCopy_current_Selection">
+   <property name="text">
+    <string>Copy current &amp;Selection</string>
+   </property>
+  </action>
+  <action name="actionSet_Bonds">
+   <property name="text">
+    <string>(Re-)Calculate Bonds</string>
    </property>
   </action>
  </widget>
@@ -842,22 +868,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionNew_Atom</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>editAtoms()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>571</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>stepSlider</sender>
    <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
@@ -886,22 +896,6 @@
     <hint type="destinationlabel">
      <x>805</x>
      <y>314</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionDelete_Atom_s</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>editAtoms()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>620</x>
-     <y>320</y>
     </hint>
    </hints>
   </connection>
@@ -1049,16 +1043,100 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave_IO_Config</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveConfig()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave_Parameter_set</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveParam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionScreenshot</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveScreenshot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>menuEdit</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editAtoms(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>menuFrom_existing_Molecule</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>newMol(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
   <slot>setStep(int)</slot>
-  <slot>editAtoms()</slot>
+  <slot>editAtoms(QAction*)</slot>
   <slot>about()</slot>
   <slot>newMol()</slot>
   <slot>stepBut(QAbstractButton*)</slot>
   <slot>loadMol()</slot>
   <slot>saveMol()</slot>
+  <slot>saveConfig()</slot>
+  <slot>saveParam()</slot>
+  <slot>saveScreenshot()</slot>
+  <slot>newMol(QAction*)</slot>
  </slots>
  <buttongroups>
   <buttongroup name="cameraGroup"/>

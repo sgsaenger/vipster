@@ -77,7 +77,7 @@ void parseCoordinates(std::string name, std::ifstream& file,
     if (dataentry == p.system.end()) throw IO::Error("nat not specified");
     size_t nat = std::stoul(dataentry->second);
     p.system.erase(dataentry);
-    StepProper &s = m.getStep(0);
+    Step &s = m.getStep(0);
 
     size_t pos = name.find_first_of(' ');
     pos = name.find_first_not_of(' ', pos);
@@ -165,6 +165,7 @@ void parseCell(std::string name, std::ifstream& file,
     auto ibr = p.system.find("ibrav");
     if (ibr == p.system.end()) throw IO::Error{"ibrav not specified"};
     ibrav = std::stoi(ibr->second);
+    p.system.erase(ibr);
     if(ibrav == 0) {
         std::string line;
         Mat cell;
@@ -185,7 +186,7 @@ void parseCell(std::string name, std::ifstream& file,
 
 void createCell(Molecule &m, IO::PWParam &p, CellFmt &cellFmt, int &ibrav)
 {
-    StepProper &s = m.getStep(0);
+    Step &s = m.getStep(0);
     CdmFmt cdmFmt;
     IO::PWParam::Namelist& sys = p.system;
     bool scale = (s.getFmt() >= AtomFmt::Crystal);
@@ -258,9 +259,8 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
     Molecule &m = d.mol;
     m.setName(name);
     m.newStep();
-    d.param = std::make_unique<IO::PWParam>();
+    d.param = std::make_unique<IO::PWParam>(name);
     IO::PWParam &p = *static_cast<IO::PWParam*>(d.param.get());
-    p.name = name;
     CellFmt cellFmt = CellFmt::None;
     int ibrav = 0;
 

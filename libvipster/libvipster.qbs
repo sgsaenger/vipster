@@ -30,31 +30,11 @@ DynamicLibrary {
         qbs.installSourceBase: product.buildDirectory
     }
 
-    Group {
-        name: "distfiles"
-        files: "default.json"
-        qbs.install: !project.webBuild
-        Properties {
-            condition: !qbs.targetOS.contains("windows")
-            qbs.installDir: {
-                if (qbs.targetOS.contains("macos"))
-                    return "Vipster.app/Contents/Resources"
-                else
-                    return "share/vipster"
-            }
-        }
-    }
-
     // C++ settings (rest of project will inherit)
     Depends {
         name: "cpp"
     }
     cpp.cxxLanguageVersion: "c++14"
-    cpp.defines: ["PREFIX=" + project.prefix]
-    Properties {
-        condition: project.relpath
-        cpp.defines: ["RELPATH"]
-    }
 
     cpp.includePaths: ["../external"]
     Properties {

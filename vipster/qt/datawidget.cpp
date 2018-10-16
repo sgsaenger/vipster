@@ -19,6 +19,13 @@ DataWidget::~DataWidget()
     delete ui;
 }
 
+void DataWidget::updateWidget(uint8_t change)
+{
+    ui->ThreeDWidget->updateWidget(change);
+    ui->VecWidget->updateWidget(change);
+    ui->TwoDWidget->updateWidget(change);
+}
+
 void DataWidget::registerData(const std::string& name)
 {
     ui->DataSel->addItem(name.c_str());

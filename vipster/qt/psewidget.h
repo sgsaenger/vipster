@@ -29,6 +29,7 @@ private:
     Vipster::PseEntry* currentEntry{nullptr};
     Vipster::PseMap* pse{nullptr};
     Ui::PSEWidget *ui;
+    bool isGlobal{false};
     template<typename T>
     void registerProperty(QWidget* w, T Vipster::PseEntry::* prop);
 };

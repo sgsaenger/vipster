@@ -54,7 +54,7 @@ IO::Data XSFParser(const std::string& name, std::ifstream &file)
         std::vector<std::string> tokens{std::istream_iterator<std::string>{ls}, {}};
         return tokens;
     };
-    auto makeAtom = [](StepProper& s, const std::vector<std::string>& tokens){
+    auto makeAtom = [](Step& s, const std::vector<std::string>& tokens){
         AtomProperties prop{};
         if(tokens.size() == 7){
             prop.forces = Vec{stof(tokens[4]),

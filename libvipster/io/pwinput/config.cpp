@@ -13,21 +13,20 @@ std::unique_ptr<IO::BaseConfig> IO::PWConfig::copy()
 
 void Vipster::IO::to_json(nlohmann::json &j, const IO::PWConfig& c)
 {
-    j["name"] = c.name;
     j["atomfmt"] = c.atoms;
     j["cellfmt"] = c.cell;
 }
 
 void Vipster::IO::from_json(const nlohmann::json &j, IO::PWConfig& c)
 {
-    c.name = j.at("name");
     c.atoms = j.at("atomfmt");
     c.cell = j.at("cellfmt");
 }
 
-void IO::PWConfig::parseJson(const nlohmann::json& j)
+void IO::PWConfig::parseJson(const nlohmann::json::iterator& it)
 {
-    from_json(j, *this);
+    name = it.key();
+    from_json(it.value(), *this);
 }
 
 nlohmann::json IO::PWConfig::toJson()

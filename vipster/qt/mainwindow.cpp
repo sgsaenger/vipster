@@ -15,7 +15,8 @@ MainWindow::MainWindow(QString path, QWidget *parent):
     path{path}
 {
     ui->setupUi(this);
-    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
     setupUI();
     newMol();
 }
@@ -27,7 +28,8 @@ MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent)
 {
     ui->setupUi(this);
     setupUI();
-    connect(ui->actionAbout_Qt,SIGNAL(triggered()),qApp,SLOT(aboutQt()));
+    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
     for(auto&& mol: d){
         newData(std::move(mol));
     }
@@ -68,7 +70,7 @@ void MainWindow::setupUI()
     for(auto& w: toolWidgets){
         auto action = ui->toolBar->addAction(w->windowTitle());
         action->setCheckable(true);
-        connect(action, SIGNAL(toggled(bool)), w, SLOT(setVisible(bool)));
+        connect(action, &QAction::toggled, w, &QWidget::setVisible);
         w->hide();
     }
 #ifdef Q_OS_MACOS
@@ -78,22 +80,22 @@ void MainWindow::setupUI()
     ui->pseWidget->setPSE(&Vipster::pse);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
-        auto param_range = Vipster::params.equal_range(pair.first);
-        if(param_range.first != param_range.second){
+        const auto& param_map = Vipster::params[pair.first];
+        if(!param_map.empty()){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(auto it=param_range.first; it!=param_range.second; ++it){
-                param_menu->addAction(QString::fromStdString(it->second->name),
+            for(const auto& p: param_map){
+                param_menu->addAction(QString::fromStdString(p.first),
                                       this, &MainWindow::loadParam);
             }
         }
-        auto config_range = Vipster::configs.equal_range(pair.first);
-        if(config_range.first != config_range.second){
-            auto* config_menu = ui->menuLoad_IO_Config->addMenu(
+        const auto& conf_map = Vipster::configs[pair.first];
+        if(!conf_map.empty()){
+            auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(auto it=config_range.first; it!=config_range.second; ++it){
-                config_menu->addAction(QString::fromStdString(it->second->name),
-                                      this, &MainWindow::loadConfig);
+            for(const auto& p: conf_map){
+                conf_menu->addAction(QString::fromStdString(p.first),
+                                     this, &MainWindow::loadConfig);
             }
         }
     }
@@ -101,6 +103,14 @@ void MainWindow::setupUI()
 
 void MainWindow::updateWidgets(uint8_t change)
 {
+    // if necessary, make sure that data is up to date
+    if(change & (GuiChange::atoms | GuiChange::fmt)){
+        curStep->evaluateCache();
+    }
+    if(change & GuiChange::selection){
+        curSel->evaluateCache();
+    }
+    // notify widgets
     ui->openGLWidget->updateWidget(change);
     ui->molWidget->updateWidget(change);
     for(auto& w: baseWidgets){
@@ -111,49 +121,45 @@ void MainWindow::updateWidgets(uint8_t change)
     }
 }
 
-void MainWindow::setFmt(int i, bool apply, bool scale)
-{
-    fmt = static_cast<AtomFmt>(i);
-    if(apply){
-        curStep->setFmt(fmt, scale);
-        updateWidgets(guiStepChanged);
-    }else{
-        updateWidgets(GuiChange::fmt);
-    }
-}
-
-AtomFmt MainWindow::getFmt()
-{
-    return fmt;
-}
-
 void MainWindow::setMol(int i)
 {
     curMol = &*std::next(molecules.begin(), i);
-    int steps = static_cast<int>(curMol->getNstep());
+    int nstep = static_cast<int>(curMol->getNstep());
+    if(moldata[curMol].curStep < 0){
+        moldata[curMol].curStep = nstep;
+    }
     //Step-control
-    ui->stepLabel->setText(QString::number(steps));
+    ui->stepLabel->setText(QString::number(nstep));
     QSignalBlocker boxBlocker(ui->stepEdit);
     QSignalBlocker slideBlocker(ui->stepSlider);
-    ui->stepEdit->setMaximum(steps);
-    ui->stepSlider->setMaximum(steps);
-    if(steps == 1){
+    ui->stepEdit->setMaximum(nstep);
+    ui->stepSlider->setMaximum(nstep);
+    if(nstep == 1){
         ui->stepEdit->setDisabled(true);
         ui->stepSlider->setDisabled(true);
     }else{
         ui->stepEdit->setEnabled(true);
         ui->stepSlider->setEnabled(true);
     }
-    setStep(static_cast<int>(steps));
+    setStep(moldata[curMol].curStep);
     updateWidgets(guiMolChanged);
 }
 
 void MainWindow::setStep(int i)
 {
+    moldata[curMol].curStep = i;
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
-    curSel = &curStep->getLastSelection();
-    fmt = curStep->getFmt();
+    // if no previous selection exists, create one, afterwards assign it
+    auto& tmpSel = stepdata[curStep].sel;
+    if(!tmpSel && curStep){
+        tmpSel = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
+    }
+    curSel = tmpSel.get();
     //Handle control-elements
+    if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
+        playTimer.stop();
+        ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    }
     QSignalBlocker boxBlocker(ui->stepEdit);
     QSignalBlocker slideBlocker(ui->stepSlider);
     ui->stepEdit->setValue(i);
@@ -183,25 +189,74 @@ void MainWindow::stepBut(QAbstractButton* but)
     }else if(but == ui->lastStepButton){
         setStep(static_cast<int>(curMol->getNstep()));
     }else if(but == ui->playButton){
-        //TODO
+        if(playTimer.isActive()){
+            playTimer.stop();
+            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        }else{
+            playTimer.start(static_cast<int>(settings.animstep.val));
+            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+        }
     }
 }
 
-void MainWindow::editAtoms()
+void MainWindow::editAtoms(QAction* sender)
 {
-    const QObject *sender = QObject::sender();
+    uint8_t change{};
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
+        change = GuiChange::atoms;
     }else if ( sender == ui->actionDelete_Atom_s){
-        curSel->delAtoms();
+        curStep->delAtoms(*curSel);
+        change = GuiChange::atoms | GuiChange::selection;
+    }else if ( sender == ui->actionHide_Atom_s){
+        for(auto& at: *curSel){
+            at.properties->flags[AtomFlag::Hidden] = 1;
+        }
+        change = GuiChange::atoms;
+    }else if ( sender == ui->actionShow_Atom_s){
+        for(auto& at: *curSel){
+            at.properties->flags[AtomFlag::Hidden] = 0;
+        }
+        change = GuiChange::atoms;
+    }else if ( sender == ui->actionCopy_Atom_s){
+        copyBuf = *curSel;
+    }else if ( sender == ui->actionCut_Atom_s){
+        copyBuf = *curSel;
+        curStep->delAtoms(*curSel);
+        change = GuiChange::atoms | GuiChange::selection;
+    }else if ( sender == ui->actionPaste_Atom_s){
+        curStep->newAtoms(copyBuf);
+        change = GuiChange::atoms;
+    }else if( sender == ui->actionSet_Bonds){
+        curStep->setBonds();
+        change = GuiChange::atoms;
     }
-    updateWidgets(GuiChange::atoms);
+    if(change){
+        updateWidgets(change);
+    }
 }
 
 void MainWindow::newMol()
 {
     molecules.emplace_back();
     ui->molWidget->registerMol(molecules.back().getName());
+}
+
+void MainWindow::newMol(QAction* sender)
+{
+    if(sender == ui->actionCopy_Trajector){
+        molecules.emplace_back(*curMol);
+        molecules.back().setName(molecules.back().getName() + " (copy)");
+        ui->molWidget->registerMol(molecules.back().getName());
+    }else if( sender == ui->actionCopy_single_Step){
+        molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
+                               std::to_string(moldata[curMol].curStep) + ')');
+        ui->molWidget->registerMol(molecules.back().getName());
+    }else if( sender == ui->actionCopy_current_Selection){
+        molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
+                               std::to_string(moldata[curMol].curStep) + ')');
+        ui->molWidget->registerMol(molecules.back().getName());
+    }
 }
 
 void MainWindow::newData(IO::Data &&d)
@@ -253,27 +308,27 @@ void MainWindow::saveMol()
     QFileDialog fileDiag{this};
     fileDiag.setDirectory(path);
     fileDiag.setAcceptMode(QFileDialog::AcceptSave);
-    if(fileDiag.exec() != 0){
+    if(fileDiag.exec() == QDialog::Accepted){
         auto target = fileDiag.selectedFiles()[0].toStdString();
         path = fileDiag.directory();
         SaveFmtDialog sfd{this};
-        if(sfd.exec() != 0){
+        if(sfd.exec() == QDialog::Accepted){
             writeFile(target, sfd.fmt, *curMol,
                       sfd.getParam(), sfd.getConfig(),
                       IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
-                                this->fmt,
+                                ui->molWidget->getAtomFmt(),
                                 ui->molWidget->getCellFmt()});
         }
     }
 }
 
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseParam>>>& MainWindow::getParams() const noexcept
+const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
 {
     return ui->paramWidget->params;
 }
 
-const std::vector<std::pair<IOFmt, std::unique_ptr<IO::BaseConfig>>>& MainWindow::getConfigs() const noexcept
+const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 {
     return ui->configWidget->configs;
 }
@@ -307,14 +362,12 @@ void MainWindow::loadParam()
         }
         throw Error("Invalid parameter set");
     }(p->title());
-    auto range = Vipster::params.equal_range(fmt);
-    for(auto it=range.first; it!=range.second; ++it){
-        if (it->second->name.c_str() == s->text()){
-            ui->paramWidget->registerParam(fmt, it->second->copy());
-            return;
-        }
+    auto pos = Vipster::params[fmt].find(s->text().toStdString());
+    if(pos != Vipster::params[fmt].end()){
+        ui->paramWidget->registerParam(fmt, pos->second->copy());
+    }else{
+        throw Error("Invalid parameter set");
     }
-    throw Error("Invalid parameter set");
 }
 
 void MainWindow::loadConfig()
@@ -327,23 +380,50 @@ void MainWindow::loadConfig()
                 return pair.first;
             }
         }
-        throw Error("Invalid config");
+        throw Error("Invalid IO-config");
     }(p->title());
-    auto range = Vipster::configs.equal_range(fmt);
-    const auto& name = s->text();
-    for(auto it=range.first; it!=range.second; ++it){
-        if(name == it->second->name.c_str()){
-            ui->configWidget->registerConfig(fmt, it->second->copy());
-            return;
-        }
+    auto pos = Vipster::configs[fmt].find(s->text().toStdString());
+    if(pos != Vipster::configs[fmt].end()){
+        ui->configWidget->registerConfig(fmt, pos->second->copy());
+    }else{
+        throw Error("Invalid IO-config");
     }
-    throw Error("Invalid config");
+}
+
+void MainWindow::saveParam()
+{
+    if(!ui->paramWidget->curParam){
+        return;
+    }
+    bool ok;
+    auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
+                                      QLineEdit::Normal, QString(), &ok).toStdString();
+    if(ok){
+        Vipster::params[ui->paramWidget->curFmt][name] =
+                ui->paramWidget->curParam->copy();
+        Vipster::params[ui->paramWidget->curFmt][name]->name = name;
+    }
+}
+
+void MainWindow::saveConfig()
+{
+    if(!ui->configWidget->curConfig){
+        return;
+    }
+    bool ok;
+    auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
+                                      QLineEdit::Normal, QString(), &ok).toStdString();
+    if(ok){
+        Vipster::configs[ui->configWidget->curFmt][name] =
+                ui->configWidget->curConfig->copy();
+        Vipster::configs[ui->configWidget->curFmt][name]->name = name;
+    }
 }
 
 void MainWindow::about()
 {
     QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster</h2>"
+    QString("<h2>Vipster v1.13a</h2>"
             "<p>"
             "©Sebastian Gsänger, 2018"
             "<br>"
@@ -354,27 +434,32 @@ void MainWindow::about()
             "<p>"
             "This program is provided under the GPLv3."
             "<br>"
-            "It uses"
+            "It uses "
             "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>, "
+            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,"
             "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
             "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
 }
 
-BaseWidget::BaseWidget(QWidget* parent)
-    :QWidget{parent}
+void MainWindow::saveScreenshot()
 {
-    for(auto *w: qApp->topLevelWidgets()){
-        if(auto *t = qobject_cast<MainWindow*>(w)){
-            master = t;
-            return;
+    QFileDialog diag{this};
+    diag.setDirectory(path);
+    diag.setAcceptMode(QFileDialog::AcceptSave);
+    diag.setMimeTypeFilters({"image/png"});
+    if(diag.exec() == QDialog::Accepted){
+        auto target = diag.selectedFiles()[0];
+        if(!target.endsWith(".png", Qt::CaseInsensitive)){
+            target += ".png";
         }
-    }
-    throw Error("Could not determine MainWindow-instance.");
-}
+        path = diag.directory();
 
-void BaseWidget::triggerUpdate(uint8_t change)
-{
-    updateTriggered = true;
-    master->updateWidgets(change);
+        auto aa = settings.antialias.val;
+        settings.antialias.val = false;
+        auto img = ui->openGLWidget->grabFramebuffer();
+        img.save(target);
+        settings.antialias.val = aa;
+        updateWidgets(0);
+    }
 }

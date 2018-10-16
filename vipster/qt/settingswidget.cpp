@@ -24,8 +24,12 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(settings.showCell);
     registerSetting(settings.antialias);
     registerSetting(settings.perspective);
+    registerSetting(settings.rotCom);
+    registerSetting(settings.animstep);
     registerSetting(settings.selCol);
     registerSetting(settings.milCol);
+    registerSetting(settings.posCol);
+    registerSetting(settings.negCol);
     registerSetting(settings.PWPP);
     registerSetting(settings.CPPP);
     registerSetting(settings.CPNL);
@@ -57,10 +61,26 @@ QWidget* SettingsWidget::makeWidget(bool& setting)
 }
 
 template<>
+QWidget* SettingsWidget::makeWidget(size_t& setting)
+{
+    auto* widget = new QSpinBox(ui->settingsContainer);
+    widget->setMaximum(10000);
+    widget->setValue(static_cast<int>(setting));
+    connect(widget, qOverload<int>(&QSpinBox::valueChanged), this,
+            [&setting, this](int newVal){
+                setting = static_cast<size_t>(newVal);
+                triggerUpdate(GuiChange::settings);
+            }
+    );
+    return widget;
+}
+
+template<>
 QWidget* SettingsWidget::makeWidget(float& setting)
 {
     auto* widget = new QDoubleSpinBox(ui->settingsContainer);
     widget->setValue(static_cast<double>(setting));
+    widget->setMinimum(0);
     connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [&setting, this](double newVal){
                 setting = static_cast<float>(newVal);

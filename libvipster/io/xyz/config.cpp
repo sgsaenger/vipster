@@ -13,21 +13,20 @@ std::unique_ptr<IO::BaseConfig> IO::XYZConfig::copy()
 
 void Vipster::IO::to_json(nlohmann::json& j, const IO::XYZConfig& c)
 {
-    j["name"] = c.name;
     j["filemode"] = c.filemode;
     j["atomdata"] = c.atomdata;
 }
 
 void Vipster::IO::from_json(const nlohmann::json& j, IO::XYZConfig& c)
 {
-    c.name = j.at("name");
     c.filemode = j.at("filemode");
     c.atomdata = j.at("atomdata");
 }
 
-void IO::XYZConfig::parseJson(const nlohmann::json& j)
+void IO::XYZConfig::parseJson(const nlohmann::json::iterator& it)
 {
-    from_json(j, *this);
+    name = it.key();
+    from_json(it.value(), *this);
 }
 
 nlohmann::json IO::XYZConfig::toJson()

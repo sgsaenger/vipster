@@ -25,6 +25,7 @@ class DataWidget : public BaseWidget
 public:
     explicit DataWidget(QWidget *parent = nullptr);
     ~DataWidget() override;
+    void updateWidget(uint8_t change) override;
     void registerData(const std::string& name);
 
 private slots:

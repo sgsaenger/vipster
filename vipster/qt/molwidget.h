@@ -17,6 +17,7 @@ public:
     ~MolWidget() override;
     void updateWidget(uint8_t change) override;
     void registerMol(const std::string& name);
+    Vipster::AtomFmt getAtomFmt();
     Vipster::CdmFmt getCellFmt();
 
 private slots:
@@ -37,7 +38,7 @@ private:
     void fillKPoints(void);
     void setSelection(void);
     Ui::MolWidget *ui;
-    Vipster::Step *curStep;
+    Vipster::Step curStep;
     Vipster::Molecule* curMol;
     bool atomsOutdated{true};
 };

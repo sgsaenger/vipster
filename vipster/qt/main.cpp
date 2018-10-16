@@ -16,7 +16,6 @@ using namespace Vipster;
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
-    QApplication::setApplicationVersion("1.12a");
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
     if(!data.empty()){
         MainWindow w{QDir::currentPath(), std::move(data)};
@@ -33,7 +32,7 @@ int main(int argc, char *argv[])
 {
     // main parser + data-targets
     Vipster::readConfig();
-    CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
+    CLI::App app{"Vipster v1.13a"};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, IOFmt> fmt_opts{};
@@ -167,16 +166,12 @@ int main(int argc, char *argv[])
                 par_name = "default";
             }
             if(!par_name.empty()){
-                auto tmp = params.equal_range(fmt_out);
-                auto pos_par = std::find_if(tmp.first, tmp.second,
-                                            [&](const decltype(params)::value_type& p){
-                                                return p.second->name == par_name;
-                                            });
-                if(pos_par == tmp.second){
+                const auto& pos = params[fmt_out].find(par_name);
+                if(pos == params[fmt_out].end()){
                     throw CLI::ParseError("Invalid parameter \""+par_name+
                                           "\" for format "+conv_data.output[0], 1);
                 }
-                param = pos_par->second->copy();
+                param = pos->second->copy();
             }
         }
         if(arguments & IO::Plugin::Args::Config){
@@ -186,16 +181,12 @@ int main(int argc, char *argv[])
             }else{
                 conf_name = "default";
             }
-            auto tmp = configs.equal_range(fmt_out);
-            auto pos_cfg = std::find_if(tmp.first, tmp.second,
-                                        [&](const decltype(configs)::value_type& c){
-                                            return c.second->name == conf_name;
-                                        });
-            if(pos_cfg == tmp.second){
+            auto pos = configs[fmt_out].find(conf_name);
+            if(pos == configs[fmt_out].end()){
                 throw CLI::ParseError("Invalid configuration preset \""+conf_name+
                                       "\" for format "+conv_data.output[0], 1);
             }
-            config = pos_cfg->second->copy();
+            config= pos->second->copy();
         }
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;

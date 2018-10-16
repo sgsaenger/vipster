@@ -6,7 +6,7 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
     IO::Data d{};
     d.fmt = IOFmt::CUBE;
     d.mol.setName(name);
-    StepProper &s = d.mol.newStep();
+    Step &s = d.mol.newStep();
     s.setFmt(AtomFmt::Bohr);
 
     std::string line, buf;

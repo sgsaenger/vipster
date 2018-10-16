@@ -16,6 +16,14 @@ namespace Vipster {
         int16_t ydiff;
         int16_t zdiff;
     };
+
+    struct BondList{
+        bool                outdated{true}, setOnce{false};
+        BondLevel           level{BondLevel::None};
+        float               cutoff_factor{-1};
+        std::vector<Bond>   bonds;
+    };
+
 }
 
 #endif // BOND_H

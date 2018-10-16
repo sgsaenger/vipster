@@ -47,7 +47,8 @@ public:
     void initGL(const std::string& header, const std::string& folder);
     void draw(void);
     void drawSel(void);
-    void setMainStep(StepProper* step, StepSelection* sel, bool draw_bonds=true);
+    void setMainStep(Step* step, bool draw_bonds=true);
+    void setMainSel(Step::selection* sel);
     void updateMainStep(bool draw_bonds=true);
     void updateMainSelection();
     void addExtraData(GUI::Data* dat);
@@ -62,8 +63,8 @@ public:
     Mat getAxes();
     // cpu-side data
     std::array<uint8_t,3> mult{{1,1,1}};
-    StepProper* curStep{nullptr};
-    StepSelection* curSel{nullptr};
+    Step* curStep{nullptr};
+    Step::selection* curSel{nullptr};
     GUI::GlobalData globals;
     GUI::StepData mainStep{globals, nullptr};
     GUI::SelData selection{globals, nullptr};
@@ -73,8 +74,8 @@ private:
     // gpu-side global data
     GLuint view_ubo;
     // cpu-side global data
-    GUI::Mat vMat, pMat, rMat;
-    bool vMatChanged, pMatChanged, rMatChanged;
+    GUI::Mat vMat, oMat, pMat, rMat;
+    bool vMatChanged, pMatChanged, rMatChanged, drawPerspective;
 };
 
 }

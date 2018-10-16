@@ -2,7 +2,8 @@
 #define CONFIGWIDGET_H
 
 #include <QWidget>
-#include "mainwindow.h"
+#include "basewidget.h"
+#include "io.h"
 
 namespace Ui {
 class ConfigWidget;
@@ -29,7 +30,8 @@ public:
     void registerConfig(Vipster::IOFmt fmt,
                         std::unique_ptr<Vipster::IO::BaseConfig>&& data);
     void clearConfigs();
-    Vipster::IO::BaseConfig* curConfig;
+    Vipster::IOFmt curFmt;
+    Vipster::IO::BaseConfig* curConfig{nullptr};
 
 private slots:
     void on_configSel_currentIndexChanged(int index);

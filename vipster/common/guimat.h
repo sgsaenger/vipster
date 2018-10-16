@@ -17,6 +17,7 @@ void guiMatScale(GUI::Mat &m, float f);
 void guiMatTranslate(GUI::Mat &m, float x, float y, float z);
 void guiMatRot(GUI::Mat &m, float a, float x, float y, float z);
 GUI::Mat guiMatMkOrtho(float left, float right, float bottom, float top, float near, float far);
+GUI::Mat guiMatMkPerspective(float vertAng, float aspect, float near, float far);
 GUI::Mat guiMatMkLookAt(Vec eye, Vec target, Vec up);
 
 }

@@ -35,13 +35,11 @@ void MolWidget::updateWidget(uint8_t change)
     if ((change & guiMolChanged) == guiMolChanged) {
         curMol = master->curMol;
     }
-    QSignalBlocker blockAtFmt(ui->atomFmtBox);
     if ((change & guiStepChanged) == guiStepChanged) {
-        curStep = master->curStep;
-        ui->atomFmtBox->setCurrentIndex(static_cast<int>(curStep->getFmt()));
-    }else if((change & GuiChange::fmt) != 0){
-        curStep = &master->curStep->asFmt(master->getFmt());
-        ui->atomFmtBox->setCurrentIndex(static_cast<int>(master->getFmt()));
+        QSignalBlocker blockAtFmt(ui->atomFmtBox);
+        auto fmt = master->curStep->getFmt();
+        curStep = master->curStep->asFmt(fmt);
+        ui->atomFmtBox->setCurrentIndex(static_cast<int>(fmt));
     }
     if (change & (GuiChange::atoms | GuiChange::fmt)) {
         fillAtomTable();
@@ -63,11 +61,11 @@ void MolWidget::fillCell()
     QSignalBlocker blockCell(ui->cellVecTable);
     QSignalBlocker blockDim(ui->cellDimBox);
     QSignalBlocker blockEnabled(ui->cellEnabled);
-    ui->cellEnabled->setChecked(curStep->hasCell());
+    ui->cellEnabled->setChecked(curStep.hasCell());
     ui->cellDimBox->setValue(static_cast<double>(
-                                 curStep->getCellDim(
+                                 curStep.getCellDim(
             static_cast<CdmFmt>(ui->cellFmt->currentIndex()))));
-    Mat vec = curStep->getCellVec();
+    Mat vec = curStep.getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
             ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
@@ -82,9 +80,10 @@ void MolWidget::fillAtomTable(void)
         return;
     }
     //Fill atom list
+    curStep.evaluateCache();
     QSignalBlocker blockTable(ui->atomTable);
     int oldCount = ui->atomTable->rowCount();
-    auto nat = static_cast<int>(curStep->getNat());
+    auto nat = static_cast<int>(curStep.getNat());
     ui->atomTable->setRowCount(nat);
     if( oldCount < nat){
         for(int j=oldCount;j!=nat;++j){
@@ -97,7 +96,7 @@ void MolWidget::fillAtomTable(void)
             }
         }
     }
-    auto at = curStep->begin();
+    auto at = curStep.cbegin();
     for(int j=0;j!=nat;++j){
         ui->atomTable->item(j,0)->setText(at->name.c_str());
         ui->atomTable->item(j,0)->setCheckState(
@@ -154,25 +153,25 @@ void MolWidget::fillKPoints()
 
 void MolWidget::on_cellEnabled_toggled(bool checked)
 {
-    curStep->enableCell(checked);
+    curStep.enableCell(checked);
     triggerUpdate(GuiChange::cell);
 }
 
 void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 {
     QSignalBlocker blockCDB(ui->cellDimBox);
-    ui->cellDimBox->setValue(static_cast<double>(curStep->getCellDim(static_cast<CdmFmt>(idx))));
+    ui->cellDimBox->setValue(static_cast<double>(curStep.getCellDim(static_cast<CdmFmt>(idx))));
 }
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
-    curStep->setCellDim(static_cast<float>(cdm),
+    curStep.setCellDim(static_cast<float>(cdm),
                         static_cast<CdmFmt>(ui->cellFmt->currentIndex()),
                         ui->cellScaleBox->isChecked());
     // if needed, trigger atom update
     uint8_t change = GuiChange::cell;
-    if(ui->cellScaleBox->isChecked() != (curStep->getFmt()>=AtomFmt::Crystal)){
-        change = GuiChange::cell | GuiChange::atoms;
+    if(ui->cellScaleBox->isChecked() != (curStep.getFmt()>=AtomFmt::Crystal)){
+        change |= GuiChange::atoms;
         fillAtomTable();
     }
     ui->cellEnabled->setCheckState(Qt::CheckState::Checked);
@@ -181,13 +180,13 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 {
-    Mat vec = curStep->getCellVec();
+    Mat vec = curStep.getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
-    curStep->setCellVec(vec, ui->cellScaleBox->isChecked());
+    curStep.setCellVec(vec, ui->cellScaleBox->isChecked());
     // if needed, trigger atom update
     uint8_t change = GuiChange::cell;
-    if(ui->cellScaleBox->isChecked() != (curStep->getFmt()==AtomFmt::Crystal)){
+    if(ui->cellScaleBox->isChecked() != (curStep.getFmt()==AtomFmt::Crystal)){
         change |= GuiChange::atoms;
         fillAtomTable();
     }
@@ -197,7 +196,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 
 void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
-    Atom at = (*curStep)[static_cast<size_t>(row)];
+    Atom at = curStep[static_cast<size_t>(row)];
     const QTableWidgetItem *cell = ui->atomTable->item(row,column);
     bool checkState = (cell->checkState()/2) != 0;
     if (column == 0){
@@ -218,6 +217,11 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
     }
 }
 
+AtomFmt MolWidget::getAtomFmt()
+{
+    return static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
+}
+
 CdmFmt MolWidget::getCellFmt()
 {
     return static_cast<CdmFmt>(ui->cellFmt->currentIndex());
@@ -225,12 +229,19 @@ CdmFmt MolWidget::getCellFmt()
 
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
-    master->setFmt(index, false, false);
+    curStep = curStep.asFmt(static_cast<AtomFmt>(index));
+    fillAtomTable();
 }
 
 void MolWidget::on_atomFmtButton_clicked()
 {
-    master->setFmt(ui->atomFmtBox->currentIndex(), true, false);
+    auto fmt = static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
+    master->curStep->setFmt(fmt);
+    master->curSel->setFmt(fmt);
+    if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){
+        ui->cellEnabled->setChecked(true);
+    }
+    triggerUpdate(GuiChange::fmt);
 }
 
 void MolWidget::on_molList_currentIndexChanged(int index)

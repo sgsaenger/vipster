@@ -8,7 +8,6 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
 {
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
-    glEnable(GL_MULTISAMPLE);
 #endif
     glClearColor(1,1,1,1);
     glEnable(GL_DEPTH_TEST);
@@ -26,19 +25,32 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
     // init view matrices
-    pMat = guiMatMkOrtho(-15, 15, -10, 10, -100, 1000);
+    oMat = guiMatMkOrtho(-15, 15, -10, 10, -100, 1000);
+    pMat = guiMatMkPerspective(60.0, 1.5, 0.001f, 1000);
     rMat = {{1,0,0,0,
              0,1,0,0,
              0,0,1,0,
              0,0,0,1}};
     vMat = guiMatMkLookAt({{0,0,10}}, {{0,0,0}}, {{0,1,0}});
     pMatChanged = rMatChanged = vMatChanged = true;
+    drawPerspective = settings.perspective.val;
 }
 
 void GuiWrapper::draw(void)
 {
+#ifndef __EMSCRIPTEN__
+    if(settings.antialias.val){
+        glEnable(GL_MULTISAMPLE);
+    }else{
+        glDisable(GL_MULTISAMPLE);
+    }
+#endif
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if(drawPerspective != settings.perspective.val){
+        drawPerspective = settings.perspective.val;
+        pMatChanged = true;
+    }
     if(rMatChanged||pMatChanged||vMatChanged){
         updateViewUBO();
     }
@@ -47,7 +59,7 @@ void GuiWrapper::draw(void)
     for(const auto& i: extraData){
         i->syncToGPU();
     }
-    Vec off = -curStep->getCenter(CdmFmt::Bohr);
+    Vec off = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     if(curStep->hasCell()){
         Mat cv = curStep->getCellVec() *
                  curStep->getCellDim(CdmFmt::Bohr);
@@ -74,11 +86,16 @@ void GuiWrapper::drawSel()
     mainStep.drawSel(mult);
 }
 
-void GuiWrapper::setMainStep(StepProper* step, StepSelection* sel, bool draw_bonds)
+void GuiWrapper::setMainStep(Step* step, bool draw_bonds)
 {
     curStep = step;
-    curSel = sel;
     mainStep.update(step, draw_bonds);
+}
+
+void GuiWrapper::setMainSel(Step::selection* sel)
+{
+    curSel = sel;
+    selection.update(sel);
 }
 
 void GuiWrapper::updateMainStep(bool draw_bonds)
@@ -105,14 +122,24 @@ void GuiWrapper::updateViewUBO(void)
 {
     if(rMatChanged){
         glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
-                        (pMat*vMat*rMat).data());
+        if(settings.perspective.val){
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (pMat*vMat*rMat).data());
+        }else{
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (oMat*vMat*rMat).data());
+        }
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat), sizeof(GUI::Mat), rMat.data());
         rMatChanged = vMatChanged = pMatChanged = false;
     }else if (pMatChanged || vMatChanged){
         glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
-                        (pMat*vMat*rMat).data());
+        if(settings.perspective.val){
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (pMat*vMat*rMat).data());
+        }else{
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (oMat*vMat*rMat).data());
+        }
         vMatChanged = pMatChanged = false;
     }
 }
@@ -122,7 +149,8 @@ void GuiWrapper::resizeViewMat(int w, int h)
     h==0?h=1:0;
     glViewport(0,0,w,h);
     float aspect = float(w)/h;
-    pMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, -100, 1000);
+    oMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, -100, 1000);
+    pMat = guiMatMkPerspective(60, aspect, 0.001f, 1000);
     pMatChanged = true;
 }
 

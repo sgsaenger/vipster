@@ -42,9 +42,9 @@ void SaveFmtDialog::enableParamWidget(bool on)
                 widget->registerParam(fmt, p.second->copy());
             }
         }
-        auto param_range = Vipster::params.equal_range(fmt);
-        for(auto it=param_range.first; it!=param_range.second; ++it){
-            widget->registerParam(fmt, it->second->copy());
+        const auto& param_map = Vipster::params[fmt];
+        for(const auto& p: param_map){
+            widget->registerParam(fmt, p.second->copy());
         }
     }else{
         widget->setDisabled(true);
@@ -63,9 +63,9 @@ void SaveFmtDialog::enableConfWidget(bool on)
                 widget->registerConfig(fmt, p.second->copy());
             }
         }
-        auto config_range = Vipster::configs.equal_range(fmt);
-        for(auto it=config_range.first; it!=config_range.second; ++it){
-            widget->registerConfig(fmt, it->second->copy());
+        const auto& conf_map = Vipster::configs[fmt];
+        for(const auto& c: conf_map){
+            widget->registerConfig(fmt, c.second->copy());
         }
     }else{
         widget->setDisabled(true);

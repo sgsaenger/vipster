@@ -28,7 +28,7 @@ int emGetMolNstep(int m){ return molecules[m].getNstep();}
 std::string emGetMolName(int m){ return molecules[m].getName();}
 
 // Steps
-void emSetStep(int m, int s){ gui.setMainStep(&molecules[m].getStep(s), &molecules[m].getStep(s).getLastSelection(), true); }
+void emSetStep(int m, int s){ gui.setMainStep(&molecules[m].getStep(s), true); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
 Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
@@ -61,7 +61,11 @@ void emZoom(int val){gui.zoomViewMat(val);}
 void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
 void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
 
+// validate Cache
+void emEvalCache(void){ gui.curStep->evaluateCache(); }
+
 EMSCRIPTEN_BINDINGS(vipster){
+    em::function("evalCache", &emEvalCache);
     em::function("getNMol", &emGetNMol);
     em::function("getMolNStep", &emGetMolNstep);
     em::function("getMolName", &emGetMolName);
@@ -191,7 +195,7 @@ int main()
     gui.initGL("# version 300 es\nprecision highp float;\n", "");
 
     // init examples (something needs to be displayed for the renderer to not fail
-    StepProper* step;
+    Step* step;
     //example H2O-vibration (crude approximation)
     molecules.emplace_back("Example Molecule", 0);
     float vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};

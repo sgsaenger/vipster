@@ -48,8 +48,9 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
         throw Error("Invalid configuration preset selected");
     }
     const auto& pair = configs.at(static_cast<size_t>(index));
+    curFmt = pair.first;
     curConfig = pair.second.get();
-    switch (pair.first) {
+    switch (curFmt) {
     case IOFmt::XYZ:
         ui->configStack->setCurrentWidget(ui->XYZWidget);
         ui->XYZWidget->setConfig(curConfig);

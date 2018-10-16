@@ -14,33 +14,19 @@ using namespace Vipster;
 
 bool readConfig();
 
-namespace Vipster{
-PseMap pse;
-Settings settings;
-IO::Parameters params;
-IO::Configs configs;
-}
-
 bool Vipster::readConfig()
 {
-    PseMap pse{true};
-    Settings settings;
-    IO::Parameters params;
-    IO::Configs configs;
     std::ifstream conf_file{user_config};
-    if(!conf_file){
-        conf_file = std::ifstream{sys_config};
-    }
     if(conf_file){
         json loc_file;
         conf_file >> loc_file;
         // PSE
         if(loc_file.find("PSE") != loc_file.end()){
-            pse = loc_file["PSE"];
+            from_json(loc_file["PSE"], pse);
         }
         // General settings
         if(loc_file.find("Settings") != loc_file.end()){
-            settings = loc_file["Settings"];
+            from_json(loc_file["Settings"], settings);
         }
         // Parameter sets
         if(loc_file.find("Parameters") != loc_file.end()){
@@ -49,11 +35,12 @@ bool Vipster::readConfig()
                 for(const auto& pair: IOPlugins){
                     const auto& plugin = pair.second;
                     if(it.key() == plugin->command){
-                        for(const auto& entry: it.value()){
-                            auto tmp = plugin->makeParam("");
-                            tmp->parseJson(entry);
-                            params.emplace(pair.first, std::move(tmp));
+                        auto& tmp = params[pair.first];
+                        for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
+                            tmp[it2.key()] = plugin->makeParam(it2.key());
+                            tmp[it2.key()]->parseJson(it2);
                         }
+                        continue;
                     }
                 }
             }
@@ -64,36 +51,17 @@ bool Vipster::readConfig()
                 for(const auto& pair: IOPlugins){
                     const auto& plugin = pair.second;
                     if(it.key() == plugin->command){
-                        for(const auto& entry: it.value()){
-                            auto tmp = plugin->makeConfig("");
-                            tmp->parseJson(entry);
-                            configs.emplace(pair.first, std::move(tmp));
+                        auto& tmp = configs[pair.first];
+                        for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
+                            tmp[it2.key()] = plugin->makeConfig(it2.key());
+                            tmp[it2.key()]->parseJson(it2);
                         }
+                        continue;
                     }
                 }
             }
         }
     }
-    // ensure fallback-values are present
-    if(pse.find("")==pse.end()){
-        pse.emplace("", PseEntry{"","","",0,0,0,1.46f,3.21f,{{0,0,0,255}}});
-    }
-    for(const auto& pair: IOPlugins){
-        auto fmt = pair.first;
-        const auto& plugin = pair.second;
-        if(plugin->arguments & IO::Plugin::Args::Config &&
-           configs.find(fmt) == configs.end()){
-           configs.emplace(fmt, plugin->makeConfig("default"));
-        }
-        if(plugin->arguments & IO::Plugin::Args::Param &&
-           params.find(fmt) == params.end()){
-           params.emplace(fmt, plugin->makeParam("default"));
-        }
-    }
-    Vipster::pse = std::move(pse);
-    Vipster::settings = std::move(settings);
-    Vipster::params = std::move(params);
-    Vipster::configs = std::move(configs);
     return true;
 }
 
@@ -109,24 +77,18 @@ bool Vipster::saveConfig()
     json_buf["Parameters"] = json{};
     for(const auto& plug: IOPlugins){
         if(plug.second->arguments & IO::Plugin::Args::Param){
-            json_buf["Parameters"][plug.second->command] = json::array();
             json& j = json_buf["Parameters"][plug.second->command];
-            for(const auto& p: params){
-                if(p.first == plug.first){
-                    j.push_back(p.second->toJson());
-                }
+            for(const auto& p: params[plug.first]){
+                j[p.first] = p.second->toJson();
             }
         }
     }
     json_buf["Configs"] = json{};
     for(const auto& plug: IOPlugins){
         if(plug.second->arguments & IO::Plugin::Args::Config){
-            json_buf["Configs"][plug.second->command] = json::array();
             json& j = json_buf["Configs"][plug.second->command];
-            for(const auto& p: configs){
-                if(p.first == plug.first){
-                    j.push_back(p.second->toJson());
-                }
+            for(const auto& p: configs[plug.first]){
+                j[p.first] = p.second->toJson();
             }
         }
     }

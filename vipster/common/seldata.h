@@ -15,7 +15,7 @@ namespace GUI {
         // CPU-Data:
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
-        StepSelection* curSel;
+        Step::selection* curSel{nullptr};
         // GPU-State/Data:
         GLuint vao{0}, vbo{0};
         // Shader:
@@ -26,13 +26,13 @@ namespace GUI {
             bool initialized{false};
         } shader;
     public:
-        SelData(const GlobalData& glob, StepSelection* sel=nullptr);
+        SelData(const GlobalData& glob, Step::selection* sel=nullptr);
         ~SelData() override;
         void drawMol(const Vec &off) override;
         void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) override;
         void updateGL() override;
         void initGL() override;
-        void update(StepSelection* sel);
+        void update(Step::selection* sel);
     };
 }
 }

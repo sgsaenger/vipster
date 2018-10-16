@@ -192,7 +192,7 @@ auto makeWriter(const std::vector<lmpTok>& fmt,
                 const std::vector<size_t>& molID,
                 const std::map<std::string, size_t>& atomtypemap){
     return [&](std::ostream& file, const Step& s){
-        for(Step::constIterator it=s.begin(); it!=s.end(); ++it){
+        for(auto it=s.begin(); it!=s.end(); ++it){
             file << std::left << std::setw(3) << (it.getIdx()+1);
             for(const auto& tok: fmt){
                 file << ' ';
@@ -232,7 +232,7 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
     data.fmt = IOFmt::LMP;
     Molecule& m = data.mol;
     m.setName(name);
-    StepProper& s = m.newStep();
+    Step& s = m.newStep();
     s.setFmt(AtomFmt::Angstrom);
     s.setCellDim(1, CdmFmt::Angstrom);
 
@@ -345,7 +345,6 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                   IO::State state)
 {
     const auto& step = m.getStep(state.index);
-    const auto& types = step.getNames();
     const auto *cc = dynamic_cast<const IO::LmpConfig*>(c);
     if(!cc) throw IO::Error("Lammps-Writer needs configuration preset");
     const auto tokens = fmtmap.at(IO::LmpConfig::fmt2str.at(cc->style));
@@ -364,11 +363,12 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         }
         std::sort(bondlist.begin(), bondlist.end());
         for(const auto& bond: bondlist){
-            bool begin0 = types[std::get<0>(bond)] < types[std::get<1>(bond)];
-            if(begin0){
-                bondtypelist.emplace_back(types[std::get<0>(bond)], types[std::get<1>(bond)]);
+            const std::string& t0 = step[std::get<0>(bond)].name;
+            const std::string& t1 = step[std::get<1>(bond)].name;
+            if(t0 < t1){
+                bondtypelist.emplace_back(t0, t1);
             }else{
-                bondtypelist.emplace_back(types[std::get<1>(bond)], types[std::get<0>(bond)]);
+                bondtypelist.emplace_back(t1, t0);
             }
             bondtypemap.emplace(bondtypelist.back(), bondtypemap.size()+1);
         }
@@ -396,15 +396,13 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
             }
         }
         for(const auto& angle: anglelist){
-            bool begin0 = types[std::get<0>(angle)] < types[std::get<2>(angle)];
-            if(begin0){
-                angletypelist.emplace_back(types[std::get<0>(angle)],
-                                           types[std::get<1>(angle)],
-                                           types[std::get<2>(angle)]);
+            const std::string& t0 = step[std::get<0>(angle)].name;
+            const std::string& t1 = step[std::get<1>(angle)].name;
+            const std::string& t2 = step[std::get<2>(angle)].name;
+            if(t0 < t2){
+                angletypelist.emplace_back(t0, t1, t2);
             }else{
-                angletypelist.emplace_back(types[std::get<2>(angle)],
-                                           types[std::get<1>(angle)],
-                                           types[std::get<0>(angle)]);
+                angletypelist.emplace_back(t2, t1, t0);
             }
             angletypemap.emplace(angletypelist.back(), angletypemap.size()+1);
         }
@@ -447,16 +445,14 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
             }
         }
         for(const auto& dihed: dihedlist){
-            const auto& d0 = std::get<0>(dihed);
-            const auto& d1 = std::get<1>(dihed);
-            const auto& d2 = std::get<2>(dihed);
-            const auto& d3 = std::get<3>(dihed);
-            bool begin0 = (types[d0] < types[d3]) ||
-                          ((types[d0] == types[d3]) && (types[d1] < types[d2]));
-            if(begin0){
-                dihedtypelist.emplace_back(types[d0], types[d1], types[d2], types[d3]);
+            const std::string& t0 = step[std::get<0>(dihed)].name;
+            const std::string& t1 = step[std::get<1>(dihed)].name;
+            const std::string& t2 = step[std::get<2>(dihed)].name;
+            const std::string& t3 = step[std::get<3>(dihed)].name;
+            if((t0 < t3) || ((t0 == t3) && (t1 < t2))){
+                dihedtypelist.emplace_back(t0, t1, t2, t3);
             }else{
-                dihedtypelist.emplace_back(types[d3], types[d2], types[d1], types[d0]);
+                dihedtypelist.emplace_back(t3, t2, t1, t0);
             }
             dihedtypemap.emplace(dihedtypelist.back(), dihedtypemap.size()+1);
         }
@@ -489,20 +485,20 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
             }
         }
         for(const auto& improp: improplist){
-            const auto& i0 = std::get<0>(improp);
-            auto i1 = std::get<1>(improp);
-            auto i2 = std::get<2>(improp);
-            auto i3 = std::get<3>(improp);
-            if(types[i1]>types[i2]){
-                std::swap(i1, i2);
+            std::string t0 = step[std::get<0>(improp)].name;
+            std::string t1 = step[std::get<1>(improp)].name;
+            std::string t2 = step[std::get<2>(improp)].name;
+            std::string t3 = step[std::get<3>(improp)].name;
+            if(t1 < t2){
+                std::swap(t1, t2);
             }
-            if(types[i1]>types[i3]){
-                std::swap(i1,i3);
+            if(t1 < t3){
+                std::swap(t1, t3);
             }
-            if(types[i2]>types[i3]){
-                std::swap(i2,i3);
+            if(t2 < t3){
+                std::swap(t2, t3);
             }
-            improptypelist.emplace_back(types[i0], types[i1], types[i2], types[i3]);
+            improptypelist.emplace_back(t0, t1, t2, t3);
             improptypemap.emplace(improptypelist.back(), improptypemap.size()+1);
         }
     }
@@ -585,9 +581,9 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
 
     file << "\nMasses\n\n";
     std::map<std::string, size_t> atomtypemap;
-    for(const auto& i: step.getTypes()){
-        atomtypemap.emplace(i, atomtypemap.size()+1);
-        file << step.pse->at(i).m << " # " << i << '\n';
+    for(const auto& t: step.getTypes()){
+        atomtypemap.emplace(t, atomtypemap.size()+1);
+        file << atomtypemap.size() << ' ' << step.pse->at(t).m << " # " << t << '\n';
     }
 
     file << "\nAtoms # " << IO::LmpConfig::fmt2str.at(cc->style) << "\n\n";
