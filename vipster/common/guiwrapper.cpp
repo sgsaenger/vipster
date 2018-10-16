@@ -25,13 +25,15 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
     // init view matrices
-    pMat = guiMatMkOrtho(-15, 15, -10, 10, -100, 1000);
+    oMat = guiMatMkOrtho(-15, 15, -10, 10, -100, 1000);
+    pMat = guiMatMkPerspective(60.0, 1.5, 0.001f, 1000);
     rMat = {{1,0,0,0,
              0,1,0,0,
              0,0,1,0,
              0,0,0,1}};
     vMat = guiMatMkLookAt({{0,0,10}}, {{0,0,0}}, {{0,1,0}});
     pMatChanged = rMatChanged = vMatChanged = true;
+    drawPerspective = settings.perspective.val;
 }
 
 void GuiWrapper::draw(void)
@@ -45,6 +47,10 @@ void GuiWrapper::draw(void)
 #endif
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if(drawPerspective != settings.perspective.val){
+        drawPerspective = settings.perspective.val;
+        pMatChanged = true;
+    }
     if(rMatChanged||pMatChanged||vMatChanged){
         updateViewUBO();
     }
@@ -116,14 +122,24 @@ void GuiWrapper::updateViewUBO(void)
 {
     if(rMatChanged){
         glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
-                        (pMat*vMat*rMat).data());
+        if(settings.perspective.val){
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (pMat*vMat*rMat).data());
+        }else{
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (oMat*vMat*rMat).data());
+        }
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat), sizeof(GUI::Mat), rMat.data());
         rMatChanged = vMatChanged = pMatChanged = false;
     }else if (pMatChanged || vMatChanged){
         glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
-                        (pMat*vMat*rMat).data());
+        if(settings.perspective.val){
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (pMat*vMat*rMat).data());
+        }else{
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+                            (oMat*vMat*rMat).data());
+        }
         vMatChanged = pMatChanged = false;
     }
 }
@@ -133,7 +149,8 @@ void GuiWrapper::resizeViewMat(int w, int h)
     h==0?h=1:0;
     glViewport(0,0,w,h);
     float aspect = float(w)/h;
-    pMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, -100, 1000);
+    oMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, -100, 1000);
+    pMat = guiMatMkPerspective(60, aspect, 0.001f, 1000);
     pMatChanged = true;
 }
 

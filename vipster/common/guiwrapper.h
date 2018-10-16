@@ -74,8 +74,8 @@ private:
     // gpu-side global data
     GLuint view_ubo;
     // cpu-side global data
-    GUI::Mat vMat, pMat, rMat;
-    bool vMatChanged, pMatChanged, rMatChanged;
+    GUI::Mat vMat, oMat, pMat, rMat;
+    bool vMatChanged, pMatChanged, rMatChanged, drawPerspective;
 };
 
 }

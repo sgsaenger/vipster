@@ -86,12 +86,24 @@ void Vipster::guiMatRot(GUI::Mat &m, float a, float x, float y, float z)
     }
 }
 
-GUI::Mat Vipster::guiMatMkOrtho(float l, float r, float b, float t, float n, float f)
+GUI::Mat Vipster::guiMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
 {
-    return GUI::Mat{{2/(r-l), 0, 0, (r+l)/(l-r),
-                   0, 2/(t-b), 0, (t+b)/(b-t),
-                   0, 0, (2/(n-f)), ((f+n)/(n-f)),
+    return GUI::Mat{{2/(right-left), 0, 0, (right+left)/(left-right),
+                   0, 2/(top-bottom), 0, (top+bottom)/(bottom-top),
+                   0, 0, (2/(near-far)), ((far+near)/(near-far)),
                    0, 0, 0, 1}};
+}
+
+GUI::Mat Vipster::guiMatMkPerspective(float vertAng, float aspect, float near, float far)
+{
+    float rad = deg2rad * vertAng/2;
+    float sin = std::sin(rad);
+    float cotan = std::cos(rad) / sin;
+    float clip = far - near;
+    return GUI::Mat{{cotan/aspect, 0, 0, 0,
+                     0, cotan, 0, 0,
+                     0, 0, -(near + far)/clip, -(2*near*far)/clip,
+                     0, 0, -1, 0}};
 }
 
 GUI::Mat Vipster::guiMatMkLookAt(Vec eye, Vec target, Vec up)
