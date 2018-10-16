@@ -29,6 +29,7 @@ public:
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
+    Vipster::Step copyBuf{};
     void updateWidgets(uint8_t change);
     void newData(Vipster::IO::Data&& d);
     struct MolExtras{

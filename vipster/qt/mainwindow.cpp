@@ -201,21 +201,36 @@ void MainWindow::stepBut(QAbstractButton* but)
 
 void MainWindow::editAtoms(QAction* sender)
 {
+    uint8_t change{};
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
+        change = GuiChange::atoms;
     }else if ( sender == ui->actionDelete_Atom_s){
-        // TODO!
-//        curStep->delAtoms(curSel);
+        curStep->delAtoms(*curSel);
+        change = GuiChange::atoms | GuiChange::selection;
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 1;
         }
+        change = GuiChange::atoms;
     }else if ( sender == ui->actionShow_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 0;
         }
+        change = GuiChange::atoms;
+    }else if ( sender == ui->actionCopy_Atom_s){
+        copyBuf = *curSel;
+    }else if ( sender == ui->actionCut_Atom_s){
+        copyBuf = *curSel;
+        curStep->delAtoms(*curSel);
+        change = GuiChange::atoms | GuiChange::selection;
+    }else if ( sender == ui->actionPaste_Atom_s){
+        curStep->newAtoms(copyBuf);
+        change = GuiChange::atoms;
     }
-    updateWidgets(GuiChange::atoms);
+    if(change){
+        updateWidgets(change);
+    }
 }
 
 void MainWindow::newMol()

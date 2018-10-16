@@ -33,8 +33,11 @@ public:
     virtual ~StepConst() = default;
 
     using source = T;
-    using iterator = typename T::constIterator;
-    using constIterator = typename T::constIterator;
+    // 'mutable' iterator must be defined for Selection-template
+    using iterator = typename T::const_iterator;
+    using const_iterator = typename T::const_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using constSelection = SelectionBase<StepConst, T>;
 
     void evaluateCache() const; // must be implemented in specialization
@@ -56,27 +59,43 @@ public:
     size_t          getNat() const noexcept; // must be implemented in specialization
     const Atom&     operator[](size_t i) const noexcept
     {
-        return *constIterator{atoms, at_fmt, i};
+        return *const_iterator{atoms, at_fmt, i};
     }
     const source&        getAtoms() const noexcept
     {
         return *atoms;
     }
-    constIterator   begin() const noexcept
+    const_iterator   begin() const noexcept
     {
-        return constIterator{atoms, at_fmt, 0};
+        return const_iterator{atoms, at_fmt, 0};
     }
-    constIterator   cbegin() const noexcept
+    const_iterator   cbegin() const noexcept
     {
-        return constIterator{atoms, at_fmt, 0};
+        return const_iterator{atoms, at_fmt, 0};
     }
-    constIterator   end() const noexcept
+    const_iterator   end() const noexcept
     {
-        return constIterator{atoms, at_fmt, getNat()};
+        return const_iterator{atoms, at_fmt, getNat()};
     }
-    constIterator   cend() const noexcept
+    const_iterator   cend() const noexcept
     {
-        return constIterator{atoms, at_fmt, getNat()};
+        return const_iterator{atoms, at_fmt, getNat()};
+    }
+    const_reverse_iterator rbegin() const noexcept
+    {
+        return std::make_reverse_iterator(end());
+    }
+    const_reverse_iterator crbegin() const noexcept
+    {
+        return std::make_reverse_iterator(cend());
+    }
+    const_reverse_iterator rend() const noexcept
+    {
+        return std::make_reverse_iterator(begin());
+    }
+    const_reverse_iterator crend() const noexcept
+    {
+        return std::make_reverse_iterator(cbegin());
     }
 
     // Comment

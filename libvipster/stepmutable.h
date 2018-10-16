@@ -19,6 +19,7 @@ public:
     virtual ~StepMutable() = default;
 
     using iterator = typename T::iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using selection = SelectionBase<StepMutable, T>;
 
     // Selection
@@ -63,6 +64,16 @@ public:
     iterator    end() noexcept
     {
         return iterator{this->atoms, this->at_fmt, this->getNat()};
+    }
+    using StepConst<T>::rbegin;
+    reverse_iterator rbegin() noexcept
+    {
+        return std::make_reverse_iterator(end());
+    }
+    using StepConst<T>::rend;
+    reverse_iterator rend() noexcept
+    {
+        return std::make_reverse_iterator(begin());
     }
 
     // Modifier functions

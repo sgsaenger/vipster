@@ -278,6 +278,11 @@ struct AtomSelection{
     private:
         using Base = typename T::iterator;
     public:
+        using difference_type = ptrdiff_t;
+        using value_type = A;
+        using reference = A&;
+        using pointer = A*;
+        using iterator_category = std::bidirectional_iterator_tag;
         AtomSelIterator(std::shared_ptr<AtomSelection> selection,
                         AtomFmt, size_t idx)
         //TODO: introduce a terminal-object (when c++17 is ready?)
@@ -290,15 +295,28 @@ struct AtomSelection{
         AtomSelIterator& operator++(){
             return operator+=(1);
         }
-        AtomSelIterator& operator+=(size_t i){
+        AtomSelIterator& operator--(){
+            return operator-=(1);
+        }
+        AtomSelIterator& operator+=(int i){
             idx += i;
             auto diff = selection->indices[idx] - selection->indices[idx-i];
             Base::operator+=(diff);
             return *this;
         }
-        AtomSelIterator operator+(size_t i){
+        AtomSelIterator& operator-=(int i){
+            idx -= i;
+            auto diff = selection->indices[idx] - selection->indices[idx+i];
+            Base::operator+=(diff);
+            return *this;
+        }
+        AtomSelIterator operator+(int i){
             AtomSelIterator copy{*this};
             return copy+=i;
+        }
+        AtomSelIterator operator-(int i){
+            AtomSelIterator copy{*this};
+            return copy-=i;
         }
         A&  operator*() const {
             return Base::operator*();
@@ -321,7 +339,7 @@ struct AtomSelection{
     };
 
     using iterator = AtomSelIterator<Atom>;
-    using constIterator = AtomSelIterator<const Atom>;
+    using const_iterator = AtomSelIterator<const Atom>;
 };
 
 /*

@@ -448,7 +448,27 @@ size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept
 }
 
 template<>
+size_t StepConst<AtomSelection<StepConst<AtomList>>>::getNat() const noexcept
+{
+    return atoms->indices.size();
+}
+
+template<>
 void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const
+{
+        // make sure that caches are clean, for pos even the needed formatted cache
+        auto fmt = (atoms->filter.mode == SelectionFilter::Mode::Pos) ?
+                    static_cast<AtomFmt>(atoms->filter.pos & SelectionFilter::FMT_MASK) :
+                    this->at_fmt;
+        atoms->step->asFmt(fmt).evaluateCache();
+        if(atoms->filter.op & SelectionFilter::UPDATE){
+            this->atoms->indices = evalFilter(*atoms->step, atoms->filter);
+        }
+}
+
+
+template<>
+void StepConst<AtomSelection<StepConst<AtomList>>>::evaluateCache() const
 {
         // make sure that caches are clean, for pos even the needed formatted cache
         auto fmt = (atoms->filter.mode == SelectionFilter::Mode::Pos) ?

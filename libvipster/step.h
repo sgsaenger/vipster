@@ -18,7 +18,7 @@ template<typename T>
 class AtomListIterator;
 struct AtomList{
     using iterator = AtomListIterator<Atom>;
-    using constIterator = AtomListIterator<const Atom>;
+    using const_iterator = AtomListIterator<const Atom>;
     // Coordinates
     // one buffer per Vipster::AtomFmt
     std::array<std::vector<Vec>, nAtFmt> coordinates;
@@ -40,6 +40,11 @@ template<typename T>
 class AtomListIterator: private T
 {
 public:
+    using difference_type = ptrdiff_t;
+    using value_type = T;
+    using reference = T&;
+    using pointer = T*;
+    using iterator_category = std::bidirectional_iterator_tag;
     AtomListIterator(const std::shared_ptr<AtomList> &atoms,
                      AtomFmt fmt, size_t idx)
         : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
@@ -59,7 +64,15 @@ public:
         ++(this->pse_ptr);
         return *this;
     }
-    AtomListIterator& operator+=(size_t i){
+    AtomListIterator& operator--(){
+        --idx;
+        --(this->coord_ptr);
+        --(this->name_ptr);
+        --(this->prop_ptr);
+        --(this->pse_ptr);
+        return *this;
+    }
+    AtomListIterator& operator+=(int i){
         idx += i;
         this->coord_ptr += i;
         this->name_ptr += i;
@@ -67,9 +80,21 @@ public:
         this->pse_ptr += i;
         return *this;
     }
-    AtomListIterator operator+(size_t i){
+    AtomListIterator& operator-=(int i){
+        idx -= i;
+        this->coord_ptr -= i;
+        this->name_ptr -= i;
+        this->prop_ptr -= i;
+        this->pse_ptr -= i;
+        return *this;
+    }
+    AtomListIterator operator+(int i){
         AtomListIterator copy{*this};
         return copy+=i;
+    }
+    AtomListIterator operator-(int i){
+        AtomListIterator copy{*this};
+        return copy-=i;
     }
     T&      operator*() const {
         // remove constness of iterator, as it is independent of constness of Atom
@@ -138,8 +163,9 @@ public:
     template<typename T>
     void    newAtoms(const StepConst<T>& s)
     {
+        auto tmp = s.asFmt(at_fmt);
         const size_t oldNat = this->getNat();
-        const size_t nat = oldNat + s.getNat();
+        const size_t nat = oldNat + tmp.getNat();
         const size_t fmt = static_cast<size_t>(at_fmt);
         // Coordinates
         AtomList& al = *this->atoms;
@@ -150,7 +176,7 @@ public:
         al.coord_changed[fmt] = true;
         al.name_changed = true;
         al.prop_changed = true;
-        for(const auto& at: s){
+        for(const auto& at: tmp){
             al.coordinates[fmt].push_back(at.coord);
             al.names.push_back(at.name);
             al.pse.push_back(&(*pse)[at.name]);
@@ -158,6 +184,16 @@ public:
         }
     }
     void    delAtom(size_t i);
+    template<template<typename> class T>
+    void    delAtoms(SelectionBase<T, AtomList>& s)
+    {
+        const auto& idx = s.getIndices();
+        for(auto it = idx.rbegin(); it != idx.rend(); ++it)
+        {
+            delAtom(*it);
+        }
+        s.setFilter(SelectionFilter{});
+    }
 
     // Cell
     void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
@@ -181,7 +217,13 @@ template<>
 size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept;
 
 template<>
-void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const;
-}
+size_t StepConst<AtomSelection<StepConst<AtomList>>>::getNat() const noexcept;
 
+template<>
+void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const;
+
+template<>
+void StepConst<AtomSelection<StepConst<AtomList>>>::evaluateCache() const;
+
+}
 #endif // LIBVIPSTER_STEP_H
