@@ -375,6 +375,8 @@
     <addaction name="separator"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
+    <addaction name="separator"/>
+    <addaction name="actionSet_Bonds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -691,7 +693,12 @@
   </action>
   <action name="actionCopy_current_Selection">
    <property name="text">
-    <string>Copy current Selection</string>
+    <string>Copy current &amp;Selection</string>
+   </property>
+  </action>
+  <action name="actionSet_Bonds">
+   <property name="text">
+    <string>(Re-)Calculate Bonds</string>
    </property>
   </action>
  </widget>

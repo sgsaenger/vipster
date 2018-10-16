@@ -80,6 +80,7 @@ QWidget* SettingsWidget::makeWidget(float& setting)
 {
     auto* widget = new QDoubleSpinBox(ui->settingsContainer);
     widget->setValue(static_cast<double>(setting));
+    widget->setMinimum(0);
     connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [&setting, this](double newVal){
                 setting = static_cast<float>(newVal);

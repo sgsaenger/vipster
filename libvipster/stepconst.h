@@ -221,7 +221,7 @@ public:
                                          BondLevel l=settings.bondLvl.val,
                                          BondFrequency update=settings.bondFreq.val) const
     {
-        if(cutfac <= 0){
+        if(cutfac < 0){
             throw Error("bond cutoff factor must be positive");
         }
         if(((update == BondFrequency::Always) or
@@ -242,10 +242,13 @@ public:
     void                        setBonds(BondLevel l=settings.bondLvl.val,
                                          float cutfac=settings.bondCutFac.val) const
     {
-        if(cutfac <= 0){
+        if(cutfac < 0){
             throw Error("bond cutoff factor must be positive");
         }
         bonds->bonds.clear();
+        if(!cutfac){
+            return;
+        }
         if(!getNat()){
             l = BondLevel::None;
         }
