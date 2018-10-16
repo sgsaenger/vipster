@@ -420,7 +420,7 @@ void MainWindow::saveConfig()
 void MainWindow::about()
 {
     QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster</h2>"
+    QString("<h2>Vipster v1.13a</h2>"
             "<p>"
             "©Sebastian Gsänger, 2018"
             "<br>"
@@ -431,7 +431,7 @@ void MainWindow::about()
             "<p>"
             "This program is provided under the GPLv3."
             "<br>"
-            "It uses"
+            "It uses "
             "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>, "
             "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,"
             "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "

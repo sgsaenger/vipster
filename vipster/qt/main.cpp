@@ -16,7 +16,6 @@ using namespace Vipster;
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
-    QApplication::setApplicationVersion("1.12a");
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
     if(!data.empty()){
         MainWindow w{QDir::currentPath(), std::move(data)};
@@ -33,7 +32,7 @@ int main(int argc, char *argv[])
 {
     // main parser + data-targets
     Vipster::readConfig();
-    CLI::App app{"Vipster " + QApplication::applicationVersion().toStdString()};
+    CLI::App app{"Vipster v1.13a"};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, IOFmt> fmt_opts{};
