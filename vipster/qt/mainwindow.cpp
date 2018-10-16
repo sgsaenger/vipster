@@ -204,6 +204,7 @@ void MainWindow::editAtoms(QAction* sender)
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
     }else if ( sender == ui->actionDelete_Atom_s){
+        // TODO!
 //        curStep->delAtoms(curSel);
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
@@ -221,6 +222,23 @@ void MainWindow::newMol()
 {
     molecules.emplace_back();
     ui->molWidget->registerMol(molecules.back().getName());
+}
+
+void MainWindow::newMol(QAction* sender)
+{
+    if(sender == ui->actionCopy_Trajector){
+        molecules.emplace_back(*curMol);
+        molecules.back().setName(molecules.back().getName() + " (copy)");
+        ui->molWidget->registerMol(molecules.back().getName());
+    }else if( sender == ui->actionCopy_single_Step){
+        molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
+                               std::to_string(moldata[curMol].curStep) + ')');
+        ui->molWidget->registerMol(molecules.back().getName());
+    }else if( sender == ui->actionCopy_current_Selection){
+        molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
+                               std::to_string(moldata[curMol].curStep) + ')');
+        ui->molWidget->registerMol(molecules.back().getName());
+    }
 }
 
 void MainWindow::newData(IO::Data &&d)

@@ -2,8 +2,6 @@
 #include "atom_model.h"
 #include "bond_model.h"
 
-#include <iostream>
-
 using namespace Vipster;
 
 decltype(GUI::StepData::atom_shader) GUI::StepData::atom_shader;

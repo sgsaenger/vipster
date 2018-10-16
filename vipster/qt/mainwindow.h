@@ -53,6 +53,7 @@ public slots:
     void stepBut(QAbstractButton *but);
     void about();
     void newMol();
+    void newMol(QAction *sender);
     void loadMol();
     void saveMol();
     void editAtoms(QAction *sender);

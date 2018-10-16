@@ -11,6 +11,14 @@ class Molecule
 {
 public:
     Molecule(const std::string &name="New Molecule", size_t s=1);
+    template<typename T>
+    Molecule(const StepConst<T>& step, std::string name="Copy of Step")
+        : name{name},
+          kpoints{}
+    {
+        steps.emplace_back(step);
+        steps.back().pse = pse;
+    }
     std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
 
     Step& newStep(const Step& step);

@@ -335,6 +335,7 @@
       <string>&amp;From existing Molecule</string>
      </property>
      <addaction name="actionCopy_single_Step"/>
+     <addaction name="actionCopy_current_Selection"/>
      <addaction name="actionCopy_Trajector"/>
     </widget>
     <widget class="QMenu" name="menuLoad_Parameter_set">
@@ -686,6 +687,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionCopy_current_Selection">
+   <property name="text">
+    <string>Copy current Selection</string>
    </property>
   </action>
  </widget>
@@ -1094,6 +1100,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>menuFrom_existing_Molecule</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>newMol(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -1107,10 +1129,11 @@
   <slot>saveConfig()</slot>
   <slot>saveParam()</slot>
   <slot>saveScreenshot()</slot>
+  <slot>newMol(QAction*)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="modeGroup"/>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="stepGroup"/>
+  <buttongroup name="modeGroup"/>
  </buttongroups>
 </ui>
