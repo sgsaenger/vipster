@@ -66,6 +66,7 @@ void MainWindow::setupUI()
         ui->pickDock,
         ui->cellModDock,
         ui->millerDock,
+        ui->pinDock,
     };
     for(auto& w: toolWidgets){
         auto action = ui->toolBar->addAction(w->windowTitle());

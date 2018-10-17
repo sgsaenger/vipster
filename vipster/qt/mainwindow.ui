@@ -556,6 +556,15 @@
    </attribute>
    <widget class="MillerWidget" name="millerWidget"/>
   </widget>
+  <widget class="QDockWidget" name="pinDock">
+   <property name="windowTitle">
+    <string>Pin Steps</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="PinWidget" name="pinWidget"/>
+  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -776,6 +785,12 @@
    <class>MillerWidget</class>
    <extends>QWidget</extends>
    <header>qt/tools/millerwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PinWidget</class>
+   <extends>QWidget</extends>
+   <header>qt/tools/pinwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

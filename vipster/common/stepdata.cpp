@@ -14,6 +14,16 @@ GUI::StepData::StepData(const GlobalData& glob, Step* step)
       curStep{step}
 {}
 
+GUI::StepData::StepData(StepData&& dat)
+    : Data{dat.global, dat.updated, dat.initialized},
+      curStep{dat.curStep},
+      draw_bonds{dat.draw_bonds},
+      draw_cell{dat.draw_cell}
+{
+    std::swap(vaos, dat.vaos);
+    std::swap(vbos, dat.vbos);
+}
+
 void GUI::StepData::initGL()
 {
     glGenVertexArrays(4, vaos);
@@ -222,7 +232,7 @@ void GUI::StepData::drawMol(const Vec &off)
                           atom_model_npoly,
                           static_cast<GLsizei>(atom_buffer.size()));
 // BONDS
-    if(settings.showBonds.val){
+    if(draw_bonds){
         glBindVertexArray(bond_vao);
         glUseProgram(bond_shader.program);
         glUniform3ui(bond_shader.mult, 1, 1, 1);
@@ -256,7 +266,7 @@ void GUI::StepData::drawCell(const Vec &off, const std::array<uint8_t,3>& mult)
         }
     }
     // bonds
-    if(settings.showBonds.val){
+    if(draw_bonds){
         glBindVertexArray(bond_vao);
         glUseProgram(bond_shader.program);
         glUniform3ui(bond_shader.mult, mult[0], mult[1], mult[2]);
@@ -275,7 +285,7 @@ void GUI::StepData::drawCell(const Vec &off, const std::array<uint8_t,3>& mult)
         }
     }
     // cell
-    if(settings.showCell.val){
+    if(draw_cell){
         glBindVertexArray(cell_vao);
         glUseProgram(cell_shader.program);
         for(int x=0;x<mult[0];++x){
@@ -372,10 +382,11 @@ void GUI::StepData::updateGL()
                  static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
 }
 
-void GUI::StepData::update(Step* step, bool draw_bonds)
+void GUI::StepData::update(Step* step, bool b, bool c)
 {
     curStep = step;
     updated = true;
+    draw_cell = c;
 
 // CELL
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -416,7 +427,7 @@ void GUI::StepData::update(Step* step, bool draw_bonds)
     }
 
 // BONDS
-    if(draw_bonds){
+    if(b){
         constexpr Vec x_axis{{1,0,0}};
         const auto& bonds = curStep->getBonds();
         const auto& pse = curStep->getAtoms().pse;
@@ -498,9 +509,9 @@ void GUI::StepData::update(Step* step, bool draw_bonds)
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }
         }
-        bonds_drawn = true;
-    }else if(bonds_drawn){
+        draw_bonds = true;
+    }else if(draw_bonds){
         bond_buffer.clear();
-        bonds_drawn = false;
+        draw_bonds = false;
     }
 }

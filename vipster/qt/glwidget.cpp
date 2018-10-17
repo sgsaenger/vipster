@@ -32,11 +32,11 @@ void GLWidget::triggerUpdate(uint8_t change){
 void GLWidget::updateWidget(uint8_t change)
 {
     if((change & guiStepChanged) == guiStepChanged ){
-        setMainStep(master->curStep, settings.showBonds.val);
+        setMainStep(master->curStep, settings.showBonds.val, settings.showCell.val);
         setMainSel(master->curSel);
     }else{
         if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::settings)) {
-            updateMainStep(settings.showBonds.val);
+            updateMainStep(settings.showBonds.val, settings.showCell.val);
             updateMainSelection();
         }else if(change & GuiChange::selection){
             updateMainSelection();

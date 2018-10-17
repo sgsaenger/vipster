@@ -26,10 +26,9 @@ GUI::MeshData::MeshData(MeshData&& dat)
       cell_gpu{dat.cell_gpu},
       texture{dat.texture}
 {
-    std::swap(mesh_vao, dat.mesh_vao);
-    std::swap(mesh_vbo, dat.mesh_vbo);
-    std::swap(cell_vao, dat.cell_vao);
-    std::swap(cell_vbo, dat.cell_vbo);
+    std::swap(vaos, dat.vaos);
+    std::swap(vbos, dat.vbos);
+    std::swap(tex, dat.tex);
 }
 
 void GUI::MeshData::initGL()
