@@ -30,8 +30,7 @@ std::istream& operator>>(std::istream& is, std::tuple<Step&, Vec&, bool> dat){
     }
     if(c == '('){
         // explicit vector
-        is >> c >> vec[0] >> c >> vec[1] >> c >> vec[2];
-        c = static_cast<char>((is >> std::ws).peek());
+        is >> c >> vec[0] >> c >> vec[1] >> c >> vec[2] >> c;
         if(c != ')'){
             std::string fmt;
             is >> fmt;
@@ -51,8 +50,6 @@ std::istream& operator>>(std::istream& is, std::tuple<Step&, Vec&, bool> dat){
                 {"alat", AtomFmt::Alat}
             };
             vec = step.formatVec(vec, fmtmap.at(fmt), step.getFmt());
-        }else{
-            is >> c;
         }
     }else if(c == '-'){
         // negated position vector
