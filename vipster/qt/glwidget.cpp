@@ -2,6 +2,7 @@
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
 #include <QApplication>
+#include <QPainter>
 
 using namespace Vipster;
 
@@ -53,7 +54,27 @@ void GLWidget::initializeGL()
 
 void GLWidget::paintGL()
 {
-    draw();
+    if(rectPos != mousePos){
+        QPainter painter{this};
+        painter.beginNativePainting();
+        draw();
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+        painter.endNativePainting();
+        QPen pen{};
+        pen.setWidth(2);
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(Qt::black);
+        painter.setPen(pen);
+        QBrush brush{};
+        brush.setColor(QColor{180,180,180,40});
+        brush.setStyle(Qt::SolidPattern);
+        painter.setBrush(brush);
+        painter.drawRect(QRect{mousePos, rectPos});
+        painter.end();
+    }else{
+        draw();
+    }
 }
 
 void GLWidget::resizeGL(int w, int h)
@@ -251,12 +272,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
             translateViewMat(delta.x(), -delta.y(), 0);
             update();
         }
-        mousePos = e->pos();
+        rectPos = mousePos = e->pos();
         break;
     case MouseMode::Select:
         if((e->buttons() & Qt::MouseButton::RightButton) == 0u &&
                 delta.manhattanLength() > 5){
             rectPos = e->pos();
+            update();
         }
         break;
     case MouseMode::Modify:
@@ -279,7 +301,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
         default:
             break;
         }
-        mousePos = e->pos();
+        rectPos = mousePos = e->pos();
         break;
     }
 }
@@ -303,6 +325,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             auto idx = pickAtoms();
             filter.indices.insert(idx.begin(), idx.end());
             curSel->setFilter(filter);
+            rectPos = mousePos;
             triggerUpdate(GuiChange::selection);
         }
         break;
