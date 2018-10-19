@@ -373,6 +373,7 @@
     <addaction name="actionCopy_Atom_s"/>
     <addaction name="actionPaste_Atom_s"/>
     <addaction name="separator"/>
+    <addaction name="actionRename_Atom_s"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
     <addaction name="separator"/>
@@ -707,7 +708,12 @@
   </action>
   <action name="actionSet_Bonds">
    <property name="text">
-    <string>(Re-)Calculate Bonds</string>
+    <string>(Re-)Calculate &amp;Bonds</string>
+   </property>
+  </action>
+  <action name="actionRename_Atom_s">
+   <property name="text">
+    <string>&amp;Rename Atom(s)</string>
    </property>
   </action>
  </widget>

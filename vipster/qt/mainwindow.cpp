@@ -219,6 +219,14 @@ void MainWindow::editAtoms(QAction* sender)
             at.properties->flags[AtomFlag::Hidden] = 0;
         }
         change = GuiChange::atoms;
+    }else if ( sender == ui->actionRename_Atom_s){
+        auto tmp = QInputDialog::getText(this, "Rename atoms",
+                                         "Enter new Atom-type for selected atoms:")
+                   .toStdString();
+        for(auto& at: *curSel){
+            at.name = tmp;
+        }
+        change = GuiChange::atoms;
     }else if ( sender == ui->actionCopy_Atom_s){
         copyBuf = *curSel;
     }else if ( sender == ui->actionCut_Atom_s){

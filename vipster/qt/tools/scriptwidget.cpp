@@ -75,10 +75,11 @@ std::istream& operator>>(std::istream& is, std::tuple<Step&, Vec&, bool> dat){
 void ScriptWidget::evalScript()
 {
     struct ScriptOp{
-        enum class Mode{None, Rotate, Shift, Mirror};
+        enum class Mode{None, Rotate, Shift, Mirror, Rename};
         std::string target;
         Mode mode{Mode::None};
         float f{};
+        std::string str{};
         Vipster::Vec v1{}, v2{}, v3{};
     };
     auto script_str = static_cast<QPlainTextEdit*>(ui->inputEdit)->toPlainText().toStdString();
@@ -127,6 +128,9 @@ void ScriptWidget::evalScript()
                 line_stream >> std::tie(step, action.v1, _false);
                 line_stream >> std::tie(step, action.v2, _false);
                 line_stream >> std::tie(step, action.v3, _true);
+            }else if(op == "ren"){
+                action.mode = ScriptOp::Mode::Rename;
+                line_stream >> action.str;
             }else{
                 throw Error("Unknown operator");
             }
@@ -142,6 +146,11 @@ void ScriptWidget::evalScript()
             break;
         case ScriptOp::Mode::Mirror:
             step.modMirror(op.v1, op.v2, op.v3);
+            break;
+        case ScriptOp::Mode::Rename:
+            for(auto& at: step){
+                at.name = op.str;
+            }
             break;
         default:
             throw Error("Invalid operation");
