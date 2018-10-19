@@ -76,7 +76,8 @@ void ScriptWidget::evalScript()
 {
     struct ScriptOp{
         enum class Mode{None, Rotate, Shift, Mirror};
-        Mode mode;
+        std::string target;
+        Mode mode{Mode::None};
         float f{};
         Vipster::Vec v1{}, v2{}, v3{};
     };
@@ -85,7 +86,7 @@ void ScriptWidget::evalScript()
     uint8_t change{};
     Step& step = *master->curStep;
     std::map<std::string, Step::selection> definitions{};
-    std::map<std::string, ScriptOp> operations{};
+    std::vector<ScriptOp> operations{};
     std::string line, op_pre, op(3, ' '), name;
     const bool _false{false}, _true{true};
     while(std::getline(script, line)){
@@ -106,10 +107,10 @@ void ScriptWidget::evalScript()
             definitions.insert({name, step.select(sel)});
         }else{
             // Save OPs on stack
-            // TODO: multimap?
             change |= GuiChange::atoms;
             line_stream >> name;
-            ScriptOp& action = operations[name];
+            operations.push_back({name});
+            auto& action = operations.back();
             // TODO: check when and how stream extraction fails
             if(op == "rot"){
                 action.mode = ScriptOp::Mode::Rotate;
@@ -146,13 +147,13 @@ void ScriptWidget::evalScript()
             throw Error("Invalid operation");
         }
     };
-    for(auto& pair: operations){
-        if (pair.first == "all"){
-            execOp(step, pair.second);
-        }else if(pair.first == "sel"){
-            execOp(*master->curSel, pair.second);
+    for(const auto& op: operations){
+        if(op.target == "all"){
+            execOp(step, op);
+        }else if(op.target == "sel"){
+            execOp(*master->curSel, op);
         }else{
-            execOp(definitions.at(pair.first), pair.second);
+            execOp(definitions.at(op.target), op);
         }
     }
     triggerUpdate(change);
