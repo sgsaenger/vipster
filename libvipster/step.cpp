@@ -333,8 +333,8 @@ void Step::modWrap(){
 void Step::modCrop(){
     std::vector<size_t> toRemove;
     toRemove.reserve(this->getNat());
-    auto handle = asFmt(AtomFmt::Crystal);
-    for(auto it=handle.begin(); it!=handle.end(); ++it){
+    const auto handle = asFmt(AtomFmt::Crystal);
+    for(auto it=handle.cbegin(); it!=handle.cend(); ++it){
         if((it->coord[0]>=1) | (it->coord[0]<0) |
            (it->coord[1]>=1) | (it->coord[1]<0) |
            (it->coord[2]>=1) | (it->coord[2]<0)){
