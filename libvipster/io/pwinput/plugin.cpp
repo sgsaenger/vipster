@@ -181,6 +181,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     Step &s = m.getStep(0);
     CdmFmt cdmFmt;
     IO::PWParam::Namelist& sys = p.system;
+    // make sure that relative coordinates are not changed by "scaling" when setting cdm
     bool scale = (s.getFmt() >= AtomFmt::Crystal);
     auto ibr = sys.find("ibrav");
     if(ibr == sys.end()){
@@ -188,6 +189,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     }
     auto ibrav = std::stoi(ibr->second);
     if(ibrav == 0){
+        s.setCellVec(cell.cell, scale);
         switch (cell.fmt) {
         case CellInp::Bohr:
             s.setCellDim(1, CdmFmt::Bohr, scale);
@@ -222,7 +224,43 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
             throw IO::Error("ibrav=0, but no CELL_PARAMETERS were given");
         }
     }else{
-        throw IO::Error("Sorry, creating cells based on ibrav!=0 not yet supported");
+        auto celldm = sys.find("celldm(1)");
+        auto cellA = sys.find("A");
+        if ((celldm != sys.end()) && (cellA == sys.end())) {
+            cdmFmt = CdmFmt::Bohr;
+            sys.erase(celldm);
+        } else if ((celldm == sys.end()) && (cellA != sys.end())) {
+            cdmFmt = CdmFmt::Angstrom;
+            sys.erase(cellA);
+        } else {
+            throw IO::Error("Specify either celldm or A,B,C, but not both!");
+        }
+        Vec axes{}, angles{};
+        if(cdmFmt == CdmFmt::Bohr){
+            axes[0] = stof(celldm->second);
+            auto celldm2 = sys.find("celldm(2)");
+            if(celldm2 != sys.end()) axes[1] = stof(celldm2->second);
+            auto celldm3 = sys.find("celldm(3)");
+            if(celldm3 != sys.end()) axes[2] = stof(celldm3->second);
+            auto celldm4 = sys.find("celldm(4)");
+            if(celldm4 != sys.end()) angles[0] = stof(celldm4->second);
+            auto celldm5 = sys.find("celldm(5)");
+            if(celldm5 != sys.end()) angles[1] = stof(celldm5->second);
+            auto celldm6 = sys.find("celldm(6)");
+            if(celldm6 != sys.end()) angles[2] = stof(celldm6->second);
+        }else{
+            auto cellB = sys.find("B");
+            if(cellB != sys.end()) axes[1] = stof(cellB->second)/axes[0];
+            auto cellC = sys.find("C");
+            if(cellC != sys.end()) axes[2] = stof(cellC->second)/axes[0];
+            auto cosAB = sys.find("cosAB");
+            if(cosAB != sys.end()) angles[0] = stof(cosAB->second);
+            auto cosAC = sys.find("cosAC");
+            if(cosAC != sys.end()) angles[1] = stof(cosAC->second);
+            auto cosBC = sys.find("cosBC");
+            if(cosBC != sys.end()) angles[2] = stof(cosBC->second);
+        }
+        s.setCell(ibrav, axes, angles, cdmFmt, scale);
     }
 }
 

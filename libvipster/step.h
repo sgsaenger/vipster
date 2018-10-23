@@ -196,8 +196,10 @@ public:
     }
 
     // Cell
-    void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
-    void    setCellVec(const Mat &vec, bool scale=false);
+    void setCellDim(float cdm, CdmFmt fmt, bool scale=false);
+    void setCellVec(const Mat &vec, bool scale=false);
+    void setCell(Vec axes, Vec angles, CdmFmt fmt, bool scale=false);
+    void setCell(int ibrav, Vec axes, Vec angles, CdmFmt fmt, bool scale=false);
 
     // Modifier functions
     void modWrap();

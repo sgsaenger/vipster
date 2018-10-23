@@ -1,5 +1,6 @@
 #include "step.h"
 #include "stepsel.h"
+#include "crystal.h"
 
 using namespace Vipster;
 
@@ -204,6 +205,20 @@ void Step::setCellVec(const Mat &vec, bool scale)
         }
     }
     atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
+}
+
+void Step::setCell(Vec axes, Vec angles, CdmFmt fmt, bool scale)
+{
+    auto cell = makeBravais(14, axes, angles);
+    setCellDim(axes[0], fmt, scale);
+    setCellVec(cell, scale);
+}
+
+void Step::setCell(int ibrav, Vec axes, Vec angles, CdmFmt fmt, bool scale)
+{
+    auto cell = makeBravais(ibrav, axes, angles);
+    setCellDim(axes[0], fmt, scale);
+    setCellVec(cell, scale);
 }
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
