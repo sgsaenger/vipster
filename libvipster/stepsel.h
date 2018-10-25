@@ -287,9 +287,9 @@ struct AtomSelection{
         using pointer = A*;
         using iterator_category = std::bidirectional_iterator_tag;
         AtomSelIterator(std::shared_ptr<AtomSelection> selection,
-                        AtomFmt, size_t idx)
+                        AtomFmt fmt, size_t idx)
         //TODO: introduce a terminal-object (when c++17 is ready?)
-            : B{selection->step->begin()},
+            : B{selection->step->asFmt(fmt).begin()},
               selection{selection}, idx{idx}
         {
             size_t diff = selection->indices.empty() ? 0 : selection->indices[idx];
