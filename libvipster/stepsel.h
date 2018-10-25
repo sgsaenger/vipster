@@ -272,11 +272,14 @@ struct AtomSelection{
     T*                  step;
     SelectionFilter     filter;
 
-    template<typename A>
-    class AtomSelIterator: private T::iterator
+    template<typename A, typename B>
+    class AtomSelIterator;
+    using iterator = AtomSelIterator<Atom, typename T::iterator>;
+    using const_iterator = AtomSelIterator<constAtom, typename T::const_iterator>;
+
+    template<typename A, typename B>
+    class AtomSelIterator: private B
     {
-    private:
-        using Base = typename T::iterator;
     public:
         using difference_type = ptrdiff_t;
         using value_type = A;
@@ -286,11 +289,11 @@ struct AtomSelection{
         AtomSelIterator(std::shared_ptr<AtomSelection> selection,
                         AtomFmt, size_t idx)
         //TODO: introduce a terminal-object (when c++17 is ready?)
-            : Base{selection->step->begin()},
+            : B{selection->step->begin()},
               selection{selection}, idx{idx}
         {
             size_t diff = selection->indices.empty() ? 0 : selection->indices[idx];
-            Base::operator+=(diff);
+            B::operator+=(diff);
         }
         AtomSelIterator& operator++(){
             return operator+=(1);
@@ -301,13 +304,13 @@ struct AtomSelection{
         AtomSelIterator& operator+=(int i){
             idx += i;
             auto diff = selection->indices[idx] - selection->indices[idx-i];
-            Base::operator+=(diff);
+            B::operator+=(diff);
             return *this;
         }
         AtomSelIterator& operator-=(int i){
             idx -= i;
             auto diff = selection->indices[idx] - selection->indices[idx+i];
-            Base::operator+=(diff);
+            B::operator+=(diff);
             return *this;
         }
         AtomSelIterator operator+(int i){
@@ -319,10 +322,10 @@ struct AtomSelection{
             return copy-=i;
         }
         A&  operator*() const {
-            return Base::operator*();
+            return B::operator*();
         }
         A*  operator->() const {
-            return Base::operator->();
+            return B::operator->();
         }
         bool    operator==(const AtomSelIterator& rhs) const noexcept{
             return (selection == rhs.selection) && (idx == rhs.idx);
@@ -337,9 +340,6 @@ struct AtomSelection{
         std::shared_ptr<AtomSelection> selection;
         size_t idx;
     };
-
-    using iterator = AtomSelIterator<Atom>;
-    using const_iterator = AtomSelIterator<const Atom>;
 };
 
 /*

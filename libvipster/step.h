@@ -18,7 +18,7 @@ template<typename T>
 class AtomListIterator;
 struct AtomList{
     using iterator = AtomListIterator<Atom>;
-    using const_iterator = AtomListIterator<const Atom>;
+    using const_iterator = AtomListIterator<constAtom>;
     // Coordinates
     // one buffer per Vipster::AtomFmt
     std::array<std::vector<Vec>, nAtFmt> coordinates;
@@ -39,6 +39,7 @@ struct AtomList{
 template<typename T>
 class AtomListIterator: private T
 {
+    template<typename U> friend class AtomListIterator;
 public:
     using difference_type = ptrdiff_t;
     using value_type = T;
@@ -55,6 +56,11 @@ public:
             &atoms->pse[idx],
             &atoms->prop_changed,
         }, atoms{atoms}, fmt{fmt}, idx{idx}
+    {}
+    // allow iterator to const_iterator conversion
+    template <typename U, typename R=T, typename = typename std::enable_if<std::is_base_of<constAtom, R>::value>::type>
+    AtomListIterator(const AtomListIterator<U>& it)
+        : T{*it}, atoms{it.atoms}, fmt{it.fmt}, idx{it.idx}
     {}
     AtomListIterator& operator++(){
         ++idx;
@@ -98,7 +104,7 @@ public:
     }
     reference operator*() const {
         // remove constness of iterator, as it is independent of constness of Atom
-        return static_cast<T&>(*const_cast<AtomListIterator*>(this));
+        return static_cast<reference>(*const_cast<AtomListIterator*>(this));
     }
     pointer operator->() const {
         return &(operator*());

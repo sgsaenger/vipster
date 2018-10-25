@@ -28,7 +28,7 @@ struct Settings{
     Setting<bool> antialias{"Antialiasing", true};
     Setting<bool> perspective{"Perspective projection", false};
     Setting<bool> rotCom{"Rotate around center of mass", false};
-    Setting<size_t> animstep{"Animation step (ms)", 1000};
+    Setting<size_t> animstep{"Animation step (ms)", 100};
     Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
     Setting<ColVec> milCol{"Miller-plane color", ColVec{130, 0, 0, 80}};
     Setting<ColVec> posCol{"Positive-isovalue color", ColVec{255, 0, 0, 155}};

@@ -46,11 +46,20 @@ namespace Vipster{
      */
     template<typename T>
     class AtomViewBase{
+        template<typename U> friend class AtomViewBase;
     protected:
+        // used as base for iterators, no standalone creation intended atm.
         AtomViewBase(Vec *co, bool *c_m, std::string *n, bool *n_m,
              AtomProperties *p, PseEntry** pse, bool *p_m)
             : coord_ptr{co}, coord_changed{c_m}, name_ptr{n}, name_changed{n_m},
               prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
+        {}
+        // allow Atom to constAtom conversion
+        template <typename U, typename R=T, typename = typename std::enable_if<std::is_const<R>::value>::type>
+        AtomViewBase(const AtomViewBase<U>& at)
+            : coord_ptr{at.coord_ptr}, coord_changed{at.coord_changed},
+              name_ptr{at.name_ptr}, name_changed{at.name_changed},
+              prop_ptr{at.prop_ptr}, pse_ptr{at.pse_ptr}, prop_changed{at.prop_changed}
         {}
         Vec                     *coord_ptr;
         bool                    *coord_changed;
@@ -62,12 +71,16 @@ namespace Vipster{
     private:
         template<typename U, U* AtomViewBase::*p_prop, bool* AtomViewBase::*p_mod>
         class PropRef;
+        template<typename U, U* AtomViewBase::*p_prop, bool* AtomViewBase::*p_mod>
+        using ref = typename std::conditional<std::is_const<T>::value,
+                        const class PropRef<U,p_prop,p_mod>,
+                        class PropRef<U,p_prop,p_mod>>::type;
     public:
-        PropRef<std::string, &AtomViewBase::name_ptr, &AtomViewBase::name_changed>
+        ref<std::string, &AtomViewBase::name_ptr, &AtomViewBase::name_changed>
             name{*this};
-        PropRef<Vec, &AtomViewBase::coord_ptr, &AtomViewBase::coord_changed>
+        ref<Vec, &AtomViewBase::coord_ptr, &AtomViewBase::coord_changed>
             coord{*this};
-        PropRef<AtomProperties, &AtomViewBase::prop_ptr, &AtomViewBase::prop_changed>
+        ref<AtomProperties, &AtomViewBase::prop_ptr, &AtomViewBase::prop_changed>
             properties{*this};
         const PropRef<PseEntry*, &AtomViewBase::pse_ptr, nullptr>
             pse{*this};
@@ -181,8 +194,8 @@ namespace Vipster{
     };
 
     // Main interface declarations
-    using Atom = AtomViewBase<void*>;
-    using constAtom = AtomViewBase<const void*>;
+    using Atom = AtomViewBase<void>;
+    using constAtom = AtomViewBase<const void>;
 }
 
 #endif // ATOM_H

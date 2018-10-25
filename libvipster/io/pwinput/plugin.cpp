@@ -160,8 +160,7 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
     }
 }
 
-void parseCell(std::string name, std::ifstream& file,
-               Molecule& m, IO::PWParam& p, CellInp &cell)
+void parseCell(std::string name, std::ifstream& file, CellInp &cell)
 {
     std::string line;
     for(size_t i=0; i<3; ++i){
@@ -271,7 +270,7 @@ void parseCard(std::string name, std::ifstream& file,
     if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, m, p);
     else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, m, p);
     else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, m);
-    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, m, p, cell);
+    else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, cell);
     else if (name.find("OCCUPATIONS") != name.npos) throw IO::Error("OCCUPATIONS not implemented");
     else if (name.find("CONSTRAINTS") != name.npos) throw IO::Error("CONSTRAINTS not implemented");
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("ATOMIC_FORCES not implemented");
@@ -378,7 +377,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     fixComp[AtomFlag::FixX] = true;
     fixComp[AtomFlag::FixY] = true;
     fixComp[AtomFlag::FixZ] = true;
-    for (const Atom& at: s.asFmt(atom_fmt)) {
+    for (const auto& at: s.asFmt(atom_fmt)) {
         file << std::left << std::setw(3) << at.name
              << ' ' << std::right << std::setw(10) << at.coord[0]
              << ' ' << std::right << std::setw(10) << at.coord[1]

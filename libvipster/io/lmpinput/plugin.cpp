@@ -344,7 +344,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                   const IO::BaseConfig *const c,
                   IO::State state)
 {
-    const auto& step = m.getStep(state.index);
+    const auto step = m.getStep(state.index).asFmt(AtomFmt::Angstrom);
     const auto *cc = dynamic_cast<const IO::LmpConfig*>(c);
     if(!cc) throw IO::Error("Lammps-Writer needs configuration preset");
     const auto tokens = fmtmap.at(IO::LmpConfig::fmt2str.at(cc->style));

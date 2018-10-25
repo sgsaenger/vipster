@@ -57,11 +57,11 @@ public:
 
     // Atoms
     size_t          getNat() const noexcept; // must be implemented in specialization
-    const Atom&     operator[](size_t i) const noexcept
+    constAtom       operator[](size_t i) const noexcept
     {
         return *const_iterator{atoms, at_fmt, i};
     }
-    const source&        getAtoms() const noexcept
+    const source&   getAtoms() const noexcept
     {
         return *atoms;
     }
@@ -108,7 +108,7 @@ public:
     std::set<std::string>   getTypes() const
     {
         std::set<std::string> tmp{};
-        for(const Atom& at: *this){
+        for(const auto& at: *this){
             tmp.insert(at.name);
         }
         return tmp;
@@ -407,18 +407,15 @@ private:
         const Vec xmyz = xz - y;
         const Vec mxyz = yz - x;
         std::array<int16_t, 3> diff_v, crit_v;
+        // BUG: double loop only for non-zero offset!
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
-//        auto at_i = asCrystal.begin();
-//        for (size_t i=0; i<getNat(); ++i) {
             float cut_i = at_i->pse->bondcut;
             if (cut_i<0) {
                 continue;
             }
             for(auto at_j = asCrystal.begin(); at_j != asCrystal.end(); ++at_j){
                 size_t j = at_j.getIdx();
-//            auto at_j = asCrystal.begin();
-//            for (size_t j=0; j<getNat(); ++j) {
                 float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
                     continue;
