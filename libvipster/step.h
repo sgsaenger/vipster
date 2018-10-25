@@ -96,11 +96,11 @@ public:
         AtomListIterator copy{*this};
         return copy-=i;
     }
-    T&      operator*() const {
+    reference operator*() const {
         // remove constness of iterator, as it is independent of constness of Atom
         return static_cast<T&>(*const_cast<AtomListIterator*>(this));
     }
-    T*      operator->() const {
+    pointer operator->() const {
         return &(operator*());
     }
     bool    operator==(const AtomListIterator& rhs) const noexcept{
