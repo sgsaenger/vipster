@@ -375,22 +375,9 @@ private:
         this->bonds->level = BondLevel::Molecule;
     }
 
-    //TODO: move to lambda
-    void checkBond(std::size_t i, std::size_t j, float effcut,
-                   const Vec& dist, const std::array<int16_t, 3>& offset) const
-    {
-        auto& bonds = this->bonds->bonds;
-        if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
-            return;
-        }
-        float dist_n = Vec_dot(dist, dist);
-        if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-            bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
-        }
-    }
-
     void setBondsCell(float cutfac) const
     {
+        auto& bonds = this->bonds->bonds;
         const auto& asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
         const Vec x = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
@@ -407,14 +394,24 @@ private:
         const Vec xmyz = xz - y;
         const Vec mxyz = yz - x;
         std::array<int16_t, 3> diff_v, crit_v;
-        // BUG: double loop only for non-zero offset!
+        auto checkBond = [&](std::size_t i, std::size_t j, float effcut,
+                             const Vec& dist, const std::array<int16_t, 3>& offset)
+        {
+            if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
+                return;
+            }
+            float dist_n = Vec_dot(dist, dist);
+            if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
+            }
+        };
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
             float cut_i = at_i->pse->bondcut;
             if (cut_i<0) {
                 continue;
             }
-            for(auto at_j = asCrystal.begin(); at_j != asCrystal.end(); ++at_j){
+            for(auto at_j = asCrystal.begin()+i+1; at_j != asCrystal.end(); ++at_j){
                 size_t j = at_j.getIdx();
                 float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {
@@ -422,9 +419,12 @@ private:
                 }
                 float effcut = (cut_i + cut_j) * cutfac;
                 Vec dist_v = at_i->coord - at_j->coord;
+                // diff_v contains integer distance in cell-units
                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
+                // dist_v now contains distance inside of cell
                 std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
                     [](float f){return std::fmod(f,1);});
+                // crit_v contains direction of distance-vector
                 std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
                     [](float f){
                         return (std::abs(f) < std::numeric_limits<float>::epsilon())?
@@ -434,6 +434,7 @@ private:
                     // TODO: fail here? set flag? overlapping atoms!
                     continue;
                 }
+                // convert dist_v to bohr
                 dist_v = dist_v * cell->cellvec * cell->dimBohr;
                 // 0-vector
                 checkBond(i, j, effcut, dist_v, diff_v);
@@ -530,8 +531,8 @@ private:
                 }
             }
         }
-        bonds->outdated = false;
-        bonds->level = BondLevel::Cell;
+        this->bonds->outdated = false;
+        this->bonds->level = BondLevel::Cell;
     }
 };
 
