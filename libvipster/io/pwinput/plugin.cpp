@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include "tinyexpr.h"
 
 #include <sstream>
 #include <iomanip>
@@ -105,14 +106,22 @@ void parseCoordinates(std::string name, std::ifstream& file,
     }
 
     s.newAtoms(nat);
-    std::string line;
+    std::string line, coord_expr;
+    int err_pos;
     for (auto& at: s) {
         std::getline(file, line);
         while(line[0]=='!' || line[0]=='#'){
              std::getline(file, line);
         }
         std::stringstream linestream{line};
-        linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
+        linestream >> at.name;
+        for(size_t i=0; i<3; ++i){
+            linestream >> coord_expr;
+            at.coord[i] = static_cast<float>(te_interp(coord_expr.c_str(), &err_pos));
+            if(err_pos){
+                throw IO::Error("Error parsing atom: "+coord_expr);
+            }
+        }
         if (linestream.fail()) {
             throw IO::Error{"Failed to parse atom"};
         }

@@ -48,6 +48,7 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 
 - [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
 - [CLI11](https://github.com/CLIUtils/CLI11) (included)
+- [tinyexpr](https://github.com/codeplea/tinyexpr) (included)
 - [QBS >= 1.11](https://doc.qt.io/qbs)
 - and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
 - optional:

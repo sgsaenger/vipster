@@ -18,7 +18,7 @@ DynamicLibrary {
 
     Group {
         name: "sources"
-        files: ["*.cpp", "**/*.cpp"]
+        files: ["*.cpp", "**/*.cpp", "../external/tinyexpr.c"]
     }
 
     Group {
