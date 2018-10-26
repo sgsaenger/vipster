@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         opt->group("Parse files");
         opt->check(CLI::ExistingFile);
     }
-    app.set_callback([&](){
+    app.callback([&](){
         if(!app.get_subcommands().empty()){
             return;
         }
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     conv_out->required(true);
     conv_out->expected(2);
 
-    convert->set_callback([&](){
+    convert->callback([&](){
         // determine/check in&out formats
         IOFmt fmt_in, fmt_out;
         const auto IOCmdIn = [](){

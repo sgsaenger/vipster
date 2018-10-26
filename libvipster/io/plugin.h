@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 #include <fstream>
+#include <iomanip>
 
 namespace Vipster{
 
