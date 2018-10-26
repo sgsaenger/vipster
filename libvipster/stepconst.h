@@ -378,7 +378,7 @@ private:
     void setBondsCell(float cutfac) const
     {
         auto& bonds = this->bonds->bonds;
-        const auto& asCrystal = asFmt(AtomFmt::Crystal);
+        const auto asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
         const Vec x = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
         const Vec y = getCellVec()[1] * getCellDim(CdmFmt::Bohr);
@@ -411,7 +411,7 @@ private:
             if (cut_i<0) {
                 continue;
             }
-            for(auto at_j = asCrystal.begin()+i+1; at_j != asCrystal.end(); ++at_j){
+            for(auto at_j = at_i+1; at_j != asCrystal.end(); ++at_j){
                 size_t j = at_j.getIdx();
                 float cut_j = at_j->pse->bondcut;
                 if (cut_j<0) {

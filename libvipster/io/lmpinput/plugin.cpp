@@ -374,25 +374,47 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         }
     }
 
-    // prepare angles
+    // prepare angles and impropers
     std::vector<std::tuple<size_t, size_t, size_t>> anglelist;
     std::vector<std::tuple<std::string, std::string, std::string>> angletypelist;
     std::map<std::tuple<std::string, std::string, std::string>, size_t> angletypemap;
+    std::vector<std::tuple<size_t, size_t, size_t, size_t>> improplist;
+    std::vector<std::tuple<std::string, std::string, std::string, std::string>> improptypelist;
+    std::map<std::tuple<std::string, std::string, std::string, std::string>, size_t> improptypemap;
     if(cc->angles || cc->dihedrals || cc->impropers){
         for(auto it=bondlist.begin(); it!=bondlist.end(); ++it){
+            const auto& a0 = std::get<0>(*it);
+            const auto& a1 = std::get<1>(*it);
             for(auto it2=it+1; it2!=bondlist.end(); ++it2){
-                const auto& a0 = std::get<0>(*it);
-                const auto& a1 = std::get<1>(*it);
                 const auto& b0 = std::get<0>(*it2);
                 const auto& b1 = std::get<1>(*it2);
+                bool found{false};
                 if(a0 == b0){
                     anglelist.emplace_back(a1, a0, b1);
+                    found = true;
                 }else if(a1 == b0){
                     anglelist.emplace_back(a0, a1, b1);
+                    found = true;
                 }else if(a1 == b1){
                     anglelist.emplace_back(a0, a1, b0);
+                    found = true;
                 }
                 // a0 == b1 impossible because of sorting
+                if(cc->impropers && found){
+                    for(auto it3=it2+1; it3!=bondlist.end(); ++it3){
+                        const auto& c0 = std::get<0>(*it3);
+                        const auto& c1 = std::get<1>(*it3);
+                        const auto& ang = anglelist.back();
+                        const auto& t0 = std::get<0>(ang);
+                        const auto& t1 = std::get<1>(ang);
+                        const auto& t2 = std::get<2>(ang);
+                        if(c0 == t1){
+                            improplist.emplace_back(t1, t0, t2, c1);
+                        }else if(c1 == t1){
+                            improplist.emplace_back(t1, t0, t2, c0);
+                        }
+                    }
+                }
             }
         }
         for(const auto& angle: anglelist){
@@ -406,6 +428,23 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
             }
             angletypemap.emplace(angletypelist.back(), angletypemap.size()+1);
         }
+        for(const auto& improp: improplist){
+            std::string t0 = step[std::get<0>(improp)].name;
+            std::string t1 = step[std::get<1>(improp)].name;
+            std::string t2 = step[std::get<2>(improp)].name;
+            std::string t3 = step[std::get<3>(improp)].name;
+            if(t1 < t2){
+                std::swap(t1, t2);
+            }
+            if(t1 < t3){
+                std::swap(t1, t3);
+            }
+            if(t2 < t3){
+                std::swap(t2, t3);
+            }
+            improptypelist.emplace_back(t0, t1, t2, t3);
+            improptypemap.emplace(improptypelist.back(), improptypemap.size()+1);
+        }
     }
 
     // prepare dihedrals
@@ -414,10 +453,10 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     std::map<std::tuple<std::string, std::string, std::string, std::string>, size_t> dihedtypemap;
     if(cc->dihedrals){
         for(auto it=anglelist.begin(); it!=anglelist.end(); ++it){
+            const auto& a0 = std::get<0>(*it);
+            const auto& a1 = std::get<1>(*it);
+            const auto& a2 = std::get<2>(*it);
             for(auto it2=it+1; it2!=anglelist.end(); ++it2){
-                const auto& a0 = std::get<0>(*it);
-                const auto& a1 = std::get<1>(*it);
-                const auto& a2 = std::get<2>(*it);
                 const auto& b0 = std::get<0>(*it2);
                 const auto& b1 = std::get<1>(*it2);
                 const auto& b2 = std::get<2>(*it2);
@@ -455,51 +494,6 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                 dihedtypelist.emplace_back(t3, t2, t1, t0);
             }
             dihedtypemap.emplace(dihedtypelist.back(), dihedtypemap.size()+1);
-        }
-    }
-
-    // prepare impropers
-    std::vector<std::tuple<size_t, size_t, size_t, size_t>> improplist;
-    std::vector<std::tuple<std::string, std::string, std::string, std::string>> improptypelist;
-    std::map<std::tuple<std::string, std::string, std::string, std::string>, size_t> improptypemap;
-    if(cc->impropers){
-        for(auto it=anglelist.begin(); it!=anglelist.end(); ++it){
-            for(auto it2=it+1; it2!=anglelist.end(); ++it2){
-                const auto& a0 = std::get<0>(*it);
-                const auto& a1 = std::get<1>(*it);
-                const auto& a2 = std::get<2>(*it);
-                const auto& b0 = std::get<0>(*it2);
-                const auto& b1 = std::get<1>(*it2);
-                const auto& b2 = std::get<2>(*it2);
-                if(a1 == b1){
-                    if((a0 == b0) && (a2 != b2)){
-                        improplist.emplace_back(a1, a0, a2, b2);
-                    }else if((a0 == b2) && (a2 != b0)){
-                        improplist.emplace_back(a1, a0, a2, b0);
-                    }else if((a2 == b0) && (a0 != b2)){
-                        improplist.emplace_back(a1, a0, a2, b2);
-                    }else if((a2 == b2) && (a0 != b0)){
-                        improplist.emplace_back(a1, a0, a2, b0);
-                    }
-                }
-            }
-        }
-        for(const auto& improp: improplist){
-            std::string t0 = step[std::get<0>(improp)].name;
-            std::string t1 = step[std::get<1>(improp)].name;
-            std::string t2 = step[std::get<2>(improp)].name;
-            std::string t3 = step[std::get<3>(improp)].name;
-            if(t1 < t2){
-                std::swap(t1, t2);
-            }
-            if(t1 < t3){
-                std::swap(t1, t3);
-            }
-            if(t2 < t3){
-                std::swap(t2, t3);
-            }
-            improptypelist.emplace_back(t0, t1, t2, t3);
-            improptypemap.emplace(improptypelist.back(), improptypemap.size()+1);
         }
     }
 
