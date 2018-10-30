@@ -6,13 +6,13 @@ using namespace Vipster;
 
 namespace std {
 
-static std::ostream& operator<<(std::ostream& out, const Vec& v)
+static ostream& operator<<(ostream& out, const Vec& v)
 {
     out << "Vec{" << v[0] << ", " << v[1] << ", " << v[2] << "}";
     return out;
 }
 
-static std::ostream& operator<<(std::ostream& os, const Atom& at)
+static ostream& operator<<(ostream& os, const Atom& at)
 {
     os << "Atom{" << at.name << ", " << at.coord << ", " << at.properties->charge
        << ", " << at.properties->flags << "}";
