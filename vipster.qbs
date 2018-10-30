@@ -26,7 +26,7 @@ Project {
 
     Profile {
         name: "emscripten"
-        cpp.compilerName: "emcc"
+        cpp.cCompilerName: "emcc"
         cpp.cxxCompilerName: "em++"
         cpp.architecture: "wasm"
         cpp.driverFlags: ["--bind",
