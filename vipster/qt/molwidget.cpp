@@ -26,7 +26,7 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::updateWidget(uint8_t change)
+void MolWidget::updateWidget(guiChange_t change)
 {
     if (updateTriggered) {
         updateTriggered = false;
@@ -169,7 +169,7 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
                         static_cast<CdmFmt>(ui->cellFmt->currentIndex()),
                         ui->cellScaleBox->isChecked());
     // if needed, trigger atom update
-    uint8_t change = GuiChange::cell;
+    guiChange_t change = GuiChange::cell;
     if(ui->cellScaleBox->isChecked() != (curStep.getFmt()>=AtomFmt::Crystal)){
         change |= GuiChange::atoms;
         fillAtomTable();
@@ -185,7 +185,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
     curStep.setCellVec(vec, ui->cellScaleBox->isChecked());
     // if needed, trigger atom update
-    uint8_t change = GuiChange::cell;
+    guiChange_t change = GuiChange::cell;
     if(ui->cellScaleBox->isChecked() != (curStep.getFmt()==AtomFmt::Crystal)){
         change |= GuiChange::atoms;
         fillAtomTable();

@@ -16,7 +16,7 @@ Data3DWidget::~Data3DWidget()
     delete ui;
 }
 
-void Data3DWidget::updateWidget(uint8_t change)
+void Data3DWidget::updateWidget(guiChange_t change)
 {
     if(change & GuiChange::settings){
         for(auto& p: surfaces){

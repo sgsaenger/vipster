@@ -15,7 +15,7 @@ class PinWidget : public BaseWidget
 public:
     explicit PinWidget(QWidget *parent = nullptr);
     ~PinWidget() override;
-    void updateWidget(uint8_t) override;
+    void updateWidget(Vipster::guiChange_t) override;
 
 private slots:
     void on_showStep_toggled(bool checked);

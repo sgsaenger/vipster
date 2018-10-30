@@ -165,7 +165,7 @@ void PSEWidget::setPSE(PseMap* pse)
     }
 }
 
-void PSEWidget::updateWidget(uint8_t change)
+void PSEWidget::updateWidget(guiChange_t change)
 {
     if(!isGlobal){
         if((change & guiMolChanged) == guiMolChanged){

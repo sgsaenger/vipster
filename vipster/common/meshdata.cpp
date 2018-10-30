@@ -153,7 +153,7 @@ void GUI::MeshData::drawMol(const Vec& off)
     glEnable(GL_CULL_FACE);
 }
 
-void GUI::MeshData::drawCell(const Vec& off, const std::array<uint8_t,3>& mult)
+void GUI::MeshData::drawCell(const Vec& off, const PBCVec &mult)
 {
     glDisable(GL_CULL_FACE);
     Vec tmp = offset + off;

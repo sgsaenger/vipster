@@ -50,7 +50,7 @@ public:
     MeshData(MeshData&& dat);
     ~MeshData() override;
     void drawMol(const Vec &off) override;
-    void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) override;
+    void drawCell(const Vec &off, const PBCVec &mult) override;
     void updateGL(void) override;
     void initGL(void) override;
     void initMesh();

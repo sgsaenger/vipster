@@ -17,7 +17,7 @@ public:
     explicit PSEWidget(QWidget *parent = nullptr);
     ~PSEWidget() override;
     void setPSE(Vipster::PseMap* pse);
-    void updateWidget(uint8_t) override;
+    void updateWidget(Vipster::guiChange_t) override;
 
 public slots:
     void setEntry(QListWidgetItem* item);

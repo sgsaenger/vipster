@@ -58,7 +58,7 @@ public:
         }, atoms{atoms}, fmt{fmt}, idx{idx}
     {}
     // allow iterator to const_iterator conversion
-    template <typename U, typename R=T, typename = typename std::enable_if<std::is_base_of<constAtom, R>::value>::type>
+    template <typename U, typename R=T, typename = typename std::enable_if<std::is_same<constAtom, R>::value>::type>
     AtomListIterator(const AtomListIterator<U>& it)
         : T{*it}, atoms{it.atoms}, fmt{it.fmt}, idx{it.idx}
     {}
@@ -233,5 +233,7 @@ void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const;
 template<>
 void StepConst<AtomSelection<StepConst<AtomList>>>::evaluateCache() const;
 
+template<>
+void StepConst<AtomSelection<StepMutable<AtomSelection<StepMutable<AtomList>>>>>::evaluateCache() const;
 }
 #endif // LIBVIPSTER_STEP_H

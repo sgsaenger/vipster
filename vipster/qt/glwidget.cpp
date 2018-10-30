@@ -25,12 +25,12 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
-void GLWidget::triggerUpdate(uint8_t change){
+void GLWidget::triggerUpdate(guiChange_t change){
     updateTriggered = true;
     master->updateWidgets(change);
 }
 
-void GLWidget::updateWidget(uint8_t change)
+void GLWidget::updateWidget(guiChange_t change)
 {
     if((change & guiStepChanged) == guiStepChanged ){
         setMainStep(master->curStep, settings.showBonds.val, settings.showCell.val);

@@ -48,11 +48,11 @@ public:
     // Selection
     constSelection select(std::string filter) const
     {
-        return {pse, at_fmt, this, filter, bonds, cell, comment};
+        return {pse, at_fmt, this, filter, cell, comment};
     }
     constSelection select(SelectionFilter filter) const
     {
-        return {pse, at_fmt, this, filter, bonds, cell, comment};
+        return {pse, at_fmt, this, filter, cell, comment};
     }
 
     // Atoms

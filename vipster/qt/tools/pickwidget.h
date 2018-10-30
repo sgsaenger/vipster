@@ -15,7 +15,7 @@ class PickWidget : public BaseWidget
 public:
     explicit PickWidget(QWidget *parent = nullptr);
     ~PickWidget() override;
-    void updateWidget(uint8_t) override;
+    void updateWidget(Vipster::guiChange_t) override;
 
 private:
     Ui::PickWidget *ui;

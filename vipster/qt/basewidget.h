@@ -2,6 +2,7 @@
 #define BASEWIDGET_H
 
 #include <QWidget>
+#include "../common/guiglobals.h"
 
 class MainWindow;
 
@@ -10,8 +11,8 @@ class BaseWidget: public QWidget{
 
 public:
     BaseWidget(QWidget *parent = nullptr);
-    void triggerUpdate(uint8_t change);
-    virtual void updateWidget(uint8_t){}
+    void triggerUpdate(Vipster::guiChange_t change);
+    virtual void updateWidget(Vipster::guiChange_t){}
     virtual ~BaseWidget()=default;
 
 protected:

@@ -15,7 +15,7 @@ PinWidget::~PinWidget()
     delete ui;
 }
 
-void PinWidget::updateWidget(uint8_t change)
+void PinWidget::updateWidget(guiChange_t change)
 {
     if((change & guiStepChanged) == guiStepChanged){
         // enable drawing of step previously selected in mainwindow

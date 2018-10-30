@@ -47,7 +47,7 @@ inline void printDihed(QPlainTextEdit& text,
     text.appendPlainText(tmp);
 }
 
-void PickWidget::updateWidget(uint8_t change)
+void PickWidget::updateWidget(guiChange_t change)
 {
     if((change & (GuiChange::atoms|GuiChange::selection)) == 0u){
         return;

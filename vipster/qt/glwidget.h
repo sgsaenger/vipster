@@ -21,8 +21,8 @@ public:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-    void triggerUpdate(uint8_t change);
-    void updateWidget(uint8_t change);
+    void triggerUpdate(Vipster::guiChange_t change);
+    void updateWidget(Vipster::guiChange_t change);
 public slots:
     void setMode(int i,bool t);
     void setMult(int i);

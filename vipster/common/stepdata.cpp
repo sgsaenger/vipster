@@ -245,7 +245,7 @@ void GUI::StepData::drawMol(const Vec &off)
     }
 }
 
-void GUI::StepData::drawCell(const Vec &off, const std::array<uint8_t,3>& mult)
+void GUI::StepData::drawCell(const Vec &off, const PBCVec &mult)
 {
     Vec tmp;
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -300,7 +300,7 @@ void GUI::StepData::drawCell(const Vec &off, const std::array<uint8_t,3>& mult)
     }
 }
 
-void GUI::StepData::drawSel(const std::array<uint8_t,3> &mult)
+void GUI::StepData::drawSel(const PBCVec &mult)
 {
     // draw Atoms (as setup in atom_vao, shader locations must match)
     // with selection shader -> color by gl_InstanceID

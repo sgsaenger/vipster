@@ -25,11 +25,11 @@ public:
     // Selection
     selection select(std::string filter)
     {
-        return selection{this->pse, this->at_fmt, this, filter, this->bonds, this->cell, this->comment};
+        return selection{this->pse, this->at_fmt, this, filter, this->cell, this->comment};
     }
     selection select(SelectionFilter filter)
     {
-        return selection{this->pse, this->at_fmt, this, filter, this->bonds, this->cell, this->comment};
+        return selection{this->pse, this->at_fmt, this, filter, this->cell, this->comment};
     }
 
     // Comment

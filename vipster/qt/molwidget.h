@@ -15,7 +15,7 @@ class MolWidget : public BaseWidget
 public:
     explicit MolWidget(QWidget *parent = nullptr);
     ~MolWidget() override;
-    void updateWidget(uint8_t change) override;
+    void updateWidget(Vipster::guiChange_t change) override;
     void registerMol(const std::string& name);
     Vipster::AtomFmt getAtomFmt();
     Vipster::CdmFmt getCellFmt();
