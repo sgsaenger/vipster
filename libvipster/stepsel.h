@@ -272,6 +272,22 @@ struct AtomSelection{
     T*                  step;
     SelectionFilter     filter;
 
+    size_t getNat() const noexcept
+    {
+        return indices.size();
+    }
+
+    void evaluateCache(const StepConst<AtomSelection<T>>& step)
+    {
+        auto fmt = (filter.mode == SelectionFilter::Mode::Pos) ?
+                    static_cast<AtomFmt>(filter.pos & SelectionFilter::FMT_MASK) :
+                    step.at_fmt;
+        this->step->asFmt(fmt).evaluateCache();
+        if(filter.op & SelectionFilter::UPDATE){
+            indices = evalFilter(*this->step, filter);
+        }
+    }
+
     template<typename B>
     class AtomSelIterator;
     using iterator = AtomSelIterator<typename T::iterator>;

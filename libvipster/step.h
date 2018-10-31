@@ -31,6 +31,9 @@ struct AtomList{
     // Properties
     std::vector<AtomProperties>     properties;
     bool                            prop_changed;
+    // interface
+    void evaluateCache(const StepConst<AtomList>&);
+    size_t getNat() const noexcept;
 };
 
 /*
@@ -215,25 +218,5 @@ public:
     void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt);
 };
 
-template<>
-size_t StepConst<AtomList>::getNat() const noexcept;
-
-template<>
-void StepConst<AtomList>::evaluateCache() const;
-
-template<>
-size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept;
-
-template<>
-size_t StepConst<AtomSelection<StepConst<AtomList>>>::getNat() const noexcept;
-
-template<>
-void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const;
-
-template<>
-void StepConst<AtomSelection<StepConst<AtomList>>>::evaluateCache() const;
-
-template<>
-void StepConst<AtomSelection<StepMutable<AtomSelection<StepMutable<AtomList>>>>>::evaluateCache() const;
 }
 #endif // LIBVIPSTER_STEP_H

@@ -29,6 +29,7 @@ namespace Vipster {
 template<typename T>
 class StepConst
 {
+    friend T;
 public:
     virtual ~StepConst() = default;
 
@@ -40,7 +41,10 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using constSelection = SelectionBase<StepConst, T>;
 
-    void evaluateCache() const; // must be implemented in specialization
+    void evaluateCache() const
+    {
+        atoms->evaluateCache(*this);
+    }
 
     // Don't know how to mask this yet
     std::shared_ptr<PseMap> pse;
@@ -56,7 +60,10 @@ public:
     }
 
     // Atoms
-    size_t          getNat() const noexcept; // must be implemented in specialization
+    size_t          getNat() const noexcept
+    {
+        return atoms->getNat();
+    }
     constAtom       operator[](size_t i) const noexcept
     {
         return *const_iterator{atoms, at_fmt, i};
