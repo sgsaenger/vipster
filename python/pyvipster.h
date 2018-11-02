@@ -6,7 +6,7 @@ namespace py = pybind11;
 using namespace py::literals;
 
 template <typename Array, typename holder_type = std::unique_ptr<Array>, typename... Args>
-py::class_<Array, holder_type> bind_array(py::module &m, std::string const &name, Args&&... args) {
+py::class_<Array, holder_type> bind_array(py::handle &m, std::string const &name, Args&&... args) {
     using Class_ = pybind11::class_<Array, holder_type>;
     using ValueType = typename Array::value_type;
     using SizeType = typename Array::size_type;

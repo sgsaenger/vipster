@@ -22,10 +22,18 @@ void IO(py::module& m){
         .value("XSF", IOFmt::XSF)
     ;
 
-    m.def("readFile",[](std::string fn, IOFmt fmt){
-        IO::Data data = readFile(fn,fmt);
-        return py::make_tuple<py::return_value_policy::automatic>(data.mol, std::move(data.param));
-    },"filename"_a,"format"_a);
+    m.def("readFile",[](std::string fn, IOFmt fmt)->py::object{
+        auto data = readFile(fn,fmt);
+        if(data.data.empty()){
+            return py::make_tuple(data.mol, data.param.get());
+        }else{
+            py::list l{};
+            for(const auto& d: data.data){
+                l.append(d.get());
+            }
+            return py::make_tuple(data.mol, data.param.get(), l);
+        }
+    }, "filename"_a, "format"_a);
 
     /*
      * TODO: provide wrapper

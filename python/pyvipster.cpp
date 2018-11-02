@@ -16,6 +16,7 @@ void Selection(py::module&);
 void KPoints(py::module&);
 void Molecule(py::module&);
 void IO(py::module&);
+void Data(py::module&);
 }
 }
 
@@ -46,4 +47,5 @@ PYBIND11_MODULE(vipster, m) {
     Py::KPoints(m);
     Py::Molecule(m);
     Py::IO(m);
+    Py::Data(m);
 }
