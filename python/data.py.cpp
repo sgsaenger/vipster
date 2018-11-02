@@ -12,10 +12,6 @@ void Data(py::module& m){
        .def_readwrite("origin", &DataGrid2D_f::origin)
        .def_readonly("extent", &DataGrid2D_f::extent)
        .def_readonly("size", &DataGrid2D_f::size)
-           .def("__getitem__", [](DataGrid2D_f& d, py::tuple& t){
-       if(t.size() != 2) throw py::index_error();
-       return d(t[0], t[1]);
-   })
    ;
    bind_array<DataGrid2D_f::Extent>(f2, "Extent");
    auto f3 = py::class_<DataGrid3D_f, BaseData>(m, "DataGrid3D_f")
