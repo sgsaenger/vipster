@@ -6,6 +6,9 @@
 #include <molecule.h>
 #include <io.h>
 
+// TODO: think about const-correctness!
+// can wait until "view"-interface to running libvipster instance is implemented
+
 namespace py = pybind11;
 using namespace py::literals;
 using namespace Vipster;
@@ -61,39 +64,22 @@ PYBIND11_MODULE(vipster, m) {
               "containers for more information.";
 
     /*
-     * Step (Atoms, Bonds, Cell + PSE)
+     * Various containers
      */
 
     bind_array<Vec>(m, "Vec");
     bind_array<Mat>(m, "Mat");
     bind_array<ColVec>(m, "ColVec");
-    py::bind_vector<std::vector<Step>>(m,"__StepVector__");
-    py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
-    py::bind_vector<std::vector<std::string>>(m,"__StringVector__");
-    py::bind_map<std::map<std::string,std::string>>(m,"__StrStrMap__");
+
+    /*
+     * Atom
+     */
 
     py::enum_<AtomFmt>(m, "AtomFmt")
         .value("Bohr", AtomFmt::Bohr)
         .value("Angstrom", AtomFmt::Angstrom)
         .value("Crystal", AtomFmt::Crystal)
         .value("Alat", AtomFmt::Alat)
-    ;
-
-    py::enum_<BondLevel>(m, "BondLevel")
-        .value("None", BondLevel::None)
-        .value("Molecule", BondLevel::Molecule)
-        .value("Cell", BondLevel::Cell)
-    ;
-
-    py::enum_<BondFrequency>(m, "BondFrequency")
-        .value("Never", BondFrequency::Never)
-        .value("Once", BondFrequency::Once)
-        .value("Always", BondFrequency::Always)
-    ;
-
-    py::enum_<CdmFmt>(m, "CellDimFmt")
-        .value("Bohr", CdmFmt::Bohr)
-        .value("Angstrom", CdmFmt::Angstrom)
     ;
 
     py::enum_<AtomFlag>(m, "AtomFlag")
@@ -112,6 +98,12 @@ PYBIND11_MODULE(vipster, m) {
         })
     ;
 
+    py::class_<AtomProperties>(m, "AtomProperties")
+        .def_readwrite("charge", &AtomProperties::charge)
+        .def_readwrite("forces", &AtomProperties::forces)
+        .def_readwrite("flags", &AtomProperties::flags)
+    ;
+
     py::class_<Atom>(m, "Atom")
         .def_property("name", [](const Atom &a)->const std::string&{return a.name;},
                       [](Atom &a, std::string s){a.name = s;})
@@ -123,6 +115,23 @@ PYBIND11_MODULE(vipster, m) {
         .def(py::self != py::self)
     ;
 
+    /*
+     * Bonds
+     */
+    py::bind_vector<std::vector<Bond>>(m,"__BondVector__");
+
+    py::enum_<BondLevel>(m, "BondLevel")
+        .value("None", BondLevel::None)
+        .value("Molecule", BondLevel::Molecule)
+        .value("Cell", BondLevel::Cell)
+    ;
+
+    py::enum_<BondFrequency>(m, "BondFrequency")
+        .value("Never", BondFrequency::Never)
+        .value("Once", BondFrequency::Once)
+        .value("Always", BondFrequency::Always)
+    ;
+
     py::class_<Bond>(m, "Bond")
         .def_readwrite("at1", &Bond::at1)
         .def_readwrite("at2", &Bond::at2)
@@ -131,6 +140,10 @@ PYBIND11_MODULE(vipster, m) {
         .def_readwrite("ydiff", &Bond::ydiff)
         .def_readwrite("zdiff", &Bond::zdiff)
     ;
+
+    /*
+     *  PSE
+     */
 
     py::class_<PseMap, std::shared_ptr<PseMap>>(m, "PseMap")
         .def("__getitem__", &PseMap::operator [], py::return_value_policy::reference_internal)
@@ -149,9 +162,20 @@ PYBIND11_MODULE(vipster, m) {
         .def_readwrite("col", &PseEntry::col)
     ;
 
+    /*
+     * Step
+     */
+
+    py::enum_<CdmFmt>(m, "CellDimFmt")
+        .value("Bohr", CdmFmt::Bohr)
+        .value("Angstrom", CdmFmt::Angstrom)
+    ;
+
     py::class_<Step>(m, "Step")
+        .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Bohr, "comment"_a="")
         .def_readonly("pse", &Step::pse)
         .def_property("comment", &Step::getComment, &Step::setComment)
+    // Atoms
         .def("newAtom", py::overload_cast<std::string, Vec, AtomProperties>(&Step::newAtom),
              "name"_a="", "coord"_a=Vec{}, "properties"_a=AtomProperties{})
         .def("newAtom", py::overload_cast<const Atom&>(&Step::newAtom), "at"_a)
@@ -177,27 +201,92 @@ PYBIND11_MODULE(vipster, m) {
         .def_property_readonly("nat", &Step::getNat)
         .def("__iter__", [](const Step& s){return py::make_iterator(s.begin(), s.end());})
         .def("delAtom", &Step::delAtom, "i"_a)
+    // TYPES
         .def("getTypes", [](const Step& s){
             auto oldT = s.getTypes();
             return std::vector<std::string>(oldT.begin(), oldT.end());
         })
         .def_property_readonly("ntyp", &Step::getNtyp)
-    //FMT
+    // FMT
         .def("getFmt", &Step::getFmt)
         .def("asFmt", py::overload_cast<AtomFmt>(&Step::asFmt), "fmt"_a,
              py::return_value_policy::reference_internal)
         .def("setFmt", &Step::setFmt, "fmt"_a)
-    //CELL
+    // CELL
+        .def("hasCell", &Step::hasCell)
         .def("enableCell", &Step::enableCell, "enable"_a)
         .def("getCellDim", &Step::getCellDim)
         .def("setCellDim", &Step::setCellDim, "cdm"_a, "fmt"_a, "scale"_a=false)
         .def("getCellVec", &Step::getCellVec)
         .def("setCellVec", &Step::setCellVec, "vec"_a, "scale"_a=false)
+        .def("getCom", py::overload_cast<>(&Step::getCom, py::const_))
+        .def("getCom", py::overload_cast<AtomFmt>(&Step::getCom, py::const_), "fmt"_a)
         .def("getCenter", &Step::getCenter, "fmt"_a, "com"_a=false)
-    //BONDS
-        .def("getBonds", py::overload_cast<float, BondLevel, BondFrequency>(&Step::getBonds, py::const_),
-             "cutfac"_a, "level"_a=BondLevel::Cell, "update"_a=BondFrequency::Always)
+    // BONDS
+        .def("getBonds", &Step::getBonds,
+             "cutfac"_a=settings.bondCutFac.val, "level"_a=settings.bondLvl.val, "update"_a=settings.bondFreq.val)
+        .def("setBonds", &Step::setBonds,
+             "level"_a=settings.bondLvl.val, "cutfac"_a=settings.bondCutFac.val)
         .def_property_readonly("nbond", &Step::getNbond)
+    // SELECTION
+        .def("select", py::overload_cast<std::string>(&Step::select), "filter"_a)
+    // TODO: Modification functions
+    ;
+
+    py::class_<Step::selection>(m, "Selection")
+        .def_readonly("pse", &Step::selection::pse)
+        .def_property("comment", &Step::selection::getComment, &Step::selection::setComment)
+    // Atoms
+        .def("__getitem__", [](Step::selection& s, int i){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                return s[static_cast<size_t>(i)];
+            })
+        .def("__setitem__", [](Step::selection& s, int i, const Atom& at){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                s[static_cast<size_t>(i)] = at;
+        })
+        .def("__len__", &Step::selection::getNat)
+        .def_property_readonly("nat", &Step::selection::getNat)
+        .def("__iter__", [](const Step::selection& s){return py::make_iterator(s.begin(), s.end());})
+    // TYPES
+        .def("getTypes", [](const Step::selection& s){
+            auto oldT = s.getTypes();
+            return std::vector<std::string>(oldT.begin(), oldT.end());
+        })
+        .def_property_readonly("ntyp", &Step::selection::getNtyp)
+    // FMT
+        .def("getFmt", &Step::selection::getFmt)
+        .def("asFmt", py::overload_cast<AtomFmt>(&Step::selection::asFmt), "fmt"_a,
+             py::return_value_policy::reference_internal)
+        .def("setFmt", &Step::selection::setFmt, "fmt"_a)
+    // CELL
+        .def("hasCell", &Step::selection::hasCell)
+        .def("enableCell", &Step::selection::enableCell, "enable"_a)
+        .def("getCellDim", &Step::selection::getCellDim)
+        .def("getCellVec", &Step::selection::getCellVec)
+        .def("getCom", py::overload_cast<>(&Step::selection::getCom, py::const_))
+        .def("getCom", py::overload_cast<AtomFmt>(&Step::selection::getCom, py::const_), "fmt"_a)
+        .def("getCenter", &Step::selection::getCenter, "fmt"_a, "com"_a=false)
+    // BONDS
+        .def("getBonds", &Step::selection::getBonds,
+             "cutfac"_a=settings.bondCutFac.val, "level"_a=settings.bondLvl.val, "update"_a=settings.bondFreq.val)
+        .def("setBonds", &Step::selection::setBonds,
+             "level"_a=settings.bondLvl.val, "cutfac"_a=settings.bondCutFac.val)
+        .def_property_readonly("nbond", &Step::selection::getNbond)
+    // SELECTION
+        .def("select", [](Step::selection& s, std::string sel){return Step::selection{s.select(sel)};})
+    // TODO: Modification functions
+    // TODO: selection specific functions?
     ;
 
     /*
@@ -253,8 +342,17 @@ PYBIND11_MODULE(vipster, m) {
         .def_readonly("pse", &Molecule::pse)
         .def("newStep", [](Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const Step&>(&Molecule::newStep), "step"_a)
-        .def("getStep", py::overload_cast<size_t>(&Molecule::getStep), "i"_a, py::return_value_policy::reference_internal)
-        .def("getSteps",py::overload_cast<>(&Molecule::getSteps), py::return_value_policy::reference_internal)
+        .def("__getitem__", [](Molecule& m, int i)->Step&{
+            if(i<0){
+                i = i+static_cast<int>(m.getNstep());
+            }
+            if((i<0) || i>=static_cast<int>(m.getNstep())){
+                throw py::index_error();
+            }
+            return m.getStep(static_cast<size_t>(i));
+        }, py::return_value_policy::reference_internal)
+        .def("__iter__", [](const Molecule& m){return py::make_iterator(m.getSteps().begin(), m.getSteps().end());})
+        .def("__len__", &Molecule::getNstep)
         .def_property_readonly("nstep", &Molecule::getNstep)
         .def_property("name", &Molecule::getName, &Molecule::setName)
         .def_property("kpoints", py::overload_cast<>(&Molecule::getKPoints), &Molecule::setKPoints)
@@ -306,16 +404,10 @@ PYBIND11_MODULE(vipster, m) {
         .def_readwrite("impropers", &IO::LmpConfig::impropers)
     ;
 
-    py::class_<IO::State>(io, "State")
-        .def_readwrite("index", &IO::State::index)
-        .def_readwrite("atom_fmt", &IO::State::atom_fmt)
-        .def_readwrite("cell_fmt", &IO::State::cell_fmt)
-    ;
-
     m.def("readFile",[](std::string fn, IOFmt fmt){
         IO::Data data = readFile(fn,fmt);
         return py::make_tuple<py::return_value_policy::automatic>(data.mol, std::move(data.param));
     },"filename"_a,"format"_a);
     m.def("writeFile", &writeFile, "filename"_a, "format"_a, "molecule"_a,
-          "param"_a=nullptr, "config"_a=nullptr, "state"_a=IO::State{});
+          "param"_a=nullptr, "config"_a=nullptr);
 }
