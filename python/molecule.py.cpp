@@ -4,7 +4,7 @@
 namespace Vipster{
 namespace Py{
 void Molecule(py::module& m){
-    py::class_<Vipster::Molecule>(m, "Vipster::Molecule")
+    py::class_<Vipster::Molecule>(m, "Molecule")
         .def(py::init())
         .def_readonly("pse", &Vipster::Molecule::pse)
         .def("newStep", [](Vipster::Molecule& m){m.newStep();})

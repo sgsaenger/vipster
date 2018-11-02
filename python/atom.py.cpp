@@ -22,7 +22,7 @@ void Atom(py::module& m){
         .value("Alat", AtomFmt::Alat)
     ;
 
-    py::enum_<AtomFlag>(a, "Flag", py::arithmetic())
+    py::enum_<AtomFlag>(a, "Flag")
         .value("FixX", AtomFlag::FixX)
         .value("FixY", AtomFlag::FixY)
         .value("FixZ", AtomFlag::FixZ)

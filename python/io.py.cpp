@@ -11,7 +11,7 @@ void CPInput(py::module&);
 void IO(py::module& m){
     auto io = m.def_submodule("IO");
 
-    py::enum_<IOFmt>(m,"IOFmt")
+    py::enum_<IOFmt>(io,"Fmt")
         .value("XYZ", IOFmt::XYZ)
         .value("PWI", IOFmt::PWI)
         .value("PWO", IOFmt::PWO)

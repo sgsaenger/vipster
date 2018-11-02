@@ -4,12 +4,12 @@
 namespace Vipster{
 namespace Py{
 void PSE(py::module& m){
-    py::class_<PseMap, std::shared_ptr<PseMap>>(m, "PseMap")
+    auto p = py::class_<PseMap, std::shared_ptr<PseMap>>(m, "PseMap")
         .def("__getitem__", &PseMap::operator [], py::return_value_policy::reference_internal)
         .def("__setitem__", [](PseMap &pse, std::string n, PseEntry& e){pse[n] = e;})
     ;
 
-    py::class_<PseEntry>(m, "PseEntry")
+    py::class_<PseEntry>(p, "Entry")
         .def_readwrite("PWPP", &PseEntry::PWPP)
         .def_readwrite("CPPP", &PseEntry::CPPP)
         .def_readwrite("CPNL", &PseEntry::CPNL)

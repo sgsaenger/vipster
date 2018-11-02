@@ -12,7 +12,7 @@ void Step(py::module& m){
         .value("Angstrom", CdmFmt::Angstrom)
     ;
 
-    py::class_<Vipster::Step>(m, "Vipster::Step")
+    auto s = py::class_<Vipster::Step>(m, "Step")
         .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Bohr, "comment"_a="")
         .def_readonly("pse", &Vipster::Step::pse)
         .def_property("comment", &Vipster::Step::getComment, &Vipster::Step::setComment)
@@ -60,6 +60,10 @@ void Step(py::module& m){
         .def("setCellDim", &Vipster::Step::setCellDim, "cdm"_a, "fmt"_a, "scale"_a=false)
         .def("getCellVec", &Vipster::Step::getCellVec)
         .def("setCellVec", &Vipster::Step::setCellVec, "vec"_a, "scale"_a=false)
+        .def("setCell", py::overload_cast<Vec, Vec, CdmFmt, bool>(&Vipster::Step::setCell),
+             "axes"_a, "angles"_a, "fmt"_a, "scale"_a=false)
+        .def("setCell", py::overload_cast<int, Vec, Vec, CdmFmt, bool>(&Vipster::Step::setCell),
+             "ibrav"_a, "axes"_a, "angles"_a, "fmt"_a, "scale"_a=false)
         .def("getCom", py::overload_cast<>(&Vipster::Step::getCom, py::const_))
         .def("getCom", py::overload_cast<AtomFmt>(&Vipster::Step::getCom, py::const_), "fmt"_a)
         .def("getCenter", &Vipster::Step::getCenter, "fmt"_a, "com"_a=false)
@@ -74,7 +78,7 @@ void Step(py::module& m){
     // TODO: Modification functions
     ;
 
-    py::class_<Step::selection>(m, "Selection")
+    py::class_<Step::selection>(s, "Selection")
         .def_readonly("pse", &Step::selection::pse)
         .def_property("comment", &Step::selection::getComment, &Step::selection::setComment)
     // Atoms
