@@ -153,7 +153,13 @@ void MolWidget::fillKPoints()
 
 void MolWidget::on_cellEnabled_toggled(bool checked)
 {
-    curStep.enableCell(checked);
+    if(ui->cellAllBox->isChecked()){
+        for(auto& step: master->curMol->getSteps()){
+            step.enableCell(checked);
+        }
+    }else{
+        curStep.enableCell(checked);
+    }
     triggerUpdate(GuiChange::cell);
 }
 
@@ -165,9 +171,16 @@ void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
-    curStep.setCellDim(static_cast<float>(cdm),
-                        static_cast<CdmFmt>(ui->cellFmt->currentIndex()),
-                        ui->cellScaleBox->isChecked());
+    auto dim = static_cast<float>(cdm);
+    auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+    auto scale = ui->cellScaleBox->isChecked();
+    if(!ui->cellAllBox->isChecked()){
+        curStep.setCellDim(dim, fmt, scale);
+    }else{
+        for(auto& step: master->curMol->getSteps()){
+            step.setCellDim(dim, fmt, scale);
+        }
+    }
     // if needed, trigger atom update
     guiChange_t change = GuiChange::cell;
     if(ui->cellScaleBox->isChecked() != (curStep.getFmt()>=AtomFmt::Crystal)){
@@ -183,7 +196,14 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     Mat vec = curStep.getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
-    curStep.setCellVec(vec, ui->cellScaleBox->isChecked());
+    auto scale = ui->cellScaleBox->isChecked();
+    if(ui->cellAllBox->isChecked()){
+        for(auto& step: master->curMol->getSteps()){
+            step.setCellVec(vec, scale);
+        }
+    }else{
+        curStep.setCellVec(vec, scale);
+    }
     // if needed, trigger atom update
     guiChange_t change = GuiChange::cell;
     if(ui->cellScaleBox->isChecked() != (curStep.getFmt()==AtomFmt::Crystal)){
