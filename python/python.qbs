@@ -7,7 +7,7 @@ DynamicLibrary {
     targetName: "vipster" + pySettings.libSuffix
     condition: hasPython.found && !project.webBuild
     builtByDefault: project.pythonBuild
-    files: ["pyvipster.cpp"]
+    files: ["*.h", "*.cpp", "*.pypp"]
     Depends { name: "libvipster" }
 
     Group{
