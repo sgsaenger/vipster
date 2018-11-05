@@ -52,7 +52,7 @@ void PickWidget::updateWidget(guiChange_t change)
     if((change & (GuiChange::atoms|GuiChange::selection)) == 0u){
         return;
     }
-    auto curSel = master->curSel->asFmt(AtomFmt::Angstrom);
+    const auto curSel = master->curSel->asFmt(AtomFmt::Angstrom);
     auto& text = *ui->PickText;
     auto idx = curSel.getIndices().begin();
     text.setPlainText("Atoms:");
