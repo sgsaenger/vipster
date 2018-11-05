@@ -17,9 +17,9 @@ ScriptWidget::~ScriptWidget()
     delete ui;
 }
 
-std::istream& operator>>(std::istream& is, std::tuple<Step&, Vec&, bool> dat){
+std::istream& operator>>(std::istream& is, std::tuple<const Step&, Vec&, bool> dat){
     auto c = static_cast<char>((is >> std::ws).peek());
-    Step& step = std::get<0>(dat);
+    const Step& step = std::get<0>(dat);
     Vec& vec = std::get<1>(dat);
     bool optional = std::get<2>(dat);
     if(!is.good()){
@@ -58,12 +58,14 @@ std::istream& operator>>(std::istream& is, std::tuple<Step&, Vec&, bool> dat){
         vec = -step[id].coord;
     }else{
         // position or difference vector
-        float id1{}, id2{};
-        is >> id1 >> id2;
-        if(id2<0){
-            vec = step[static_cast<size_t>(id1)].coord - step[static_cast<size_t>(-id2)].coord;
+        size_t id1, id2;
+        is >> id1;
+        c = static_cast<char>(is.peek());
+        if(c == '-'){
+            is >> id2;
+            vec = step[id1].coord - step[id2].coord;
         }else{
-            vec = step[static_cast<size_t>(id1)].coord;
+            vec = step[id1].coord;
         }
     }
     return is;
