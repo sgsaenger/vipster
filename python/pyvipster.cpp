@@ -8,6 +8,7 @@ using namespace Vipster;
 
 namespace Vipster{
 namespace Py{
+void Vec(py::module&);
 void Atom(py::module&);
 void Bond(py::module&);
 void PSE(py::module&);
@@ -32,14 +33,13 @@ PYBIND11_MODULE(vipster, m) {
      * Basic containers
      */
 
-    bind_array<Vec>(m, "Vec");
-    bind_array<Mat>(m, "Mat");
     bind_array<ColVec>(m, "ColVec");
 
     /*
-     * Initialize rest of library
+     * Initialize library
      */
 
+    Py::Vec(m);
     Py::Atom(m);
     Py::Bond(m);
     Py::PSE(m);
