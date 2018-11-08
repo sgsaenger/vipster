@@ -210,15 +210,15 @@ void Step::setCellVec(const Mat &vec, bool scale)
 void Step::setCell(Vec axes, Vec angles, CdmFmt fmt, bool scale)
 {
     auto cell = makeBravais(14, axes, angles);
-    setCellDim(axes[0], fmt, scale);
     setCellVec(cell, scale);
+    setCellDim(axes[0], fmt, scale);
 }
 
 void Step::setCell(int ibrav, Vec axes, Vec angles, CdmFmt fmt, bool scale)
 {
     auto cell = makeBravais(ibrav, axes, angles);
-    setCellDim(axes[0], fmt, scale);
     setCellVec(cell, scale);
+    setCellDim(axes[0], fmt, scale);
 }
 
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)

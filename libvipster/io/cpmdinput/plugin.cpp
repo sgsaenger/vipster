@@ -144,7 +144,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     parsed = true;
                     auto& kp = m.getKPoints();
                     if(line.find("MONKHORST-PACK") != line.npos){
-                        kp.active = KPointFmt::MPG;
+                        kp.active = KPoints::Fmt::MPG;
                         std::getline(file, buf);
                         std::stringstream{buf} >> kp.mpg.x >> kp.mpg.y >> kp.mpg.z;
                         size_t pos;
@@ -153,7 +153,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                                 >> kp.mpg.sx >> kp.mpg.sy >> kp.mpg.sz;
                         }
                     }else{
-                        kp.active = KPointFmt::Discrete;
+                        kp.active = KPoints::Fmt::Discrete;
                         if(line.find("SCALED") != line.npos){
                             kp.discrete.properties |=
                                     KPoints::Discrete::Properties::crystal;
@@ -161,8 +161,8 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         if(line.find("BANDS") != line.npos){
                             kp.discrete.properties |=
                                     KPoints::Discrete::Properties::band;
-                            auto isTerm = [](const DiscreteKPoint& p1,
-                                             const DiscreteKPoint& p2){
+                            auto isTerm = [](const KPoints::Discrete::Point& p1,
+                                             const KPoints::Discrete::Point& p2){
                                 return float_comp(p1.pos[0], 0) && float_comp(p1.pos[1], 0)
                                         && float_comp(p1.pos[2], 0) && float_comp(p1.weight, 0)
                                         && float_comp(p2.pos[0], 0) && float_comp(p2.pos[1], 0)
@@ -171,7 +171,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                             bool cont{true};
                             do{
                                 std::getline(file, buf);
-                                DiscreteKPoint p1, p2;
+                                KPoints::Discrete::Point p1, p2;
                                 std::stringstream{buf}
                                     >> p1.weight
                                     >> p1.pos[0] >> p1.pos[1] >> p1.pos[2]
@@ -545,14 +545,14 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                  << "  " << tmpvec[1][0] << ' ' << tmpvec[1][1] << ' ' << tmpvec[1][2] << '\n'
                  << "  " << tmpvec[2][0] << ' ' << tmpvec[2][1] << ' ' << tmpvec[2][2] << '\n';
             const auto kp = m.getKPoints();
-            if(kp.active == KPointFmt::MPG){
+            if(kp.active == KPoints::Fmt::MPG){
                 const auto& mpg = kp.mpg;
                 file << "  KPOINTS MONKHORST-PACK";
                 if(float_comp(mpg.sx, 0) || float_comp(mpg.sy, 0) || float_comp(mpg.sz, 0)){
                     file << " SHIFT=" << mpg.sx << ' ' << mpg.sy << ' ' << mpg.sz;
                 }
                 file << "\n  " << mpg.x << ' ' << mpg.y << ' ' << mpg.z << '\n';
-            }else if(kp.active == KPointFmt::Discrete){
+            }else if(kp.active == KPoints::Fmt::Discrete){
                 const auto& disc = kp.discrete;
                 file << "  KPOINTS" << std::defaultfloat;
                 if(disc.properties & KPoints::Discrete::crystal){

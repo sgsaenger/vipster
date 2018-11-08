@@ -141,7 +141,7 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
         std::string line;
         std::getline(file, line);
         while(line[0]=='!' || line[0]=='#') std::getline(file, line);
-        m.getKPoints().active = KPointFmt::MPG;
+        m.getKPoints().active = KPoints::Fmt::MPG;
         KPoints::MPG &mpg = m.getKPoints().mpg;
         std::stringstream linestream{line};
         linestream >> mpg.x >> mpg.y >> mpg.z >> mpg.sx >> mpg.sy >> mpg.sz;
@@ -163,7 +163,7 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
         m.getKPoints().discrete.kpoints.resize(nk);
         for(size_t k=0; k!=nk; ++k){
             std::getline(file, line);
-            DiscreteKPoint &kp = m.getKPoints().discrete.kpoints[k];
+            KPoints::Discrete::Point &kp = m.getKPoints().discrete.kpoints[k];
             std::stringstream{line} >> kp.pos[0] >> kp.pos[1] >> kp.pos[2] >> kp.weight;
         }
     }
@@ -403,15 +403,15 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     const std::array<std::string, 6> kdprop =
         {{"tpiba", "crystal", "tpiba_b", "crystal_b", "tpiba_c", "crystal_c"}};
     switch(k.active){
-    case KPointFmt::Gamma:
+    case KPoints::Fmt::Gamma:
         file << "gamma\n";
         break;
-    case KPointFmt::MPG:
+    case KPoints::Fmt::MPG:
         file << "automatic\n"
              << k.mpg.x << ' ' << k.mpg.y << ' ' << k.mpg.z << ' '
              << k.mpg.sx << ' ' << k.mpg.sy << ' ' << k.mpg.sz << '\n';
         break;
-    case KPointFmt::Discrete:
+    case KPoints::Fmt::Discrete:
         file << kdprop[k.discrete.properties] << '\n'
              << k.discrete.kpoints.size() << '\n';
         for(auto &kd: k.discrete.kpoints){
