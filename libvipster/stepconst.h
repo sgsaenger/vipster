@@ -133,7 +133,7 @@ public:
     void                setFmt(AtomFmt tgt) const
     {
         if(tgt == at_fmt){ return; }
-        asFmt(tgt).evaluateCache();
+        asFmt(tgt);
         at_fmt = tgt;
     }
     StepConst           asFmt(AtomFmt tgt) const
