@@ -47,19 +47,19 @@
   <customwidget>
    <class>Data2DWidget</class>
    <extends>QWidget</extends>
-   <header>qt/data/data2dwidget.h</header>
+   <header>data/data2dwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>Data3DWidget</class>
    <extends>QWidget</extends>
-   <header>qt/data/data3dwidget.h</header>
+   <header>data/data3dwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>Data3DVWidget</class>
    <extends>QWidget</extends>
-   <header>qt/data/data3dvwidget.h</header>
+   <header>data/data3dvwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
