@@ -6,7 +6,7 @@ option(TESTS "Build tests" OFF)
 option(DESKTOP "Build QT-based desktop app" ON)
 include(CMakeDependentOption)
 cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
-cmake_dependent_option(PYBIND "Python bindings" OFF "NOT WEB" OFF)
+cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -24,6 +24,16 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
+install(TARGETS libvipster
+    RUNTIME
+        DESTINATION "."
+    LIBRARY
+        DESTINATION "lib"
+    )
+install(DIRECTORY "libvipster"
+    DESTINATION "include"
+    FILES_MATCHING PATTERN "*.h"
+    )
 
 if(TESTS)
     # Tests, so far only for library
@@ -32,49 +42,65 @@ if(TESTS)
     target_link_libraries(test_lib libvipster)
 endif()
 
-if(PYBIND)
+if(PYTHON)
     # Python-bindings
     add_subdirectory(pybind11)
     file(GLOB PY_SOURCES "python/*.cpp")
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)
+    if(UNIX)
+        find_package(PythonInterp REQUIRED)
+        execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+"from distutils import sysconfig as s;
+print(s.get_python_lib(plat_specific=True,standard_lib=False))"
+            OUTPUT_VARIABLE PYTHON_SITE
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+        install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
+    endif()
 endif()
 
 if(DESKTOP)
-# Qt-based desktop application
+    # Qt-based desktop application
 
-# load and setup qt
-find_package(Qt5 CONFIG REQUIRED COMPONENTS Widgets Gui)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
+    # load and setup qt
+    find_package(Qt5 CONFIG REQUIRED COMPONENTS Widgets Gui)
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
 
-# executable
-file(GLOB_RECURSE QT_SOURCES
-     "vipster/qt/*.cpp"
-     "vipster/qt/*.ui"
-     "vipster/common/*.cpp"
-     "vipster/resources/vipster.qrc"
-     "vipster/resources/win.rc"
-     )
-add_executable(vipster ${QT_SOURCES})
-target_link_libraries(vipster Qt5::Gui Qt5::Widgets libvipster)
+    # executable
+    file(GLOB_RECURSE QT_SOURCES
+         "vipster/qt/*.cpp"
+         "vipster/qt/*.ui"
+         "vipster/common/*.cpp"
+         "vipster/resources/vipster.qrc"
+         "vipster/resources/win.rc"
+         )
+    add_executable(vipster ${QT_SOURCES})
+    target_link_libraries(vipster Qt5::Gui Qt5::Widgets libvipster)
+    if(UNIX)
+        install(TARGETS vipster RUNTIME DESTINATION "bin")
+        install(FILES "vipster/resources/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
+        install(FILES "dist/vipster.desktop" DESTINATION "share/applications")
+        install(FILES "dist/vipster.appdata.xml" DESTINATION "share/metainfo")
+    endif()
 endif()
 
 if(WEB)
-# Emscripten-based web application
+    # Emscripten-based web application
 
-set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0")
-file(GLOB WEB_RESOURCES "vipster/resources/*.frag" "vipster/resources/*.vert")
-foreach(file ${WEB_RESOURCES})
-    get_filename_component(filename ${file} NAME)
-    set(EMCC_EMBED_FLAGS "${EMCC_EMBED_FLAGS}  --embed-file ${file}@${filename}")
-endforeach(file)
-set(CMAKE_EXE_LINKER_FLAGS "${EMCC_LINKER_FLAGS} ${EMCC_EMBED_FLAGS}")
+    set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0")
+    file(GLOB WEB_RESOURCES "vipster/resources/*.frag" "vipster/resources/*.vert")
+    foreach(file ${WEB_RESOURCES})
+        get_filename_component(filename ${file} NAME)
+        set(EMCC_EMBED_FLAGS "${EMCC_EMBED_FLAGS}  --embed-file ${file}@${filename}")
+    endforeach(file)
+    set(CMAKE_EXE_LINKER_FLAGS "${EMCC_LINKER_FLAGS} ${EMCC_EMBED_FLAGS}")
 
-file(GLOB WEB_SOURCES "vipster/common/*.cpp" "vipster/web/main.cpp")
-add_executable(webvipster ${WEB_SOURCES})
-target_link_libraries(webvipster libvipster)
+    file(GLOB WEB_SOURCES "vipster/common/*.cpp" "vipster/web/main.cpp")
+    add_executable(webvipster ${WEB_SOURCES})
+    set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
+    target_link_libraries(webvipster libvipster)
 endif()
