@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include <cctype>
 
 using namespace Vipster;
 

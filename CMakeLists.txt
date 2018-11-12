@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.9)
 project(Vipster VERSION 1.14)
 
 option(TESTS "Build tests" OFF)
-option(DESKTOP "Build QT-based desktop app" ON)
+option(DESKTOP "Build QT-based desktop app" OFF)
 include(CMakeDependentOption)
 cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
 cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
@@ -20,20 +20,21 @@ file(GLOB_RECURSE LIB_SOURCES "libvipster/*.cpp" "external/tinyexpr.c")
 add_library(libvipster SHARED ${LIB_SOURCES})
 set_target_properties(libvipster
     PROPERTIES
+        FRAMEWORK TRUE
         OUTPUT_NAME "vipster"
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-install(TARGETS libvipster
-    RUNTIME
-        DESTINATION "."
-    LIBRARY
-        DESTINATION "lib"
-    )
-install(DIRECTORY "libvipster"
-    DESTINATION "include"
-    FILES_MATCHING PATTERN "*.h"
-    )
+if(UNIX AND NOT APPLE)
+    install(TARGETS libvipster
+        LIBRARY
+            DESTINATION "lib"
+        )
+    install(DIRECTORY "libvipster"
+        DESTINATION "include"
+        FILES_MATCHING PATTERN "*.h"
+        )
+endif()
 
 if(TESTS)
     # Tests, so far only for library
@@ -44,12 +45,12 @@ endif()
 
 if(PYTHON)
     # Python-bindings
-    add_subdirectory(pybind11)
+    add_subdirectory(external/pybind11)
     file(GLOB PY_SOURCES "python/*.cpp")
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(UNIX)
+    if(UNIX AND NOT APPLE)
         find_package(PythonInterp REQUIRED)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
@@ -76,13 +77,21 @@ if(DESKTOP)
          "vipster/qt/*.ui"
          "vipster/common/*.cpp"
          "vipster/resources/vipster.qrc"
-         "vipster/resources/win.rc"
          )
-    add_executable(vipster ${QT_SOURCES})
+
+    # icon-files:
+    if(APPLE)
+        set(MACOSX_BUNDLE_ICON_FILE vipster.icns)
+        set(ICON_SOURCES "dist/vipster.icns")
+        set_source_files_properties(${ICON_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    elseif(WIN32)
+        set(ICON_SOURCES "dist/win.rc")
+    endif()
+    add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
     target_link_libraries(vipster Qt5::Gui Qt5::Widgets libvipster)
-    if(UNIX)
+    if(UNIX AND NOT APPLE)
         install(TARGETS vipster RUNTIME DESTINATION "bin")
-        install(FILES "vipster/resources/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
+        install(FILES "dist/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
         install(FILES "dist/vipster.desktop" DESTINATION "share/applications")
         install(FILES "dist/vipster.appdata.xml" DESTINATION "share/metainfo")
     endif()
