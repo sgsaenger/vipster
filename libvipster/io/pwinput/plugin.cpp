@@ -195,6 +195,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     if(ibr == sys.end()){
         throw IO::Error("ibrav needs to be specified");
     }
+    sys.erase(ibr);
     auto ibrav = std::stoi(ibr->second);
     if(ibrav == 0){
         s.setCellVec(cell.cell, scale);
