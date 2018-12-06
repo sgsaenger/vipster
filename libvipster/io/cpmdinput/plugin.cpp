@@ -275,20 +275,20 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     std::getline(file, buf);
                     (*s.pse)[name].CPNL = trim(buf);
                     std::getline(file, buf);
+                    size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
                     s.newAtoms(nat);
-                    for(auto& at: s){
+                    for(auto at = s.begin()+oldNat; at!=s.end(); ++at){
                         std::getline(file, buf);
                         std::stringstream linestream{buf};
-                        at.name = name;
-                        linestream >> at.coord[0] >> at.coord[1] >> at.coord[2];
+                        at->name = name;
+                        linestream >> at->coord[0] >> at->coord[1] >> at->coord[2];
                         if (linestream.fail()) {
                             throw IO::Error{"Failed to parse atom"};
                         }
                     }
                 }else if(line.find("CONSTRAINTS") != line.npos){
                     parsed = true;
-                    std::getline(file, buf);
                     std::vector<std::string> other;
                     while(buf.find("END CONSTRAINTS") == buf.npos){
                         std::getline(file, buf);
@@ -347,39 +347,35 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                                     it->properties->flags |= fixComp;
                                 }
                             }else if(buf.find("ATOM") != buf.npos){
-                                std::getline(file, buf);
-                                std::stringstream ss{buf};
                                 size_t nat, idx;
-                                ss >> nat;
+                                file >> nat;
                                 for(size_t i=0; i<nat; ++i){
-                                    ss >> idx;
-                                    s[idx].properties->flags |= fixComp;
+                                    file >> idx;
+                                    s[idx-1].properties->flags |= fixComp;
                                 }
                             }else if(buf.find("COOR") != buf.npos){
-                                std::getline(file, buf);
-                                std::stringstream ss{buf};
                                 size_t nat, idx;
-                                ss >> nat;
+                                file >> nat;
                                 for(size_t i=0; i < nat; ++i){
                                     bool x{}, y{}, z{};
-                                    ss >> idx >> x >> y >> z;
-                                    s[idx].properties->flags[AtomFlag::FixX] = x;
-                                    s[idx].properties->flags[AtomFlag::FixY] = y;
-                                    s[idx].properties->flags[AtomFlag::FixZ] = z;
+                                    file >> idx >> x >> y >> z;
+                                    s[idx-1].properties->flags[AtomFlag::FixX] = !x;
+                                    s[idx-1].properties->flags[AtomFlag::FixY] = !y;
+                                    s[idx-1].properties->flags[AtomFlag::FixZ] = !z;
                                 }
                             }else{
                                 other.push_back(buf);
                             }
-                        }else{
+                        }else if(!buf.empty()){
                             other.push_back(buf);
                         }
-                        if(!buf.empty()){
-                            (p.*curSection).push_back("CONSTRAINTS");
-                            (p.*curSection).insert((p.*curSection).end(),
-                                                   other.begin(),
-                                                   other.end());
-                            (p.*curSection).push_back("END CONSTRAINTS");
-                        }
+                    }
+                    if(!other.empty()){
+                        (p.*curSection).push_back("CONSTRAINTS");
+                        (p.*curSection).insert((p.*curSection).end(),
+                                               other.begin(),
+                                               other.end());
+                        (p.*curSection).push_back("END CONSTRAINTS");
                     }
                 }else if(line.find("ISOTOPE") != line.npos){
                     parsed = true;
