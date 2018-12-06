@@ -128,7 +128,11 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
             if(line.find("&END") != line.npos){
                 curSection = nullptr;
             }else{
-                curSection = IO::CPParam::str2section.at(line);
+                curSection = std::find_if(IO::CPParam::str2section.begin(),
+                                          IO::CPParam::str2section.end(),
+                                          [&line](const decltype(IO::CPParam::str2section)::value_type& pair){
+                                              return pair.first == line;
+                                          })->second;
             }
         }else{
             if(!curSection){
@@ -288,10 +292,10 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         }
                     }
                 }else if(line.find("CONSTRAINTS") != line.npos){
+                    std::getline(file, buf);
                     parsed = true;
                     std::vector<std::string> other;
                     while(buf.find("END CONSTRAINTS") == buf.npos){
-                        std::getline(file, buf);
                         AtomFlags fixComp{};
                         fixComp[AtomFlag::FixX] = true;
                         fixComp[AtomFlag::FixY] = true;
@@ -369,6 +373,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         }else if(!buf.empty()){
                             other.push_back(buf);
                         }
+                        std::getline(file, buf);
                     }
                     if(!other.empty()){
                         (p.*curSection).push_back("CONSTRAINTS");
@@ -468,7 +473,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                          << ' ' << std::right << std::setw(10) << it->coord[1]
                          << ' ' << std::right << std::setw(10) << it->coord[2] << '\n';
                     const auto fix = it->properties->flags & fixComp;
-                    if(fix.all()){
+                    if(fix == fixComp){
                         fixAtom.push_back(count);
                     }else if(fix.any()){
                         fixCoord.emplace_back(count, fix);
@@ -496,33 +501,34 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                     file << "  FIX ATOMS\n  "
                          << fixAtom.size() << ' ';
                     for(const auto& idx: fixAtom){
-                        file << idx;
+                        file << idx << ' ';
                     }
-                    file << '\n';
+                    file << "\n\n";
                 }
                 if(!fixCoord.empty()){
                     file << "  FIX COORDINATES\n  "
-                         << fixCoord.size() << '\n';
+                         << fixCoord.size() << "\n  ";
                     for(const auto& pair: fixCoord){
-                        file << pair.first
-                             << pair.second[AtomFlag::FixX]
-                             << pair.second[AtomFlag::FixY]
-                             << pair.second[AtomFlag::FixZ];
+                        file << pair.first << ' '
+                             << pair.second[AtomFlag::FixX] << ' '
+                             << pair.second[AtomFlag::FixY] << ' '
+                             << pair.second[AtomFlag::FixZ] << "\n  ";
                     }
                     file << '\n';
                 }
                 if(otherConstraints != pp->atoms.size()){
-                    for(size_t i=otherConstraints; i<pp->atoms.size(); ++i){
+                    for(size_t i=otherConstraints+1; i<pp->atoms.size(); ++i){
                         file << pp->atoms[i] << '\n';
                     }
+                }else{
+                    file << "  END CONSTRAINTS\n";
                 }
-                file << "  END CONSTRAINTS\n";
             }
-            file << "  ISOTOPES\n";
+            file << "  ISOTOPE\n";
             for(const auto& m: masses){
                 file << "  " << m << '\n';
             }
-            file << "&END\n";
+            file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::system){
             file << pair.first << '\n';
             if(cc->angstrom){
@@ -578,14 +584,14 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             for(const auto& line: pp->system){
                 file << line << '\n';
             }
-            file << "&END\n";
+            file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::cpmd ||
                  !(pp->*pair.second).empty()){
             file << pair.first << '\n';
             for(const auto& line: pp->*pair.second){
                 file << line << '\n';
             }
-            file << "&END\n";
+            file << "&END\n\n";
         }
     }
     return true;

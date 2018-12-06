@@ -25,7 +25,7 @@ struct CPParam: BaseParam{
     Section exte;
     Section vdw;
     Section qmmm;
-    static const std::map<std::string, Section CPParam::*> str2section;
+    static const std::vector<std::pair<std::string, Section CPParam::*>> str2section;
     CPParam(std::string="", Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={});
