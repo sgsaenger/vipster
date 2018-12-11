@@ -33,6 +33,8 @@ public:
     using std::map<std::string,PseEntry>::emplace;
     using std::map<std::string,PseEntry>::find;
     using std::map<std::string,PseEntry>::size;
+    using std::map<std::string,PseEntry>::key_type;
+    using std::map<std::string,PseEntry>::mapped_type;
     using std::map<std::string,PseEntry>::value_type;
     PseMap(std::initializer_list<PseMap::value_type> il={}, bool r=false);
     PseEntry& operator [](const std::string &k);

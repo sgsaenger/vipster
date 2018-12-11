@@ -1,6 +1,6 @@
 #include "pse.h"
 #include "configfile.h"
-#include <locale>
+#include <cctype>
 
 using namespace Vipster;
 
@@ -141,7 +141,6 @@ PseEntry& PseMap::operator [](const std::string& k)
         return at(k);
     }catch(const std::out_of_range&){
         if(!root){
-            std::locale loc;
             char *p;
             std::size_t Z = std::strtoul(k.c_str(), &p, 10);
             if(*p){
@@ -150,7 +149,7 @@ PseEntry& PseMap::operator [](const std::string& k)
                 {
                     std::string test = k.substr(0,i);
                     if(std::islower(test[0]) != 0){
-                        test[0] = std::toupper(test[0],loc);
+                        test[0] = std::toupper(test[0]);
                     }
                     if(Vipster::pse.find(test) != Vipster::pse.end())
                     {

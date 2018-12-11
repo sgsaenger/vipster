@@ -1,76 +1,67 @@
 # Installation instructions
 
-Vipster has three main frontends:
-- QtVipster, a desktop-application
-- PyVipster, python bindings to accomodate scripting
-- WebVipster, a web-application
+Vipster has four main components:
+- *QtVipster*, a desktop-application
+- *PyVipster*, python bindings to accomodate scripting
+- *WebVipster*, a web-application
+- *libvipster*, the library everything else is based on
 
-In order to compile any of these (except the web-frontend),
-you need a suitable **qbs**-profile.
-If you have not configured your **qbs**, a straight-forward way is this:
-
-```
-qbs setup-toolchains --detect
-qbs setup-qt --detect
-```
-Please pay attention to the output of these commands.
-**qbs** will try to attach a toolchain to your qt installation, but if it fails,
-you will have to execute this additional command:
-```
-qbs config profiles.$QT.baseProfile $TOOLCHAIN
-```
-where `$QT` and `$TOOLCHAIN` shall be the auto-generated names of the setup-X calls.
-
+In order to compile any of these, you need a working **cmake** installation.
 
 ## Qt-Frontend
 
-This frontend works on every pc with OpenGL3.3 capabilities (MacOS X postponed due to unknown problems).
+This frontend should work on every pc with OpenGL3.3 capabilities.
+Please make sure that you have a valid Qt installation.
 To build the frontend, run:
 
 ```
-cd $ARBITRARY_BUILD_DIR
-qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:$VARIANT
+cd $VIPSTER_SOURCE
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=Release -D DESKTOP=YES ..
+cmake --build .
 ```
 
-where `$VIPSTER_SOURCE` shall be the directory you cloned the git/unpacked the archive in.
-
-`$VARIANT` can be one of debug, release, or profile.
-Debug will be the default, so please set it to release if you just want a working program.
-
-### Windows, MacOS X:
-
-Adding `project.winInstall:true` or `project.macInstall:true` will create the respective installers.
-
+If cmake does not find your Qt installation (e.g. `qmake` not in your `$PATH`) or you want to specify a certain version,
+add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 
 ## Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.
-For Windows and MacOS, however, no installation is performed,
-so you have to make sure that both the Vipster-library *and* the python-module are where they should be.
-Maybe this will be fixed somewhen.
-To build it, add `project.pythonBuild:true` to the qbs line.
-If you would like to select a different python executable, add `project.pythonName:"/path/to/python"` to the qbs line.
+Please refer to the documentation of [pybind11](https://github.com/pybind/pybind11)
 
 ```
-cd $ARBITRARY_BUILD_DIR
-qbs build -f $VIPSTER_SOURCE profile:$QT qbs.buildVariant:release project.pythonBuild:true project.pythonName:"python3"
+cd $VIPSTER_SOURCE
+git submodule update --init --recursive
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=Release -D PYTHON=YES ..
+cmake --build .
 ```
 
+The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`
+
+## Debugging
+
+If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
+Additionally, you can enable compilation of unit tests by adding `-D TESTS=YES`.
 
 ## Web-Frontend
 
 This frontend works in every browser with WebGL2 and WebAssembly support.
-The needed qbs-profile (`emscripten`) is included in the project, so no need for setup.
-It expects emcc(++) in your `$PATH`, so please make sure everything is setup correctly.
-To build the frontend, run:
-
+It expects a working **emscripten** installation.
+To compile, use:
 ```
-cd $ARBITRARY_BUILD_DIR
-qbs build -f $VIPSTER_SOURCE profile:emscripten qbs.buildVariant:release project.webBuild:true
+cd $VIPSTER_SOURCE
+mkdir build
+cd build
+emcmake cmake -D CMAKE_BUILD_TYPE=Release -D WEB=YES -D DESKTOP=NO ..
+emcmake cmake --build .
 ```
 
-where `VIPSTER_SOURCE` shall be the directory you cloned the git/unpacked the archive in.
-
+This prepares a .wasm file that contains the code, and a .js file that contains the Javascript interface.
+To use this, one needs to embed it in a webpage and bind the exposed functions to HTML-events.
+An example implementation can be found in `gh-pages/emscripten`.
 
 ### Rebuild CSS (optional)
 
@@ -78,7 +69,7 @@ To rebuild the css, run
 ```
 npm install
 ```
-in `vipster/web/page`. This will pull in dependencies and rebuild `styles.css`.
+in `gh-pages/emscripten`. This will pull in dependencies and rebuild `styles.css`.
 
 The following NPM scripts are available:
 
@@ -89,5 +80,3 @@ The following NPM scripts are available:
 * `npm run css:watch`:
 
     Starts the watch-mode: As soon as one of the SCSS files under `styles/` is changed, a CSS rebuild is triggered automatically.
-
-**Do not forget to rebuild the web-frontend after making some changes to the CSS!**
