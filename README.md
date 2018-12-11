@@ -1,4 +1,4 @@
-# [![vipster](vipster-icon.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
+# [![vipster](dist/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
 Master:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
