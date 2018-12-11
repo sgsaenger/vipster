@@ -284,24 +284,39 @@ void MainWindow::newData(IO::Data &&d)
 void MainWindow::loadMol()
 {
     // File dialog
-    QStringList files;
     QFileDialog fileDiag{this};
     fileDiag.setDirectory(path);
-    fileDiag.setFileMode(QFileDialog::ExistingFiles);
+    // TODO: limited to one file for now
+    fileDiag.setFileMode(QFileDialog::ExistingFile);
     // Format dialog
     QStringList formats{};
+    std::map<std::string, int> ext2id;
     for(auto &iop: IOPlugins){
+        ext2id[iop.second->extension] = formats.size();
         formats << QString::fromStdString(iop.second->name);
     }
     QString fmt_s;
     IOFmt fmt;
     bool got_fmt{false};
     if(fileDiag.exec() != 0){
-        files = fileDiag.selectedFiles();
+        auto files = fileDiag.selectedFiles();
         path = fileDiag.directory();
         if(files.count() != 0){
+            int current = 0;
+            // try to determine filetype by extension
+            auto first = files[0].toStdString();
+            auto pos = first.find_last_of('.');
+            if(pos != first.npos){
+                auto ext = first.substr(pos+1);
+                auto pos = ext2id.find(ext);
+                if(pos != ext2id.end()){
+                    current = pos->second;
+                }
+            }
+            // request filetype
             fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
-                                          formats, 0, false, &got_fmt);
+                                          formats, current, false, &got_fmt);
+            // load files
             if(got_fmt){
                 fmt = static_cast<IOFmt>(formats.indexOf(fmt_s));
                 for(auto &file: files){
