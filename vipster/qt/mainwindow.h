@@ -30,7 +30,7 @@ public:
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
     Vipster::Step copyBuf{};
-    void updateWidgets(uint8_t change);
+    void updateWidgets(Vipster::guiChange_t change);
     void newData(Vipster::IO::Data&& d);
     struct MolExtras{
         int curStep{-1};

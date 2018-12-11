@@ -26,7 +26,7 @@ class StepData: public Data{
     std::array<float, 9>  cell_mat{};
     Step* curStep;
     // CPU-State:
-    bool bonds_drawn{false};
+    bool draw_bonds{false}, draw_cell{false};
     // GPU-State:
     GLuint vaos[4] = {0,0,0,0};
     GLuint &atom_vao{vaos[0]}, &bond_vao{vaos[1]};
@@ -62,13 +62,14 @@ class StepData: public Data{
     } sel_shader;
 public:
     StepData(const GlobalData& glob, Step* step=nullptr);
+    StepData(StepData&& s);
     ~StepData() override;
     void drawMol(const Vec &off) override;
-    void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) override;
+    void drawCell(const Vec &off, const PBCVec &mult) override;
     void updateGL() override;
     void initGL() override;
-    void update(Step* step, bool draw_bonds);
-    void drawSel(const std::array<uint8_t,3> &mult);
+    void update(Step* step, bool b, bool c);
+    void drawSel(const PBCVec &mult);
 private:
     void initAtom();
     void initBond();

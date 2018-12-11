@@ -4,16 +4,18 @@
 
 using namespace Vipster;
 
-static std::ostream& operator<<(std::ostream& out, const Vec& v)
+namespace std{
+static ostream& operator<<(ostream& out, const Vec& v)
 {
     out << "Vec{" << v[0] << ", " << v[1] << ", " << v[2] << "}";
     return out;
 }
 
-static std::ostream& operator<<(std::ostream& out, const Mat& m)
+static ostream& operator<<(ostream& out, const Mat& m)
 {
     out << "Mat{" << m[0] << ", " << m[1] << ", " << m[2] << "}";
     return out;
+}
 }
 
 #include "catch.hpp"
@@ -59,8 +61,8 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
     }
 
     SECTION( "Linear algebra ops" ) {
-        REQUIRE( Vec_dot(v1,v2) == 4.5f );
-        REQUIRE( Vec_length(v1) == sqrtf(3) );
+        REQUIRE( float_comp(Vec_dot(v1,v2), 4.5f) );
+        REQUIRE( float_comp(Vec_length(v1), sqrtf(3)) );
         REQUIRE( Vec_cross(v1, v2) == Vec{{0,0,0}} );
         Vec v3{{1,0,0}};
         REQUIRE( Vec_cross(v1, v3) == Vec{{0,1,-1}} );

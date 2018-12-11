@@ -46,13 +46,13 @@
   <customwidget>
    <class>PWParam</class>
    <extends>QWidget</extends>
-   <header>qt/params/pwparam.h</header>
+   <header>params/pwparam.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>CPParam</class>
    <extends>QWidget</extends>
-   <header>qt/params/cpparam.h</header>
+   <header>params/cpparam.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

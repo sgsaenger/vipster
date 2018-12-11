@@ -29,7 +29,7 @@ namespace GUI {
         SelData(const GlobalData& glob, Step::selection* sel=nullptr);
         ~SelData() override;
         void drawMol(const Vec &off) override;
-        void drawCell(const Vec &off, const std::array<uint8_t,3> &mult) override;
+        void drawCell(const Vec &off, const PBCVec &mult) override;
         void updateGL() override;
         void initGL() override;
         void update(Step::selection* sel);

@@ -20,9 +20,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="outputLabel">
+      <widget class="QCheckBox" name="trajecCheck">
        <property name="text">
-        <string/>
+        <string>Operate on trajectory</string>
        </property>
       </widget>
      </item>

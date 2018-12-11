@@ -17,7 +17,7 @@ class MillerWidget : public BaseWidget
 public:
     explicit MillerWidget(QWidget *parent = nullptr);
     ~MillerWidget() override;
-    void updateWidget(uint8_t) override;
+    void updateWidget(Vipster::guiChange_t) override;
 
 private slots:
     void updateIndex(int idx);

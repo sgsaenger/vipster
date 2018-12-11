@@ -16,6 +16,7 @@ struct BaseData{
 template<size_t N, typename T>
 struct DataGrid: public BaseData, private std::vector<T>
 {
+    using Extent = std::array<size_t, N>;
     using std::vector<T>::begin;
     using std::vector<T>::end;
     using std::vector<T>::at;
@@ -24,7 +25,7 @@ struct DataGrid: public BaseData, private std::vector<T>
     using const_iterator = typename std::vector<T>::const_iterator;
     Mat cell;
     Vec origin;
-    std::array<size_t, N> extent;
+    const Extent extent;
     const size_t size;
     static constexpr size_t Dim = N;
     DataGrid(std::array<size_t, N> extent)

@@ -28,8 +28,7 @@ moc_*
 *.swo
 
 # qt-creator stuff
-*.qbs.user
-*.pro.user
+*.user
 *.autosave
 
 # IDEs / editors

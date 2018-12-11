@@ -26,10 +26,9 @@ GUI::MeshData::MeshData(MeshData&& dat)
       cell_gpu{dat.cell_gpu},
       texture{dat.texture}
 {
-    std::swap(mesh_vao, dat.mesh_vao);
-    std::swap(mesh_vbo, dat.mesh_vbo);
-    std::swap(cell_vao, dat.cell_vao);
-    std::swap(cell_vbo, dat.cell_vbo);
+    std::swap(vaos, dat.vaos);
+    std::swap(vbos, dat.vbos);
+    std::swap(tex, dat.tex);
 }
 
 void GUI::MeshData::initGL()
@@ -154,7 +153,7 @@ void GUI::MeshData::drawMol(const Vec& off)
     glEnable(GL_CULL_FACE);
 }
 
-void GUI::MeshData::drawCell(const Vec& off, const std::array<uint8_t,3>& mult)
+void GUI::MeshData::drawCell(const Vec& off, const PBCVec &mult)
 {
     glDisable(GL_CULL_FACE);
     Vec tmp = offset + off;

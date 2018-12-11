@@ -9,12 +9,6 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
 #endif
-    glClearColor(1,1,1,1);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     // init globals
     globals.initGL(header, folder);
 
@@ -45,6 +39,10 @@ void GuiWrapper::draw(void)
         glDisable(GL_MULTISAMPLE);
     }
 #endif
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if(drawPerspective != settings.perspective.val){
@@ -86,10 +84,10 @@ void GuiWrapper::drawSel()
     mainStep.drawSel(mult);
 }
 
-void GuiWrapper::setMainStep(Step* step, bool draw_bonds)
+void GuiWrapper::setMainStep(Step* step, bool draw_bonds, bool draw_cell)
 {
     curStep = step;
-    mainStep.update(step, draw_bonds);
+    mainStep.update(step, draw_bonds, draw_cell);
 }
 
 void GuiWrapper::setMainSel(Step::selection* sel)
@@ -98,9 +96,9 @@ void GuiWrapper::setMainSel(Step::selection* sel)
     selection.update(sel);
 }
 
-void GuiWrapper::updateMainStep(bool draw_bonds)
+void GuiWrapper::updateMainStep(bool draw_bonds, bool draw_cell)
 {
-    mainStep.update(curStep, draw_bonds);
+    mainStep.update(curStep, draw_bonds, draw_cell);
 }
 
 void GuiWrapper::updateMainSelection()

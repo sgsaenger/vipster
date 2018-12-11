@@ -66,6 +66,7 @@ void MainWindow::setupUI()
         ui->pickDock,
         ui->cellModDock,
         ui->millerDock,
+        ui->pinDock,
     };
     for(auto& w: toolWidgets){
         auto action = ui->toolBar->addAction(w->windowTitle());
@@ -101,7 +102,7 @@ void MainWindow::setupUI()
     }
 }
 
-void MainWindow::updateWidgets(uint8_t change)
+void MainWindow::updateWidgets(guiChange_t change)
 {
     // if necessary, make sure that data is up to date
     if(change & (GuiChange::atoms | GuiChange::fmt)){
@@ -201,7 +202,7 @@ void MainWindow::stepBut(QAbstractButton* but)
 
 void MainWindow::editAtoms(QAction* sender)
 {
-    uint8_t change{};
+    guiChange_t change{};
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
         change = GuiChange::atoms;
@@ -216,6 +217,14 @@ void MainWindow::editAtoms(QAction* sender)
     }else if ( sender == ui->actionShow_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 0;
+        }
+        change = GuiChange::atoms;
+    }else if ( sender == ui->actionRename_Atom_s){
+        auto tmp = QInputDialog::getText(this, "Rename atoms",
+                                         "Enter new Atom-type for selected atoms:")
+                   .toStdString();
+        for(auto& at: *curSel){
+            at.name = tmp;
         }
         change = GuiChange::atoms;
     }else if ( sender == ui->actionCopy_Atom_s){

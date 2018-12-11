@@ -18,7 +18,7 @@ template<typename T>
 class AtomListIterator;
 struct AtomList{
     using iterator = AtomListIterator<Atom>;
-    using const_iterator = AtomListIterator<const Atom>;
+    using const_iterator = AtomListIterator<constAtom>;
     // Coordinates
     // one buffer per Vipster::AtomFmt
     std::array<std::vector<Vec>, nAtFmt> coordinates;
@@ -31,6 +31,9 @@ struct AtomList{
     // Properties
     std::vector<AtomProperties>     properties;
     bool                            prop_changed;
+    // interface
+    void evaluateCache(const StepConst<AtomList>&);
+    size_t getNat() const noexcept;
 };
 
 /*
@@ -39,6 +42,7 @@ struct AtomList{
 template<typename T>
 class AtomListIterator: private T
 {
+    template<typename U> friend class AtomListIterator;
 public:
     using difference_type = ptrdiff_t;
     using value_type = T;
@@ -55,6 +59,11 @@ public:
             &atoms->pse[idx],
             &atoms->prop_changed,
         }, atoms{atoms}, fmt{fmt}, idx{idx}
+    {}
+    // allow iterator to const_iterator conversion
+    template <typename U, typename R=T, typename = typename std::enable_if<std::is_same<constAtom, R>::value>::type>
+    AtomListIterator(const AtomListIterator<U>& it)
+        : T{*it}, atoms{it.atoms}, fmt{it.fmt}, idx{it.idx}
     {}
     AtomListIterator& operator++(){
         ++idx;
@@ -96,11 +105,11 @@ public:
         AtomListIterator copy{*this};
         return copy-=i;
     }
-    T&      operator*() const {
+    reference operator*() const {
         // remove constness of iterator, as it is independent of constness of Atom
-        return static_cast<T&>(*const_cast<AtomListIterator*>(this));
+        return static_cast<reference>(*const_cast<AtomListIterator*>(this));
     }
-    T*      operator->() const {
+    pointer operator->() const {
         return &(operator*());
     }
     bool    operator==(const AtomListIterator& rhs) const noexcept{
@@ -196,8 +205,10 @@ public:
     }
 
     // Cell
-    void    setCellDim(float cdm, CdmFmt at_fmt, bool scale=false);
-    void    setCellVec(const Mat &vec, bool scale=false);
+    void setCellDim(float cdm, CdmFmt fmt, bool scale=false);
+    void setCellVec(const Mat &vec, bool scale=false);
+    void setCell(Vec axes, Vec angles, CdmFmt fmt, bool scale=false);
+    void setCell(int ibrav, Vec axes, Vec angles, CdmFmt fmt, bool scale=false);
 
     // Modifier functions
     void modWrap();
@@ -206,24 +217,6 @@ public:
     void modAlign(uint8_t step_dir, uint8_t target_dir);
     void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt);
 };
-
-template<>
-size_t StepConst<AtomList>::getNat() const noexcept;
-
-template<>
-void StepConst<AtomList>::evaluateCache() const;
-
-template<>
-size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept;
-
-template<>
-size_t StepConst<AtomSelection<StepConst<AtomList>>>::getNat() const noexcept;
-
-template<>
-void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const;
-
-template<>
-void StepConst<AtomSelection<StepConst<AtomList>>>::evaluateCache() const;
 
 }
 #endif // LIBVIPSTER_STEP_H

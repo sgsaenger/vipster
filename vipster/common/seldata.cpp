@@ -75,7 +75,7 @@ void GUI::SelData::drawMol(const Vec &off)
     }
 }
 
-void GUI::SelData::drawCell(const Vec &off, const std::array<uint8_t, 3> &)
+void GUI::SelData::drawCell(const Vec &off, const PBCVec &)
 {
     if(sel_buffer.size()){
         glBindVertexArray(vao);

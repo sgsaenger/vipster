@@ -19,6 +19,7 @@ public slots:
     void evalScript();
 
 private:
+    Vipster::guiChange_t evalImpl(Vipster::Step&, Vipster::Step::selection&);
     Ui::ScriptWidget *ui;
 };
 

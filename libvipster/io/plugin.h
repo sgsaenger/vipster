@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 #include <fstream>
+#include <iomanip>
 
 namespace Vipster{
 
@@ -47,7 +48,7 @@ struct Plugin{
 class Error: public std::runtime_error
 {
     public:
-        Error(const std::string& reason);
+        Error(const std::string& reason):std::runtime_error(reason){}
 };
 
 }

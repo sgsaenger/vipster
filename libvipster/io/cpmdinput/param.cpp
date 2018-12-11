@@ -16,7 +16,7 @@ std::unique_ptr<IO::BaseParam> IO::CPParam::copy()
     return std::make_unique<IO::CPParam>(*this);
 }
 
-const std::map<std::string, IO::CPParam::Section IO::CPParam::*> IO::CPParam::str2section{
+const std::vector<std::pair<std::string, IO::CPParam::Section IO::CPParam::*>> IO::CPParam::str2section{
     {"&INFO", &IO::CPParam::info},
     {"&CPMD", &IO::CPParam::cpmd},
     {"&SYSTEM", &IO::CPParam::system},

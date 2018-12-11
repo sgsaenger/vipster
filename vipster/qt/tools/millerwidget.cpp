@@ -124,7 +124,7 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
     return faces;
 }
 
-void MillerWidget::updateWidget(uint8_t change)
+void MillerWidget::updateWidget(guiChange_t change)
 {
     if((change & guiStepChanged) == guiStepChanged){
         //disable previous plane if necessary

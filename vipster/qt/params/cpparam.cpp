@@ -8,7 +8,6 @@ CPParam::CPParam(QWidget *parent) :
     ui(new Ui::CPParam)
 {
     ui->setupUi(this);
-    QSignalBlocker block{ui->comboBox};
     for(const auto& i: IO::CPParam::str2section){
         ui->comboBox->addItem(QString::fromStdString(i.first));
     }
@@ -32,7 +31,12 @@ void CPParam::setParam(IO::BaseParam *p)
 void CPParam::on_comboBox_currentIndexChanged(const QString &arg1)
 {
     saveText();
-    curSection = IO::CPParam::str2section.at(arg1.toStdString());
+    auto cmp = arg1.toStdString();
+    curSection = std::find_if(IO::CPParam::str2section.begin(),
+                              IO::CPParam::str2section.end(),
+                              [&cmp](const decltype(IO::CPParam::str2section)::value_type& pair){
+                                  return pair.first == cmp;
+                              })->second;
     fillText();
 }
 
@@ -54,11 +58,13 @@ void CPParam::saveText()
     if(!curParam || !curSection){
         return;
     }
-    auto tmp = ui->plainTextEdit->toPlainText().split('\n');
-    auto& section = curParam->*curSection;
-    section.clear();
-    for(const auto& line: tmp){
-        section.push_back(line.toStdString());
+    auto tmp = ui->plainTextEdit->toPlainText();
+    if(tmp.size()){
+        auto& section = curParam->*curSection;
+        section.clear();
+        for(const auto& line: tmp.split('\n')){
+            section.push_back(line.toStdString());
+        }
     }
 }
 

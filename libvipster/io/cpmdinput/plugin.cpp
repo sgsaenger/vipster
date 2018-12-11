@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include <cctype>
 
 using namespace Vipster;
 
@@ -128,7 +129,11 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
             if(line.find("&END") != line.npos){
                 curSection = nullptr;
             }else{
-                curSection = IO::CPParam::str2section.at(line);
+                curSection = std::find_if(IO::CPParam::str2section.begin(),
+                                          IO::CPParam::str2section.end(),
+                                          [&line](const decltype(IO::CPParam::str2section)::value_type& pair){
+                                              return pair.first == line;
+                                          })->second;
             }
         }else{
             if(!curSection){
@@ -144,7 +149,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     parsed = true;
                     auto& kp = m.getKPoints();
                     if(line.find("MONKHORST-PACK") != line.npos){
-                        kp.active = KPointFmt::MPG;
+                        kp.active = KPoints::Fmt::MPG;
                         std::getline(file, buf);
                         std::stringstream{buf} >> kp.mpg.x >> kp.mpg.y >> kp.mpg.z;
                         size_t pos;
@@ -153,7 +158,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                                 >> kp.mpg.sx >> kp.mpg.sy >> kp.mpg.sz;
                         }
                     }else{
-                        kp.active = KPointFmt::Discrete;
+                        kp.active = KPoints::Fmt::Discrete;
                         if(line.find("SCALED") != line.npos){
                             kp.discrete.properties |=
                                     KPoints::Discrete::Properties::crystal;
@@ -161,8 +166,8 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         if(line.find("BANDS") != line.npos){
                             kp.discrete.properties |=
                                     KPoints::Discrete::Properties::band;
-                            auto isTerm = [](const DiscreteKPoint& p1,
-                                             const DiscreteKPoint& p2){
+                            auto isTerm = [](const KPoints::Discrete::Point& p1,
+                                             const KPoints::Discrete::Point& p2){
                                 return float_comp(p1.pos[0], 0) && float_comp(p1.pos[1], 0)
                                         && float_comp(p1.pos[2], 0) && float_comp(p1.weight, 0)
                                         && float_comp(p2.pos[0], 0) && float_comp(p2.pos[1], 0)
@@ -171,7 +176,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                             bool cont{true};
                             do{
                                 std::getline(file, buf);
-                                DiscreteKPoint p1, p2;
+                                KPoints::Discrete::Point p1, p2;
                                 std::stringstream{buf}
                                     >> p1.weight
                                     >> p1.pos[0] >> p1.pos[1] >> p1.pos[2]
@@ -275,23 +280,23 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     std::getline(file, buf);
                     (*s.pse)[name].CPNL = trim(buf);
                     std::getline(file, buf);
+                    size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
                     s.newAtoms(nat);
-                    for(auto& at: s){
+                    for(auto at = s.begin()+oldNat; at!=s.end(); ++at){
                         std::getline(file, buf);
                         std::stringstream linestream{buf};
-                        at.name = name;
-                        linestream >> at.coord[0] >> at.coord[1] >> at.coord[2];
+                        at->name = name;
+                        linestream >> at->coord[0] >> at->coord[1] >> at->coord[2];
                         if (linestream.fail()) {
                             throw IO::Error{"Failed to parse atom"};
                         }
                     }
                 }else if(line.find("CONSTRAINTS") != line.npos){
-                    parsed = true;
                     std::getline(file, buf);
+                    parsed = true;
                     std::vector<std::string> other;
                     while(buf.find("END CONSTRAINTS") == buf.npos){
-                        std::getline(file, buf);
                         AtomFlags fixComp{};
                         fixComp[AtomFlag::FixX] = true;
                         fixComp[AtomFlag::FixY] = true;
@@ -347,39 +352,36 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                                     it->properties->flags |= fixComp;
                                 }
                             }else if(buf.find("ATOM") != buf.npos){
-                                std::getline(file, buf);
-                                std::stringstream ss{buf};
                                 size_t nat, idx;
-                                ss >> nat;
+                                file >> nat;
                                 for(size_t i=0; i<nat; ++i){
-                                    ss >> idx;
-                                    s[idx].properties->flags |= fixComp;
+                                    file >> idx;
+                                    s[idx-1].properties->flags |= fixComp;
                                 }
                             }else if(buf.find("COOR") != buf.npos){
-                                std::getline(file, buf);
-                                std::stringstream ss{buf};
                                 size_t nat, idx;
-                                ss >> nat;
+                                file >> nat;
                                 for(size_t i=0; i < nat; ++i){
                                     bool x{}, y{}, z{};
-                                    ss >> idx >> x >> y >> z;
-                                    s[idx].properties->flags[AtomFlag::FixX] = x;
-                                    s[idx].properties->flags[AtomFlag::FixY] = y;
-                                    s[idx].properties->flags[AtomFlag::FixZ] = z;
+                                    file >> idx >> x >> y >> z;
+                                    s[idx-1].properties->flags[AtomFlag::FixX] = !x;
+                                    s[idx-1].properties->flags[AtomFlag::FixY] = !y;
+                                    s[idx-1].properties->flags[AtomFlag::FixZ] = !z;
                                 }
                             }else{
                                 other.push_back(buf);
                             }
-                        }else{
+                        }else if(!buf.empty()){
                             other.push_back(buf);
                         }
-                        if(!buf.empty()){
-                            (p.*curSection).push_back("CONSTRAINTS");
-                            (p.*curSection).insert((p.*curSection).end(),
-                                                   other.begin(),
-                                                   other.end());
-                            (p.*curSection).push_back("END CONSTRAINTS");
-                        }
+                        std::getline(file, buf);
+                    }
+                    if(!other.empty()){
+                        (p.*curSection).push_back("CONSTRAINTS");
+                        (p.*curSection).insert((p.*curSection).end(),
+                                               other.begin(),
+                                               other.end());
+                        (p.*curSection).push_back("END CONSTRAINTS");
                     }
                 }else if(line.find("ISOTOPE") != line.npos){
                     parsed = true;
@@ -472,7 +474,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                          << ' ' << std::right << std::setw(10) << it->coord[1]
                          << ' ' << std::right << std::setw(10) << it->coord[2] << '\n';
                     const auto fix = it->properties->flags & fixComp;
-                    if(fix.all()){
+                    if(fix == fixComp){
                         fixAtom.push_back(count);
                     }else if(fix.any()){
                         fixCoord.emplace_back(count, fix);
@@ -500,33 +502,34 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                     file << "  FIX ATOMS\n  "
                          << fixAtom.size() << ' ';
                     for(const auto& idx: fixAtom){
-                        file << idx;
+                        file << idx << ' ';
                     }
-                    file << '\n';
+                    file << "\n\n";
                 }
                 if(!fixCoord.empty()){
                     file << "  FIX COORDINATES\n  "
-                         << fixCoord.size() << '\n';
+                         << fixCoord.size() << "\n  ";
                     for(const auto& pair: fixCoord){
-                        file << pair.first
-                             << pair.second[AtomFlag::FixX]
-                             << pair.second[AtomFlag::FixY]
-                             << pair.second[AtomFlag::FixZ];
+                        file << pair.first << ' '
+                             << pair.second[AtomFlag::FixX] << ' '
+                             << pair.second[AtomFlag::FixY] << ' '
+                             << pair.second[AtomFlag::FixZ] << "\n  ";
                     }
                     file << '\n';
                 }
                 if(otherConstraints != pp->atoms.size()){
-                    for(size_t i=otherConstraints; i<pp->atoms.size(); ++i){
+                    for(size_t i=otherConstraints+1; i<pp->atoms.size(); ++i){
                         file << pp->atoms[i] << '\n';
                     }
+                }else{
+                    file << "  END CONSTRAINTS\n";
                 }
-                file << "  END CONSTRAINTS\n";
             }
-            file << "  ISOTOPES\n";
+            file << "  ISOTOPE\n";
             for(const auto& m: masses){
                 file << "  " << m << '\n';
             }
-            file << "&END\n";
+            file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::system){
             file << pair.first << '\n';
             if(cc->angstrom){
@@ -545,14 +548,14 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                  << "  " << tmpvec[1][0] << ' ' << tmpvec[1][1] << ' ' << tmpvec[1][2] << '\n'
                  << "  " << tmpvec[2][0] << ' ' << tmpvec[2][1] << ' ' << tmpvec[2][2] << '\n';
             const auto kp = m.getKPoints();
-            if(kp.active == KPointFmt::MPG){
+            if(kp.active == KPoints::Fmt::MPG){
                 const auto& mpg = kp.mpg;
                 file << "  KPOINTS MONKHORST-PACK";
                 if(float_comp(mpg.sx, 0) || float_comp(mpg.sy, 0) || float_comp(mpg.sz, 0)){
                     file << " SHIFT=" << mpg.sx << ' ' << mpg.sy << ' ' << mpg.sz;
                 }
                 file << "\n  " << mpg.x << ' ' << mpg.y << ' ' << mpg.z << '\n';
-            }else if(kp.active == KPointFmt::Discrete){
+            }else if(kp.active == KPoints::Fmt::Discrete){
                 const auto& disc = kp.discrete;
                 file << "  KPOINTS" << std::defaultfloat;
                 if(disc.properties & KPoints::Discrete::crystal){
@@ -582,14 +585,14 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             for(const auto& line: pp->system){
                 file << line << '\n';
             }
-            file << "&END\n";
+            file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::cpmd ||
                  !(pp->*pair.second).empty()){
             file << pair.first << '\n';
             for(const auto& line: pp->*pair.second){
                 file << line << '\n';
             }
-            file << "&END\n";
+            file << "&END\n\n";
         }
     }
     return true;

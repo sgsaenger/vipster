@@ -25,11 +25,11 @@ public:
     // Selection
     selection select(std::string filter)
     {
-        return selection{this->pse, this->at_fmt, this, filter, this->bonds, this->cell, this->comment};
+        return selection{this->pse, this->at_fmt, this, filter, this->cell, this->comment};
     }
     selection select(SelectionFilter filter)
     {
-        return selection{this->pse, this->at_fmt, this, filter, this->bonds, this->cell, this->comment};
+        return selection{this->pse, this->at_fmt, this, filter, this->cell, this->comment};
     }
 
     // Comment
@@ -115,15 +115,32 @@ public:
                       Vec{ic * axis[2] * axis[0] - s * axis[1],
                           ic * axis[2] * axis[1] + s * axis[0],
                           ic * axis[2] * axis[2] + c}};
-        for(Atom& at:*this){
-            at.coord = (at.coord - shift) * rotMat + shift;
+        if(this->at_fmt != AtomFmt::Crystal){
+            for(Atom& at:*this){
+                at.coord = (at.coord - shift) * rotMat + shift;
+            }
+        }else{
+            auto fwd = this->getFormatter(AtomFmt::Crystal, AtomFmt::Bohr);
+            auto bwd = this->getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
+            shift = fwd(shift);
+            for(Atom& at:*this){
+                at.coord = bwd((fwd(at.coord) - shift) * rotMat + shift);
+            }
         }
     }
     void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0}){
         Vec normal = Vec_cross(ax1, ax2);
         normal /= Vec_length(normal);
-        for(Atom& at:*this){
-            at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
+        if(this->at_fmt != AtomFmt::Crystal){
+            for(Atom& at:*this){
+                at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
+            }
+        }else{
+            auto fwd = this->getFormatter(AtomFmt::Crystal, AtomFmt::Bohr);
+            auto bwd = this->getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
+            for(Atom& at:*this){
+                at.coord -= bwd(2*Vec_dot(fwd(at.coord-shift), normal)*normal);
+            }
         }
     }
 

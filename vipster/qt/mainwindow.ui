@@ -373,6 +373,7 @@
     <addaction name="actionCopy_Atom_s"/>
     <addaction name="actionPaste_Atom_s"/>
     <addaction name="separator"/>
+    <addaction name="actionRename_Atom_s"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
     <addaction name="separator"/>
@@ -556,6 +557,15 @@
    </attribute>
    <widget class="MillerWidget" name="millerWidget"/>
   </widget>
+  <widget class="QDockWidget" name="pinDock">
+   <property name="windowTitle">
+    <string>Pin Steps</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="PinWidget" name="pinWidget"/>
+  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -698,7 +708,12 @@
   </action>
   <action name="actionSet_Bonds">
    <property name="text">
-    <string>(Re-)Calculate Bonds</string>
+    <string>(Re-)Calculate &amp;Bonds</string>
+   </property>
+  </action>
+  <action name="actionRename_Atom_s">
+   <property name="text">
+    <string>&amp;Rename Atom(s)</string>
    </property>
   </action>
  </widget>
@@ -707,19 +722,19 @@
   <customwidget>
    <class>ParamWidget</class>
    <extends>QWidget</extends>
-   <header>qt/paramwidget.h</header>
+   <header>paramwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ConfigWidget</class>
    <extends>QWidget</extends>
-   <header>qt/configwidget.h</header>
+   <header>configwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>GLWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>qt/glwidget.h</header>
+   <header>glwidget.h</header>
    <slots>
     <slot>setMode(int,bool)</slot>
     <slot>setMult(int)</slot>
@@ -729,7 +744,7 @@
   <customwidget>
    <class>MolWidget</class>
    <extends>QWidget</extends>
-   <header>qt/molwidget.h</header>
+   <header>molwidget.h</header>
    <container>1</container>
    <slots>
     <signal>stepChanged()</signal>
@@ -739,43 +754,49 @@
   <customwidget>
    <class>ScriptWidget</class>
    <extends>QWidget</extends>
-   <header>qt/tools/scriptwidget.h</header>
+   <header>tools/scriptwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>PickWidget</class>
    <extends>QWidget</extends>
-   <header>qt/tools/pickwidget.h</header>
+   <header>tools/pickwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SettingsWidget</class>
    <extends>QWidget</extends>
-   <header>qt/settingswidget.h</header>
+   <header>settingswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>CellModWidget</class>
    <extends>QWidget</extends>
-   <header>qt/tools/cellmodwidget.h</header>
+   <header>tools/cellmodwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>PSEWidget</class>
    <extends>QWidget</extends>
-   <header>qt/psewidget.h</header>
+   <header>psewidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>DataWidget</class>
    <extends>QWidget</extends>
-   <header>qt/datawidget.h</header>
+   <header>datawidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>MillerWidget</class>
    <extends>QWidget</extends>
-   <header>qt/tools/millerwidget.h</header>
+   <header>tools/millerwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PinWidget</class>
+   <extends>QWidget</extends>
+   <header>tools/pinwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

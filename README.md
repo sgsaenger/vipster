@@ -1,13 +1,11 @@
 # [![vipster](vipster-icon.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
 Master:
-[![Build Status](https://travis-ci.org/sgsaenger/vipster.svg?branch=master)](https://travis-ci.org/sgsaenger/vipster)
-[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/master)
+[![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 
 Testing:
-[![Build Status](https://travis-ci.org/sgsaenger/vipster.svg?branch=testing)](https://travis-ci.org/sgsaenger/vipster)
-[![Build status](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/testing)
+[![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=testing)](https://travis-ci.com/sgsaenger/vipster)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 
 Visualization and editing framework for atomistic simulations.
@@ -25,7 +23,7 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
     </th>
   </tr>
   <tr>
-    <td colspan=3>C++14 based backbone: Powerful container-classes and I/O</td>
+    <td colspan=3>C++17 based backbone: Powerful container-classes and I/O</td>
   </tr>
   <tr>
     <th>
@@ -48,8 +46,9 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 
 - [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
 - [CLI11](https://github.com/CLIUtils/CLI11) (included)
-- [QBS >= 1.11](https://doc.qt.io/qbs)
-- and a C++14-capable compiler (g++/mingw > 5 or clang > 3.4)
+- [tinyexpr](https://github.com/codeplea/tinyexpr) (included)
+- [CMake >= 3.9](https://cmake.org)
+- and a C++17-capable compiler (g++/mingw > 7 or clang > 4)
 - optional:
     - [Qt5 >= 5.7](https://www.qt.io) (desktop application)
     - [emscripten](http://kripken.github.io/emscripten-site) (web interface)

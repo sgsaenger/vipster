@@ -18,13 +18,6 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
         size_t nat;
         natline >> nat;
         if (natline.fail()) {
-            if(m.getNstep() == 0u){
-                // try to parse Empire-style cell data separated by one empty line
-                std::getline(file, line);
-                if(file.eof()){
-                    throw IO::Error("XYZ: Failed to parse nat");
-                }
-            }
             if(m.getNstep() == 1u){
                 float f1, f2, f3;
                 std::getline(file, line);
@@ -48,6 +41,7 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
                         }
                         m.getStep(0).setCellVec(tmp);
                         m.getStep(0).setCellDim(1, CdmFmt::Angstrom);
+                        break;
                     }else if((floorf(f1) == f1) && (f1>0)){
                         // found nat, continue parsing trajectory
                         nat = static_cast<size_t>(f1);
@@ -59,7 +53,11 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
                 while ((natline>>nat).fail()) {
                     std::getline(file, line);
                     if (file.eof()) {
-                        throw IO::Error("XYZ: Non-standard data after XYZ-file");
+                        if(m.getNstep() == 0u){
+                            throw IO::Error("XYZ: Failed to parse nat");
+                        }else{
+                            throw IO::Error("XYZ: Non-standard data after XYZ-file");
+                        }
                     }
                     natline = std::stringstream{line};
                 }

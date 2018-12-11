@@ -10,6 +10,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 #endif
 #ifdef __linux__

@@ -1,5 +1,6 @@
 #include "step.h"
 #include "stepsel.h"
+#include "crystal.h"
 
 using namespace Vipster;
 
@@ -206,6 +207,20 @@ void Step::setCellVec(const Mat &vec, bool scale)
     atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
 }
 
+void Step::setCell(Vec axes, Vec angles, CdmFmt fmt, bool scale)
+{
+    auto cell = makeBravais(14, axes, angles);
+    setCellVec(cell, scale);
+    setCellDim(axes[0], fmt, scale);
+}
+
+void Step::setCell(int ibrav, Vec axes, Vec angles, CdmFmt fmt, bool scale)
+{
+    auto cell = makeBravais(ibrav, axes, angles);
+    setCellVec(cell, scale);
+    setCellDim(axes[0], fmt, scale);
+}
+
 void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
 {
     if(!(cdm>0)) {
@@ -240,37 +255,34 @@ void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
     }
 }
 
-template<>
-size_t StepConst<AtomList>::getNat() const noexcept
+size_t AtomList::getNat() const noexcept
 {
-    return atoms->names.size();
+    return names.size();
 }
 
-template<>
-void StepConst<AtomList>::evaluateCache() const
+void AtomList::evaluateCache(const StepConst<AtomList> &step)
 {
-    auto fmt = static_cast<size_t>(this->at_fmt);
-    auto& atoms = *this->atoms;
+    auto fmt = static_cast<size_t>(step.at_fmt);
     // if there are (only) local changes, invalidate other caches
-    if(atoms.coord_changed[fmt]){
+    if(coord_changed[fmt]){
         for(size_t i=0; i<nAtFmt; ++i){
             if(i == fmt){
-                atoms.coord_outdated[i] = false;
-            }else if(atoms.coord_changed[i]){
+                coord_outdated[i] = false;
+            }else if(coord_changed[i]){
                 throw Error("Concurrent modification of a "
                             "single Step not supported.");
             }else{
-                atoms.coord_outdated[i] = true;
+                coord_outdated[i] = true;
             }
         }
-        atoms.coord_changed[fmt] = false;
-        bonds->outdated = true;
+        coord_changed[fmt] = false;
+        step.bonds->outdated = true;
     } else {
         // if there are changes in (only one) other cache,
         // pull them in and invalidate the others
         size_t fmt_changed = nAtFmt;
         for(size_t i=0; i<nAtFmt; ++i){
-            if (atoms.coord_changed[i]){
+            if (coord_changed[i]){
                 if (fmt_changed == nAtFmt) {
                     fmt_changed = i;
                 } else {
@@ -280,23 +292,23 @@ void StepConst<AtomList>::evaluateCache() const
             }
         }
         if (fmt_changed != nAtFmt) {
-            atoms.coordinates[fmt] = formatAll(atoms.coordinates[fmt_changed],
-                                               static_cast<AtomFmt>(fmt_changed),
-                                               at_fmt);
+            coordinates[fmt] = step.formatAll(coordinates[fmt_changed],
+                                              static_cast<AtomFmt>(fmt_changed),
+                                              step.at_fmt);
             for (size_t i=0; i<nAtFmt; ++i){
                 if((i == fmt) || (i == fmt_changed)){
-                    atoms.coord_changed[i] = false;
-                    atoms.coord_outdated[i] = false;
+                    coord_changed[i] = false;
+                    coord_outdated[i] = false;
                 }else{
-                    atoms.coord_outdated[i] = true;
+                    coord_outdated[i] = true;
                 }
             }
-            bonds->outdated = true;
-        } else if(atoms.coord_outdated[fmt]){
+            step.bonds->outdated = true;
+        } else if(coord_outdated[fmt]){
             // validate this cache if needed
             size_t fmt_uptodate = nAtFmt;
             for(size_t i=0; i<nAtFmt; ++i){
-                if(!atoms.coord_outdated[i]){
+                if(!coord_outdated[i]){
                     fmt_uptodate = i;
                     break;
                 }
@@ -304,21 +316,21 @@ void StepConst<AtomList>::evaluateCache() const
             if(fmt_uptodate == nAtFmt){
                 throw Error("No valid atom-cache");
             }
-            atoms.coordinates[fmt] = formatAll(atoms.coordinates[fmt_uptodate],
-                                               static_cast<AtomFmt>(fmt_uptodate),
-                                               at_fmt);
-            atoms.coord_outdated[fmt] = false;
+            coordinates[fmt] = step.formatAll(coordinates[fmt_uptodate],
+                                              static_cast<AtomFmt>(fmt_uptodate),
+                                              step.at_fmt);
+            coord_outdated[fmt] = false;
         }
     }
     // if some atom-types changed, update pse pointers
-    if(atoms.name_changed){
-        if(size_t nat = atoms.names.size()){
+    if(name_changed){
+        if(size_t nat = names.size()){
             for(size_t i=0; i<nat; ++i){
-                atoms.pse[i] = &(*pse)[atoms.names[i]];
+                pse[i] = &(*step.pse)[names[i]];
             }
         }
-        atoms.name_changed = false;
-        bonds->outdated = true;
+        name_changed = false;
+        step.bonds->outdated = true;
     }
 }
 
@@ -333,8 +345,8 @@ void Step::modWrap(){
 void Step::modCrop(){
     std::vector<size_t> toRemove;
     toRemove.reserve(this->getNat());
-    auto handle = asFmt(AtomFmt::Crystal);
-    for(auto it=handle.begin(); it!=handle.end(); ++it){
+    const auto handle = asFmt(AtomFmt::Crystal);
+    for(auto it=handle.cbegin(); it!=handle.cend(); ++it){
         if((it->coord[0]>=1) | (it->coord[0]<0) |
            (it->coord[1]>=1) | (it->coord[1]<0) |
            (it->coord[2]>=1) | (it->coord[2]<0)){
@@ -439,43 +451,4 @@ void Step::modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
     setCellVec(newMat);
     setCellDim(newCdm, cdmFmt);
     modCrop();
-}
-
-template<>
-size_t StepConst<AtomSelection<StepMutable<AtomList>>>::getNat() const noexcept
-{
-    return atoms->indices.size();
-}
-
-template<>
-size_t StepConst<AtomSelection<StepConst<AtomList>>>::getNat() const noexcept
-{
-    return atoms->indices.size();
-}
-
-template<>
-void StepConst<AtomSelection<StepMutable<AtomList>>>::evaluateCache() const
-{
-        // make sure that caches are clean, for pos even the needed formatted cache
-        auto fmt = (atoms->filter.mode == SelectionFilter::Mode::Pos) ?
-                    static_cast<AtomFmt>(atoms->filter.pos & SelectionFilter::FMT_MASK) :
-                    this->at_fmt;
-        atoms->step->asFmt(fmt).evaluateCache();
-        if(atoms->filter.op & SelectionFilter::UPDATE){
-            this->atoms->indices = evalFilter(*atoms->step, atoms->filter);
-        }
-}
-
-
-template<>
-void StepConst<AtomSelection<StepConst<AtomList>>>::evaluateCache() const
-{
-        // make sure that caches are clean, for pos even the needed formatted cache
-        auto fmt = (atoms->filter.mode == SelectionFilter::Mode::Pos) ?
-                    static_cast<AtomFmt>(atoms->filter.pos & SelectionFilter::FMT_MASK) :
-                    this->at_fmt;
-        atoms->step->asFmt(fmt).evaluateCache();
-        if(atoms->filter.op & SelectionFilter::UPDATE){
-            this->atoms->indices = evalFilter(*atoms->step, atoms->filter);
-        }
 }

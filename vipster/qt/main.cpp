@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         opt->group("Parse files");
         opt->check(CLI::ExistingFile);
     }
-    app.set_callback([&](){
+    app.callback([&](){
         if(!app.get_subcommands().empty()){
             return;
         }
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     conv_out->required(true);
     conv_out->expected(2);
 
-    convert->set_callback([&](){
+    convert->callback([&](){
         // determine/check in&out formats
         IOFmt fmt_in, fmt_out;
         const auto IOCmdIn = [](){
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
                 if(kpoints.size() > 1){
                     throw CLI::ParseError("gamma takes no arguments\n\n"+kp_err, 1);
                 }
-                mol.setKPoints(KPoints{KPointFmt::Gamma, {}, {}});
+                mol.setKPoints(KPoints{KPoints::Fmt::Gamma, {}, {}});
             }else if(kpoints[0] == "mpg"){
                 const std::string mpg_err = "mpg takes three integer and three "
                                             "float arguments\n\n";
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
                     throw CLI::ParseError(mpg_err+kp_err, 1);
                 }
                 try {
-                    mol.setKPoints(KPoints{KPointFmt::MPG, {
+                    mol.setKPoints(KPoints{KPoints::Fmt::MPG, {
                                        std::stoi(kpoints[1]),
                                        std::stoi(kpoints[2]),
                                        std::stoi(kpoints[3]),

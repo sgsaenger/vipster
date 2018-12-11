@@ -272,26 +272,51 @@ struct AtomSelection{
     T*                  step;
     SelectionFilter     filter;
 
-    template<typename A>
-    class AtomSelIterator: private T::iterator
+    size_t getNat() const noexcept
     {
-    private:
-        using Base = typename T::iterator;
+        return indices.size();
+    }
+
+    void evaluateCache(const StepConst<AtomSelection<T>>& step)
+    {
+        auto fmt = (filter.mode == SelectionFilter::Mode::Pos) ?
+                    static_cast<AtomFmt>(filter.pos & SelectionFilter::FMT_MASK) :
+                    step.at_fmt;
+        this->step->asFmt(fmt).evaluateCache();
+        if(filter.op & SelectionFilter::UPDATE){
+            indices = evalFilter(*this->step, filter);
+        }
+    }
+
+    template<typename B>
+    class AtomSelIterator;
+    using iterator = AtomSelIterator<typename T::iterator>;
+    using const_iterator = AtomSelIterator<typename T::const_iterator>;
+
+    template<typename B>
+    class AtomSelIterator: private B
+    {
     public:
         using difference_type = ptrdiff_t;
-        using value_type = A;
-        using reference = A&;
-        using pointer = A*;
+        using value_type = typename B::value_type;
+        using reference = typename B::reference;
+        using pointer = typename B::pointer;
         using iterator_category = std::bidirectional_iterator_tag;
         AtomSelIterator(std::shared_ptr<AtomSelection> selection,
-                        AtomFmt, size_t idx)
+                        AtomFmt fmt, size_t idx)
         //TODO: introduce a terminal-object (when c++17 is ready?)
-            : Base{selection->step->begin()},
+            : B{selection->step->asFmt(fmt).begin()},
               selection{selection}, idx{idx}
         {
             size_t diff = selection->indices.empty() ? 0 : selection->indices[idx];
-            Base::operator+=(diff);
+            B::operator+=(diff);
         }
+        // allow iterator to const_iterator conversion
+        template <typename U, typename R=B,
+                  typename = typename std::enable_if<std::is_same<typename T::const_iterator, R>::value>::type>
+        AtomSelIterator(const AtomSelIterator<U>& it)
+            : B{*it}, selection{it.selection}, idx{it.idx}
+        {}
         AtomSelIterator& operator++(){
             return operator+=(1);
         }
@@ -301,13 +326,13 @@ struct AtomSelection{
         AtomSelIterator& operator+=(int i){
             idx += i;
             auto diff = selection->indices[idx] - selection->indices[idx-i];
-            Base::operator+=(diff);
+            B::operator+=(diff);
             return *this;
         }
         AtomSelIterator& operator-=(int i){
             idx -= i;
             auto diff = selection->indices[idx] - selection->indices[idx+i];
-            Base::operator+=(diff);
+            B::operator+=(diff);
             return *this;
         }
         AtomSelIterator operator+(int i){
@@ -318,11 +343,11 @@ struct AtomSelection{
             AtomSelIterator copy{*this};
             return copy-=i;
         }
-        A&  operator*() const {
-            return Base::operator*();
+        reference  operator*() const {
+            return B::operator*();
         }
-        A*  operator->() const {
-            return Base::operator->();
+        pointer  operator->() const {
+            return B::operator->();
         }
         bool    operator==(const AtomSelIterator& rhs) const noexcept{
             return (selection == rhs.selection) && (idx == rhs.idx);
@@ -337,9 +362,6 @@ struct AtomSelection{
         std::shared_ptr<AtomSelection> selection;
         size_t idx;
     };
-
-    using iterator = AtomSelIterator<Atom>;
-    using const_iterator = AtomSelIterator<const Atom>;
 };
 
 /*
@@ -353,16 +375,17 @@ struct AtomSelection{
 template<template<typename> class B, typename T>
 class SelectionBase: public B<AtomSelection<B<T>>>
 {
-private:
-    using SelStep = B<T>;
+    template<template<typename> class Bt, typename Tt> friend class SelectionBase;
+public:
+    using SelSource = T;
+    using SelStep = B<SelSource>;
     using Source = AtomSelection<SelStep>;
     using Base = B<Source>;
-public:
     SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
                   const SelStep* s, SelectionFilter sf,
-                  std::shared_ptr<BondList> b,
-                  std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)
-        : Base{p, f, std::make_shared<Source>(), b, c, co}
+                  std::shared_ptr<CellData> c,
+                  std::shared_ptr<std::string> co)
+        : Base{p, f, std::make_shared<Source>(), std::make_shared<BondList>(), c, co}
     {
         this->atoms->step = const_cast<SelStep*>(s);
         setFilter(sf);
@@ -370,9 +393,9 @@ public:
     }
     SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
                   const SelStep* s, std::string sf,
-                  std::shared_ptr<BondList> b,
-                  std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)
-        : Base{p, f, std::make_shared<Source>(), b, c, co}
+                  std::shared_ptr<CellData> c,
+                  std::shared_ptr<std::string> co)
+        : Base{p, f, std::make_shared<Source>(), std::make_shared<BondList>(), c, co}
     {
         this->atoms->step = const_cast<SelStep*>(s);
         setFilter(sf);
@@ -388,8 +411,7 @@ public:
         : Base{s.pse, s.at_fmt,
                std::make_shared<Source>(*s.atoms),
                std::make_shared<BondList>(*s.bonds),
-               s.cell,
-               std::make_shared<std::string>(*s.comment)}
+               s.cell, s.comment}
     {}
     SelectionBase& operator=(const SelectionBase& s)
     {
@@ -401,6 +423,37 @@ public:
         *this->atoms = *s.atoms;
         this->evaluateCache();
         return *this;
+    }
+    // mutable to const selection
+    template <template<typename> class U, typename V,
+              typename R=SelSource,
+              typename = typename std::enable_if<std::is_same<StepConst<T>, R>::value>::type, // only allow for const_selection
+              typename = typename std::enable_if<std::is_same<V, T>::value>::type> // if source is of same type
+    SelectionBase(const SelectionBase<U,V>& sel)
+        : Base{sel.pse, sel.at_fmt,
+               std::make_shared<Source>(*sel.atoms),
+               std::make_shared<BondList>(),
+               sel.cell, sel.comment}
+    {}
+    // remove one level of selection-indirection
+    template <template<typename> class U, class V,
+              typename = typename std::enable_if<std::is_same<V, SelStep>::value>::type>
+    SelectionBase(const SelectionBase<U,AtomSelection<V>>& sel)
+        : Base{sel.pse, sel.at_fmt,
+               std::make_shared<Source>(),
+               std::make_shared<BondList>(),
+               sel.cell, sel.comment}
+    {
+        auto& tmp = sel.getAtoms();
+        auto& indices = tmp.indices;
+        auto& remote_source = tmp.step->getAtoms();
+        this->atoms->step = remote_source.step;
+        SelectionFilter fil{};
+        fil.mode = SelectionFilter::Mode::Index;
+        for(auto& i: indices){
+            fil.indices.insert(remote_source.indices[i]);
+        }
+        this->evaluateCache();
     }
 
     SelectionBase asFmt(AtomFmt tgt) // hides StepMutable::asFmt
