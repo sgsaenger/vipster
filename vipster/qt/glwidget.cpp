@@ -139,35 +139,37 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
 
 std::set<size_t> GLWidget::pickAtoms()
 {
-        std::set<size_t> idx;
-        makeCurrent();
-        drawSel();
-        QOpenGLFramebufferObjectFormat format;
-        format.setSamples(0);
-        QOpenGLFramebufferObject fbo{size(), format};
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
-        glBlitFramebuffer(0, 0, width(), height(),
-                          0, 0, fbo.width(), fbo.height(),
-                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        fbo.bind();
-        auto x = std::min(mousePos.x(), rectPos.x());
-        auto y = std::min(height() - 1 - mousePos.y(),
-                          height() - 1 - rectPos.y());
-        auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
-        auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
-        std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
-        glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
-        fbo.release();
-        for(size_t i=0; i<data.size(); i+=4){
-            if(data[i+3]){
-                idx.insert(data[i+0] +
-                           (static_cast<size_t>(data[i+1])<<8) +
-                           (static_cast<size_t>(data[i+2])<<16)
-                        );
-            }
+    // return indices of atoms enclosed by rectangle
+    // defined by mousePos and rectPos
+    std::set<size_t> idx;
+    makeCurrent();
+    drawSel();
+    QOpenGLFramebufferObjectFormat format;
+    format.setSamples(0);
+    QOpenGLFramebufferObject fbo{size(), format};
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
+    glBlitFramebuffer(0, 0, width(), height(),
+                      0, 0, fbo.width(), fbo.height(),
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    fbo.bind();
+    auto x = std::min(mousePos.x(), rectPos.x());
+    auto y = std::min(height() - 1 - mousePos.y(),
+                      height() - 1 - rectPos.y());
+    auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
+    auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
+    std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
+    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+    fbo.release();
+    for(size_t i=0; i<data.size(); i+=4){
+        if(data[i+3]){
+            idx.insert(data[i+0] +
+                       (static_cast<size_t>(data[i+1])<<8) +
+                       (static_cast<size_t>(data[i+2])<<16)
+                    );
         }
-        return idx;
+    }
+    return idx;
 }
 
 void GLWidget::rotAtoms(QPoint delta)
@@ -323,7 +325,19 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                 filter.indices.insert(origIndices.begin(), origIndices.end());
             }
             auto idx = pickAtoms();
-            filter.indices.insert(idx.begin(), idx.end());
+            if(idx.size() == 1){
+                auto i0 = *idx.begin();
+                if(filter.indices.find(i0) == filter.indices.end()){
+                    // if not present, add single atom
+                    filter.indices.insert(i0);
+                }else{
+                    // if present, remove single atom
+                    filter.indices.erase(i0);
+                }
+            }else{
+                // if area is selected, always merge sets
+                filter.indices.insert(idx.begin(), idx.end());
+            }
             curSel->setFilter(filter);
             rectPos = mousePos;
             triggerUpdate(GuiChange::selection);
