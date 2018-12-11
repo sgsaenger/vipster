@@ -8,7 +8,7 @@ include(CMakeDependentOption)
 cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
 cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(external)
 include_directories(libvipster)

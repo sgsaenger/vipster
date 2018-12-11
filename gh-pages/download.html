@@ -38,11 +38,8 @@
                     <a class="navbar-brand" href="index.html">
                             VIPSTER
                     </a>
-                    <a href="https://travis-ci.org/sgsaenger/vipster" class="navbar-text">
-                        <img src="https://travis-ci.org/sgsaenger/vipster.svg?branch=master" alt="Travis build status" height="17">
-                    </a>
-                    <a href="https://ci.appveyor.com/project/sgsaenger/vipster" class="navbar-text">
-                        <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true" alt="AppVeyor build status" height="17">
+                    <a href="https://travis-ci.com/sgsaenger/vipster" class="navbar-text">
+                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=master" alt="Travis build status" height="17">
                     </a>
                     <a href="https://codecov.io/gh/sgsaenger/vipster" class="navbar-text">
                           <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
@@ -72,32 +69,22 @@
             </div>
         </nav>
         <main class="container">
-            <h3> New C++ version </h3>
-            <p>
-                Due to some architectural difficulties with the first python-based incarnation,
-                I decided to rewrite Vipster in C++.
-                Unfortunately, still quite some functionalities are missing so for productive use,
-                please consider trying the old version first!
-            </p>
-            <p>
-                Thanks to <a href="http://kripken.github.io/emscripten-site">emscripten</a>
-                and the brilliant <a href="https://grubersjoe.de">Jonathan Gruber</a>, this rewrite is available for you to 
-                <a class="btn btn-default" href="emscripten/index.html">try in your browser!</a>
-            </p>
-            <h4> Latest release </h4>
+            <h3> Latest release </h3>
             <ul id="dl-list"></ul>
-            <h4> Build from source </h4>
-            <p> Depends on <a href="https://www.qt.io">Qt5</a> (&gt=5.7), QBS (&gt=1.11)
-                and a C++14-capable compiler (G++/MinGW &gt 5, Clang &gt 3.4) </p>
-            <p> For build informations, please consult the README.md </p>
-            <b> Master-branch </b>
+            <p> For feature-requests and bug-reports, please create an <a href="https://github.com/sgsaenger/vipster/issues">issue</a>.</p>
+            <h3> Build from source </h3>
+            <p> Depends on <a href="https://www.qt.io">Qt5</a> (&ge 5.7), <a href="https://cmake.org">CMake</a> (&ge 3.9)
+                and a C++17-capable compiler (G++/MinGW &ge 7, Clang &ge 4) </p>
+            <p> For build informations, please consult INSTALL.md </p>
+            <h4> Master-branch </h4>
+            <p>
+                This branch is always stable.
+                Use this if you need features that are not available in a regular release, but like to minimize your risks.
+            </p>
             <p>
                 Status:
-                    <a href="https://travis-ci.org/sgsaenger/vipster">
-                        <img src="https://travis-ci.org/sgsaenger/vipster.svg?branch=master" alt="Travis build status">
-                    </a>
-                    <a href="https://ci.appveyor.com/project/sgsaenger/vipster">
-                        <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true" alt="Appveyor build status">
+                    <a href="https://travis-ci.com/sgsaenger/vipster">
+                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=master" alt="Travis build status">
                     </a>
                     <a href="https://codecov.io/gh/sgsaenger/vipster">
                           <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov">
@@ -105,14 +92,15 @@
             </p>
             <p><a href="https://github.com/sgsaenger/vipster/tarball/master">Download as .tar.gz</a></p>
             <p><a href="https://github.com/sgsaenger/vipster/zipball/master">Download as .zip</a></p>
-            <b> Testing-branch </b>
+            <h4> Testing-branch </h4>
+            <p>
+                This branch should be stable, but doesn't need to be, as it is the main development target.
+                Use it if you want to get the newest features or contribute to the project.
+            </p>
             <p>
                 Status:
-                    <a href="https://travis-ci.org/sgsaenger/vipster">
-                        <img src="https://travis-ci.org/sgsaenger/vipster.svg?branch=testing" alt="Travis build status">
-                    </a>
-                    <a href="https://ci.appveyor.com/project/sgsaenger/vipster">
-                        <img src="https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true" alt="Appveyor build status">
+                    <a href="https://travis-ci.com/sgsaenger/vipster">
+                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=testing" alt="Travis build status">
                     </a>
                     <a href="https://codecov.io/gh/sgsaenger/vipster">
                           <img src="https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg" alt="Codecov">
@@ -120,26 +108,6 @@
             </p>
             <p><a href="https://github.com/sgsaenger/vipster/tarball/testing">Download as .tar.gz</a></p>
             <p><a href="https://github.com/sgsaenger/vipster/zipball/testing">Download as .zip</a></p>
-            <h3> Old python version </h3>
-            <p> 
-                The first version of vipster was written in Python.
-                It is quite mature and feature-complete, but not devoid of bugs. 
-                Use it as a fallback for QM calculations, as it contains
-                many features not yet reproduced in the rewrite.
-                Unfortunately doesn't scale too well in the order of more than a few thousand atoms,
-                so use with care when performing larger Lammps calculations!
-            </p>
-            <p> Depends on Python2.7/3, Numpy, PyQT4/5 and the Python OpenGL bindings. </p>
-            <p><a href="https://github.com/sgsaenger/vipster/archive/v1.1.tar.gz">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/sgsaenger/vipster/archive/v1.1.zip">Download as .zip</a></p>
-            <ul class="list-unstyled">
-                <li>Install globally (requires root):</li>
-                <li><code>python setup.py install</code></li>
-                <li>Install only for yourself:</li>
-                <li><code>python setup.py install --user</code></li>
-                <li>Don't install, just prepare to work in directory:</li>
-                <li><code>python setup.py build_ext -i</code></li>
-            </ul>
 
         </main>
         <footer class="footer">
