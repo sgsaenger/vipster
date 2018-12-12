@@ -10,7 +10,7 @@ auto IdentifyColumns(std::string& line)
     std::string tok;
     //throw away "ITEM: ATOMS"
     ss >> tok >> tok;
-    enum coordstate{none=0, unscaled=1, scaled=2, unwrapped=4};
+    enum coordstate{none=0, unscaled=1, scaled=2};
     coordstate cs{};
     auto xparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[0];};
     auto yparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[1];};
@@ -25,9 +25,6 @@ auto IdentifyColumns(std::string& line)
                 cs = static_cast<coordstate>(cs | unscaled);
             } else if (tok[1] == 's') {
                 cs = static_cast<coordstate>(cs | scaled);
-            }
-            if (((tok.length() == 2) && (tok[1] == 'u')) || (tok.length() == 3)) {
-                cs = static_cast<coordstate>(cs | unwrapped);
             }
             if(tok[0] == 'x') {
                 funvec.push_back(xparser);
