@@ -160,6 +160,9 @@ auto makeParser(std::vector<lmpTok> fmt){
 }
 
 std::vector<std::set<size_t>> groupSets(const std::vector<std::set<size_t>>& input){
+    if(input.empty()){
+        return input;
+    }
     std::vector<std::set<size_t>> output{input[0]};
     for(auto it=input.begin()+1; it!=input.end(); ++it){
         bool matched{false};
@@ -498,7 +501,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     }
 
     // prepare Molecule-IDs
-    std::vector<size_t> molID{};
+    std::vector<size_t> molID(step.getNat());
     std::vector<std::set<size_t>> molSets{};
     if(needsMolID){
         molID.resize(step.getNat());
