@@ -173,9 +173,9 @@ void GUI::StepData::initBond()
 
     // pbc conditions
     glVertexAttribIPointer(bond_shader.pbc_crit, 4,
-                          GL_UNSIGNED_SHORT,
-                          sizeof(BondProp),
-                          reinterpret_cast<const GLvoid*>(offsetof(BondProp, mult)));
+                           GL_SHORT,
+                           sizeof(BondProp),
+                           reinterpret_cast<const GLvoid*>(offsetof(BondProp, mult)));
     glVertexAttribDivisor(bond_shader.pbc_crit, 1);
     glEnableVertexAttribArray(bond_shader.pbc_crit);
 
@@ -269,14 +269,14 @@ void GUI::StepData::drawCell(const Vec &off, const PBCVec &mult)
     if(draw_bonds){
         glBindVertexArray(bond_vao);
         glUseProgram(bond_shader.program);
-        glUniform3ui(bond_shader.mult, mult[0], mult[1], mult[2]);
+        glUniform3i(bond_shader.mult, mult[0], mult[1], mult[2]);
         glUniformMatrix3fv(bond_shader.pos_scale, 1, 0, cell_mat.data());
-        for(GLuint x=0;x<mult[0];++x){
-            for(GLuint y=0;y<mult[1];++y){
-                for(GLuint z=0;z<mult[2];++z){
+        for(GLint x=0;x<mult[0];++x){
+            for(GLint y=0;y<mult[1];++y){
+                for(GLint z=0;z<mult[2];++z){
                     tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
                     glUniform3fv(bond_shader.offset, 1, tmp.data());
-                    glUniform3ui(bond_shader.pbc_cell, x, y, z);
+                    glUniform3i(bond_shader.pbc_cell, x, y, z);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           bond_model_npoly,
                                           static_cast<GLsizei>(bond_buffer.size()));
@@ -475,10 +475,10 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                      0., rad, 0.,
                      0., 0., rad*c},
                     bond_pos,
-                    {static_cast<uint16_t>(std::abs(bd.xdiff)),
-                     static_cast<uint16_t>(std::abs(bd.ydiff)),
-                     static_cast<uint16_t>(std::abs(bd.zdiff)),
-                     static_cast<uint16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
+                    {static_cast<int16_t>(std::abs(bd.xdiff)),
+                     static_cast<int16_t>(std::abs(bd.ydiff)),
+                     static_cast<int16_t>(std::abs(bd.zdiff)),
+                     static_cast<int16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }else{
                 rot_axis = -Vec_cross(bond_axis, x_axis);
@@ -500,11 +500,11 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                     //vec3 with position in modelspace
                     bond_pos,
                     //faux uvec4 with integral pbc information
-                    {static_cast<uint16_t>(std::abs(bd.xdiff)),
-                     static_cast<uint16_t>(std::abs(bd.ydiff)),
-                     static_cast<uint16_t>(std::abs(bd.zdiff)),
+                    {static_cast<int16_t>(std::abs(bd.xdiff)),
+                     static_cast<int16_t>(std::abs(bd.ydiff)),
+                     static_cast<int16_t>(std::abs(bd.zdiff)),
                     //padding that tells if non-pbc bond
-                     static_cast<uint16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
+                     static_cast<int16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
                     //2*vec4 with colors
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }

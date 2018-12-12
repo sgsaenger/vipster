@@ -376,11 +376,10 @@ private:
             cut = std::max(at.pse->bondcut, cut);
         }
         // fragment spanned space
-        using BoxPos = std::array<size_t,3>;
         Vec diff = max - min;
         cut = 5*cut;
         Vec size_split = diff;
-        BoxPos n_split{1,1,1};
+        std::array<size_t,3> n_split{1,1,1};
         if(diff[0] >= cut){
             n_split[0] = static_cast<size_t>(std::round(diff[0] / cut));
             size_split[0] = diff[0] / n_split[0];
@@ -396,11 +395,10 @@ private:
         // put atoms in boxes
         DataGrid3D<std::vector<size_t>> boxes{n_split};
         for(auto it=tgtFmt.begin(); it!=tgtFmt.end(); ++it){
-            auto box = BoxPos{
-                    std::max(0.f, std::min(n_split[0]-1.f, (it->coord[0]-min[0])/size_split[0])),
-                    std::max(0.f, std::min(n_split[1]-1.f, (it->coord[1]-min[1])/size_split[1])),
-                    std::max(0.f, std::min(n_split[2]-1.f, (it->coord[2]-min[2])/size_split[2]))
-            };
+            auto box = std::array<size_t,3>{
+                    std::max(size_t{0}, std::min(n_split[0]-1, static_cast<size_t>((it->coord[0]-min[0])/size_split[0]))),
+                    std::max(size_t{0}, std::min(n_split[1]-1, static_cast<size_t>((it->coord[1]-min[1])/size_split[1]))),
+                    std::max(size_t{0}, std::min(n_split[2]-1, static_cast<size_t>((it->coord[2]-min[2])/size_split[2])))};
             boxes(box[0], box[1], box[2]).push_back(it.getIdx());
         }
         // get bonds by iterating over boxes and their neighbors
@@ -550,6 +548,10 @@ private:
     }
 
     void setBondsCell(float cutfac) const
+    {
+        setBondsCellTrivial(cutfac);
+    }
+    void setBondsCellTrivial(float cutfac) const
     {
         auto& bonds = this->bonds->bonds;
         const auto asCrystal = asFmt(AtomFmt::Crystal);

@@ -1,7 +1,7 @@
 layout(location = 0) in vec3 vertex;
 layout(location = 1) in mat3 mMatrix;
 layout(location = 4) in vec3 position;
-layout(location = 5) in uvec4 pbc_crit;
+layout(location = 5) in ivec4 pbc_crit;
 layout(location = 6) in vec4 color1;
 layout(location = 7) in vec4 color2;
 
@@ -11,8 +11,8 @@ layout(std140, row_major) uniform viewMat{
 };
 uniform mat3 pos_scale;
 uniform vec3 offset;
-uniform uvec3 pbc_cell;
-uniform uvec3 mult;
+uniform ivec3 pbc_cell;
+uniform ivec3 mult;
 
 out vec3 normals_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -24,10 +24,10 @@ flat out uint render;
 
 void main(void)
 {
-    if(pbc_crit.w != uint(0)){
+    if(pbc_crit.w != 0){
         render = uint(1);
     }else{
-        uvec3 test = mult - pbc_crit.xyz;
+        ivec3 test = ivec3(mult) - ivec3(pbc_crit.xyz);
         render = uint((test.x > pbc_cell.x) && (test.y > pbc_cell.y) && (test.z > pbc_cell.z));
     }
     //standard vertex positioning:
