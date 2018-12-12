@@ -5,6 +5,7 @@
 #include "bond.h"
 #include "cell.h"
 #include "vec.h"
+#include "data.h"
 #include "settings.h"
 #include "stepsel.h"
 
@@ -346,7 +347,173 @@ protected:
 private:
 
     // Bonds
-    void    setBondsMolecule(float cutfac) const
+    void setBondsMolecule(float cutfac) const
+    {
+        if(getNat() >= 1000){
+            setBondsMoleculeSplit(cutfac);
+        }else{
+            setBondsMoleculeTrivial(cutfac);
+        }
+    }
+    void setBondsMoleculeSplit(float cutfac) const
+    {
+        // get suitable absolute representation
+        const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
+        const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
+        auto tgtFmt = asFmt(fmt);
+        tgtFmt.evaluateCache();
+        // get bounds of system and largest cutoff
+        Vec min{0,0,0};
+        Vec max{0,0,0};
+        float cut{0};
+        for (auto& at:tgtFmt) {
+            min[0] = std::min(at.coord[0], min[0]);
+            min[1] = std::min(at.coord[1], min[1]);
+            min[2] = std::min(at.coord[2], min[2]);
+            max[0] = std::max(at.coord[0], max[0]);
+            max[1] = std::max(at.coord[1], max[1]);
+            max[2] = std::max(at.coord[2], max[2]);
+            cut = std::max(at.pse->bondcut, cut);
+        }
+        // fragment spanned space
+        using BoxPos = std::array<size_t,3>;
+        Vec diff = max - min;
+        cut = 5*cut;
+        Vec size_split = diff;
+        BoxPos n_split{1,1,1};
+        if(diff[0] >= cut){
+            n_split[0] = static_cast<size_t>(std::round(diff[0] / cut));
+            size_split[0] = diff[0] / n_split[0];
+        }
+        if(diff[1] >= cut){
+            n_split[1] = static_cast<size_t>(std::round(diff[1] / cut));
+            size_split[1] = diff[1] / n_split[1];
+        }
+        if(diff[2] >= cut){
+            n_split[2] = static_cast<size_t>(std::round(diff[2] / cut));
+            size_split[2] = diff[2] / n_split[2];
+        }
+        // put atoms in boxes
+        DataGrid3D<std::vector<size_t>> boxes{n_split};
+        for(auto it=tgtFmt.begin(); it!=tgtFmt.end(); ++it){
+            auto box = BoxPos{
+                    std::max(0.f, std::min(n_split[0]-1.f, (it->coord[0]-min[0])/size_split[0])),
+                    std::max(0.f, std::min(n_split[1]-1.f, (it->coord[1]-min[1])/size_split[1])),
+                    std::max(0.f, std::min(n_split[2]-1.f, (it->coord[2]-min[2])/size_split[2]))
+            };
+            boxes(box[0], box[1], box[2]).push_back(it.getIdx());
+        }
+        // get bonds by iterating over boxes and their neighbors
+        auto& bonds = this->bonds->bonds;
+        for(size_t x=0; x<boxes.extent[0]; ++x){
+            for(size_t y=0; y<boxes.extent[1]; ++y){
+                for(size_t z=0; z<boxes.extent[2]; ++z){
+                    for (auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i) {
+                        auto i = *it_i;
+                        const auto& at_i = tgtFmt[i];
+                        float cut_i = at_i.pse->bondcut;
+                        if (cut_i <= 0){
+                            continue;
+                        }
+                        // loop over rest of current box
+                        for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
+                            auto j = *it_j;
+                            const auto& at_j = tgtFmt[j];
+                            float cut_j = at_j.pse->bondcut;
+                            if (cut_j <= 0) {
+                                continue;
+                            }
+                            float effcut = (cut_i + cut_j) * cutfac;
+                            Vec dist_v = at_i.coord - at_j.coord;
+                            if (((dist_v[0] *= fmtscale) > effcut) ||
+                                ((dist_v[1] *= fmtscale) > effcut) ||
+                                ((dist_v[2] *= fmtscale) > effcut)) {
+                                continue;
+                            }
+                            float dist_n = Vec_dot(dist_v, dist_v);
+                            if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                            }
+                        }
+                        // visit neighboring boxes
+                        auto bondcheck = [&](size_t xt, size_t yt, size_t zt){
+                            for (const auto& j: boxes(xt, yt, zt)) {
+                                const auto& at_j = tgtFmt[j];
+                                float cut_j = at_j.pse->bondcut;
+                                if (cut_j <= 0) {
+                                    continue;
+                                }
+                                float effcut = (cut_i + cut_j) * cutfac;
+                                Vec dist_v = at_i.coord - at_j.coord;
+                                if (((dist_v[0] *= fmtscale) > effcut) ||
+                                    ((dist_v[1] *= fmtscale) > effcut) ||
+                                    ((dist_v[2] *= fmtscale) > effcut)) {
+                                    continue;
+                                }
+                                float dist_n = Vec_dot(dist_v, dist_v);
+                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                    bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                                }
+                            }
+                        };
+                        // +x (includes -x)
+                        if (x < boxes.extent[0]-1) {
+                            bondcheck(x+1, y, z);
+                            // +x+y (includes -x-y)
+                            if (y < boxes.extent[1]-1) {
+                                bondcheck(x+1, y+1, z);
+                                // +x+y+z (includes -x-y-z)
+                                if (z < boxes.extent[2]-1) {
+                                    bondcheck(x+1, y+1, z+1);
+                                }
+                                // +x+y-z (includes -x-y+z)
+                                if (z > 0) {
+                                    bondcheck(x+1, y+1, z-1);
+                                }
+                            }
+                            // +x-y (includes -x+y)
+                            if (y > 0) {
+                                bondcheck(x+1, y-1, z);
+                                // +x-y+z (includes -x+y-z)
+                                if (z < boxes.extent[2]-1) {
+                                    bondcheck(x+1, y-1, z+1);
+                                }
+                                // +x-y-z (includes -x+y+z)
+                                if (z > 0) {
+                                    bondcheck(x+1, y-1, z-1);
+                                }
+                            }
+                            // +x+z (includes -x-z)
+                            if (z < boxes.extent[2]-1) {
+                                bondcheck(x+1, y, z+1);
+                            }
+                            // +x-z (includex -x+z)
+                            if (z > 0) {
+                                bondcheck(x+1, y, z-1);
+                            }
+                        }
+                        // +y (includes -y)
+                        if (y < boxes.extent[1]-1) {
+                            bondcheck(x, y+1, z);
+                            // +y+z (includes -y-z)
+                            if (z < boxes.extent[2]-1) {
+                                bondcheck(x, y+1, z+1);
+                            }
+                            // +y-z (includes -y+z)
+                            if (z > 0) {
+                                bondcheck(x, y+1, z-1);
+                            }
+                        }
+                        // +z (includes -z)
+                        if (z < boxes.extent[2]-1) {
+                            bondcheck(x, y, z+1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void setBondsMoleculeTrivial(float cutfac) const
     {
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
@@ -357,12 +524,12 @@ private:
         for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
             float cut_i = at_i->pse->bondcut;
-            if (cut_i<0){
+            if (cut_i<=0){
                 continue;
             }
             for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
                 float cut_j = at_j->pse->bondcut;
-                if (cut_j<0) {
+                if (cut_j<=0) {
                     continue;
                 }
                 float effcut = (cut_i + cut_j) * cutfac;
