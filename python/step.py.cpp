@@ -87,10 +87,6 @@ void Step(py::module& m){
     // CELL
         .def("setCellDim", &Vipster::Step::setCellDim, "cdm"_a, "fmt"_a, "scale"_a=false)
         .def("setCellVec", &Vipster::Step::setCellVec, "vec"_a, "scale"_a=false)
-        .def("setCell", py::overload_cast<Vec, Vec, CdmFmt, bool>(&Vipster::Step::setCell),
-             "axes"_a, "angles"_a, "fmt"_a, "scale"_a=false)
-        .def("setCell", py::overload_cast<int, Vec, Vec, CdmFmt, bool>(&Vipster::Step::setCell),
-             "ibrav"_a, "axes"_a, "angles"_a, "fmt"_a, "scale"_a=false)
     // TODO: Modification functions
     ;
 

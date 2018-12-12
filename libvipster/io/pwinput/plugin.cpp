@@ -1,4 +1,6 @@
 #include "plugin.h"
+#include "crystal.h"
+
 #include "tinyexpr.h"
 
 #include <sstream>
@@ -148,6 +150,7 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
         linestream >> mpg.x >> mpg.y >> mpg.z >> mpg.sx >> mpg.sy >> mpg.sz;
         if (linestream.fail()) throw IO::Error("Failed to parse automatic K-Points");
     } else {
+        m.getKPoints().active = KPoints::Fmt::Discrete;
         if(name.find("CRYSTAL") != name.npos) {
             m.getKPoints().discrete.properties = KPoints::Discrete::crystal;
         }
@@ -191,7 +194,6 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     CdmFmt cdmFmt;
     IO::PWParam::Namelist& sys = p.system;
     // make sure that relative coordinates are not changed by "scaling" when setting cdm
-    bool scale = (s.getFmt() >= AtomFmt::Crystal);
     auto ibr = sys.find("ibrav");
     if(ibr == sys.end()){
         throw IO::Error("ibrav needs to be specified");
@@ -199,7 +201,8 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     sys.erase(ibr);
     auto ibrav = std::stoi(ibr->second);
     if(ibrav == 0){
-        s.setCellVec(cell.cell, scale);
+        s.setCellVec(cell.cell, s.getFmt() == AtomFmt::Crystal);
+        bool scale = (s.getFmt() >= AtomFmt::Crystal);
         switch (cell.fmt) {
         case CellInp::Bohr:
             s.setCellDim(1, CdmFmt::Bohr, scale);
@@ -208,27 +211,27 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
             s.setCellDim(1, CdmFmt::Angstrom, scale);
             break;
         case CellInp::Alat:
-        {
-            auto celldm = sys.find("celldm(1)");
-            auto cellA = sys.find("A");
-            if ((celldm != sys.end()) && (cellA == sys.end())) {
-                cdmFmt = CdmFmt::Bohr;
-                sys.erase(celldm);
-            } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-                cdmFmt = CdmFmt::Angstrom;
-                sys.erase(cellA);
-            } else {
-                throw IO::Error("Specify either celldm or A,B,C, but not both!");
+            {
+                auto celldm = sys.find("celldm(1)");
+                auto cellA = sys.find("A");
+                if ((celldm != sys.end()) && (cellA == sys.end())) {
+                    cdmFmt = CdmFmt::Bohr;
+                    sys.erase(celldm);
+                } else if ((celldm == sys.end()) && (cellA != sys.end())) {
+                    cdmFmt = CdmFmt::Angstrom;
+                    sys.erase(cellA);
+                } else {
+                    throw IO::Error("Specify either celldm or A,B,C, but not both!");
+                }
+                switch (cdmFmt) {
+                case CdmFmt::Angstrom:
+                    s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
+                    break;
+                case CdmFmt::Bohr:
+                    s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
+                    break;
+                }
             }
-            switch (cdmFmt) {
-            case CdmFmt::Angstrom:
-                s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
-                break;
-            case CdmFmt::Bohr:
-                s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
-                break;
-            }
-        }
             break;
         case CellInp::None:
             throw IO::Error("ibrav=0, but no CELL_PARAMETERS were given");
@@ -259,6 +262,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
             auto celldm6 = sys.find("celldm(6)");
             if(celldm6 != sys.end()) angles[2] = stof(celldm6->second);
         }else{
+            axes[0] = stof(cellA->second);
             auto cellB = sys.find("B");
             if(cellB != sys.end()) axes[1] = stof(cellB->second)/axes[0];
             auto cellC = sys.find("C");
@@ -270,7 +274,9 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
             auto cosBC = sys.find("cosBC");
             if(cosBC != sys.end()) angles[2] = stof(cosBC->second);
         }
-        s.setCell(ibrav, axes, angles, cdmFmt, scale);
+        s.setCellDim(axes[0], cdmFmt, s.getFmt() >= AtomFmt::Crystal);
+        auto cell = makeBravais(ibrav, axes, angles);
+        s.setCellVec(cell, s.getFmt() == AtomFmt::Crystal);
     }
 }
 
