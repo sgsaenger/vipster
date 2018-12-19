@@ -67,12 +67,12 @@ void PinWidget::on_showCell_toggled(bool checked)
 void PinWidget::on_delStep_clicked()
 {
     auto pos = ui->stepList->currentRow();
-    ui->stepList->takeItem(pos);
     stepList.erase(stepList.begin()+pos);
     if(activeStep != mainStep){
         master->delExtraData(&stepMap.at(activeStep).gpu_data);
     }
     stepMap.erase(activeStep);
+    delete ui->stepList->takeItem(pos);
 }
 
 void PinWidget::on_addStep_clicked()

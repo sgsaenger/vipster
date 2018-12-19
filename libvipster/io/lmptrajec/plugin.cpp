@@ -10,7 +10,7 @@ auto IdentifyColumns(std::string& line)
     std::string tok;
     //throw away "ITEM: ATOMS"
     ss >> tok >> tok;
-    enum coordstate{none=0, unscaled=1, scaled=2, unwrapped=4};
+    enum coordstate{none=0, unscaled=1, scaled=2};
     coordstate cs{};
     auto xparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[0];};
     auto yparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[1];};
@@ -25,9 +25,6 @@ auto IdentifyColumns(std::string& line)
                 cs = static_cast<coordstate>(cs | unscaled);
             } else if (tok[1] == 's') {
                 cs = static_cast<coordstate>(cs | scaled);
-            }
-            if (((tok.length() == 2) && (tok[1] == 'u')) || (tok.length() == 3)) {
-                cs = static_cast<coordstate>(cs | unwrapped);
             }
             if(tok[0] == 'x') {
                 funvec.push_back(xparser);
@@ -88,7 +85,6 @@ LmpTrajecParser(const std::string& name, std::ifstream &file)
 
     std::string line;
     size_t nat;
-    float t1, t2;
     Mat cell;
     while (std::getline(file, line)) {
         if (line.find("TIMESTEP") != std::string::npos) {
@@ -109,22 +105,40 @@ LmpTrajecParser(const std::string& name, std::ifstream &file)
             cell = Mat{};
             std::getline(file, line);
             if ((line.length() > 17) && (line[17] == 'x')) {
-                // xlo, xhi, xy
+                Mat tmp{};
+                // xlo_bound, xhi_bound, xy
                 std::getline(file, line);
                 ss = std::stringstream{line};
-                ss >> t1 >> t2 >> cell[1][0];
-                cell[0][0] = t2 - t1;
-                // ylo, yhi, xz
+                ss >> tmp[0][0] >> tmp[0][1] >> tmp[0][2];
+                // ylo_bound, yhi_bound, xz
                 std::getline(file, line);
                 ss = std::stringstream{line};
-                ss >> t1 >> t2 >> cell[2][0];
-                cell[1][1] = t2 - t1;
+                ss >> tmp[1][0] >> tmp[1][1] >> tmp[1][2];
                 // zlo, zhi, yz
                 std::getline(file, line);
                 ss = std::stringstream{line};
-                ss >> t1 >> t2 >> cell[2][1];
-                cell[2][2] = t2 - t1;
+                ss >> tmp[2][0] >> tmp[2][1] >> tmp[2][2];
+                // untangle lammps' boundary mess
+                // xlo = xlo_bound - MIN(0, xy, xz, xy+xz)
+                tmp[0][0] = tmp[0][0] - std::min({0.f, tmp[0][2], tmp[1][2], tmp[0][2]+tmp[1][2]});
+                // xhi = xhi_bound - MAX(0, xy, xz, xy+xz)
+                tmp[0][1] = tmp[0][1] - std::max({0.f, tmp[0][2], tmp[1][2], tmp[0][2]+tmp[1][2]});
+                // ylo = ylo_bound - MIN(0, yz)
+                tmp[1][0] = tmp[1][0] - std::min(0.f, tmp[2][2]);
+                // yhi = yhi_bound - MAX(0, yz)
+                tmp[1][1] = tmp[1][1] - std::max(0.f, tmp[2][2]);
+                // x = xhi - xlo
+                cell[0][0] = tmp[0][1] - tmp[0][0];
+                // y = yhi - ylo
+                cell[1][1] = tmp[1][1] - tmp[1][0];
+                // tilt "factors" can be used directly
+                cell[1][0] = tmp[0][2];
+                cell[2][0] = tmp[1][2];
+                cell[2][1] = tmp[2][2];
+                // zlo_bound == zlo, same for zhi. use directly
+                cell[2][2] = tmp[2][1] - tmp[2][0];
             } else {
+                float t1, t2;
                 // xlo, xhi
                 std::getline(file, line);
                 ss = std::stringstream{line};

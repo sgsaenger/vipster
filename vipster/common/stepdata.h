@@ -14,7 +14,7 @@ struct AtomProp{ // 8 bytes + 12 bytes directly from step
 struct BondProp{ // 64 bytes
     float mat[9]; // 9*4 = 36 bytes
     Vec pos; // 3*4 = 12 bytes
-    uint16_t mult[4];  // 4*2 = 6 bytes
+    int16_t mult[4];  // 4*2 = 6 bytes
     ColVec col_a, col_b; // 2*4 = 8 bytes
 };
 

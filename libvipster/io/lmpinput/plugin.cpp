@@ -160,6 +160,9 @@ auto makeParser(std::vector<lmpTok> fmt){
 }
 
 std::vector<std::set<size_t>> groupSets(const std::vector<std::set<size_t>>& input){
+    if(input.empty()){
+        return input;
+    }
     std::vector<std::set<size_t>> output{input[0]};
     for(auto it=input.begin()+1; it!=input.end(); ++it){
         bool matched{false};
@@ -211,9 +214,9 @@ auto makeWriter(const std::vector<lmpTok>& fmt,
                     break;
                 case lmpTok::pos:
                     file << std::right
-                         << std::setw(10) << (*it).coord[0]
-                         << ' ' << std::setw(10) << (*it).coord[1]
-                         << ' ' << std::setw(10) << (*it).coord[2];
+                         << std::setw(std::numeric_limits<Vec::value_type>::max_digits10+5) << (*it).coord[0]
+                         << ' ' << std::setw(std::numeric_limits<Vec::value_type>::max_digits10+5) << (*it).coord[1]
+                         << ' ' << std::setw(std::numeric_limits<Vec::value_type>::max_digits10+5) << (*it).coord[2];
                     break;
                 case lmpTok::ignore:
                     break;
@@ -350,7 +353,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     const auto tokens = fmtmap.at(IO::LmpConfig::fmt2str.at(cc->style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
-    file << std::fixed << std::setprecision(5);
+    file << std::setprecision(std::numeric_limits<Vec::value_type>::max_digits10);
 
     // prepare bonds
     std::vector<std::tuple<size_t, size_t>> bondlist;
@@ -498,7 +501,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     }
 
     // prepare Molecule-IDs
-    std::vector<size_t> molID{};
+    std::vector<size_t> molID(step.getNat());
     std::vector<std::set<size_t>> molSets{};
     if(needsMolID){
         molID.resize(step.getNat());

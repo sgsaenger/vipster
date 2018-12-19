@@ -5,6 +5,7 @@
 #include "bond.h"
 #include "cell.h"
 #include "vec.h"
+#include "data.h"
 #include "settings.h"
 #include "stepsel.h"
 
@@ -346,7 +347,172 @@ protected:
 private:
 
     // Bonds
-    void    setBondsMolecule(float cutfac) const
+    void setBondsMolecule(float cutfac) const
+    {
+        if(getNat() >= 1000){
+            setBondsMoleculeSplit(cutfac);
+        }else{
+            setBondsMoleculeTrivial(cutfac);
+        }
+    }
+    void setBondsMoleculeSplit(float cutfac) const
+    {
+        // get suitable absolute representation
+        const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
+        const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
+        auto tgtFmt = asFmt(fmt);
+        tgtFmt.evaluateCache();
+        // get bounds of system and largest cutoff
+        Vec min{0,0,0};
+        Vec max{0,0,0};
+        float cut{0};
+        for (const auto& at:tgtFmt) {
+            min[0] = std::min(at.coord[0], min[0]);
+            min[1] = std::min(at.coord[1], min[1]);
+            min[2] = std::min(at.coord[2], min[2]);
+            max[0] = std::max(at.coord[0], max[0]);
+            max[1] = std::max(at.coord[1], max[1]);
+            max[2] = std::max(at.coord[2], max[2]);
+            cut = std::max(at.pse->bondcut, cut);
+        }
+        // fragment spanned space
+        Vec diff = max - min;
+        cut = 5*cut;
+        Vec size_split = diff;
+        std::array<size_t,3> n_split{1,1,1};
+        if(diff[0] >= cut){
+            n_split[0] = static_cast<size_t>(std::round(diff[0] / cut));
+            size_split[0] = diff[0] / n_split[0];
+        }
+        if(diff[1] >= cut){
+            n_split[1] = static_cast<size_t>(std::round(diff[1] / cut));
+            size_split[1] = diff[1] / n_split[1];
+        }
+        if(diff[2] >= cut){
+            n_split[2] = static_cast<size_t>(std::round(diff[2] / cut));
+            size_split[2] = diff[2] / n_split[2];
+        }
+        // put atoms in boxes
+        DataGrid3D<std::vector<size_t>> boxes{n_split};
+        for(auto it=tgtFmt.begin(); it!=tgtFmt.end(); ++it){
+            auto findBox = [&](size_t dir){
+                return std::max(size_t{0},
+                                std::min(n_split[dir]-1,
+                                         static_cast<size_t>((it->coord[dir]-min[dir])/size_split[dir])));
+            };
+            boxes(findBox(0), findBox(1), findBox(2)).push_back(it.getIdx());
+        }
+        // get bonds by iterating over boxes and their neighbors
+        auto& bonds = this->bonds->bonds;
+        for(size_t x=0; x<boxes.extent[0]; ++x){
+            for(size_t y=0; y<boxes.extent[1]; ++y){
+                for(size_t z=0; z<boxes.extent[2]; ++z){
+                    for (auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i) {
+                        auto i = *it_i;
+                        const auto& at_i = tgtFmt[i];
+                        auto cut_i = at_i.pse->bondcut;
+                        if (cut_i <= 0){
+                            continue;
+                        }
+                        // loop over rest of current box
+                        for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
+                            auto j = *it_j;
+                            const auto& at_j = tgtFmt[j];
+                            auto cut_j = at_j.pse->bondcut;
+                            if (cut_j <= 0) {
+                                continue;
+                            }
+                            auto effcut = (cut_i + cut_j) * cutfac;
+                            Vec dist_v = at_i.coord - at_j.coord;
+                            if (((dist_v[0] *= fmtscale) > effcut) ||
+                                ((dist_v[1] *= fmtscale) > effcut) ||
+                                ((dist_v[2] *= fmtscale) > effcut)) {
+                                continue;
+                            }
+                            auto dist_n = Vec_dot(dist_v, dist_v);
+                            if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                            }
+                        }
+                        // visit neighboring boxes
+                        auto bondcheck = [&](size_t xt, size_t yt, size_t zt){
+                            for (const auto& j: boxes(xt, yt, zt)) {
+                                const auto& at_j = tgtFmt[j];
+                                auto cut_j = at_j.pse->bondcut;
+                                if (cut_j <= 0) {
+                                    continue;
+                                }
+                                auto effcut = (cut_i + cut_j) * cutfac;
+                                Vec dist_v = at_i.coord - at_j.coord;
+                                if (((dist_v[0] *= fmtscale) > effcut) ||
+                                    ((dist_v[1] *= fmtscale) > effcut) ||
+                                    ((dist_v[2] *= fmtscale) > effcut)) {
+                                    continue;
+                                }
+                                auto dist_n = Vec_dot(dist_v, dist_v);
+                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                    bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                                }
+                            }
+                        };
+                        // +x (includes -x)
+                        if (x < boxes.extent[0]-1) {
+                            bondcheck(x+1, y, z);
+                            // +x+y (includes -x-y)
+                            if (y < boxes.extent[1]-1) {
+                                bondcheck(x+1, y+1, z);
+                                // +x+y+z (includes -x-y-z)
+                                if (z < boxes.extent[2]-1) {
+                                    bondcheck(x+1, y+1, z+1);
+                                }
+                                // +x+y-z (includes -x-y+z)
+                                if (z > 0) {
+                                    bondcheck(x+1, y+1, z-1);
+                                }
+                            }
+                            // +x-y (includes -x+y)
+                            if (y > 0) {
+                                bondcheck(x+1, y-1, z);
+                                // +x-y+z (includes -x+y-z)
+                                if (z < boxes.extent[2]-1) {
+                                    bondcheck(x+1, y-1, z+1);
+                                }
+                                // +x-y-z (includes -x+y+z)
+                                if (z > 0) {
+                                    bondcheck(x+1, y-1, z-1);
+                                }
+                            }
+                            // +x+z (includes -x-z)
+                            if (z < boxes.extent[2]-1) {
+                                bondcheck(x+1, y, z+1);
+                            }
+                            // +x-z (includex -x+z)
+                            if (z > 0) {
+                                bondcheck(x+1, y, z-1);
+                            }
+                        }
+                        // +y (includes -y)
+                        if (y < boxes.extent[1]-1) {
+                            bondcheck(x, y+1, z);
+                            // +y+z (includes -y-z)
+                            if (z < boxes.extent[2]-1) {
+                                bondcheck(x, y+1, z+1);
+                            }
+                            // +y-z (includes -y+z)
+                            if (z > 0) {
+                                bondcheck(x, y+1, z-1);
+                            }
+                        }
+                        // +z (includes -z)
+                        if (z < boxes.extent[2]-1) {
+                            bondcheck(x, y, z+1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void setBondsMoleculeTrivial(float cutfac) const
     {
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
@@ -357,12 +523,12 @@ private:
         for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
             float cut_i = at_i->pse->bondcut;
-            if (cut_i<0){
+            if (cut_i<=0){
                 continue;
             }
             for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
                 float cut_j = at_j->pse->bondcut;
-                if (cut_j<0) {
+                if (cut_j<=0) {
                     continue;
                 }
                 float effcut = (cut_i + cut_j) * cutfac;
@@ -384,6 +550,439 @@ private:
 
     void setBondsCell(float cutfac) const
     {
+        if(getNat() >= 1000){
+            setBondsCellSplit(cutfac);
+        }else{
+            setBondsCellTrivial(cutfac);
+        }
+    }
+    void setBondsCellSplit(float cutfac) const
+    {
+        const auto asCrystal = asFmt(AtomFmt::Crystal);
+        asCrystal.evaluateCache();
+        enum wrapDir{x, y, z, xy, xmy, xz, xmz, yz, ymz, xyz, xymz, xmyz, mxyz};
+        constexpr size_t nWrap{13};
+        const std::vector<std::vector<size_t>> cWrap{
+            {0}, {1}, {2}, {0,1}, {0,1}, {0,2}, {0,2},
+            {1,2}, {1,2}, {0,1,2}, {0,1,2}, {0,1,2}, {0,1,2}
+        };
+        std::array<Vec, nWrap> vWrap{};
+        vWrap[wrapDir::x] = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
+        vWrap[wrapDir::y] = getCellVec()[1] * getCellDim(CdmFmt::Bohr);
+        vWrap[wrapDir::z] = getCellVec()[2] * getCellDim(CdmFmt::Bohr);
+        vWrap[wrapDir::xy]   = vWrap[wrapDir::x] + vWrap[wrapDir::y];
+        vWrap[wrapDir::xmy]  = vWrap[wrapDir::x] - vWrap[wrapDir::y];
+        vWrap[wrapDir::xz]   = vWrap[wrapDir::x] + vWrap[wrapDir::z];
+        vWrap[wrapDir::xmz]  = vWrap[wrapDir::x] - vWrap[wrapDir::z];
+        vWrap[wrapDir::yz]   = vWrap[wrapDir::y] + vWrap[wrapDir::z];
+        vWrap[wrapDir::ymz]  = vWrap[wrapDir::y] - vWrap[wrapDir::z];
+        vWrap[wrapDir::xyz]  = vWrap[wrapDir::xy] + vWrap[wrapDir::z];
+        vWrap[wrapDir::xymz] = vWrap[wrapDir::xy] - vWrap[wrapDir::z];
+        vWrap[wrapDir::xmyz] = vWrap[wrapDir::xz] - vWrap[wrapDir::y];
+        vWrap[wrapDir::mxyz] = vWrap[wrapDir::yz] - vWrap[wrapDir::x];
+        // get largest cutoff
+        float cut{0};
+        for (const auto& at:asCrystal) {
+            cut = std::max(at.pse->bondcut, cut);
+        }
+        cut = 5*cut;
+        auto cell = this->cell->cellvec * this->cell->dimBohr;
+        // get cell lengths
+        Vec size_split{};
+        size_split[0] = std::abs(cell[0][0])+std::abs(cell[1][0])+std::abs(cell[2][0]);
+        size_split[1] = std::abs(cell[0][1])+std::abs(cell[1][1])+std::abs(cell[2][1]);
+        size_split[2] = std::abs(cell[0][2])+std::abs(cell[1][2])+std::abs(cell[2][2]);
+        // fragment cell
+        std::array<size_t,3> n_split{1,1,1};
+        if(size_split[0] >= cut){
+            n_split[0] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[0] / cut)));
+            size_split[0] = 1.f/n_split[0];
+        }
+        if(size_split[1] >= cut){
+            n_split[1] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[1] / cut)));
+            size_split[1] = 1.f/n_split[1];
+        }
+        if(size_split[2] >= cut){
+            n_split[2] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[2] / cut)));
+            size_split[2] = 1.f/n_split[2];
+        }
+        // put atoms in boxes
+        DataGrid3D<std::vector<size_t>> boxes{n_split};
+        for(auto it=asCrystal.begin(); it!=asCrystal.end(); ++it){
+            auto findBox = [&](size_t dir){
+                auto tmp = std::fmod(it->coord[dir], 1);
+                if (tmp<0) tmp+=1;
+                return static_cast<size_t>(tmp/size_split[dir]);
+            };
+            boxes(findBox(0), findBox(1), findBox(2)).push_back(it.getIdx());
+        }
+        // get bonds by iterating over boxes and their neighbors
+        auto& bonds = this->bonds->bonds;
+        // indices of neighbor boxes
+        size_t xl, xh, yl, yh, zl, zh;
+        // wrapping needed for specific neighbor
+        bool w_xl{}, w_xh{}, w_yl{}, w_yh{}, w_zl{}, w_zh;
+        for(size_t x=0; x<boxes.extent[0]; ++x){
+            if(x == boxes.extent[0]-1){
+                xh = 0; w_xh = true;
+            }else{
+                xh = x+1; w_xh = false;
+            }
+            if(x == 0){
+                xl = boxes.extent[0]-1; w_xl = true;
+            }else{
+                xl = x-1; w_xl = false;
+            }
+            for(size_t y=0; y<boxes.extent[1]; ++y){
+                if(y == boxes.extent[1]-1){
+                    yh = 0; w_yh = true;
+                }else{
+                    yh = y+1; w_yh = false;
+                }
+                if(y == 0){
+                    yl = boxes.extent[1]-1; w_yl = true;
+                }else{
+                    yl = y-1; w_yl = false;
+                }
+                for(size_t z=0; z<boxes.extent[2]; ++z){
+                    if(z == boxes.extent[2]-1){
+                        zh = 0; w_zh = true;
+                    }else{
+                        zh = z+1; w_zh = false;
+                    }
+                    if(z == 0){
+                        zl = boxes.extent[2]-1; w_zl = true;
+                    }else{
+                        zl = z-1; w_zl = false;
+                    }
+                    for(auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i){
+                        auto i = *it_i;
+                        const auto& at_i = asCrystal[i];
+                        auto cut_i = at_i.pse->bondcut;
+                        if (cut_i <= 0){
+                            continue;
+                        }
+                        // loop over rest of current box
+                        for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
+                            auto j = *it_j;
+                            const auto& at_j = asCrystal[j];
+                            auto cut_j = at_j.pse->bondcut;
+                            if (cut_j <= 0) {
+                                continue;
+                            }
+                            auto effcut = (cut_i + cut_j) * cutfac;
+                            Vec dist_v = at_i.coord - at_j.coord;
+                            std::array<int16_t, 3> diff_v, crit_v;
+                            // diff_v contains integer distance in cell-units
+                            std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
+                            // dist_v now contains distance inside of cell
+                            std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
+                                [](float f){return std::fmod(f,1);});
+                            // crit_v contains direction of distance-vector
+                            std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
+                                [](float f){
+                                    return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                                                0 : ((f<0) ? -1 : 1);
+                                });
+                            if(!(crit_v[0]|crit_v[1]|crit_v[2])){
+                                // TODO: fail here? set flag? overlapping atoms!
+                                continue;
+                            }
+                            // convert dist_v to bohr
+                            dist_v = dist_v * cell;
+                            if ((dist_v[0] > effcut) ||
+                                (dist_v[1] > effcut) ||
+                                (dist_v[2] > effcut)) {
+                                continue;
+                            }
+                            auto dist_n = Vec_dot(dist_v, dist_v);
+                            if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                bonds.push_back({i, j, std::sqrt(dist_n),
+                                                 diff_v[0], diff_v[1], diff_v[2]});
+                            }
+                        }
+                        // other boxes should be evaluated in total
+                        auto pbccheck = [&](size_t xt, size_t yt, size_t zt){
+                            for (const auto& j: boxes(xt, yt, zt)) {
+                                const auto& at_j = asCrystal[j];
+                                auto cut_j = at_j.pse->bondcut;
+                                if (cut_j <= 0) {
+                                    continue;
+                                }
+                                auto effcut = (cut_i + cut_j) * cutfac;
+                                Vec dist_v = at_i.coord - at_j.coord;
+                                std::array<int16_t, 3> diff_v, crit_v;
+                                // diff_v contains integer distance in cell-units
+                                std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
+                                // dist_v now contains distance inside of cell
+                                std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
+                                    [](float f){return std::fmod(f,1);});
+                                // crit_v contains direction of distance-vector
+                                std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
+                                    [](float f){
+                                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                                                    0 : ((f<0) ? -1 : 1);
+                                    });
+                                if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
+                                    // TODO: fail here? set flag? overlapping atoms!
+                                    continue;
+                                }
+                                // convert dist_v to bohr
+                                dist_v = dist_v * cell;
+                                if ((dist_v[0] > effcut) ||
+                                    (dist_v[1] > effcut) ||
+                                    (dist_v[2] > effcut)) {
+                                    continue;
+                                }
+                                auto dist_n = Vec_dot(dist_v, dist_v);
+                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                    bonds.push_back({i, j, std::sqrt(dist_n),
+                                                     diff_v[0], diff_v[1], diff_v[2]});
+                                }
+                            }
+                        };
+                        // when going over edges, wrap distance-vector
+                        auto wrapcheck = [&](size_t xt, size_t yt, size_t zt, wrapDir dir){
+                            for (const auto& j: boxes(xt, yt, zt)) {
+                                const auto& at_j = asCrystal[j];
+                                auto cut_j = at_j.pse->bondcut;
+                                if (cut_j <= 0) {
+                                    continue;
+                                }
+                                auto effcut = (cut_i + cut_j) * cutfac;
+                                Vec dist_v = at_i.coord - at_j.coord;
+                                std::array<int16_t, 3> diff_v, crit_v;
+                                // diff_v contains integer distance in cell-units
+                                std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
+                                // dist_v now contains distance inside of cell
+                                std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
+                                    [](float f){return std::fmod(f,1);});
+                                // crit_v contains direction of distance-vector
+                                std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
+                                    [](float f){
+                                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                                                    0 : ((f<0) ? -1 : 1);
+                                    });
+                                if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
+                                    // TODO: fail here? set flag? overlapping atoms!
+                                    continue;
+                                }
+                                // convert dist_v to bohr
+                                dist_v = dist_v * cell - crit_v[cWrap[dir][0]] * vWrap[dir];
+                                if ((dist_v[0] > effcut) ||
+                                    (dist_v[1] > effcut) ||
+                                    (dist_v[2] > effcut)) {
+                                    continue;
+                                }
+                                auto dist_n = Vec_dot(dist_v, dist_v);
+                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                                    for(const auto& d: cWrap[dir]){
+                                        diff_v[d] += crit_v[d];
+                                    }
+                                    bonds.push_back({i, j, std::sqrt(dist_n),
+                                                     diff_v[0], diff_v[1], diff_v[2]});
+                                }
+                            }
+                        };
+                        /*
+                         * at the edges of the cell, we yield distance-vectors spanning the box
+                         * and need to transform them to go around the edge of the cell
+                         *
+                         * otherwise, do the simple check between two neighboring boxes
+                         */
+                        // x
+                        if(w_xh){
+                            wrapcheck(xh, y, z, wrapDir::x);
+                            // xy
+                            if(w_yh){
+                                wrapcheck(xh, yh, z, wrapDir::xy);
+                                // xyz
+                                if(w_zh){
+                                    wrapcheck(xh, yh, zh, wrapDir::xyz);
+                                }else{
+                                    wrapcheck(xh, yh, zh, wrapDir::xy);
+                                }
+                                // xy-z
+                                if(w_zl){
+                                    wrapcheck(xh, yh, zl, wrapDir::xymz);
+                                }else{
+                                    wrapcheck(xh, yh, zl, wrapDir::xy);
+                                }
+                            }else{
+                                wrapcheck(xh, yh, z, wrapDir::x);
+                                // xyz
+                                if(w_zh){
+                                    wrapcheck(xh, yh, zh, wrapDir::xz);
+                                }else{
+                                    wrapcheck(xh, yh, zh, wrapDir::x);
+                                }
+                                // xy-z
+                                if(w_zl){
+                                    wrapcheck(xh, yh, zl, wrapDir::xmz);
+                                }else{
+                                    wrapcheck(xh, yh, zl, wrapDir::x);
+                                }
+                            }
+                            // x-y
+                            if(w_yl){
+                                wrapcheck(xh, yl, z, wrapDir::xmy);
+                                // x-yz
+                                if(w_zh){
+                                    wrapcheck(xh, yl, zh, wrapDir::xmyz);
+                                }else{
+                                    wrapcheck(xh, yl, zh, wrapDir::xmy);
+                                }
+                            }else{
+                                wrapcheck(xh, yl, z, wrapDir::x);
+                                // x-yz
+                                if(w_zh){
+                                    wrapcheck(xh, yl, zh, wrapDir::xz);
+                                }else{
+                                    wrapcheck(xh, yl, zh, wrapDir::x);
+                                }
+                            }
+                            // xz
+                            if(w_zh){
+                                wrapcheck(xh, y, zh, wrapDir::xz);
+                            }else{
+                                wrapcheck(xh, y, zh, wrapDir::x);
+                            }
+                            // x-z
+                            if(w_zl){
+                                wrapcheck(xh, y, zl, wrapDir::xmz);
+                            }else{
+                                wrapcheck(xh, y, zl, wrapDir::x);
+                            }
+                        }else{
+                            pbccheck(xh, y, z);
+                            // xy
+                            if(w_yh){
+                                wrapcheck(xh, yh, z, wrapDir::y);
+                                // xyz
+                                if(w_zh){
+                                    wrapcheck(xh, yh, zh, wrapDir::yz);
+                                }else{
+                                    wrapcheck(xh, yh, zh, wrapDir::y);
+                                }
+                                // xy-z
+                                if(w_zl){
+                                    wrapcheck(xh, yh, zl, wrapDir::ymz);
+                                }else{
+                                    wrapcheck(xh, yh, zl, wrapDir::y);
+                                }
+                            }else{
+                                pbccheck(xh, yh, z);
+                                // xyz
+                                if(w_zh){
+                                    wrapcheck(xh, yh, zh, wrapDir::z);
+                                }else{
+                                    pbccheck(xh, yh, zh);
+                                }
+                                // xy-z
+                                if(w_zl){
+                                    wrapcheck(xh, yh, zl, wrapDir::z);
+                                }else{
+                                    pbccheck(xh, yh, zl);
+                                }
+                            }
+                            // x-y
+                            if(w_yl){
+                                wrapcheck(xh, yl, z, wrapDir::y);
+                                // x-yz
+                                if(w_zh){
+                                    wrapcheck(xh, yl, zh, wrapDir::ymz);
+                                }else{
+                                    wrapcheck(xh, yl, zh, wrapDir::y);
+                                }
+                            }else{
+                                pbccheck(xh, yl, z);
+                                // x-yz
+                                if(w_zh){
+                                    wrapcheck(xh, yl, zh, wrapDir::z);
+                                }else{
+                                    pbccheck(xh, yl, zh);
+                                }
+                            }
+                            // xz
+                            if(w_zh){
+                                wrapcheck(xh, y, zh, wrapDir::z);
+                            }else{
+                                pbccheck(xh, y, zh);
+                            }
+                            // x-z
+                            if(w_zl){
+                                wrapcheck(xh, y, zl, wrapDir::z);
+                            }else{
+                                pbccheck(xh, y, zl);
+                            }
+                        }
+                        // y
+                        if(w_yh){
+                            wrapcheck(x, yh, z, wrapDir::y);
+                            // yz
+                            if(w_zh){
+                                wrapcheck(x, yh, zh, wrapDir::yz);
+                                // -xyz
+                                if(w_xl){
+                                    wrapcheck(xl, yh, zh, wrapDir::mxyz);
+                                }else{
+                                    wrapcheck(xl, yh, zh, wrapDir::yz);
+                                }
+                            }else{
+                                wrapcheck(x, yh, zh, wrapDir::y);
+                                // -xyz
+                                if(w_xl){
+                                    wrapcheck(xl, yh, zh, wrapDir::xmy);
+                                }else{
+                                    wrapcheck(xl, yh, zh, wrapDir::y);
+                                }
+                            }
+                            // y-z
+                            if(w_zl){
+                                wrapcheck(x, yh, zl, wrapDir::ymz);
+                            }else{
+                                wrapcheck(x, yh, zl, wrapDir::y);
+                            }
+                        }else{
+                            pbccheck(x, yh, z);
+                            // yz
+                            if(w_zh){
+                                wrapcheck(x, yh, zh, wrapDir::z);
+                                // -xyz
+                                if(w_xl){
+                                    wrapcheck(xl, yh, zh, wrapDir::xmz);
+                                }else{
+                                    wrapcheck(xl, yh, zh, wrapDir::z);
+                                }
+                            }else{
+                                pbccheck(x, yh, zh);
+                                // -xyz
+                                if(w_xl){
+                                    wrapcheck(xl, yh, zh, wrapDir::x);
+                                }else{
+                                    pbccheck(xl, yh, zh);
+                                }
+                            }
+                            // y-z
+                            if(w_zl){
+                                wrapcheck(x, yh, zl, wrapDir::z);
+                            }else{
+                                pbccheck(x, yh, zl);
+                            }
+                        }
+                        // z
+                        if(w_zh){
+                            wrapcheck(x, y, zh, wrapDir::z);
+                        }else{
+                            pbccheck(x, y, zh);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void setBondsCellTrivial(float cutfac) const
+    {
         auto& bonds = this->bonds->bonds;
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
@@ -401,17 +1000,6 @@ private:
         const Vec xmyz = xz - y;
         const Vec mxyz = yz - x;
         std::array<int16_t, 3> diff_v, crit_v;
-        auto checkBond = [&](std::size_t i, std::size_t j, float effcut,
-                             const Vec& dist, const std::array<int16_t, 3>& offset)
-        {
-            if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
-                return;
-            }
-            float dist_n = Vec_dot(dist, dist);
-            if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
-            }
-        };
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
             float cut_i = at_i->pse->bondcut;
@@ -443,96 +1031,96 @@ private:
                 }
                 // convert dist_v to bohr
                 dist_v = dist_v * cell->cellvec * cell->dimBohr;
+                // evaluation-lambda
+                auto checkBond = [&](const Vec& dist, const std::array<int16_t, 3>& offset)
+                {
+                    if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
+                        return;
+                    }
+                    float dist_n = Vec_dot(dist, dist);
+                    if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                        bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
+                    }
+                };
                 // 0-vector
-                checkBond(i, j, effcut, dist_v, diff_v);
+                checkBond(dist_v, diff_v);
                 if(crit_v[0] != 0){
                     // x, -x
-                    checkBond(i, j, effcut, dist_v-crit_v[0]*x,
+                    checkBond(dist_v-crit_v[0]*x,
                               {{static_cast<int16_t>(diff_v[0]+crit_v[0]),diff_v[1],diff_v[2]}});
                 }
                 if(crit_v[1] != 0){
                     // y, -y
-                    checkBond(i, j, effcut, dist_v-crit_v[1]*y,
+                    checkBond(dist_v-crit_v[1]*y,
                               {{diff_v[0],static_cast<int16_t>(diff_v[1]+crit_v[1]),diff_v[2]}});
-                    if(crit_v[0] != 0){
-                        if(crit_v[0] == crit_v[1]){
-                            // x+y, -x-y
-                            checkBond(i, j, effcut, dist_v-crit_v[0]*xy,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                        diff_v[2]}});
-                        }else{
-                            // x-y, -x+y
-                            checkBond(i, j, effcut, dist_v-crit_v[0]*xmy,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                        diff_v[2]}});
-                        }
+                    if(crit_v[0] == crit_v[1]){
+                        // x+y, -x-y
+                        checkBond(dist_v-crit_v[0]*xy,
+                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
+                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
+                                    diff_v[2]}});
+                    }else if(crit_v[0] == -crit_v[1]){
+                        // x-y, -x+y
+                        checkBond(dist_v-crit_v[0]*xmy,
+                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
+                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
+                                    diff_v[2]}});
                     }
                 }
                 if(crit_v[2] != 0){
                     // z, -z
-                    checkBond(i, j, effcut, dist_v-crit_v[2]*z,
+                    checkBond(dist_v-crit_v[2]*z,
                               {{diff_v[0],diff_v[1],static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                    if(crit_v[0] != 0){
-                        if(crit_v[0] == crit_v[2]){
-                            // x+z, -x-z
-                            checkBond(i, j, effcut, dist_v-crit_v[0]*xz,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        diff_v[1],
-                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        }else{
-                            // x-z, -x+z
-                            checkBond(i, j, effcut, dist_v-crit_v[0]*xmz,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        diff_v[1],
-                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        }
+                    if(crit_v[0] == crit_v[2]){
+                        // x+z, -x-z
+                        checkBond(dist_v-crit_v[0]*xz,
+                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
+                                    diff_v[1],
+                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                    }else if(crit_v[0] == -crit_v[2]){
+                        // x-z, -x+z
+                        checkBond(dist_v-crit_v[0]*xmz,
+                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
+                                    diff_v[1],
+                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                     }
-                    if(crit_v[1] != 0){
-                        if(crit_v[1] == crit_v[2]){
-                            // y+z, -y-z
-                            checkBond(i, j, effcut, dist_v-crit_v[1]*yz,
-                                      {{diff_v[0],
+                    if(crit_v[1] == crit_v[2]){
+                        // y+z, -y-z
+                        checkBond(dist_v-crit_v[1]*yz,
+                                  {{diff_v[0],
+                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
+                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        if(crit_v[0] == crit_v[2]){
+                            // x+y+z, -x-y-z
+                            checkBond(dist_v-crit_v[0]*xyz,
+                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        }else{
-                            // y-z, -y+z
-                            checkBond(i, j, effcut, dist_v-crit_v[1]*ymz,
-                                      {{diff_v[0],
+                        } else if(crit_v[0] == -crit_v[2]){
+                            // x-y-z, -x+y+z
+                            checkBond(dist_v-crit_v[1]*mxyz,
+                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                         }
-                        if(crit_v[0] != 0){
-                            if(crit_v[0] == crit_v[1]){
-                                if(crit_v[0] == crit_v[2]){
-                                    // x+y+z, -x-y-z
-                                    checkBond(i, j, effcut, dist_v-crit_v[0]*xyz,
-                                              {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                                static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                                static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                                }else{
-                                    // x+y-z, -x-y+z
-                                    checkBond(i, j, effcut, dist_v-crit_v[0]*xymz,
-                                              {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                                static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                                static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                                }
-                            }else{
-                                if(crit_v[0] == crit_v[2]){
-                                    // x-y+z, -x+y-z
-                                    checkBond(i, j, effcut, dist_v-crit_v[0]*xmyz,
-                                              {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                                static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                                static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                                }else{
-                                    // x-y-z, -x+y+z
-                                    checkBond(i, j, effcut, dist_v-crit_v[1]*mxyz,
-                                              {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                                static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                                static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                                }
-                            }
+                    }else if(crit_v[1] == -crit_v[2]){
+                        // y-z, -y+z
+                        checkBond(dist_v-crit_v[1]*ymz,
+                                  {{diff_v[0],
+                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
+                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        if(crit_v[0] == crit_v[2]){
+                            // x-y+z, -x+y-z
+                            checkBond(dist_v-crit_v[0]*xmyz,
+                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
+                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
+                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        } else if(crit_v[0] == -crit_v[2]){
+                            // x+y-z, -x-y+z
+                            checkBond(dist_v-crit_v[0]*xymz,
+                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
+                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
+                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                         }
                     }
                 }
