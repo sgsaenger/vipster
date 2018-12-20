@@ -1,5 +1,7 @@
 # [![vipster](dist/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a276a159c93f47768c59dc264750f9f5)](https://www.codacy.com/app/sgsaenger/vipster?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sgsaenger/vipster&amp;utm_campaign=Badge_Grade)
 Master:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
@@ -18,7 +20,7 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 <table align="center">
   <tr>
     <th colspan=3>
-      <img src="vipster-icon.png" height=16>
+      <img src="dist/vipster.png" height=16>
       Libvipster
     </th>
   </tr>
