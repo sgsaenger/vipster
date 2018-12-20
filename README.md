@@ -2,6 +2,7 @@
 
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a276a159c93f47768c59dc264750f9f5)](https://www.codacy.com/app/sgsaenger/vipster?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sgsaenger/vipster&amp;utm_campaign=Badge_Grade)
+
 Master:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
