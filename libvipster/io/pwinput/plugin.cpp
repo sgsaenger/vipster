@@ -191,7 +191,6 @@ void parseCell(std::string name, std::ifstream& file, CellInp &cell)
 void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
 {
     Step &s = m.getStep(0);
-    CdmFmt cdmFmt;
     IO::PWParam::Namelist& sys = p.system;
     // make sure that relative coordinates are not changed by "scaling" when setting cdm
     auto ibr = sys.find("ibrav");
@@ -201,7 +200,6 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     sys.erase(ibr);
     auto ibrav = std::stoi(ibr->second);
     if(ibrav == 0){
-        s.setCellVec(cell.cell, s.getFmt() == AtomFmt::Crystal);
         bool scale = (s.getFmt() >= AtomFmt::Crystal);
         switch (cell.fmt) {
         case CellInp::Bohr:
@@ -215,28 +213,25 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
                 auto celldm = sys.find("celldm(1)");
                 auto cellA = sys.find("A");
                 if ((celldm != sys.end()) && (cellA == sys.end())) {
-                    cdmFmt = CdmFmt::Bohr;
+                    s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
                     sys.erase(celldm);
                 } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-                    cdmFmt = CdmFmt::Angstrom;
+                    s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
                     sys.erase(cellA);
+                } else if ((celldm == sys.end()) && (cellA == sys.end())) {
+                    s.setCellDim(1, CdmFmt::Bohr, scale);
+                    break;
                 } else {
                     throw IO::Error("Specify either celldm or A,B,C, but not both!");
-                }
-                switch (cdmFmt) {
-                case CdmFmt::Angstrom:
-                    s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
-                    break;
-                case CdmFmt::Bohr:
-                    s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
-                    break;
                 }
             }
             break;
         case CellInp::None:
             throw IO::Error("ibrav=0, but no CELL_PARAMETERS were given");
         }
+        s.setCellVec(cell.cell, s.getFmt() == AtomFmt::Crystal);
     }else{
+        CdmFmt cdmFmt;
         auto celldm = sys.find("celldm(1)");
         auto cellA = sys.find("A");
         if ((celldm != sys.end()) && (cellA == sys.end())) {
