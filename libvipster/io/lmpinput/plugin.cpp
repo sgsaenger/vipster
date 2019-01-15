@@ -159,37 +159,30 @@ auto makeParser(std::vector<lmpTok> fmt){
     };
 }
 
-std::vector<std::set<size_t>> groupSets(const std::vector<std::set<size_t>>& input){
-    if(input.empty()){
-        return input;
-    }
-    std::vector<std::set<size_t>> output{input[0]};
-    for(auto it=input.begin()+1; it!=input.end(); ++it){
-        bool matched{false};
-        for(auto& set:output){
-            std::set<size_t> test;
-            std::set_intersection(set.begin(), set.end(),
-                                  it->begin(), it->end(),
+void groupSets(std::list<std::set<size_t>>& molecules){
+    auto size = molecules.size();
+    std::set<size_t> test;
+    // pairwise compare sets
+    for(auto it1 = molecules.begin(); it1 != molecules.end(); ++it1){
+        auto it2 = it1;
+        ++it2;
+        while(it2 != molecules.end()){
+            test.clear();
+            std::set_intersection(it1->begin(), it1->end(),
+                                  it2->begin(), it2->end(),
                                   std::inserter(test, test.begin()));
             if(!test.empty()){
-                matched = true;
-                test.clear();
-                std::set_union(set.begin(), set.end(),
-                               it->begin(), it->end(),
-                               std::inserter(test, test.begin()));
-                std::swap(set, test);
+                it1->insert(it2->begin(), it2->end());
+                it2 = molecules.erase(it2);
+            }else{
+                ++it2;
             }
         }
-        if(!matched){
-            output.push_back(*it);
-        }
     }
-    if(input.size() != output.size()){
-        return groupSets(output);
-    }else{
-        return output;
+    if(molecules.size() != size){
+        groupSets(molecules);
     }
-}
+};
 
 auto makeWriter(const std::vector<lmpTok>& fmt,
                 const std::vector<size_t>& molID,
@@ -502,15 +495,16 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
 
     // prepare Molecule-IDs
     std::vector<size_t> molID(step.getNat());
-    std::vector<std::set<size_t>> molSets{};
+    std::list<std::set<size_t>> molSets{};
     if(needsMolID){
         molID.resize(step.getNat());
         for(const auto& bond: step.getBonds()){
             molSets.push_back(std::set<size_t>{bond.at1, bond.at2});
         }
-        molSets = groupSets(molSets);
-        for(size_t i=0; i<molSets.size(); ++i){
-            for(const auto& at: molSets[i]){
+        groupSets(molSets);
+        auto it = molSets.begin();
+        for(size_t i=0; i<molSets.size(); ++i, ++it){
+            for(const auto& at: *it){
                 molID[at] = i+1;
             }
         }
