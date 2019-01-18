@@ -81,7 +81,7 @@ public:
         --(this->pse_ptr);
         return *this;
     }
-    AtomListIterator& operator+=(int i){
+    AtomListIterator& operator+=(long i){
         idx += i;
         this->coord_ptr += i;
         this->name_ptr += i;
@@ -89,7 +89,7 @@ public:
         this->pse_ptr += i;
         return *this;
     }
-    AtomListIterator& operator-=(int i){
+    AtomListIterator& operator-=(long i){
         idx -= i;
         this->coord_ptr -= i;
         this->name_ptr -= i;
@@ -97,11 +97,11 @@ public:
         this->pse_ptr -= i;
         return *this;
     }
-    AtomListIterator operator+(int i){
+    AtomListIterator operator+(long i){
         AtomListIterator copy{*this};
         return copy+=i;
     }
-    AtomListIterator operator-(int i){
+    AtomListIterator operator-(long i){
         AtomListIterator copy{*this};
         return copy-=i;
     }

@@ -32,7 +32,7 @@ void IO::to_json(nlohmann::json& j,const PWParam& p)
 void IO::from_json(const nlohmann::json& j, PWParam& p)
 {
     for(auto& i: PWParam::str2nl){
-        p.*i.second = j.at(i.first).get<PWParam::Namelist>();
+        p.*i.second = j.value(i.first, PWParam::Namelist{});
     }
 }
 

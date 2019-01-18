@@ -7,10 +7,9 @@ namespace Vipster {
 namespace IO {
 
 struct CPConfig: BaseConfig{
-    enum class Scale{None, Scale, Cartesian};
-    bool angstrom;
-    Scale scale;
-    CPConfig(std::string="", bool=false, Scale=Scale::Scale);
+    enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Current};
+    AtomFmt fmt;
+    CPConfig(std::string="", AtomFmt=AtomFmt::Current);
     std::unique_ptr<BaseConfig> copy() override;
     void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() override;

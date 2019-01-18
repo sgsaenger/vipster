@@ -195,15 +195,15 @@ void Vipster::to_json(nlohmann::json& j, const PseEntry& p)
 
 void Vipster::from_json(const nlohmann::json& j, PseEntry& p)
 {
-    p.PWPP = j.at("PWPP");
-    p.CPPP = j.at("CPPP");
-    p.CPNL = j.at("CPNL");
-    p.Z = j.at("Z");
-    p.m = j.at("m");
-    p.bondcut = j.at("bondcut");
-    p.covr = j.at("covr");
-    p.vdwr = j.at("vdwr");
-    p.col = j.at("col");
+    p.PWPP = j.value("PWPP", "");
+    p.CPPP = j.value("CPPP", "");
+    p.CPNL = j.value("CPNL", "");
+    p.Z = j.value("Z", 0u);
+    p.m = j.value("m", 0.0f);
+    p.bondcut = j.value("bondcut", -1.f);
+    p.covr = j.value("covr", 1.46f);
+    p.vdwr = j.value("vdwr", 3.21f);
+    p.col = j.value("col", ColVec{0,0,0,255});
 }
 
 void Vipster::to_json(nlohmann::json& j, const PseMap& m)

@@ -425,15 +425,10 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
     if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
     const auto *cc = dynamic_cast<const IO::CPConfig*>(c);
     if(!cc) throw IO::Error("CPI-Writer needs CPMD config preset");
-    auto af = cc->angstrom ? AtomFmt::Angstrom : AtomFmt::Bohr;
-    auto cf = cc->angstrom ? CdmFmt::Angstrom : CdmFmt::Bohr;
-    if(cc->scale == IO::CPConfig::Scale::Scale)
-    {
-        af = AtomFmt::Crystal;
-    }else if(cc->scale == IO::CPConfig::Scale::Cartesian)
-    {
-        af = AtomFmt::Alat;
-    }
+    auto af = (cc->fmt == IO::CPConfig::AtomFmt::Current) ?
+                state.atom_fmt : // use from GUI/CLI
+                static_cast<AtomFmt>(cc->fmt); // use explicit fmt
+    auto cf = (af == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
     const auto& s = m.getStep(state.index).asFmt(af);
     for(const auto& pair: IO::CPParam::str2section){
         if(pair.second == &IO::CPParam::atoms){
@@ -532,15 +527,18 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::system){
             file << pair.first << '\n';
-            if(cc->angstrom){
+            switch(af){
+            case AtomFmt::Angstrom:
                 file << "  ANGSTROM\n";
-            }
-            if(cc->scale == IO::CPConfig::Scale::Scale)
-            {
-                file << "  SCALE\n";
-            }else if(cc->scale == IO::CPConfig::Scale::Cartesian)
-            {
+                break;
+            case AtomFmt::Alat:
                 file << "  SCALE CARTESIAN\n";
+                break;
+            case AtomFmt::Crystal:
+                file << "  SCALE\n";
+                break;
+            default:
+                break;
             }
             Mat tmpvec = s.getCellVec() * s.getCellDim(cf);
             file << "  CELL VECTORS\n" << std::fixed << std::setprecision(5)

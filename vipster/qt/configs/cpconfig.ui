@@ -14,37 +14,17 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="2">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="scaleLabel">
+   <item row="1" column="0">
+    <widget class="QLabel" name="fmtLabel">
      <property name="text">
-      <string>Scale coordi&amp;nates:</string>
+      <string>Target for&amp;mat:</string>
      </property>
      <property name="buddy">
-      <cstring>scaleSel</cstring>
+      <cstring>fmtSel</cstring>
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
-    <widget class="QCheckBox" name="angstromSel">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="4">
+   <item row="3" column="0" colspan="4">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -57,37 +37,37 @@
      </property>
     </spacer>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="angstromLabel">
-     <property name="text">
-      <string>Use Angstro&amp;m:</string>
-     </property>
-     <property name="buddy">
-      <cstring>angstromSel</cstring>
-     </property>
+   <item row="1" column="2" colspan="2">
+    <widget class="QComboBox" name="fmtSel">
+     <item>
+      <property name="text">
+       <string>Bohr</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Angstrom</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Crystal</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Alat</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>As selected</string>
+      </property>
+     </item>
     </widget>
    </item>
-   <item row="2" column="2" colspan="2">
-    <widget class="QComboBox" name="scaleSel">
-     <item>
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>SCALE</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>SCALE CARTESIAN</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <spacer name="horizontalSpacer_2">
+   <item row="1" column="1">
+    <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
