@@ -1,0 +1,76 @@
+html{
+    position: relative;
+    min-height: 100%;
+}
+body{
+    font-family: "Open Sans", sans-serif;
+    padding-top:70px;
+    background: #222;
+    color: #BBB;
+    margin-bottom: 60px;
+}
+header{
+    font-family: "Satisfy", sans-serif;
+    text-align:center;
+}
+h1{
+    font-size:54px;
+}
+.navbar{
+    background: #333;
+}
+.navbar-inverse .navbar-nav>li>a:hover{
+    background: #444;
+}
+.navbar-brand{
+    font-family: "Satisfy",sans-serif;
+}
+.dropdown-menu{
+    background: #333;
+}
+.dropdown-menu>li>a{
+    color: #BBB;
+}
+.dropdown-menu>li>a:hover{
+    background: #444;
+    color: #BBB;
+}
+.dropdown-menu>.active>a{
+    background:#111;
+}
+.dropdown-menu>.active>a:hover{
+    background:#111;
+}
+.panel{
+    background: #333;
+    color: #BBB;
+}
+.panel-body{
+    background: #444;
+    border-top: None !important;
+}
+#logo{
+    max-width: 30%;
+    height:auto;
+}
+#cover{
+    font-size:20px;
+    text-align:center
+}
+code{
+    background: #333;
+}
+pre{
+    background: #333;
+    border-color: #BBB;
+    color: #c7254e;
+}
+.footer{
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    height: 60px;
+}
+.jumbotron{
+    background: #333;
+}
