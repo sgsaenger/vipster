@@ -1,5 +1,4 @@
 // Colors
-$gray-200: #e9ecef;
 $theme-colors: (
     "primary":   hsl(185, 100%, 28%),
     "secondary": hsl(200, 18%, 20%),
@@ -7,7 +6,7 @@ $theme-colors: (
 );
 
 $body-bg:       hsl(204, 15%, 96%);
-$body-color:    $gray-200;
+$body-color:    #eee;
 $text-muted:    hsl(hue(theme-color('secondary')), 7%, 46%);
 
 // Typography
@@ -15,7 +14,7 @@ $font-family-sans-serif: Roboto;
 $font-family-monospace: "Roboto Mono";
 $font-size-base: .85rem;
 
-$h1-font-size: $font-size-base * 2;
+$h1-font-size: $font-size-base * 2.25;
 $h2-font-size: $font-size-base * 1.25;
 $h3-font-size: $font-size-base * 1.1;
 
