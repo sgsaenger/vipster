@@ -187,6 +187,7 @@ int main()
     if (!context)
     {
         printf("WebGL 2 is not supported!\n");
+        EM_ASM(alertWebGL());
         return 0;
     }
 
