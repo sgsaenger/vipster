@@ -1,18 +1,8 @@
 #include "plugin.h"
+#include "../util.h"
 #include <cctype>
 
 using namespace Vipster;
-
-static std::string trim(const std::string& str)
-{
-    const std::string whitespace{" \t"};
-    const auto strBegin = str.find_first_not_of(whitespace);
-    if(strBegin == std::string::npos){
-        return "";
-    }
-    const auto strEnd = str.find_last_not_of(whitespace);
-    return str.substr(strBegin, strEnd-strBegin+1);
-}
 
 const std::map<std::string, int> str2ibrav{
     {"ISOLATED", 0},
@@ -122,7 +112,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
     Vec scaleVec{1,1,1};
     Mat cellVec{Vec{1,0,0},Vec{0,1,0},Vec{0,0,1}};
     while (std::getline(file, buf)) {
-        line = trim(buf);
+        line = IO::trim(buf, " \t");
         if(line.empty() || line[0] == '!') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if(line[0] == '&'){
@@ -232,7 +222,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     int tmp;
                     ss >> tmp;
                     if(ss.fail()){
-                        buf = trim(buf);
+                        buf = IO::trim(buf, " \t");
                         for (auto &c: buf) c = static_cast<char>(std::toupper(c));
                         ibrav = str2ibrav.at(buf);
                     }else{
@@ -262,7 +252,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
             }else if(curSection == &IO::CPParam::atoms){
                 if(line[0] == '*'){
                     parsed = true;
-                    line = trim(buf); // reset to regain capitalization
+                    line = IO::trim(buf, " \t"); // reset to regain capitalization
                     std::string CPPP = line.substr(1);
                     auto pos = CPPP.find_first_of(". ");
                     std::string name = CPPP.substr(0, pos);
@@ -278,7 +268,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     types.push_back(name);
                     (*s.pse)[name].CPPP = CPPP;
                     std::getline(file, buf);
-                    (*s.pse)[name].CPNL = trim(buf);
+                    (*s.pse)[name].CPNL = IO::trim(buf, " \t");
                     std::getline(file, buf);
                     size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
@@ -451,7 +441,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 if(!pE.CPPP.empty()){
                     file << '*' << pE.CPPP << '\n';
                 }else{
-                    file << '*' << trim(pair.first) << trim(Vipster::settings.CPPP.val) << '\n';
+                    file << '*' << IO::trim(pair.first, " \t") << IO::trim(Vipster::settings.CPPP.val, " \t") << '\n';
                 }
                 if(!pE.CPNL.empty()){
                     file << "  " << pE.CPNL << '\n';

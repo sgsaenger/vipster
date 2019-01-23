@@ -1,18 +1,8 @@
 #include "plugin.h"
+#include "../util.h"
 #include <sstream>
 
 using namespace Vipster;
-
-static std::string trim(const std::string& str)
-{
-    const std::string whitespace{" \t"};
-    const auto strBegin = str.find_first_not_of(whitespace);
-    if(strBegin == std::string::npos){
-        return "";
-    }
-    const auto strEnd = str.find_last_not_of(whitespace);
-    return str.substr(strBegin, strEnd-strBegin+1);
-}
 
 template<typename T>
 auto mkparser(){
@@ -72,7 +62,7 @@ IO::Data XSFParser(const std::string& name, std::ifstream &file)
         if(line[0] == '#'){
             continue;
         }
-        line = trim(line);
+        line = IO::trim(line, " \t");
         if(line.find("ANIMSTEPS") != line.npos){
             size_t nstep;
             std::stringstream ls{line};
