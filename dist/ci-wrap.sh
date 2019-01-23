@@ -17,8 +17,8 @@ case $1 in
                         # select Python 3.6
                         pyenv shell 3.6
                         # make sure GCC5 is used:
-                        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
-                        sudo update-alternatives --set gcc /usr/bin/gcc-5
+                        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+                        sudo update-alternatives --set gcc /usr/bin/gcc-7
                         export PATH="/opt/qt510/bin":$PATH
                         ;;
                 esac

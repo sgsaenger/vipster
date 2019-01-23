@@ -16,7 +16,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
     AtomFmt at_fmt{AtomFmt::Angstrom};
     std::string line, c_fmt;
     int charge;
-    uint multiplicity;
+    unsigned int multiplicity;
     while(std::getline(file, line)){
         std::stringstream ls{line};
         std::string test;

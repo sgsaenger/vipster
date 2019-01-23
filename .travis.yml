@@ -20,7 +20,7 @@ matrix:
                       - sourceline: "ppa:beineri/opt-qt-5.10.1-trusty"
                   packages:
                       - python-dev
-                      - g++-5
+                      - g++-7
                       - qt510-meta-minimal
                       - qt510script
         - os: osx
