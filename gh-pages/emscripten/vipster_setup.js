@@ -380,3 +380,7 @@ function addParser(idx, name) {
     // eslint-disable-next-line no-undef
     $(dom.fileType).append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
 }
+
+function alertWebGL() {
+    $('#noWebGL2Modal').modal()
+}
