@@ -1,12 +1,12 @@
 #include "pyvipster.h"
 #include "io.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void PWInput(py::module&);
 void LmpInput(py::module&);
 void XYZ(py::module&);
 void CPInput(py::module&);
+void ORCA(py::module&);
 
 void IO(py::module& m){
     auto io = m.def_submodule("IO");
@@ -65,6 +65,6 @@ void IO(py::module& m){
     LmpInput(io);
     XYZ(io);
     CPInput(io);
-}
+    ORCA(io);
 }
 }

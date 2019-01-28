@@ -3,12 +3,10 @@
 
 #include "../plugin.h"
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
-extern const IO::Plugin Cube;
+extern const Plugin Cube;
 
-}
 }
 
 #endif // CUBE_H

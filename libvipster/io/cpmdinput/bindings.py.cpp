@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "io/cpmdinput/plugin.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void CPInput(py::module& m){
     auto p = py::class_<IO::CPParam>(m, "CPParam")
         .def_readwrite("info", &IO::CPParam::info)
@@ -37,6 +36,5 @@ void CPInput(py::module& m){
         .value("Alat", IO::CPConfig::AtomFmt::Alat)
 //        .value("Current", IO::CPConfig::AtomFmt::Current) // TODO: makes sense to expose this?
     ;
-}
 }
 }

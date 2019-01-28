@@ -16,7 +16,9 @@ include_directories(python)
 include_directories(vipster/qt)
 
 # Library, needed for everything else
+file(GLOB_RECURSE PY_SOURCES "libvipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "libvipster/*.cpp" "external/tinyexpr.c")
+list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 add_library(libvipster SHARED ${LIB_SOURCES})
 set_target_properties(libvipster
     PROPERTIES
@@ -46,7 +48,6 @@ endif()
 if(PYTHON)
     # Python-bindings
     add_subdirectory(external/pybind11)
-    file(GLOB PY_SOURCES "python/*.cpp")
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)

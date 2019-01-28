@@ -3,8 +3,7 @@
 
 #include "../plugin.h"
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
 struct OrcaParam: BaseParam{
     using Header = std::vector<std::string>;
@@ -18,7 +17,6 @@ struct OrcaParam: BaseParam{
 void to_json(nlohmann::json& j, const OrcaParam& p);
 void from_json(const nlohmann::json& j, OrcaParam& p);
 
-}
 }
 
 #endif // ORCA_PARAM_H

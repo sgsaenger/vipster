@@ -3,8 +3,7 @@
 
 #include "../plugin.h"
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
 struct XYZConfig: BaseConfig{
     enum class Data{None, Charge, Forces};
@@ -20,7 +19,6 @@ struct XYZConfig: BaseConfig{
 void to_json(nlohmann::json& j, const XYZConfig& p);
 void from_json(const nlohmann::json& j, XYZConfig& p);
 
-}
 }
 
 #endif // XYZ_CONF_H

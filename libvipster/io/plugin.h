@@ -13,9 +13,7 @@
 #include <fstream>
 #include <iomanip>
 
-namespace Vipster{
-
-namespace IO {
+namespace Vipster::IO{
 
 struct Data{
     Molecule mol{"",0};
@@ -51,7 +49,6 @@ class Error: public std::runtime_error
         Error(const std::string& reason):std::runtime_error(reason){}
 };
 
-}
 }
 
 #endif // IOPLUGIN_H

@@ -3,10 +3,8 @@
 
 #include "../plugin.h"
 
-namespace Vipster {
-namespace IO {
-extern const IO::Plugin PWOutput;
-}
+namespace Vipster::IO{
+extern const Plugin PWOutput;
 }
 
 #endif // PWOUTPUT_H

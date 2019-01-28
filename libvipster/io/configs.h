@@ -8,8 +8,7 @@
 #include <map>
 #include <memory>
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
 class BaseConfig
 {
@@ -31,6 +30,7 @@ using Configs = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseConfig
 
 }
 
+namespace Vipster{
 extern IO::Configs configs;
 }
 

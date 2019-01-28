@@ -4,8 +4,7 @@
 // TODO: think about const-correctness!
 // can wait until "view"-interface to running libvipster instance is implemented
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 template <typename S>
 py::class_<S> bind_step(py::handle &m, const char* name){
     auto cl = py::class_<S>(m, name)
@@ -94,6 +93,5 @@ void Step(py::module& m){
     // TODO: Modification functions
     // TODO: selection specific functions?
 
-}
 }
 }

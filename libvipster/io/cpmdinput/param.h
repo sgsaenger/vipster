@@ -3,8 +3,7 @@
 
 #include "../plugin.h"
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
 struct CPParam: BaseParam{
     using Section = std::vector<std::string>;
@@ -37,7 +36,6 @@ struct CPParam: BaseParam{
 void to_json(nlohmann::json& j,const CPParam& p);
 void from_json(const nlohmann::json& j, CPParam& p);
 
-}
 }
 
 #endif // CPI_PARAM_H

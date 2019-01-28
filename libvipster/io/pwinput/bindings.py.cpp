@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "io/pwinput/plugin.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void PWInput(py::module& m){
     auto p = py::class_<IO::PWParam, IO::BaseParam>(m, "PWParam")
         .def_readwrite("control", &IO::PWParam::control)
@@ -29,6 +28,5 @@ void PWInput(py::module& m){
         .value("Bohr", IO::PWConfig::CellFmt::Bohr)
 //        .value("Current", IO::PWConfig::CellFmt::Current) // TODO: makes sense to expose this?
     ;
-}
 }
 }

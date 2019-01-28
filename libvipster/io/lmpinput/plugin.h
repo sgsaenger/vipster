@@ -4,12 +4,10 @@
 #include "../plugin.h"
 #include "config.h"
 
-namespace Vipster{
-namespace IO{
+namespace Vipster::IO{
 
-extern const IO::Plugin LmpInput;
+extern const Plugin LmpInput;
 
-}
 }
 
 #endif // LMPINPUT_H

@@ -3,8 +3,7 @@
 
 #include "../plugin.h"
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
 struct CPConfig: BaseConfig{
     enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Current};
@@ -18,7 +17,6 @@ struct CPConfig: BaseConfig{
 void to_json(nlohmann::json& j, const CPConfig& p);
 void from_json(const nlohmann::json& j, CPConfig& p);
 
-}
 }
 
 #endif // CPI_CONF_H

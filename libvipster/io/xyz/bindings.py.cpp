@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "io/xyz/plugin.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void XYZ(py::module& m){
     auto c = py::class_<IO::XYZConfig>(m, "XYZConfig")
         .def_readwrite("filemode", &IO::XYZConfig::filemode)
@@ -20,6 +19,5 @@ void XYZ(py::module& m){
         .value("Trajec", IO::XYZConfig::Mode::Trajec)
         .value("Cell", IO::XYZConfig::Mode::Cell)
     ;
-}
 }
 }
