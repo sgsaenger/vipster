@@ -6,10 +6,9 @@
 @import "../node_modules/bootstrap/scss/bootstrap";
 
 // Own component styling
-@import "_components/overrides";
-@import "_components/layout";
-@import "_components/type";
-@import "_components/other";
-@import "_components/canvas";
+@import "_components/base";
 @import "_components/controls";
-@import "_components/widget";
+@import "_components/layout";
+@import "_components/overrides";
+@import "_components/typography";
+@import "_components/widgets";

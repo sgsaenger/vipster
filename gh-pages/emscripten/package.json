@@ -6,9 +6,9 @@
   "license": "GPL-3.0-only",
   "scripts": {
     "postinstall": "npm run build",
-    "css:compile": "node-sass -q --output-style=compressed ./styles/styles.scss ./styles/styles.css",
-    "css:postcss": "postcss ./styles/styles.css --use autoprefixer --no-map -r",
-    "watch": "nodemon -e scss -x \"npm run build\"",
+    "css:compile": "node-sass -q --output-style=compressed --source-map-embed ./styles/styles.scss ./styles/styles.css",
+    "css:postcss": "postcss ./styles/styles.css --use autoprefixer -r",
+    "watch": "nodemon -e scss -x 'npm run build'",
     "build": "npm run css:compile && npm run css:postcss"
   },
   "repository": {
@@ -20,10 +20,10 @@
   },
   "homepage": "https://sgsaenger.github.io/vipster/",
   "devDependencies": {
-    "autoprefixer": "^8.6.2",
+    "autoprefixer": "^9.4.6",
     "bootstrap": "^4.1.1",
     "node-sass": "^4.9.0",
     "nodemon": "^1.17.5",
-    "postcss-cli": "^5.0.0"
+    "postcss-cli": "^6.1.1"
   }
 }
