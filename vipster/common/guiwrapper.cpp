@@ -142,6 +142,16 @@ void GuiWrapper::updateViewUBO(void)
     }
 }
 
+void GuiWrapper::resizeViewMat(int l, int r, int w, int h)
+{
+    h==0?h=1:0;
+    glViewport(l,r,w,h);
+    float aspect = float(w)/h;
+    oMat = guiMatMkOrtho(-10*aspect, 10*aspect, -10, 10, -100, 1000);
+    pMat = guiMatMkPerspective(60, aspect, 0.001f, 1000);
+    pMatChanged = true;
+}
+
 void GuiWrapper::resizeViewMat(int w, int h)
 {
     h==0?h=1:0;

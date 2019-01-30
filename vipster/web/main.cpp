@@ -1,6 +1,7 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
+#include <emscripten/vr.h>
 
 #include "../common/guiwrapper.h"
 #include "configfile.h"
@@ -159,6 +160,41 @@ EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void*)
     return 1;
 }
 
+static VRDisplayHandle handle;
+
+static void requestPresentCallback(void* userData){
+        printf("Request present callback.\n");
+}
+
+void vr_loop(){
+    static int renderLoopCalled{0};
+    renderLoopCalled++;
+    if(renderLoopCalled == 1){
+        VREyeParameters leftParams, rightParams;
+        emscripten_vr_get_eye_parameters(handle, VREyeLeft, &leftParams);
+        emscripten_vr_get_eye_parameters(handle, VREyeRight, &rightParams);
+        VREyeParameters *p = &leftParams;
+        printf("Left eye params: {offset: [%f,%f,%f], renderWidth: %lu, renderHeight: %lu}\n",
+                p->offset.x, p->offset.y, p->offset.z, p->renderWidth, p->renderHeight);
+        p = &rightParams;
+        printf("Right eye params: {offset: [%f,%f,%f], renderWidth: %lu, renderHeight: %lu}\n",
+                p->offset.x, p->offset.y, p->offset.z, p->renderWidth, p->renderHeight);
+        VRLayerInit init = {
+                "#canvas",
+                VR_LAYER_DEFAULT_LEFT_BOUNDS,
+                VR_LAYER_DEFAULT_RIGHT_BOUNDS
+        };
+        if(!emscripten_vr_request_present(handle, &init, 1, requestPresentCallback, NULL)){
+            printf("Request present failed.\n");
+            return;
+        }
+        if(emscripten_vr_display_presenting(handle)){
+            printf("Shouldn't be presting.\n");
+            return;
+        }
+    }
+}
+
 void one_iter(){
     int width, height;
     static int localWidth, localHeight;
@@ -171,6 +207,39 @@ void one_iter(){
     }
     // draw
     gui.draw();
+    // check for webvr
+    if(!emscripten_vr_ready()){
+        printf("vr not initialized\n");
+        return;
+    }else{
+        static bool first{false};
+        if(!first){
+            int numDisplays = emscripten_vr_count_displays();
+            printf("num displays: %d\n", numDisplays);
+            if(!numDisplays){ return; }
+            for(int i=0; i<numDisplays; ++i){
+                    handle = emscripten_vr_get_display_handle(i);
+                    printf("display %d: %s\n", i, emscripten_vr_get_display_name(handle));
+                    VRDisplayCapabilities caps;
+                    if(!emscripten_vr_get_display_capabilities(handle, &caps)){
+                        printf("Error: failed to get display capabilities.\n");
+                        return;
+                    }
+                    if(!emscripten_vr_display_connected(handle)){
+                        printf("Error: display not connected.\n");
+                        return;
+                    }
+                    printf("Display Capabilities:\n"
+                           "{hasPosition: %d, hasExternalDisplay: %d, canPresent: %d, maxLayers: %lu}\n",
+                           caps.hasPosition, caps.hasExternalDisplay, caps.canPresent, caps.maxLayers);
+            }
+            handle = emscripten_vr_get_display_handle(0);
+            if(!emscripten_vr_set_display_render_loop(handle, vr_loop)){
+                printf("Error: failed to set vr-render-loop\n.");
+            }
+            first=true;
+        }
+    }
 }
 
 int main()
@@ -189,6 +258,13 @@ int main()
         printf("WebGL 2 is not supported!\n");
         EM_ASM(alertWebGL());
         return 0;
+    }
+    if (!emscripten_vr_init([](void*){},nullptr)) {
+        printf("WebVR is not supported!\n");
+    }else{
+        printf("Browser running WebVR version %d.%d\n",
+                        emscripten_vr_version_major(),
+                        emscripten_vr_version_minor());
     }
 
     // init GL

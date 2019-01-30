@@ -36,6 +36,7 @@ public:
     void addExtraData(GUI::Data* dat);
     void delExtraData(GUI::Data* dat);
 public:
+    void resizeViewMat(int l, int r, int w, int h);
     void resizeViewMat(int w, int h);
     void zoomViewMat(int i);
     void rotateViewMat(float x, float y, float z);
