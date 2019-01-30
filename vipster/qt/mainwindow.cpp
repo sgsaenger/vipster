@@ -1,3 +1,4 @@
+#include "version.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "savefmtdialog.h"
@@ -447,7 +448,7 @@ void MainWindow::saveConfig()
 void MainWindow::about()
 {
     QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster v1.13a</h2>"
+    QString("<h2>Vipster v" VIPSTER_VERSION "a</h2>"
             "<p>"
             "©Sebastian Gsänger, 2018"
             "<br>"
