@@ -328,16 +328,10 @@ function createAlert(msg, type, dismissable = true) {
 function resizeCanvas() {
     Module.canvas.width = Module.canvas.clientWidth;
     Module.canvas.height = Module.canvas.clientHeight;
-
-    // Might be hidden right now after resizing back into desktop viewport
-    // because of mobile menu logic
-    if ($(window).width() >= DESKTOP_BREAKPOINT) {
-        $('main').show();
-    }
 }
 
 $(document).ready(function () {
-    // Set correc canvas size on resize
+    // Set correct canvas size on resize
     window.addEventListener('resize', resizeCanvas);
 
     // File loading
@@ -364,14 +358,6 @@ $(document).ready(function () {
             .parents('.widget:first').toggleClass('closed')
             .find('.widget__body').slideToggle();
     });
-
-    const main = $('main');
-    $('#controls__collapse')
-        .on('show.bs.collapse', () => main.hide())
-        .on('hide.bs.collapse', () => {
-            main.show();
-            resizeCanvas();
-        });
 
 });
 
