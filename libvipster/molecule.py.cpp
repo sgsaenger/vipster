@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "molecule.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void Molecule(py::module& m){
     py::class_<Vipster::Molecule>(m, "Molecule")
         .def(py::init())
@@ -24,6 +23,5 @@ void Molecule(py::module& m){
         .def_property("name", &Vipster::Molecule::getName, &Vipster::Molecule::setName)
         .def_property("kpoints", py::overload_cast<>(&Vipster::Molecule::getKPoints), &Vipster::Molecule::setKPoints)
     ;
-}
 }
 }

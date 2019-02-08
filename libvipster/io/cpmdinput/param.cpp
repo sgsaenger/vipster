@@ -52,7 +52,7 @@ nlohmann::json IO::CPParam::toJson()
 void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
 {
     for(const auto& pair: CPParam::str2section){
-        p.*pair.second = j.at(pair.first).get<CPParam::Section>();
+        p.*pair.second = j.value(pair.first, CPParam::Section{});
     }
 }
 

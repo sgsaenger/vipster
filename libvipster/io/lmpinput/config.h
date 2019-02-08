@@ -3,8 +3,7 @@
 
 #include "../plugin.h"
 
-namespace Vipster{
-namespace IO{
+namespace Vipster::IO{
 
 struct LmpConfig: BaseConfig{
     enum class AtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
@@ -21,7 +20,6 @@ struct LmpConfig: BaseConfig{
 void to_json(nlohmann::json& j,const LmpConfig& p);
 void from_json(const nlohmann::json& j, LmpConfig& p);
 
-}
 }
 
 #endif // LMPI_CONF_H

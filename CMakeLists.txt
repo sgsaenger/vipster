@@ -10,14 +10,18 @@ cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(external)
 include_directories(libvipster)
 include_directories(python)
 include_directories(vipster/qt)
 
 # Library, needed for everything else
+file(GLOB_RECURSE PY_SOURCES "libvipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "libvipster/*.cpp" "external/tinyexpr.c")
+list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 add_library(libvipster SHARED ${LIB_SOURCES})
+configure_file("libvipster/version.h.in" "version.h")
 set_target_properties(libvipster
     PROPERTIES
         FRAMEWORK TRUE
@@ -30,10 +34,11 @@ if(UNIX AND NOT APPLE)
         LIBRARY
             DESTINATION "lib"
         )
-    install(DIRECTORY "libvipster"
-        DESTINATION "include"
+    install(DIRECTORY "libvipster/"
+        DESTINATION "include/vipster"
         FILES_MATCHING PATTERN "*.h"
         )
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
 endif()
 
 if(TESTS)
@@ -46,7 +51,6 @@ endif()
 if(PYTHON)
     # Python-bindings
     add_subdirectory(external/pybind11)
-    file(GLOB PY_SOURCES "python/*.cpp")
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)

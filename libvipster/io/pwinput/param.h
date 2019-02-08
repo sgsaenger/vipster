@@ -3,8 +3,7 @@
 
 #include "../plugin.h"
 
-namespace Vipster{
-namespace IO{
+namespace Vipster::IO{
 
 struct PWParam: BaseParam{
     using Namelist = std::map<std::string, std::string>;
@@ -24,7 +23,6 @@ struct PWParam: BaseParam{
 void to_json(nlohmann::json& j,const PWParam& p);
 void from_json(const nlohmann::json& j, PWParam& p);
 
-}
 }
 
 #endif // PWI_PARAM_H

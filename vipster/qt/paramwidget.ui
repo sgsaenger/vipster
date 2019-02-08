@@ -38,6 +38,7 @@
      </widget>
      <widget class="PWParam" name="PWWidget"/>
      <widget class="CPParam" name="CPWidget"/>
+     <widget class="ORCAParam" name="ORCAWidget"/>
     </widget>
    </item>
   </layout>
@@ -53,6 +54,12 @@
    <class>CPParam</class>
    <extends>QWidget</extends>
    <header>params/cpparam.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ORCAParam</class>
+   <extends>QWidget</extends>
+   <header>params/orcaparam.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

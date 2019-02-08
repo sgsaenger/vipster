@@ -29,6 +29,9 @@ public:
     void initGL(const std::string& header, const std::string& folder);
     void draw(void);
     void drawSel(void);
+    void drawVR(const float* leftProj, const float* leftView,
+                const float* rightProj, const float* rightView,
+                const Vec& pos, unsigned long width, unsigned long height);
     void setMainStep(Step* step, bool draw_bonds=true, bool draw_cell=true);
     void setMainSel(Step::selection* sel);
     void updateMainStep(bool draw_bonds=true, bool draw_cell=true);
@@ -36,7 +39,7 @@ public:
     void addExtraData(GUI::Data* dat);
     void delExtraData(GUI::Data* dat);
 public:
-    void resizeViewMat(int w, int h);
+    void resizeViewMat(long w, long h);
     void zoomViewMat(int i);
     void rotateViewMat(float x, float y, float z);
     void translateViewMat(float x, float y, float z);
@@ -52,7 +55,10 @@ public:
     GUI::SelData selection{globals, nullptr};
     std::set<GUI::Data*> extraData{};
 private:
+    void drawPre(void);
+    void drawImpl(const Vec& pos);
     void updateViewUBO(void);
+    void updateViewUBOVR(const float* proj, const float* view);
     // gpu-side global data
     GLuint view_ubo;
     // cpu-side global data

@@ -5,16 +5,9 @@
     background-color: $controls-bg;
     z-index: $zindex-fixed;
 
-    .title {
+    #title {
         display: inline-block;
-    }
-
-    h1 {
         margin: .75rem;
-
-        small {
-            display: none;
-        }
     }
 }
 
@@ -52,16 +45,8 @@
         border-right: 1px solid darken($controls-bg, 4%);
         box-shadow: -4px 0 8px 6px rgba(0, 0, 0, .65);
 
-        .title {
-            margin-bottom: .5rem;
-        }
-
-        h1 {
-            margin: 0 0 1.5rem;
-
-            small {
-                display: block;
-            }
+        #title {
+            margin: 0 0 0.25rem;
         }
     }
 

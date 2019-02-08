@@ -561,25 +561,6 @@ private:
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
         enum wrapDir{x, y, z, xy, xmy, xz, xmz, yz, ymz, xyz, xymz, xmyz, mxyz};
-        constexpr size_t nWrap{13};
-        const std::vector<std::vector<size_t>> cWrap{
-            {0}, {1}, {2}, {0,1}, {0,1}, {0,2}, {0,2},
-            {1,2}, {1,2}, {0,1,2}, {0,1,2}, {0,1,2}, {0,1,2}
-        };
-        std::array<Vec, nWrap> vWrap{};
-        vWrap[wrapDir::x] = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
-        vWrap[wrapDir::y] = getCellVec()[1] * getCellDim(CdmFmt::Bohr);
-        vWrap[wrapDir::z] = getCellVec()[2] * getCellDim(CdmFmt::Bohr);
-        vWrap[wrapDir::xy]   = vWrap[wrapDir::x] + vWrap[wrapDir::y];
-        vWrap[wrapDir::xmy]  = vWrap[wrapDir::x] - vWrap[wrapDir::y];
-        vWrap[wrapDir::xz]   = vWrap[wrapDir::x] + vWrap[wrapDir::z];
-        vWrap[wrapDir::xmz]  = vWrap[wrapDir::x] - vWrap[wrapDir::z];
-        vWrap[wrapDir::yz]   = vWrap[wrapDir::y] + vWrap[wrapDir::z];
-        vWrap[wrapDir::ymz]  = vWrap[wrapDir::y] - vWrap[wrapDir::z];
-        vWrap[wrapDir::xyz]  = vWrap[wrapDir::xy] + vWrap[wrapDir::z];
-        vWrap[wrapDir::xymz] = vWrap[wrapDir::xy] - vWrap[wrapDir::z];
-        vWrap[wrapDir::xmyz] = vWrap[wrapDir::xz] - vWrap[wrapDir::y];
-        vWrap[wrapDir::mxyz] = vWrap[wrapDir::yz] - vWrap[wrapDir::x];
         // get largest cutoff
         float cut{0};
         for (const auto& at:asCrystal) {
@@ -688,7 +669,13 @@ private:
                                 // TODO: fail here? set flag? overlapping atoms!
                                 continue;
                             }
-                            // convert dist_v to bohr
+                            // convert dist_v to bohr, wrap into cell if needed
+                            for(size_t d=0; d<3; ++d){
+                                if(std::abs(dist_v[d]) > 0.5f){
+                                    dist_v[d] -= crit_v[d];
+                                    diff_v[d] += crit_v[d];
+                                }
+                            }
                             dist_v = dist_v * cell;
                             if ((dist_v[0] > effcut) ||
                                 (dist_v[1] > effcut) ||
@@ -702,7 +689,7 @@ private:
                             }
                         }
                         // other boxes should be evaluated in total
-                        auto pbccheck = [&](size_t xt, size_t yt, size_t zt){
+                        auto wrapcheck = [&](size_t xt, size_t yt, size_t zt){
                             for (const auto& j: boxes(xt, yt, zt)) {
                                 const auto& at_j = asCrystal[j];
                                 auto cut_j = at_j.pse->bondcut;
@@ -727,7 +714,13 @@ private:
                                     // TODO: fail here? set flag? overlapping atoms!
                                     continue;
                                 }
-                                // convert dist_v to bohr
+                                // convert dist_v to bohr, wrap into cell if needed
+                                for(size_t d=0; d<3; ++d){
+                                    if(std::abs(dist_v[d]) > 0.5f){
+                                        dist_v[d] -= crit_v[d];
+                                        diff_v[d] += crit_v[d];
+                                    }
+                                }
                                 dist_v = dist_v * cell;
                                 if ((dist_v[0] > effcut) ||
                                     (dist_v[1] > effcut) ||
@@ -741,241 +734,32 @@ private:
                                 }
                             }
                         };
-                        // when going over edges, wrap distance-vector
-                        auto wrapcheck = [&](size_t xt, size_t yt, size_t zt, wrapDir dir){
-                            for (const auto& j: boxes(xt, yt, zt)) {
-                                const auto& at_j = asCrystal[j];
-                                auto cut_j = at_j.pse->bondcut;
-                                if (cut_j <= 0) {
-                                    continue;
-                                }
-                                auto effcut = (cut_i + cut_j) * cutfac;
-                                Vec dist_v = at_i.coord - at_j.coord;
-                                std::array<int16_t, 3> diff_v, crit_v;
-                                // diff_v contains integer distance in cell-units
-                                std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
-                                // dist_v now contains distance inside of cell
-                                std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                                    [](float f){return std::fmod(f,1);});
-                                // crit_v contains direction of distance-vector
-                                std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                                    [](float f){
-                                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
-                                                    0 : ((f<0) ? -1 : 1);
-                                    });
-                                if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
-                                    // TODO: fail here? set flag? overlapping atoms!
-                                    continue;
-                                }
-                                // convert dist_v to bohr
-                                dist_v = dist_v * cell - crit_v[cWrap[dir][0]] * vWrap[dir];
-                                if ((dist_v[0] > effcut) ||
-                                    (dist_v[1] > effcut) ||
-                                    (dist_v[2] > effcut)) {
-                                    continue;
-                                }
-                                auto dist_n = Vec_dot(dist_v, dist_v);
-                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    for(const auto& d: cWrap[dir]){
-                                        diff_v[d] += crit_v[d];
-                                    }
-                                    bonds.push_back({i, j, std::sqrt(dist_n),
-                                                     diff_v[0], diff_v[1], diff_v[2]});
-                                }
-                            }
-                        };
-                        /*
-                         * at the edges of the cell, we yield distance-vectors spanning the box
-                         * and need to transform them to go around the edge of the cell
-                         *
-                         * otherwise, do the simple check between two neighboring boxes
-                         */
                         // x
-                        if(w_xh){
-                            wrapcheck(xh, y, z, wrapDir::x);
-                            // xy
-                            if(w_yh){
-                                wrapcheck(xh, yh, z, wrapDir::xy);
-                                // xyz
-                                if(w_zh){
-                                    wrapcheck(xh, yh, zh, wrapDir::xyz);
-                                }else{
-                                    wrapcheck(xh, yh, zh, wrapDir::xy);
-                                }
-                                // xy-z
-                                if(w_zl){
-                                    wrapcheck(xh, yh, zl, wrapDir::xymz);
-                                }else{
-                                    wrapcheck(xh, yh, zl, wrapDir::xy);
-                                }
-                            }else{
-                                wrapcheck(xh, yh, z, wrapDir::x);
-                                // xyz
-                                if(w_zh){
-                                    wrapcheck(xh, yh, zh, wrapDir::xz);
-                                }else{
-                                    wrapcheck(xh, yh, zh, wrapDir::x);
-                                }
-                                // xy-z
-                                if(w_zl){
-                                    wrapcheck(xh, yh, zl, wrapDir::xmz);
-                                }else{
-                                    wrapcheck(xh, yh, zl, wrapDir::x);
-                                }
-                            }
-                            // x-y
-                            if(w_yl){
-                                wrapcheck(xh, yl, z, wrapDir::xmy);
-                                // x-yz
-                                if(w_zh){
-                                    wrapcheck(xh, yl, zh, wrapDir::xmyz);
-                                }else{
-                                    wrapcheck(xh, yl, zh, wrapDir::xmy);
-                                }
-                            }else{
-                                wrapcheck(xh, yl, z, wrapDir::x);
-                                // x-yz
-                                if(w_zh){
-                                    wrapcheck(xh, yl, zh, wrapDir::xz);
-                                }else{
-                                    wrapcheck(xh, yl, zh, wrapDir::x);
-                                }
-                            }
-                            // xz
-                            if(w_zh){
-                                wrapcheck(xh, y, zh, wrapDir::xz);
-                            }else{
-                                wrapcheck(xh, y, zh, wrapDir::x);
-                            }
-                            // x-z
-                            if(w_zl){
-                                wrapcheck(xh, y, zl, wrapDir::xmz);
-                            }else{
-                                wrapcheck(xh, y, zl, wrapDir::x);
-                            }
-                        }else{
-                            pbccheck(xh, y, z);
-                            // xy
-                            if(w_yh){
-                                wrapcheck(xh, yh, z, wrapDir::y);
-                                // xyz
-                                if(w_zh){
-                                    wrapcheck(xh, yh, zh, wrapDir::yz);
-                                }else{
-                                    wrapcheck(xh, yh, zh, wrapDir::y);
-                                }
-                                // xy-z
-                                if(w_zl){
-                                    wrapcheck(xh, yh, zl, wrapDir::ymz);
-                                }else{
-                                    wrapcheck(xh, yh, zl, wrapDir::y);
-                                }
-                            }else{
-                                pbccheck(xh, yh, z);
-                                // xyz
-                                if(w_zh){
-                                    wrapcheck(xh, yh, zh, wrapDir::z);
-                                }else{
-                                    pbccheck(xh, yh, zh);
-                                }
-                                // xy-z
-                                if(w_zl){
-                                    wrapcheck(xh, yh, zl, wrapDir::z);
-                                }else{
-                                    pbccheck(xh, yh, zl);
-                                }
-                            }
-                            // x-y
-                            if(w_yl){
-                                wrapcheck(xh, yl, z, wrapDir::y);
-                                // x-yz
-                                if(w_zh){
-                                    wrapcheck(xh, yl, zh, wrapDir::ymz);
-                                }else{
-                                    wrapcheck(xh, yl, zh, wrapDir::y);
-                                }
-                            }else{
-                                pbccheck(xh, yl, z);
-                                // x-yz
-                                if(w_zh){
-                                    wrapcheck(xh, yl, zh, wrapDir::z);
-                                }else{
-                                    pbccheck(xh, yl, zh);
-                                }
-                            }
-                            // xz
-                            if(w_zh){
-                                wrapcheck(xh, y, zh, wrapDir::z);
-                            }else{
-                                pbccheck(xh, y, zh);
-                            }
-                            // x-z
-                            if(w_zl){
-                                wrapcheck(xh, y, zl, wrapDir::z);
-                            }else{
-                                pbccheck(xh, y, zl);
-                            }
-                        }
+                        wrapcheck(xh, y, z);
+                        // xy
+                        wrapcheck(xh, yh, z);
+                        // xyz
+                        wrapcheck(xh, yh, zh);
+                        // xy-z
+                        wrapcheck(xh, yh, zl);
+                        // x-y
+                        wrapcheck(xh, yl, z);
+                        // x-yz
+                        wrapcheck(xh, yl, zh);
+                        // xz
+                        wrapcheck(xh, y, zh);
+                        // x-z
+                        wrapcheck(xh, y, zl);
                         // y
-                        if(w_yh){
-                            wrapcheck(x, yh, z, wrapDir::y);
-                            // yz
-                            if(w_zh){
-                                wrapcheck(x, yh, zh, wrapDir::yz);
-                                // -xyz
-                                if(w_xl){
-                                    wrapcheck(xl, yh, zh, wrapDir::mxyz);
-                                }else{
-                                    wrapcheck(xl, yh, zh, wrapDir::yz);
-                                }
-                            }else{
-                                wrapcheck(x, yh, zh, wrapDir::y);
-                                // -xyz
-                                if(w_xl){
-                                    wrapcheck(xl, yh, zh, wrapDir::xmy);
-                                }else{
-                                    wrapcheck(xl, yh, zh, wrapDir::y);
-                                }
-                            }
-                            // y-z
-                            if(w_zl){
-                                wrapcheck(x, yh, zl, wrapDir::ymz);
-                            }else{
-                                wrapcheck(x, yh, zl, wrapDir::y);
-                            }
-                        }else{
-                            pbccheck(x, yh, z);
-                            // yz
-                            if(w_zh){
-                                wrapcheck(x, yh, zh, wrapDir::z);
-                                // -xyz
-                                if(w_xl){
-                                    wrapcheck(xl, yh, zh, wrapDir::xmz);
-                                }else{
-                                    wrapcheck(xl, yh, zh, wrapDir::z);
-                                }
-                            }else{
-                                pbccheck(x, yh, zh);
-                                // -xyz
-                                if(w_xl){
-                                    wrapcheck(xl, yh, zh, wrapDir::x);
-                                }else{
-                                    pbccheck(xl, yh, zh);
-                                }
-                            }
-                            // y-z
-                            if(w_zl){
-                                wrapcheck(x, yh, zl, wrapDir::z);
-                            }else{
-                                pbccheck(x, yh, zl);
-                            }
-                        }
+                        wrapcheck(x, yh, z);
+                        // yz
+                        wrapcheck(x, yh, zh);
+                        // -xyz
+                        wrapcheck(xl, yh, zh);
+                        // y-z
+                        wrapcheck(x, yh, zl);
                         // z
-                        if(w_zh){
-                            wrapcheck(x, y, zh, wrapDir::z);
-                        }else{
-                            pbccheck(x, y, zh);
-                        }
+                        wrapcheck(x, y, zh);
                     }
                 }
             }

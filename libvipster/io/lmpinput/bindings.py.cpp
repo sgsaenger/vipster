@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "io/lmpinput/plugin.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void LmpInput(py::module &m){
     auto c = py::class_<IO::LmpConfig, IO::BaseConfig>(m, "LmpConfig")
         .def_readwrite("style", &IO::LmpConfig::style)
@@ -20,6 +19,5 @@ void LmpInput(py::module &m){
         .value("Full", IO::LmpConfig::AtomStyle::Full)
         .value("Molecular", IO::LmpConfig::AtomStyle::Molecular)
     ;
-}
 }
 }

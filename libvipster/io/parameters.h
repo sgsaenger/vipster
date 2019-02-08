@@ -8,8 +8,7 @@
 #include <map>
 #include <memory>
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
 class BaseParam
 {
@@ -30,6 +29,8 @@ protected:
 using Parameters = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseParam>>>;
 
 }
+
+namespace Vipster {
 
 extern IO::Parameters params;
 

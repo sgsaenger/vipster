@@ -11,7 +11,7 @@
     }
 
     &:first-of-type {
-        margin-top: $controls-bar-height + 24px;
+        margin-top: 1.5rem;
 
         @include media-breakpoint-up(lg) {
             margin-top: 0;
@@ -42,10 +42,6 @@
         cursor: pointer;
         transition: all .3s ease-in-out;
         color: inherit;
-
-        &:focus {
-            outline: none;
-        }
 
         &:hover {
             color: theme-color-level(primary, -4);

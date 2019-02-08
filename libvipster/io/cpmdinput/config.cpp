@@ -2,8 +2,8 @@
 
 using namespace Vipster;
 
-IO::CPConfig::CPConfig(std::string name, bool angstrom, Scale scale)
-    : BaseConfig{name}, angstrom{angstrom}, scale{scale}
+IO::CPConfig::CPConfig(std::string name, CPConfig::AtomFmt fmt)
+    : BaseConfig{name}, fmt{fmt}
 {}
 
 std::unique_ptr<IO::BaseConfig> IO::CPConfig::copy()
@@ -26,12 +26,10 @@ nlohmann::json IO::CPConfig::toJson()
 
 void IO::from_json(const nlohmann::json& j, IO::CPConfig& c)
 {
-    c.angstrom = j.at("angstrom");
-    c.scale = j.at("scale");
+    c.fmt = j.value("fmt", IO::CPConfig::AtomFmt::Current);
 }
 
 void IO::to_json(nlohmann::json& j, const IO::CPConfig& c)
 {
-    j["angstrom"] = c.angstrom;
-    j["scale"] = c.scale;
+    j["fmt"] = c.fmt;
 }

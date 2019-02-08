@@ -1,0 +1,12 @@
+.btn-vr {
+    margin: 1rem 0rem;
+    display: none;
+    @include media-breakpoint-down(md) {
+        margin: .75rem;
+        padding: .3rem .75rem;
+        vertical-align: top;
+    }
+    @include media-breakpoint-up(lg) {
+        width: 100%;
+    }
+}

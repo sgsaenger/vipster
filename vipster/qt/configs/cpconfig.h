@@ -19,9 +19,7 @@ public:
     void setConfig(Vipster::IO::BaseConfig *c) override;
 
 private slots:
-    void on_scaleSel_currentIndexChanged(int index);
-
-    void on_angstromSel_stateChanged(int arg1);
+    void on_fmtSel_currentIndexChanged(int index);
 
 private:
     Ui::CPConfig *ui;

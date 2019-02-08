@@ -19,8 +19,8 @@ void Vipster::IO::to_json(nlohmann::json& j, const IO::XYZConfig& c)
 
 void Vipster::IO::from_json(const nlohmann::json& j, IO::XYZConfig& c)
 {
-    c.filemode = j.at("filemode");
-    c.atomdata = j.at("atomdata");
+    c.filemode = j.value("filemode", IO::XYZConfig::Mode::Step);
+    c.atomdata = j.value("atomdata", IO::XYZConfig::Data::None);
 }
 
 void IO::XYZConfig::parseJson(const nlohmann::json::iterator& it)

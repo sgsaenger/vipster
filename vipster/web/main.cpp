@@ -1,6 +1,7 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
+#include <emscripten/vr.h>
 
 #include "../common/guiwrapper.h"
 #include "configfile.h"
@@ -159,7 +160,7 @@ EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void*)
     return 1;
 }
 
-void one_iter(){
+void main_loop(){
     int width, height;
     static int localWidth, localHeight;
     // handle resize
@@ -171,6 +172,79 @@ void one_iter(){
     }
     // draw
     gui.draw();
+}
+
+static VRDisplayHandle handle;
+static unsigned long vrWidth, vrHeight;
+
+void vr_loop(){
+    if (!emscripten_vr_display_presenting(handle)) {
+        emscripten_vr_cancel_display_render_loop(handle);
+        EM_ASM(resizeCanvas());
+    }else{
+        VRFrameData data;
+        emscripten_vr_get_frame_data(handle, &data);
+        gui.drawVR(data.leftProjectionMatrix, data.leftViewMatrix,
+                   data.rightProjectionMatrix, data.rightViewMatrix,
+                   Vec{0,0,-10}, vrWidth, vrHeight);
+        emscripten_vr_submit_frame(handle);
+    }
+}
+
+EM_BOOL vr_start_presenting(int, const EmscriptenMouseEvent*, void*){
+    VRLayerInit layer{NULL, VR_LAYER_DEFAULT_LEFT_BOUNDS, VR_LAYER_DEFAULT_RIGHT_BOUNDS};
+    if(!emscripten_vr_request_present(handle, &layer, 1, nullptr, nullptr)){
+        printf("Request present failed\n");
+        return 0;
+    }
+    if(!emscripten_vr_set_display_render_loop(handle, vr_loop)){
+        printf("Error: failed to set vr-render-loop\n.");
+    }
+    VREyeParameters leftParams, rightParams;
+    emscripten_vr_get_eye_parameters(handle, VREyeLeft, &leftParams);
+    emscripten_vr_get_eye_parameters(handle, VREyeRight, &rightParams);
+    vrWidth = leftParams.renderWidth = rightParams.renderWidth;
+    vrHeight = std::max(leftParams.renderHeight, rightParams.renderHeight);
+    emscripten_set_canvas_element_size("#canvas", vrWidth, vrHeight);
+    return 1;
+}
+
+void tryInitVR(void*){
+    printf("Browser running WebVR version %d.%d\n",
+                    emscripten_vr_version_major(),
+                    emscripten_vr_version_minor());
+    if(!emscripten_vr_ready()){
+        printf("VR not initialized\n");
+        return;
+    }else{
+        int numDisplays = emscripten_vr_count_displays();
+        if(!numDisplays){
+            printf("No VR displays connected\n");
+            return;
+        }
+        printf("Number of VR displays: %d\n", numDisplays);
+        for(int i=0; i<numDisplays; ++i){
+            handle = emscripten_vr_get_display_handle(i);
+            printf("Display %d: %s\n", i, emscripten_vr_get_display_name(handle));
+            VRDisplayCapabilities caps;
+            if(!emscripten_vr_get_display_capabilities(handle, &caps)){
+                printf("Error: failed to get display capabilities.\n");
+                continue;
+            }
+            printf("Display Capabilities:\n"
+                   "{hasPosition: %d, hasExternalDisplay: %d, canPresent: %d, maxLayers: %lu}\n",
+                   caps.hasPosition, caps.hasExternalDisplay, caps.canPresent, caps.maxLayers);
+            if(caps.hasExternalDisplay && !emscripten_vr_display_connected(handle)){
+                printf("Error: has external display, but is not connected.\n");
+                continue;
+            }
+            printf("Succeeded so far, using this display\n");
+            EM_ASM($('#vr-enter').show());
+            emscripten_set_click_callback("vr-enter", nullptr, 0, vr_start_presenting);
+            return;
+        }
+    }
+    printf("Could not find a working VR display\n");
 }
 
 int main()
@@ -190,6 +264,7 @@ int main()
         EM_ASM(alertWebGL());
         return 0;
     }
+    emscripten_vr_init(tryInitVR, nullptr);
 
     // init GL
     emscripten_webgl_make_context_current(context);
@@ -234,7 +309,7 @@ int main()
         EM_ASM_({addParser($0, $1)}, i++, fmt.second->name.c_str());
     }
     EM_ASM(setMol(0));
-    emscripten_set_main_loop(one_iter, 0, 1);
+    emscripten_set_main_loop(main_loop, 0, 1);
     emscripten_webgl_destroy_context(context);
     return 1;
 }

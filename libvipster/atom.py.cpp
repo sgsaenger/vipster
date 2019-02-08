@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "atom.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void Atom(py::module& m){
     auto a = py::class_<Vipster::Atom>(m, "Atom")
         .def_property("name", [](const Vipster::Atom &a)->const std::string&{return a.name;},
@@ -44,6 +43,5 @@ void Atom(py::module& m){
         .def_readwrite("flags", &AtomProperties::flags)
     ;
 
-}
 }
 }

@@ -30,14 +30,20 @@ nlohmann::json IO::LmpConfig::toJson()
 
 void IO::from_json(const nlohmann::json& j, IO::LmpConfig& c)
 {
-    c.angles = j.at("angles");
-    c.bonds = j.at("bonds");
-    c.dihedrals = j.at("dihedrals");
-    c.impropers = j.at("impropers");
-    for(const auto& pair: IO::LmpConfig::fmt2str){
-        if(pair.second == j.at("style")){
-            c.style = pair.first;
+    c.angles = j.value("angles", false);
+    c.bonds = j.value("bonds", false);
+    c.dihedrals = j.value("dihedrals", false);
+    c.impropers = j.value("impropers", false);
+    auto style = j.find("style");
+    if(style != j.end()){
+        auto stylestr = style->get<std::string>();
+        for(const auto& pair: IO::LmpConfig::fmt2str){
+            if(pair.second == stylestr){
+                c.style = pair.first;
+            }
         }
+    }else{
+        c.style = IO::LmpConfig::AtomStyle::Atomic;
     }
 }
 

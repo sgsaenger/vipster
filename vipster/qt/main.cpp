@@ -1,3 +1,4 @@
+#include "version.h"
 #include "mainwindow.h"
 #include "io.h"
 #include "configfile.h"
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
 {
     // main parser + data-targets
     Vipster::readConfig();
-    CLI::App app{"Vipster v1.13a"};
+    CLI::App app{"Vipster v" VIPSTER_VERSION "a"};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, IOFmt> fmt_opts{};

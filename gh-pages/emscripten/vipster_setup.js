@@ -337,7 +337,7 @@ function resizeCanvas() {
 }
 
 $(document).ready(function () {
-    // Set correc canvas size on resize
+    // Set correct canvas size on resize
     window.addEventListener('resize', resizeCanvas);
 
     // File loading
@@ -366,13 +366,12 @@ $(document).ready(function () {
     });
 
     const main = $('main');
-    $('#controls__collapse')
+    $('#contols__collapse')
         .on('show.bs.collapse', () => main.hide())
         .on('hide.bs.collapse', () => {
             main.show();
             resizeCanvas();
         });
-
 });
 
 // noinspection JSUnusedGlobalSymbols

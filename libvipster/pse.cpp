@@ -137,39 +137,47 @@ PseMap::PseMap(std::initializer_list<PseMap::value_type> il, bool r)
 
 PseEntry& PseMap::operator [](const std::string& k)
 {
-    try{
-        return at(k);
-    }catch(const std::out_of_range&){
-        if(!root){
-            char *p;
-            std::size_t Z = std::strtoul(k.c_str(), &p, 10);
-            if(*p){
-                // found a derived/custom name, try to find match
-                for(size_t i=k.length();i>0;--i)
-                {
-                    std::string test = k.substr(0,i);
-                    if(std::islower(test[0]) != 0){
-                        test[0] = std::toupper(test[0]);
-                    }
-                    if(Vipster::pse.find(test) != Vipster::pse.end())
-                    {
-                        emplace(k, Vipster::pse.at(test));
-                        return at(k);
-                    }
+    auto entry = find(k);
+    if(entry != end()){
+        return entry->second;
+    }else{
+        // if key is ONLY a number, interpret as atomic number
+        char *p;
+        std::size_t Z = std::strtoul(k.c_str(), &p, 10);
+        if(*p){
+            // found a derived/custom name, try to guess base-name
+            std::string kt{k};
+            // make sure first letter is upper case to match default names
+            if(std::islower(kt[0])){
+                kt[0] = std::toupper(kt[0]);
+            }
+            // gradually ignore appended letters until we reach a matching atom type
+            for(size_t i=kt.length(); i>0; --i)
+            {
+                std::string test = kt.substr(0,i);
+                auto tmp = find(test);
+                // local lookup, always works
+                if(tmp != end()){
+                    return emplace(k, tmp->second).first->second;
                 }
-            }else{
-                // interpret atomic number
-                for(const auto& pair: Vipster::pse){
-                    if(pair.second.Z == Z){
-                        emplace(k, pair.second);
-                        return at(k);
+                if(!root){
+                    // lookup in global PSE
+                    tmp = Vipster::pse.find(test);
+                    if(tmp != Vipster::pse.end()){
+                        return emplace(k, tmp->second).first->second;
                     }
                 }
             }
+        }else{
+            // interpret atomic number
+            for(const auto& pair: Vipster::pse){
+                if(pair.second.Z == Z){
+                    return emplace(k, pair.second).first->second;
+                }
+            }
         }
-        emplace(k, Vipster::pse.at(""));
-        return at(k);
     }
+    return emplace(k, Vipster::pse.at("")).first->second;
 }
 
 void Vipster::to_json(nlohmann::json& j, const PseEntry& p)
@@ -187,15 +195,15 @@ void Vipster::to_json(nlohmann::json& j, const PseEntry& p)
 
 void Vipster::from_json(const nlohmann::json& j, PseEntry& p)
 {
-    p.PWPP = j.at("PWPP");
-    p.CPPP = j.at("CPPP");
-    p.CPNL = j.at("CPNL");
-    p.Z = j.at("Z");
-    p.m = j.at("m");
-    p.bondcut = j.at("bondcut");
-    p.covr = j.at("covr");
-    p.vdwr = j.at("vdwr");
-    p.col = j.at("col");
+    p.PWPP = j.value("PWPP", "");
+    p.CPPP = j.value("CPPP", "");
+    p.CPNL = j.value("CPNL", "");
+    p.Z = j.value("Z", 0u);
+    p.m = j.value("m", 0.0f);
+    p.bondcut = j.value("bondcut", -1.f);
+    p.covr = j.value("covr", 1.46f);
+    p.vdwr = j.value("vdwr", 3.21f);
+    p.col = j.value("col", ColVec{0,0,0,255});
 }
 
 void Vipster::to_json(nlohmann::json& j, const PseMap& m)

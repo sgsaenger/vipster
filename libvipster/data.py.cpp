@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "data.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void Data(py::module& m){
    auto b = py::class_<BaseData>(m, "BaseData")
        .def_readwrite("name", &BaseData::name)
@@ -21,6 +20,5 @@ void Data(py::module& m){
        .def_readonly("size", &DataGrid3D_f::size)
    ;
    bind_array<DataGrid3D_f::Extent>(f3, "Extent");
-}
 }
 }

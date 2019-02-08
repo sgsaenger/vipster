@@ -5,12 +5,10 @@
 #include "param.h"
 #include "config.h"
 
-namespace Vipster {
-namespace IO {
+namespace Vipster::IO{
 
-extern const IO::Plugin CPInput;
+extern const Plugin CPInput;
 
-}
 }
 
 #endif // CPMDINPUT_H

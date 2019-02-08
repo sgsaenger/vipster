@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "bond.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void Bond(py::module &m){
     py::bind_vector<std::vector<Vipster::Bond>>(m,"__BondVector__");
 
@@ -26,6 +25,5 @@ void Bond(py::module &m){
         .def_readwrite("ydiff", &Bond::ydiff)
         .def_readwrite("zdiff", &Bond::zdiff)
     ;
-}
 }
 }

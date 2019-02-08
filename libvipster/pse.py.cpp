@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "pse.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void PSE(py::module& m){
     auto p = py::class_<PseMap, std::shared_ptr<PseMap>>(m, "PseMap")
         .def("__getitem__", &PseMap::operator [], py::return_value_policy::reference_internal)
@@ -20,6 +19,5 @@ void PSE(py::module& m){
         .def_readwrite("vdwr", &PseEntry::vdwr)
         .def_readwrite("col", &PseEntry::col)
     ;
-}
 }
 }

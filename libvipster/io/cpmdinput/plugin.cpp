@@ -1,18 +1,8 @@
 #include "plugin.h"
+#include "../util.h"
 #include <cctype>
 
 using namespace Vipster;
-
-static std::string trim(const std::string& str)
-{
-    const std::string whitespace{" \t"};
-    const auto strBegin = str.find_first_not_of(whitespace);
-    if(strBegin == std::string::npos){
-        return "";
-    }
-    const auto strEnd = str.find_last_not_of(whitespace);
-    return str.substr(strBegin, strEnd-strBegin+1);
-}
 
 const std::map<std::string, int> str2ibrav{
     {"ISOLATED", 0},
@@ -122,7 +112,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
     Vec scaleVec{1,1,1};
     Mat cellVec{Vec{1,0,0},Vec{0,1,0},Vec{0,0,1}};
     while (std::getline(file, buf)) {
-        line = trim(buf);
+        line = IO::trim(buf, " \t");
         if(line.empty() || line[0] == '!') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if(line[0] == '&'){
@@ -232,7 +222,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     int tmp;
                     ss >> tmp;
                     if(ss.fail()){
-                        buf = trim(buf);
+                        buf = IO::trim(buf, " \t");
                         for (auto &c: buf) c = static_cast<char>(std::toupper(c));
                         ibrav = str2ibrav.at(buf);
                     }else{
@@ -262,7 +252,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
             }else if(curSection == &IO::CPParam::atoms){
                 if(line[0] == '*'){
                     parsed = true;
-                    line = trim(buf); // reset to regain capitalization
+                    line = IO::trim(buf, " \t"); // reset to regain capitalization
                     std::string CPPP = line.substr(1);
                     auto pos = CPPP.find_first_of(". ");
                     std::string name = CPPP.substr(0, pos);
@@ -278,7 +268,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     types.push_back(name);
                     (*s.pse)[name].CPPP = CPPP;
                     std::getline(file, buf);
-                    (*s.pse)[name].CPNL = trim(buf);
+                    (*s.pse)[name].CPNL = IO::trim(buf, " \t");
                     std::getline(file, buf);
                     size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
@@ -425,15 +415,10 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
     if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
     const auto *cc = dynamic_cast<const IO::CPConfig*>(c);
     if(!cc) throw IO::Error("CPI-Writer needs CPMD config preset");
-    auto af = cc->angstrom ? AtomFmt::Angstrom : AtomFmt::Bohr;
-    auto cf = cc->angstrom ? CdmFmt::Angstrom : CdmFmt::Bohr;
-    if(cc->scale == IO::CPConfig::Scale::Scale)
-    {
-        af = AtomFmt::Crystal;
-    }else if(cc->scale == IO::CPConfig::Scale::Cartesian)
-    {
-        af = AtomFmt::Alat;
-    }
+    auto af = (cc->fmt == IO::CPConfig::AtomFmt::Current) ?
+                state.atom_fmt : // use from GUI/CLI
+                static_cast<AtomFmt>(cc->fmt); // use explicit fmt
+    auto cf = (af == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
     const auto& s = m.getStep(state.index).asFmt(af);
     for(const auto& pair: IO::CPParam::str2section){
         if(pair.second == &IO::CPParam::atoms){
@@ -456,7 +441,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 if(!pE.CPPP.empty()){
                     file << '*' << pE.CPPP << '\n';
                 }else{
-                    file << '*' << trim(pair.first) << trim(Vipster::settings.CPPP.val) << '\n';
+                    file << '*' << IO::trim(pair.first, " \t") << IO::trim(Vipster::settings.CPPP.val, " \t") << '\n';
                 }
                 if(!pE.CPNL.empty()){
                     file << "  " << pE.CPNL << '\n';
@@ -532,15 +517,18 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::system){
             file << pair.first << '\n';
-            if(cc->angstrom){
+            switch(af){
+            case AtomFmt::Angstrom:
                 file << "  ANGSTROM\n";
-            }
-            if(cc->scale == IO::CPConfig::Scale::Scale)
-            {
-                file << "  SCALE\n";
-            }else if(cc->scale == IO::CPConfig::Scale::Cartesian)
-            {
+                break;
+            case AtomFmt::Alat:
                 file << "  SCALE CARTESIAN\n";
+                break;
+            case AtomFmt::Crystal:
+                file << "  SCALE\n";
+                break;
+            default:
+                break;
             }
             Mat tmpvec = s.getCellVec() * s.getCellDim(cf);
             file << "  CELL VECTORS\n" << std::fixed << std::setprecision(5)

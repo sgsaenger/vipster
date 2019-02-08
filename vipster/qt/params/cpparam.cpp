@@ -40,6 +40,11 @@ void CPParam::on_comboBox_currentIndexChanged(const QString &arg1)
     fillText();
 }
 
+void CPParam::on_plainTextEdit_textChanged()
+{
+    saveText();
+}
+
 void CPParam::fillText()
 {
     if(!curParam || !curSection){
@@ -66,9 +71,4 @@ void CPParam::saveText()
             section.push_back(line.toStdString());
         }
     }
-}
-
-void CPParam::focusOutEvent(QFocusEvent*)
-{
-    saveText();
 }

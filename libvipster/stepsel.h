@@ -323,23 +323,23 @@ struct AtomSelection{
         AtomSelIterator& operator--(){
             return operator-=(1);
         }
-        AtomSelIterator& operator+=(int i){
+        AtomSelIterator& operator+=(long i){
             idx += i;
             auto diff = selection->indices[idx] - selection->indices[idx-i];
             B::operator+=(diff);
             return *this;
         }
-        AtomSelIterator& operator-=(int i){
+        AtomSelIterator& operator-=(long i){
             idx -= i;
             auto diff = selection->indices[idx] - selection->indices[idx+i];
             B::operator+=(diff);
             return *this;
         }
-        AtomSelIterator operator+(int i){
+        AtomSelIterator operator+(long i){
             AtomSelIterator copy{*this};
             return copy+=i;
         }
-        AtomSelIterator operator-(int i){
+        AtomSelIterator operator-(long i){
             AtomSelIterator copy{*this};
             return copy-=i;
         }

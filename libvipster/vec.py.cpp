@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "vec.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void Vec(py::module& m){
     bind_array<Vipster::Vec>(m, "Vec")
         // TODO: shorthand definitions?
@@ -29,6 +28,5 @@ void Vec(py::module& m){
         .def("determinant", &Mat_det)
         .def("inverse", &Mat_inv)
     ;
-}
 }
 }

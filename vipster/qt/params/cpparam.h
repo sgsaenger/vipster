@@ -20,9 +20,9 @@ public:
 
 private slots:
     void on_comboBox_currentIndexChanged(const QString &arg1);
+    void on_plainTextEdit_textChanged();
 
 private:
-    void focusOutEvent(QFocusEvent*) override;
     void fillText();
     void saveText();
     Ui::CPParam *ui;

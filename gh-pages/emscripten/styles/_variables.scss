@@ -1,5 +1,4 @@
 // Colors
-$gray-200: #e9ecef;
 $theme-colors: (
     "primary":   hsl(185, 100%, 28%),
     "secondary": hsl(200, 18%, 20%),
@@ -7,15 +6,15 @@ $theme-colors: (
 );
 
 $body-bg:       hsl(204, 15%, 96%);
-$body-color:    $gray-200;
-$text-muted:    hsl(hue(theme-color('secondary')), 7%, 46%);
+$body-color:    #eee;
+$text-muted:    hsl(hue(theme-color('secondary')), 8%, 60%);
 
 // Typography
 $font-family-sans-serif: Roboto;
 $font-family-monospace: "Roboto Mono";
 $font-size-base: .85rem;
 
-$h1-font-size: $font-size-base * 2;
+$h1-font-size: $font-size-base * 2.25;
 $h2-font-size: $font-size-base * 1.25;
 $h3-font-size: $font-size-base * 1.1;
 
@@ -28,8 +27,8 @@ $table-cell-padding-sm: .4rem .8rem;
 $table-dark-bg: theme-color('secondary');
 $table-dark-border-color: lighten(theme-color('secondary'), 12%);
 
+$input-btn-focus-color: theme-color('primary');
 $input-btn-padding-y: .6rem;
-$input-group-addon-bg: theme-color('blueGray');
 
 $custom-control-indicator-bg:   theme-color('blueGray');
 $custom-range-track-bg:         theme-color('primary');

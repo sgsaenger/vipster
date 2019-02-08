@@ -3,12 +3,10 @@
 
 #include "../plugin.h"
 
-namespace Vipster{
-namespace IO{
+namespace Vipster::IO{
 
-extern const IO::Plugin XSF;
+extern const Plugin XSF;
 
-}
 }
 
 #endif // XSF_H

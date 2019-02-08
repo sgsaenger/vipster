@@ -14,6 +14,7 @@
 #include "io/cpmdinput/plugin.h"
 #include "io/cube/plugin.h"
 #include "io/xsf/plugin.h"
+#include "io/orca/plugin.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
@@ -25,7 +26,8 @@ namespace Vipster{
             {IOFmt::DMP, &IO::LmpTrajec},
             {IOFmt::CPI, &IO::CPInput},
             {IOFmt::CUBE, &IO::Cube},
-            {IOFmt::XSF, &IO::XSF}
+            {IOFmt::XSF, &IO::XSF},
+            {IOFmt::ORCA, &IO::OrcaInput}
     };
     IO::Data readFile(const std::string &fn, IOFmt fmt);
     IO::Data readFile(const std::string &fn, IOFmt fmt, std::string name);

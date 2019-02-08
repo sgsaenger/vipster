@@ -1,8 +1,7 @@
 #include "pyvipster.h"
 #include "io/cpmdinput/plugin.h"
 
-namespace Vipster{
-namespace Py{
+namespace Vipster::Py{
 void CPInput(py::module& m){
     auto p = py::class_<IO::CPParam>(m, "CPParam")
         .def_readwrite("info", &IO::CPParam::info)
@@ -27,15 +26,15 @@ void CPInput(py::module& m){
     py::bind_vector<IO::CPParam::Section>(p, "Section");
 
     auto c = py::class_<IO::CPConfig>(m, "CPConfig")
-        .def_readwrite("angstrom", &IO::CPConfig::angstrom)
-        .def_readwrite("scale", &IO::CPConfig::scale)
+        .def_readwrite("fmt", &IO::CPConfig::fmt)
     ;
 
-    py::enum_<IO::CPConfig::Scale>(c, "Scale")
-        .value("None", IO::CPConfig::Scale::None)
-        .value("Scale", IO::CPConfig::Scale::Scale)
-        .value("Cartesian", IO::CPConfig::Scale::Cartesian)
+    py::enum_<IO::CPConfig::AtomFmt>(c, "AtomFmt")
+        .value("Bohr", IO::CPConfig::AtomFmt::Bohr)
+        .value("Angstrom", IO::CPConfig::AtomFmt::Angstrom)
+        .value("Crystal", IO::CPConfig::AtomFmt::Crystal)
+        .value("Alat", IO::CPConfig::AtomFmt::Alat)
+//        .value("Current", IO::CPConfig::AtomFmt::Current) // TODO: makes sense to expose this?
     ;
-}
 }
 }
