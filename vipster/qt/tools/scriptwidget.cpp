@@ -62,7 +62,7 @@ std::istream& operator>>(std::istream& is, std::tuple<const Step&, Vec&, bool> d
         is >> id1;
         c = static_cast<char>(is.peek());
         if(c == '-'){
-            is >> id2;
+            is >> c >> id2;
             vec = step[id1].coord - step[id2].coord;
         }else{
             vec = step[id1].coord;
