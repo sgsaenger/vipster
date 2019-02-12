@@ -152,12 +152,12 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
             }
         }
     } catch (const Error &e) {
-        QMessageBox msg(this);
+        QMessageBox msg{this};
         msg.setText(QString{"Parsing error in script:\n\n"}+line.c_str()+"\n"+e.what());
         msg.exec();
         return {};
     } catch (...) {
-        QMessageBox msg(this);
+        QMessageBox msg{this};
         msg.setText(QString{"Unexpected error when parsing script:\n\n"}+line.c_str());
         msg.exec();
         return {};
@@ -263,11 +263,11 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
                 execOp(def->second, op);
             }
         } catch (const Error &e) {
-            QMessageBox msg(this);
+            QMessageBox msg{this};
             msg.setText(QString{"Error executing script:\n\n"}+op.line.c_str()+"\n"+e.what());
             msg.exec();
         } catch (...) {
-            QMessageBox msg(this);
+            QMessageBox msg{this};
             msg.setText(QString{"Unexpected error when executing line:\n\n"}+op.line.c_str());
             msg.exec();
         }

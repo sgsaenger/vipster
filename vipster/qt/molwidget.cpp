@@ -2,6 +2,7 @@
 #include "ui_molwidget.h"
 #include "atom.h"
 #include <QTableWidgetItem>
+#include <QMessageBox>
 
 using namespace Vipster;
 
@@ -197,12 +198,20 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
     auto scale = ui->cellScaleBox->isChecked();
-    if(ui->cellAllBox->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
-            step.setCellVec(vec, scale);
+    try{
+        if(ui->cellAllBox->isChecked()){
+            for(auto& step: master->curMol->getSteps()){
+                step.setCellVec(vec, scale);
+            }
+        }else{
+            curStep.setCellVec(vec, scale);
         }
-    }else{
-        curStep.setCellVec(vec, scale);
+    } catch(const Error& e){
+        QMessageBox msg{this};
+        msg.setText(QString{"Error setting cell vectors:\n"}+e.what());
+        msg.exec();
+        fillCell();
+        return;
     }
     // if needed, trigger atom update
     guiChange_t change = GuiChange::cell;
