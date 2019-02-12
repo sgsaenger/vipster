@@ -69,6 +69,14 @@ public:
     {
         return *const_iterator{atoms, at_fmt, i};
     }
+    constAtom       at(size_t i) const
+    {
+        if(i>=getNat()){
+            throw Error("Atom-index out of bounds");
+        }else{
+            return operator[](i);
+        }
+    }
     const source&   getAtoms() const noexcept
     {
         return *atoms;

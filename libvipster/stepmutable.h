@@ -55,6 +55,15 @@ public:
     {
         return *iterator{this->atoms, this->at_fmt, i};
     }
+    using StepConst<T>::at;
+    Atom        at(size_t i)
+    {
+        if(i >= this->getNat()){
+            throw Error("Atom-index out of bounds");
+        }else{
+            return operator[](i);
+        }
+    }
     using StepConst<T>::begin;
     iterator    begin() noexcept
     {

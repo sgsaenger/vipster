@@ -1,6 +1,7 @@
 #ifndef VIPSTER_DEFINITIONS_H
 #define VIPSTER_DEFINITIONS_H
 
+#include "global.h"
 #include <array>
 #include <cmath>
 #include <limits>
@@ -228,7 +229,7 @@ inline Mat Mat_inv(const Mat &m)
     float d = Mat_det(m);
     if(std::abs(d) < std::numeric_limits<float>::epsilon())
     {
-        throw std::invalid_argument("Mat_inv: singular matrix has no inverse!");
+        throw Error("Mat_inv: singular matrix has no inverse!");
     }
     d = 1/d;
     Mat inv;
