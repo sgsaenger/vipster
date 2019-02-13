@@ -38,9 +38,15 @@ void MolWidget::updateWidget(guiChange_t change)
     }
     if ((change & guiStepChanged) == guiStepChanged) {
         QSignalBlocker blockAtFmt(ui->atomFmtBox);
+        // reset old fmt-string
+        auto oldFmt = static_cast<int>(curStep.getFmt());
+        ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+        // assign StepFormatter to curStep, mark fmt as active
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep->asFmt(fmt);
-        ui->atomFmtBox->setCurrentIndex(static_cast<int>(fmt));
+        auto ifmt = static_cast<int>(fmt);
+        ui->atomFmtBox->setCurrentIndex(ifmt);
+        ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     }
     if (change & (GuiChange::atoms | GuiChange::fmt)) {
         fillAtomTable();
@@ -264,7 +270,11 @@ void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 
 void MolWidget::on_atomFmtButton_clicked()
 {
-    auto fmt = static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
+    auto ifmt = ui->atomFmtBox->currentIndex();
+    auto fmt = static_cast<AtomFmt>(ifmt);
+    auto oldFmt = static_cast<int>(master->curStep->getFmt());
+    ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+    ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     master->curStep->setFmt(fmt);
     master->curSel->setFmt(fmt);
     if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){

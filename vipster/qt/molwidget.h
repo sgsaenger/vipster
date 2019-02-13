@@ -41,6 +41,11 @@ private:
     Vipster::Step curStep;
     Vipster::Molecule* curMol;
     bool atomsOutdated{true};
+    static constexpr const char* inactiveFmt[] = {"Bohr", "Angstrom", "Crystal", "Alat"};
+    static constexpr const char* activeFmt[] = {"Bohr (active)",
+                                                "Angstrom (active)",
+                                                "Crystal (active)",
+                                                "Alat (active)"};
 };
 
 #endif // MOLWIDGET_H
