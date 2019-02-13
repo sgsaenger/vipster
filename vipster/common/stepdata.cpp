@@ -43,6 +43,7 @@ void GUI::StepData::initSel()
         READATTRIB(sel_shader, vertex);
         READATTRIB(sel_shader, position);
         READATTRIB(sel_shader, vert_scale);
+        READATTRIB(sel_shader, hide);
         READUNIFORM(sel_shader, pos_scale);
         READUNIFORM(sel_shader, scale_fac);
         READUNIFORM(sel_shader, offset);
@@ -72,6 +73,12 @@ void GUI::StepData::initSel()
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, rad)));
     glVertexAttribDivisor(sel_shader.vert_scale, 1);
     glEnableVertexAttribArray(sel_shader.vert_scale);
+    glVertexAttribIPointer(sel_shader.hide, 1,
+                           GL_UNSIGNED_BYTE,
+                           sizeof(AtomProp),
+                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, hide)));
+    glVertexAttribDivisor(sel_shader.hide, 1);
+    glEnableVertexAttribArray(sel_shader.hide);
 }
 
 void GUI::StepData::initAtom()
@@ -82,6 +89,7 @@ void GUI::StepData::initAtom()
         READATTRIB(atom_shader, position);
         READATTRIB(atom_shader, vert_scale);
         READATTRIB(atom_shader, color);
+        READATTRIB(atom_shader, hide);
         READUNIFORM(atom_shader, offset);
         READUNIFORM(atom_shader, pos_scale);
         READUNIFORM(atom_shader, scale_fac);
@@ -117,6 +125,12 @@ void GUI::StepData::initAtom()
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, col)));
     glVertexAttribDivisor(atom_shader.color, 1);
     glEnableVertexAttribArray(atom_shader.color);
+    glVertexAttribIPointer(atom_shader.hide, 1,
+                           GL_UNSIGNED_BYTE,
+                           sizeof(AtomProp),
+                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, hide)));
+    glVertexAttribDivisor(atom_shader.hide, 1);
+    glEnableVertexAttribArray(atom_shader.hide);
 }
 
 void GUI::StepData::initBond()
@@ -235,10 +249,10 @@ void GUI::StepData::drawMol(const Vec &off)
     if(draw_bonds){
         glBindVertexArray(bond_vao);
         glUseProgram(bond_shader.program);
-        glUniform3ui(bond_shader.mult, 1, 1, 1);
+        glUniform3i(bond_shader.mult, 1, 1, 1);
         glUniformMatrix3fv(bond_shader.pos_scale, 1, 0, cell_mat.data());
         glUniform3fv(bond_shader.offset, 1, off.data());
-        glUniform3ui(bond_shader.pbc_cell, 0, 0, 0);
+        glUniform3i(bond_shader.pbc_cell, 0, 0, 0);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               bond_model_npoly,
                               static_cast<GLsizei>(bond_buffer.size()));
@@ -418,11 +432,13 @@ void GUI::StepData::update(Step* step, bool b, bool c)
     atom_buffer.reserve(curStep->getNat());
     if(settings.atRadVdW.val){
         for (const auto& at: *curStep){
-            atom_buffer.push_back({at.pse->vdwr, at.pse->col});
+            atom_buffer.push_back({at.pse->vdwr, at.pse->col,
+                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }else{
         for (const auto& at: *curStep){
-            atom_buffer.push_back({at.pse->covr, at.pse->col});
+            atom_buffer.push_back({at.pse->covr, at.pse->col,
+                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }
 
@@ -433,6 +449,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
         const auto& pse = curStep->getAtoms().pse;
         const auto& at_coord = curStep->getAtoms().coordinates[
                 static_cast<size_t>(curStep->getFmt())];
+        const auto& at_prop = curStep->getAtoms().properties;
         auto fmt = curStep->getFmt();
         auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         float c, s, ic;
@@ -467,6 +484,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                 bond_axis = fmt_fun(bond_axis);
             }
             bond_pos = (at_pos1+at_pos2)/2;
+            // handle bonds parallel to x-axis
             if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
                std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
                 c = std::copysign(1.f, bond_axis[0]);
@@ -478,9 +496,11 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                     {static_cast<int16_t>(std::abs(bd.xdiff)),
                      static_cast<int16_t>(std::abs(bd.ydiff)),
                      static_cast<int16_t>(std::abs(bd.zdiff)),
-                     static_cast<int16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
+                     static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
+                                          at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }else{
+                // all other bonds
                 rot_axis = -Vec_cross(bond_axis, x_axis);
                 rot_axis /= Vec_length(rot_axis);
                 c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
@@ -499,12 +519,12 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                      rad*(ic*rot_axis[2]*rot_axis[2]+c)},
                     //vec3 with position in modelspace
                     bond_pos,
-                    //faux uvec4 with integral pbc information
+                    //faux uvec4 with render criteria
                     {static_cast<int16_t>(std::abs(bd.xdiff)),
                      static_cast<int16_t>(std::abs(bd.ydiff)),
                      static_cast<int16_t>(std::abs(bd.zdiff)),
-                    //padding that tells if non-pbc bond
-                     static_cast<int16_t>(!((bd.xdiff != 0)||(bd.ydiff != 0)||(bd.zdiff != 0)))},
+                     static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
+                                          at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     //2*vec4 with colors
                     pse[bd.at1]->col, pse[bd.at2]->col});
             }
