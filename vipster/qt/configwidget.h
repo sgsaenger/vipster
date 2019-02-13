@@ -36,6 +36,8 @@ public:
 private slots:
     void on_configSel_currentIndexChanged(int index);
 
+    void on_helpButton_clicked();
+
 private:
     Ui::ConfigWidget *ui;
 };

@@ -105,10 +105,22 @@ int main(int argc, char *argv[])
     auto conv_param = convert->add_option("-p", conv_data.param,
         "Specify parameter set (defaults to parsed one, if present)");
     conv_param->expected(1);
+    convert->add_flag("--help-param",
+                      [](size_t){
+                          std::cout << Vipster::IO::ParametersAbout << std::endl;
+                          throw CLI::Success();
+                      },
+                      "Display help for parameter sets");
 
     auto conv_config = convert->add_option("-c", conv_data.config,
          "Specify behavior-preset for output-plugin");
     conv_config->expected(1);
+    convert->add_flag("--help-config",
+                      [](size_t){
+                          std::cout << Vipster::IO::ConfigsAbout << std::endl;
+                          throw CLI::Success();
+                      },
+                      "Display help for behavior-presets");
 
     auto conv_in = convert->add_option("in", conv_data.input,
                                        "fmt and filename of input");

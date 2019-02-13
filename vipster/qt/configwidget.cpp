@@ -2,6 +2,8 @@
 #include "ui_configwidget.h"
 #include "io.h"
 
+#include <QMessageBox>
+
 using namespace Vipster;
 
 ConfigBase::ConfigBase(QWidget *parent):
@@ -70,4 +72,9 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
     default:
         throw Error("Invalid config format");
     }
+}
+
+void ConfigWidget::on_helpButton_clicked()
+{
+    QMessageBox::information(this, QString("About IO-Configuration presets"), Vipster::IO::ConfigsAbout);
 }

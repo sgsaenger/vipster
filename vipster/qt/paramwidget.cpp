@@ -2,6 +2,8 @@
 #include "ui_paramwidget.h"
 #include "io.h"
 
+#include <QMessageBox>
+
 using namespace Vipster;
 
 ParamBase::ParamBase(QWidget *parent):
@@ -66,4 +68,9 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
     default:
         throw Error("Invalid parameter format");
     }
+}
+
+void ParamWidget::on_pushButton_clicked()
+{
+    QMessageBox::information(this, QString("About parameter presets"), Vipster::IO::ParametersAbout);
 }
