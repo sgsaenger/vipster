@@ -27,6 +27,17 @@ protected:
 };
 
 using Configs = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseConfig>>>;
+constexpr const char* ConfigsAbout =
+    "IO-Config presets are used to control HOW the data is "
+    "written to the formatted target file.\n\n"
+    "E.g. XYZ canonically contains one or more steps of a trajectory, "
+    "containing solely the atom types and coordinates.\n"
+    "With a certain preset, you can choose whether you want to write "
+    "only the step you're working on, or the complete trajectory.\n"
+    "Also, you can enable non-standard additional data like atom-charges or force-vectors.\n"
+    "The main use is in automatic conversion on the command-line:\n\n"
+    "$vipster convert xyz input.xyz xyz output.xyz -c default"
+    ;
 
 }
 

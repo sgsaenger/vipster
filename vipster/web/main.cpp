@@ -180,6 +180,8 @@ static unsigned long vrWidth, vrHeight;
 void vr_loop(){
     if (!emscripten_vr_display_presenting(handle)) {
         emscripten_vr_cancel_display_render_loop(handle);
+        EM_ASM($('#vr-exit').hide());
+        EM_ASM($('#vr-enter').show());
         EM_ASM(resizeCanvas());
     }else{
         VRFrameData data;
@@ -189,6 +191,11 @@ void vr_loop(){
                    Vec{0,0,-10}, vrWidth, vrHeight);
         emscripten_vr_submit_frame(handle);
     }
+}
+
+EM_BOOL vr_stop_presenting(int, const EmscriptenMouseEvent*, void*){
+    emscripten_vr_exit_present(handle);
+    return 1;
 }
 
 EM_BOOL vr_start_presenting(int, const EmscriptenMouseEvent*, void*){
@@ -206,6 +213,8 @@ EM_BOOL vr_start_presenting(int, const EmscriptenMouseEvent*, void*){
     vrWidth = leftParams.renderWidth = rightParams.renderWidth;
     vrHeight = std::max(leftParams.renderHeight, rightParams.renderHeight);
     emscripten_set_canvas_element_size("#canvas", vrWidth, vrHeight);
+    EM_ASM($('#vr-enter').hide());
+    EM_ASM($('#vr-exit').show());
     return 1;
 }
 
@@ -241,6 +250,7 @@ void tryInitVR(void*){
             printf("Succeeded so far, using this display\n");
             EM_ASM($('#vr-enter').show());
             emscripten_set_click_callback("vr-enter", nullptr, 0, vr_start_presenting);
+            emscripten_set_click_callback("vr-exit", nullptr, 0, vr_stop_presenting);
             return;
         }
     }

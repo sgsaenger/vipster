@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(Vipster VERSION 1.14)
+project(Vipster VERSION 1.15)
 
 option(TESTS "Build tests" OFF)
 option(DESKTOP "Build QT-based desktop app" OFF)

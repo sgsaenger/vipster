@@ -181,9 +181,9 @@ void GLWidget::rotAtoms(QPoint delta)
     auto axes = getAxes();
     Vec axis = delta.y() * axes[0] + delta.x() * axes[1];
     if(curSel->getNat()){
-        curSel->modRotate(angle, axis, shift);
+        curSel->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
     }else{
-        curStep->modRotate(angle, axis, shift);
+        curStep->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
     }
     triggerUpdate(GuiChange::atoms);
 }
@@ -193,9 +193,9 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
     if(curSel->getNat()){
-        curSel->modShift(axis, 0.01f);
+        curSel->asFmt(AtomFmt::Bohr).modShift(axis, 0.01f);
     }else{
-        curStep->modShift(axis, 0.01f);
+        curStep->asFmt(AtomFmt::Bohr).modShift(axis, 0.01f);
     }
     triggerUpdate(GuiChange::atoms);
 }
@@ -205,9 +205,9 @@ void GLWidget::shiftAtomsZ(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     float fac = 0.01f * (delta.x() + delta.y());
     if(curSel->getNat()){
-        curSel->modShift(axes[2], fac);
+        curSel->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
     }else{
-        curStep->modShift(axes[2], fac);
+        curStep->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
     }
     triggerUpdate(GuiChange::atoms);
 }
@@ -246,12 +246,12 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
             auto idx = pickAtoms();
             if(idx.empty()){
                 if(curSel->getNat()){
-                    shift = curSel->getCom(curSel->getFmt());
+                    shift = curSel->getCom(AtomFmt::Bohr);
                 }else{
-                    shift = curStep->getCom(curStep->getFmt());
+                    shift = curStep->getCom(AtomFmt::Bohr);
                 }
             }else{
-                shift = (*curStep)[*idx.begin()].coord;
+                shift = curStep->asFmt(AtomFmt::Bohr)[*idx.begin()].coord;
             }
         }
         break;

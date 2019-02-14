@@ -321,7 +321,16 @@ void MainWindow::loadMol()
             if(got_fmt){
                 fmt = static_cast<IOFmt>(formats.indexOf(fmt_s));
                 for(auto &file: files){
-                    newData(readFile(file.toStdString(), fmt));
+                    IO::Data dat;
+                    try {
+                        dat = readFile(file.toStdString(), fmt);
+                    } catch (const IO::Error& e) {
+                        QMessageBox msg{this};
+                        msg.setText(QString{"Could not open file \""}+file+"\":\n"+e.what());
+                        msg.exec();
+                        continue;
+                    }
+                    newData(std::move(dat));
                 }
             }
         }
@@ -338,11 +347,17 @@ void MainWindow::saveMol()
         path = fileDiag.directory();
         SaveFmtDialog sfd{this};
         if(sfd.exec() == QDialog::Accepted){
-            writeFile(target, sfd.fmt, *curMol,
-                      sfd.getParam(), sfd.getConfig(),
-                      IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
-                                ui->molWidget->getAtomFmt(),
-                                ui->molWidget->getCellFmt()});
+            try{
+                writeFile(target, sfd.fmt, *curMol,
+                          sfd.getParam(), sfd.getConfig(),
+                          IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
+                                    ui->molWidget->getAtomFmt(),
+                                    ui->molWidget->getCellFmt()});
+            }catch(const IO::Error& e){
+                QMessageBox msg{this};
+                msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
+                msg.exec();
+            }
         }
     }
 }
@@ -448,9 +463,9 @@ void MainWindow::saveConfig()
 void MainWindow::about()
 {
     QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster v" VIPSTER_VERSION "a</h2>"
+    QString("<h2>Vipster v" VIPSTER_VERSION "b</h2>"
             "<p>"
-            "©Sebastian Gsänger, 2018"
+            "©Sebastian Gsänger, 2019"
             "<br>"
             "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
             "<br>"
@@ -459,11 +474,12 @@ void MainWindow::about()
             "<p>"
             "This program is provided under the GPLv3."
             "<br>"
-            "It uses "
-            "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>, "
-            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,"
-            "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
-            "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
+            "It uses<br>"
+            "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>,<br>"
+            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,<br>"
+            "<a href='https://github.com/codeplea/tinyexpr'>TinyExpr</a>,<br>"
+            "<a href='https://github.com/catchorg/catch2'>Catch2</a><br>"
+            "and <a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
 }
 

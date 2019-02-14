@@ -7,14 +7,15 @@
 namespace Vipster{
 namespace GUI {
 // CPU-side buffers for render-data
-struct AtomProp{ // 8 bytes + 12 bytes directly from step
-    float rad;  // 4 bytes
-    ColVec col; // 4 bytes
+struct AtomProp{ // 9 bytes + 3 bytes padding + 12 bytes directly from step
+    float   rad;  // 4 bytes
+    ColVec  col;  // 4 bytes
+    uint8_t hide; // 1 byte
 };
 struct BondProp{ // 64 bytes
-    float mat[9]; // 9*4 = 36 bytes
-    Vec pos; // 3*4 = 12 bytes
-    int16_t mult[4];  // 4*2 = 6 bytes
+    float mat[9];        // 9*4 = 36 bytes
+    Vec pos;             // 3*4 = 12 bytes
+    int16_t mult[4];     // 4*2 = 6 bytes
     ColVec col_a, col_b; // 2*4 = 8 bytes
 };
 
@@ -38,7 +39,7 @@ class StepData: public Data{
     // Shader:
     static struct{
         GLuint program;
-        GLuint vertex, position, vert_scale, color;
+        GLuint vertex, position, vert_scale, color, hide;
         GLint offset, pos_scale, scale_fac;
         bool initialized{false};
     } atom_shader;
@@ -56,7 +57,7 @@ class StepData: public Data{
     } cell_shader;
     static struct{
         GLuint program;
-        GLuint vertex, position, vert_scale;
+        GLuint vertex, position, vert_scale, hide;
         GLint offset, pos_scale, scale_fac;
         bool initialized{false};
     } sel_shader;

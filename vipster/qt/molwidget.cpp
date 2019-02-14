@@ -2,6 +2,7 @@
 #include "ui_molwidget.h"
 #include "atom.h"
 #include <QTableWidgetItem>
+#include <QMessageBox>
 
 using namespace Vipster;
 
@@ -37,9 +38,15 @@ void MolWidget::updateWidget(guiChange_t change)
     }
     if ((change & guiStepChanged) == guiStepChanged) {
         QSignalBlocker blockAtFmt(ui->atomFmtBox);
+        // reset old fmt-string
+        auto oldFmt = static_cast<int>(curStep.getFmt());
+        ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+        // assign StepFormatter to curStep, mark fmt as active
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep->asFmt(fmt);
-        ui->atomFmtBox->setCurrentIndex(static_cast<int>(fmt));
+        auto ifmt = static_cast<int>(fmt);
+        ui->atomFmtBox->setCurrentIndex(ifmt);
+        ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     }
     if (change & (GuiChange::atoms | GuiChange::fmt)) {
         fillAtomTable();
@@ -197,12 +204,20 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
     auto scale = ui->cellScaleBox->isChecked();
-    if(ui->cellAllBox->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
-            step.setCellVec(vec, scale);
+    try{
+        if(ui->cellAllBox->isChecked()){
+            for(auto& step: master->curMol->getSteps()){
+                step.setCellVec(vec, scale);
+            }
+        }else{
+            curStep.setCellVec(vec, scale);
         }
-    }else{
-        curStep.setCellVec(vec, scale);
+    } catch(const Error& e){
+        QMessageBox msg{this};
+        msg.setText(QString{"Error setting cell vectors:\n"}+e.what());
+        msg.exec();
+        fillCell();
+        return;
     }
     // if needed, trigger atom update
     guiChange_t change = GuiChange::cell;
@@ -255,7 +270,11 @@ void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 
 void MolWidget::on_atomFmtButton_clicked()
 {
-    auto fmt = static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
+    auto ifmt = ui->atomFmtBox->currentIndex();
+    auto fmt = static_cast<AtomFmt>(ifmt);
+    auto oldFmt = static_cast<int>(master->curStep->getFmt());
+    ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+    ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     master->curStep->setFmt(fmt);
     master->curSel->setFmt(fmt);
     if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){

@@ -69,6 +69,14 @@ public:
     {
         return *const_iterator{atoms, at_fmt, i};
     }
+    constAtom       at(size_t i) const
+    {
+        if(i>=getNat()){
+            throw Error("Atom-index out of bounds");
+        }else{
+            return operator[](i);
+        }
+    }
     const source&   getAtoms() const noexcept
     {
         return *atoms;
@@ -232,6 +240,7 @@ public:
         if(cutfac < 0){
             throw Error("bond cutoff factor must be positive");
         }
+        if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
         if(((update == BondFrequency::Always) or
             ((update == BondFrequency::Once) and not bonds->setOnce))
            and
@@ -544,8 +553,6 @@ private:
                 }
             }
         }
-        this->bonds->outdated = false;
-        this->bonds->level = BondLevel::Molecule;
     }
 
     void setBondsCell(float cutfac) const
@@ -910,8 +917,6 @@ private:
                 }
             }
         }
-        this->bonds->outdated = false;
-        this->bonds->level = BondLevel::Cell;
     }
 };
 
