@@ -246,12 +246,12 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
             auto idx = pickAtoms();
             if(idx.empty()){
                 if(curSel->getNat()){
-                    shift = curSel->getCom(curSel->getFmt());
+                    shift = curSel->getCom(AtomFmt::Bohr);
                 }else{
-                    shift = curStep->getCom(curStep->getFmt());
+                    shift = curStep->getCom(AtomFmt::Bohr);
                 }
             }else{
-                shift = (*curStep)[*idx.begin()].coord;
+                shift = curStep->asFmt(AtomFmt::Bohr)[*idx.begin()].coord;
             }
         }
         break;
