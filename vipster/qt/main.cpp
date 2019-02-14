@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
 
     // conversion parser + data + options
     auto convert = app.add_subcommand("convert", "Directly convert a file");
-    std::string fmt_group{"Available formats (r: parsing, w: writing)"};
     struct{
         std::vector<std::string> input;
         std::vector<std::string> output;
@@ -98,30 +97,90 @@ int main(int argc, char *argv[])
         std::string param;
         std::string config;
     }conv_data;
-    [[maybe_unused]]
-    auto conv_kpoints = convert->add_option("-k", conv_data.kpoints,
-        "Specify k-points (defaults to parsed mesh or gamma-point)");
 
-    auto conv_param = convert->add_option("-p", conv_data.param,
-        "Specify parameter set (defaults to parsed one, if present)");
-    conv_param->expected(1);
+    // formats
+    convert->add_flag("--list-fmt",
+                      [](size_t){
+                          std::cout << "Available formats (r: parsing, w: writing)\n\n";
+                          for(const auto& pair: IOPlugins){
+                              std::cout << pair.second->command << "\t(r"
+                                        << ((pair.second->writer!=nullptr)?'w':' ')
+                                        << ")\t" << pair.second->name << '\n';
+                          }
+                          throw CLI::Success();
+                      },
+                      "Display available formats");
+    // K-points
+    constexpr const char* kp_err = "KPoints should be one of:\n\n"
+        "gamma\t\t\tGamma-point only\n"
+        "mpg x y z sx sy sz\tMonkhorst-pack grid of size x*y*z with offset (sx,sy,sz)\n"
+        "";
+    convert->add_option("-k,--kpoints", conv_data.kpoints,
+        "Specify k-points (defaults to parsed mesh or gamma-point)");
+    convert->add_flag("--help-kpoints",
+                      [](size_t){
+                          std::cout << kp_err << std::endl;
+                          throw CLI::Success();
+                      },
+                      "Display help for k-point specification");
+
+    // parameter sets
+    convert->add_option("-p,--param", conv_data.param,
+                        "Specify parameter set (defaults to parsed one, if present)");
     convert->add_flag("--help-param",
                       [](size_t){
                           std::cout << Vipster::IO::ParametersAbout << std::endl;
                           throw CLI::Success();
                       },
                       "Display help for parameter sets");
+    convert->add_flag("--list-param",
+                      [](size_t){
+                          auto printFmt = [](IOFmt fmt){
+                              for(const auto& pair: params[fmt]){
+                                  std::cout << pair.first << '\n';
+                              }
+                          };
+                          for(const auto& pair: IOPlugins){
+                              if(pair.second->arguments&IO::Plugin::Param){
+                                  std::cout << pair.second->command << ": "
+                                            << pair.second->name << "\n";
+                                  printFmt(pair.first);
+                                  std::cout << '\n';
+                              }
+                          }
+                          throw CLI::Success();
+                      },
+                      "List available parameter sets");
 
-    auto conv_config = convert->add_option("-c", conv_data.config,
-         "Specify behavior-preset for output-plugin");
-    conv_config->expected(1);
+    // IO-configs
+    convert->add_option("-c,--config", conv_data.config,
+                        "Specify behavior-preset for output plugin");
     convert->add_flag("--help-config",
                       [](size_t){
                           std::cout << Vipster::IO::ConfigsAbout << std::endl;
                           throw CLI::Success();
                       },
-                      "Display help for behavior-presets");
+                      "Display help for output-behavior-presets");
+    convert->add_flag("--list-config",
+                      [](size_t){
+                          auto printFmt = [](IOFmt fmt){
+                              for(const auto& pair: configs[fmt]){
+                                  std::cout << pair.first << '\n';
+                              }
+                          };
+                          for(const auto& pair: IOPlugins){
+                              if(pair.second->arguments&IO::Plugin::Config){
+                                  std::cout << pair.second->command << ": "
+                                            << pair.second->name << "\n";
+                                  printFmt(pair.first);
+                                  std::cout << '\n';
+                              }
+                          }
+                          throw CLI::Success();
+                      },
+                      "List available output-behavior-presets");
 
+    // main arguments
     auto conv_in = convert->add_option("in", conv_data.input,
                                        "fmt and filename of input");
     conv_in->required(true);
@@ -203,20 +262,16 @@ int main(int argc, char *argv[])
         }
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;
-            const std::string kp_err = "KPoints should be one of:\n"
-                                       "gamma\n"
-                                       "mpg x y z sx sy sz\n"
-                                       "";
             if(kpoints[0] == "gamma"){
                 if(kpoints.size() > 1){
-                    throw CLI::ParseError("gamma takes no arguments\n\n"+kp_err, 1);
+                    throw CLI::ParseError("K-Point \"gamma\" takes no arguments", 1);
                 }
                 mol.setKPoints(KPoints{KPoints::Fmt::Gamma, {}, {}});
             }else if(kpoints[0] == "mpg"){
-                const std::string mpg_err = "mpg takes three integer and three "
-                                            "float arguments\n\n";
+                const std::string mpg_err = "Monkhorst-Pack grid expects three integer "
+                                            "and three float arguments";
                 if(kpoints.size() != 7){
-                    throw CLI::ParseError(mpg_err+kp_err, 1);
+                    throw CLI::ParseError(mpg_err, 1);
                 }
                 try {
                     mol.setKPoints(KPoints{KPoints::Fmt::MPG, {
@@ -228,11 +283,11 @@ int main(int argc, char *argv[])
                                        std::stof(kpoints[6]),
                                    }, {}});
                 } catch (...) {
-                    throw CLI::ParseError(mpg_err+kp_err, 1);
+                    throw CLI::ParseError(mpg_err, 1);
                 }
             //TODO: discrete
             }else{
-                throw CLI::ParseError("Invalid KPoint style\n"+kp_err, 1);
+                throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
         writeFile(conv_data.output[1], fmt_out, mol, param.get(), config.get());
