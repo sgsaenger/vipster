@@ -2,6 +2,7 @@
 #define SCRIPTWIDGET_H
 
 #include <QWidget>
+#include "scripthelp.h"
 #include "../mainwindow.h"
 
 namespace Ui {
@@ -17,6 +18,9 @@ public:
     ~ScriptWidget() override;
 public slots:
     void evalScript();
+
+private slots:
+    void on_helpButton_clicked();
 
 private:
     struct OpVec{
@@ -41,6 +45,7 @@ private:
     Vipster::guiChange_t execute(const std::vector<ScriptOp>&,
                                  Vipster::Step&, Vipster::Step::selection&);
     Ui::ScriptWidget *ui;
+    ScriptHelp *help;
     static constexpr const char* tooltip=
     "The scripting language is line-based. "
     "The general syntax is:"

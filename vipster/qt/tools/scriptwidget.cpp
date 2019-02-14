@@ -1,5 +1,6 @@
 #include "scriptwidget.h"
 #include "ui_scriptwidget.h"
+#include "ui_scripthelp.h"
 #include "stepsel.h"
 #include <QPlainTextEdit>
 #include <QMessageBox>
@@ -8,15 +9,16 @@ using namespace Vipster;
 
 ScriptWidget::ScriptWidget(QWidget *parent) :
     BaseWidget(parent),
-    ui(new Ui::ScriptWidget)
+    ui(new Ui::ScriptWidget),
+    help(new ScriptHelp)
 {
     ui->setupUi(this);
-    ui->inputEdit->setToolTip(tooltip);
 }
 
 ScriptWidget::~ScriptWidget()
 {
     delete ui;
+    delete help;
 }
 
 std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool> dat){
@@ -273,4 +275,9 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
         }
     }
     return change;
+}
+
+void ScriptWidget::on_helpButton_clicked()
+{
+    help->show();
 }
