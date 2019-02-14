@@ -465,7 +465,7 @@ void MainWindow::about()
     QMessageBox::about(this,QString("About Vipster"),
     QString("<h2>Vipster v" VIPSTER_VERSION "b</h2>"
             "<p>"
-            "©Sebastian Gsänger, 2018"
+            "©Sebastian Gsänger, 2019"
             "<br>"
             "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
             "<br>"
@@ -474,11 +474,12 @@ void MainWindow::about()
             "<p>"
             "This program is provided under the GPLv3."
             "<br>"
-            "It uses "
-            "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>, "
-            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,"
-            "<a href='https://github.com/catchorg/catch2'>Catch2</a> and "
-            "<a href='https://github.com/pybind/pybind11'>pybind11</a>."
+            "It uses<br>"
+            "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>,<br>"
+            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,<br>"
+            "<a href='https://github.com/codeplea/tinyexpr'>TinyExpr</a>,<br>"
+            "<a href='https://github.com/catchorg/catch2'>Catch2</a><br>"
+            "and <a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
 }
 

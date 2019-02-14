@@ -112,7 +112,7 @@ case $1 in
                         cp $TRAVIS_BUILD_DIR/dist/AppRun AppDir
                         chmod a+x AppDir/AppRun
                         # create AppImage
-                        wget -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+                        wget -c https://github.com/AppImage/AppImageKit/releases/download/11/appimagetool-x86_64.AppImage -O appimagetool
                         chmod +x appimagetool
                         ./appimagetool -g AppDir $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
                         # enable deployment
