@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 {
     // main parser + data-targets
     Vipster::readConfig();
-    CLI::App app{"Vipster v" VIPSTER_VERSION "a"};
+    CLI::App app{"Vipster v" VIPSTER_VERSION "b"};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, IOFmt> fmt_opts{};

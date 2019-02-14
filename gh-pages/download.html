@@ -21,13 +21,24 @@
             crossorigin="anonymous"></script>
         <script>
             document.addEventListener("DOMContentLoaded", function (event) {
-                $.getJSON("https://api.github.com/repos/sgsaenger/vipster/releases/latest").done(function(release){
-                    const list = $('#dl-list');
-                    $.each(release.assets, function(id, asset){
-                        list.append("<li><a href=" + asset.browser_download_url + ">"
-                            + asset.name + "</a></li>")
-                    });
-                });
+                let release = JSON.parse((() => {
+                    let request = new XMLHttpRequest();
+                    request.open("GET","https://api.github.com/repos/sgsaenger/vipster/releases/latest",false);
+                    request.send(null);
+                    return request.responseText;
+                })());
+                let header = document.getElementById('dl-header');
+                if(release.name){
+                    header.innerHTML += release.name;
+                }else{
+                    header.innerHTML += release.tag_name;
+                }
+                let list = document.getElementById('dl-list');
+                for(asset of release.assets){
+                    list.innerHTML += "<li><a href=" + asset.browser_download_url + ">" + asset.name + "</a></li>";
+                };
+                list.innerHTML += "<li><a href=" + release.tarball_url + ">Download as .tar.gz</li>";
+                list.innerHTML += "<li><a href=" + release.zipball_url + ">Download as .zip</li>";
             });
         </script>
     </head>
@@ -69,7 +80,7 @@
             </div>
         </nav>
         <main class="container">
-            <h3> Latest release </h3>
+            <h3 id="dl-header"> Latest release: </h3>
             <ul id="dl-list"></ul>
             <p> For feature-requests and bug-reports, please create an <a href="https://github.com/sgsaenger/vipster/issues">issue</a>.</p>
             <h3> Build from source </h3>
