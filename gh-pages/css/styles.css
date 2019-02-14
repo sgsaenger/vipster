@@ -74,3 +74,7 @@ pre{
 .jumbotron{
     background: #333;
 }
+.btn-dark{
+    background: #333;
+    color: #BBB;
+}
