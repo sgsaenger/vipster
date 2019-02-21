@@ -3,100 +3,182 @@
 #include "periodictable.h"
 #include "settings.h"
 #include "io/parameters.h"
-#include "io/configs.h"
+#include "io/presets.h"
 #include "json.hpp"
 
 #include <fstream>
 #include <tuple>
+#include <filesystem>
 
 using json = nlohmann::json;
 using namespace Vipster;
+namespace fs = std::filesystem;
 
-bool readConfig();
+fs::path getConfigDir(){
+#if defined(__linux__) || defined(__FreeBSD__)
+    auto tmp = std::getenv("XDG_CONFIG_HOME");
+    return fs::path{tmp == nullptr ? std::string{std::getenv("HOME")}+"/.config" : tmp}/"vipster";
+#elif _WIN32
+    return fs::path{std::getenv("APPDATA")}/"vipster";
+#elif __APPLE__
+    return fs::path{std::getenv("HOME")}/"Library/Application Support/vipster";
+#endif
+}
 
 bool Vipster::readConfig()
 {
-    std::ifstream conf_file{user_config};
-    if(conf_file){
+    bool success{true};
+    auto dir = getConfigDir();
+    if(!fs::exists(dir)){
+        std::cout << "Config directory at \"" << dir << "\" does not exist" << std::endl;
+        return false;
+    }
+    // PSE
+    fs::path pse_path = dir/"pse.json";
+    std::ifstream pse_file{pse_path};
+    if(pse_file){
         try {
-            json loc_file;
-            conf_file >> loc_file;
-            // PSE
-            if(loc_file.find("PSE") != loc_file.end()){
-                from_json(loc_file["PSE"], pse);
-            }
-            // General settings
-            if(loc_file.find("Settings") != loc_file.end()){
-                from_json(loc_file["Settings"], settings);
-            }
-            // Parameter sets
-            if(loc_file.find("Parameters") != loc_file.end()){
-                for(auto it=loc_file["Parameters"].begin(); it!=loc_file["Parameters"].end(); ++it)
-                {
-                    for(const auto& pair: IOPlugins){
-                        const auto& plugin = pair.second;
-                        if(it.key() == plugin->command){
-                            auto& tmp = params[pair.first];
-                            for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
-                                tmp[it2.key()] = plugin->makeParam(it2.key());
-                                tmp[it2.key()]->parseJson(it2);
-                            }
-                            continue;
-                        }
-                    }
-                }
-            }
-            // Config presets
-            if(loc_file.find("Configs") != loc_file.end()){
-                for(auto it=loc_file["Configs"].begin(); it!=loc_file["Configs"].end(); ++it){
-                    for(const auto& pair: IOPlugins){
-                        const auto& plugin = pair.second;
-                        if(it.key() == plugin->command){
-                            auto& tmp = configs[pair.first];
-                            for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
-                                tmp[it2.key()] = plugin->makeConfig(it2.key());
-                                tmp[it2.key()]->parseJson(it2);
-                            }
-                            continue;
-                        }
-                    }
-                }
-            }
-            return true;
+            json j;
+            pse_file >> j;
+            pse = j;
         } catch (const json::exception& e) {
-            std::cout << e.what() << std::endl;
+            std::cout << "Error when reading PSE: " << e.what() << std::endl;
+            success = false;
         }
     }
-    return false;
+    // Settings
+    fs::path settings_path = dir/"settings.json";
+    std::ifstream settings_file{settings_path};
+    if(settings_file){
+        try {
+            json j;
+            settings_file >> j;
+            settings = j;
+        } catch (const json::exception& e) {
+            std::cout << "Error when reading settings: " << e.what() << std::endl;
+            success = false;
+        }
+    }
+    // Parameter sets
+    fs::path param_path = dir/"parameters.json";
+    std::ifstream param_file{param_path};
+    if(param_file){
+        try {
+            json j;
+            param_file >> j;
+            for(const auto& pair: IOPlugins){
+                const auto& plugin = pair.second;
+                if(!(plugin->arguments & IO::Plugin::Param)) continue;
+                auto pos = j.find(plugin->command);
+                if(pos != j.end()){
+                    auto& tmp = params[pair.first];
+                    for(auto param: pos->items()){
+                        tmp[param.key()] = plugin->makeParam();
+                        tmp[param.key()]->parseJson(param.value());
+                    }
+                }
+            }
+        } catch (const json::exception& e) {
+            std::cout << "Error when reading parameters: " << e.what() << std::endl;
+            success = false;
+        }
+    }
+    // IO-presets
+    fs::path presets_path = dir/"iopresets.json";
+    std::ifstream presets_file{presets_path};
+    if(presets_file){
+        try {
+            json j;
+            presets_file >> j;
+            for(const auto& pair: IOPlugins){
+                const auto& plugin = pair.second;
+                if(!(plugin->arguments & IO::Plugin::Preset)) continue;
+                auto pos = j.find(plugin->command);
+                if(pos != j.end()){
+                    auto& tmp = presets[pair.first];
+                    for(auto preset: pos->items()){
+                        tmp[preset.key()] = plugin->makePreset();
+                        tmp[preset.key()]->parseJson(preset.value());
+                    }
+                }
+            }
+        } catch (const json::exception& e) {
+            std::cout << "Error when reading IO-presets: " << e.what() << std::endl;
+            success = false;
+        }
+    }
+    return success;
 }
 
 bool Vipster::saveConfig()
 {
-    std::ofstream conf_file{user_config};
-    if(!conf_file){
-        throw IO::Error("Cannot open config file at \""+user_config+"\" for writing");
-    }
-    json json_buf;
-    json_buf["PSE"] = pse;
-    json_buf["Settings"] = settings;
-    json_buf["Parameters"] = json{};
-    for(const auto& plug: IOPlugins){
-        if(plug.second->arguments & IO::Plugin::Args::Param){
-            json& j = json_buf["Parameters"][plug.second->command];
-            for(const auto& p: params[plug.first]){
-                j[p.first] = p.second->toJson();
-            }
+    auto dir = getConfigDir();
+    bool success{true};
+    json j;
+    if(!fs::exists(dir)){
+        std::error_code error;
+        fs::create_directories(dir, error);
+        if(error){
+            std::cout << "Couldn't create directory \"" << dir
+                      << "\" to write configuration" << std::endl;
+            return false;
         }
     }
-    json_buf["Configs"] = json{};
-    for(const auto& plug: IOPlugins){
-        if(plug.second->arguments & IO::Plugin::Args::Config){
-            json& j = json_buf["Configs"][plug.second->command];
-            for(const auto& p: configs[plug.first]){
-                j[p.first] = p.second->toJson();
-            }
+    // PSE
+    fs::path pse_path = dir/"pse.json";
+    std::ofstream pse_file{pse_path};
+    if(!pse_file){
+        std::cout << "Can not open file at \"" << std::string{pse_path} << "\" for writing PSE" << std::endl;
+        success = false;
+    }
+    j = pse;
+    pse_file << j.dump(2);
+    // Settings
+    fs::path settings_path = dir/"settings.json";
+    std::ofstream settings_file{settings_path};
+    if(!pse_file){
+        std::cout << "Can not open file at \"" << std::string{settings_path} << "\" for writing settings";
+        success = false;
+    }
+    j = settings;
+    settings_file << j.dump(2);
+    // Parameters
+    fs::path param_path = dir/"parameters.json";
+    std::ofstream param_file{param_path};
+    if(!pse_file){
+        std::cout << "Can not open file at \"" << std::string{param_path} << "\" for writing parameter sets";
+        success = false;
+    }
+    j = json{};
+    for(const auto& pair: params){
+        const auto& plugin = IOPlugins.at(pair.first);
+        if(!(plugin->arguments & IO::Plugin::Param)) continue;
+        const auto& com = plugin->command;
+        j[com] = json{};
+        auto& tmp = j[com];
+        for(const auto& param: pair.second){
+            tmp[param.first] = *param.second;
         }
     }
-    conf_file << json_buf.dump(2);
-    return true;
+    param_file << j.dump(2);
+    // IO-Presets
+    fs::path preset_path = dir/"iopresets.json";
+    std::ofstream preset_file{preset_path};
+    if(!pse_file){
+        std::cout << "Can not open file at \"" << std::string{preset_path} << "\" for writing IO-presets";
+        success = false;
+    }
+    j = json{};
+    for(const auto& pair: presets){
+        const auto& plugin = IOPlugins.at(pair.first);
+        if(!(plugin->arguments & IO::Plugin::Preset)) continue;
+        const auto& com = plugin->command;
+        j[com] = json{};
+        auto& tmp = j[com];
+        for(const auto& preset: pair.second){
+            tmp[preset.first] = *preset.second;
+        }
+    }
+    preset_file << j.dump(2);
+    return success;
 }

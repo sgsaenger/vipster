@@ -7,16 +7,13 @@ namespace Vipster::IO{
 
 struct OrcaParam final: BaseParam{
     using Header = std::vector<std::string>;
-    OrcaParam(std::string="", Header={});
+    OrcaParam(Header={});
     Header header;
     IOFmt getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
-    void parseJson(const nlohmann::json::iterator&) override;
+    void parseJson(const nlohmann::json&) override;
     nlohmann::json toJson() const override;
 };
-
-void to_json(nlohmann::json& j, const OrcaParam& p);
-void from_json(const nlohmann::json& j, OrcaParam& p);
 
 }
 

@@ -1,5 +1,5 @@
 #include "pyvipster.h"
-#include "io/orca/plugin.h"
+#include "plugin.h"
 
 namespace Vipster::Py{
 void ORCA(py::module& m){

@@ -97,7 +97,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
     Molecule &m = d.mol;
     m.setName(name);
     Step &s = m.newStep();
-    d.param = std::make_unique<IO::CPParam>(name);
+    d.param = std::make_unique<IO::CPParam>();
     IO::CPParam &p = *static_cast<IO::CPParam*>(d.param.get());
     IO::CPParam::Section IO::CPParam::* curSection{nullptr};
 
@@ -414,14 +414,14 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
 
 bool CPInpWriter(const Molecule& m, std::ofstream &file,
                  const IO::BaseParam *const p,
-                 const IO::BaseConfig *const c,
+                 const IO::BasePreset *const c,
                  IO::State state)
 {
     const auto *pp = dynamic_cast<const IO::CPParam*>(p);
     if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
-    const auto *cc = dynamic_cast<const IO::CPConfig*>(c);
-    if(!cc) throw IO::Error("CPI-Writer needs CPMD config preset");
-    auto af = (cc->fmt == IO::CPConfig::AtomFmt::Current) ?
+    const auto *cc = dynamic_cast<const IO::CPPreset*>(c);
+    if(!cc) throw IO::Error("CPI-Writer needs CPMD IO preset");
+    auto af = (cc->fmt == IO::CPPreset::AtomFmt::Current) ?
                 state.atom_fmt : // use from GUI/CLI
                 static_cast<AtomFmt>(cc->fmt); // use explicit fmt
     auto cf = (af == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
@@ -592,14 +592,14 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BaseParam> makeParam(const std::string& name)
+static std::unique_ptr<IO::BaseParam> makeParam()
 {
-    return std::make_unique<IO::CPParam>(name);
+    return std::make_unique<IO::CPParam>();
 }
 
-static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BasePreset> makePreset()
 {
-    return std::make_unique<IO::CPConfig>(name);
+    return std::make_unique<IO::CPPreset>();
 }
 
 const IO::Plugin IO::CPInput =
@@ -607,9 +607,9 @@ const IO::Plugin IO::CPInput =
     "CPMD Input File",
     "cpi",
     "cpi",
-    IO::Plugin::Param|IO::Plugin::Config,
+    IO::Plugin::Param|IO::Plugin::Preset,
     &CPInpParser,
     &CPInpWriter,
     &makeParam,
-    &makeConfig
+    &makePreset
 };

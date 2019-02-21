@@ -339,13 +339,13 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
 
 bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                   const IO::BaseParam *const,
-                  const IO::BaseConfig *const c,
+                  const IO::BasePreset *const c,
                   IO::State state)
 {
     const auto step = m.getStep(state.index).asFmt(AtomFmt::Angstrom);
-    const auto *cc = dynamic_cast<const IO::LmpConfig*>(c);
-    if(!cc) throw IO::Error("Lammps-Writer needs configuration preset");
-    const auto tokens = fmtmap.at(IO::LmpConfig::fmt2str.at(cc->style));
+    const auto *cc = dynamic_cast<const IO::LmpPreset*>(c);
+    if(!cc) throw IO::Error("Lammps-Writer needs IO preset");
+    const auto tokens = fmtmap.at(IO::LmpPreset::fmt2str.at(cc->style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
     file << std::setprecision(std::numeric_limits<Vec::value_type>::max_digits10);
@@ -579,7 +579,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         file << atomtypemap.size() << ' ' << step.pse->at(t).m << " # " << t << '\n';
     }
 
-    file << "\nAtoms # " << IO::LmpConfig::fmt2str.at(cc->style) << "\n\n";
+    file << "\nAtoms # " << IO::LmpPreset::fmt2str.at(cc->style) << "\n\n";
     makeWriter(tokens, molID, atomtypemap)(file, step);
 
     if(cc->bonds && !bondlist.empty()){
@@ -630,9 +630,9 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BasePreset> makePreset()
 {
-    return std::make_unique<IO::LmpConfig>(name);
+    return std::make_unique<IO::LmpPreset>();
 }
 
 const IO::Plugin IO::LmpInput =
@@ -640,9 +640,9 @@ const IO::Plugin IO::LmpInput =
     "Lammps Data File",
     "lmp",
     "lmp",
-    IO::Plugin::Config,
+    IO::Plugin::Preset,
     &LmpInpParser,
     &LmpInpWriter,
     nullptr,
-    &makeConfig
+    &makePreset
 };

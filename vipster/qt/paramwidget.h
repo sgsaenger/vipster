@@ -26,8 +26,8 @@ class ParamWidget : public BaseWidget
 public:
     explicit ParamWidget(QWidget *parent = nullptr);
     ~ParamWidget() override;
-    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>> params;
-    void registerParam(std::unique_ptr<Vipster::IO::BaseParam>&& data);
+    std::vector<std::pair<std::string, std::unique_ptr<Vipster::IO::BaseParam>>> params;
+    void registerParam(const std::string& name, std::unique_ptr<Vipster::IO::BaseParam>&& data);
     void clearParams();
     Vipster::IOFmt curFmt;
     Vipster::IO::BaseParam *curParam{nullptr};

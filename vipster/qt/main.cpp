@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
         std::vector<std::string> output;
         std::vector<std::string> kpoints;
         std::string param;
-        std::string config;
+        std::string preset;
     }conv_data;
 
     // formats
@@ -154,24 +154,24 @@ int main(int argc, char *argv[])
                       },
                       "List available parameter sets");
 
-    // IO-configs
-    convert->add_option("-c,--config", conv_data.config,
+    // IO-presets
+    convert->add_option("-c,--preset", conv_data.preset,
                         "Specify behavior-preset for output plugin");
-    convert->add_flag("--help-config",
+    convert->add_flag("--help-preset",
                       [](size_t){
-                          std::cout << Vipster::IO::ConfigsAbout << std::endl;
+                          std::cout << Vipster::IO::PresetsAbout << std::endl;
                           throw CLI::Success();
                       },
                       "Display help for output-behavior-presets");
-    convert->add_flag("--list-config",
+    convert->add_flag("--list-preset",
                       [](size_t){
                           auto printFmt = [](IOFmt fmt){
-                              for(const auto& pair: configs[fmt]){
+                              for(const auto& pair: presets[fmt]){
                                   std::cout << pair.first << '\n';
                               }
                           };
                           for(const auto& pair: IOPlugins){
-                              if(pair.second->arguments&IO::Plugin::Config){
+                              if(pair.second->arguments&IO::Plugin::Preset){
                                   std::cout << pair.second->command << ": "
                                             << pair.second->name << "\n";
                                   printFmt(pair.first);
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
         }
         // read input
         auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
-        std::unique_ptr<IO::BaseConfig> config{nullptr};
+        std::unique_ptr<IO::BasePreset> preset{nullptr};
         auto arguments = IOPlugins.at(fmt_out)->arguments;
         if(arguments & IO::Plugin::Args::Param){
             std::string par_name;
@@ -243,19 +243,19 @@ int main(int argc, char *argv[])
                 param = pos->second->copy();
             }
         }
-        if(arguments & IO::Plugin::Args::Config){
-            std::string conf_name;
-            if(!conv_data.config.empty()){
-                conf_name = conv_data.config;
+        if(arguments & IO::Plugin::Args::Preset){
+            std::string pres_name;
+            if(!conv_data.preset.empty()){
+                pres_name = conv_data.preset;
             }else{
-                conf_name = "default";
+                pres_name = "default";
             }
-            auto pos = configs[fmt_out].find(conf_name);
-            if(pos == configs[fmt_out].end()){
-                throw CLI::ParseError("Invalid configuration preset \""+conf_name+
+            auto pos = presets[fmt_out].find(pres_name);
+            if(pos == presets[fmt_out].end()){
+                throw CLI::ParseError("Invalid IO preset \""+pres_name+
                                       "\" for format "+conv_data.output[0], 1);
             }
-            config= pos->second->copy();
+            preset = pos->second->copy();
         }
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, param.get(), config.get());
+        writeFile(conv_data.output[1], fmt_out, mol, param.get(), preset.get());
         throw CLI::Success();
     });
 

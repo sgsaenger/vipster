@@ -4,7 +4,7 @@
 #include "../molecule.h"
 #include "../data.h"
 #include "parameters.h"
-#include "configs.h"
+#include "presets.h"
 #include "fmt.h"
 
 #include <string>
@@ -28,7 +28,7 @@ struct State{
 };
 
 struct Plugin{
-    enum Args:uint8_t{None, Param, Config};
+    enum Args:uint8_t{None=0x0, Param=0x1, Preset=0x2};
     std::string name;
     std::string extension;
     std::string command;
@@ -36,10 +36,10 @@ struct Plugin{
     Data        (*parser)(const std::string& name, std::ifstream &file);
     bool        (*writer)(const Molecule& m, std::ofstream &file,
                           const BaseParam *const p,
-                          const BaseConfig *const c,
+                          const BasePreset *const c,
                           State state) = nullptr;
-    std::unique_ptr<BaseParam> (*makeParam)(const std::string& name) = nullptr;
-    std::unique_ptr<BaseConfig> (*makeConfig)(const std::string& name) = nullptr;
+    std::unique_ptr<BaseParam> (*makeParam)() = nullptr;
+    std::unique_ptr<BasePreset> (*makePreset)() = nullptr;
 };
 
 class Error: public std::runtime_error

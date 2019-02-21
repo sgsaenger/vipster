@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>XYZConfig</class>
- <widget class="QWidget" name="XYZConfig">
+ <class>PWPreset</class>
+ <widget class="QWidget" name="PWPreset">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,61 +14,65 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1">
-    <widget class="QComboBox" name="modeSel">
+   <item row="1" column="1">
+    <widget class="QComboBox" name="cellSel">
      <item>
       <property name="text">
-       <string>Step</string>
+       <string>Bohr</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Trajectory</string>
+       <string>Angstrom</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Empire (with cell)</string>
+       <string>As selected</string>
       </property>
      </item>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="dataSel">
+   <item row="0" column="1">
+    <widget class="QComboBox" name="atomSel">
      <item>
       <property name="text">
-       <string>None</string>
+       <string>Bohr</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Charge</string>
+       <string>Angstrom</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Forces</string>
+       <string>Crystal</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Alat</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>As selected</string>
       </property>
      </item>
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QLabel" name="dataLabel">
+    <widget class="QLabel" name="cellLabel">
      <property name="text">
-      <string>Additional atom data:</string>
-     </property>
-     <property name="buddy">
-      <cstring>dataSel</cstring>
+      <string>Cell format:</string>
      </property>
     </widget>
    </item>
    <item row="0" column="0">
-    <widget class="QLabel" name="modeLabel">
+    <widget class="QLabel" name="atomLabel">
      <property name="text">
-      <string>Write &amp;mode:</string>
-     </property>
-     <property name="buddy">
-      <cstring>modeSel</cstring>
+      <string>Coordinate format:</string>
      </property>
     </widget>
    </item>

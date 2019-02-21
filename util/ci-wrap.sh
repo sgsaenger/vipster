@@ -32,11 +32,13 @@ case $1 in
                 export PATH=/usr/local/qt/bin:$PATH
                 ;;
             windows)
-                # install qt+mingw
+                # install qt
                 wget "http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe" -O qt.exe
-                ./qt.exe --verbose --script util/qt-headless.qs
-                export MWDIR="/c/Users/travis/Qt/Tools/mingw730_64"
+                ./qt.exe --verbose --script dist/qt-headless.qs
                 export QTDIR="/c/Users/travis/Qt/5.12.3/mingw73_64"
+                # make sure mingw is up to date
+                choco upgrade mingw -y
+                export MWDIR="/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64"
                 export PATH="$MWDIR/bin:$QTDIR/bin:$PATH"
                 ;;
         esac

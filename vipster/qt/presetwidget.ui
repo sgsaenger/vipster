@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConfigWidget</class>
- <widget class="QWidget" name="ConfigWidget">
+ <class>PresetWidget</class>
+ <widget class="QWidget" name="PresetWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -37,10 +37,10 @@
     </widget>
    </item>
    <item row="0" column="0">
-    <widget class="QComboBox" name="configSel"/>
+    <widget class="QComboBox" name="presetSel"/>
    </item>
    <item row="1" column="0" colspan="2">
-    <widget class="QStackedWidget" name="configStack">
+    <widget class="QStackedWidget" name="presetStack">
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -49,7 +49,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>No configuration loaded</string>
+          <string>No IO preset loaded</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -58,37 +58,37 @@
        </item>
       </layout>
      </widget>
-     <widget class="XYZConfig" name="XYZWidget"/>
-     <widget class="PWConfig" name="PWWidget"/>
-     <widget class="LmpConfig" name="LmpWidget"/>
-     <widget class="CPConfig" name="CPWidget"/>
+     <widget class="XYZPreset" name="XYZWidget"/>
+     <widget class="PWPreset" name="PWWidget"/>
+     <widget class="LmpPreset" name="LmpWidget"/>
+     <widget class="CPPreset" name="CPWidget"/>
     </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PWConfig</class>
+   <class>PWPreset</class>
    <extends>QWidget</extends>
-   <header>configs/pwconfig.h</header>
+   <header>iopresets/pwpreset.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>LmpConfig</class>
+   <class>LmpPreset</class>
    <extends>QWidget</extends>
-   <header>configs/lmpconfig.h</header>
+   <header>iopresets/lmppreset.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>XYZConfig</class>
+   <class>XYZPreset</class>
    <extends>QWidget</extends>
-   <header>configs/xyzconfig.h</header>
+   <header>iopresets/xyzpreset.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>CPConfig</class>
+   <class>CPPreset</class>
    <extends>QWidget</extends>
-   <header>configs/cpconfig.h</header>
+   <header>iopresets/cppreset.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

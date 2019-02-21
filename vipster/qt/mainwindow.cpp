@@ -56,7 +56,7 @@ void MainWindow::setupUI()
     // setup left dock-area
     baseWidgets = {
         ui->paramDock,
-        ui->configDock,
+        ui->presetDock,
         ui->settingsDock,
         ui->mpseDock,
         ui->pseDock,
@@ -94,13 +94,13 @@ void MainWindow::setupUI()
                                       this, &MainWindow::loadParam);
             }
         }
-        const auto& conf_map = Vipster::configs[pair.first];
-        if(!conf_map.empty()){
-            auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
+        const auto& preset_map = Vipster::presets[pair.first];
+        if(!preset_map.empty()){
+            auto* preset_menu = ui->menuLoad_IO_Preset->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(const auto& p: conf_map){
-                conf_menu->addAction(QString::fromStdString(p.first),
-                                     this, &MainWindow::loadConfig);
+            for(const auto& p: preset_map){
+                preset_menu->addAction(QString::fromStdString(p.first),
+                                     this, &MainWindow::loadPreset);
             }
         }
     }
@@ -275,9 +275,10 @@ void MainWindow::newMol(QAction* sender)
 void MainWindow::newData(IO::Data &&d)
 {
     molecules.push_back(std::move(d.mol));
-    ui->molWidget->registerMol(molecules.back().getName());
+    const auto& name = molecules.back().getName();
+    ui->molWidget->registerMol(name);
     if(d.param){
-        ui->paramWidget->registerParam(std::move(d.param));
+        ui->paramWidget->registerParam(name, std::move(d.param));
     }
     for(auto& dat: d.data){
         data.push_back(std::move(dat));
@@ -352,7 +353,7 @@ void MainWindow::saveMol()
         if(sfd.exec() == QDialog::Accepted){
             try{
                 writeFile(target, sfd.fmt, *curMol,
-                          sfd.getParam(), sfd.getConfig(),
+                          sfd.getParam(), sfd.getPreset(),
                           IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
                                     ui->molWidget->getAtomFmt(),
                                     ui->molWidget->getCellFmt()});
@@ -371,9 +372,9 @@ const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
     return ui->paramWidget->params;
 }
 
-const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
+const decltype (PresetWidget::presets)& MainWindow::getPresets() const noexcept
 {
-    return ui->configWidget->configs;
+    return ui->presetWidget->presets;
 }
 
 void MainWindow::addExtraData(GUI::Data* dat)
@@ -405,15 +406,16 @@ void MainWindow::loadParam()
         }
         throw Error("Invalid parameter set");
     }(p->title());
-    auto pos = Vipster::params[fmt].find(s->text().toStdString());
+    auto name = s->text().toStdString();
+    auto pos = Vipster::params[fmt].find(name);
     if(pos != Vipster::params[fmt].end()){
-        ui->paramWidget->registerParam(pos->second->copy());
+        ui->paramWidget->registerParam(name, pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
     }
 }
 
-void MainWindow::loadConfig()
+void MainWindow::loadPreset()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
@@ -423,13 +425,14 @@ void MainWindow::loadConfig()
                 return pair.first;
             }
         }
-        throw Error("Invalid IO-config");
+        throw Error("Invalid IO preset");
     }(p->title());
-    auto pos = Vipster::configs[fmt].find(s->text().toStdString());
-    if(pos != Vipster::configs[fmt].end()){
-        ui->configWidget->registerConfig(pos->second->copy());
+    auto name = s->text().toStdString();
+    auto pos = Vipster::presets[fmt].find(name);
+    if(pos != Vipster::presets[fmt].end()){
+        ui->presetWidget->registerPreset(name, pos->second->copy());
     }else{
-        throw Error("Invalid IO-config");
+        throw Error("Invalid IO preset");
     }
 }
 
@@ -439,27 +442,25 @@ void MainWindow::saveParam()
         return;
     }
     bool ok;
-    auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
+    auto name = QInputDialog::getText(this, "Save parameter set", "Name of parameter set",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
         Vipster::params[ui->paramWidget->curFmt][name] =
                 ui->paramWidget->curParam->copy();
-        Vipster::params[ui->paramWidget->curFmt][name]->name = name;
     }
 }
 
-void MainWindow::saveConfig()
+void MainWindow::savePreset()
 {
-    if(!ui->configWidget->curConfig){
+    if(!ui->presetWidget->curPreset){
         return;
     }
     bool ok;
-    auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
+    auto name = QInputDialog::getText(this, "Save IO preset", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::configs[ui->configWidget->curFmt][name] =
-                ui->configWidget->curConfig->copy();
-        Vipster::configs[ui->configWidget->curFmt][name]->name = name;
+        Vipster::presets[ui->presetWidget->curFmt][name] =
+                ui->presetWidget->curPreset->copy();
     }
 }
 

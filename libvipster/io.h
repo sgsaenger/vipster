@@ -33,7 +33,7 @@ namespace Vipster{
     IO::Data readFile(const std::string &fn, IOFmt fmt, std::string name);
     bool     writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
                        const IO::BaseParam *p=nullptr,
-                       const IO::BaseConfig *c=nullptr,
+                       const IO::BasePreset *c=nullptr,
                        IO::State state={});
 }
 

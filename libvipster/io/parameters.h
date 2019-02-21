@@ -13,19 +13,15 @@ namespace Vipster::IO{
 class BaseParam
 {
 public:
-    std::string name;
     virtual IOFmt getFmt() const = 0;
     virtual std::unique_ptr<BaseParam> copy() const = 0;
-    virtual void parseJson(const nlohmann::json::iterator&) = 0;
+    virtual void parseJson(const nlohmann::json&) = 0;
     virtual nlohmann::json toJson() const = 0;
     virtual ~BaseParam() = default;
-protected:
-    BaseParam(const std::string&);
-    BaseParam(const BaseParam&) = default;
-    BaseParam(BaseParam&&) = default;
-    BaseParam& operator=(const BaseParam&) = default;
-    BaseParam& operator=(BaseParam&&) = default;
 };
+
+void to_json(nlohmann::json& j, const BaseParam& p);
+void from_json(const nlohmann::json& j, BaseParam& p);
 
 using Parameters = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseParam>>>;
 constexpr const char* ParametersAbout =

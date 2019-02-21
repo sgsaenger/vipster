@@ -28,18 +28,16 @@ struct CPParam final: BaseParam{
     std::string PPSuffix;
     std::string PPNonlocality;
     static const std::vector<std::pair<std::string, Section CPParam::*>> str2section;
-    CPParam(std::string="", Section={}, Section={}, Section={}, Section={},
-            Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
-            Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
+    CPParam(Section={}, Section={}, Section={}, Section={},
+            Section={}, Section={}, Section={}, Section={},
+            Section={}, Section={}, Section={}, Section={},
+            Section={}, Section={}, Section={}, Section={},
             std::string="", std::string="", std::string="");
     IOFmt getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
-    void parseJson(const nlohmann::json::iterator&) override;
+    void parseJson(const nlohmann::json&) override;
     nlohmann::json toJson() const override;
 };
-
-void to_json(nlohmann::json& j,const CPParam& p);
-void from_json(const nlohmann::json& j, CPParam& p);
 
 }
 

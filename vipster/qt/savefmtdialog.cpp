@@ -27,7 +27,7 @@ void SaveFmtDialog::selFmt(int i)
     fmt = outFormats[static_cast<size_t>(i)];
     const auto& iop = IOPlugins.at(fmt);
     enableParamWidget(iop->arguments & IO::Plugin::Args::Param);
-    enableConfWidget(iop->arguments & IO::Plugin::Args::Config);
+    enablePresetWidget(iop->arguments & IO::Plugin::Args::Preset);
 }
 
 void SaveFmtDialog::enableParamWidget(bool on)
@@ -36,45 +36,44 @@ void SaveFmtDialog::enableParamWidget(bool on)
     widget->clearParams();
     if(on){
         widget->setEnabled(true);
-        const auto& param_map = Vipster::params[fmt];
-        for(const auto& p: param_map){
-            widget->registerParam(p.second->copy());
-        }
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(auto& p: mw.getParams()){
-            if(p.first == fmt){
-                widget->registerParam(p.second->copy());
+            if(p.second->getFmt() == fmt){
+                widget->registerParam(p.first, p.second->copy());
             }
+        }
+        const auto& param_map = Vipster::params[fmt];
+        for(const auto& p: param_map){
+            widget->registerParam(p.first, p.second->copy());
         }
     }else{
         widget->setDisabled(true);
     }
 }
 
-void SaveFmtDialog::enableConfWidget(bool on)
+void SaveFmtDialog::enablePresetWidget(bool on)
 {
-    auto* widget = ui->configWidget;
-    widget->clearConfigs();
+    auto* widget = ui->presetWidget;
+    widget->clearPresets();
     if(on){
         widget->setEnabled(true);
-        const auto& conf_map = Vipster::configs[fmt];
-        for(const auto& c: conf_map){
-            widget->registerConfig(c.second->copy());
-        }
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(auto& p: mw.getConfigs()){
-            if(p.first == fmt){
-                widget->registerConfig(p.second->copy());
+        for(auto& p: mw.getPresets()){
+            if(p.second->getFmt() == fmt){
+                widget->registerPreset(p.first, p.second->copy());
             }
+        }
+        for(const auto& c: Vipster::presets[fmt]){
+            widget->registerPreset(c.first, c.second->copy());
         }
     }else{
         widget->setDisabled(true);
     }
 }
 
-IO::BaseConfig* SaveFmtDialog::getConfig()
+IO::BasePreset* SaveFmtDialog::getPreset()
 {
-    return ui->configWidget->curConfig;
+    return ui->presetWidget->curPreset;
 }
 
 IO::BaseParam* SaveFmtDialog::getParam()

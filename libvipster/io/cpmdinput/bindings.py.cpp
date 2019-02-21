@@ -1,5 +1,5 @@
 #include "pyvipster.h"
-#include "io/cpmdinput/plugin.h"
+#include "plugin.h"
 
 namespace Vipster::Py{
 void CPInput(py::module& m){
@@ -23,16 +23,16 @@ void CPInput(py::module& m){
         .def_readwrite("qmmm", &IO::CPParam::qmmm)
     ;
 
-    auto c = py::class_<IO::CPConfig>(m, "CPConfig")
-        .def_readwrite("fmt", &IO::CPConfig::fmt)
+    auto c = py::class_<IO::CPPreset>(m, "CPPreset")
+        .def_readwrite("fmt", &IO::CPPreset::fmt)
     ;
 
-    py::enum_<IO::CPConfig::AtomFmt>(c, "AtomFmt")
-        .value("Bohr", IO::CPConfig::AtomFmt::Bohr)
-        .value("Angstrom", IO::CPConfig::AtomFmt::Angstrom)
-        .value("Crystal", IO::CPConfig::AtomFmt::Crystal)
-        .value("Alat", IO::CPConfig::AtomFmt::Alat)
-//        .value("Current", IO::CPConfig::AtomFmt::Current) // TODO: makes sense to expose this?
+    py::enum_<IO::CPPreset::AtomFmt>(c, "AtomFmt")
+        .value("Bohr", IO::CPPreset::AtomFmt::Bohr)
+        .value("Angstrom", IO::CPPreset::AtomFmt::Angstrom)
+        .value("Crystal", IO::CPPreset::AtomFmt::Crystal)
+        .value("Alat", IO::CPPreset::AtomFmt::Alat)
+//        .value("Current", IO::CPPreset::AtomFmt::Current) // TODO: makes sense to expose this?
     ;
 }
 }

@@ -2,21 +2,21 @@
 #define LMPCONFIG_H
 
 #include <QWidget>
-#include "io/lmpinput/config.h"
-#include "../configwidget.h"
+#include "io/lmpinput/preset.h"
+#include "../presetwidget.h"
 
 namespace Ui {
-class LmpConfig;
+class LmpPreset;
 }
 
-class LmpConfig : public ConfigBase
+class LmpPreset : public PresetBase
 {
     Q_OBJECT
 
 public:
-    explicit LmpConfig(QWidget *parent = nullptr);
-    ~LmpConfig() override;
-    void setConfig(Vipster::IO::BaseConfig *c) override;
+    explicit LmpPreset(QWidget *parent = nullptr);
+    ~LmpPreset() override;
+    void setPreset(Vipster::IO::BasePreset *c) override;
 
 private slots:
     void on_bondCheck_stateChanged(int arg1);
@@ -30,8 +30,8 @@ private slots:
     void on_atomSel_currentIndexChanged(int index);
 
 private:
-    Ui::LmpConfig *ui;
-    Vipster::IO::LmpConfig *curConfig{nullptr};
+    Ui::LmpPreset *ui;
+    Vipster::IO::LmpPreset *curPreset{nullptr};
 };
 
 #endif // LMPCONFIG_H

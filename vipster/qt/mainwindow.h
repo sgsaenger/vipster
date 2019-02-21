@@ -10,7 +10,7 @@
 #include "stepsel.h"
 #include "../common/guiwrapper.h"
 #include "paramwidget.h"
-#include "configwidget.h"
+#include "presetwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -44,7 +44,7 @@ public:
     std::map<Vipster::Step*, StepExtras> stepdata;
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
     const decltype (ParamWidget::params)& getParams() const noexcept;
-    const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
+    const decltype (PresetWidget::presets)& getPresets() const noexcept;
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
     const Vipster::GUI::GlobalData& getGLGlobals();
@@ -61,8 +61,8 @@ public slots:
     void editAtoms(QAction *sender);
     void loadParam();
     void saveParam();
-    void loadConfig();
-    void saveConfig();
+    void loadPreset();
+    void savePreset();
     void saveScreenshot();
 
 private:

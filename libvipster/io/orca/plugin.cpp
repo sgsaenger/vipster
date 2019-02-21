@@ -5,7 +5,7 @@ using namespace Vipster;
 
 IO::Data OrcaParser(const std::string& name, std::ifstream &file){
     IO::Data d{};
-    d.param = std::make_unique<IO::OrcaParam>(name);
+    d.param = std::make_unique<IO::OrcaParam>();
     auto& p = static_cast<IO::OrcaParam&>(*d.param.get());
     Molecule &m = d.mol;
     m.setName(name);
@@ -192,7 +192,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
 
 bool OrcaWriter(const Molecule& m, std::ofstream &file,
                 const IO::BaseParam *const p,
-                const IO::BaseConfig *const,
+                const IO::BasePreset *const,
                 IO::State state)
 {
     const auto *pp = dynamic_cast<const IO::OrcaParam*>(p);
@@ -218,9 +218,9 @@ bool OrcaWriter(const Molecule& m, std::ofstream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BaseParam> makeParam(const std::string& name)
+static std::unique_ptr<IO::BaseParam> makeParam()
 {
-    return std::make_unique<IO::OrcaParam>(name);
+    return std::make_unique<IO::OrcaParam>();
 }
 
 const IO::Plugin IO::OrcaInput =

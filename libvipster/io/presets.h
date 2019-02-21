@@ -1,5 +1,5 @@
-#ifndef CONFIGS_H
-#define CONFIGS_H
+#ifndef PRESETS_H
+#define PRESETS_H
 
 #include "fmt.h"
 #include "json.hpp"
@@ -10,26 +10,22 @@
 
 namespace Vipster::IO{
 
-class BaseConfig
+class BasePreset
 {
 public:
-    std::string name;
     virtual IOFmt getFmt() const = 0;
-    virtual std::unique_ptr<BaseConfig> copy() const = 0;
-    virtual void parseJson(const nlohmann::json::iterator&) = 0;
+    virtual std::unique_ptr<BasePreset> copy() const = 0;
+    virtual void parseJson(const nlohmann::json&) = 0;
     virtual nlohmann::json toJson() const = 0;
-    virtual ~BaseConfig() = default;
-protected:
-    BaseConfig(const std::string &);
-    BaseConfig(const BaseConfig&) = default;
-    BaseConfig(BaseConfig &&) = default;
-    BaseConfig& operator=(const BaseConfig&) = default;
-    BaseConfig& operator=(BaseConfig&&) = default;
+    virtual ~BasePreset() = default;
 };
 
-using Configs = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseConfig>>>;
-constexpr const char* ConfigsAbout =
-    "IO-Config presets are used to control HOW the data is "
+void to_json(nlohmann::json& j, const BasePreset& p);
+void from_json(const nlohmann::json& j, BasePreset& p);
+
+using Presets = std::map<IOFmt, std::map<std::string, std::unique_ptr<BasePreset>>>;
+constexpr const char* PresetsAbout =
+    "IO-presets are used to control HOW the data is "
     "written to the formatted target file.\n\n"
     "E.g. XYZ canonically contains one or more steps of a trajectory, "
     "containing solely the atom types and coordinates.\n"
@@ -43,7 +39,7 @@ constexpr const char* ConfigsAbout =
 }
 
 namespace Vipster{
-extern IO::Configs configs;
+extern IO::Presets presets;
 }
 
-#endif // CONFIGS_H
+#endif // PRESETS_H
