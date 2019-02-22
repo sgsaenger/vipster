@@ -164,7 +164,7 @@ static void parseCoord(std::istream& is, SelectionFilter& filter){
         filter.coord |= Coord::C_EQ;
         break;
     default:
-        throw Error(std::string{"Unknown comparison "}+ctoken);
+        throw Error(std::string{"Invalid comparison "}+ctoken);
     }
     is >> filter.coordVal;
 }
@@ -277,7 +277,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
         }else if(token == "index"){
             parseIdx(is, filter);
         }else{
-            throw Error("Unknown selection operator: "+token);
+            throw Error("Invalid selection operator: "+token);
         }
     }
     // Parse subfilter (same level)
@@ -287,7 +287,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
             return is;
         }
         if(token.size() > 2){
-            throw Error("Unknown coupling operator "+token);
+            throw Error("Invalid coupling operator "+token);
         }
         if(token.front() == '!'){
             filter.op |= Op::NOT_PAIR;
@@ -303,7 +303,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
             filter.op |= Op::XOR;
             break;
         default:
-            throw Error("Unknown coupling operator "+token);
+            throw Error("Invalid coupling operator "+token);
         }
         filter.subfilter = std::make_unique<SelectionFilter>();
         is >> *filter.subfilter;

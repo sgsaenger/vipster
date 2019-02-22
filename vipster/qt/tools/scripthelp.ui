@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>446</height>
+    <height>623</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -32,12 +32,26 @@
 &lt;p&gt;&lt;tt&gt;operation target arguments&lt;/tt&gt;&lt;/p&gt;
 &lt;p&gt;For valid &lt;tt&gt;operation&lt;/tt&gt;s, see &lt;em&gt;Operations&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;For details about &lt;tt&gt;target&lt;/tt&gt;s, see &lt;em&gt;Target&lt;/em&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;tt&gt;arguments&lt;/tt&gt; depend on the specific operation performed, see &lt;em&gt;Operations&lt;/em&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p&gt;&lt;tt&gt;arguments&lt;/tt&gt; depend on the specific operation performed, see &lt;em&gt;Operations&lt;/em&gt;.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -51,15 +65,16 @@
          <property name="text">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The allowed &lt;tt&gt;operations&lt;/tt&gt; are as follows:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;tt&gt;&lt;b&gt;sel&lt;/b&gt;ect target filter&lt;/tt&gt;: change the current selection according to &lt;tt&gt;filter&lt;/tt&gt; on &lt;tt&gt;target&lt;/tt&gt; (see &lt;em&gt;Selection&lt;/em&gt; for details) &lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;&lt;b&gt;def&lt;/b&gt;ine target name filter&lt;/tt&gt;: create a &lt;tt&gt;name&lt;/tt&gt;d group of atoms according to &lt;tt&gt;filter&lt;/tt&gt; on &lt;tt&gt;target&lt;/tt&gt; (see &lt;em&gt;Selection&lt;/em&gt; for details) &lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;sel&lt;/b&gt;ect target filter&lt;/tt&gt;: change the current selection according to &lt;tt&gt;filter&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;def&lt;/b&gt;ine target name filter&lt;/tt&gt;: create a &lt;tt&gt;name&lt;/tt&gt;d group of atoms according to &lt;tt&gt;filter&lt;/tt&gt;&lt;/li&gt;
 &lt;li&gt;&lt;tt&gt;&lt;b&gt;rot&lt;/b&gt;ate target angle vec (vec)&lt;/tt&gt;: rotate &lt;tt&gt;target&lt;/tt&gt; &lt;tt&gt;angle&lt;/tt&gt; degrees around first &lt;tt&gt;vec&lt;/tt&gt; (optionally positioned at second &lt;tt&gt;vec&lt;/tt&gt;) &lt;/li&gt;
 &lt;li&gt;&lt;tt&gt;&lt;b&gt;shi&lt;/b&gt;ft target vec (factor)&lt;/tt&gt;: shift the &lt;tt&gt;target&lt;/tt&gt; by the (optionally scaled) &lt;tt&gt;vec&lt;/tt&gt;&lt;/li&gt;
 &lt;li&gt;&lt;tt&gt;&lt;b&gt;mir&lt;/b&gt;ror target vec vec (vec)&lt;/tt&gt;: mirror the &lt;tt&gt;target&lt;/tt&gt; at the plane defined by the first two &lt;tt&gt;vec&lt;/tt&gt;tors,optionally positioned at third &lt;tt&gt;vec&lt;/tt&gt;&lt;/li&gt;
 &lt;li&gt;&lt;tt&gt;&lt;b&gt;ren&lt;/b&gt;ame target name&lt;/tt&gt;: rename the &lt;tt&gt;target&lt;/tt&gt; atoms to new atom-type&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;For details about &lt;tt&gt;target&lt;/tt&gt;s, see &lt;em&gt;Target&lt;/em&gt;.&lt;/p&gt;
-&lt;p&gt;For details about the differnt ways to specify a &lt;tt&gt;vec&lt;/tt&gt;tor, see &lt;em&gt;Vectors&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;For details about &lt;b&gt;&lt;tt&gt;target&lt;/tt&gt;&lt;/b&gt;s, see &lt;em&gt;Target&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;For details about the different ways to specify a &lt;tt&gt;vec&lt;/tt&gt;tor, see &lt;em&gt;Vectors&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;For details about &lt;b&gt;&lt;tt&gt;filter&lt;/tt&gt;&lt;/b&gt;s, see &lt;em&gt;Selection&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;Arguments in parenthesis, e.g. &lt;tt&gt;(vec)&lt;/tt&gt;, are optional.&lt;/p&gt;
 &lt;/body&gt;&lt;/html&gt;</string>
          </property>
@@ -67,6 +82,19 @@
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -82,9 +110,9 @@
 &lt;p&gt;All operations work on a given target, even and &lt;em&gt;especially&lt;/em&gt; &lt;tt&gt;select&lt;/tt&gt; (This allows for nested filters, see &lt;em&gt;Selection&lt;/em&gt;).&lt;/p&gt;
 &lt;p&gt;There are three target types:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;tt&gt;all&lt;/tt&gt;: This refers to the complete current main structure, including hidden atoms, but excluding pinned steps or other data that widgets superimpose into the current view.&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;sel&lt;/tt&gt;: This refers to the current selection of the main structure, &lt;em&gt;at the time of evaluation&lt;/em&gt;. Subsequent calls to &lt;tt&gt;select&lt;/tt&gt; change the meaning of this target.&lt;/li&gt;
-&lt;li&gt;Finally, &lt;tt&gt;define&lt;/tt&gt; may create filtered groups of atoms that may be assigned arbitrary single-word names other than &lt;tt&gt;all&lt;/tt&gt; and &lt;tt&gt;sel&lt;/tt&gt;. These defined groups behave otherwise in the same way as &lt;tt&gt;sel&lt;/tt&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;all&lt;/tt&gt;&lt;/b&gt;: This refers to the complete current main structure, including hidden atoms, but excluding pinned steps or other data that widgets superimpose into the current view.&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;sel&lt;/tt&gt;&lt;/b&gt;: This refers to the current selection of the main structure, &lt;em&gt;at the time of evaluation&lt;/em&gt;. Subsequent calls to &lt;tt&gt;select&lt;/tt&gt; change the meaning of this target.&lt;/li&gt;
+&lt;li&gt;Finally, &lt;b&gt;&lt;tt&gt;define&lt;/tt&gt;&lt;/b&gt; may create filtered groups of atoms that may be assigned arbitrary single-word names other than &lt;b&gt;&lt;tt&gt;all&lt;/tt&gt;&lt;/b&gt; and &lt;b&gt;&lt;tt&gt;sel&lt;/tt&gt;&lt;/b&gt;. These defined groups behave otherwise in the same way as &lt;tt&gt;sel&lt;/tt&gt;.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/body&gt;&lt;/html&gt;</string>
          </property>
@@ -92,6 +120,19 @@
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -119,6 +160,19 @@
          </property>
         </widget>
        </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_4">
@@ -129,12 +183,67 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>TODO: Selection language</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
+&lt;p&gt;A &lt;b&gt;&lt;tt&gt;filter&lt;/tt&gt;&lt;/b&gt; is used to pick atoms according to user-defined criteria.&lt;/p&gt;
+&lt;p&gt;Criteria are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;type&lt;/tt&gt;&lt;/b&gt;: one or more atom types
+&lt;ul&gt;
+&lt;li&gt;&lt;tt&gt;type C&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;type [H C N O]&lt;/tt&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;index&lt;/tt&gt;&lt;/b&gt;: one or more indices or ranges
+&lt;ul&gt;
+&lt;li&gt;index 17&lt;/li&gt;
+&lt;li&gt;index 1-25&lt;/li&gt;
+&lt;li&gt;index [0 3 5 7-12]&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;pos&lt;/tt&gt;&lt;/b&gt;: relative position (x,y,z to choose axis, a,b,c,d to choose format (Ångstrom, Bohr, Crystal, Alat, respectively))
+&lt;ul&gt;
+&lt;li&gt;pos xa&amp;gt;5&lt;/li&gt;
+&lt;li&gt;pos z c &amp;lt; 0.5&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;coord&lt;/tt&gt;&lt;/b&gt;: coordination number
+&lt;ul&gt;
+&lt;li&gt;coord = 2&lt;/li&gt;
+&lt;li&gt;coord &gt;0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Every criterion can be prefixed with &lt;b&gt;&lt;tt&gt;not&lt;/tt&gt;&lt;/b&gt; to invert the selection.&lt;/p&gt;
+&lt;p&gt;For more complex filters, criteria can be grouped with:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;|&lt;/tt&gt;&lt;/b&gt;: inclusive or, i.e. at least one of&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;!|&lt;/tt&gt;&lt;/b&gt;: inclusive not or, i.e. none of&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;&amp;amp;&lt;/tt&gt;&lt;/b&gt;: and, i.e. both&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;!&amp;amp;&lt;/tt&gt;&lt;/b&gt;: not and, i.e. none ore one of, but not both&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;^&lt;/tt&gt;&lt;/b&gt;: exclusive or, i.e. one of, but not both&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;!^&lt;/tt&gt;&lt;/b&gt;: exclusive not or, i.e. either none of or both&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Furthermore, groupings can be put in parenthesis to simplify logical combinations.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -158,8 +267,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>168</x>
-     <y>283</y>
+     <x>176</x>
+     <y>437</y>
     </hint>
     <hint type="destinationlabel">
      <x>395</x>

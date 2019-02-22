@@ -6,24 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>331</width>
+    <height>155</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="7">
-    <widget class="QLabel" name="lLabel">
-     <property name="text">
-      <string>&amp;l:</string>
-     </property>
-     <property name="buddy">
-      <cstring>lSel</cstring>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="idxLabel">
      <property name="text">
@@ -31,54 +21,10 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="7">
-    <widget class="QSpinBox" name="lSel">
-     <property name="minimum">
-      <number>-99</number>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="7">
-    <widget class="QDoubleSpinBox" name="zOff">
-     <property name="minimum">
-      <double>-99.989999999999995</double>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="8">
-    <widget class="QPushButton" name="pushButton">
+   <item row="2" column="0">
+    <widget class="QLabel" name="offLabel">
      <property name="text">
-      <string>Show/Hide</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0" colspan="8">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>381</width>
-       <height>180</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="3" column="2">
-    <widget class="QDoubleSpinBox" name="xOff">
-     <property name="minimum">
-      <double>-99.989999999999995</double>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QSpinBox" name="hSel">
-     <property name="minimum">
-      <number>-99</number>
+      <string>Offset:</string>
      </property>
     </widget>
    </item>
@@ -92,21 +38,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="4">
-    <widget class="QSpinBox" name="kSel">
-     <property name="minimum">
-      <number>-99</number>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="4">
-    <widget class="QDoubleSpinBox" name="yOff">
-     <property name="minimum">
-      <double>-99.989999999999995</double>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
+   <item row="0" column="3">
     <widget class="QLabel" name="kLabel">
      <property name="text">
       <string>&amp;k:</string>
@@ -116,23 +48,85 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="offLabel">
-     <property name="text">
-      <string>Offset:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1" rowspan="4">
+   <item row="0" column="1" rowspan="3">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>40</width>
-       <height>20</height>
+       <width>32</width>
+       <height>66</height>
       </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="3">
+    <widget class="QDoubleSpinBox" name="yOff">
+     <property name="minimum">
+      <double>-99.989999999999995</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QSpinBox" name="hSel">
+     <property name="minimum">
+      <number>-99</number>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QLabel" name="lLabel">
+     <property name="text">
+      <string>&amp;l:</string>
+     </property>
+     <property name="buddy">
+      <cstring>lSel</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QDoubleSpinBox" name="zOff">
+     <property name="minimum">
+      <double>-99.989999999999995</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QSpinBox" name="kSel">
+     <property name="minimum">
+      <number>-99</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QDoubleSpinBox" name="xOff">
+     <property name="minimum">
+      <double>-99.989999999999995</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QSpinBox" name="lSel">
+     <property name="minimum">
+      <number>-99</number>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="5">
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string>Show/Hide</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="5">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
     </spacer>
    </item>
@@ -195,8 +189,8 @@
    <slot>updateOffset(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>236</x>
-     <y>92</y>
+     <x>230</x>
+     <y>76</y>
     </hint>
     <hint type="destinationlabel">
      <x>75</x>
@@ -227,8 +221,8 @@
    <slot>updateOffset(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>390</x>
-     <y>92</y>
+     <x>391</x>
+     <y>76</y>
     </hint>
     <hint type="destinationlabel">
      <x>325</x>
