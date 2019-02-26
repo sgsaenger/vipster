@@ -43,9 +43,11 @@ endif()
 
 if(TESTS)
     # Tests, so far only for library
+    enable_testing()
     file(GLOB TEST_SOURCES "tests/*.cpp")
     add_executable(test_lib ${TEST_SOURCES})
     target_link_libraries(test_lib libvipster)
+    add_test(NAME test_lib COMMAND $<TARGET_FILE:test_lib>)
 endif()
 
 if(PYTHON)
