@@ -52,7 +52,7 @@ public:
     Step::selection* curSel{nullptr};
     GUI::GlobalData globals;
     GUI::StepData mainStep{globals, nullptr};
-    GUI::SelData selection{globals, nullptr};
+    GUI::SelData selection{globals, settings.selCol.val, nullptr};
     std::set<GUI::Data*> extraData{};
 private:
     void drawPre(void);

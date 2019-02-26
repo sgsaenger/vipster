@@ -24,6 +24,14 @@ GUI::StepData::StepData(StepData&& dat)
     std::swap(vbos, dat.vbos);
 }
 
+GUI::StepData::~StepData()
+{
+    if(initialized){
+        glDeleteBuffers(4, vbos);
+        glDeleteVertexArrays(4, vaos);
+    }
+}
+
 void GUI::StepData::initGL()
 {
     glGenVertexArrays(4, vaos);
@@ -224,14 +232,6 @@ void GUI::StepData::initCell()
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
     glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(cell_shader.vertex);
-}
-
-GUI::StepData::~StepData()
-{
-    if(initialized){
-        glDeleteBuffers(4, vbos);
-        glDeleteVertexArrays(4, vaos);
-    }
 }
 
 void GUI::StepData::drawMol(const Vec &off)

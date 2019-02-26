@@ -63,8 +63,11 @@ class StepData: public Data{
     } sel_shader;
 public:
     StepData(const GlobalData& glob, Step* step=nullptr);
-    StepData(StepData&& s);
     ~StepData() override;
+    StepData(StepData&& s);
+    StepData(const StepData& s)=delete;
+    StepData& operator=(const StepData& s)=delete;
+    StepData& operator=(StepData&& s)=delete;
     void drawMol(const Vec &off) override;
     void drawCell(const Vec &off, const PBCVec &mult) override;
     void updateGL() override;

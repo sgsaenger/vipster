@@ -233,7 +233,7 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
 {
     Atom at = curStep[static_cast<size_t>(row)];
     const QTableWidgetItem *cell = ui->atomTable->item(row,column);
-    bool checkState = (cell->checkState()/2) != 0;
+    bool checkState = cell->checkState() != Qt::CheckState::Unchecked;
     if (column == 0){
         if(at.properties->flags[AtomFlag::Hidden] != checkState){
             at.properties->flags[AtomFlag::Hidden] = checkState;

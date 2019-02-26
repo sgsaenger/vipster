@@ -48,6 +48,9 @@ public:
     MeshData(const GlobalData& glob, std::vector<Face>&& faces,
              Vec offset, Vipster::Mat cell, Texture texture);
     MeshData(MeshData&& dat);
+    MeshData(const MeshData& dat)=delete;
+    MeshData& operator=(const MeshData& dat)=delete;
+    MeshData& operator=(MeshData&& dat)=delete;
     ~MeshData() override;
     void drawMol(const Vec &off) override;
     void drawCell(const Vec &off, const PBCVec &mult) override;

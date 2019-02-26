@@ -34,16 +34,17 @@ private:
     friend std::istream& operator>>(std::istream&, std::tuple<OpVec&, bool>);
     struct ScriptOp{
         enum class Mode{None, Rotate, Shift, Mirror, Rename, Select, Define};
-        std::string line;
-        std::string target;
+        std::string line{};
+        std::string target{"all"};
         Mode mode{Mode::None};
-        float f{};
+        float f{1.f};
         std::string s1{}, s2{};
         OpVec v1{}, v2{}, v3{};
     };
     std::vector<ScriptOp> parse();
     Vipster::guiChange_t execute(const std::vector<ScriptOp>&,
-                                 Vipster::Step&, Vipster::Step::selection&);
+                                 Vipster::Step&,
+                                 MainWindow::StepExtras &);
     Ui::ScriptWidget *ui;
     ScriptHelp *help;
 };
