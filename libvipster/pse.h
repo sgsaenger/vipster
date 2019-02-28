@@ -26,16 +26,18 @@ void from_json(const nlohmann::json& j, PseEntry& p);
 
 class PseMap:private std::map<std::string,PseEntry>
 {
+    using map_t = std::map<std::string, PseEntry>;
 public:
-    using std::map<std::string,PseEntry>::begin;
-    using std::map<std::string,PseEntry>::end;
-    using std::map<std::string,PseEntry>::at;
-    using std::map<std::string,PseEntry>::emplace;
-    using std::map<std::string,PseEntry>::find;
-    using std::map<std::string,PseEntry>::size;
-    using std::map<std::string,PseEntry>::key_type;
-    using std::map<std::string,PseEntry>::mapped_type;
-    using std::map<std::string,PseEntry>::value_type;
+    using map_t::begin;
+    using map_t::end;
+    using map_t::at;
+    using map_t::emplace;
+    using map_t::find;
+    using map_t::size;
+    using map_t::key_type;
+    using map_t::mapped_type;
+    using map_t::value_type;
+    using map_t::insert_or_assign;
     PseMap(std::initializer_list<PseMap::value_type> il={}, bool r=false);
     PseEntry& operator [](const std::string &k);
 private:
