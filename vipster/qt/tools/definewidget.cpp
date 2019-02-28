@@ -131,7 +131,6 @@ void DefineWidget::on_newButton_clicked()
     }
 }
 
-//void DefineWidget::on_delButton_clicked()
 void DefineWidget::deleteAction()
 {
     if(curSel < 0){
@@ -149,7 +148,6 @@ void DefineWidget::on_fromSelButton_clicked()
     triggerUpdate(GuiChange::definitions);
 }
 
-//void DefineWidget::on_toSelButton_clicked()
 void DefineWidget::toSelAction()
 {
     if(curSel < 0){
@@ -244,4 +242,9 @@ void DefineWidget::colButton_clicked()
     static_cast<QPushButton*>(sender())->setStyleSheet(
         QString("background-color: %1").arg(newCol.name()));
     triggerUpdate(GuiChange::definitions);
+}
+
+void DefineWidget::on_helpButton_clicked()
+{
+    QMessageBox::information(this, QString{"About filters"}, FilterAbout);
 }

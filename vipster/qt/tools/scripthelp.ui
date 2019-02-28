@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -148,51 +148,9 @@ There are three target types:&lt;/p&gt;
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="filterLabel">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
-&lt;p&gt;A &lt;b&gt;&lt;tt&gt;filter&lt;/tt&gt;&lt;/b&gt; is used to pick atoms according to user-defined criteria.&lt;/p&gt;
-&lt;p&gt;Criteria are as follows:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;type&lt;/tt&gt;&lt;/b&gt;: one or more atom types
-&lt;ul&gt;
-&lt;li&gt;&lt;tt&gt;type C&lt;/tt&gt;&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;type [H C N O]&lt;/tt&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;index&lt;/tt&gt;&lt;/b&gt;: one or more indices or ranges
-&lt;ul&gt;
-&lt;li&gt;index 17&lt;/li&gt;
-&lt;li&gt;index 1-25&lt;/li&gt;
-&lt;li&gt;index [0 3 5 7-12]&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;pos&lt;/tt&gt;&lt;/b&gt;: relative position (x,y,z to choose axis, a,b,c,d to choose format (Ångstrom, Bohr, Crystal, Alat, respectively))
-&lt;ul&gt;
-&lt;li&gt;pos xa&amp;gt;5&lt;/li&gt;
-&lt;li&gt;pos z c &amp;lt; 0.5&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;coord&lt;/tt&gt;&lt;/b&gt;: coordination number
-&lt;ul&gt;
-&lt;li&gt;coord = 2&lt;/li&gt;
-&lt;li&gt;coord &gt;0&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Every criterion can be prefixed with &lt;b&gt;&lt;tt&gt;not&lt;/tt&gt;&lt;/b&gt; to invert the selection.&lt;/p&gt;
-&lt;p&gt;For more complex filters, criteria can be grouped with:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;|&lt;/tt&gt;&lt;/b&gt;: inclusive or, i.e. at least one of&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;!|&lt;/tt&gt;&lt;/b&gt;: inclusive not or, i.e. none of&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;&amp;amp;&lt;/tt&gt;&lt;/b&gt;: and, i.e. both&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;!&amp;amp;&lt;/tt&gt;&lt;/b&gt;: not and, i.e. none ore one of, but not both&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;^&lt;/tt&gt;&lt;/b&gt;: exclusive or, i.e. one of, but not both&lt;/li&gt;
-&lt;li&gt;&lt;b&gt;&lt;tt&gt;!^&lt;/tt&gt;&lt;/b&gt;: exclusive not or, i.e. either none of or both&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Furthermore, groupings can be put in parenthesis to simplify logical combinations.&lt;/p&gt;
-&lt;/body&gt;&lt;/html&gt;</string>
+          <string/>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

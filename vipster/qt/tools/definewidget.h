@@ -20,8 +20,7 @@ public:
 
 private slots:
     void on_newButton_clicked();
-//    void on_delButton_clicked();
-//    void on_toSelButton_clicked();
+    void on_helpButton_clicked();
     void on_fromSelButton_clicked();
 
     void on_defTable_cellChanged(int row, int column);
