@@ -80,19 +80,12 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
             return false;
         }
     };
-    auto checkDummy = [&atoms](size_t col){
-        std::set<float> s, n{0.f};
-        for (auto& at: atoms){
-            s.insert(stof(at[col]));
-        }
-        return (s.size()==1)&&(s==n);
-    };
     if(narg == 5){
         // only one possible setup (atomic)
         return {lmpTok::type, lmpTok::pos};
     }
     if(narg == 6){
-        if(checkInt(2) && checkDummy(2)){
+        if(checkInt(2)){
             // angle/molecular have molID, then type
             return {lmpTok::ignore, lmpTok::type, lmpTok::pos};
         }
@@ -100,20 +93,20 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         return {lmpTok::type, lmpTok::charge, lmpTok::pos};
     }
     std::vector<lmpTok> parser{};
-    size_t col{1}, poscoord{narg-3};
+    size_t col{1}, poscoord{narg-4};
     /* assume:
      * - trailing int-columns are image-flags
      * - three cols before image-flags are position
      * - second or third col are atomtype
      * - first col between type and pos is charge (if present)
      */
-    if (checkInt(2) && !checkDummy(2)) {
+    if (checkInt(2)) {
         // assume col1 is molID, probably fails for ellipsoid
         parser.push_back(lmpTok::ignore);
         col++;
     }
     parser.push_back(lmpTok::type);
-    for(size_t img=narg-1; img>=std::min(narg-3,static_cast<size_t>(5)); ++img){
+    for(size_t img=narg-1; img>=std::max(narg-3,static_cast<size_t>(5)); --img){
         if (!checkInt(img)){
             break;
         }
