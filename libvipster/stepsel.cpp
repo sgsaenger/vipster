@@ -35,15 +35,11 @@ static void writeCoord(std::ostream& os, const SelectionFilter& filter){
 static void writePos(std::ostream& os, const SelectionFilter& filter){
     using Pos = SelectionFilter::Pos;
     os << "pos ";
-    const std::map<uint8_t, char> posToC{
-        {Pos::X, 'x'}, {Pos::Y, 'y'}, {Pos::Z, 'z'},
-        {Pos::ANG, 'a'}, {Pos::BOHR, 'b'},
-        {Pos::CRYS, 'c'}, {Pos::CDM, 'd'},
-        {Pos::P_LT, '<'}, {Pos::P_GT, '>'}
-    };
-    os << posToC.at(filter.pos & Pos::DIR_MASK);
-    os << posToC.at(filter.pos & Pos::FMT_MASK);
-    os << posToC.at(filter.pos & Pos::P_CMP_MASK);
+    constexpr char fmtToC[] = {'b', 'a', 'c', 'd'};
+    constexpr char dirToC[] = {'x', 'y', 'z'};
+    os << dirToC[(filter.pos & Pos::DIR_MASK)>>2];
+    os << fmtToC[filter.pos & Pos::FMT_MASK];
+    os << ((filter.pos & Pos::P_CMP_MASK)? '<' : '>');
     os << filter.posVal;
 }
 

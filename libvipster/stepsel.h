@@ -90,8 +90,8 @@ struct SelectionFilter{
             PAIR_MASK=0x1E,
             UPDATE=0x80};
     enum Pos{BOHR=0x0, ANG=0x1, CRYS=0x2, CDM=0x3, FMT_MASK=0x3,// 2 bits for format
-             P_GT=0x0, P_LT=0x4, P_CMP_MASK=0x4,  // 1 bit for comp direction
-             X=0x0, Y=0x8, Z=0x10, DIR_MASK=0x18, // 2  bits for space direction
+             X=0x0, Y=0x4, Z=0x8, DIR_MASK=0xC, // 2  bits for space direction
+             P_GT=0x0, P_LT=0x10, P_CMP_MASK=0x10,  // 1 bit for comp direction
             };
     enum Coord{C_GT=0x0, C_EQ=0x1, C_LT=0x2, C_CMP_MASK=0x3};
     Mode mode;
@@ -142,7 +142,7 @@ static std::vector<size_t> evalPos(const T& step, const SelectionFilter& filter)
     std::vector<size_t> tmp;
     std::size_t idx{0};
     auto cmp = [&filter](const Vec& at){
-        size_t dir = (filter.pos & filter.DIR_MASK) >> 3;
+        size_t dir = (filter.pos & filter.DIR_MASK) >> 2;
         if(filter.pos & filter.P_LT){
             return at[dir] < filter.posVal;
         }
