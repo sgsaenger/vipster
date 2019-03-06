@@ -174,30 +174,36 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
 void ScriptWidget::evalScript()
 {
     auto operations = parse();
-    guiChange_t change;
+    guiChange_t change{};
     if(ui->trajecCheck->isChecked()){
-        change = GuiChange::trajec;
         for(auto& s: master->curMol->getSteps()){
             auto& dat = master->stepdata[&s];
             if(!dat.sel){
                 // if step hasn't been loaded before, need to create selection
                 dat.sel = std::make_unique<Step::selection>(s.select(SelectionFilter{}));
             }
-            change |= execute(operations, s, dat);
+            bool success = execute(operations, s, dat);
+            // for current step, save curChange
+            if(&s == master->curStep){
+                change = curChange;
+            }
+            // on failure, exit early
+            if(!success){
+                break;
+            }
         }
-        if(change == GuiChange::trajec){
-            change = 0;
-        }
+        if(change) change |= GuiChange::trajec;
     }else{
-        change = execute(operations, *master->curStep, master->stepdata[master->curStep]);
+        execute(operations, *master->curStep, master->stepdata[master->curStep]);
+        change = curChange;
     }
     triggerUpdate(change);
 }
 
-guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
+bool ScriptWidget::execute(const std::vector<ScriptOp>& operations,
                                   Step& step, MainWindow::StepExtras& data)
 {
-    guiChange_t change{};
+    curChange = guiChange_t{};
     auto execOp = [&](auto& step, const ScriptOp& op){
         auto mkVec = [&](const OpVec& in)->Vec{
             switch(in.mode){
@@ -227,29 +233,29 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
         switch (op.mode) {
         case ScriptOp::Mode::Rotate:
             step.modRotate(op.f, mkVec(op.v1), mkVec(op.v2));
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Shift:
             step.modShift(mkVec(op.v1), op.f);
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Mirror:
             step.modMirror(mkVec(op.v1), mkVec(op.v2), mkVec(op.v3));
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Rename:
             for(auto& at: step){
                 at.name = op.s1;
             }
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Select:
             *data.sel = step.select(op.s1);
-            change |= GuiChange::selection;
+            curChange |= GuiChange::selection;
             break;
         case ScriptOp::Mode::Define:
             data.def.insert_or_assign(op.s1, step.select(op.s2));
-            change |= GuiChange::definitions;
+            curChange |= GuiChange::definitions;
             break;
         default:
             throw Error("Invalid operation");
@@ -272,13 +278,15 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
             QMessageBox msg{this};
             msg.setText(QString{"Error executing script:\n\n"}+op.line.c_str()+"\n"+e.what());
             msg.exec();
+            return false;
         } catch (...) {
             QMessageBox msg{this};
             msg.setText(QString{"Unexpected error when executing line:\n\n"}+op.line.c_str());
             msg.exec();
+            return false;
         }
     }
-    return change;
+    return true;
 }
 
 void ScriptWidget::on_helpButton_clicked()
