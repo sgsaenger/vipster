@@ -23,6 +23,27 @@ std::string emReadFile(std::string fn, std::string name, int fmt){
         return e.what();
     }
 }
+
+std::string emWriteFile(int m, int s, int f){
+    try{
+        auto fmt = static_cast<IOFmt>(f);
+        const auto& plug = IOPlugins.at(fmt);
+        std::unique_ptr<IO::BaseParam> param{nullptr};
+        if(plug->arguments & IO::Plugin::Param){
+            param = plug->makeParam("");
+        }
+        std::unique_ptr<IO::BaseConfig> config{nullptr};
+        if(plug->arguments & IO::Plugin::Config){
+            config = plug->makeConfig("");
+        }
+        writeFile("/tmp/output.file", fmt, molecules[m],
+                  param.get(), config.get(), {(size_t)s});
+        return "";
+    } catch(std::exception &e) {
+        return e.what();
+    }
+}
+
 // Molecules
 int emGetNMol(void){ return molecules.size();}
 int emGetMolNstep(int m){ return molecules[m].getNstep();}
@@ -83,6 +104,15 @@ int emGuessFmt(std::string file){
     }
 };
 
+std::string emFmtName(int m, int f){
+    auto name = molecules[m].getName();
+    auto dot = name.find_last_of('.');
+    if(dot != name.npos){
+        name = name.substr(0, dot);
+    }
+    return name + '.' + IOPlugins.at((IOFmt)f)->extension;
+}
+
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("evalCache", &emEvalCache);
     em::function("getNMol", &emGetNMol);
@@ -91,6 +121,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("setStep", &emSetStep);
     em::function("setMult", &emSetMult);
     em::function("readFile", &emReadFile);
+    em::function("writeFile", &emWriteFile);
     em::function("getAtom", &emGetAtom);
     em::function("getAtomIt", &emGetAtomIt);
     em::function("getFmt", &emGetFmt);
@@ -106,6 +137,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("rotate", &emRotate);
     em::function("translate", &emTranslate);
     em::function("guessFmt", &emGuessFmt);
+    em::function("getFormattedName", &emFmtName);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
@@ -333,9 +365,11 @@ int main()
     emscripten_set_wheel_callback("#canvas", nullptr, 0, wheel_event);
 
     //start
-    int i{0};
     for(auto& fmt: IOPlugins){
-        EM_ASM_({addParser($0, $1)}, i++, fmt.second->name.c_str());
+        EM_ASM_({addParser($0, $1)}, fmt.first, fmt.second->name.c_str());
+        if(fmt.second->writer){
+            EM_ASM_({addWriter($0, $1)}, fmt.first, fmt.second->name.c_str());
+        }
     }
     EM_ASM(setMol(0));
     emscripten_set_main_loop(main_loop, 0, 1);

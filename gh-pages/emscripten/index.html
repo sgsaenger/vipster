@@ -45,6 +45,7 @@
 
               <div class="widget__body">
                 <button class="btn btn-primary btn-mol" id="btnLoad" onclick="loadDialog()">Load Molecule</button>
+                <button class="btn btn-primary btn-mol" id="btnSave" onclick="saveDialog()">Save Molecule</button>
 
                 <h3>Current molecule</h3>
                 <div class="dropdown" id="moleculeDropdown">
@@ -269,7 +270,6 @@
       role="dialog"
       aria-hidden="true"
       data-backdrop="static"
-      data-keyboard="false"
   >
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
@@ -293,6 +293,34 @@
             </div>
           </div>
           <input class="hidden" type="file" id="inputFile" name="file" onchange="selectFile(dom.inputFile.files[0])" hidden>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+      class="modal"
+      id="saveFileModal"
+      tabindex="-1"
+      role="dialog"
+      aria-hidden="true"
+      data-backdrop="static"
+  >
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Save file</h5>
+          <button type="button" class="close close-dialog" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <select class="custom-select" id="saveFileType" title="Input filetype"></select>
+            <div class="input-group-append">
+              <a id="btnDownload" class="btn btn-primary" type="button">Download file </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -3,10 +3,10 @@ const DESKTOP_BREAKPOINT = 992;
 
 const dom = {};
 [
-    'alerts', 'atList', 'btnUpload', 'canvas', 'cdmFmtSel',
+    'alerts', 'atList', 'btnDownload', 'btnUpload', 'canvas', 'cdmFmtSel',
     'cellDim', 'cellToMol', 'cellScale', 'cellVec', 'checkboxCellEnabled',
-    'fileType', 'fileDrop', 'fileName', 'inputFile', 'loadFileModal', 'moleculeDropdown', 'selectAtomFormat',
-    'stepCur', 'stepMax', 'stepSlider', 'uploadGroup'
+    'fileType', 'fileDrop', 'fileName', 'inputFile', 'loadFileModal', 'moleculeDropdown',
+    'saveFileType', 'selectAtomFormat', 'stepCur', 'stepMax', 'stepSlider', 'uploadGroup'
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -267,7 +267,7 @@ function readFile() {
         }
 
         // noinspection JSCheckFunctionSignatures
-        const idx = parseInt($(dom.moleculeDropdown).find('a:last').data('idx')) + 1;
+        const idx = Module.getNMol() - 1;
         const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`;
 
         $(dom.moleculeDropdown)
@@ -276,10 +276,34 @@ function readFile() {
             .parent()
             .append(link);
 
+        Module.file = null;
         setMol(idx);
     };
     reader.readAsText(Module.file);
     $('#loadFileModal').modal('hide');
+}
+
+function saveDialog() {
+    $('#saveFileModal').modal();
+}
+
+function saveFile() {
+    const writeError = Module.writeFile(Module.curMol, Module.curStep, parseInt(dom.saveFileType.value));
+    if (writeError.length) {
+        $(document.body).append(createAlert('<strong>Unable to download file</strong>', 'danger'));
+        if (VERBOSE) {
+            console.warn(writeError);
+        }
+        return false;
+    }
+    var data = FS.readFile('/tmp/output.file');
+    FS.unlink('/tmp/output.file');
+    var blob = new Blob([data.buffer], {type: "text/plain"});
+    var url = window.URL.createObjectURL(blob);
+    this.href = url;
+    this.target = '_blank';
+    this.download = Module.getFormattedName(Module.curMol, parseInt(dom.saveFileType.value));
+    console.log(this);
 }
 
 function setMult() {
@@ -361,6 +385,8 @@ $(document).ready(function () {
     // Set correct canvas size on resize
     window.addEventListener('resize', resizeCanvas);
 
+    dom.btnDownload.onclick = saveFile;
+
     // Molecule selecting
     $(document.body).on('click', `#${dom.moleculeDropdown.id} a`, function () {
         const idx = $(this).data('idx') || 0;
@@ -392,6 +418,10 @@ $(document).ready(function () {
 function addParser(idx, name) {
     // eslint-disable-next-line no-undef
     $(dom.fileType).append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
+}
+
+function addWriter(idx, name) {
+    $('#saveFileType').append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
 }
 
 function alertWebGL() {
