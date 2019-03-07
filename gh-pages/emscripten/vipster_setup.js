@@ -159,7 +159,7 @@ function atomChanged(tgt) {
         }
     }
 
-    Module.updateView();
+    update(change.atoms);
 }
 
 function cellDimChanged(tgt) {
@@ -180,7 +180,6 @@ function cellDimChanged(tgt) {
         Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
     }
 
-    Module.updateView();
     update(change.cell);
 }
 
@@ -194,7 +193,7 @@ function cellEnabled(val) {
         Module.enableCell(Module.curMol, Module.curStep, val);
     }
 
-    Module.updateView();
+    update(change.cell);
 }
 
 function cellVecChanged(tgt) {
@@ -219,7 +218,6 @@ function cellVecChanged(tgt) {
         Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
     }
 
-    Module.updateView();
     update(change.cell);
 }
 
@@ -293,11 +291,16 @@ function setMult() {
 
 function update(arg) {
     if (arg & (change.atoms | change.cell)) {
+        // ensure that step-data is in a valid state
         Module.evalCache();
+        // ensure that GL is in a valid state
+        Module.updateView();
+        // update atom-table
         fillAtoms();
     }
 
     if (arg & change.cell) {
+        // update cell-widget
         fillCell();
     }
 }
