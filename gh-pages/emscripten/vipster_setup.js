@@ -3,10 +3,10 @@ const DESKTOP_BREAKPOINT = 992;
 
 const dom = {};
 [
-    'alerts', 'atList', 'btnBrowse', 'btnUpload', 'canvas', 'cdmFmtSel',
+    'alerts', 'atList', 'btnUpload', 'canvas', 'cdmFmtSel',
     'cellDim', 'cellToMol', 'cellScale', 'cellVec', 'checkboxCellEnabled',
-    'fileType', 'inputFile', 'moleculeDropdown', 'selectAtomFormat', 'stepCur',
-    'stepMax', 'stepSlider',
+    'fileType', 'fileDrop', 'fileName', 'inputFile', 'loadFileModal', 'moleculeDropdown', 'selectAtomFormat',
+    'stepCur', 'stepMax', 'stepSlider', 'uploadGroup'
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -19,6 +19,7 @@ var Module = {
     curMol: 0,
     curStep: 0,
     canvas: setupCanvas(dom.canvas),
+    file: null
 };
 
 const change = {
@@ -222,22 +223,42 @@ function cellVecChanged(tgt) {
     update(change.cell);
 }
 
-function readFile() {
-    if (dom.inputFile.files.length !== 1) {
-        return;
-    }
+function loadDialog() {
+    dom.inputFile.value = "";
+    dom.fileDrop.style.display = "";
+    dom.uploadGroup.style.display = "none";
+    $('#loadFileModal').modal();
+}
 
+function selectFile(file) {
+    dom.fileDrop.style.display = "none";
+    dom.uploadGroup.style.display = "";
+    dom.fileName.textContent = file.name;
+    dom.fileType.value = Module.guessFmt(file.name);
+    Module.file = file;
+}
+
+function dropHandler(ev){
+    ev.preventDefault();
+    if(ev.dataTransfer.files.length === 1){
+        selectFile(ev.dataTransfer.files[0]);
+    }
+}
+
+function readFile() {
     $('.alert').alert('close');
 
-    const file = dom.inputFile.files[0];
+    //const file = dom.inputFile.files[0];
+    if(!Module.file instanceof File){
+        $(document.body).append(createAlert('<strong>Trying to load something that is not a file</strong><br>Cancelling...','danger'));
+        return;
+    }
     const reader = new FileReader();
 
-    reader.readAsText(file);
-
     reader.onload = (e) => {
-        Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
-        const readError = Module.readFile('/tmp/vipster.file', file.name, parseInt(dom.fileType.value));
-        Module.FS_unlink('/tmp/vipster.file');
+        FS.createDataFile('/tmp', 'vipster.file', e.target.result, true);
+        const readError = Module.readFile('/tmp/vipster.file', Module.file.name, parseInt(dom.fileType.value));
+        FS.unlink('/tmp/vipster.file');
 
         if (readError.length) {
             $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));
@@ -259,11 +280,8 @@ function readFile() {
 
         setMol(idx);
     };
-    reader.readAsText(file);
-}
-
-function openFileDialogue() {
-    dom.inputFile.click();
+    reader.readAsText(Module.file);
+    $('#loadFileModal').modal('hide');
 }
 
 function setMult() {
@@ -340,14 +358,7 @@ $(document).ready(function () {
     // Set correct canvas size on resize
     window.addEventListener('resize', resizeCanvas);
 
-    // File loading
-    $(dom.btnBrowse).click(openFileDialogue);
-    $(dom.btnUpload).click(readFile);
-    $(dom.inputFile).change(function () {
-        dom.btnUpload.disabled = (this.files.length !== 1);
-    });
-
-    // Molecule loading
+    // Molecule selecting
     $(document.body).on('click', `#${dom.moleculeDropdown.id} a`, function () {
         const idx = $(this).data('idx') || 0;
         setMol(idx);
@@ -366,7 +377,7 @@ $(document).ready(function () {
     });
 
     const main = $('main');
-    $('#contols__collapse')
+    $('#controls__collapse')
         .on('show.bs.collapse', () => main.hide())
         .on('hide.bs.collapse', () => {
             main.show();

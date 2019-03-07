@@ -65,6 +65,24 @@ void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
 // validate Cache
 void emEvalCache(void){ gui.curStep->evaluateCache(); }
 
+int emGuessFmt(std::string file){
+    auto pos = file.find_last_of('.');
+    if(pos != file.npos){
+        std::string ext = file.substr(pos+1);
+        auto pos = std::find_if(IOPlugins.begin(), IOPlugins.end(),
+                                [&](const decltype(IOPlugins)::value_type& pair){
+                                    return pair.second->extension == ext;
+                                });
+        if(pos == IOPlugins.end()){
+            return 0;
+        }else{
+            return static_cast<int>(pos->first);
+        }
+    }else{
+        return 0;
+    }
+};
+
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("evalCache", &emEvalCache);
     em::function("getNMol", &emGetNMol);
@@ -87,6 +105,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("zoom", &emZoom);
     em::function("rotate", &emRotate);
     em::function("translate", &emTranslate);
+    em::function("guessFmt", &emGuessFmt);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
