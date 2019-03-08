@@ -16,7 +16,8 @@ GUI::SelData::SelData(const GUI::GlobalData& glob, const ColVec& col, Step::sele
 }
 
 GUI::SelData::SelData(SelData&& dat)
-    : Data{dat.global, dat.updated, dat.initialized},
+//    : Data{dat.global, dat.updated, dat.initialized},
+    : Data{std::move(dat)},
       sel_buffer{std::move(dat.sel_buffer)},
       cell_mat{dat.cell_mat},
       curSel{dat.curSel}

@@ -169,7 +169,7 @@ void DefineWidget::updateAction()
 
 void DefineWidget::on_defTable_cellChanged(int row, int column)
 {
-    const QTableWidgetItem *cell = ui->defTable->item(row, column);
+    QTableWidgetItem *cell = ui->defTable->item(row, column);
     auto& name = curNames[static_cast<size_t>(row)];
     auto& curMap = dataMap[curStep];
     auto& curData = curMap.at(name);
@@ -183,13 +183,32 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
                 master->delExtraData(&curData.gpu_data);
             }
         }else{
-            auto nh1 = defMap->extract(name);
-            auto nh2 = curMap.extract(name);
-            name = cell->text().toStdString();
-            nh1.key() = name;
-            nh2.key() = name;
-            defMap->insert(std::move(nh1));
-            curMap.insert(std::move(nh2));
+            auto newName = cell->text();
+            if(defMap->find(newName.toStdString()) != defMap->end()){
+                QSignalBlocker block{ui->defTable};
+                cell->setText(name.c_str());
+                QMessageBox msg{this};
+                msg.setText("Name \""+newName+"\" is already in use.");
+                msg.exec();
+                return;
+            }
+            auto it1 = defMap->find(name);
+            auto it2 = curMap.find(name);
+            name = newName.toStdString();
+            master->delExtraData(&it2->second.gpu_data);
+            defMap->emplace(name, std::move(it1->second));
+            defMap->erase(it1);
+            auto res = curMap.emplace(name, std::move(it2->second));
+            curMap.erase(it2);
+            master->addExtraData(&res.first->second.gpu_data);
+            // TODO: reenable when libc++-8 is available
+//            auto nh1 = defMap->extract(name);
+//            auto nh2 = curMap.extract(name);
+//            name = cell->text().toStdString();
+//            nh1.key() = name;
+//            nh2.key() = name;
+//            defMap->insert(std::move(nh1));
+//            curMap.insert(std::move(nh2));
         }
     }else{
         try{

@@ -15,7 +15,7 @@ GUI::StepData::StepData(const GlobalData& glob, Step* step)
 {}
 
 GUI::StepData::StepData(StepData&& dat)
-    : Data{dat.global, dat.updated, dat.initialized},
+    : Data{std::move(dat)},
       curStep{dat.curStep},
       draw_bonds{dat.draw_bonds},
       draw_cell{dat.draw_cell}
