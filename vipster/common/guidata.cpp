@@ -58,10 +58,13 @@ void GUI::GlobalData::initGL(const std::string& h, const std::string& f)
 
 void GUI::Data::syncToGPU()
 {
-    if(!initialized){
     #ifndef __EMSCRIPTEN__
+    if(!wrap_initialized){
         initializeOpenGLFunctions();
+        wrap_initialized = true;
+    }
     #endif
+    if(!initialized){
         initGL();
         initialized = true;
     }
@@ -131,6 +134,13 @@ GLuint GUI::Data::loadShader(std::string vert, std::string frag)
     return program;
 }
 
-GUI::Data::Data(const GlobalData& glob, bool updated, bool initialized)
-    : global{glob}, updated{updated}, initialized{initialized}
+GUI::Data::Data(const GlobalData& glob)
+    : global{glob}
 {}
+
+GUI::Data::Data(GUI::Data&& dat)
+    : global{dat.global}
+{
+    std::swap(updated, dat.updated);
+    std::swap(initialized, dat.initialized);
+}

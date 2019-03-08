@@ -5,9 +5,27 @@ using namespace Vipster;
 
 decltype(GUI::SelData::shader) GUI::SelData::shader;
 
-GUI::SelData::SelData(const GUI::GlobalData& glob, Step::selection *sel)
+GUI::SelData::SelData(const GUI::GlobalData& glob, const ColVec& col, Step::selection *sel)
     : Data{glob}, curSel{sel}
-{}
+{
+    color[0] = col[0]/255.f;
+    color[1] = col[1]/255.f;
+    color[2] = col[2]/255.f;
+    color[3] = col[3]/255.f;
+    update(curSel);
+}
+
+GUI::SelData::SelData(SelData&& dat)
+//    : Data{dat.global, dat.updated, dat.initialized},
+    : Data{std::move(dat)},
+      sel_buffer{std::move(dat.sel_buffer)},
+      cell_mat{dat.cell_mat},
+      curSel{dat.curSel}
+{
+    std::swap(color, dat.color);
+    std::swap(vao, dat.vao);
+    std::swap(vbo, dat.vbo);
+}
 
 void GUI::SelData::initGL()
 {
@@ -65,10 +83,7 @@ void GUI::SelData::drawMol(const Vec &off)
         glUniform1f(shader.scale_fac, settings.atRadFac.val);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4f(shader.color, settings.selCol.val[0]/255.f,
-                                  settings.selCol.val[1]/255.f,
-                                  settings.selCol.val[2]/255.f,
-                                  settings.selCol.val[3]/255.f);
+        glUniform4fv(shader.color, 1, color);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(sel_buffer.size()));
@@ -83,10 +98,7 @@ void GUI::SelData::drawCell(const Vec &off, const PBCVec &)
         glUniform1f(shader.scale_fac, settings.atRadFac.val);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4f(shader.color, settings.selCol.val[0]/255.f,
-                                  settings.selCol.val[1]/255.f,
-                                  settings.selCol.val[2]/255.f,
-                                  settings.selCol.val[3]/255.f);
+        glUniform4fv(shader.color, 1, color);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(sel_buffer.size()));
@@ -143,4 +155,12 @@ void GUI::SelData::update(Step::selection* sel)
     cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
                  tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
                  tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
+}
+
+void GUI::SelData::update(const ColVec &col)
+{
+    color[0] = col[0]/255.f;
+    color[1] = col[1]/255.f;
+    color[2] = col[2]/255.f;
+    color[3] = col[3]/255.f;
 }

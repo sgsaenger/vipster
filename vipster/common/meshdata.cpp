@@ -18,7 +18,8 @@ GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Face>&& faces,
 }
 
 GUI::MeshData::MeshData(MeshData&& dat)
-    : Data{dat.global, dat.updated, dat.initialized},
+//    : Data{dat.global, dat.updated, dat.initialized},
+    : Data{std::move(dat)},
       faces{std::move(dat.faces)},
       offset{dat.offset},
       cell{dat.cell},

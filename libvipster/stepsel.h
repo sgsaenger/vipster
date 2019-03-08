@@ -90,8 +90,8 @@ struct SelectionFilter{
             PAIR_MASK=0x1E,
             UPDATE=0x80};
     enum Pos{BOHR=0x0, ANG=0x1, CRYS=0x2, CDM=0x3, FMT_MASK=0x3,// 2 bits for format
-             P_GT=0x0, P_LT=0x4, P_CMP_MASK=0x4,  // 1 bit for comp direction
-             X=0x0, Y=0x8, Z=0x10, DIR_MASK=0x18, // 2  bits for space direction
+             X=0x0, Y=0x4, Z=0x8, DIR_MASK=0xC, // 2  bits for space direction
+             P_GT=0x0, P_LT=0x10, P_CMP_MASK=0x10,  // 1 bit for comp direction
             };
     enum Coord{C_GT=0x0, C_EQ=0x1, C_LT=0x2, C_CMP_MASK=0x3};
     Mode mode;
@@ -142,7 +142,7 @@ static std::vector<size_t> evalPos(const T& step, const SelectionFilter& filter)
     std::vector<size_t> tmp;
     std::size_t idx{0};
     auto cmp = [&filter](const Vec& at){
-        size_t dir = (filter.pos & filter.DIR_MASK) >> 3;
+        size_t dir = (filter.pos & filter.DIR_MASK) >> 2;
         if(filter.pos & filter.P_LT){
             return at[dir] < filter.posVal;
         }
@@ -489,6 +489,50 @@ public:
     }
 };
 
+constexpr const char* FilterAbout =
+        "<html><head/><body>"
+        "<p>A <b><tt>filter</tt></b> is used to pick atoms according to user-defined criteria.</p>"
+        "<p>Criteria are as follows:</p>"
+        "<ul>"
+        "<li><b><tt>type</tt></b>: one or more atom types"
+        "<ul>"
+        "<li><tt>type C</tt></li>"
+        "<li><tt>type [H C N O]</tt></li>"
+        "</ul>"
+        "</li>"
+        "<li><b><tt>index</tt></b>: one or more indices or ranges"
+        "<ul>"
+        "<li>index 17</li>"
+        "<li>index 1-25</li>"
+        "<li>index [0 3 5 7-12]</li>"
+        "</ul>"
+        "</li>"
+        "<li><b><tt>pos</tt></b>: relative position (x,y,z to choose axis, a,b,c,d to choose format (Ångstrom, Bohr, Crystal, Alat, respectively))"
+        "<ul>"
+        "<li>pos xa&gt;5</li>"
+        "<li>pos z c &lt; 0.5</li>"
+        "</ul>"
+        "</li>"
+        "<li><b><tt>coord</tt></b>: coordination number"
+        "<ul>"
+        "<li>coord = 2</li>"
+        "<li>coord >0</li>"
+        "</ul>"
+        "</li>"
+        "<li></li>"
+        "</ul>"
+        "<p>Every criterion can be prefixed with <b><tt>not</tt></b> to invert the selection.</p>"
+        "<p>For more complex filters, criteria can be grouped with:</p>"
+        "<ul>"
+        "<li><b><tt>|</tt></b>: inclusive or, i.e. at least one of</li>"
+        "<li><b><tt>!|</tt></b>: inclusive not or, i.e. none of</li>"
+        "<li><b><tt>&amp;</tt></b>: and, i.e. both</li>"
+        "<li><b><tt>!&amp;</tt></b>: not and, i.e. none or one of, but not both</li>"
+        "<li><b><tt>^</tt></b>: exclusive or, i.e. one of, but not both</li>"
+        "<li><b><tt>!^</tt></b>: exclusive not or, i.e. either none of or both</li>"
+        "</ul>"
+        "<p>Furthermore, groupings can be put in parenthesis to simplify logical combinations.</p>"
+        "</body></html>";
 }
 
 #endif // LIBVIPSTER_STEPSEL_H

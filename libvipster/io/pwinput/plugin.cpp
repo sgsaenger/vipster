@@ -1,5 +1,6 @@
 #include "plugin.h"
 #include "crystal.h"
+#include "io/util.h"
 
 #include "tinyexpr.h"
 
@@ -31,8 +32,8 @@ void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
 
     std::string line, key;
     size_t beg, end, quote_end;
-    const std::string keysep{"= "};
-    const std::string valsep{"=, "};
+    const std::string keysep{"= \t\r"};
+    const std::string valsep{"=, \t\r"};
     while (std::getline(file, line)) {
         if (line[0] == '/') return;
         if (line[0] == '!') continue;
@@ -288,17 +289,6 @@ void parseCard(std::string name, std::ifstream& file,
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("ATOMIC_FORCES not implemented");
 }
 
-static std::string trim(const std::string& str)
-{
-    const std::string whitespace{" \t"};
-    const auto strBegin = str.find_first_not_of(whitespace);
-    if(strBegin == std::string::npos){
-        return "";
-    }
-    const auto strEnd = str.find_last_not_of(whitespace);
-    return str.substr(strBegin, strEnd-strBegin+1);
-}
-
 IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 {
     IO::Data d{};
@@ -312,7 +302,7 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 
     std::string buf, line;
     while (std::getline(file, buf)) {
-        line = trim(buf);
+        line = IO::trim(buf);
         if (line.empty() || line[0] == '!' || line[0] == '#') continue;
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if (line[0] == '&') parseNamelist(line, file, p);

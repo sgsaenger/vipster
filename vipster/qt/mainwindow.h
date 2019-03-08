@@ -37,6 +37,7 @@ public:
     };
     struct StepExtras{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
+        std::map<std::string, Vipster::Step::selection> def{};
     };
     std::list<Vipster::Molecule> molecules;
     std::map<Vipster::Molecule*, MolExtras> moldata;

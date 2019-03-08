@@ -3,10 +3,10 @@ const DESKTOP_BREAKPOINT = 992;
 
 const dom = {};
 [
-    'alerts', 'atList', 'btnBrowse', 'btnUpload', 'canvas', 'cdmFmtSel',
+    'alerts', 'atList', 'btnDownload', 'btnUpload', 'canvas', 'cdmFmtSel',
     'cellDim', 'cellToMol', 'cellScale', 'cellVec', 'checkboxCellEnabled',
-    'fileType', 'inputFile', 'moleculeDropdown', 'selectAtomFormat', 'stepCur',
-    'stepMax', 'stepSlider',
+    'fileType', 'fileDrop', 'fileName', 'inputFile', 'loadFileModal', 'moleculeDropdown',
+    'saveFileType', 'selectAtomFormat', 'stepCur', 'stepMax', 'stepSlider', 'uploadGroup'
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -19,6 +19,7 @@ var Module = {
     curMol: 0,
     curStep: 0,
     canvas: setupCanvas(dom.canvas),
+    file: null
 };
 
 const change = {
@@ -158,7 +159,7 @@ function atomChanged(tgt) {
         }
     }
 
-    Module.updateView();
+    update(change.atoms);
 }
 
 function cellDimChanged(tgt) {
@@ -179,7 +180,6 @@ function cellDimChanged(tgt) {
         Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
     }
 
-    Module.updateView();
     update(change.cell);
 }
 
@@ -193,7 +193,7 @@ function cellEnabled(val) {
         Module.enableCell(Module.curMol, Module.curStep, val);
     }
 
-    Module.updateView();
+    update(change.cell);
 }
 
 function cellVecChanged(tgt) {
@@ -218,26 +218,45 @@ function cellVecChanged(tgt) {
         Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
     }
 
-    Module.updateView();
     update(change.cell);
 }
 
-function readFile() {
-    if (dom.inputFile.files.length !== 1) {
-        return;
-    }
+function loadDialog() {
+    dom.inputFile.value = "";
+    dom.fileDrop.style.display = "";
+    dom.uploadGroup.style.display = "none";
+    $('#loadFileModal').modal();
+}
 
+function selectFile(file) {
+    dom.fileDrop.style.display = "none";
+    dom.uploadGroup.style.display = "";
+    dom.fileName.textContent = file.name;
+    dom.fileType.value = Module.guessFmt(file.name);
+    Module.file = file;
+}
+
+function dropHandler(ev){
+    ev.preventDefault();
+    if(ev.dataTransfer.files.length === 1){
+        selectFile(ev.dataTransfer.files[0]);
+    }
+}
+
+function readFile() {
     $('.alert').alert('close');
 
-    const file = dom.inputFile.files[0];
+    //const file = dom.inputFile.files[0];
+    if(!Module.file instanceof File){
+        $(document.body).append(createAlert('<strong>Trying to load something that is not a file</strong><br>Cancelling...','danger'));
+        return;
+    }
     const reader = new FileReader();
 
-    reader.readAsText(file);
-
     reader.onload = (e) => {
-        Module.FS_createDataFile('/tmp', 'vipster.file', e.target.result, true);
-        const readError = Module.readFile('/tmp/vipster.file', file.name, parseInt(dom.fileType.value));
-        Module.FS_unlink('/tmp/vipster.file');
+        FS.createDataFile('/tmp', 'vipster.file', e.target.result, true);
+        const readError = Module.readFile('/tmp/vipster.file', Module.file.name, parseInt(dom.fileType.value));
+        FS.unlink('/tmp/vipster.file');
 
         if (readError.length) {
             $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));
@@ -248,7 +267,7 @@ function readFile() {
         }
 
         // noinspection JSCheckFunctionSignatures
-        const idx = parseInt($(dom.moleculeDropdown).find('a:last').data('idx')) + 1;
+        const idx = Module.getNMol() - 1;
         const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`;
 
         $(dom.moleculeDropdown)
@@ -257,13 +276,34 @@ function readFile() {
             .parent()
             .append(link);
 
+        Module.file = null;
         setMol(idx);
     };
-    reader.readAsText(file);
+    reader.readAsText(Module.file);
+    $('#loadFileModal').modal('hide');
 }
 
-function openFileDialogue() {
-    dom.inputFile.click();
+function saveDialog() {
+    $('#saveFileModal').modal();
+}
+
+function saveFile() {
+    const writeError = Module.writeFile(Module.curMol, Module.curStep, parseInt(dom.saveFileType.value));
+    if (writeError.length) {
+        $(document.body).append(createAlert('<strong>Unable to download file</strong>', 'danger'));
+        if (VERBOSE) {
+            console.warn(writeError);
+        }
+        return false;
+    }
+    var data = FS.readFile('/tmp/output.file');
+    FS.unlink('/tmp/output.file');
+    var blob = new Blob([data.buffer], {type: "text/plain"});
+    var url = window.URL.createObjectURL(blob);
+    this.href = url;
+    this.target = '_blank';
+    this.download = Module.getFormattedName(Module.curMol, parseInt(dom.saveFileType.value));
+    console.log(this);
 }
 
 function setMult() {
@@ -275,11 +315,16 @@ function setMult() {
 
 function update(arg) {
     if (arg & (change.atoms | change.cell)) {
+        // ensure that step-data is in a valid state
         Module.evalCache();
+        // ensure that GL is in a valid state
+        Module.updateView();
+        // update atom-table
         fillAtoms();
     }
 
     if (arg & change.cell) {
+        // update cell-widget
         fillCell();
     }
 }
@@ -340,14 +385,9 @@ $(document).ready(function () {
     // Set correct canvas size on resize
     window.addEventListener('resize', resizeCanvas);
 
-    // File loading
-    $(dom.btnBrowse).click(openFileDialogue);
-    $(dom.btnUpload).click(readFile);
-    $(dom.inputFile).change(function () {
-        dom.btnUpload.disabled = (this.files.length !== 1);
-    });
+    dom.btnDownload.onclick = saveFile;
 
-    // Molecule loading
+    // Molecule selecting
     $(document.body).on('click', `#${dom.moleculeDropdown.id} a`, function () {
         const idx = $(this).data('idx') || 0;
         setMol(idx);
@@ -366,7 +406,7 @@ $(document).ready(function () {
     });
 
     const main = $('main');
-    $('#contols__collapse')
+    $('#controls__collapse')
         .on('show.bs.collapse', () => main.hide())
         .on('hide.bs.collapse', () => {
             main.show();
@@ -378,6 +418,10 @@ $(document).ready(function () {
 function addParser(idx, name) {
     // eslint-disable-next-line no-undef
     $(dom.fileType).append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
+}
+
+function addWriter(idx, name) {
+    $('#saveFileType').append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
 }
 
 function alertWebGL() {

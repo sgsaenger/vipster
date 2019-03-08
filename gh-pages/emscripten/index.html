@@ -32,7 +32,7 @@
           <div id="controls__collapse" class="collapse">
             <article class="widget" id="widget-load">
               <header>
-                <h2 class="widget_toggle">Load molecule</h2>
+                <h2 class="widget_toggle">Molecules</h2>
                 <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
                   <i class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -44,23 +44,8 @@
               </header>
 
               <div class="widget__body">
-                <form class="form-inline flex-nowrap mb-3">
-                  <button id="btnBrowse" type="button" class="btn btn-default mr-3">
-                    Browse …
-                  </button>
-
-                  <div class="input-group">
-                    <select class="custom-select" id="fileType" title="Input filetype">
-                    </select>
-                    <div class="input-group-append">
-                      <button id="btnUpload" class="btn btn-primary" type="button" disabled>Load
-                        file
-                      </button>
-                    </div>
-                  </div>
-
-                  <input class="hidden" type="file" id="inputFile" name="file" hidden>
-                </form>
+                <button class="btn btn-primary btn-mol" id="btnLoad" onclick="loadDialog()">Load Molecule</button>
+                <button class="btn btn-primary btn-mol" id="btnSave" onclick="saveDialog()">Save Molecule</button>
 
                 <h3>Current molecule</h3>
                 <div class="dropdown" id="moleculeDropdown">
@@ -83,7 +68,7 @@
 
             <article class="widget" id="widget-step" style="display: none;">
               <header>
-                <h2 class="widget_toggle">Step</h2>
+                <h2 class="widget_toggle">Steps</h2>
                 <button type="button" title="Toggle" class="widget_toggle widget__toggle-btn">
                   <i class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -275,6 +260,69 @@
       <main class="col-lg">
         <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
       </main>
+    </div>
+  </div>
+
+  <div
+      class="modal"
+      id="loadFileModal"
+      tabindex="-1"
+      role="dialog"
+      aria-hidden="true"
+      data-backdrop="static"
+  >
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Load file</h5>
+          <button type="button" class="close close-dialog" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="fileDrop" onclick="dom.inputFile.click()" ondrop="dropHandler(event);" ondragover="event.preventDefault()">
+            <p>Drag a file to this area or click to browse for files</p>
+          </div>
+          <div id="uploadGroup">
+            <p id="fileName"></p>
+            <div class="input-group">
+              <select class="custom-select" id="fileType" title="Input filetype"></select>
+              <div class="input-group-append">
+                <button id="btnUpload" class="btn btn-primary" type="button" onclick="readFile()">Load file </button>
+              </div>
+            </div>
+          </div>
+          <input class="hidden" type="file" id="inputFile" name="file" onchange="selectFile(dom.inputFile.files[0])" hidden>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+      class="modal"
+      id="saveFileModal"
+      tabindex="-1"
+      role="dialog"
+      aria-hidden="true"
+      data-backdrop="static"
+  >
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Save file</h5>
+          <button type="button" class="close close-dialog" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <select class="custom-select" id="saveFileType" title="Input filetype"></select>
+            <div class="input-group-append">
+              <a id="btnDownload" class="btn btn-primary" type="button">Download file </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

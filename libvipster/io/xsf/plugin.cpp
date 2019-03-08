@@ -62,7 +62,7 @@ IO::Data XSFParser(const std::string& name, std::ifstream &file)
         if(line[0] == '#'){
             continue;
         }
-        line = IO::trim(line, " \t");
+        line = IO::trim(line);
         if(line.find("ANIMSTEPS") != line.npos){
             size_t nstep;
             std::stringstream ls{line};

@@ -35,15 +35,11 @@ static void writeCoord(std::ostream& os, const SelectionFilter& filter){
 static void writePos(std::ostream& os, const SelectionFilter& filter){
     using Pos = SelectionFilter::Pos;
     os << "pos ";
-    const std::map<uint8_t, char> posToC{
-        {Pos::X, 'x'}, {Pos::Y, 'y'}, {Pos::Z, 'z'},
-        {Pos::ANG, 'a'}, {Pos::BOHR, 'b'},
-        {Pos::CRYS, 'c'}, {Pos::CDM, 'd'},
-        {Pos::P_LT, '<'}, {Pos::P_GT, '>'}
-    };
-    os << posToC.at(filter.pos & Pos::DIR_MASK);
-    os << posToC.at(filter.pos & Pos::FMT_MASK);
-    os << posToC.at(filter.pos & Pos::P_CMP_MASK);
+    constexpr char fmtToC[] = {'b', 'a', 'c', 'd'};
+    constexpr char dirToC[] = {'x', 'y', 'z'};
+    os << dirToC[(filter.pos & Pos::DIR_MASK)>>2];
+    os << fmtToC[filter.pos & Pos::FMT_MASK];
+    os << ((filter.pos & Pos::P_CMP_MASK)? '<' : '>');
     os << filter.posVal;
 }
 
@@ -164,7 +160,7 @@ static void parseCoord(std::istream& is, SelectionFilter& filter){
         filter.coord |= Coord::C_EQ;
         break;
     default:
-        throw Error(std::string{"Unknown comparison "}+ctoken);
+        throw Error(std::string{"Invalid comparison "}+ctoken);
     }
     is >> filter.coordVal;
 }
@@ -277,7 +273,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
         }else if(token == "index"){
             parseIdx(is, filter);
         }else{
-            throw Error("Unknown selection operator: "+token);
+            throw Error("Invalid selection operator: "+token);
         }
     }
     // Parse subfilter (same level)
@@ -287,7 +283,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
             return is;
         }
         if(token.size() > 2){
-            throw Error("Unknown coupling operator "+token);
+            throw Error("Invalid coupling operator "+token);
         }
         if(token.front() == '!'){
             filter.op |= Op::NOT_PAIR;
@@ -303,7 +299,7 @@ std::istream& Vipster::operator>>(std::istream& is, SelectionFilter& filter){
             filter.op |= Op::XOR;
             break;
         default:
-            throw Error("Unknown coupling operator "+token);
+            throw Error("Invalid coupling operator "+token);
         }
         filter.subfilter = std::make_unique<SelectionFilter>();
         is >> *filter.subfilter;

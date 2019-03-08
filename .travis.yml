@@ -26,6 +26,8 @@ matrix:
         - os: osx
           osx_image: xcode10
         - os: windows
+    allow_failures:
+        - os: windows
 
 install:
     - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh install $TRAVIS_OS_NAME $TARGET
@@ -53,3 +55,4 @@ deploy:
       on:
           tags: true
           condition: $TARGET != web
+          condition: $TRAVIS_OS_NAME != windows

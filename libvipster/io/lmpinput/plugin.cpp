@@ -80,19 +80,12 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
             return false;
         }
     };
-    auto checkDummy = [&atoms](size_t col){
-        std::set<float> s, n{0.f};
-        for (auto& at: atoms){
-            s.insert(stof(at[col]));
-        }
-        return (s.size()==1)&&(s==n);
-    };
     if(narg == 5){
         // only one possible setup (atomic)
         return {lmpTok::type, lmpTok::pos};
     }
     if(narg == 6){
-        if(checkInt(2) && checkDummy(2)){
+        if(checkInt(2)){
             // angle/molecular have molID, then type
             return {lmpTok::ignore, lmpTok::type, lmpTok::pos};
         }
@@ -100,20 +93,20 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         return {lmpTok::type, lmpTok::charge, lmpTok::pos};
     }
     std::vector<lmpTok> parser{};
-    size_t col{1}, poscoord{narg-3};
+    size_t col{1}, poscoord{narg-4};
     /* assume:
      * - trailing int-columns are image-flags
      * - three cols before image-flags are position
      * - second or third col are atomtype
      * - first col between type and pos is charge (if present)
      */
-    if (checkInt(2) && !checkDummy(2)) {
+    if (checkInt(2)) {
         // assume col1 is molID, probably fails for ellipsoid
         parser.push_back(lmpTok::ignore);
         col++;
     }
     parser.push_back(lmpTok::type);
-    for(size_t img=narg-1; img>=std::min(narg-3,static_cast<size_t>(5)); ++img){
+    for(size_t img=narg-1; img>=std::max(narg-3,static_cast<size_t>(5)); --img){
         if (!checkInt(img)){
             break;
         }
@@ -131,7 +124,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
 }
 
 auto makeParser(std::vector<lmpTok> fmt){
-    return [fmt](std::ifstream& file, Step& s){
+    return [fmt](std::ifstream& file, Step& s, std::map<std::string, std::string>& types){
         std::string line{}, dummy{};
         for (auto& at:s) {
             std::getline(file, line);
@@ -140,7 +133,8 @@ auto makeParser(std::vector<lmpTok> fmt){
             for (lmpTok tok: fmt) {
                 switch(tok){
                 case lmpTok::type:
-                    ss >> at.name;
+                    ss >> dummy;
+                    at.name = types[dummy];
                     break;
                 case lmpTok::charge:
                     ss >> at.properties->charge;
@@ -237,7 +231,6 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
     float t1, t2;
     Mat cell{};
     std::map<std::string, std::string> types{};
-    bool hasNames{false};
     while (std::getline(file, line)) {
         if (line.find("atoms") != std::string::npos) {
             std::stringstream ss{line};
@@ -295,18 +288,32 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                 std::size_t cpos = line.find('#');
                 if(cpos != std::string::npos) {
                     // if there's a comment, extract the typename from it
-                    hasNames = true;
                     std::stringstream ss{line.substr(cpos+1)};
                     ss >> name;
                     types[id] = name;
                 } else {
                     // else just number the types accordingly
                     types[id] = id;
+                    // and try to guess type from mass
+                    s.pse->insert_or_assign(id,
+                        [&t1](){
+                        const Vipster::PseMap::mapped_type* cur_guess{&Vipster::pse.at("")};
+                        float cur_diff, best_diff{5};
+                        for(const auto& pair: Vipster::pse){
+                            cur_diff = std::abs(t1-pair.second.m);
+                            if(cur_diff < best_diff){
+                                best_diff = cur_diff;
+                                cur_guess = &pair.second;
+                            }
+                        }
+                        return *cur_guess;
+                    }());
                 }
                 if (ss.fail()) {
                     throw IO::Error("Lammps Input: failed to parse atom type");
                 }
-                (*s.pse)[name].m = t1;
+                // finally, save mass
+                (*s.pse)[types[id]].m = t1;
             }
         } else if (line.find("Atoms") != std::string::npos) {
             std::vector<lmpTok> fmt{};
@@ -323,15 +330,10 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                 fmt = getFmtGuess(file, nat);
             }
             // do the parsing
-            makeParser(fmt)(file, s);
+            makeParser(fmt)(file, s, types);
         }
     }
     s.setCellVec(cell);
-    if (hasNames) {
-        for (auto& at: s) {
-            at.name = types[at.name];
-        }
-    }
     return data;
 }
 

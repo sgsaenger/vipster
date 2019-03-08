@@ -566,6 +566,15 @@
    </attribute>
    <widget class="PinWidget" name="pinWidget"/>
   </widget>
+  <widget class="QDockWidget" name="defineDock">
+   <property name="windowTitle">
+    <string>Filter Atoms</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="DefineWidget" name="defineWidget"/>
+  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -797,6 +806,12 @@
    <class>PinWidget</class>
    <extends>QWidget</extends>
    <header>tools/pinwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DefineWidget</class>
+   <extends>QWidget</extends>
+   <header>tools/definewidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -1160,8 +1175,8 @@
   <slot>newMol(QAction*)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="cameraGroup"/>
   <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
+  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

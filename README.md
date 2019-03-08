@@ -5,10 +5,12 @@
 
 Master:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
+[![Build Status (Windows)](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 
 Testing:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=testing)](https://travis-ci.com/sgsaenger/vipster)
+[![Build Status (Windows)](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/testing)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 
 Visualization and editing framework for atomistic simulations.

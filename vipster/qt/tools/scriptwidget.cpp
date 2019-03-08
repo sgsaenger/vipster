@@ -1,5 +1,6 @@
 #include "scriptwidget.h"
 #include "ui_scriptwidget.h"
+#include "ui_scripthelp.h"
 #include "stepsel.h"
 #include <QPlainTextEdit>
 #include <QMessageBox>
@@ -8,15 +9,16 @@ using namespace Vipster;
 
 ScriptWidget::ScriptWidget(QWidget *parent) :
     BaseWidget(parent),
-    ui(new Ui::ScriptWidget)
+    ui(new Ui::ScriptWidget),
+    help(new ScriptHelp)
 {
     ui->setupUi(this);
-    ui->inputEdit->setToolTip(tooltip);
 }
 
 ScriptWidget::~ScriptWidget()
 {
     delete ui;
+    delete help;
 }
 
 std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool> dat){
@@ -110,35 +112,39 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
     std::vector<ScriptWidget::ScriptOp> operations{};
     auto script_str = static_cast<QPlainTextEdit*>(ui->inputEdit)->toPlainText().toStdString();
     auto script = std::stringstream{script_str};
-    std::string line, op_pre, op(3, ' '), name;
+    std::string line, op_pre, op(3, ' ');
     const bool _false{false}, _true{true};
     try {
         while(std::getline(script, line)){
             auto line_stream = std::stringstream{line};
+            // Create op on stack
+            operations.push_back({line});
+            auto& action = operations.back();
+            // parse op
             line_stream >> op_pre;
             std::transform(op_pre.begin(), op_pre.begin()+4, op.begin(), ::tolower);
-            // Create op on stack
-            line_stream >> name;
-            operations.push_back({line, name});
-            auto& action = operations.back();
+            // parse arguments
             // TODO: check when and how stream extraction fails
             if(op == "rot"){
                 action.mode = ScriptOp::Mode::Rotate;
+                line_stream >> action.target;
                 line_stream >> std::tie(action.f, _false);
                 line_stream >> std::tie(action.v1, _false);
                 line_stream >> std::tie(action.v2, _true);
             }else if(op == "shi"){
                 action.mode = ScriptOp::Mode::Shift;
+                line_stream >> action.target;
                 line_stream >> std::tie(action.v1, _false);
-                action.f = 1.f;
                 line_stream >> std::tie(action.f, _true);
             }else if(op == "mir"){
                 action.mode = ScriptOp::Mode::Mirror;
+                line_stream >> action.target;
                 line_stream >> std::tie(action.v1, _false);
                 line_stream >> std::tie(action.v2, _false);
                 line_stream >> std::tie(action.v3, _true);
             }else if(op == "ren"){
                 action.mode = ScriptOp::Mode::Rename;
+                line_stream >> action.target;
                 line_stream >> std::tie(action.s1, _false);
             }else if(op == "sel"){
                 action.mode = ScriptOp::Mode::Select;
@@ -168,31 +174,36 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
 void ScriptWidget::evalScript()
 {
     auto operations = parse();
-    guiChange_t change;
+    guiChange_t change{};
     if(ui->trajecCheck->isChecked()){
-        change = GuiChange::trajec;
         for(auto& s: master->curMol->getSteps()){
-            auto& sel = master->stepdata[&s].sel;
-            if(!sel){
+            auto& dat = master->stepdata[&s];
+            if(!dat.sel){
                 // if step hasn't been loaded before, need to create selection
-                sel = std::make_unique<Step::selection>(s.select(SelectionFilter{}));
+                dat.sel = std::make_unique<Step::selection>(s.select(SelectionFilter{}));
             }
-            change |= execute(operations, s, *sel);
+            bool success = execute(operations, s, dat);
+            // for current step, save curChange
+            if(&s == master->curStep){
+                change = curChange;
+            }
+            // on failure, exit early
+            if(!success){
+                break;
+            }
         }
-        if(change == GuiChange::trajec){
-            change = 0;
-        }
+        if(change) change |= GuiChange::trajec;
     }else{
-        change = execute(operations, *master->curStep, *master->curSel);
+        execute(operations, *master->curStep, master->stepdata[master->curStep]);
+        change = curChange;
     }
     triggerUpdate(change);
 }
 
-guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
-                                  Step& step, Step::selection& stepSel)
+bool ScriptWidget::execute(const std::vector<ScriptOp>& operations,
+                                  Step& step, MainWindow::StepExtras& data)
 {
-    std::map<std::string, Step::selection> definitions{};
-    guiChange_t change{};
+    curChange = guiChange_t{};
     auto execOp = [&](auto& step, const ScriptOp& op){
         auto mkVec = [&](const OpVec& in)->Vec{
             switch(in.mode){
@@ -222,28 +233,29 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
         switch (op.mode) {
         case ScriptOp::Mode::Rotate:
             step.modRotate(op.f, mkVec(op.v1), mkVec(op.v2));
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Shift:
             step.modShift(mkVec(op.v1), op.f);
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Mirror:
             step.modMirror(mkVec(op.v1), mkVec(op.v2), mkVec(op.v3));
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Rename:
             for(auto& at: step){
                 at.name = op.s1;
             }
-            change |= GuiChange::atoms;
+            curChange |= GuiChange::atoms;
             break;
         case ScriptOp::Mode::Select:
-            stepSel = step.select(op.s1);
-            change |= GuiChange::selection;
+            *data.sel = step.select(op.s1);
+            curChange |= GuiChange::selection;
             break;
         case ScriptOp::Mode::Define:
-            definitions.insert_or_assign(op.s1, step.select(op.s2));
+            data.def.insert_or_assign(op.s1, step.select(op.s2));
+            curChange |= GuiChange::definitions;
             break;
         default:
             throw Error("Invalid operation");
@@ -254,10 +266,10 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
             if(op.target == "all"){
                 execOp(step, op);
             }else if(op.target == "sel"){
-                execOp(stepSel, op);
+                execOp(*data.sel, op);
             }else{
-                auto def = definitions.find(op.target);
-                if(def == definitions.end()){
+                auto def = data.def.find(op.target);
+                if(def == data.def.end()){
                     throw Error("Unknown target: "+op.target);
                 }
                 execOp(def->second, op);
@@ -266,11 +278,18 @@ guiChange_t ScriptWidget::execute(const std::vector<ScriptOp>& operations,
             QMessageBox msg{this};
             msg.setText(QString{"Error executing script:\n\n"}+op.line.c_str()+"\n"+e.what());
             msg.exec();
+            return false;
         } catch (...) {
             QMessageBox msg{this};
             msg.setText(QString{"Unexpected error when executing line:\n\n"}+op.line.c_str());
             msg.exec();
+            return false;
         }
     }
-    return change;
+    return true;
+}
+
+void ScriptWidget::on_helpButton_clicked()
+{
+    help->show();
 }

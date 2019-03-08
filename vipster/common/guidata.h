@@ -44,12 +44,15 @@ public:
     GLuint loadShader(std::string vert, std::string frag);
     void syncToGPU();
 
-    bool updated, initialized;
+    bool updated{true}, initialized{false};
+#ifndef __EMSCRIPTEN__
+    bool wrap_initialized{false};
+#endif
 
-    Data(const GlobalData&, bool updated=true, bool initialized=false);
+    Data(const GlobalData&);
     virtual ~Data() = default;
+    Data(Data&&);
     Data(const Data&) = delete;
-    Data(Data&&) = delete;
     Data& operator=(const Data&) = delete;
     Data& operator=(Data&&) = delete;
 };
