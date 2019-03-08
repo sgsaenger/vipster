@@ -1,0 +1,34 @@
+version: 1.0.{build}
+clone_depth: 30
+clone_folder: c:\projects\vipster
+environment:
+  QTDIR: C:\Qt\5.12\mingw73_64
+  MWDIR: C:\Qt\Tools\mingw730_64\bin
+  PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
+build_script:
+    - ls %MWDIR%
+    - mkdir build
+    - cd build
+    - mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
+    - cmake -D TESTS=YES -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH="$MWDIR" -G "MinGW Makefiles" ..
+    - cmake --build .
+test_script:
+    - test_lib.exe
+after_test:
+    - mkdir Vipster
+    - mv vipster.exe Vipster
+    - mv libvipster.dll Vipster
+    - windeployqt --release --compiler-runtime Vipster/vipster.exe
+    - 7z a Vipster-Win-x86_64.7z Vipster
+artifacts:
+    - name: Archive
+      path: 'build\Vipster-Win-x86_64.7z'
+deploy:
+    - provider: GitHub
+      auth_token:
+        secure: B7byrQs5wuFQdK1ws3GCmTGI/0YCLZ3TUN+h3UxP9nl/uOlZX1jS1kO+AMWhprA5
+      draft: true
+      artifacts: /.*\.(exe|7z)/
+      on:
+        branch: master
+        appveyor_repo_tag: true

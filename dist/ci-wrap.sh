@@ -128,14 +128,6 @@ case $1 in
                 mv vipster.dmg Vipster-OSX.dmg
                 export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
                 ;;
-            windows)
-                mkdir Vipster
-                mv vipster.exe Vipster
-                mv libvipster.dll Vipster
-                cp `which g++.exe` $QTDIR/bin/g++.exe
-                windeployqt --release --compiler-runtime Vipster/vipster.exe
-                7z a Vipster-Win-x86_64.7z Vipster
-                export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-Win-x86_64.7z
         esac
         ;;
 esac
