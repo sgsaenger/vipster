@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,1,1,1,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,1,0,1,0,0">
    <item>
     <widget class="QComboBox" name="molList"/>
    </item>
@@ -137,32 +137,100 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="cellContainer" native="true">
+    <widget class="QFrame" name="cellContainer">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
       <item>
        <layout class="QHBoxLayout" name="cellFmtLayout">
         <item>
-         <widget class="QCheckBox" name="cellEnabled">
+         <widget class="QLabel" name="cellEnabledLabel">
           <property name="text">
-           <string>Has Cell</string>
+           <string>Enabled</string>
+          </property>
+          <property name="buddy">
+           <cstring>cellEnabledBox</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cellEnabledBox">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="cellHorSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="cellScaleLabel">
+          <property name="text">
+           <string>Scale coordinates with cell</string>
+          </property>
+          <property name="buddy">
+           <cstring>cellScaleBox</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cellScaleBox">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="cellEditLayout">
+        <item>
+         <widget class="QLabel" name="cellDimLabel">
+          <property name="text">
+           <string>Lattice constant:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="cellDimSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="cellDimBox">
+          <property name="decimals">
+           <number>4</number>
+          </property>
+          <property name="minimum">
+           <double>0.010000000000000</double>
           </property>
          </widget>
         </item>
@@ -183,45 +251,11 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="cellDimLayout">
-        <item>
-         <widget class="QLabel" name="cellVecLabel">
-          <property name="text">
-           <string>Cell vectors:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="cellDimSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="cellDimLabel">
-          <property name="text">
-           <string>Cell dimension:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="cellDimBox">
-          <property name="decimals">
-           <number>4</number>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QLabel" name="cellVecLabel">
+        <property name="text">
+         <string>Cell vectors:</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QTableWidget" name="cellVecTable">
@@ -270,35 +304,11 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="cellEditLayout">
-        <item>
-         <widget class="QCheckBox" name="cellAllBox">
-          <property name="text">
-           <string>Apply to all Steps</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="cellEditSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cellScaleBox">
-          <property name="text">
-           <string>Scale coordinates with cell</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QPushButton" name="cellTrajecButton">
+        <property name="text">
+         <string>Apply to trajectory</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -317,12 +327,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="kpointContainer" native="true">
+    <widget class="QFrame" name="kpointContainer">
      <property name="maximumSize">
       <size>
        <width>16777215</width>
        <height>200</height>
       </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
@@ -353,8 +369,11 @@
       </item>
       <item row="1" column="0" colspan="2">
        <widget class="QStackedWidget" name="kpointStack">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="gammapage">
          <layout class="QHBoxLayout" name="horizontalLayout">
@@ -556,12 +575,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>203</x>
-     <y>265</y>
+     <x>149</x>
+     <y>182</y>
     </hint>
     <hint type="destinationlabel">
-     <x>172</x>
-     <y>326</y>
+     <x>166</x>
+     <y>220</y>
     </hint>
    </hints>
   </connection>
@@ -572,28 +591,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>494</y>
+     <x>187</x>
+     <y>440</y>
     </hint>
     <hint type="destinationlabel">
-     <x>186</x>
-     <y>563</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>activeKpoint</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>kpointStack</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>356</x>
-     <y>530</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>238</x>
-     <y>563</y>
+     <x>187</x>
+     <y>465</y>
     </hint>
    </hints>
   </connection>

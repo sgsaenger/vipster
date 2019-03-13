@@ -21,10 +21,11 @@ public:
     Vipster::CdmFmt getCellFmt();
 
 private slots:
-    void on_cellEnabled_toggled(bool checked);
+    void on_cellEnabledBox_toggled(bool checked);
     void on_cellFmt_currentIndexChanged(int idx);
     void on_cellDimBox_valueChanged(double cdm);
     void on_cellVecTable_cellChanged(int row, int column);
+    void on_cellTrajecButton_clicked();
     void on_atomTable_cellChanged(int row, int column);
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();

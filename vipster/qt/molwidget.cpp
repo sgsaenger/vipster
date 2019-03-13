@@ -67,8 +67,8 @@ void MolWidget::fillCell()
     //Fill cell view
     QSignalBlocker blockCell(ui->cellVecTable);
     QSignalBlocker blockDim(ui->cellDimBox);
-    QSignalBlocker blockEnabled(ui->cellEnabled);
-    ui->cellEnabled->setChecked(curStep.hasCell());
+    QSignalBlocker blockEnabled(ui->cellEnabledBox);
+    ui->cellEnabledBox->setChecked(curStep.hasCell());
     ui->cellDimBox->setValue(static_cast<double>(
                                  curStep.getCellDim(
             static_cast<CdmFmt>(ui->cellFmt->currentIndex()))));
@@ -158,16 +158,64 @@ void MolWidget::fillKPoints()
     }
 }
 
-void MolWidget::on_cellEnabled_toggled(bool checked)
+void MolWidget::on_cellTrajecButton_clicked()
 {
-    if(ui->cellAllBox->isChecked()){
+    if(ui->cellEnabledBox->isChecked()){
+        auto scale = ui->cellScaleBox->isChecked();
+        auto dim = static_cast<float>(ui->cellDimBox->value());
+        auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+        Mat vec{};
+        for(int row=0; row<3; ++row){
+            for(int col=0; col<3; ++col){
+                vec[static_cast<size_t>(row)][static_cast<size_t>(col)] =
+                    locale().toFloat(ui->cellVecTable->item(row,col)->text());
+            }
+        }
         for(auto& step: master->curMol->getSteps()){
-            step.enableCell(checked);
+            if (&step == master->curStep) continue;
+            step.setCellDim(dim, fmt, scale);
+            step.setCellVec(vec, scale);
         }
     }else{
-        curStep.enableCell(checked);
+        for(auto& step: master->curMol->getSteps()){
+            if (&step == master->curStep) continue;
+            step.enableCell(false);
+        }
     }
-    triggerUpdate(GuiChange::cell);
+    triggerUpdate(GuiChange::trajec);
+}
+
+void MolWidget::on_cellEnabledBox_toggled(bool checked)
+{
+    if(checked){
+        guiChange_t change = GuiChange::cell;
+        auto scale = ui->cellScaleBox->isChecked();
+        if (scale) change |= GuiChange::atoms;
+        auto dim = static_cast<float>(ui->cellDimBox->value());
+        auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+        Mat vec{};
+        for(int row=0; row<3; ++row){
+            for(int col=0; col<3; ++col){
+                vec[static_cast<size_t>(row)][static_cast<size_t>(col)] =
+                    locale().toFloat(ui->cellVecTable->item(row,col)->text());
+            }
+        }
+        try{
+            curStep.setCellVec(vec, scale);
+        } catch(const Error& e){
+            QMessageBox msg{this};
+            msg.setText(QString{"Error setting cell vectors:\n"}+e.what());
+            msg.exec();
+            QSignalBlocker block{ui->cellEnabledBox};
+            ui->cellEnabledBox->setCheckState(Qt::CheckState::Unchecked);
+            return;
+        }
+        curStep.setCellDim(dim, fmt, scale);
+        triggerUpdate(change);
+    }else{
+        curStep.enableCell(false);
+        triggerUpdate(GuiChange::cell);
+    }
 }
 
 void MolWidget::on_cellFmt_currentIndexChanged(int idx)
@@ -178,40 +226,37 @@ void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
 {
+    // if cell is disabled, exit early
+    if(ui->cellEnabledBox->checkState() == Qt::CheckState::Unchecked){
+        return;
+    }
     auto dim = static_cast<float>(cdm);
     auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
     auto scale = ui->cellScaleBox->isChecked();
-    if(!ui->cellAllBox->isChecked()){
-        curStep.setCellDim(dim, fmt, scale);
-    }else{
-        for(auto& step: master->curMol->getSteps()){
-            step.setCellDim(dim, fmt, scale);
-        }
-    }
-    // if needed, trigger atom update
+    curStep.setCellDim(dim, fmt, scale);
     guiChange_t change = GuiChange::cell;
-    if(ui->cellScaleBox->isChecked() != (curStep.getFmt()>=AtomFmt::Crystal)){
+    // if needed, trigger atom update
+    if(scale){
         change |= GuiChange::atoms;
+    }
+    if(scale != (curStep.getFmt()>=AtomFmt::Crystal)){
         fillAtomTable();
     }
-    ui->cellEnabled->setCheckState(Qt::CheckState::Checked);
     triggerUpdate(change);
 }
 
 void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 {
+    // if cell is disabled, exit early
+    if(ui->cellEnabledBox->checkState() == Qt::CheckState::Unchecked){
+        return;
+    }
     Mat vec = curStep.getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             locale().toFloat(ui->cellVecTable->item(row,column)->text());
     auto scale = ui->cellScaleBox->isChecked();
     try{
-        if(ui->cellAllBox->isChecked()){
-            for(auto& step: master->curMol->getSteps()){
-                step.setCellVec(vec, scale);
-            }
-        }else{
-            curStep.setCellVec(vec, scale);
-        }
+        curStep.setCellVec(vec, scale);
     } catch(const Error& e){
         QMessageBox msg{this};
         msg.setText(QString{"Error setting cell vectors:\n"}+e.what());
@@ -219,13 +264,14 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
         fillCell();
         return;
     }
-    // if needed, trigger atom update
     guiChange_t change = GuiChange::cell;
-    if(ui->cellScaleBox->isChecked() != (curStep.getFmt()==AtomFmt::Crystal)){
+    // if needed, trigger atom update
+    if(scale){
         change |= GuiChange::atoms;
+    }
+    if(scale != (curStep.getFmt()==AtomFmt::Crystal)){
         fillAtomTable();
     }
-    ui->cellEnabled->setCheckState(Qt::CheckState::Checked);
     triggerUpdate(change);
 }
 
@@ -278,7 +324,7 @@ void MolWidget::on_atomFmtButton_clicked()
     master->curStep->setFmt(fmt);
     master->curSel->setFmt(fmt);
     if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){
-        ui->cellEnabled->setChecked(true);
+        ui->cellEnabledBox->setChecked(true);
     }
     triggerUpdate(GuiChange::fmt);
 }
