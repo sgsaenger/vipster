@@ -28,6 +28,19 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="1" rowspan="3">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>32</width>
+       <height>66</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
    <item row="0" column="2">
     <widget class="QLabel" name="hLabel">
      <property name="text">
@@ -48,33 +61,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1" rowspan="3">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>32</width>
-       <height>66</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="3">
-    <widget class="QDoubleSpinBox" name="yOff">
-     <property name="minimum">
-      <double>-99.989999999999995</double>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QSpinBox" name="hSel">
-     <property name="minimum">
-      <number>-99</number>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="4">
     <widget class="QLabel" name="lLabel">
      <property name="text">
@@ -85,15 +71,22 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="4">
-    <widget class="QDoubleSpinBox" name="zOff">
+   <item row="1" column="2">
+    <widget class="QSpinBox" name="hSel">
      <property name="minimum">
-      <double>-99.989999999999995</double>
+      <number>-99</number>
      </property>
     </widget>
    </item>
    <item row="1" column="3">
     <widget class="QSpinBox" name="kSel">
+     <property name="minimum">
+      <number>-99</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QSpinBox" name="lSel">
      <property name="minimum">
       <number>-99</number>
      </property>
@@ -106,10 +99,17 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="4">
-    <widget class="QSpinBox" name="lSel">
+   <item row="2" column="3">
+    <widget class="QDoubleSpinBox" name="yOff">
      <property name="minimum">
-      <number>-99</number>
+      <double>-99.989999999999995</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QDoubleSpinBox" name="zOff">
+     <property name="minimum">
+      <double>-99.989999999999995</double>
      </property>
     </widget>
    </item>

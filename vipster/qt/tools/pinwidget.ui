@@ -14,6 +14,9 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="3">
+    <widget class="QListWidget" name="stepList"/>
+   </item>
    <item row="1" column="0" colspan="3">
     <widget class="QPushButton" name="addStep">
      <property name="text">
@@ -21,16 +24,16 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="3">
-    <widget class="QListWidget" name="stepList"/>
-   </item>
-   <item row="2" column="2">
-    <widget class="QPushButton" name="delStep">
+   <item row="2" column="0">
+    <widget class="QCheckBox" name="showStep">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Delete pinned Step</string>
+      <string>Display Step</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -47,16 +50,13 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QCheckBox" name="showStep">
+   <item row="2" column="2">
+    <widget class="QPushButton" name="delStep">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Display Step</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+      <string>Delete pinned Step</string>
      </property>
     </widget>
    </item>
