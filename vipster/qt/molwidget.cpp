@@ -14,6 +14,8 @@ MolWidget::MolWidget(QWidget *parent) :
     ui->atomTableButton->setAttribute(Qt::WA_MacBrushedMetal, true);
     ui->cellWidgetButton->setAttribute(Qt::WA_MacBrushedMetal, true);
     ui->kpointStackButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->discretetable->addAction(ui->actionNew_K_Point);
+    ui->discretetable->addAction(ui->actionDelete_K_Point);
     QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
@@ -55,6 +57,7 @@ void MolWidget::updateWidget(guiChange_t change)
         fillCell();
     }
     if (change & GuiChange::kpoints) {
+        ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->getKPoints().active));
         fillKPoints();
     }
     if (change & GuiChange::selection) {
@@ -116,46 +119,6 @@ void MolWidget::fillAtomTable(void)
         ++at;
     }
     atomsOutdated = false;
-}
-
-void MolWidget::fillKPoints()
-{
-    auto& kpoints = curMol->getKPoints();
-    ui->activeKpoint->setCurrentIndex(static_cast<int>(kpoints.active));
-    // fill mpg
-    ui->mpg_x->setValue(kpoints.mpg.x);
-    ui->mpg_y->setValue(kpoints.mpg.y);
-    ui->mpg_z->setValue(kpoints.mpg.z);
-    ui->mpg_x_off->setValue(static_cast<double>(kpoints.mpg.sx));
-    ui->mpg_y_off->setValue(static_cast<double>(kpoints.mpg.sy));
-    ui->mpg_z_off->setValue(static_cast<double>(kpoints.mpg.sz));
-    // fill discrete
-    auto discToCheckstate = [](const KPoints::Discrete&k, KPoints::Discrete::Properties p){
-        if((k.properties&p) != 0){
-            return Qt::CheckState::Checked;
-        }
-        return Qt::CheckState::Unchecked;
-    };
-    ui->crystal->setCheckState(discToCheckstate(kpoints.discrete, kpoints.discrete.crystal));
-    ui->bands->setCheckState(discToCheckstate(kpoints.discrete, kpoints.discrete.band));
-    auto& discretetable = *(ui->discretetable);
-    int oldCount = discretetable.rowCount();
-    auto newCount = static_cast<int>(kpoints.discrete.kpoints.size());
-    discretetable.setRowCount(newCount);
-    if (oldCount < newCount) {
-        for (int j=oldCount; j!=newCount; ++j) {
-            for (int k=0; k!=4; ++k) {
-                discretetable.setItem(j,k, new QTableWidgetItem());
-            }
-        }
-    }
-    auto kpoint = kpoints.discrete.kpoints.begin();
-    for (int j=0; j!=newCount; ++j) {
-        discretetable.item(j,0)->setText(QString::number(kpoint->pos[0]));
-        discretetable.item(j,1)->setText(QString::number(kpoint->pos[1]));
-        discretetable.item(j,2)->setText(QString::number(kpoint->pos[2]));
-        discretetable.item(j,3)->setText(QString::number(kpoint->weight));
-    }
 }
 
 void MolWidget::on_cellTrajecButton_clicked()
@@ -370,4 +333,134 @@ void MolWidget::setSelection()
         table->selectRow(static_cast<int>(i));
     }
     table->setSelectionMode(QAbstractItemView::ExtendedSelection);
+}
+
+void MolWidget::fillKPoints()
+{
+    const auto& kpoints = curMol->getKPoints();
+    for(int i=0; i<3; ++i){
+        if(i == static_cast<int>(kpoints.active)){
+            ui->activeKpoint->setItemText(i, activeKpoints[i]);
+        }else{
+            ui->activeKpoint->setItemText(i, inactiveKpoints[i]);
+        }
+    }
+    // fill mpg
+    ui->mpg_x->setValue(kpoints.mpg.x);
+    ui->mpg_y->setValue(kpoints.mpg.y);
+    ui->mpg_z->setValue(kpoints.mpg.z);
+    ui->mpg_x_off->setValue(static_cast<double>(kpoints.mpg.sx));
+    ui->mpg_y_off->setValue(static_cast<double>(kpoints.mpg.sy));
+    ui->mpg_z_off->setValue(static_cast<double>(kpoints.mpg.sz));
+    // fill discrete
+    ui->crystal->setCheckState((kpoints.discrete.properties & kpoints.discrete.crystal) ?
+                                   Qt::CheckState::Checked :
+                                   Qt::CheckState::Unchecked);
+    ui->bands->setCheckState((kpoints.discrete.properties & kpoints.discrete.band) ?
+                                   Qt::CheckState::Checked :
+                                   Qt::CheckState::Unchecked);
+    auto& discretetable = *(ui->discretetable);
+    const auto& discpoints = kpoints.discrete.kpoints;
+    auto count = static_cast<int>(discpoints.size());
+    discretetable.clear();
+    discretetable.setRowCount(count);
+    for(int i=0; i<count; ++i){
+        const auto& kp = discpoints[i];
+        for(int j=0; j<3; ++j){
+            discretetable.setItem(i,j, new QTableWidgetItem(QString::number(kp.pos[j])));
+        }
+        discretetable.setItem(i, 3, new QTableWidgetItem(QString::number(kp.weight)));
+    }
+}
+
+void MolWidget::on_kFmtButton_clicked()
+{
+    auto oldFmt = static_cast<int>(curMol->getKPoints().active);
+    ui->activeKpoint->setItemText(oldFmt, inactiveKpoints[oldFmt]);
+    auto newFmt = ui->activeKpoint->currentIndex();
+    ui->activeKpoint->setItemText(newFmt, activeKpoints[newFmt]);
+    curMol->getKPoints().active = static_cast<KPoints::Fmt>(newFmt);
+    triggerUpdate(GuiChange::kpoints);
+}
+
+void MolWidget::on_bands_stateChanged(int arg)
+{
+    if(arg){
+        curMol->getKPoints().discrete.properties |= KPoints::Discrete::band;
+    }else{
+        curMol->getKPoints().discrete.properties ^= KPoints::Discrete::band;
+    }
+    triggerUpdate(GuiChange::kpoints);
+}
+
+void MolWidget::on_crystal_stateChanged(int arg)
+{
+    if(arg){
+        curMol->getKPoints().discrete.properties |= KPoints::Discrete::crystal;
+    }else{
+        curMol->getKPoints().discrete.properties ^= KPoints::Discrete::crystal;
+    }
+    triggerUpdate(GuiChange::kpoints);
+}
+
+void MolWidget::mpg_change()
+{
+    auto& kpoints = curMol->getKPoints().mpg;
+    if(sender() == ui->mpg_x){
+        kpoints.x = ui->mpg_x->value();
+    }else if(sender() == ui->mpg_y){
+        kpoints.y = ui->mpg_y->value();
+    }else if(sender() == ui->mpg_z){
+        kpoints.z = ui->mpg_z->value();
+    }else if(sender() == ui->mpg_x_off){
+        kpoints.sx = ui->mpg_x_off->value();
+    }else if(sender() == ui->mpg_y_off){
+        kpoints.sy = ui->mpg_y_off->value();
+    }else if(sender() == ui->mpg_z_off){
+        kpoints.sz = ui->mpg_z_off->value();
+    }
+    triggerUpdate(GuiChange::kpoints);
+}
+
+void MolWidget::on_discretetable_itemSelectionChanged()
+{
+    auto sel = ui->discretetable->selectedItems();
+    if(sel.empty()){
+        curKPoint = -1;
+        ui->actionDelete_K_Point->setDisabled(true);
+    }else{
+        curKPoint = sel[0]->row();
+        ui->actionDelete_K_Point->setEnabled(true);
+    }
+}
+
+void MolWidget::on_actionNew_K_Point_triggered()
+{
+    auto& kpoints = curMol->getKPoints().discrete.kpoints;
+    kpoints.push_back(KPoints::Discrete::Point{});
+    fillKPoints();
+    triggerUpdate(GuiChange::kpoints);
+}
+
+void MolWidget::on_actionDelete_K_Point_triggered()
+{
+    if(curKPoint < 0){
+        throw Error{"MolWidget: \"Delete K-Point\" triggered with invalid selection"};
+    }
+    auto& kpoints = curMol->getKPoints().discrete.kpoints;
+    kpoints.erase(kpoints.begin()+curKPoint);
+    fillKPoints();
+    triggerUpdate(GuiChange::kpoints);
+}
+
+void MolWidget::on_discretetable_cellChanged(int row, int column)
+{
+    auto& kp = curMol->getKPoints().discrete.kpoints[row];
+    QTableWidgetItem *cell = ui->discretetable->item(row, column);
+    if(column == 3){
+        kp.weight = cell->text().toFloat();
+    }else{
+        kp.pos[column] = cell->text().toFloat();
+    }
+    triggerUpdate(GuiChange::kpoints);
 }

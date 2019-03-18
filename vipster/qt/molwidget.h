@@ -32,6 +32,17 @@ private slots:
     void on_atomTableButton_toggled(bool checked);
     void on_molList_currentIndexChanged(int index);
     void on_atomTable_itemSelectionChanged();
+    void on_kFmtButton_clicked();
+    void on_bands_stateChanged(int);
+    void on_crystal_stateChanged(int);
+
+    void mpg_change();
+
+    void on_discretetable_itemSelectionChanged();
+    void on_actionNew_K_Point_triggered();
+    void on_actionDelete_K_Point_triggered();
+
+    void on_discretetable_cellChanged(int row, int column);
 
 private:
     void fillAtomTable(void);
@@ -41,7 +52,12 @@ private:
     Ui::MolWidget *ui;
     Vipster::Step curStep;
     Vipster::Molecule* curMol;
+    int curKPoint{-1};
     bool atomsOutdated{true};
+    static constexpr const char* inactiveKpoints[] = {"Gamma", "Monkhorst-Pack grid", "Discrete"};
+    static constexpr const char* activeKpoints[] = {"Gamma (active)",
+                                                    "Monkhorst-Pack grid (active)",
+                                                    "Discrete (active)"};
     static constexpr const char* inactiveFmt[] = {"Bohr", "Angstrom", "Crystal", "Alat"};
     static constexpr const char* activeFmt[] = {"Bohr (active)",
                                                 "Angstrom (active)",

@@ -352,28 +352,35 @@
        <widget class="QComboBox" name="activeKpoint">
         <item>
          <property name="text">
-          <string>gamma</string>
+          <string>Gamma</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>mpg</string>
+          <string>Monkhorst-Pack grid</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>discrete</string>
+          <string>Discrete</string>
          </property>
         </item>
        </widget>
       </item>
-      <item row="1" column="0" colspan="2">
+      <item row="0" column="2">
+       <widget class="QPushButton" name="kFmtButton">
+        <property name="text">
+         <string>Set Format</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
        <widget class="QStackedWidget" name="kpointStack">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="gammapage">
          <layout class="QHBoxLayout" name="horizontalLayout">
@@ -421,7 +428,11 @@
         <widget class="QWidget" name="mpgpage">
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="2" column="2">
-           <widget class="QSpinBox" name="mpg_y"/>
+           <widget class="QSpinBox" name="mpg_y">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
           </item>
           <item row="1" column="1">
            <widget class="QLabel" name="label_4">
@@ -444,7 +455,11 @@
            </spacer>
           </item>
           <item row="2" column="3">
-           <widget class="QSpinBox" name="mpg_z"/>
+           <widget class="QSpinBox" name="mpg_z">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
           </item>
           <item row="1" column="3">
            <widget class="QLabel" name="label_6">
@@ -461,7 +476,11 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSpinBox" name="mpg_x"/>
+           <widget class="QSpinBox" name="mpg_x">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_3">
@@ -519,6 +538,9 @@
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QTableWidget" name="discretetable">
+            <property name="contextMenuPolicy">
+             <enum>Qt::ActionsContextMenu</enum>
+            </property>
             <column>
              <property name="text">
               <string>x</string>
@@ -565,6 +587,19 @@
     </spacer>
    </item>
   </layout>
+  <action name="actionNew_K_Point">
+   <property name="text">
+    <string>New K-Point</string>
+   </property>
+  </action>
+  <action name="actionDelete_K_Point">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Delete K-Point</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -600,5 +635,120 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>activeKpoint</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>kpointStack</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>160</x>
+     <y>480</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>280</x>
+     <y>512</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mpg_x</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MolWidget</receiver>
+   <slot>mpg_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>135</x>
+     <y>566</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>655</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mpg_y</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MolWidget</receiver>
+   <slot>mpg_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>564</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>265</x>
+     <y>654</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mpg_z</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MolWidget</receiver>
+   <slot>mpg_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>317</x>
+     <y>561</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>370</x>
+     <y>654</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mpg_x_off</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MolWidget</receiver>
+   <slot>mpg_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>149</x>
+     <y>589</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>111</x>
+     <y>657</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mpg_y_off</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MolWidget</receiver>
+   <slot>mpg_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>218</x>
+     <y>596</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>240</x>
+     <y>658</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mpg_z_off</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MolWidget</receiver>
+   <slot>mpg_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>328</x>
+     <y>589</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>369</x>
+     <y>595</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>mpg_change()</slot>
+ </slots>
 </ui>
