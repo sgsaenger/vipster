@@ -80,6 +80,8 @@ std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool
     }
     if(is.fail()){
         if(optional){
+            vec.mode = ScriptWidget::OpVec::Mode::Direct;
+            vec.v = Vec{};
             return is;
         }
         throw Error("Mandatory vector missing");
