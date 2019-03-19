@@ -3,7 +3,8 @@
 
 #include <QWidget>
 #include <QListWidgetItem>
-#include "mainwindow.h"
+#include "basewidget.h"
+#include "pse.h"
 
 namespace Ui {
 class PSEWidget;

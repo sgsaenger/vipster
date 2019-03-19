@@ -2,6 +2,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "savefmtdialog.h"
+#include "tools.h"
+
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -48,6 +50,9 @@ void MainWindow::setupUI()
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+#ifdef Q_OS_MACOS
+    setDockOptions(dockOptions()^VerticalTabs);
+#endif
     // setup left dock-area
     baseWidgets = {
         ui->paramDock,
@@ -62,23 +67,19 @@ void MainWindow::setupUI()
     }
     ui->molDock->raise();
     // setup right dock-area
-    toolWidgets = {
-        ui->scriptDock,
-        ui->pickDock,
-        ui->cellModDock,
-        ui->millerDock,
-        ui->pinDock,
-        ui->defineDock,
-    };
-    for(auto& w: toolWidgets){
-        auto action = ui->toolBar->addAction(w->windowTitle());
+    for(const auto& pair: makeToolWidgets(this)){
+        auto *tmp = new QDockWidget(this);
+        tmp->setWidget(pair.first);
+        tmp->setAllowedAreas(Qt::BottomDockWidgetArea|
+                             Qt::RightDockWidgetArea|
+                             Qt::TopDockWidgetArea);
+        tmp->setWindowTitle(pair.second);
+        addDockWidget(Qt::RightDockWidgetArea, tmp);
+        auto action = ui->toolBar->addAction(pair.second);
         action->setCheckable(true);
-        connect(action, &QAction::toggled, w, &QWidget::setVisible);
-        w->hide();
+        connect(action, &QAction::toggled, tmp, &QWidget::setVisible);
+        tmp->hide();
     }
-#ifdef Q_OS_MACOS
-    setDockOptions(dockOptions()^VerticalTabs);
-#endif
     // fill in global PSE
     ui->pseWidget->setPSE(&Vipster::pse);
     // fill in menu-options

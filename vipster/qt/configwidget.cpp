@@ -1,6 +1,5 @@
 #include "configwidget.h"
 #include "ui_configwidget.h"
-#include "io.h"
 
 #include <QMessageBox>
 

@@ -3,7 +3,8 @@
 
 #include <QWidget>
 #include <QLabel>
-#include "mainwindow.h"
+#include "basewidget.h"
+#include "settings.h"
 
 namespace Ui {
 class SettingsWidget;

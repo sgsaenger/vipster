@@ -2,7 +2,8 @@
 #define DATAWIDGET_H
 
 #include <QWidget>
-#include "mainwindow.h"
+#include "basewidget.h"
+#include "data.h"
 
 namespace Ui {
 class DataWidget;

@@ -1,6 +1,6 @@
 #include "molwidget.h"
 #include "ui_molwidget.h"
-#include "atom.h"
+#include "mainwindow.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 

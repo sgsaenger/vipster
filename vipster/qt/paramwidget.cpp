@@ -1,6 +1,5 @@
 #include "paramwidget.h"
 #include "ui_paramwidget.h"
-#include "io.h"
 
 #include <QMessageBox>
 

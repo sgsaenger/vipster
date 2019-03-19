@@ -5,6 +5,7 @@
 #include <QColorDialog>
 #include "psewidget.h"
 #include "ui_psewidget.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 

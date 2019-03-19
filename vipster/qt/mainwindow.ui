@@ -431,30 +431,6 @@
    </attribute>
    <widget class="ParamWidget" name="paramWidget"/>
   </widget>
-  <widget class="QDockWidget" name="scriptDock">
-   <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Sc&amp;ript</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="ScriptWidget" name="scriptWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="pickDock">
-   <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Se&amp;lected Atoms</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="PickWidget" name="pickWidget"/>
-  </widget>
   <widget class="QDockWidget" name="configDock">
    <property name="features">
     <set>QDockWidget::DockWidgetFloatable</set>
@@ -484,18 +460,6 @@
     <number>1</number>
    </attribute>
    <widget class="SettingsWidget" name="settingsWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="cellModDock">
-   <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Modif&amp;y Cell</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="CellModWidget" name="cellModWidget"/>
   </widget>
   <widget class="QDockWidget" name="pseDock">
    <property name="features">
@@ -541,39 +505,6 @@
     <number>1</number>
    </attribute>
    <widget class="DataWidget" name="dataWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="millerDock">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea|Qt::RightDockWidgetArea|Qt::TopDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Lattice planes</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="MillerWidget" name="millerWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="pinDock">
-   <property name="windowTitle">
-    <string>Pin Steps</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="PinWidget" name="pinWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="defineDock">
-   <property name="windowTitle">
-    <string>Filter Atoms</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="DefineWidget" name="defineWidget"/>
   </widget>
   <action name="actionNew_Molecule">
    <property name="text">
@@ -761,27 +692,9 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>ScriptWidget</class>
-   <extends>QWidget</extends>
-   <header>tools/scriptwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PickWidget</class>
-   <extends>QWidget</extends>
-   <header>tools/pickwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>SettingsWidget</class>
    <extends>QWidget</extends>
    <header>settingswidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CellModWidget</class>
-   <extends>QWidget</extends>
-   <header>tools/cellmodwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -794,24 +707,6 @@
    <class>DataWidget</class>
    <extends>QWidget</extends>
    <header>datawidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MillerWidget</class>
-   <extends>QWidget</extends>
-   <header>tools/millerwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PinWidget</class>
-   <extends>QWidget</extends>
-   <header>tools/pinwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>DefineWidget</class>
-   <extends>QWidget</extends>
-   <header>tools/definewidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
