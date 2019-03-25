@@ -62,16 +62,14 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 
 ## Supported file types:
 
-- standard xyz
-- PWscf input
-- PWScf output
-- Lammps data
-- Lammps dump
-- Empire-xyz
-- CPMD input
-- Gaussian cube
-- XSF/AXSF
-- ~~AIMALL output~~
-- ~~Mol2~~
-- ~~Turbomole~~
-
+| Format          | Reading  | Writing  |
+|-----------------|----------|----------|
+| xyz (augmented) | &#10004; | &#10004; |
+| PWScf input     | &#10004; | &#10004; |
+| PWScf output    | &#10004; |          |
+| LAMMPS data     | &#10004; | &#10004; |
+| LAMMPS dump     | &#10004; |          |
+| CPMD input      | &#10004; | &#10004; |
+| Gaussian cube   | &#10004; |          |
+| XCrysden        | &#10004; |          |
+| ORCA input      | &#10004; | &#10004; |
