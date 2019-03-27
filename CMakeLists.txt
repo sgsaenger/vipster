@@ -17,8 +17,8 @@ include_directories(python)
 include_directories(vipster/qt)
 
 # Library, needed for everything else
-file(GLOB_RECURSE PY_SOURCES "libvipster/*.py.cpp")
-file(GLOB_RECURSE LIB_SOURCES "libvipster/*.cpp" "external/tinyexpr.c")
+file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.cpp")
+file(GLOB_RECURSE LIB_SOURCES "libvipster/*.h" "libvipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 add_library(libvipster SHARED ${LIB_SOURCES})
 configure_file("libvipster/version.h.in" "version.h")
@@ -79,8 +79,10 @@ if(DESKTOP)
 
     # executable
     file(GLOB_RECURSE QT_SOURCES
+         "vipster/qt/*.h"
          "vipster/qt/*.cpp"
          "vipster/qt/*.ui"
+         "vipster/common/*.h"
          "vipster/common/*.cpp"
          "vipster/resources/vipster.qrc"
          )
