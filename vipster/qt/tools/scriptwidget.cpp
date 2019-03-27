@@ -63,7 +63,12 @@ std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool
             is >> c;
         }
         is >> vec.id1;
-        c = static_cast<char>(is.peek());
+        // if not at end, look ahead
+        if(!is.eof()){
+            c = static_cast<char>(is.peek());
+        }else{
+            c = ' ';
+        }
         if(c == '-'){
             // difference vector
             vec.m2 = true;
@@ -206,32 +211,32 @@ bool ScriptWidget::execute(const std::vector<ScriptOp>& operations,
                                   Step& step, MainWindow::StepExtras& data)
 {
     curChange = guiChange_t{};
+    auto mkVec = [&](const OpVec& in)->Vec{
+        switch(in.mode){
+        case OpVec::Mode::Direct:
+            return in.v;
+        case OpVec::Mode::Relative:
+            return step.formatVec(in.v, in.fmt, step.getFmt());
+        case OpVec::Mode::Position:
+            if(in.m1){
+                return -step.at(in.id1).coord;
+            }else{
+                return step.at(in.id1).coord;
+            }
+        case OpVec::Mode::Combination:
+        {
+            Vec tmp = step.at(in.id1).coord;
+            if(in.m1) tmp *= -1;
+            if(in.m2){
+                tmp -= step.at(in.id2).coord;
+            }else{
+                tmp += step.at(in.id2).coord;
+            }
+            return tmp;
+        }
+        }
+    };
     auto execOp = [&](auto& step, const ScriptOp& op){
-        auto mkVec = [&](const OpVec& in)->Vec{
-            switch(in.mode){
-            case OpVec::Mode::Direct:
-                return in.v;
-            case OpVec::Mode::Relative:
-                return step.formatVec(in.v, in.fmt, step.getFmt());
-            case OpVec::Mode::Position:
-                if(in.m1){
-                    return -step.at(in.id1).coord;
-                }else{
-                    return step.at(in.id1).coord;
-                }
-            case OpVec::Mode::Combination:
-            {
-                Vec tmp = step.at(in.id1).coord;
-                if(in.m1) tmp *= -1;
-                if(in.m2){
-                    tmp -= step.at(in.id2).coord;
-                }else{
-                    tmp += step.at(in.id2).coord;
-                }
-                return tmp;
-            }
-            }
-        };
         switch (op.mode) {
         case ScriptOp::Mode::Rotate:
             step.modRotate(op.f, mkVec(op.v1), mkVec(op.v2));
