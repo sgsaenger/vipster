@@ -6,8 +6,9 @@
 
 namespace Vipster::Py{
 template <typename S>
-py::class_<S> bind_step(py::handle &m, const char* name){
-    auto cl = py::class_<S>(m, name)
+py::class_<S> bind_step(py::handle &m, std::string name){
+    py::class_<StepConst<typename S::source>>(m, ("__"+name+"Base__").c_str());
+    auto cl = py::class_<S, StepConst<typename S::source>>(m, name.c_str())
         .def_readonly("pse", &S::pse)
         .def_property("comment", &S::getComment, &S::setComment)
     // Atoms
@@ -20,7 +21,7 @@ py::class_<S> bind_step(py::handle &m, const char* name){
                     throw py::index_error();
                 }
                 return s[static_cast<size_t>(i)];
-            })
+            }, py::keep_alive<0, 1>())
         .def("__setitem__", [](S& s, int i, const Atom& at){
                 s.evaluateCache();
                 if (i<0){
@@ -33,7 +34,7 @@ py::class_<S> bind_step(py::handle &m, const char* name){
         })
         .def("__len__", [](const S& s){s.evaluateCache(); return s.getNat();})
         .def_property_readonly("nat", [](const S& s){s.evaluateCache(); return s.getNat();})
-        .def("__iter__", [](const S& s){s.evaluateCache(); return py::make_iterator(s.begin(), s.end());})
+        .def("__iter__", [](S& s){s.evaluateCache(); return py::make_iterator(s.begin(), s.end());})
     // TYPES
         .def("getTypes", [](const S& s){
             s.evaluateCache();
@@ -42,17 +43,15 @@ py::class_<S> bind_step(py::handle &m, const char* name){
         })
         .def_property_readonly("ntyp", [](const S& s){s.evaluateCache(); return s.getNtyp();})
     // FMT
-        .def("getFmt", &S::getFmt)
+        .def_property("fmt", &S::getFmt, &S::setFmt)
         .def("asFmt", [](S& s, AtomFmt fmt){s.evaluateCache(); return s.asFmt(fmt);}, "fmt"_a)
-        .def("setFmt", &S::setFmt, "fmt"_a)
     // CELL
-        .def("hasCell", &S::hasCell)
-        .def("enableCell", &S::enableCell, "enable"_a)
+        .def_property("hasCell", &S::hasCell, &S::enableCell)
         .def("getCellDim", &S::getCellDim)
         .def("getCellVec", &S::getCellVec)
         .def("getCom", [](const S& s){s.evaluateCache(); return s.getCom();})
         .def("getCom", [](const S& s, AtomFmt fmt){s.evaluateCache(); return s.getCom(fmt);}, "fmt"_a)
-        .def("getCom", [](const S& s, CdmFmt fmt, bool com){s.evaluateCache(); return s.getCenter(fmt, com);},
+        .def("getCenter", [](const S& s, CdmFmt fmt, bool com){s.evaluateCache(); return s.getCenter(fmt, com);},
              "fmt"_a, "com"_a=false)
     // BONDS
         .def("getBonds", [](const S& s, float c, BondLevel l, BondFrequency u){
@@ -65,7 +64,7 @@ py::class_<S> bind_step(py::handle &m, const char* name){
     // SELECTION
         .def("select", [](S& s, std::string sel)->Step::selection{s.evaluateCache(); return s.select(sel);}, "sel"_a)
     ;
-    return cl;
+    return std::move(cl);
 }
 
 void Step(py::module& m){

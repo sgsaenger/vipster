@@ -9,7 +9,7 @@
 namespace Vipster{
 
 struct BaseData{
-    std::string name;
+    std::string name{};
     virtual ~BaseData() = default;
 };
 

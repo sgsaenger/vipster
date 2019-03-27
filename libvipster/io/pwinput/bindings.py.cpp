@@ -10,7 +10,6 @@ void PWInput(py::module& m){
         .def_readwrite("ions", &IO::PWParam::ions)
         .def_readwrite("cell", &IO::PWParam::cell)
     ;
-    py::bind_map<IO::PWParam::Namelist>(p, "Namelist");
 
     auto c = py::class_<IO::PWConfig, IO::BaseConfig>(m, "PWConfig")
         .def_readwrite("atoms", &IO::PWConfig::atoms)

@@ -23,8 +23,6 @@ void CPInput(py::module& m){
         .def_readwrite("qmmm", &IO::CPParam::qmmm)
     ;
 
-    py::bind_vector<IO::CPParam::Section>(p, "Section");
-
     auto c = py::class_<IO::CPConfig>(m, "CPConfig")
         .def_readwrite("fmt", &IO::CPConfig::fmt)
     ;
