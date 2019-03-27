@@ -79,6 +79,7 @@ void MainWindow::setupUI()
         action->setCheckable(true);
         connect(action, &QAction::toggled, tmp, &QWidget::setVisible);
         tmp->hide();
+        toolWidgets.push_back(tmp);
     }
     // fill in global PSE
     ui->pseWidget->setPSE(&Vipster::pse);

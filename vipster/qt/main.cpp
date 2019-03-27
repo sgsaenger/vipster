@@ -3,7 +3,6 @@
 #include "io.h"
 #include "configfile.h"
 #include "CLI11.hpp"
-#include <tuple>
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
