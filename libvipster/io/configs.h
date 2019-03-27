@@ -14,9 +14,10 @@ class BaseConfig
 {
 public:
     std::string name;
-    virtual std::unique_ptr<BaseConfig> copy() = 0;
+    virtual IOFmt getFmt() const = 0;
+    virtual std::unique_ptr<BaseConfig> copy() const = 0;
     virtual void parseJson(const nlohmann::json::iterator&) = 0;
-    virtual nlohmann::json toJson() = 0;
+    virtual nlohmann::json toJson() const = 0;
     virtual ~BaseConfig() = default;
 protected:
     BaseConfig(std::string);

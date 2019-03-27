@@ -292,7 +292,6 @@ void parseCard(std::string name, std::ifstream& file,
 IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 {
     IO::Data d{};
-    d.fmt = IOFmt::PWI;
     Molecule &m = d.mol;
     m.setName(name);
     m.newStep();

@@ -14,9 +14,10 @@ class BaseParam
 {
 public:
     std::string name;
-    virtual std::unique_ptr<BaseParam> copy() = 0;
+    virtual IOFmt getFmt() const = 0;
+    virtual std::unique_ptr<BaseParam> copy() const = 0;
     virtual void parseJson(const nlohmann::json::iterator&) = 0;
-    virtual nlohmann::json toJson() = 0;
+    virtual nlohmann::json toJson() const = 0;
     virtual ~BaseParam() = default;
 protected:
     BaseParam(std::string);

@@ -276,7 +276,7 @@ void MainWindow::newData(IO::Data &&d)
     molecules.push_back(std::move(d.mol));
     ui->molWidget->registerMol(molecules.back().getName());
     if(d.param){
-        ui->paramWidget->registerParam(d.fmt, std::move(d.param));
+        ui->paramWidget->registerParam(std::move(d.param));
     }
     for(auto& dat: d.data){
         data.push_back(std::move(dat));
@@ -406,7 +406,7 @@ void MainWindow::loadParam()
     }(p->title());
     auto pos = Vipster::params[fmt].find(s->text().toStdString());
     if(pos != Vipster::params[fmt].end()){
-        ui->paramWidget->registerParam(fmt, pos->second->copy());
+        ui->paramWidget->registerParam(pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
     }
@@ -426,7 +426,7 @@ void MainWindow::loadConfig()
     }(p->title());
     auto pos = Vipster::configs[fmt].find(s->text().toStdString());
     if(pos != Vipster::configs[fmt].end()){
-        ui->configWidget->registerConfig(fmt, pos->second->copy());
+        ui->configWidget->registerConfig(pos->second->copy());
     }else{
         throw Error("Invalid IO-config");
     }

@@ -10,7 +10,12 @@ IO::LmpConfig::LmpConfig(std::string name, AtomStyle style,
       dihedrals{dihedrals}, impropers{impropers}
 {}
 
-std::unique_ptr<IO::BaseConfig> IO::LmpConfig::copy()
+IOFmt IO::LmpConfig::getFmt() const
+{
+    return IOFmt::LMP;
+}
+
+std::unique_ptr<IO::BaseConfig> IO::LmpConfig::copy() const
 {
     return std::make_unique<IO::LmpConfig>(*this);
 }
@@ -21,7 +26,7 @@ void IO::LmpConfig::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::LmpConfig::toJson()
+nlohmann::json IO::LmpConfig::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

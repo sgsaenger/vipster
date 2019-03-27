@@ -3,6 +3,7 @@
 #include "io.h"
 #include "configfile.h"
 #include "CLI11.hpp"
+#include <tuple>
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
@@ -222,12 +223,7 @@ int main(int argc, char *argv[])
             fmt_out = pos_out->second;
         }
         // read input
-        //TODO: c++17
-        //auto [mol, fmt, param] = readFile(conv_data.input[1], fmt_in);
-        auto data = readFile(conv_data.input[1], fmt_in);
-        // prepare output
-        auto mol = std::move(data.mol);
-        auto param = std::move(data.param);
+        auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
         std::unique_ptr<IO::BaseConfig> config{nullptr};
         auto arguments = IOPlugins.at(fmt_out)->arguments;
         if(arguments & IO::Plugin::Args::Param){

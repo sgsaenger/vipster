@@ -5,16 +5,17 @@
 
 namespace Vipster::IO{
 
-struct LmpConfig: BaseConfig{
+struct LmpConfig final: BaseConfig{
     enum class AtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
     AtomStyle style;
     bool bonds, angles, dihedrals, impropers;
     const static std::map<AtomStyle, std::string> fmt2str;
     LmpConfig(std::string="", AtomStyle=AtomStyle::Atomic,
               bool=false, bool=false, bool=false, bool=false);
-    std::unique_ptr<BaseConfig> copy() override;
+    IOFmt getFmt() const override;
+    std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
-    nlohmann::json toJson() override;
+    nlohmann::json toJson() const override;
 };
 
 void to_json(nlohmann::json& j,const LmpConfig& p);

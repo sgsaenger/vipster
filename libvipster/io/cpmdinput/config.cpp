@@ -6,7 +6,12 @@ IO::CPConfig::CPConfig(std::string name, CPConfig::AtomFmt fmt)
     : BaseConfig{name}, fmt{fmt}
 {}
 
-std::unique_ptr<IO::BaseConfig> IO::CPConfig::copy()
+IOFmt IO::CPConfig::getFmt() const
+{
+    return IOFmt::CPI;
+}
+
+std::unique_ptr<IO::BaseConfig> IO::CPConfig::copy() const
 {
     return std::make_unique<IO::CPConfig>(*this);
 }
@@ -17,7 +22,7 @@ void IO::CPConfig::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::CPConfig::toJson()
+nlohmann::json IO::CPConfig::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

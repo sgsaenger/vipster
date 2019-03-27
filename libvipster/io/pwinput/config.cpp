@@ -6,7 +6,12 @@ IO::PWConfig::PWConfig(std::string name, PWConfig::AtomFmt atoms, CellFmt cell)
     : BaseConfig{name}, atoms{atoms}, cell{cell}
 {}
 
-std::unique_ptr<IO::BaseConfig> IO::PWConfig::copy()
+IOFmt IO::PWConfig::getFmt() const
+{
+    return IOFmt::PWI;
+}
+
+std::unique_ptr<IO::BaseConfig> IO::PWConfig::copy() const
 {
     return std::make_unique<IO::PWConfig>(*this);
 }
@@ -29,7 +34,7 @@ void IO::PWConfig::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::PWConfig::toJson()
+nlohmann::json IO::PWConfig::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

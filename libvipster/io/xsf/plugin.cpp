@@ -29,7 +29,6 @@ auto mkparser(){
 IO::Data XSFParser(const std::string& name, std::ifstream &file)
 {
     IO::Data data{};
-    data.fmt = IOFmt::XSF;
     auto& m = data.mol;
     m.setName(name);
 

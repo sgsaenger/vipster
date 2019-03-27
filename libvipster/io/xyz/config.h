@@ -5,15 +5,16 @@
 
 namespace Vipster::IO{
 
-struct XYZConfig: BaseConfig{
+struct XYZConfig final: BaseConfig{
     enum class Data{None, Charge, Forces};
     enum class Mode{Step, Trajec, Cell};
     Mode filemode;
     Data atomdata;
     XYZConfig(std::string="", Mode=Mode::Step, Data=Data::None);
-    std::unique_ptr<BaseConfig> copy() override;
+    IOFmt getFmt() const override;
+    std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
-    nlohmann::json toJson() override;
+    nlohmann::json toJson() const override;
 };
 
 void to_json(nlohmann::json& j, const XYZConfig& p);

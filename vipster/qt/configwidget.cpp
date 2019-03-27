@@ -27,9 +27,9 @@ void ConfigWidget::clearConfigs()
     ui->configSel->clear();
 }
 
-void ConfigWidget::registerConfig(Vipster::IOFmt fmt,
-                                  std::unique_ptr<Vipster::IO::BaseConfig>&& data)
+void ConfigWidget::registerConfig(std::unique_ptr<Vipster::IO::BaseConfig>&& data)
 {
+    auto fmt = data->getFmt();
     configs.emplace_back(fmt, std::move(data));
     ui->configSel->addItem(QString::fromStdString(
                                "(" + IOPlugins.at(fmt)->command +

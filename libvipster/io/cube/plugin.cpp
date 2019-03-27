@@ -4,7 +4,6 @@ using namespace Vipster;
 
 IO::Data CubeParser(const std::string& name, std::ifstream &file){
     IO::Data d{};
-    d.fmt = IOFmt::CUBE;
     d.mol.setName(name);
     Step &s = d.mol.newStep();
     s.setFmt(AtomFmt::Bohr);

@@ -27,8 +27,7 @@ public:
     explicit ConfigWidget(QWidget *parent = nullptr);
     ~ConfigWidget() override;
     std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>> configs;
-    void registerConfig(Vipster::IOFmt fmt,
-                        std::unique_ptr<Vipster::IO::BaseConfig>&& data);
+    void registerConfig(std::unique_ptr<Vipster::IO::BaseConfig>&& data);
     void clearConfigs();
     Vipster::IOFmt curFmt;
     Vipster::IO::BaseConfig* curConfig{nullptr};

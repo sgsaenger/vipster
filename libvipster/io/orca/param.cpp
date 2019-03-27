@@ -6,7 +6,12 @@ IO::OrcaParam::OrcaParam(std::string name, Header header)
     : BaseParam{name}, header{header}
 {}
 
-std::unique_ptr<IO::BaseParam> IO::OrcaParam::copy()
+IOFmt IO::OrcaParam::getFmt() const
+{
+    return IOFmt::ORCA;
+}
+
+std::unique_ptr<IO::BaseParam> IO::OrcaParam::copy() const
 {
     return std::make_unique<IO::OrcaParam>(*this);
 }
@@ -27,7 +32,7 @@ void IO::OrcaParam::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::OrcaParam::toJson()
+nlohmann::json IO::OrcaParam::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

@@ -17,7 +17,6 @@ namespace Vipster::IO{
 
 struct Data{
     Molecule mol{"",0};
-    IOFmt fmt;
     std::unique_ptr<BaseParam> param{};
     std::vector<std::unique_ptr<const BaseData>> data{};
 };

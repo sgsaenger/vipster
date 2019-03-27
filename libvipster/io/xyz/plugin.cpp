@@ -8,7 +8,6 @@ using namespace Vipster;
 IO::Data XYZParser(const std::string& name, std::ifstream &file)
 {
     IO::Data data{};
-    data.fmt = IOFmt::XYZ;
     Molecule &m = data.mol;
     m.setName(name);
 

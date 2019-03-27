@@ -9,7 +9,12 @@ IO::PWParam::PWParam(std::string name, IO::PWParam::Namelist control,
       electrons{electrons}, ions{ions}, cell{cell}
 {}
 
-std::unique_ptr<IO::BaseParam> IO::PWParam::copy()
+IOFmt IO::PWParam::getFmt() const
+{
+    return IOFmt::PWI;
+}
+
+std::unique_ptr<IO::BaseParam> IO::PWParam::copy() const
 {
     return std::make_unique<IO::PWParam>(*this);
 }
@@ -42,7 +47,7 @@ void IO::PWParam::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::PWParam::toJson()
+nlohmann::json IO::PWParam::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

@@ -94,7 +94,6 @@ static Mat makeCell(int ibrav, float b, float c,
 
 IO::Data CPInpParser(const std::string& name, std::ifstream &file){
     IO::Data d{};
-    d.fmt = IOFmt::CPI;
     Molecule &m = d.mol;
     m.setName(name);
     Step &s = m.newStep();

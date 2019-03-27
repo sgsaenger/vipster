@@ -5,7 +5,7 @@
 
 namespace Vipster::IO{
 
-struct CPParam: BaseParam{
+struct CPParam final: BaseParam{
     using Section = std::vector<std::string>;
     Section info;
     Section cpmd;
@@ -28,9 +28,10 @@ struct CPParam: BaseParam{
     CPParam(std::string="", Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={});
-    std::unique_ptr<BaseParam> copy() override;
+    IOFmt getFmt() const override;
+    std::unique_ptr<BaseParam> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
-    nlohmann::json toJson() override;
+    nlohmann::json toJson() const override;
 };
 
 void to_json(nlohmann::json& j,const CPParam& p);

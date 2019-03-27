@@ -78,7 +78,6 @@ LmpTrajecParser(const std::string& name, std::ifstream &file)
     enum class ParseMode{Header, Cell, Atoms};
 
     IO::Data data{};
-    data.fmt = IOFmt::DMP;
     Molecule& m = data.mol;
     m.setName(name);
     Step* s = nullptr;

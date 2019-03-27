@@ -219,7 +219,6 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
     enum class ParseMode{Header,Atoms,Types};
 
     IO::Data data{};
-    data.fmt = IOFmt::LMP;
     Molecule& m = data.mol;
     m.setName(name);
     Step& s = m.newStep();

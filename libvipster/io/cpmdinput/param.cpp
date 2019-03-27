@@ -11,7 +11,12 @@ IO::CPParam::CPParam(std::string name, Section info, Section cpmd, Section syste
       tddft{tddft}, hardness{hardness}, classic{classic}, vdw{vdw}, qmmm{qmmm}
 {}
 
-std::unique_ptr<IO::BaseParam> IO::CPParam::copy()
+IOFmt IO::CPParam::getFmt() const
+{
+    return IOFmt::CPI;
+}
+
+std::unique_ptr<IO::BaseParam> IO::CPParam::copy() const
 {
     return std::make_unique<IO::CPParam>(*this);
 }
@@ -42,7 +47,7 @@ void IO::CPParam::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::CPParam::toJson()
+nlohmann::json IO::CPParam::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

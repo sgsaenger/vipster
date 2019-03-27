@@ -6,7 +6,12 @@ IO::XYZConfig::XYZConfig(std::string n, Mode m, Data d)
     : BaseConfig{n}, filemode{m}, atomdata{d}
 {}
 
-std::unique_ptr<IO::BaseConfig> IO::XYZConfig::copy()
+IOFmt IO::XYZConfig::getFmt() const
+{
+    return IOFmt::XYZ;
+}
+
+std::unique_ptr<IO::BaseConfig> IO::XYZConfig::copy() const
 {
     return std::make_unique<IO::XYZConfig>(*this);
 }
@@ -29,7 +34,7 @@ void IO::XYZConfig::parseJson(const nlohmann::json::iterator& it)
     from_json(it.value(), *this);
 }
 
-nlohmann::json IO::XYZConfig::toJson()
+nlohmann::json IO::XYZConfig::toJson() const
 {
     nlohmann::json j;
     to_json(j, *this);

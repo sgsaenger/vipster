@@ -5,7 +5,6 @@ using namespace Vipster;
 
 IO::Data OrcaParser(const std::string& name, std::ifstream &file){
     IO::Data d{};
-    d.fmt = IOFmt::ORCA;
     d.param = std::make_unique<IO::OrcaParam>(name);
     auto& p = static_cast<IO::OrcaParam&>(*d.param.get());
     Molecule &m = d.mol;

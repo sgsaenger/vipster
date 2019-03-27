@@ -7,7 +7,6 @@ using namespace Vipster;
 IO::Data PWOutParser(const std::string& name, std::ifstream &file)
 {
     IO::Data d{};
-    d.fmt = IOFmt::PWO;
     Molecule& m = d.mol;
     m.setName(name);
     Step *s = &m.newStep();

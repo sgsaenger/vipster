@@ -27,9 +27,9 @@ void ParamWidget::clearParams()
     ui->paramSel->clear();
 }
 
-void ParamWidget::registerParam(Vipster::IOFmt fmt,
-                                std::unique_ptr<Vipster::IO::BaseParam>&& data)
+void ParamWidget::registerParam(std::unique_ptr<Vipster::IO::BaseParam>&& data)
 {
+    auto fmt = data->getFmt();
     params.emplace_back(fmt, std::move(data));
     ui->paramSel->addItem(QString::fromStdString(
                           "(" +  IOPlugins.at(fmt)->command +
