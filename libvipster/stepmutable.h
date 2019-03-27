@@ -110,6 +110,8 @@ public:
         float c = std::cos(angle);
         float s = -std::sin(angle);
         float ic = 1.f-c;
+        auto relative = this->at_fmt >= AtomFmt::Crystal;
+        if(relative) axis = this->formatVec(axis, this->at_fmt, AtomFmt::Bohr);
         float len = Vec_length(axis);
         if(float_comp(len, 0.f)){
             throw Error("0-Vector cannot be rotation axis");
@@ -124,13 +126,13 @@ public:
                       Vec{ic * axis[2] * axis[0] - s * axis[1],
                           ic * axis[2] * axis[1] + s * axis[0],
                           ic * axis[2] * axis[2] + c}};
-        if(this->at_fmt != AtomFmt::Crystal){
+        if(!relative){
             for(Atom& at:*this){
                 at.coord = (at.coord - shift) * rotMat + shift;
             }
         }else{
-            auto fwd = this->getFormatter(AtomFmt::Crystal, AtomFmt::Bohr);
-            auto bwd = this->getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
+            const auto fwd = this->getFormatter(this->at_fmt, AtomFmt::Bohr);
+            const auto bwd = this->getFormatter(AtomFmt::Bohr, this->at_fmt);
             shift = fwd(shift);
             for(Atom& at:*this){
                 at.coord = bwd((fwd(at.coord) - shift) * rotMat + shift);
@@ -138,17 +140,23 @@ public:
         }
     }
     void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0}){
+        auto relative = this->at_fmt >= AtomFmt::Crystal;
+        if(relative){
+            ax1 = this->formatVec(ax1, this->at_fmt, AtomFmt::Bohr);
+            ax2 = this->formatVec(ax2, this->at_fmt, AtomFmt::Bohr);
+            shift = this->formatVec(shift, this->at_fmt, AtomFmt::Bohr);
+        }
         Vec normal = Vec_cross(ax1, ax2);
         normal /= Vec_length(normal);
-        if(this->at_fmt != AtomFmt::Crystal){
+        if(!relative){
             for(Atom& at:*this){
                 at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
             }
         }else{
-            auto fwd = this->getFormatter(AtomFmt::Crystal, AtomFmt::Bohr);
-            auto bwd = this->getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
+            auto fwd = this->getFormatter(this->at_fmt, AtomFmt::Bohr);
+            auto bwd = this->getFormatter(AtomFmt::Bohr, this->at_fmt);
             for(Atom& at:*this){
-                at.coord -= bwd(2*Vec_dot(fwd(at.coord-shift), normal)*normal);
+                at.coord -= bwd(2*Vec_dot(fwd(at.coord)-shift, normal)*normal);
             }
         }
     }

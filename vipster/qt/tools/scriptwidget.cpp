@@ -279,6 +279,8 @@ bool ScriptWidget::execute(const std::vector<ScriptOp>& operations,
                 if(def == data.def.end()){
                     throw Error("Unknown target: "+op.target);
                 }
+                // make sure that formats match
+                def->second.setFmt(step.getFmt());
                 execOp(def->second, op);
             }
         } catch (const Error &e) {
