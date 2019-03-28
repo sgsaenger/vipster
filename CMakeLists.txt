@@ -116,7 +116,11 @@ if(WEB)
     endforeach(file)
     set(CMAKE_EXE_LINKER_FLAGS "${EMCC_LINKER_FLAGS} ${EMCC_EMBED_FLAGS}")
 
-    file(GLOB WEB_SOURCES "vipster/common/*.cpp" "vipster/web/main.cpp")
+    file(GLOB WEB_SOURCES
+        "gh-pages/emscripten/index.html"
+        "gh-pages/emscripten/vipster_setup.js"
+        "vipster/common/*.cpp"
+        "vipster/web/main.cpp")
     add_executable(webvipster ${WEB_SOURCES})
     set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(webvipster libvipster)

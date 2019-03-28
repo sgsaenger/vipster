@@ -40,7 +40,7 @@ public:
     void delExtraData(GUI::Data* dat);
 public:
     void resizeViewMat(long w, long h);
-    void zoomViewMat(int i);
+    void zoomViewMat(float i);
     void rotateViewMat(float x, float y, float z);
     void translateViewMat(float x, float y, float z);
     enum class alignDir{x,y,z,mx,my,mz};

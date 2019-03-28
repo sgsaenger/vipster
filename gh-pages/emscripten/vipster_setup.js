@@ -19,6 +19,7 @@ var Module = {
     curMol: 0,
     curStep: 0,
     canvas: setupCanvas(dom.canvas),
+    hammer: null,
     file: null
 };
 
@@ -45,48 +46,78 @@ function setupCanvas(canvas) {
         }
     });
 
-    setupHammer();
-
     return canvas;
 }
 
-function setupHammer() {
-    const hammer = new Hammer(dom.canvas);
+function setupHammer(canvas) {
+    let hammer = new Hammer(canvas);
 
     hammer.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 20});
-    hammer.get('pinch').set({enable: true});
+    hammer.get('pinch').set({enable: true, threshold: 0.1});
     // hammer.get('rotate').set({enable: true});
-    hammer.remove(['press', 'tap', 'doubletap', 'swipe']);
+    hammer.remove(['tap', 'doubletap', 'swipe']);
+
+    hammer.on('press', (e) => {
+        if (e.pointerType !== 'touch'){
+            return;
+        }
+
+        console.log('press');
+        Module.vrToggleMove(true);
+    });
+    hammer.on('pressup', (e) => {
+        if (e.pointerType !== 'touch'){
+            return;
+        }
+
+        console.log('pressup');
+        Module.vrToggleMove(false);
+    });
+
+    hammer.on('panstart', (e) => {
+        if (e.pointerType !== 'touch') {
+            return;
+        }
+
+        console.log('panstart');
+        this.oldX = e.deltaX;
+        this.oldY = e.deltaY;
+        Module.vrToggleMove(false);
+    });
 
     hammer.on('pan', (e) => {
         if (e.pointerType !== 'touch') {
             return;
         }
 
-        if (typeof this.oldX === 'undefined') {
-            this.oldX = 0;
-            this.oldY = 0;
-        }
-
+        console.log('pan');
         Module.rotate(e.deltaX - this.oldX, e.deltaY - this.oldY);
-
         this.oldX = e.deltaX;
         this.oldY = e.deltaY;
     });
 
+    hammer.on('pinchstart', (e) => {
+        if (e.pointerType !== 'touch') {
+            return;
+        }
+
+        console.log('pinchstart');
+        this.oldScale = 0.0
+        Module.vrToggleMove(false);
+    });
     hammer.on('pinch', (e) => {
         if (e.pointerType !== 'touch') {
             return;
         }
 
-        if (typeof this.oldScale === 'undefined') {
-            this.oldScale = 1.0
-        }
-
-        const delta = (e.scale - this.oldScale) < 0 ? -1 : 1;
+        console.log('pinch');
+                  console.log(e.scale);
+        const delta = (e.scale - this.oldScale) < 0 ? 0.98 : 1.02;
         Module.zoom(delta);
         this.oldScale = e.scale;
     });
+
+    return hammer;
 }
 
 function fillAtoms() {
@@ -383,6 +414,8 @@ function resizeCanvas() {
 
 $(document).ready(function () {
     // Set correct canvas size on resize
+    Module.hammer = setupHammer(canvas);
+
     window.addEventListener('resize', resizeCanvas);
 
     dom.btnDownload.onclick = saveFile;

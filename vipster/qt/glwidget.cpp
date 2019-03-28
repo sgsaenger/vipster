@@ -217,7 +217,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
 
 void GLWidget::wheelEvent(QWheelEvent *e)
 {
-    zoomViewMat(e->angleDelta().y());
+    zoomViewMat(e->angleDelta().y()>0?1.1:0.9);
     e->accept();
     update();
 }

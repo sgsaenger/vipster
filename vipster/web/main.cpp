@@ -14,6 +14,11 @@ using namespace Vipster;
 static GuiWrapper gui;
 static std::vector<Molecule> molecules;
 
+static VRDisplayHandle handle;
+static unsigned long vrWidth, vrHeight;
+static bool vrMoving{false}, vrHasPos{false};
+static Vec vrPos{0,0,-10};
+
 std::string emReadFile(std::string fn, std::string name, int fmt){
     try {
         auto d = readFile(fn, (IOFmt)fmt, name);
@@ -79,7 +84,7 @@ bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
 
 // Expose Canvas operations
 void emUpdateView(void){ gui.updateMainStep(true); }
-void emZoom(int val){gui.zoomViewMat(val);}
+void emZoom(float val){gui.zoomViewMat(val);}
 void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
 void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
 
@@ -113,6 +118,8 @@ std::string emFmtName(int m, int f){
     return name + '.' + IOPlugins.at((IOFmt)f)->extension;
 }
 
+void emVrMove(int val){vrMoving = val;}
+
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("evalCache", &emEvalCache);
     em::function("getNMol", &emGetNMol);
@@ -138,6 +145,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("translate", &emTranslate);
     em::function("guessFmt", &emGuessFmt);
     em::function("getFormattedName", &emFmtName);
+    em::function("vrToggleMove", &emVrMove);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
@@ -207,7 +215,7 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
 
 EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void*)
 {
-    gui.zoomViewMat(-wheelEvent->deltaY);
+    gui.zoomViewMat(wheelEvent->deltaY<0?1.1:0.9);
     return 1;
 }
 
@@ -225,8 +233,22 @@ void main_loop(){
     gui.draw();
 }
 
-static VRDisplayHandle handle;
-static unsigned long vrWidth, vrHeight;
+void vr_update_pos(const VRFrameData& data){
+//    if(vrHasPos){
+//        vrPos[0] = data.pose.position.x;
+//        vrPos[1] = data.pose.position.y;
+//        vrPos[2] = data.pose.position.z;
+//    }else if(vrMoving){
+    if(vrMoving && !vrHasPos){
+        Vec tmp{
+            data.pose.orientation.x,
+            data.pose.orientation.y,
+            data.pose.orientation.z,
+        };
+        tmp /= Vec_length(tmp);
+        vrPos += tmp;
+    }
+}
 
 void vr_loop(){
     if (!emscripten_vr_display_presenting(handle)) {
@@ -237,9 +259,10 @@ void vr_loop(){
     }else{
         VRFrameData data;
         emscripten_vr_get_frame_data(handle, &data);
+        vr_update_pos(data);
         gui.drawVR(data.leftProjectionMatrix, data.leftViewMatrix,
                    data.rightProjectionMatrix, data.rightViewMatrix,
-                   Vec{0,0,-10}, vrWidth, vrHeight);
+                   vrPos, vrWidth, vrHeight);
         emscripten_vr_submit_frame(handle);
     }
 }
@@ -299,6 +322,7 @@ void tryInitVR(void*){
                 continue;
             }
             printf("Succeeded so far, using this display\n");
+            vrHasPos = caps.hasPosition;
             EM_ASM($('#vr-enter').show());
             emscripten_set_click_callback("vr-enter", nullptr, 0, vr_start_presenting);
             emscripten_set_click_callback("vr-exit", nullptr, 0, vr_stop_presenting);

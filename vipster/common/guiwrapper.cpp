@@ -202,9 +202,9 @@ void GuiWrapper::resizeViewMat(long w, long h)
     pMatChanged = true;
 }
 
-void GuiWrapper::zoomViewMat(int i)
+void GuiWrapper::zoomViewMat(float i)
 {
-    guiMatScale(vMat, i>0?1.1f:0.9f);
+    guiMatScale(vMat, i);
     vMatChanged = true;
 }
 
