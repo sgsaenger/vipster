@@ -15,7 +15,9 @@ Testing:
 
 Visualization and editing framework for atomistic simulations.
 
-For more information, please visit the [Homepage](https://sgsaenger.github.io/vipster),
+For more information, please visit the [Homepage](https://sgsaenger.github.io/vipster).
+
+Binary releases are available [here](https://github.com/sgsaenger/vipster/releases),
 installation instructions can be found [here](INSTALL.md).
 
 Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/emscripten/index.html)
