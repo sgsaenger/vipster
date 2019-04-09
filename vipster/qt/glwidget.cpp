@@ -140,11 +140,11 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
-std::set<size_t> GLWidget::pickAtoms()
+std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
 {
     // return indices of atoms enclosed by rectangle
     // defined by mousePos and rectPos
-    std::set<size_t> idx;
+    std::map<size_t, std::vector<SizeVec>> idx;
     makeCurrent();
     drawSel();
     QOpenGLFramebufferObjectFormat format;
@@ -164,12 +164,23 @@ std::set<size_t> GLWidget::pickAtoms()
     std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
     fbo.release();
+    std::set<std::array<GLubyte,4>> set;
     for(size_t i=0; i<data.size(); i+=4){
-        if(data[i+3]){
-            idx.insert(data[i+0] +
-                       (static_cast<size_t>(data[i+1])<<8) +
-                       (static_cast<size_t>(data[i+2])<<16)
-                    );
+        set.insert({data[i],data[i+1],data[i+2],data[i+3]});
+    }
+    //
+    for(const auto& pix: set){
+        if((pix[3]!=0) || (pix[2]!=0)){
+            //untangle pbc-id
+            GLuint box = pix[2] + (GLuint{pix[3]}<<16u) - 1;
+            auto z = box / (mult[0]*mult[1]);
+            auto yrem = box % (mult[0]*mult[1]);
+            auto y = yrem / mult[0];
+            auto x = yrem % mult[0];
+            // untangle atom-id
+            idx[pix[0] +
+                (static_cast<size_t>(pix[1])<<16)
+               ].push_back(SizeVec{x,y,z});
         }
     }
     return idx;
@@ -217,7 +228,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
 
 void GLWidget::wheelEvent(QWheelEvent *e)
 {
-    zoomViewMat(e->angleDelta().y()>0?1.1:0.9);
+    zoomViewMat(e->angleDelta().y()>0?1.1f:0.9f);
     e->accept();
     update();
 }
@@ -254,7 +265,8 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
                     shift = curStep->getCom(AtomFmt::Bohr);
                 }
             }else{
-                shift = curStep->asFmt(AtomFmt::Bohr)[*idx.begin()].coord;
+                // TODO
+//                shift = curStep->asFmt(AtomFmt::Bohr)[*idx.begin()].coord;
             }
         }
         break;
@@ -328,18 +340,25 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                 filter.indices.insert(origIndices.begin(), origIndices.end());
             }
             auto idx = pickAtoms();
-            if(idx.size() == 1){
-                auto i0 = *idx.begin();
-                if(filter.indices.find(i0) == filter.indices.end()){
+            if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
+                auto i = *idx.begin();
+                if(filter.indices.find(i.first) == filter.indices.end()){
                     // if not present, add single atom
-                    filter.indices.insert(i0);
+                    filter.indices[i.first] = i.second;
                 }else{
                     // if present, remove single atom
-                    filter.indices.erase(i0);
+                    filter.indices.erase(i.first);
                 }
             }else{
                 // if area is selected, always merge sets
-                filter.indices.insert(idx.begin(), idx.end());
+                for(const auto& p: idx){
+                    auto& target = filter.indices[p.first];
+                    for(auto& pbc: p.second){
+                        if(std::find(target.begin(), target.end(), pbc) == target.end()){
+                            target.push_back(pbc);
+                        }
+                    }
+                }
             }
             curSel->setFilter(filter);
             rectPos = mousePos;

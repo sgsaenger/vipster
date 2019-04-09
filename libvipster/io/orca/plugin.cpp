@@ -39,7 +39,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
         const auto intParser = [](Step& s, std::ifstream &file, std::string term){
             std::string line, test;
             std::stringstream ls;
-            std::array<size_t, 3> ids;
+            SizeVec ids;
             Vec values;
             while(std::getline(file, line)){
                 ls = std::stringstream{line};
@@ -62,7 +62,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
         const auto gzmtParser = [](Step& s, std::ifstream &file, std::string term){
             std::string line, test;
             std::stringstream ls;
-            std::array<size_t, 3> ids;
+            SizeVec ids;
             Vec values;
             while(std::getline(file, line)){
                 ls = std::stringstream{line};

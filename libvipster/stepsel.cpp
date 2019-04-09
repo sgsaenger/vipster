@@ -46,11 +46,11 @@ static void writePos(std::ostream& os, const SelectionFilter& filter){
 static void writeIdx(std::ostream& os, const SelectionFilter& filter){
     os << "index ";
     if(filter.indices.size() == 1){
-        os << *filter.indices.cbegin();
+        os << filter.indices.cbegin()->first;
     }else{
         os << "[ ";
-        for(const auto& i:filter.indices){
-            os << i << " ";
+        for(const auto& p:filter.indices){
+            os << p.first << " ";
         }
         os << ']';
     }
@@ -195,10 +195,10 @@ static void parseIdx(std::istream& is, SelectionFilter& filter){
             auto left = std::stoul(token.substr(0, splitPos));
             auto right = std::stoul(token.substr(splitPos+1));
             for(auto i=std::min(left, right); i<=std::max(left,right);++i){
-                filter.indices.insert(static_cast<size_t>(i));
+                filter.indices.emplace(static_cast<size_t>(i), std::vector{SizeVec{}});
             }
         }else{
-            filter.indices.insert(std::stoul(token));
+            filter.indices.emplace(std::stoul(token), std::vector{SizeVec{}});
         }
     };
     if(token.front() == '['){

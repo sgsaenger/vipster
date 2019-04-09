@@ -317,7 +317,7 @@ void MolWidget::on_atomTable_itemSelectionChanged()
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
     for(const auto& i: idx){
-        filter.indices.insert(static_cast<size_t>(i.row()));
+        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
     }
     master->curSel->setFilter(filter);
     triggerUpdate(GuiChange::selection);
@@ -330,7 +330,7 @@ void MolWidget::setSelection()
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
     for(const auto& i:master->curSel->getIndices()){
-        table->selectRow(static_cast<int>(i));
+        table->selectRow(static_cast<int>(i.first));
     }
     table->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }

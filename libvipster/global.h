@@ -13,6 +13,7 @@ namespace Vipster {
     constexpr float invbohr = 1/bohrrad;
 
     using ColVec = std::array<uint8_t, 4>;
+    using SizeVec = std::array<size_t, 3>;
 
     class Error:public std::logic_error{
     public:

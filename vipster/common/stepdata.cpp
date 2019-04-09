@@ -55,6 +55,7 @@ void GUI::StepData::initSel()
         READUNIFORM(sel_shader, pos_scale);
         READUNIFORM(sel_shader, scale_fac);
         READUNIFORM(sel_shader, offset);
+        READUNIFORM(sel_shader, pbc_instance);
         sel_shader.initialized = true;
     }
 
@@ -342,6 +343,8 @@ void GUI::StepData::drawSel(const PBCVec &mult)
                 for(int z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
                     glUniform3fv(sel_shader.offset, 1, off.data());
+                    glUniform1ui(sel_shader.pbc_instance,
+                                 1 + x + y*mult[0] + z*mult[0]*mult[1]);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           atom_model_npoly,
                                           static_cast<GLsizei>(atom_buffer.size()));
@@ -349,7 +352,8 @@ void GUI::StepData::drawSel(const PBCVec &mult)
             }
         }
     }else{
-        glUniform3fv(atom_shader.offset, 1, center.data());
+        glUniform3fv(sel_shader.offset, 1, center.data());
+        glUniform1ui(sel_shader.pbc_instance, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(atom_buffer.size()));

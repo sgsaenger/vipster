@@ -118,11 +118,16 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
             if(line.find("&END") != line.npos){
                 curSection = nullptr;
             }else{
-                curSection = std::find_if(IO::CPParam::str2section.begin(),
-                                          IO::CPParam::str2section.end(),
-                                          [&line](const decltype(IO::CPParam::str2section)::value_type& pair){
+                auto pos = std::find_if(IO::CPParam::str2section.begin(),
+                                        IO::CPParam::str2section.end(),
+                                        [&line](const decltype(IO::CPParam::str2section)::value_type& pair){
                                               return pair.first == line;
-                                          })->second;
+                                        });
+                if(pos != IO::CPParam::str2section.end()){
+                    curSection = pos->second;
+                }else{
+                    throw IO::Error("Unknown CPMD-Input section: "+line);
+                }
             }
         }else{
             if(!curSection){

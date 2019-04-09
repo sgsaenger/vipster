@@ -810,7 +810,7 @@
                                     </stereotypes>
                                     <a>{44f4bfab-9ccb-4b0b-8031-718791a2a4d9}</a>
                                     <b>{b6b0699a-42d0-489e-a144-c637c87064d1}</b>
-                                    <name>T-&gt;AtomSelection&lt;StepMutable&lt;A&gt;&gt;&gt;</name>
+                                    <name>&lt;T-&gt;AtomSelection&lt;StepMutable&lt;A&gt;&gt;&gt;</name>
                                    </DRelation>
                                   </base-DRelation>
                                  </DInheritance>
@@ -834,7 +834,7 @@
                                     </stereotypes>
                                     <a>{44f4bfab-9ccb-4b0b-8031-718791a2a4d9}</a>
                                     <b>{e0ed4dd5-d82f-4686-a189-26b7d545b81a}</b>
-                                    <name>T-&gt;AtomSelection&lt;StepConst&lt;A&gt;&gt;</name>
+                                    <name>&lt;T-&gt;AtomSelection&lt;StepConst&lt;A&gt;&gt;&gt;</name>
                                    </DRelation>
                                   </base-DRelation>
                                  </DInheritance>
@@ -1416,7 +1416,7 @@
                                                </base-DElement>
                                                <object>{7d4582b9-b68c-4c25-8203-fcb7eb9deeb8}</object>
                                                <name>Preset</name>
-                                               <pos>x:830;y:560</pos>
+                                               <pos>x:830;y:550</pos>
                                                <rect>x:-40;y:-30;w:80;h:60</rect>
                                                <visual-role>0</visual-role>
                                               </DObject>
@@ -1436,7 +1436,7 @@
                                                </base-DElement>
                                                <object>{40db3151-5b6e-470a-af58-331f5ffec2c0}</object>
                                                <name>Param</name>
-                                               <pos>x:695;y:560</pos>
+                                               <pos>x:695;y:550</pos>
                                                <rect>x:-40;y:-30;w:80;h:60</rect>
                                                <visual-role>0</visual-role>
                                               </DObject>
@@ -1530,7 +1530,7 @@
                                           </item>
                                          </qlist>
                                         </elements>
-                                        <last-modified>1553271995125</last-modified>
+                                        <last-modified>1553512661540</last-modified>
                                         <toolbarid>Deployment</toolbarid>
                                        </MDiagram>
                                       </base-MDiagram>
@@ -2313,7 +2313,7 @@
                                           </stereotypes>
                                          </MElement>
                                         </base-MElement>
-                                        <name>T-&gt;AtomSelection&lt;StepMutable&lt;A&gt;&gt;&gt;</name>
+                                        <name>&lt;T-&gt;AtomSelection&lt;StepMutable&lt;A&gt;&gt;&gt;</name>
                                         <a>{8c8c5bbd-d65d-420a-a8e6-d3b0d74c2944}</a>
                                         <b>{1885847a-c497-4647-93ad-4437cc038fe6}</b>
                                        </MRelation>
@@ -2341,7 +2341,7 @@
                                           </stereotypes>
                                          </MElement>
                                         </base-MElement>
-                                        <name>T-&gt;AtomSelection&lt;StepConst&lt;A&gt;&gt;</name>
+                                        <name>&lt;T-&gt;AtomSelection&lt;StepConst&lt;A&gt;&gt;&gt;</name>
                                         <a>{8c8c5bbd-d65d-420a-a8e6-d3b0d74c2944}</a>
                                         <b>{a2ef0fb8-dcf1-4ddc-b8cc-59ca93a4c61d}</b>
                                        </MRelation>
@@ -2503,40 +2503,6 @@
                    </MElement>
                   </base-MElement>
                   <name>Web client</name>
-                  <children>
-                   <handles>
-                    <handles>
-                     <qlist>
-                      <item>
-                       <handle>
-                        <uid>{5882f2e1-7fe2-4a9e-83b4-94acff9c064d}</uid>
-                        <target>
-                         <instance type="MPackage">
-                          <MPackage>
-                           <base-MObject>
-                            <MObject>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{5882f2e1-7fe2-4a9e-83b4-94acff9c064d}</uid>
-                               <stereotypes>
-                                <qlist>
-                                 <item>pseudo-library</item>
-                                </qlist>
-                               </stereotypes>
-                              </MElement>
-                             </base-MElement>
-                             <name>OpenGL-abstraction</name>
-                            </MObject>
-                           </base-MObject>
-                          </MPackage>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                     </qlist>
-                    </handles>
-                   </handles>
-                  </children>
                   <relations>
                    <handles>
                     <handles>

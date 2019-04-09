@@ -12,7 +12,6 @@
 #include "pse.h"
 
 //TODO: track changes in properties?
-//TODO: forces, other properties
 
 namespace Vipster{
     namespace Enums{

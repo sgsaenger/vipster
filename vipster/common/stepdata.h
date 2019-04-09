@@ -58,7 +58,7 @@ class StepData: public Data{
     static struct{
         GLuint program;
         GLuint vertex, position, vert_scale, hide;
-        GLint offset, pos_scale, scale_fac;
+        GLint offset, pos_scale, scale_fac, pbc_instance;
         bool initialized{false};
     } sel_shader;
 public:
