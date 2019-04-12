@@ -164,28 +164,25 @@ std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
                       height() - 1 - rectPos.y());
     auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
     auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
-    std::vector<GLushort> data(4*static_cast<size_t>(w*h));
+    std::vector<GLuint64> data(static_cast<size_t>(w*h));
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ALIGNMENT, 2);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_SHORT, data.data());
     fbo.release();
-    std::set<std::array<GLushort,4>> set;
-    for(size_t i=0; i<data.size(); i+=4){
-        set.insert({data[i],data[i+1],data[i+2],data[i+3]});
-    }
+    std::set<GLuint64> set{data.begin(), data.end()};
     //
-    for(const auto& pix: set){
-        if((pix[3]!=0) || (pix[2]!=0)){
+    for(const auto& p: set){
+        auto i = static_cast<GLuint>(p&0xFFFFFFFF);
+        auto box = static_cast<GLuint>((p&0xFFFFFFFF00000000)>>32);
+        if(box){
             //untangle pbc-id
-            GLuint box = pix[2] + (GLuint{pix[3]}<<16u) - 1;
+            box -= 1;
             auto z = box / (mult[0]*mult[1]);
             auto yrem = box % (mult[0]*mult[1]);
             auto y = yrem / mult[0];
             auto x = yrem % mult[0];
             // untangle atom-id
-            idx[pix[0] +
-                (static_cast<size_t>(pix[1])<<16)
-               ].push_back(SizeVec{x,y,z});
+            idx[i].push_back(SizeVec{x,y,z});
         }
     }
     return idx;
@@ -270,8 +267,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
                     shift = curStep->getCom(AtomFmt::Bohr);
                 }
             }else{
-                // TODO
-//                shift = curStep->asFmt(AtomFmt::Bohr)[*idx.begin()].coord;
+                shift = curStep->asFmt(AtomFmt::Bohr)[idx.begin()->first].coord;
             }
         }
         break;
@@ -347,12 +343,22 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             auto idx = pickAtoms();
             if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
                 auto i = *idx.begin();
-                if(filter.indices.find(i.first) == filter.indices.end()){
+                auto pos = filter.indices.find(i.first);
+                if(pos == filter.indices.end()){
                     // if not present, add single atom
                     filter.indices[i.first] = i.second;
                 }else{
-                    // if present, remove single atom
-                    filter.indices.erase(i.first);
+                    auto pbc = std::find(pos->second.begin(), pos->second.end(), i.second[0]);
+                    if(pbc == pos->second.end()){
+                        // atom present, add aditional periodic image
+                        pos->second.push_back(i.second[0]);
+                    }else if(pos->second.size() > 1){
+                        // atom present, remove selected periodic image
+                        pos->second.erase(pbc);
+                    }else{
+                        // atom present, no periodic images remaining, remove completely
+                        filter.indices.erase(pos);
+                    }
                 }
             }else{
                 // if area is selected, always merge sets

@@ -325,7 +325,9 @@ void GUI::StepData::drawSel(const PBCVec &mult)
         glDisable(GL_MULTISAMPLE);
     }
 #endif
-    glClearColor(1,1,1,0);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(1,1,0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Vec center = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     glBindVertexArray(sel_vao);
@@ -338,9 +340,9 @@ void GUI::StepData::drawSel(const PBCVec &mult)
         center -= (mult[0]-1)*cv[0]/2.;
         center -= (mult[1]-1)*cv[1]/2.;
         center -= (mult[2]-1)*cv[2]/2.;
-        for(int x=0;x<mult[0];++x){
-            for(int y=0;y<mult[1];++y){
-                for(int z=0;z<mult[2];++z){
+        for(unsigned int x=0;x<mult[0];++x){
+            for(unsigned int y=0;y<mult[1];++y){
+                for(unsigned int z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
                     glUniform3fv(sel_shader.offset, 1, off.data());
                     glUniform1ui(sel_shader.pbc_instance,
