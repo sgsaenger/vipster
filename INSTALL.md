@@ -6,9 +6,35 @@ Vipster has four main components:
 - *WebVipster*, a web-application
 - *libvipster*, the library everything else is based on
 
-In order to compile any of these, you need a working **cmake** installation.
+## Precompiled releases
 
-## Qt-Frontend
+Binary releases are provided for Windows, Linux and macOS on [github](https://github.com/sgsaenger/vipster/releases).
+
+### Windows
+
+Windows releases are distributed as .7z archives, so please make sure to unpack it with [7-Zip](https://7-zip.org).
+
+### Linux
+
+For Arch Linux, PKBUILDs are available in the AUR as *vipster* (latest release) and *vipster-git* (following the latest developments).
+
+Other distributions may follow.
+
+If your distribution does not offer a package, there is a portable .AppImage file you can download from the releases page. This can be made executable and used directly:
+```
+chmod +x Vipster-Linux-x86_64.AppImage
+./Vipster-Linux-x86_64.AppImage
+```
+
+### macOS
+
+The macOS release is distributed as a regular .dmg file that you can install as usual.
+
+## Build from source
+
+In order to compile Vipster, you need a working [cmake](https://cmake.org) installation.
+
+### Qt-Frontend
 
 This frontend should work on every pc with OpenGL3.3 capabilities.
 Please make sure that you have a valid Qt installation.
@@ -25,7 +51,7 @@ cmake --build .
 If cmake does not find your Qt installation (e.g. `qmake` not in your `$PATH`) or you want to specify a certain version,
 add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 
-## Python-bindings
+### Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.
 Please refer to the documentation of [pybind11](https://github.com/pybind/pybind11)
@@ -41,15 +67,15 @@ cmake --build .
 
 The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`
 
-## Debugging
+### Debugging
 
 If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
 Additionally, you can enable compilation of unit tests by adding `-D TESTS=YES`.
 
-## Web-Frontend
+### Web-Frontend
 
 This frontend works in every browser with WebGL2 and WebAssembly support.
-It expects a working **emscripten** installation.
+It expects a working [emscripten](http://kripken.github.io/emscripten-site) installation.
 To compile, use:
 ```
 cd $VIPSTER_SOURCE
@@ -63,7 +89,7 @@ This prepares a .wasm file that contains the code, and a .js file that contains 
 To use this, one needs to embed it in a webpage and bind the exposed functions to HTML-events.
 An example implementation can be found in `gh-pages/emscripten`.
 
-### Rebuild CSS (optional)
+#### Rebuild CSS (optional)
 
 To rebuild the css, run
 ```
