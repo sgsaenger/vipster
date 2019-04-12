@@ -47,7 +47,6 @@ void PickWidget::updateWidget(guiChange_t change)
         return;
     }
     const auto& curSel = master->curSel->asFmt(AtomFmt::Angstrom);
-//    const auto nat = curSel.getNat();
     auto& text = *ui->PickText;
     text.setPlainText("Atoms:");
     auto it = curSel.begin();
@@ -66,13 +65,13 @@ void PickWidget::updateWidget(guiChange_t change)
             }
             if(off != SizeVec{0,0,0}){
                 text.appendPlainText(names.back()+'('+
-                                     QString::fromStdString(curSel[it.getIdx()].name)+") <"+
+                                     QString::fromStdString(it->name)+") <"+
                                      QString::number(off[0])+','+
                                      QString::number(off[1])+','+
                                      QString::number(off[2])+'>');
             }else{
                 text.appendPlainText(names.back()+'('+
-                                     QString::fromStdString(curSel[it.getIdx()].name)+')');
+                                     QString::fromStdString(it->name)+')');
             }
             count++;
             nat++;

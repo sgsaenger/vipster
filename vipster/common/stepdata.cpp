@@ -48,14 +48,14 @@ void GUI::StepData::initSel()
 {
     if(!sel_shader.initialized){
         sel_shader.program = loadShader("/select.vert", "/select.frag");
-        READATTRIB(sel_shader, vertex);
-        READATTRIB(sel_shader, position);
-        READATTRIB(sel_shader, vert_scale);
-        READATTRIB(sel_shader, hide);
-        READUNIFORM(sel_shader, pos_scale);
-        READUNIFORM(sel_shader, scale_fac);
-        READUNIFORM(sel_shader, offset);
-        READUNIFORM(sel_shader, pbc_instance);
+        READATTRIB(sel_shader, vertex)
+        READATTRIB(sel_shader, position)
+        READATTRIB(sel_shader, vert_scale)
+        READATTRIB(sel_shader, hide)
+        READUNIFORM(sel_shader, pos_scale)
+        READUNIFORM(sel_shader, scale_fac)
+        READUNIFORM(sel_shader, offset)
+        READUNIFORM(sel_shader, pbc_instance)
         sel_shader.initialized = true;
     }
 
@@ -94,14 +94,14 @@ void GUI::StepData::initAtom()
 {
     if(!atom_shader.initialized){
         atom_shader.program = loadShader("/atom.vert", "/atom.frag");
-        READATTRIB(atom_shader, vertex);
-        READATTRIB(atom_shader, position);
-        READATTRIB(atom_shader, vert_scale);
-        READATTRIB(atom_shader, color);
-        READATTRIB(atom_shader, hide);
-        READUNIFORM(atom_shader, offset);
-        READUNIFORM(atom_shader, pos_scale);
-        READUNIFORM(atom_shader, scale_fac);
+        READATTRIB(atom_shader, vertex)
+        READATTRIB(atom_shader, position)
+        READATTRIB(atom_shader, vert_scale)
+        READATTRIB(atom_shader, color)
+        READATTRIB(atom_shader, hide)
+        READUNIFORM(atom_shader, offset)
+        READUNIFORM(atom_shader, pos_scale)
+        READUNIFORM(atom_shader, scale_fac)
         atom_shader.initialized = true;
     }
 
@@ -146,16 +146,16 @@ void GUI::StepData::initBond()
 {
     if(!bond_shader.initialized){
         bond_shader.program = loadShader("/bond.vert", "/bond.frag");
-        READATTRIB(bond_shader, vertex);
-        READATTRIB(bond_shader, position);
-        READATTRIB(bond_shader, color1);
-        READATTRIB(bond_shader, color2);
-        READATTRIB(bond_shader, mMatrix);
-        READATTRIB(bond_shader, pbc_crit);
-        READUNIFORM(bond_shader, offset);
-        READUNIFORM(bond_shader, pos_scale);
-        READUNIFORM(bond_shader, pbc_cell);
-        READUNIFORM(bond_shader, mult);
+        READATTRIB(bond_shader, vertex)
+        READATTRIB(bond_shader, position)
+        READATTRIB(bond_shader, color1)
+        READATTRIB(bond_shader, color2)
+        READATTRIB(bond_shader, mMatrix)
+        READATTRIB(bond_shader, pbc_crit)
+        READUNIFORM(bond_shader, offset)
+        READUNIFORM(bond_shader, pos_scale)
+        READUNIFORM(bond_shader, pbc_cell)
+        READUNIFORM(bond_shader, mult)
         bond_shader.initialized = true;
     }
 
@@ -223,8 +223,8 @@ void GUI::StepData::initCell()
 {
     if(!cell_shader.initialized){
         cell_shader.program = loadShader("/cell.vert", "/cell.frag");
-        READATTRIB(cell_shader, vertex);
-        READUNIFORM(cell_shader, offset);
+        READATTRIB(cell_shader, vertex)
+        READUNIFORM(cell_shader, offset)
         cell_shader.initialized = true;
     }
 

@@ -6,9 +6,10 @@
 
 namespace Vipster {
 namespace GUI {
-    struct SelProp{ // 16 bytes
+    struct SelProp{ // 22 bytes
         Vec pos;    // 3*4 = 12 bytes
         float rad;  // 4 bytes
+        int16_t mult[3]; // 3*2 = 6 bytes
     };
 
     class SelData: public Data{
@@ -22,8 +23,8 @@ namespace GUI {
         // Shader:
         static struct{
             GLuint program;
-            GLuint vertex, position, vert_scale;
-            GLint offset, pos_scale, scale_fac, color;
+            GLuint vertex, position, vert_scale, pbc_crit;
+            GLint offset, pos_scale, scale_fac, color, mult;
             bool initialized{false};
         } shader;
     public:

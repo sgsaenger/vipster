@@ -31,13 +31,15 @@ void GUI::SelData::initGL()
 {
     if(!shader.initialized){
         shader.program = loadShader("/selection.vert", "/selection.frag");
-        READATTRIB(shader, vertex);
-        READATTRIB(shader, position);
-        READATTRIB(shader, vert_scale);
-        READUNIFORM(shader, color);
-        READUNIFORM(shader, offset);
-        READUNIFORM(shader, pos_scale);
-        READUNIFORM(shader, scale_fac);
+        READATTRIB(shader, vertex)
+        READATTRIB(shader, position)
+        READATTRIB(shader, vert_scale)
+        READATTRIB(shader, pbc_crit)
+        READUNIFORM(shader, color)
+        READUNIFORM(shader, offset)
+        READUNIFORM(shader, pos_scale)
+        READUNIFORM(shader, scale_fac)
+        READUNIFORM(shader, mult)
         shader.initialized = true;
     }
 
@@ -64,6 +66,13 @@ void GUI::SelData::initGL()
                           reinterpret_cast<const GLvoid*>(offsetof(SelProp, rad)));
     glVertexAttribDivisor(shader.vert_scale, 1);
     glEnableVertexAttribArray(shader.vert_scale);
+
+    glVertexAttribIPointer(shader.pbc_crit, 3,
+                          GL_SHORT,
+                          sizeof(SelProp),
+                          reinterpret_cast<const GLvoid*>(offsetof(SelProp, mult)));
+    glVertexAttribDivisor(shader.pbc_crit, 1);
+    glEnableVertexAttribArray(shader.pbc_crit);
     glBindVertexArray(0);
 }
 
@@ -84,13 +93,14 @@ void GUI::SelData::drawMol(const Vec &off)
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
         glUniform4fv(shader.color, 1, color);
+        glUniform3i(shader.mult, 0, 0, 0);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(sel_buffer.size()));
     }
 }
 
-void GUI::SelData::drawCell(const Vec &off, const PBCVec &)
+void GUI::SelData::drawCell(const Vec &off, const PBCVec &mult)
 {
     if(sel_buffer.size()){
         glBindVertexArray(vao);
@@ -99,6 +109,7 @@ void GUI::SelData::drawCell(const Vec &off, const PBCVec &)
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
         glUniform4fv(shader.color, 1, color);
+        glUniform3i(shader.mult, mult[0], mult[1], mult[2]);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(sel_buffer.size()));
@@ -123,14 +134,29 @@ void GUI::SelData::update(Step::selection* sel)
     if(!curSel){
         return;
     }
-    sel_buffer.reserve(curSel->getNat());
+    sel_buffer.reserve(curSel->getNat()); // too small, but better than nothing
+    auto fmt = curSel->getFormatter(AtomFmt::Crystal, curSel->getFmt());
     if(settings.atRadVdW.val){
-        for(const Atom& at:*curSel){
-            sel_buffer.push_back({at.coord, at.pse->vdwr*1.3f});
+        auto it = curSel->begin();
+        while(it != curSel->end()){
+            for(const auto& off: it.getFilterPair().second){
+                sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
+                                      it->pse->vdwr*1.3f,
+                                      {(int16_t)off[0], (int16_t)off[1], (int16_t)off[2]},
+                                     });
+            }
+            ++it;
         }
     }else{
-        for(const Atom& at:*curSel){
-            sel_buffer.push_back({at.coord, at.pse->covr*1.3f});
+        auto it = curSel->begin();
+        while(it != curSel->end()){
+            for(const auto& off: it.getFilterPair().second){
+                sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
+                                      it->pse->covr*1.3f,
+                                      {(int16_t)off[0], (int16_t)off[1], (int16_t)off[2]},
+                                     });
+            }
+            ++it;
         }
     }
     updated = true;
