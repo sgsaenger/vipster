@@ -9,6 +9,7 @@ using namespace Vipster;
 GLWidget::GLWidget(QWidget *parent):
     QOpenGLWidget(parent)
 {
+    setTextureFormat(GL_RGBA16);
     for(auto *w: qApp->topLevelWidgets()){
         if(auto *t = qobject_cast<MainWindow*>(w)){
             master = t;
@@ -57,10 +58,10 @@ void GLWidget::initializeGL()
 
 void GLWidget::paintGL()
 {
+    QPainter painter{this};
+    painter.beginNativePainting();
+    draw();
     if(rectPos != mousePos){
-        QPainter painter{this};
-        painter.beginNativePainting();
-        draw();
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
         painter.endNativePainting();
@@ -74,9 +75,8 @@ void GLWidget::paintGL()
         brush.setStyle(Qt::SolidPattern);
         painter.setBrush(brush);
         painter.drawRect(QRect{mousePos, rectPos});
-        painter.end();
     }else{
-        draw();
+        painter.endNativePainting();
     }
 }
 
@@ -149,6 +149,9 @@ std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
     drawSel();
     QOpenGLFramebufferObjectFormat format;
     format.setSamples(0);
+    format.setInternalTextureFormat(GL_RGBA16);
+    // TODO: benchmark smaller framebuffer
+//    QOpenGLFramebufferObject fbo{QSize{w, h}, format};
     QOpenGLFramebufferObject fbo{size(), format};
     glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
@@ -161,10 +164,12 @@ std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
                       height() - 1 - rectPos.y());
     auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
     auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
-    std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
-    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+    std::vector<GLushort> data(4*static_cast<size_t>(w*h));
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_PACK_ALIGNMENT, 2);
+    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_SHORT, data.data());
     fbo.release();
-    std::set<std::array<GLubyte,4>> set;
+    std::set<std::array<GLushort,4>> set;
     for(size_t i=0; i<data.size(); i+=4){
         set.insert({data[i],data[i+1],data[i+2],data[i+3]});
     }
