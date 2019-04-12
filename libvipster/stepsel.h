@@ -355,8 +355,8 @@ struct AtomSelection{
         size_t getIdx() const noexcept{
             return idx;
         }
-        Vec getPBCCoord() const noexcept{
-            return this->coord + selection->indices[idx].second;
+        const FilterPair& getFilterPair() const{
+            return selection->indices[idx];
         }
     private:
         std::shared_ptr<AtomSelection> selection;
