@@ -192,7 +192,7 @@ static std::vector<FilterPair> invertSel(const T& step, const std::vector<Filter
         if(std::find_if(in.begin(), in.end(),
                         [&i](const auto& pair){
                             return pair.first == i;
-                        }) != in.end()){
+                        }) == in.end()){
             out.emplace_back(i, std::vector{SizeVec{}});
         }
     }
