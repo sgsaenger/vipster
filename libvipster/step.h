@@ -170,9 +170,8 @@ public:
     template<typename T>
     void    newAtoms(const StepConst<T>& s)
     {
-        auto tmp = s.asFmt(at_fmt);
-        const size_t oldNat = this->getNat();
-        const size_t nat = oldNat + tmp.getNat();
+        auto step = s.asFmt(at_fmt >= AtomFmt::Crystal ? AtomFmt::Bohr : at_fmt);
+        const size_t nat = this->getNat() + step.getNat();
         const size_t fmt = static_cast<size_t>(at_fmt);
         // Coordinates
         AtomList& al = *this->atoms;
@@ -183,11 +182,21 @@ public:
         al.coord_changed[fmt] = true;
         al.name_changed = true;
         al.prop_changed = true;
-        for(const auto& at: tmp){
-            al.coordinates[fmt].push_back(at.coord);
-            al.names.push_back(at.name);
-            al.pse.push_back(&(*pse)[at.name]);
-            al.properties.push_back(at.properties);
+        if(at_fmt >= AtomFmt::Crystal){
+            auto tmp = getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
+            for(const auto& at: step){
+                al.coordinates[fmt].push_back(tmp(at.coord));
+                al.names.push_back(at.name);
+                al.pse.push_back(&(*pse)[at.name]);
+                al.properties.push_back(at.properties);
+            }
+        }else{
+            for(const auto& at: step){
+                al.coordinates[fmt].push_back(at.coord);
+                al.names.push_back(at.name);
+                al.pse.push_back(&(*pse)[at.name]);
+                al.properties.push_back(at.properties);
+            }
         }
     }
     void    delAtom(size_t i);
