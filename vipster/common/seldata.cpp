@@ -93,7 +93,7 @@ void GUI::SelData::drawMol(const Vec &off)
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
         glUniform4fv(shader.color, 1, color);
-        glUniform3i(shader.mult, 0, 0, 0);
+        glUniform3i(shader.mult, 1, 1, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(sel_buffer.size()));
