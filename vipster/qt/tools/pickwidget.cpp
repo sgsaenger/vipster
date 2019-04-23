@@ -98,8 +98,8 @@ void PickWidget::updateWidget(guiChange_t change)
         auto dist01 = Vec_length(diff01);
         printDist(text, names[0], names[1], dist01);
         if(nat>2){
-            auto diff02 = curSel[0].coord - curSel[2].coord;
-            auto diff12 = curSel[1].coord - curSel[2].coord;
+            auto diff02 = coords[0] - coords[2];
+            auto diff12 = coords[1] - coords[2];
             auto dist02 = Vec_length(diff02);
             auto dist12 = Vec_length(diff12);
             printDist(text, names[0], names[2], dist02);
@@ -115,9 +115,9 @@ void PickWidget::updateWidget(guiChange_t change)
                 printAngle(text, names[1], names[2], names[0], ang120);
                 printAngle(text, names[2], names[0], names[1], ang201);
             }else{
-                auto diff03 = curSel[0].coord - curSel[3].coord;
-                auto diff13 = curSel[1].coord - curSel[3].coord;
-                auto diff23 = curSel[2].coord - curSel[3].coord;
+                auto diff03 = coords[0] - coords[3];
+                auto diff13 = coords[1] - coords[3];
+                auto diff23 = coords[2] - coords[3];
                 auto dist03 = Vec_length(diff03);
                 auto dist13 = Vec_length(diff13);
                 auto dist23 = Vec_length(diff23);
