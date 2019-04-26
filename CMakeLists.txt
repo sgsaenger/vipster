@@ -29,7 +29,7 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT SKBUILD)
     install(TARGETS libvipster
         LIBRARY
             DESTINATION "lib"
@@ -39,6 +39,8 @@ if(UNIX AND NOT APPLE)
         FILES_MATCHING PATTERN "*.h"
         )
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+elseif(SKBUILD)
+    install(TARGETS libvipster LIBRARY DESTINATION ".")
 endif()
 
 if(TESTS)
@@ -52,11 +54,14 @@ endif()
 
 if(PYTHON)
     # Python-bindings
-    add_subdirectory(external/pybind11)
+    find_package(pybind11 CONFIG)
+    if(NOT pybind11_FOUND)
+        add_subdirectory(external/pybind11)
+    endif()
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(UNIX AND NOT APPLE)
+    if(UNIX AND NOT APPLE AND NOT SKBUILD)
         find_package(PythonInterp REQUIRED)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
@@ -64,6 +69,8 @@ print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
+    elseif(SKBUILD)
+        install(TARGETS pyvipster LIBRARY DESTINATION ".")
     endif()
 endif()
 

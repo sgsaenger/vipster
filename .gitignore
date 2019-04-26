@@ -39,3 +39,10 @@ moc_*
 # NPM packages
 node_modules/
 package-lock.json
+
+# python dist-stuff
+*.egg
+*.whl
+_skbuild/
+vipster.egg-info/
+MANIFEST

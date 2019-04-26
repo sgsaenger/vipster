@@ -8,7 +8,7 @@ Vipster has four main components:
 
 ## Precompiled releases
 
-Binary releases are provided for Windows, Linux and macOS on [github](https://github.com/sgsaenger/vipster/releases).
+Binary releases of *QtVipster* are provided for Windows, Linux and macOS on [github](https://github.com/sgsaenger/vipster/releases).
 
 ### Windows
 
@@ -17,6 +17,7 @@ Windows releases are distributed as .7z archives, so please make sure to unpack 
 ### Linux
 
 For Arch Linux, PKBUILDs are available in the AUR as *vipster* (latest release) and *vipster-git* (following the latest developments).
+This also contains the python bindings.
 
 Other distributions may follow.
 
@@ -54,7 +55,14 @@ add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 ### Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.
-Please refer to the documentation of [pybind11](https://github.com/pybind/pybind11)
+An easy way to install them is via pip and PyPi:
+```
+pip install vipster
+```
+
+If you are on Linux and your distribution offers a Vipster-package, it should also include the bindings.
+Please also refer to the documentation of [pybind11](https://github.com/pybind/pybind11).
+To build them from source, you can either do `python setup.py install`, which will install like any other python package, or go the manual way (and share the build environment/settings):
 
 ```
 cd $VIPSTER_SOURCE
@@ -65,7 +73,8 @@ cmake -D CMAKE_BUILD_TYPE=Release -D PYTHON=YES ..
 cmake --build .
 ```
 
-The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`
+The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`.
+**NOTE**: For installing to your system or creating a package, create the .egg-info folder via `python setup.py egg_info`.
 
 ### Debugging
 
