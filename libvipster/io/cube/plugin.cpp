@@ -29,7 +29,7 @@ IO::Data CubeParser(const std::string& name, std::ifstream &file){
     size_t nat, nval;
     Vec origin;
     Mat cell;
-    std::array<size_t, 3> extent;
+    SizeVec extent;
     lstream >> tmp >> origin[0] >> origin[1] >> origin[2];
     if(lstream.fail()){
         throw IO::Error("Cube: failed to parse nat/origin");

@@ -48,13 +48,14 @@ void GUI::StepData::initSel()
 {
     if(!sel_shader.initialized){
         sel_shader.program = loadShader("/select.vert", "/select.frag");
-        READATTRIB(sel_shader, vertex);
-        READATTRIB(sel_shader, position);
-        READATTRIB(sel_shader, vert_scale);
-        READATTRIB(sel_shader, hide);
-        READUNIFORM(sel_shader, pos_scale);
-        READUNIFORM(sel_shader, scale_fac);
-        READUNIFORM(sel_shader, offset);
+        READATTRIB(sel_shader, vertex)
+        READATTRIB(sel_shader, position)
+        READATTRIB(sel_shader, vert_scale)
+        READATTRIB(sel_shader, hide)
+        READUNIFORM(sel_shader, pos_scale)
+        READUNIFORM(sel_shader, scale_fac)
+        READUNIFORM(sel_shader, offset)
+        READUNIFORM(sel_shader, pbc_instance)
         sel_shader.initialized = true;
     }
 
@@ -93,14 +94,14 @@ void GUI::StepData::initAtom()
 {
     if(!atom_shader.initialized){
         atom_shader.program = loadShader("/atom.vert", "/atom.frag");
-        READATTRIB(atom_shader, vertex);
-        READATTRIB(atom_shader, position);
-        READATTRIB(atom_shader, vert_scale);
-        READATTRIB(atom_shader, color);
-        READATTRIB(atom_shader, hide);
-        READUNIFORM(atom_shader, offset);
-        READUNIFORM(atom_shader, pos_scale);
-        READUNIFORM(atom_shader, scale_fac);
+        READATTRIB(atom_shader, vertex)
+        READATTRIB(atom_shader, position)
+        READATTRIB(atom_shader, vert_scale)
+        READATTRIB(atom_shader, color)
+        READATTRIB(atom_shader, hide)
+        READUNIFORM(atom_shader, offset)
+        READUNIFORM(atom_shader, pos_scale)
+        READUNIFORM(atom_shader, scale_fac)
         atom_shader.initialized = true;
     }
 
@@ -145,16 +146,16 @@ void GUI::StepData::initBond()
 {
     if(!bond_shader.initialized){
         bond_shader.program = loadShader("/bond.vert", "/bond.frag");
-        READATTRIB(bond_shader, vertex);
-        READATTRIB(bond_shader, position);
-        READATTRIB(bond_shader, color1);
-        READATTRIB(bond_shader, color2);
-        READATTRIB(bond_shader, mMatrix);
-        READATTRIB(bond_shader, pbc_crit);
-        READUNIFORM(bond_shader, offset);
-        READUNIFORM(bond_shader, pos_scale);
-        READUNIFORM(bond_shader, pbc_cell);
-        READUNIFORM(bond_shader, mult);
+        READATTRIB(bond_shader, vertex)
+        READATTRIB(bond_shader, position)
+        READATTRIB(bond_shader, color1)
+        READATTRIB(bond_shader, color2)
+        READATTRIB(bond_shader, mMatrix)
+        READATTRIB(bond_shader, pbc_crit)
+        READUNIFORM(bond_shader, offset)
+        READUNIFORM(bond_shader, pos_scale)
+        READUNIFORM(bond_shader, pbc_cell)
+        READUNIFORM(bond_shader, mult)
         bond_shader.initialized = true;
     }
 
@@ -222,8 +223,8 @@ void GUI::StepData::initCell()
 {
     if(!cell_shader.initialized){
         cell_shader.program = loadShader("/cell.vert", "/cell.frag");
-        READATTRIB(cell_shader, vertex);
-        READUNIFORM(cell_shader, offset);
+        READATTRIB(cell_shader, vertex)
+        READUNIFORM(cell_shader, offset)
         cell_shader.initialized = true;
     }
 
@@ -324,7 +325,9 @@ void GUI::StepData::drawSel(const PBCVec &mult)
         glDisable(GL_MULTISAMPLE);
     }
 #endif
-    glClearColor(1,1,1,0);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(1,1,0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Vec center = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     glBindVertexArray(sel_vao);
@@ -337,11 +340,13 @@ void GUI::StepData::drawSel(const PBCVec &mult)
         center -= (mult[0]-1)*cv[0]/2.;
         center -= (mult[1]-1)*cv[1]/2.;
         center -= (mult[2]-1)*cv[2]/2.;
-        for(int x=0;x<mult[0];++x){
-            for(int y=0;y<mult[1];++y){
-                for(int z=0;z<mult[2];++z){
+        for(unsigned int x=0;x<mult[0];++x){
+            for(unsigned int y=0;y<mult[1];++y){
+                for(unsigned int z=0;z<mult[2];++z){
                     off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
                     glUniform3fv(sel_shader.offset, 1, off.data());
+                    glUniform1ui(sel_shader.pbc_instance,
+                                 1 + x + y*mult[0] + z*mult[0]*mult[1]);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
                                           atom_model_npoly,
                                           static_cast<GLsizei>(atom_buffer.size()));
@@ -349,7 +354,8 @@ void GUI::StepData::drawSel(const PBCVec &mult)
             }
         }
     }else{
-        glUniform3fv(atom_shader.offset, 1, center.data());
+        glUniform3fv(sel_shader.offset, 1, center.data());
+        glUniform1ui(sel_shader.pbc_instance, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(atom_buffer.size()));

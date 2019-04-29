@@ -14,7 +14,8 @@ namespace Vipster {
 // Forward declarations
 template<typename T>
 class StepConst;
-class Step;
+
+using FilterPair = std::pair<size_t, std::vector<SizeVec>>;
 
 /*
  * Wrap multiple filter criteria without polymorphism
@@ -45,8 +46,6 @@ class Step;
 struct SelectionFilter;
 std::ostream& operator<<(std::ostream& os, const SelectionFilter& filter);
 std::istream& operator>>(std::istream& is, SelectionFilter& filter);
-//TODO: needs to be templated, maybe member-function. ATM copy-creates Step EVERY time
-//std::vector<size_t> evalFilter(const Step& step, SelectionFilter& filter);
 
 struct SelectionFilter{
     SelectionFilter() = default;
@@ -100,7 +99,7 @@ struct SelectionFilter{
     uint8_t coord;
     float posVal;
     size_t coordVal;
-    std::set<size_t> indices;
+    std::map<size_t, std::vector<SizeVec>> indices;
     std::set<std::string> types;
     std::unique_ptr<SelectionFilter> groupfilter{nullptr};
     std::unique_ptr<SelectionFilter> subfilter{nullptr};
@@ -110,13 +109,13 @@ struct SelectionFilter{
  * recursively evaluate the filters
  */
 template<typename T>
-static std::vector<size_t> evalType(const T& step, const SelectionFilter& filter){
-    std::vector<size_t> tmp;
+static std::vector<FilterPair> evalType(const T& step, const SelectionFilter& filter){
+    std::vector<FilterPair> tmp;
     size_t idx{0};
     for(const auto& at: step){
         for(const auto& type: filter.types){
             if(at.name == type){
-                tmp.push_back(idx);
+                tmp.emplace_back(idx, std::vector{SizeVec{}});
                 break;
             }
         }
@@ -126,20 +125,20 @@ static std::vector<size_t> evalType(const T& step, const SelectionFilter& filter
 }
 
 template<typename T>
-static std::vector<size_t> evalIdx(const T& step, const SelectionFilter& filter){
-    std::vector<size_t> tmp;
+static std::vector<FilterPair> evalIdx(const T& step, const SelectionFilter& filter){
+    std::vector<FilterPair> tmp;
     auto nat = step.getNat();
-    for(const auto& i:filter.indices){
-        if(i<nat){
-            tmp.push_back(i);
+    for(const auto& p:filter.indices){
+        if(p.first<nat){
+            tmp.push_back(p);
         }
     }
     return tmp;
 }
 
 template<typename T>
-static std::vector<size_t> evalPos(const T& step, const SelectionFilter& filter){
-    std::vector<size_t> tmp;
+static std::vector<FilterPair> evalPos(const T& step, const SelectionFilter& filter){
+    std::vector<FilterPair> tmp;
     std::size_t idx{0};
     auto cmp = [&filter](const Vec& at){
         size_t dir = (filter.pos & filter.DIR_MASK) >> 2;
@@ -150,7 +149,7 @@ static std::vector<size_t> evalPos(const T& step, const SelectionFilter& filter)
     };
     for(const auto& at: step.asFmt(static_cast<AtomFmt>(filter.pos & filter.FMT_MASK))){
         if(cmp(at.coord)){
-            tmp.push_back(idx);
+            tmp.emplace_back(idx, std::vector{SizeVec{}});
         }
         ++idx;
     }
@@ -158,8 +157,8 @@ static std::vector<size_t> evalPos(const T& step, const SelectionFilter& filter)
 }
 
 template<typename T>
-static std::vector<size_t> evalCoord(const T& step, const SelectionFilter& filter){
-    std::vector<size_t> tmp;
+static std::vector<FilterPair> evalCoord(const T& step, const SelectionFilter& filter){
+    std::vector<FilterPair> tmp;
     // TODO: move functionality to step?
     std::vector<size_t> coord_numbers(step.getNat());
     for(const Bond& b: step.getBonds()){
@@ -178,34 +177,37 @@ static std::vector<size_t> evalCoord(const T& step, const SelectionFilter& filte
     };
     for(size_t i=0; i<step.getNat(); ++i){
         if(cmp(coord_numbers[i])){
-            tmp.push_back(i);
+            tmp.emplace_back(i, std::vector{SizeVec{}});
         }
     }
     return tmp;
 }
 
 template<typename T>
-static std::vector<size_t> invertSel(const T& step, const std::vector<size_t>& in){
-    std::vector<size_t> out;
+static std::vector<FilterPair> invertSel(const T& step, const std::vector<FilterPair>& in){
+    std::vector<FilterPair> out;
     const auto nat = step.getNat();
     out.reserve(nat);
     for(size_t i=0; i<nat; ++i){
-        if(std::find(in.begin(), in.end(), i) == in.end()){
-            out.push_back(i);
+        if(std::find_if(in.begin(), in.end(),
+                        [&i](const auto& pair){
+                            return pair.first == i;
+                        }) == in.end()){
+            out.emplace_back(i, std::vector{SizeVec{}});
         }
     }
     return out;
 }
 
 template<typename T>
-static std::vector<size_t> evalSubFilter(const T& step,
+static std::vector<FilterPair> evalSubFilter(const T& step,
                                   const SelectionFilter& filter,
                                   SelectionFilter& subfilter,
-                                  const std::vector<size_t>& parent){
+                                  const std::vector<FilterPair>& parent){
     using Op = SelectionFilter::Op;
-    std::vector<size_t> child = evalFilter(step, subfilter);
-    std::vector<size_t> tmp(parent.size()+child.size());
-    std::vector<size_t>::iterator it;
+    std::vector<FilterPair> child = evalFilter(step, subfilter);
+    std::vector<FilterPair> tmp(parent.size()+child.size());
+    std::vector<FilterPair>::iterator it;
     if((filter.op & Op::XOR) == Op::XOR){
         it = std::set_symmetric_difference(parent.begin(), parent.end(),
                                            child.begin(), child.end(),
@@ -229,9 +231,9 @@ static std::vector<size_t> evalSubFilter(const T& step,
 }
 
 template<typename T>
-std::vector<size_t> evalFilter(const T& step, SelectionFilter& filter)
+std::vector<FilterPair> evalFilter(const T& step, SelectionFilter& filter)
 {
-    std::vector<size_t> tmp;
+    std::vector<FilterPair> tmp;
     switch(filter.mode){
     case SelectionFilter::Mode::Group:
         tmp = evalFilter(step, *filter.groupfilter);
@@ -268,7 +270,8 @@ std::vector<size_t> evalFilter(const T& step, SelectionFilter& filter)
  */
 template<typename T>
 struct AtomSelection{
-    std::vector<size_t> indices;
+    std::vector<FilterPair> indices;
+    // TODO: molecule is not performance-critical. use shared-ptrs here and in molecule?
     T*                  step;
     SelectionFilter     filter;
 
@@ -308,7 +311,7 @@ struct AtomSelection{
             : B{selection->step->asFmt(fmt).begin()},
               selection{selection}, idx{idx}
         {
-            size_t diff = selection->indices.empty() ? 0 : selection->indices[idx];
+            size_t diff = selection->indices.empty() ? 0 : selection->indices[idx].first;
             B::operator+=(diff);
         }
         // allow iterator to const_iterator conversion
@@ -321,17 +324,11 @@ struct AtomSelection{
             return operator+=(1);
         }
         AtomSelIterator& operator--(){
-            return operator-=(1);
+            return operator+=(-1);
         }
         AtomSelIterator& operator+=(long i){
             idx += i;
-            auto diff = selection->indices[idx] - selection->indices[idx-i];
-            B::operator+=(diff);
-            return *this;
-        }
-        AtomSelIterator& operator-=(long i){
-            idx -= i;
-            auto diff = selection->indices[idx] - selection->indices[idx+i];
+            auto diff = selection->indices[idx].first - selection->indices[idx-i].first;
             B::operator+=(diff);
             return *this;
         }
@@ -341,7 +338,7 @@ struct AtomSelection{
         }
         AtomSelIterator operator-(long i){
             AtomSelIterator copy{*this};
-            return copy-=i;
+            return copy+=i;
         }
         reference  operator*() const {
             return B::operator*();
@@ -357,6 +354,9 @@ struct AtomSelection{
         }
         size_t getIdx() const noexcept{
             return idx;
+        }
+        const FilterPair& getFilterPair() const{
+            return selection->indices[idx];
         }
     private:
         std::shared_ptr<AtomSelection> selection;
@@ -451,7 +451,7 @@ public:
         SelectionFilter fil{};
         fil.mode = SelectionFilter::Mode::Index;
         for(auto& i: indices){
-            fil.indices.insert(remote_source.indices[i]);
+            fil.indices.insert(remote_source.indices[i.first]);
         }
         this->evaluateCache();
     }
@@ -465,7 +465,7 @@ public:
     }
     using StepConst<Source>::asFmt;
 
-    const std::vector<size_t>& getIndices() const noexcept
+    const std::vector<FilterPair>& getIndices() const noexcept
     {
         return this->atoms->indices;
     }

@@ -7,6 +7,7 @@ option(DESKTOP "Build QT-based desktop app" OFF)
 include(CMakeDependentOption)
 cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
 cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
+cmake_dependent_option(EGG_INFO "Create infos for python package" ON "PYTHON" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -29,7 +30,7 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT SKBUILD)
     install(TARGETS libvipster
         LIBRARY
             DESTINATION "lib"
@@ -39,6 +40,8 @@ if(UNIX AND NOT APPLE)
         FILES_MATCHING PATTERN "*.h"
         )
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+elseif(SKBUILD)
+    install(TARGETS libvipster LIBRARY DESTINATION ".")
 endif()
 
 if(TESTS)
@@ -52,11 +55,14 @@ endif()
 
 if(PYTHON)
     # Python-bindings
-    add_subdirectory(external/pybind11)
+    find_package(pybind11 CONFIG)
+    if(NOT pybind11_FOUND)
+        add_subdirectory(external/pybind11)
+    endif()
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(UNIX AND NOT APPLE)
+    if(UNIX AND NOT APPLE AND NOT SKBUILD)
         find_package(PythonInterp REQUIRED)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
@@ -64,6 +70,12 @@ print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
+        if(EGG_INFO)
+            install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
+            install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
+        endif()
+    elseif(SKBUILD)
+        install(TARGETS pyvipster LIBRARY DESTINATION ".")
     endif()
 endif()
 

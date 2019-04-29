@@ -8,15 +8,18 @@ Vipster has four main components:
 
 ## Precompiled releases
 
-Binary releases are provided for Windows, Linux and macOS on [github](https://github.com/sgsaenger/vipster/releases).
+Binary releases of *QtVipster* are provided for Windows, Linux and macOS on [github](https://github.com/sgsaenger/vipster/releases).
+An exemplary implementation of *WebVipster* can be found [here](https://sgsaenger.github.io/vipster/emscripten).
+An easy way to install *PyVipster* is via pip and PyPi: `pip install vipster`
 
-### Windows
+### QtVipster on Windows
 
 Windows releases are distributed as .7z archives, so please make sure to unpack it with [7-Zip](https://7-zip.org).
 
-### Linux
+### QtVipster on Linux
 
 For Arch Linux, PKBUILDs are available in the AUR as *vipster* (latest release) and *vipster-git* (following the latest developments).
+This also contains the python bindings.
 
 Other distributions may follow.
 
@@ -26,7 +29,7 @@ chmod +x Vipster-Linux-x86_64.AppImage
 ./Vipster-Linux-x86_64.AppImage
 ```
 
-### macOS
+### QtVipster on macOS
 
 The macOS release is distributed as a regular .dmg file that you can install as usual.
 
@@ -54,7 +57,10 @@ add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 ### Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.
-Please refer to the documentation of [pybind11](https://github.com/pybind/pybind11)
+
+If you are on Linux and your distribution offers a Vipster-package, it should include the bindings.
+Please also refer to the documentation of [pybind11](https://github.com/pybind/pybind11).
+To build them from source, you can either do `python setup.py install`, which will install like any other python package, or go the manual way (and share the build environment/settings):
 
 ```
 cd $VIPSTER_SOURCE
@@ -65,7 +71,11 @@ cmake -D CMAKE_BUILD_TYPE=Release -D PYTHON=YES ..
 cmake --build .
 ```
 
-The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`
+The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`.
+**NOTE**: By default, Python-Egg informations will be generated,
+which needs `scikit-build` to be installed in your python environment.
+This can be disabled by specifying `-DEGG_INFO=NO`.
+
 
 ### Debugging
 

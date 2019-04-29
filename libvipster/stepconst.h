@@ -388,7 +388,7 @@ private:
         Vec diff = max - min;
         cut = 5*cut;
         Vec size_split = diff;
-        std::array<size_t,3> n_split{1,1,1};
+        SizeVec n_split{1,1,1};
         if(diff[0] >= cut){
             n_split[0] = static_cast<size_t>(std::round(diff[0] / cut));
             size_split[0] = diff[0] / n_split[0];
@@ -581,7 +581,7 @@ private:
         size_split[1] = std::abs(cell[0][1])+std::abs(cell[1][1])+std::abs(cell[2][1]);
         size_split[2] = std::abs(cell[0][2])+std::abs(cell[1][2])+std::abs(cell[2][2]);
         // fragment cell
-        std::array<size_t,3> n_split{1,1,1};
+        SizeVec n_split{1,1,1};
         if(size_split[0] >= cut){
             n_split[0] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[0] / cut)));
             size_split[0] = 1.f/n_split[0];

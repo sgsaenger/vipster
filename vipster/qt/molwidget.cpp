@@ -131,7 +131,7 @@ void MolWidget::on_cellTrajecButton_clicked()
         for(int row=0; row<3; ++row){
             for(int col=0; col<3; ++col){
                 vec[static_cast<size_t>(row)][static_cast<size_t>(col)] =
-                    locale().toFloat(ui->cellVecTable->item(row,col)->text());
+                    ui->cellVecTable->item(row,col)->text().toFloat();
             }
         }
         for(auto& step: master->curMol->getSteps()){
@@ -160,7 +160,7 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
         for(int row=0; row<3; ++row){
             for(int col=0; col<3; ++col){
                 vec[static_cast<size_t>(row)][static_cast<size_t>(col)] =
-                    locale().toFloat(ui->cellVecTable->item(row,col)->text());
+                    ui->cellVecTable->item(row,col)->text().toFloat();
             }
         }
         try{
@@ -216,7 +216,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     }
     Mat vec = curStep.getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
-            locale().toFloat(ui->cellVecTable->item(row,column)->text());
+            ui->cellVecTable->item(row,column)->text().toFloat();
     auto scale = ui->cellScaleBox->isChecked();
     try{
         curStep.setCellVec(vec, scale);
@@ -255,7 +255,7 @@ void MolWidget::on_atomTable_cellChanged(int row, int column)
         if(at.properties->flags[col] != checkState){
             at.properties->flags[col] = checkState;
         }else{
-            at.coord[col] = locale().toFloat(cell->text());
+            at.coord[col] = cell->text().toFloat();
             triggerUpdate(GuiChange::atoms);
         }
     }
@@ -317,7 +317,7 @@ void MolWidget::on_atomTable_itemSelectionChanged()
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
     for(const auto& i: idx){
-        filter.indices.insert(static_cast<size_t>(i.row()));
+        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
     }
     master->curSel->setFilter(filter);
     triggerUpdate(GuiChange::selection);
@@ -330,7 +330,7 @@ void MolWidget::setSelection()
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
     for(const auto& i:master->curSel->getIndices()){
-        table->selectRow(static_cast<int>(i));
+        table->selectRow(static_cast<int>(i.first));
     }
     table->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }

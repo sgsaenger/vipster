@@ -14,11 +14,12 @@ namespace Vipster {
  *
  * Stores atom in separate vectors
  */
-template<typename T>
-class AtomListIterator;
 struct AtomList{
+    template<typename T>
+    class AtomListIterator;
     using iterator = AtomListIterator<Atom>;
     using const_iterator = AtomListIterator<constAtom>;
+
     // Coordinates
     // one buffer per Vipster::AtomFmt
     std::array<std::vector<Vec>, nAtFmt> coordinates;
@@ -34,97 +35,94 @@ struct AtomList{
     // interface
     void evaluateCache(const StepConst<AtomList>&);
     size_t getNat() const noexcept;
-};
 
-/*
- * Iterator for serial Atom container
- */
-template<typename T>
-class AtomListIterator: private T
-{
-    template<typename U> friend class AtomListIterator;
-public:
-    using difference_type = ptrdiff_t;
-    using value_type = T;
-    using reference = T&;
-    using pointer = T*;
-    using iterator_category = std::bidirectional_iterator_tag;
-    AtomListIterator(const std::shared_ptr<AtomList> &atoms,
-                     AtomFmt fmt, size_t idx)
-        : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
-            &atoms->coord_changed[static_cast<uint8_t>(fmt)],
-            &atoms->names[idx],
-            &atoms->name_changed,
-            &atoms->properties[idx],
-            &atoms->pse[idx],
-            &atoms->prop_changed,
-        }, atoms{atoms}, fmt{fmt}, idx{idx}
-    {}
-    // allow iterator to const_iterator conversion
-    template <typename U, typename R=T, typename = typename std::enable_if<std::is_same<constAtom, R>::value>::type>
-    AtomListIterator(const AtomListIterator<U>& it)
-        : T{*it}, atoms{it.atoms}, fmt{it.fmt}, idx{it.idx}
-    {}
-    AtomListIterator& operator++(){
-        ++idx;
-        ++(this->coord_ptr);
-        ++(this->name_ptr);
-        ++(this->prop_ptr);
-        ++(this->pse_ptr);
-        return *this;
-    }
-    AtomListIterator& operator--(){
-        --idx;
-        --(this->coord_ptr);
-        --(this->name_ptr);
-        --(this->prop_ptr);
-        --(this->pse_ptr);
-        return *this;
-    }
-    AtomListIterator& operator+=(long i){
-        idx += i;
-        this->coord_ptr += i;
-        this->name_ptr += i;
-        this->prop_ptr += i;
-        this->pse_ptr += i;
-        return *this;
-    }
-    AtomListIterator& operator-=(long i){
-        idx -= i;
-        this->coord_ptr -= i;
-        this->name_ptr -= i;
-        this->prop_ptr -= i;
-        this->pse_ptr -= i;
-        return *this;
-    }
-    AtomListIterator operator+(long i){
-        AtomListIterator copy{*this};
-        return copy+=i;
-    }
-    AtomListIterator operator-(long i){
-        AtomListIterator copy{*this};
-        return copy-=i;
-    }
-    reference operator*() const {
-        // remove constness of iterator, as it is independent of constness of Atom
-        return static_cast<reference>(*const_cast<AtomListIterator*>(this));
-    }
-    pointer operator->() const {
-        return &(operator*());
-    }
-    bool    operator==(const AtomListIterator& rhs) const noexcept{
-        return (atoms == rhs.atoms) && (fmt == rhs.fmt) && (idx == rhs.idx);
-    }
-    bool    operator!=(const AtomListIterator& rhs) const noexcept{
-        return !(*this == rhs);
-    }
-    size_t getIdx() const noexcept{
-        return idx;
-    }
-private:
-    std::shared_ptr<AtomList> atoms;
-    AtomFmt fmt;
-    size_t idx;
+    template<typename T>
+    class AtomListIterator: private T
+    {
+        template<typename U> friend class AtomListIterator;
+    public:
+        using difference_type = ptrdiff_t;
+        using value_type = T;
+        using reference = T&;
+        using pointer = T*;
+        using iterator_category = std::bidirectional_iterator_tag;
+        AtomListIterator(const std::shared_ptr<AtomList> &atoms,
+                         AtomFmt fmt, size_t idx)
+            : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
+                &atoms->coord_changed[static_cast<uint8_t>(fmt)],
+                &atoms->names[idx],
+                &atoms->name_changed,
+                &atoms->properties[idx],
+                &atoms->pse[idx],
+                &atoms->prop_changed,
+            }, atoms{atoms}, fmt{fmt}, idx{idx}
+        {}
+        // allow iterator to const_iterator conversion
+        template <typename U, typename R=T, typename = typename std::enable_if<std::is_same<constAtom, R>::value>::type>
+        AtomListIterator(const AtomListIterator<U>& it)
+            : T{*it}, atoms{it.atoms}, fmt{it.fmt}, idx{it.idx}
+        {}
+        AtomListIterator& operator++(){
+            ++idx;
+            ++(this->coord_ptr);
+            ++(this->name_ptr);
+            ++(this->prop_ptr);
+            ++(this->pse_ptr);
+            return *this;
+        }
+        AtomListIterator& operator--(){
+            --idx;
+            --(this->coord_ptr);
+            --(this->name_ptr);
+            --(this->prop_ptr);
+            --(this->pse_ptr);
+            return *this;
+        }
+        AtomListIterator& operator+=(long i){
+            idx += i;
+            this->coord_ptr += i;
+            this->name_ptr += i;
+            this->prop_ptr += i;
+            this->pse_ptr += i;
+            return *this;
+        }
+        AtomListIterator& operator-=(long i){
+            idx -= i;
+            this->coord_ptr -= i;
+            this->name_ptr -= i;
+            this->prop_ptr -= i;
+            this->pse_ptr -= i;
+            return *this;
+        }
+        AtomListIterator operator+(long i){
+            AtomListIterator copy{*this};
+            return copy+=i;
+        }
+        AtomListIterator operator-(long i){
+            AtomListIterator copy{*this};
+            return copy-=i;
+        }
+        reference operator*() const {
+            // remove constness of iterator, as it is independent of constness of Atom
+            return static_cast<reference>(*const_cast<AtomListIterator*>(this));
+        }
+        pointer operator->() const {
+            return &(operator*());
+        }
+        bool    operator==(const AtomListIterator& rhs) const noexcept{
+            return (atoms == rhs.atoms) && (fmt == rhs.fmt) && (idx == rhs.idx);
+        }
+        bool    operator!=(const AtomListIterator& rhs) const noexcept{
+            return !(*this == rhs);
+        }
+        size_t getIdx() const noexcept{
+            return idx;
+        }
+    private:
+        std::shared_ptr<AtomList> atoms;
+        AtomFmt fmt;
+        size_t idx;
+    };
 };
 
 /*
@@ -172,9 +170,8 @@ public:
     template<typename T>
     void    newAtoms(const StepConst<T>& s)
     {
-        auto tmp = s.asFmt(at_fmt);
-        const size_t oldNat = this->getNat();
-        const size_t nat = oldNat + tmp.getNat();
+        auto step = s.asFmt(at_fmt >= AtomFmt::Crystal ? AtomFmt::Bohr : at_fmt);
+        const size_t nat = this->getNat() + step.getNat();
         const size_t fmt = static_cast<size_t>(at_fmt);
         // Coordinates
         AtomList& al = *this->atoms;
@@ -185,11 +182,21 @@ public:
         al.coord_changed[fmt] = true;
         al.name_changed = true;
         al.prop_changed = true;
-        for(const auto& at: tmp){
-            al.coordinates[fmt].push_back(at.coord);
-            al.names.push_back(at.name);
-            al.pse.push_back(&(*pse)[at.name]);
-            al.properties.push_back(at.properties);
+        if(at_fmt >= AtomFmt::Crystal){
+            auto tmp = getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
+            for(const auto& at: step){
+                al.coordinates[fmt].push_back(tmp(at.coord));
+                al.names.push_back(at.name);
+                al.pse.push_back(&(*pse)[at.name]);
+                al.properties.push_back(at.properties);
+            }
+        }else{
+            for(const auto& at: step){
+                al.coordinates[fmt].push_back(at.coord);
+                al.names.push_back(at.name);
+                al.pse.push_back(&(*pse)[at.name]);
+                al.properties.push_back(at.properties);
+            }
         }
     }
     void    delAtom(size_t i);
@@ -199,7 +206,7 @@ public:
         const auto& idx = s.getIndices();
         for(auto it = idx.rbegin(); it != idx.rend(); ++it)
         {
-            delAtom(*it);
+            delAtom(it->first);
         }
         s.setFilter(SelectionFilter{});
     }

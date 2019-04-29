@@ -9,6 +9,7 @@ using namespace Vipster;
 GLWidget::GLWidget(QWidget *parent):
     QOpenGLWidget(parent)
 {
+    setTextureFormat(GL_RGBA16);
     for(auto *w: qApp->topLevelWidgets()){
         if(auto *t = qobject_cast<MainWindow*>(w)){
             master = t;
@@ -57,10 +58,10 @@ void GLWidget::initializeGL()
 
 void GLWidget::paintGL()
 {
+    QPainter painter{this};
+    painter.beginNativePainting();
+    draw();
     if(rectPos != mousePos){
-        QPainter painter{this};
-        painter.beginNativePainting();
-        draw();
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
         painter.endNativePainting();
@@ -74,9 +75,8 @@ void GLWidget::paintGL()
         brush.setStyle(Qt::SolidPattern);
         painter.setBrush(brush);
         painter.drawRect(QRect{mousePos, rectPos});
-        painter.end();
     }else{
-        draw();
+        painter.endNativePainting();
     }
 }
 
@@ -140,15 +140,18 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
-std::set<size_t> GLWidget::pickAtoms()
+std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
 {
     // return indices of atoms enclosed by rectangle
     // defined by mousePos and rectPos
-    std::set<size_t> idx;
+    std::map<size_t, std::vector<SizeVec>> idx;
     makeCurrent();
     drawSel();
     QOpenGLFramebufferObjectFormat format;
     format.setSamples(0);
+    format.setInternalTextureFormat(GL_RGBA16);
+    // TODO: benchmark smaller framebuffer
+//    QOpenGLFramebufferObject fbo{QSize{w, h}, format};
     QOpenGLFramebufferObject fbo{size(), format};
     glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFramebufferObject());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.handle());
@@ -161,15 +164,25 @@ std::set<size_t> GLWidget::pickAtoms()
                       height() - 1 - rectPos.y());
     auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
     auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
-    std::vector<GLubyte> data(4*static_cast<size_t>(w*h));
-    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+    std::vector<GLuint64> data(static_cast<size_t>(w*h));
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_PACK_ALIGNMENT, 2);
+    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_SHORT, data.data());
     fbo.release();
-    for(size_t i=0; i<data.size(); i+=4){
-        if(data[i+3]){
-            idx.insert(data[i+0] +
-                       (static_cast<size_t>(data[i+1])<<8) +
-                       (static_cast<size_t>(data[i+2])<<16)
-                    );
+    std::set<GLuint64> set{data.begin(), data.end()};
+    //
+    for(const auto& p: set){
+        auto i = static_cast<GLuint>(p&0xFFFFFFFF);
+        auto box = static_cast<GLuint>((p&0xFFFFFFFF00000000)>>32);
+        if(box){
+            //untangle pbc-id
+            box -= 1;
+            auto z = box / (mult[0]*mult[1]);
+            auto yrem = box % (mult[0]*mult[1]);
+            auto y = yrem / mult[0];
+            auto x = yrem % mult[0];
+            // untangle atom-id
+            idx[i].push_back(SizeVec{x,y,z});
         }
     }
     return idx;
@@ -217,7 +230,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
 
 void GLWidget::wheelEvent(QWheelEvent *e)
 {
-    zoomViewMat(e->angleDelta().y()>0?1.1:0.9);
+    zoomViewMat(e->angleDelta().y()>0?1.1f:0.9f);
     e->accept();
     update();
 }
@@ -254,7 +267,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
                     shift = curStep->getCom(AtomFmt::Bohr);
                 }
             }else{
-                shift = curStep->asFmt(AtomFmt::Bohr)[*idx.begin()].coord;
+                shift = curStep->asFmt(AtomFmt::Bohr)[idx.begin()->first].coord;
             }
         }
         break;
@@ -328,18 +341,35 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                 filter.indices.insert(origIndices.begin(), origIndices.end());
             }
             auto idx = pickAtoms();
-            if(idx.size() == 1){
-                auto i0 = *idx.begin();
-                if(filter.indices.find(i0) == filter.indices.end()){
+            if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
+                auto i = *idx.begin();
+                auto pos = filter.indices.find(i.first);
+                if(pos == filter.indices.end()){
                     // if not present, add single atom
-                    filter.indices.insert(i0);
+                    filter.indices[i.first] = i.second;
                 }else{
-                    // if present, remove single atom
-                    filter.indices.erase(i0);
+                    auto pbc = std::find(pos->second.begin(), pos->second.end(), i.second[0]);
+                    if(pbc == pos->second.end()){
+                        // atom present, add aditional periodic image
+                        pos->second.push_back(i.second[0]);
+                    }else if(pos->second.size() > 1){
+                        // atom present, remove selected periodic image
+                        pos->second.erase(pbc);
+                    }else{
+                        // atom present, no periodic images remaining, remove completely
+                        filter.indices.erase(pos);
+                    }
                 }
             }else{
                 // if area is selected, always merge sets
-                filter.indices.insert(idx.begin(), idx.end());
+                for(const auto& p: idx){
+                    auto& target = filter.indices[p.first];
+                    for(auto& pbc: p.second){
+                        if(std::find(target.begin(), target.end(), pbc) == target.end()){
+                            target.push_back(pbc);
+                        }
+                    }
+                }
             }
             curSel->setFilter(filter);
             rectPos = mousePos;

@@ -15,7 +15,7 @@ struct AtomProp{ // 9 bytes + 3 bytes padding + 12 bytes directly from step
 struct BondProp{ // 64 bytes
     float mat[9];        // 9*4 = 36 bytes
     Vec pos;             // 3*4 = 12 bytes
-    int16_t mult[4];     // 4*2 = 6 bytes
+    int16_t mult[4];     // 4*2 = 8 bytes
     ColVec col_a, col_b; // 2*4 = 8 bytes
 };
 
@@ -58,7 +58,7 @@ class StepData: public Data{
     static struct{
         GLuint program;
         GLuint vertex, position, vert_scale, hide;
-        GLint offset, pos_scale, scale_fac;
+        GLint offset, pos_scale, scale_fac, pbc_instance;
         bool initialized{false};
     } sel_shader;
 public:
