@@ -37,8 +37,8 @@
                 for(asset of release.assets){
                     list.innerHTML += "<li><a href=" + asset.browser_download_url + ">" + asset.name + "</a></li>";
                 };
-                list.innerHTML += "<li><a href=" + release.tarball_url + ">Download as .tar.gz</li>";
-                list.innerHTML += "<li><a href=" + release.zipball_url + ">Download as .zip</li>";
+                list.innerHTML += "<li><a href=" + release.tarball_url + ">Download source as .tar.gz</li>";
+                list.innerHTML += "<li><a href=" + release.zipball_url + ">Download source as .zip</li>";
             });
         </script>
     </head>
@@ -86,7 +86,7 @@
             <h3> Build from source </h3>
             <p> Depends on <a href="https://www.qt.io">Qt5</a> (&ge; 5.7), <a href="https://cmake.org">CMake</a> (&ge; 3.9)
                 and a C++17-capable compiler (G++/MinGW &ge; 7, Clang &ge; 4) </p>
-            <p> For build informations, please consult INSTALL.md </p>
+            <p> For build informations, please consult INSTALL.md contained in the source-archive. </p>
             <h4> Master-branch </h4>
             <p>
                 This branch is always stable.
@@ -101,6 +101,7 @@
                           <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov">
                     </a>
             </p>
+            <p class="code">$ git clone https://github.com/sgsaenger/vipster<p>
             <p><a href="https://github.com/sgsaenger/vipster/tarball/master">Download as .tar.gz</a></p>
             <p><a href="https://github.com/sgsaenger/vipster/zipball/master">Download as .zip</a></p>
             <h4> Testing-branch </h4>
@@ -117,6 +118,7 @@
                           <img src="https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg" alt="Codecov">
                     </a>
             </p>
+            <p class="code">$ git clone https://github.com/sgsaenger/vipster -b testing<p>
             <p><a href="https://github.com/sgsaenger/vipster/tarball/testing">Download as .tar.gz</a></p>
             <p><a href="https://github.com/sgsaenger/vipster/zipball/testing">Download as .zip</a></p>
 

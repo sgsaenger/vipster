@@ -16,6 +16,14 @@ header{
 h1{
     font-size:54px;
 }
+.code{
+    border-color: #444;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    padding-left: 5px;
+    background: #111;
+}
 .navbar{
     background: #333;
 }

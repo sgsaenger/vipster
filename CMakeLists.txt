@@ -7,6 +7,7 @@ option(DESKTOP "Build QT-based desktop app" OFF)
 include(CMakeDependentOption)
 cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
 cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
+cmake_dependent_option(EGG_INFO "Create infos for python package" ON "PYTHON" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -69,6 +70,10 @@ print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
+        if(EGG_INFO)
+            install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
+            install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
+        endif()
     elseif(SKBUILD)
         install(TARGETS pyvipster LIBRARY DESTINATION ".")
     endif()

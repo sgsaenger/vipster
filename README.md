@@ -37,7 +37,7 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
       <img src="https://s3-eu-west-1.amazonaws.com/qt-files/logos/built-with-Qt_Horizontal_Small.png" alt="Qt GUI" height=18>
     </th>
     <th>
-      <img src="https://github.com/kripken/emscripten/blob/master/media/switch_logo.png" alt="Emscripten port" height=60>
+      <img src="https://raw.githubusercontent.com/emscripten-core/emscripten/master/media/switch_logo.png" alt="Emscripten port" height=60>
     <th>
       <img src="https://www.python.org/static/community_logos/python-logo-master-v3-TM.png" alt="Python bindings" height=36>
     </th>
