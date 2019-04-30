@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from skbuild import setup
 import io
 import os.path
@@ -11,6 +13,10 @@ def readfile(arg):
         return f.read()
 
 
+readme = readfile('README.md')
+readme = re.sub('(INSTALL.md)', r'https://github.com/sgsaenger/vipster/blob/master/\1', readme)
+readme = re.sub('(dist/vipster.png)', r'https://raw.githubusercontent.com/sgsaenger/vipster/master/\1', readme)
+
 setup(
         name="vipster",
         version=re.findall(r'project\(Vipster VERSION ([0-9.]*)',
@@ -19,7 +25,7 @@ setup(
         url="https://github.com/sgsaenger/vipster",
         description="A pre- and post-processing toolkit "
                     "for atomistic simulations.",
-        long_description=readfile('README.md'),
+        long_description=readme,
         long_description_content_type="text/markdown",
         classifiers=[
             "Development Status :: 4 - Beta",

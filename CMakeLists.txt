@@ -41,7 +41,12 @@ if(UNIX AND NOT APPLE AND NOT SKBUILD)
         )
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
 elseif(SKBUILD)
-    install(TARGETS libvipster LIBRARY DESTINATION ".")
+    install(TARGETS libvipster
+        LIBRARY
+            DESTINATION "."
+        RUNTIME
+            DESTINATION "."
+    )
 endif()
 
 if(TESTS)
