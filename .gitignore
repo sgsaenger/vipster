@@ -42,8 +42,5 @@ package-lock.json
 
 # python dist-stuff
 build/
-*.egg
-*.whl
-_skbuild/
-vipster.egg-info/
-MANIFEST
+dist/
+vipster.egg-info

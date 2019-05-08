@@ -30,13 +30,13 @@ matrix:
         - os: windows
 
 install:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh install $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh install $TRAVIS_OS_NAME $TARGET
 script:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh script $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh script $TRAVIS_OS_NAME $TARGET
 after_success:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh after_success $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh after_success $TRAVIS_OS_NAME $TARGET
 before_deploy:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh before_deploy $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh before_deploy $TRAVIS_OS_NAME $TARGET
 
 deploy:
     - provider: pages

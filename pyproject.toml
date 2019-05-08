@@ -1,2 +1,2 @@
 [build-system]
-requires = ["setuptools", "wheel", "cmake", "ninja", "pybind11", "cmake_setuptools"]
+requires = ["setuptools", "wheel", "cmake", "pybind11"]
