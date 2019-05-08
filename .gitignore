@@ -41,6 +41,7 @@ node_modules/
 package-lock.json
 
 # python dist-stuff
+build/
 *.egg
 *.whl
 _skbuild/

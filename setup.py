@@ -1,15 +1,24 @@
 # coding=utf-8
 
-from skbuild import setup
+from setuptools import setup
+from cmake_setuptools import CMakeExtension, CMakeBuildExt
+
 import io
-import os.path
+from os import path, environ, name as osname
 import re
 
-here = os.path.abspath(os.path.dirname(__file__))
+environ["CMAKE_COMMON_VARIABLES"] = "-DPYTHON=YES -DPYPI=YES"
+if osname == 'nt':
+    # force mingw makefile generation
+    environ["CMAKE_COMMON_VARIABLES"] += " -G \"MinGW Makefiles\""
+else:
+    # force static linking
+    environ["CMAKE_COMMON_VARIABLES"] += " -DBUILD_SHARED_LIBS=NO"
+here = path.abspath(path.dirname(__file__))
 
 
 def readfile(arg):
-    with io.open(os.path.join(here, arg)) as f:
+    with io.open(path.join(here, arg)) as f:
         return f.read()
 
 
@@ -45,6 +54,6 @@ setup(
             ],
         keywords=['chemistry'],
         license="GPL",
-        cmake_args=['-DCMAKE_BUILD_TYPE=Release',
-                    '-DPYTHON=YES'],
+        ext_modules=[CMakeExtension('all', '.')],
+        cmdclass={'build_ext': CMakeBuildExt},
         )

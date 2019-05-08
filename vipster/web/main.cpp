@@ -315,7 +315,7 @@ void tryInitVR(void*){
                 continue;
             }
             printf("Display Capabilities:\n"
-                   "{hasPosition: %d, hasExternalDisplay: %d, canPresent: %d, maxLayers: %lu}\n",
+                   "{hasPosition: %d, hasExternalDisplay: %d, canPresent: %d, maxLayers: %u}\n",
                    caps.hasPosition, caps.hasExternalDisplay, caps.canPresent, caps.maxLayers);
             if(caps.hasExternalDisplay && !emscripten_vr_display_connected(handle)){
                 printf("Error: has external display, but is not connected.\n");

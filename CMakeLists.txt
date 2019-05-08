@@ -4,12 +4,15 @@ project(Vipster VERSION 1.16)
 
 option(TESTS "Build tests" OFF)
 option(DESKTOP "Build QT-based desktop app" OFF)
+option(BUILD_SHARED_LIBS "Build libvipster as shared library" ON)
 include(CMakeDependentOption)
 cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
 cmake_dependent_option(PYTHON "Python bindings" OFF "NOT WEB" OFF)
+cmake_dependent_option(PYPI "To be set when built via setup.py" OFF "PYTHON" OFF)
 cmake_dependent_option(EGG_INFO "Create infos for python package" ON "PYTHON" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(external)
@@ -21,7 +24,7 @@ include_directories(vipster/qt)
 file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "libvipster/*.h" "libvipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
-add_library(libvipster SHARED ${LIB_SOURCES})
+add_library(libvipster ${LIB_SOURCES})
 configure_file("libvipster/version.h.in" "version.h")
 set_target_properties(libvipster
     PROPERTIES
@@ -30,23 +33,15 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE AND NOT SKBUILD)
-    install(TARGETS libvipster
-        LIBRARY
-            DESTINATION "lib"
-        )
+if(UNIX AND NOT APPLE AND NOT PYPI)
+    install(TARGETS libvipster)
     install(DIRECTORY "libvipster/"
         DESTINATION "include/vipster"
         FILES_MATCHING PATTERN "*.h"
         )
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
-elseif(SKBUILD)
-    install(TARGETS libvipster
-        LIBRARY
-            DESTINATION "."
-        RUNTIME
-            DESTINATION "."
-    )
+elseif(PYPI)
+    install(TARGETS libvipster DESTINATION ".")
 endif()
 
 if(TESTS)
@@ -67,7 +62,7 @@ if(PYTHON)
     pybind11_add_module(pyvipster ${PY_SOURCES})
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(UNIX AND NOT APPLE AND NOT SKBUILD)
+    if(UNIX AND NOT APPLE AND NOT PYPI)
         find_package(PythonInterp REQUIRED)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
@@ -79,7 +74,7 @@ print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
             install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
         endif()
-    elseif(SKBUILD)
+    elseif(PYPI)
         install(TARGETS pyvipster LIBRARY DESTINATION ".")
     endif()
 endif()
