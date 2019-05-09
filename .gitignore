@@ -41,8 +41,6 @@ node_modules/
 package-lock.json
 
 # python dist-stuff
-*.egg
-*.whl
-_skbuild/
-vipster.egg-info/
-MANIFEST
+build/
+dist/
+vipster.egg-info

@@ -30,13 +30,13 @@ matrix:
         - os: windows
 
 install:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh install $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh install $TRAVIS_OS_NAME $TARGET
 script:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh script $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh script $TRAVIS_OS_NAME $TARGET
 after_success:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh after_success $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh after_success $TRAVIS_OS_NAME $TARGET
 before_deploy:
-    - . $TRAVIS_BUILD_DIR/dist/ci-wrap.sh before_deploy $TRAVIS_OS_NAME $TARGET
+    - . $TRAVIS_BUILD_DIR/util/ci-wrap.sh before_deploy $TRAVIS_OS_NAME $TARGET
 
 deploy:
     - provider: pages
@@ -54,5 +54,11 @@ deploy:
       draft: true
       on:
           tags: true
-          condition: $TARGET != web
-          condition: $TRAVIS_OS_NAME != windows
+          condition: $TARGET != web && $TRAVIS_OS_NAME != windows
+    - provider: pypi
+      user: "sgsaenger"
+      password:
+          secure: m2ktoasfBLPcOu0Lb8ysjj18YjHxhh8JKl1wHqS7+eGL/ib2fXeqF1CQIxPFMF6g8KRE8cMzzsrUxb0n8lEKRvRDDR3FkDHyOIzopAnxUklxpQUygGTMsdySe3dIYr65JKueOENWgPzZcUj68wIO2Hfc3DuMuZR+Gw51YiBK+/uloagGxOywb/VPDkbpfGQm4fI9IguC8jPGBQ1na1FNcSNLe8v/4mm6KaikcX6I4W7LIACfpo0EznjF/AfMHOcjMEPIvkxvrRts69w7ZKM6mS5djWDuoZII9kySGkXfaHKdVi+WRVdRnflVEd3F9uKvh/SWh0Zfi2uVKJ/dVXjV47fTAv8VP/SAguG7Z66fT/CSJRN9WNpiJB45pUs8urL2s5jvnAUo53uV7YR6p4fdrig8KN0TWjcrtUv5WXwWyOx/DB5o4f2CRaNZMxYQkPKwfVba9t9gACUG88lulL9sgWCgHiW9ZczSFWA1hhUhSJ27FD+5BH6WAHp7oJfhi6p3ylCRuoiBh8EOJycwYTNoC9jmE5uCm1xMEZkt56ourKaYUiMESnc4/Mz3PGRMN0F67lskgUfjki9tMUf3q3E1ejoXKYTKqq/O+n1+tWry/n1hbfWXHYj+DwgULNlmK3RalD8upZ2oFk7UDS5BMIjqfAlRt8ikezQc5fMVWuIsj2c=
+      on:
+          tags: true
+          condition: $TARGET != web && $TRAVIS_OS_NAME != windows
