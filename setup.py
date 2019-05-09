@@ -167,4 +167,5 @@ setup(
         ext_modules=[CMakeExtension('pyvipster', '.')],
         data_files=extralibs,
         cmdclass={'build_ext': CMakeBuildExt},
+        zip_safe=False,
         )

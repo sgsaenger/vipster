@@ -31,34 +31,46 @@ after_test:
     #- cd ..
     - SET OLDPATH=%PATH%
       # Python 2.7
-    - "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
-    - IF "%APPVEYOR_REPO_TAG%"=="false" (
-          python -m pip install setuptools wheel cmake &&
-          python setup.py bdist_wheel
-      )
-      # Python 3.5
-    - "SET PATH=C:\\Python35%PYARCH%;C:\\Python35%PYARCH%\\Scripts;%OLDPATH%"
-    - IF "%APPVEYOR_REPO_TAG%"=="false" (
-          python -m pip install setuptools wheel cmake &&
-          python setup.py bdist_wheel
-      )
-      # Python 3.6
-    - "SET PATH=C:\\Python36%PYARCH%;C:\\Python36%PYARCH%\\Scripts;%OLDPATH%"
-    - IF "%APPVEYOR_REPO_TAG%"=="false" (
-          python -m pip install setuptools wheel cmake &&
-          python setup.py bdist_wheel
-      )
+      #- "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
+      #- IF "%APPVEYOR_REPO_TAG%"=="false" (
+      #      python -m pip install setuptools wheel cmake &&
+      #      python setup.py bdist_wheel
+      #  )
+      #  # Python 3.5
+      #- "SET PATH=C:\\Python35%PYARCH%;C:\\Python35%PYARCH%\\Scripts;%OLDPATH%"
+      #- IF "%APPVEYOR_REPO_TAG%"=="false" (
+      #      python -m pip install setuptools wheel cmake &&
+      #      python setup.py bdist_wheel
+      #  )
+      #  # Python 3.6
+      #- "SET PATH=C:\\Python36%PYARCH%;C:\\Python36%PYARCH%\\Scripts;%OLDPATH%"
+      #- IF "%APPVEYOR_REPO_TAG%"=="false" (
+      #      python -m pip install setuptools wheel cmake &&
+      #      python setup.py bdist_wheel
+      #  )
       # Python 3.7
     - "SET PATH=C:\\Python37%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
     - IF "%APPVEYOR_REPO_TAG%"=="false" (
-          python -m pip install setuptools wheel cmake &&
+          pip install setuptools wheel cmake &&
           python setup.py bdist_wheel
+      )
+    - IF "%APPVEYOR_REPO_TAG%"=="false" (
+          IF "%ARCH%"=="x86_64" (
+              pip install setuptools_scm &&
+              python setup.py sdist --formats=zip
+          )
+      )
+    - IF "%APPVEYOR_REPO_TAG%"=="false" (
+          pip install twine &&
+          twine upload dist/*
       )
 artifacts:
     - name: Archive
       path: 'build\*.7z'
     - name: Wheel
       path: 'dist\*.whl'
+    - name: SDist
+      path: 'dist\*.zip'
 deploy:
     - provider: GitHub
       auth_token:
