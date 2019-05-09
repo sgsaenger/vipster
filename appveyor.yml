@@ -15,52 +15,54 @@ environment:
           PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
 build_script:
     - git submodule update --init --recursive
-      #- mkdir build
-      #- cd build
+    - mkdir build
+    - cd build
     - mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
-      #- cmake -D TESTS=YES -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH="$MWDIR" -G "MinGW Makefiles" ..
-      #- cmake --build .
-      #test_script:
-    #- test_lib.exe
+    - cmake -D TESTS=YES -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH="$MWDIR" -G "MinGW Makefiles" ..
+    - cmake --build .
+test_script:
+    - test_lib.exe
 after_test:
-    #- mkdir Vipster
-    #- mv vipster.exe Vipster
-    #- mv libvipster.dll Vipster
-    #- windeployqt --release --compiler-runtime Vipster/vipster.exe
-    #- 7z a Vipster-Win-%ARCH%.7z Vipster
-    #- cd ..
+    - mkdir Vipster
+    - mv vipster.exe Vipster
+    - mv libvipster.dll Vipster
+    - windeployqt --release --compiler-runtime Vipster/vipster.exe
+    - 7z a Vipster-Win-%ARCH%.7z Vipster
+    - cd ..
     - SET OLDPATH=%PATH%
       # Python 2.7
-      #- "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
-      #- IF "%APPVEYOR_REPO_TAG%"=="false" (
-      #      python -m pip install setuptools wheel cmake &&
-      #      python setup.py bdist_wheel
-      #  )
-      #  # Python 3.5
-      #- "SET PATH=C:\\Python35%PYARCH%;C:\\Python35%PYARCH%\\Scripts;%OLDPATH%"
-      #- IF "%APPVEYOR_REPO_TAG%"=="false" (
-      #      python -m pip install setuptools wheel cmake &&
-      #      python setup.py bdist_wheel
-      #  )
-      #  # Python 3.6
-      #- "SET PATH=C:\\Python36%PYARCH%;C:\\Python36%PYARCH%\\Scripts;%OLDPATH%"
-      #- IF "%APPVEYOR_REPO_TAG%"=="false" (
-      #      python -m pip install setuptools wheel cmake &&
-      #      python setup.py bdist_wheel
-      #  )
+    - "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
+          python -m pip install setuptools wheel cmake &&
+          python setup.py bdist_wheel
+      )
+      # Python 3.5
+    - "SET PATH=C:\\Python35%PYARCH%;C:\\Python35%PYARCH%\\Scripts;%OLDPATH%"
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
+          python -m pip install setuptools wheel cmake &&
+          python setup.py bdist_wheel
+      )
+      # Python 3.6
+    - "SET PATH=C:\\Python36%PYARCH%;C:\\Python36%PYARCH%\\Scripts;%OLDPATH%"
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
+          python -m pip install setuptools wheel cmake &&
+          python setup.py bdist_wheel
+      )
       # Python 3.7
     - "SET PATH=C:\\Python37%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
-    - IF "%APPVEYOR_REPO_TAG%"=="false" (
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
           pip install setuptools wheel cmake &&
           python setup.py bdist_wheel
       )
-    - IF "%APPVEYOR_REPO_TAG%"=="false" (
+      # Source archive
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
           IF "%ARCH%"=="x86_64" (
               pip install setuptools_scm &&
               python setup.py sdist --formats=zip
           )
       )
-    - IF "%APPVEYOR_REPO_TAG%"=="false" (
+      # upload
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
           pip install twine &&
           twine upload dist/*
       )

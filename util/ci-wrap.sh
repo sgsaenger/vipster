@@ -32,7 +32,7 @@ case $1 in
             windows)
                 # install qt+mingw
                 wget "http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe" -O qt.exe
-                ./qt.exe --verbose --script dist/qt-headless.qs
+                ./qt.exe --verbose --script util/qt-headless.qs
                 export MWDIR="/c/Users/travis/Qt/Tools/mingw730_64"
                 export QTDIR="/c/Users/travis/Qt/5.12.3/mingw73_64"
                 export PATH="$MWDIR/bin:$QTDIR/bin:$PATH"
@@ -109,7 +109,7 @@ case $1 in
                         cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/
                         # use custom AppRun so we get the correct working directory
                         rm AppDir/AppRun
-                        cp $TRAVIS_BUILD_DIR/dist/AppRun AppDir
+                        cp $TRAVIS_BUILD_DIR/util/AppRun AppDir
                         chmod a+x AppDir/AppRun
                         # create AppImage
                         wget -c https://github.com/AppImage/AppImageKit/releases/download/11/appimagetool-x86_64.AppImage -O appimagetool
