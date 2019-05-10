@@ -168,7 +168,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                 sd.modScale(fmt_i);
                 sd.setFmt(AtomFmt::Bohr);
                 for(size_t j=0; j<nAtFmt; ++j){
-                    INFO(fmtNames[j]);
+                    INFO(fmtNames[j])
                     auto fmt_j = static_cast<AtomFmt>(j);
                     auto f = s.asFmt(fmt_j);
                     f.evaluateCache();
@@ -239,7 +239,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                     sv.newAtom("H", {{1,2,10}});
                 }
                 for(size_t j=0; j<nAtFmt; ++j){
-                    INFO(fmtNames[j]);
+                    INFO(fmtNames[j])
                     auto fmt_j = static_cast<AtomFmt>(j);
                     auto f = s.asFmt(fmt_j);
                     f.evaluateCache();

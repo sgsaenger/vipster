@@ -113,7 +113,9 @@ int main(int argc, char *argv[])
     // K-points
     constexpr const char* kp_err = "KPoints should be one of:\n\n"
         "gamma\t\t\tGamma-point only\n"
-        "mpg x y z sx sy sz\tMonkhorst-pack grid of size x*y*z with offset (sx,sy,sz)\n"
+        "mpg x y z sx sy sz\t\tMonkhorst-pack grid of size x*y*z with offset (sx,sy,sz)\n"
+        "disc N B C [x y z w](Nx)\tDiscrete grid with N points, each given with position (x,y,z) and weight w.\n"
+        "\t\t\tB: Toggle Band-mode (0,1); C: Toggle crystal-coordinates (0,1)"
         "";
     convert->add_option("-k,--kpoints", conv_data.kpoints,
         "Specify k-points (defaults to parsed mesh or gamma-point)");
@@ -281,6 +283,33 @@ int main(int argc, char *argv[])
                     throw CLI::ParseError(mpg_err, 1);
                 }
             //TODO: discrete
+            }else if(kpoints[0] == "disc"){
+                if(kpoints.size() < 4){
+                    throw CLI::ParseError("K-Point \"disc\" takes at least three arguments", 1);
+                }
+                auto N = static_cast<size_t>(std::stoi(kpoints[1]));
+                if(kpoints.size() != 4+4*N){
+                    throw CLI::ParseError("K-Point \"disc\" takes exactly three + 4*N arguments", 1);
+                }
+                uint8_t properties{};
+                if(std::stoi(kpoints[2])){
+                    properties |= KPoints::Discrete::band;
+                }
+                if(std::stoi(kpoints[3])){
+                    properties |= KPoints::Discrete::crystal;
+                }
+                mol.setKPoints({KPoints::Fmt::Discrete, {}, {properties}});
+                auto& list = mol.getKPoints().discrete.kpoints;
+                list.resize(N);
+                size_t i = 4;
+                for(auto& kpoint: list){
+                    kpoint = {{std::stof(kpoints[i]),
+                               std::stof(kpoints[i+1]),
+                               std::stof(kpoints[i+2])},
+                              std::stof(kpoints[i+3]),
+                             };
+                    i+=4;
+                }
             }else{
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
