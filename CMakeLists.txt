@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(Vipster VERSION 1.16)
+project(Vipster VERSION 1.17)
 
 option(TESTS "Build tests" OFF)
 option(DESKTOP "Build QT-based desktop app" OFF)
@@ -71,7 +71,7 @@ print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE}/vipster)
-        install(FILES "util/package-init.py" DESTINATION ${PYTHON_SITE}/vipster/__init__.py)
+        install(FILES "util/package-init.py" DESTINATION ${PYTHON_SITE}/vipster RENAME "__init__.py")
         if(EGG_INFO AND NOT PYPI)
             install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
             install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
