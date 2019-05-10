@@ -69,10 +69,6 @@ after_test:
 artifacts:
     - name: Archive
       path: 'build\*.7z'
-    - name: Wheel
-      path: 'dist\*.whl'
-    - name: SDist
-      path: 'dist\*.zip'
 deploy:
     - provider: GitHub
       auth_token:
