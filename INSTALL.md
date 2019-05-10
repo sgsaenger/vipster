@@ -72,8 +72,7 @@ cmake --build .
 ```
 
 The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`.
-**NOTE**: By default, Python-Egg informations will be generated,
-which needs `scikit-build` to be installed in your python environment.
+**NOTE**: By default, Python-Egg informations will be generated.
 This can be disabled by specifying `-DEGG_INFO=NO`.
 
 
