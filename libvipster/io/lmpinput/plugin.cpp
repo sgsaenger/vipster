@@ -57,6 +57,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         std::getline(file, line);
         std::stringstream ss{line};
         while((ss >> tok)){
+            if(tok[0] == '#') break;
             at.push_back(tok);
         }
     }
