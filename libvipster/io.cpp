@@ -13,7 +13,11 @@ IO::Data Vipster::readFile(const std::string &fn, IOFmt fmt, std::string name)
         if(IOPlugins.find(fmt)==IOPlugins.end()){
             throw IO::Error("Unknown format");
         }
-        return IOPlugins.at(fmt)->parser(name, file);
+        auto tmp = IOPlugins.at(fmt)->parser(name, file);
+        if(!tmp.mol.getNstep()){
+            throw IO::Error("No Molecule could be parsed");
+        }
+        return tmp;
     }
     catch(IO::Error& e){
         std::cout << e.what() << std::endl;
