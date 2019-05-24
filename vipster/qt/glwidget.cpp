@@ -195,7 +195,7 @@ void GLWidget::rotAtoms(QPoint delta)
     }
     float angle = delta.manhattanLength();
     auto axes = getAxes();
-    Vec axis = delta.y() * axes[0] + delta.x() * axes[1];
+    Vec axis = delta.y() * axes[0] + -delta.x() * axes[1];
     if(curSel->getNat()){
         curSel->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
     }else{
