@@ -318,9 +318,9 @@ public:
         Vec min{{std::numeric_limits<float>::max(),
                  std::numeric_limits<float>::max(),
                  std::numeric_limits<float>::max()}};
-        Vec max{{std::numeric_limits<float>::min(),
-                 std::numeric_limits<float>::min(),
-                 std::numeric_limits<float>::min()}};
+        Vec max{{std::numeric_limits<float>::lowest(),
+                 std::numeric_limits<float>::lowest(),
+                 std::numeric_limits<float>::lowest()}};
         for(const auto& at: *this){
             min[0]=std::min(min[0],at.coord[0]);
             min[1]=std::min(min[1],at.coord[1]);
