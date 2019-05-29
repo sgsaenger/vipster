@@ -101,6 +101,12 @@ if(DESKTOP)
          "vipster/resources/vipster.qrc"
          )
 
+    # python-widget:
+    if(NOT PYTHON)
+        file(GLOB_RECURSE QTPY_SOURCES "vipster/*.py.*")
+        list(REMOVE_ITEM QT_SOURCES ${QTPY_SOURCES})
+    endif()
+
     # icon-files:
     if(APPLE)
         set(MACOSX_BUNDLE_ICON_FILE vipster.icns)
@@ -111,6 +117,9 @@ if(DESKTOP)
     endif()
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
     target_link_libraries(vipster Qt5::Gui Qt5::Widgets libvipster)
+    if(PYTHON)
+        target_link_libraries(vipster pybind11::embed)
+    endif()
     if(UNIX AND NOT APPLE)
         install(TARGETS vipster RUNTIME DESTINATION "bin")
         install(FILES "util/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
