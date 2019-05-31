@@ -4,7 +4,7 @@
 #include <QPlainTextEdit>
 #pragma push_macro("slots")
 #undef slots
-#include "pybind11/embed.h"
+#include <pybind11/embed.h>
 #pragma pop_macro("slots")
 
 class PythonConsole : public QPlainTextEdit
@@ -13,14 +13,15 @@ class PythonConsole : public QPlainTextEdit
 
 public:
     explicit PythonConsole(QWidget *parent = nullptr);
+    ~PythonConsole() override;
 protected:
     void mousePressEvent(QMouseEvent *e) override;
     void keyPressEvent(QKeyEvent *e) override;
-//    void keyReleaseEvent(QKeyEvent *e) override;
 private:
     QStringList commandbuf{};
+    pybind11::scoped_interpreter *interp;
+    pybind11::dict *locals;
     int cmdBlock{-1};
-    pybind11::scoped_interpreter interp{};
 };
 
 #endif // PYTHONCONSOLE_H
