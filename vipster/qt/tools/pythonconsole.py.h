@@ -15,12 +15,16 @@ public:
     explicit PythonConsole(QWidget *parent = nullptr);
     ~PythonConsole() override;
 protected:
-    void mousePressEvent(QMouseEvent *e) override;
+//    void mousePressEvent(QMouseEvent *e) override;
     void keyPressEvent(QKeyEvent *e) override;
 private:
+    std::string getCurCmd();
+    size_t curCmd{0};
+    std::string tmpCmd{};
+    std::vector<std::string> cmdHistory{};
     QStringList commandbuf{};
-    pybind11::scoped_interpreter *interp;
-    pybind11::dict *locals;
+    pybind11::scoped_interpreter *interp{nullptr};
+    pybind11::dict *locals{nullptr};
     int cmdBlock{-1};
 };
 
