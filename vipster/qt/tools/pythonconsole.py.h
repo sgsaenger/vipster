@@ -15,7 +15,8 @@ public:
     explicit PythonConsole(QWidget *parent = nullptr);
     ~PythonConsole() override;
 protected:
-//    void mousePressEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *e) override;
     void keyPressEvent(QKeyEvent *e) override;
 private:
     std::string getCurCmd();
