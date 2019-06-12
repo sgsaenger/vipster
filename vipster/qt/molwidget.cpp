@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
+#include <QMenu>
 
 using namespace Vipster;
 
@@ -22,6 +23,29 @@ MolWidget::MolWidget(QWidget *parent) :
              ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
         }
     }
+    ui->atomTable->setModel(&molModel);
+    headerActions.push_back(new QAction{"Show type", ui->atomTable});
+    headerActions.push_back(new QAction{"Show coordinates", ui->atomTable});
+    headerActions.push_back(new QAction{"Show charges", ui->atomTable});
+    headerActions.push_back(new QAction{"Show forces", ui->atomTable});
+    headerActions.push_back(new QAction{"Show visibility", ui->atomTable});
+    headerActions.push_back(new QAction{"Show constraints", ui->atomTable});
+    for(auto& action: headerActions){
+        action->setCheckable(true);
+    }
+    headerActions[0]->setChecked(true);
+    headerActions[1]->setChecked(true);
+    for(auto& action: headerActions){
+        connect(action, &QAction::toggled, this, &MolWidget::fillAtomTable);
+    }
+    ui->atomTable->horizontalHeader()->setContextMenuPolicy(Qt::ActionsContextMenu);
+    ui->atomTable->horizontalHeader()->addActions(headerActions);
+//    atomActions.push_back(new QAction{"Show/Hide atoms (toggle)", ui->atomTable});
+//    atomActions.push_back(new QAction{"Fix atoms (toggle)", ui->atomTable});
+//    atomActions.push_back(new QAction{"... in x direction (toggle)", ui->atomTable});
+//    atomActions.push_back(new QAction{"... in y direction (toggle)", ui->atomTable});
+//    atomActions.push_back(new QAction{"... in z direction (toggle)", ui->atomTable});
+//    ui->atomTable->addActions(atomActions);
 }
 
 MolWidget::~MolWidget()
@@ -83,7 +107,7 @@ void MolWidget::fillCell()
     }
 }
 
-void MolWidget::fillAtomTable(void)
+void MolWidget::fillAtomTable(int source)
 {
     if(!ui->atomTableButton->isChecked()){
         atomsOutdated = true;
@@ -91,33 +115,68 @@ void MolWidget::fillAtomTable(void)
     }
     //Fill atom list
     curStep.evaluateCache();
-    QSignalBlocker blockTable(ui->atomTable);
-    int oldCount = ui->atomTable->rowCount();
-    auto nat = static_cast<int>(curStep.getNat());
-    ui->atomTable->setRowCount(nat);
-    if( oldCount < nat){
-        for(int j=oldCount;j!=nat;++j){
-            ui->atomTable->setVerticalHeaderItem(j, new QTableWidgetItem(QString::number(j)));
-            for(int k=0;k!=4;++k){
-                ui->atomTable->setItem(j,k,new QTableWidgetItem());
-                ui->atomTable->item(j,k)->setFlags(
-                            Qt::ItemIsSelectable|Qt::ItemIsEditable|
-                            Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-            }
+    if(source < 0){
+        // triggered through changed step
+        molModel.setStep(&curStep);
+    }else{
+        // triggered through changed columns
+        int i=0;
+        for(int j=0; j<headerActions.size(); ++j){
+            i += headerActions[j]->isChecked() << j;
         }
+        molModel.setColumns(i);
     }
-    auto at = curStep.cbegin();
-    for(int j=0;j!=nat;++j){
-        ui->atomTable->item(j,0)->setText(at->name.c_str());
-        ui->atomTable->item(j,0)->setCheckState(
-                    Qt::CheckState(static_cast<int>(at->properties->flags[AtomFlag::Hidden])*2));
-        for(int k=0;k!=3;++k){
-            ui->atomTable->item(j,k+1)->setText(QString::number(at->coord[k]));
-            ui->atomTable->item(j,k+1)->setCheckState(
-                        Qt::CheckState(at->properties->flags[k]*2));
-        }
-        ++at;
-    }
+//    QSignalBlocker blockTable(ui->atomTable);
+//    int oldCount = ui->atomTable->rowCount();
+//    auto nat = static_cast<int>(curStep.getNat());
+//    if(source < 0){
+//        // triggered because atoms or coord-fmt has changed -> columns stay as-is
+//        ui->atomTable->setRowCount(nat);
+//        if( oldCount < nat){
+//            for(int j=oldCount;j!=nat;++j){
+//                ui->atomTable->setVerticalHeaderItem(j, new QTableWidgetItem(QString::number(j)));
+//                for(int k=0;k!=4;++k){
+//                    ui->atomTable->setItem(j,k,new QTableWidgetItem());
+//                    ui->atomTable->item(j,k)->setFlags(
+//                                Qt::ItemIsSelectable|Qt::ItemIsEditable|
+//                                Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+//                }
+//            }
+//        }
+//    }else{
+//        // triggered because columns have changed
+//        int colCount{0};
+//        QStringList names{};
+//        if(headerActions[0]->isChecked()){
+//            colCount += 1;
+//            names.append("Type");
+//        }
+//        if(headerActions[1]->isChecked()){
+//            colCount += 3;
+//            names.append({"x", "y", "z"});
+//        }
+//        if(headerActions[2]->isChecked()){
+//            colCount += 1;
+//            names.append("Charge");
+//        }
+//        if(headerActions[3]->isChecked()){
+//            colCount += 3;
+//            names.append({"fx", "fy", "fz"});
+//        }
+//        ui->atomTable->setColumnCount(colCount);
+//    }
+//    auto at = curStep.cbegin();
+//    for(int j=0;j!=nat;++j){
+//        ui->atomTable->item(j,0)->setText(at->name.c_str());
+//        ui->atomTable->item(j,0)->setCheckState(
+//                    Qt::CheckState(static_cast<int>(at->properties->flags[AtomFlag::Hidden])*2));
+//        for(int k=0;k!=3;++k){
+//            ui->atomTable->item(j,k+1)->setText(QString::number(at->coord[k]));
+//            ui->atomTable->item(j,k+1)->setCheckState(
+//                        Qt::CheckState(at->properties->flags[k]*2));
+//        }
+//        ++at;
+//    }
     atomsOutdated = false;
 }
 
@@ -238,28 +297,28 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     triggerUpdate(change);
 }
 
-void MolWidget::on_atomTable_cellChanged(int row, int column)
-{
-    Atom at = curStep[static_cast<size_t>(row)];
-    const QTableWidgetItem *cell = ui->atomTable->item(row,column);
-    bool checkState = cell->checkState() != Qt::CheckState::Unchecked;
-    if (column == 0){
-        if(at.properties->flags[AtomFlag::Hidden] != checkState){
-            at.properties->flags[AtomFlag::Hidden] = checkState;
-        }else{
-            at.name = cell->text().toStdString();
-        }
-        triggerUpdate(GuiChange::atoms);
-    } else {
-        const auto col = static_cast<size_t>(column-1);
-        if(at.properties->flags[col] != checkState){
-            at.properties->flags[col] = checkState;
-        }else{
-            at.coord[col] = cell->text().toFloat();
-            triggerUpdate(GuiChange::atoms);
-        }
-    }
-}
+//void MolWidget::on_atomTable_cellChanged(int row, int column)
+//{
+//    Atom at = curStep[static_cast<size_t>(row)];
+//    const QTableWidgetItem *cell = ui->atomTable->item(row,column);
+//    bool checkState = cell->checkState() != Qt::CheckState::Unchecked;
+//    if (column == 0){
+//        if(at.properties->flags[AtomFlag::Hidden] != checkState){
+//            at.properties->flags[AtomFlag::Hidden] = checkState;
+//        }else{
+//            at.name = cell->text().toStdString();
+//        }
+//        triggerUpdate(GuiChange::atoms);
+//    } else {
+//        const auto col = static_cast<size_t>(column-1);
+//        if(at.properties->flags[col] != checkState){
+//            at.properties->flags[col] = checkState;
+//        }else{
+//            at.coord[col] = cell->text().toFloat();
+//            triggerUpdate(GuiChange::atoms);
+//        }
+//    }
+//}
 
 AtomFmt MolWidget::getAtomFmt()
 {
@@ -311,17 +370,17 @@ void MolWidget::on_atomTableButton_toggled(bool checked)
     }
 }
 
-void MolWidget::on_atomTable_itemSelectionChanged()
-{
-    auto idx = ui->atomTable->selectionModel()->selectedRows();
-    SelectionFilter filter{};
-    filter.mode = SelectionFilter::Mode::Index;
-    for(const auto& i: idx){
-        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
-    }
-    master->curSel->setFilter(filter);
-    triggerUpdate(GuiChange::selection);
-}
+//void MolWidget::on_atomTable_itemSelectionChanged()
+//{
+//    auto idx = ui->atomTable->selectionModel()->selectedRows();
+//    SelectionFilter filter{};
+//    filter.mode = SelectionFilter::Mode::Index;
+//    for(const auto& i: idx){
+//        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
+//    }
+//    master->curSel->setFilter(filter);
+//    triggerUpdate(GuiChange::selection);
+//}
 
 void MolWidget::setSelection()
 {

@@ -94,30 +94,10 @@
        </layout>
       </item>
       <item>
-       <widget class="QTableWidget" name="atomTable">
+       <widget class="QTableView" name="atomTable">
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
-        <column>
-         <property name="text">
-          <string>Type</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>x</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>y</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>z</string>
-         </property>
-        </column>
        </widget>
       </item>
      </layout>
