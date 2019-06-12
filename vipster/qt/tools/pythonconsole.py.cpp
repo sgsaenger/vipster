@@ -155,7 +155,20 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
             break;
         case Qt::Key_Backspace:
             if(cursor.blockNumber() >= cmdBlock){
-                if(cursor.positionInBlock() > 4){
+                if(e->modifiers()&Qt::Modifier::CTRL){
+                    // do word delete
+                    cursor.movePosition(QTextCursor::PreviousWord,
+                                        QTextCursor::KeepAnchor);
+                    if(cursor.positionInBlock() < 4){
+                        // make sure cursor is in valid position after moving a word
+                        if(cursor.blockNumber() == cmdBlock){
+                            cursor.setPosition(cursor.block().position()+4);
+                        }else{
+                            cursor.setPosition(cursor.block().position()-1);
+                        }
+                    }
+                    cursor.removeSelectedText();
+                }else if(cursor.positionInBlock() > 4){
                     // do regular delete
                     cursor.deletePreviousChar();
                 }else if(cursor.block().blockNumber() > cmdBlock){
@@ -171,7 +184,16 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
             break;
         case Qt::Key_Delete:
             if(cursor.blockNumber() >= cmdBlock){
-                if(cursor.positionInBlock() == cursor.block().length()-1){
+                if(e->modifiers()&Qt::Modifier::CTRL){
+                    // do word delete
+                    cursor.movePosition(QTextCursor::NextWord,
+                                        QTextCursor::KeepAnchor);
+                    if(cursor.positionInBlock() < 4){
+                        // make sure cursor is in valid position after moving a word
+                        cursor.setPosition(cursor.block().position()+4);
+                    }
+                    cursor.removeSelectedText();
+                }else if(cursor.positionInBlock() == cursor.block().length()-1){
                     // if continuation line exists, delete prefix
                     if(cursor.blockNumber() < blockCount()){
                         cursor.deleteChar();
