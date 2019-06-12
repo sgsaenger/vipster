@@ -33,7 +33,7 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT WEB)
     install(TARGETS libvipster
         LIBRARY
         DESTINATION "lib"
