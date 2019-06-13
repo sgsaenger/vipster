@@ -24,6 +24,8 @@ MolWidget::MolWidget(QWidget *parent) :
         }
     }
     ui->atomTable->setModel(&molModel);
+    connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MolWidget::atomSelectionChanged);
     headerActions.push_back(new QAction{"Show type", ui->atomTable});
     headerActions.push_back(new QAction{"Show coordinates", ui->atomTable});
     headerActions.push_back(new QAction{"Show charges", ui->atomTable});
@@ -35,17 +37,19 @@ MolWidget::MolWidget(QWidget *parent) :
     }
     headerActions[0]->setChecked(true);
     headerActions[1]->setChecked(true);
+    auto changeColumns = [&](){
+        // triggered through changed columns
+        int i=0;
+        for(int j=0; j<headerActions.size(); ++j){
+            i += headerActions[j]->isChecked() << j;
+        }
+        molModel.setColumns(i);
+    };
     for(auto& action: headerActions){
-        connect(action, &QAction::toggled, this, &MolWidget::fillAtomTable);
+        connect(action, &QAction::toggled, this, changeColumns);
     }
     ui->atomTable->horizontalHeader()->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->atomTable->horizontalHeader()->addActions(headerActions);
-//    atomActions.push_back(new QAction{"Show/Hide atoms (toggle)", ui->atomTable});
-//    atomActions.push_back(new QAction{"Fix atoms (toggle)", ui->atomTable});
-//    atomActions.push_back(new QAction{"... in x direction (toggle)", ui->atomTable});
-//    atomActions.push_back(new QAction{"... in y direction (toggle)", ui->atomTable});
-//    atomActions.push_back(new QAction{"... in z direction (toggle)", ui->atomTable});
-//    ui->atomTable->addActions(atomActions);
 }
 
 MolWidget::~MolWidget()
@@ -70,12 +74,16 @@ void MolWidget::updateWidget(guiChange_t change)
         // assign StepFormatter to curStep, mark fmt as active
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep->asFmt(fmt);
+        molModel.setStep(&curStep);
+        setSelection();
         auto ifmt = static_cast<int>(fmt);
         ui->atomFmtBox->setCurrentIndex(ifmt);
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-    }
-    if (change & (GuiChange::atoms | GuiChange::fmt)) {
-        fillAtomTable();
+    }else if (change & (GuiChange::atoms | GuiChange::fmt)) {
+        molModel.setStep(&curStep);
+        setSelection();
+    }else if (change & (GuiChange::selection)){
+        setSelection();
     }
     if (change & GuiChange::cell) {
         fillCell();
@@ -83,9 +91,6 @@ void MolWidget::updateWidget(guiChange_t change)
     if (change & GuiChange::kpoints) {
         ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->getKPoints().active));
         fillKPoints();
-    }
-    if (change & GuiChange::selection) {
-        setSelection();
     }
 }
 
@@ -105,79 +110,6 @@ void MolWidget::fillCell()
             ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
         }
     }
-}
-
-void MolWidget::fillAtomTable(int source)
-{
-    if(!ui->atomTableButton->isChecked()){
-        atomsOutdated = true;
-        return;
-    }
-    //Fill atom list
-    curStep.evaluateCache();
-    if(source < 0){
-        // triggered through changed step
-        molModel.setStep(&curStep);
-    }else{
-        // triggered through changed columns
-        int i=0;
-        for(int j=0; j<headerActions.size(); ++j){
-            i += headerActions[j]->isChecked() << j;
-        }
-        molModel.setColumns(i);
-    }
-//    QSignalBlocker blockTable(ui->atomTable);
-//    int oldCount = ui->atomTable->rowCount();
-//    auto nat = static_cast<int>(curStep.getNat());
-//    if(source < 0){
-//        // triggered because atoms or coord-fmt has changed -> columns stay as-is
-//        ui->atomTable->setRowCount(nat);
-//        if( oldCount < nat){
-//            for(int j=oldCount;j!=nat;++j){
-//                ui->atomTable->setVerticalHeaderItem(j, new QTableWidgetItem(QString::number(j)));
-//                for(int k=0;k!=4;++k){
-//                    ui->atomTable->setItem(j,k,new QTableWidgetItem());
-//                    ui->atomTable->item(j,k)->setFlags(
-//                                Qt::ItemIsSelectable|Qt::ItemIsEditable|
-//                                Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-//                }
-//            }
-//        }
-//    }else{
-//        // triggered because columns have changed
-//        int colCount{0};
-//        QStringList names{};
-//        if(headerActions[0]->isChecked()){
-//            colCount += 1;
-//            names.append("Type");
-//        }
-//        if(headerActions[1]->isChecked()){
-//            colCount += 3;
-//            names.append({"x", "y", "z"});
-//        }
-//        if(headerActions[2]->isChecked()){
-//            colCount += 1;
-//            names.append("Charge");
-//        }
-//        if(headerActions[3]->isChecked()){
-//            colCount += 3;
-//            names.append({"fx", "fy", "fz"});
-//        }
-//        ui->atomTable->setColumnCount(colCount);
-//    }
-//    auto at = curStep.cbegin();
-//    for(int j=0;j!=nat;++j){
-//        ui->atomTable->item(j,0)->setText(at->name.c_str());
-//        ui->atomTable->item(j,0)->setCheckState(
-//                    Qt::CheckState(static_cast<int>(at->properties->flags[AtomFlag::Hidden])*2));
-//        for(int k=0;k!=3;++k){
-//            ui->atomTable->item(j,k+1)->setText(QString::number(at->coord[k]));
-//            ui->atomTable->item(j,k+1)->setCheckState(
-//                        Qt::CheckState(at->properties->flags[k]*2));
-//        }
-//        ++at;
-//    }
-    atomsOutdated = false;
 }
 
 void MolWidget::on_cellTrajecButton_clicked()
@@ -262,7 +194,8 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
         change |= GuiChange::atoms;
     }
     if(scale != (curStep.getFmt()>=AtomFmt::Crystal)){
-        fillAtomTable();
+        molModel.setStep(&curStep);
+        setSelection();
     }
     triggerUpdate(change);
 }
@@ -292,33 +225,11 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
         change |= GuiChange::atoms;
     }
     if(scale != (curStep.getFmt()==AtomFmt::Crystal)){
-        fillAtomTable();
+        molModel.setStep(&curStep);
+        setSelection();
     }
     triggerUpdate(change);
 }
-
-//void MolWidget::on_atomTable_cellChanged(int row, int column)
-//{
-//    Atom at = curStep[static_cast<size_t>(row)];
-//    const QTableWidgetItem *cell = ui->atomTable->item(row,column);
-//    bool checkState = cell->checkState() != Qt::CheckState::Unchecked;
-//    if (column == 0){
-//        if(at.properties->flags[AtomFlag::Hidden] != checkState){
-//            at.properties->flags[AtomFlag::Hidden] = checkState;
-//        }else{
-//            at.name = cell->text().toStdString();
-//        }
-//        triggerUpdate(GuiChange::atoms);
-//    } else {
-//        const auto col = static_cast<size_t>(column-1);
-//        if(at.properties->flags[col] != checkState){
-//            at.properties->flags[col] = checkState;
-//        }else{
-//            at.coord[col] = cell->text().toFloat();
-//            triggerUpdate(GuiChange::atoms);
-//        }
-//    }
-//}
 
 AtomFmt MolWidget::getAtomFmt()
 {
@@ -333,7 +244,8 @@ CdmFmt MolWidget::getCellFmt()
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
     curStep = curStep.asFmt(static_cast<AtomFmt>(index));
-    fillAtomTable();
+    molModel.setStep(&curStep);
+    setSelection();
 }
 
 void MolWidget::on_atomFmtButton_clicked()
@@ -362,36 +274,42 @@ void MolWidget::registerMol(const std::string& name)
     ui->molList->setCurrentIndex(ui->molList->count()-1);
 }
 
-void MolWidget::on_atomTableButton_toggled(bool checked)
+void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelection &)
 {
-    ui->atomContainer->setVisible(checked);
-    if(checked && atomsOutdated){
-        fillAtomTable();
+    auto idx = ui->atomTable->selectionModel()->selectedRows();
+    SelectionFilter filter{};
+    filter.mode = SelectionFilter::Mode::Index;
+    for(const auto& i: idx){
+        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
     }
+    master->curSel->setFilter(filter);
+    triggerUpdate(GuiChange::selection);
 }
-
-//void MolWidget::on_atomTable_itemSelectionChanged()
-//{
-//    auto idx = ui->atomTable->selectionModel()->selectedRows();
-//    SelectionFilter filter{};
-//    filter.mode = SelectionFilter::Mode::Index;
-//    for(const auto& i: idx){
-//        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
-//    }
-//    master->curSel->setFilter(filter);
-//    triggerUpdate(GuiChange::selection);
-//}
 
 void MolWidget::setSelection()
 {
     auto& table = ui->atomTable;
-    QSignalBlocker tableBlocker{table};
+    auto selMod = table->selectionModel();
+    // TODO: this is se problem, isn't it?
+//    QSignalBlocker tableBlocker{selMod};
+//    selMod->blockSignals(true);
+    disconnect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MolWidget::atomSelectionChanged);
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
     for(const auto& i:master->curSel->getIndices()){
         table->selectRow(static_cast<int>(i.first));
+//        selMod->select()
     }
+//    selMod->blockSignals(false);
+    connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MolWidget::atomSelectionChanged);
+//    table->setSelectionModel(table->selectionModel());
+    update();
+//    table->update();
     table->setSelectionMode(QAbstractItemView::ExtendedSelection);
+//    emit selMod->
+//    emit table->
 }
 
 void MolWidget::fillKPoints()

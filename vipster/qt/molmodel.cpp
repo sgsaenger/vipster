@@ -174,31 +174,3 @@ Qt::ItemFlags MolModel::flags(const QModelIndex &index) const
         return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
     return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
-
-//bool MolModel::insertRows(int row, int count, const QModelIndex &parent)
-//{
-//    beginInsertRows(parent, row, row + count - 1);
-//    // FIXME: Implement me!
-//    endInsertRows();
-//}
-
-//bool MolModel::insertColumns(int column, int count, const QModelIndex &parent)
-//{
-//    beginInsertColumns(parent, column, column + count - 1);
-//    // FIXME: Implement me!
-//    endInsertColumns();
-//}
-
-//bool MolModel::removeRows(int row, int count, const QModelIndex &parent)
-//{
-//    beginRemoveRows(parent, row, row + count - 1);
-//    // FIXME: Implement me!
-//    endRemoveRows();
-//}
-
-//bool MolModel::removeColumns(int column, int count, const QModelIndex &parent)
-//{
-//    beginRemoveColumns(parent, column, column + count - 1);
-//    // FIXME: Implement me!
-//    endRemoveColumns();
-//}
