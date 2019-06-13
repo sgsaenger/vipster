@@ -24,10 +24,14 @@ struct CPParam final: BaseParam{
     Section exte;
     Section vdw;
     Section qmmm;
+    std::string PPPrefix;
+    std::string PPSuffix;
+    std::string PPNonlocality;
     static const std::vector<std::pair<std::string, Section CPParam::*>> str2section;
     CPParam(std::string="", Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
-            Section={}, Section={}, Section={}, Section={}, Section={}, Section={});
+            Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
+            std::string="", std::string="", std::string="");
     IOFmt getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;

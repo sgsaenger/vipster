@@ -5,10 +5,12 @@ using namespace Vipster;
 IO::CPParam::CPParam(std::string name, Section info, Section cpmd, Section system,
                      Section pimd, Section path, Section ptddft, Section atoms,
                      Section dft, Section prop, Section resp, Section linres,
-                     Section tddft, Section hardness, Section classic, Section vdw, Section qmmm)
+                     Section tddft, Section hardness, Section classic, Section vdw, Section qmmm,
+                     std::string PPPrefix, std::string PPSuffix, std::string PPNonlocality)
     : BaseParam{name}, info{info}, cpmd{cpmd}, system{system}, pimd{pimd}, path{path},
       ptddft{ptddft}, atoms{atoms}, dft{dft}, prop{prop}, resp{resp}, linres{linres},
-      tddft{tddft}, hardness{hardness}, classic{classic}, vdw{vdw}, qmmm{qmmm}
+      tddft{tddft}, hardness{hardness}, classic{classic}, vdw{vdw}, qmmm{qmmm},
+      PPPrefix{PPPrefix}, PPSuffix{PPSuffix}, PPNonlocality{PPNonlocality}
 {}
 
 IOFmt IO::CPParam::getFmt() const
@@ -59,6 +61,9 @@ void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
     for(const auto& pair: CPParam::str2section){
         p.*pair.second = j.value(pair.first, CPParam::Section{});
     }
+    p.PPPrefix = j.value("PPPrefix", "");
+    p.PPSuffix = j.value("PPSuffix", "");
+    p.PPNonlocality = j.value("PPNonlocality", "");
 }
 
 void IO::to_json(nlohmann::json& j,const CPParam& p)
@@ -66,4 +71,7 @@ void IO::to_json(nlohmann::json& j,const CPParam& p)
     for(const auto& pair: CPParam::str2section){
         j[pair.first] = p.*pair.second;
     }
+    j["PPPrefix"] = p.PPPrefix;
+    j["PPSuffix"] = p.PPSuffix;
+    j["PPNonlocality"] = p.PPNonlocality;
 }

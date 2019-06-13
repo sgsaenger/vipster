@@ -30,8 +30,6 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(settings.milCol);
     registerSetting(settings.posCol);
     registerSetting(settings.negCol);
-    registerSetting(settings.CPPP);
-    registerSetting(settings.CPNL);
 }
 
 SettingsWidget::~SettingsWidget()
