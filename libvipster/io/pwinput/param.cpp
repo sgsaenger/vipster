@@ -4,9 +4,11 @@ using namespace Vipster;
 
 IO::PWParam::PWParam(std::string name, IO::PWParam::Namelist control,
                      IO::PWParam::Namelist system, IO::PWParam::Namelist electrons,
-                     IO::PWParam::Namelist ions, IO::PWParam::Namelist cell)
+                     IO::PWParam::Namelist ions, IO::PWParam::Namelist cell,
+                     std::string PPPrefix, std::string PPSuffix)
     : BaseParam{name}, control{control}, system{system},
-      electrons{electrons}, ions{ions}, cell{cell}
+      electrons{electrons}, ions{ions}, cell{cell},
+      PPPrefix{PPPrefix}, PPSuffix{PPSuffix}
 {}
 
 IOFmt IO::PWParam::getFmt() const
@@ -32,6 +34,8 @@ void IO::to_json(nlohmann::json& j,const PWParam& p)
     for(auto& nl: PWParam::str2nl){
         j[nl.first] = p.*nl.second;
     }
+    j["PPPrefix"] = p.PPPrefix;
+    j["PPSuffix"] = p.PPSuffix;
 }
 
 void IO::from_json(const nlohmann::json& j, PWParam& p)
@@ -39,6 +43,8 @@ void IO::from_json(const nlohmann::json& j, PWParam& p)
     for(auto& i: PWParam::str2nl){
         p.*i.second = j.value(i.first, PWParam::Namelist{});
     }
+    p.PPPrefix = j.value("PPPrefix", "");
+    p.PPSuffix = j.value("PPSuffix", "");
 }
 
 void IO::PWParam::parseJson(const nlohmann::json::iterator& it)

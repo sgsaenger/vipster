@@ -1,5 +1,6 @@
 #include "pwparam.h"
 #include "ui_pwparam.h"
+#include <QMessageBox>
 
 using namespace Vipster;
 
@@ -37,14 +38,6 @@ void PWParam::setParam(IO::BaseParam *p)
     for (int i=0; i<5; ++i) {
         auto* treeTop = ui->paramTree->topLevelItem(i);
         auto& nl = curParam->*namelists[i];
-        // En-/Disable ions/cell namelists
-        if(i>=3){
-            if(nl.size()){
-                treeTop->setFlags(treeTop->flags() | Qt::ItemIsEnabled);
-            } else {
-                treeTop->setFlags(treeTop->flags() & ~Qt::ItemIsEnabled);
-            }
-        }
         // clear tree
         for (auto child: treeTop->takeChildren()) {
             delete child;
@@ -56,6 +49,8 @@ void PWParam::setParam(IO::BaseParam *p)
             treeTop->addChild(child);
         }
     }
+    ui->prefixEdit->setText(curParam->PPPrefix.c_str());
+    ui->suffixEdit->setText(curParam->PPSuffix.c_str());
 }
 
 void PWParam::addElement()
@@ -113,7 +108,10 @@ void PWParam::on_paramTree_itemChanged(QTreeWidgetItem *item, int column)
     if(column == 0){
         auto newKey = item->data(0, 0).toString().toStdString();
         if(nl.find(newKey) != nl.end()){
-            //TODO: alert user that he's trying to insert key twice?
+            QMessageBox::warning(this, "Key already present",
+                                 QString{"Cannot rename key \""}+curKey.c_str()+"\" to \""+
+                                 newKey.c_str()+"\" because the latter is already present.");
+            QSignalBlocker block{ui->paramTree};
             item->setData(0, 0, QString::fromStdString(curKey));
             return;
         }
@@ -123,4 +121,14 @@ void PWParam::on_paramTree_itemChanged(QTreeWidgetItem *item, int column)
     }else{
         nl.at(curKey) = item->data(1, 0).toString().toStdString();
     }
+}
+
+void PWParam::on_prefixEdit_editingFinished()
+{
+    curParam->PPPrefix = ui->prefixEdit->text().toStdString();
+}
+
+void PWParam::on_suffixEdit_editingFinished()
+{
+    curParam->PPSuffix = ui->suffixEdit->text().toStdString();
 }
