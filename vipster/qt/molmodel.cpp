@@ -20,6 +20,9 @@ void MolModel::setColumns(int cols)
     beginResetModel();
     if(cols){
         colMap.clear();
+        if(cols & 0x10){
+            colMap.push_back(8);
+        }
         if(cols & 0x1){
             colMap.push_back(0);
         }
@@ -35,9 +38,6 @@ void MolModel::setColumns(int cols)
             colMap.push_back(5);
             colMap.push_back(6);
             colMap.push_back(7);
-        }
-        if(cols & 0x10){
-            colMap.push_back(8);
         }
         if(cols & 0x20){
             colMap.push_back(9);
@@ -151,7 +151,7 @@ bool MolModel::setData(const QModelIndex &index, const QVariant &value, int role
             case 10:
                 atom.properties->flags[AtomFlag::FixY] = value==Qt::Checked;
                 break;
-            case 12:
+            case 11:
                 atom.properties->flags[AtomFlag::FixZ] = value==Qt::Checked;
                 break;
             }
