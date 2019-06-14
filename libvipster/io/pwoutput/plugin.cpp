@@ -17,6 +17,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
     Mat cellvec;
     bool gamma{false}, readInitial{false};
     CdmFmt cdmfmt{CdmFmt::Bohr};
+    std::vector<std::string> pseudopotentials{};
     while (std::getline(file, line)) {
         if (line.find("number of atoms/cell") != std::string::npos) {
             std::stringstream{line.substr(33)} >> nat;
@@ -64,6 +65,25 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                         >> cellvec[i][0] >> cellvec[i][1] >> cellvec[i][2];
             }
             s->setCellVec(cellvec);
+        } else if (line.find("PseudoPot.") != std::string::npos){
+            // parse pseudopotential from next line
+            std::getline(file, line);
+            std::string tmp;
+            std::stringstream{line} >> tmp;
+            pseudopotentials.emplace_back(tmp.substr(tmp.find_last_of('/')+1));
+        } else if ((line.find("atomic species") != std::string::npos) &&
+                   (line.find("pseudopotential") != std::string::npos)){
+            // parse names, masses and assign corresponding pseudopotential
+            for(size_t i=0; i<ntype; ++i){
+                std::getline(file, line);
+                std::string tmp;
+                auto ss = std::stringstream{line};
+                ss >> tmp;
+                auto& entry = (*s->pse)[tmp];
+                ss >> tmp >> tmp;
+                entry.m = std::stof(tmp);
+                entry.PWPP = pseudopotentials[i];
+            }
         } else if (!readInitial && (line.find("site n.") != std::string::npos)) {
             // parse initial coordinates
             // always given as ALAT (or aditionally as CRYSTAL with high verbosity)

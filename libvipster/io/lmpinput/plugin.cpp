@@ -16,8 +16,8 @@ const static std::map<std::string, std::vector<lmpTok>> fmtmap{
     {"atomic", {{lmpTok::type, lmpTok::pos}}},
     {"body", {{lmpTok::type, lmpTok::ignore, lmpTok::ignore, lmpTok::pos}}},
     {"bond", {{lmpTok::mol, lmpTok::type, lmpTok::pos}}},
-    {"charge", {{lmpTok::charge, lmpTok::type, lmpTok::pos}}},
-    {"dipole", {{lmpTok::charge, lmpTok::type, lmpTok::pos}}},
+    {"charge", {{lmpTok::type, lmpTok::charge, lmpTok::pos}}},
+    {"dipole", {{lmpTok::type, lmpTok::charge, lmpTok::pos}}},
     {"dpd", {{lmpTok::type, lmpTok::ignore, lmpTok::pos}}},
     {"edpd", {{lmpTok::type, lmpTok::ignore, lmpTok::ignore, lmpTok::pos}}},
     {"mdpd", {{lmpTok::type, lmpTok::ignore, lmpTok::pos}}},
@@ -57,6 +57,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
         std::getline(file, line);
         std::stringstream ss{line};
         while((ss >> tok)){
+            if(tok[0] == '#') break;
             at.push_back(tok);
         }
     }

@@ -26,6 +26,9 @@ void CPParam::setParam(IO::BaseParam *p)
         throw Error("Invalid parameter set");
     }
     fillText();
+    ui->prefixEdit->setText(curParam->PPPrefix.c_str());
+    ui->suffixEdit->setText(curParam->PPSuffix.c_str());
+    ui->nlEdit->setText(curParam->PPNonlocality.c_str());
 }
 
 void CPParam::on_comboBox_currentIndexChanged(const QString &arg1)
@@ -71,4 +74,19 @@ void CPParam::saveText()
             section.push_back(line.toStdString());
         }
     }
+}
+
+void CPParam::on_prefixEdit_editingFinished()
+{
+    curParam->PPPrefix = ui->prefixEdit->text().toStdString();
+}
+
+void CPParam::on_suffixEdit_editingFinished()
+{
+    curParam->PPSuffix = ui->suffixEdit->text().toStdString();
+}
+
+void CPParam::on_nlEdit_editingFinished()
+{
+    curParam->PPNonlocality = ui->nlEdit->text().toStdString();
 }

@@ -33,9 +33,6 @@ struct Settings{
     Setting<ColVec> milCol{"Miller-plane color", ColVec{130, 0, 0, 80}};
     Setting<ColVec> posCol{"Positive-isovalue color", ColVec{255, 0, 0, 155}};
     Setting<ColVec> negCol{"Negative-isovalue color", ColVec{0, 0, 255, 155}};
-    Setting<std::string> PWPP{"Default PWScf PP-suffix", ""};
-    Setting<std::string> CPPP{"Default CPMD PP-suffix", ""};
-    Setting<std::string> CPNL{"Default CPMD Nonlocality", "LMAX=F"};
 };
 
 void to_json(nlohmann::json& j, const Settings& s);

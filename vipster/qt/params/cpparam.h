@@ -21,6 +21,9 @@ public:
 private slots:
     void on_comboBox_currentIndexChanged(const QString &arg1);
     void on_plainTextEdit_textChanged();
+    void on_prefixEdit_editingFinished();
+    void on_suffixEdit_editingFinished();
+    void on_nlEdit_editingFinished();
 
 private:
     void fillText();

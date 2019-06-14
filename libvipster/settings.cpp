@@ -30,9 +30,6 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
     readSetting(j, s.milCol);
     readSetting(j, s.posCol);
     readSetting(j, s.negCol);
-    readSetting(j, s.PWPP);
-    readSetting(j, s.CPPP);
-    readSetting(j, s.CPNL);
 }
 
 void Vipster::to_json(nlohmann::json& j, const Settings& s){
@@ -52,7 +49,4 @@ void Vipster::to_json(nlohmann::json& j, const Settings& s){
     j[s.milCol.name] = s.milCol.val;
     j[s.posCol.name] = s.posCol.val;
     j[s.negCol.name] = s.negCol.val;
-    j[s.PWPP.name] = s.PWPP.val;
-    j[s.CPPP.name] = s.CPPP.val;
-    j[s.CPNL.name] = s.CPNL.val;
 }

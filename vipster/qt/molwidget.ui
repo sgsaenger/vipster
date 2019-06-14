@@ -94,30 +94,10 @@
        </layout>
       </item>
       <item>
-       <widget class="QTableWidget" name="atomTable">
+       <widget class="QTableView" name="atomTable">
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
-        <column>
-         <property name="text">
-          <string>Type</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>x</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>y</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>z</string>
-         </property>
-        </column>
        </widget>
       </item>
      </layout>
@@ -658,8 +638,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>135</x>
-     <y>566</y>
+     <x>65</x>
+     <y>510</y>
     </hint>
     <hint type="destinationlabel">
      <x>143</x>
@@ -674,8 +654,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>227</x>
-     <y>564</y>
+     <x>87</x>
+     <y>510</y>
     </hint>
     <hint type="destinationlabel">
      <x>265</x>
@@ -690,8 +670,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>317</x>
-     <y>561</y>
+     <x>109</x>
+     <y>510</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -706,8 +686,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>149</x>
-     <y>589</y>
+     <x>65</x>
+     <y>514</y>
     </hint>
     <hint type="destinationlabel">
      <x>111</x>
@@ -722,8 +702,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>218</x>
-     <y>596</y>
+     <x>87</x>
+     <y>514</y>
     </hint>
     <hint type="destinationlabel">
      <x>240</x>
@@ -738,12 +718,28 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>328</x>
-     <y>589</y>
+     <x>109</x>
+     <y>514</y>
     </hint>
     <hint type="destinationlabel">
      <x>369</x>
      <y>595</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>atomTableButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>atomContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>139</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>121</x>
+     <y>63</y>
     </hint>
    </hints>
   </connection>

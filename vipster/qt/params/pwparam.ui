@@ -13,8 +13,18 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="0">
+    <widget class="QLabel" name="prefixLabel">
+     <property name="text">
+      <string>PP-Prefix</string>
+     </property>
+     <property name="buddy">
+      <cstring>prefixEdit</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
     <widget class="QTreeWidget" name="paramTree">
      <property name="contextMenuPolicy">
       <enum>Qt::ActionsContextMenu</enum>
@@ -48,19 +58,29 @@
       <property name="text">
        <string>Ions</string>
       </property>
-      <property name="flags">
-       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
-      </property>
      </item>
      <item>
       <property name="text">
        <string>Cell</string>
       </property>
-      <property name="flags">
-       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsUserCheckable</set>
-      </property>
      </item>
     </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="suffixLabel">
+     <property name="text">
+      <string>PP-Suffix</string>
+     </property>
+     <property name="buddy">
+      <cstring>suffixEdit</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="prefixEdit"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="suffixEdit"/>
    </item>
   </layout>
  </widget>

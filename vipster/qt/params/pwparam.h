@@ -25,6 +25,8 @@ private slots:
     void delElement();
     void on_paramTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
     void on_paramTree_itemChanged(QTreeWidgetItem *item, int column);
+    void on_prefixEdit_editingFinished();
+    void on_suffixEdit_editingFinished();
 
 private:
     Ui::PWParam *ui;

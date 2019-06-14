@@ -445,12 +445,12 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
                 if(!pE.CPPP.empty()){
                     file << '*' << pE.CPPP << '\n';
                 }else{
-                    file << '*' << IO::trim(pair.first) << IO::trim(Vipster::settings.CPPP.val) << '\n';
+                    file << '*' << IO::trim(pp->PPPrefix) << IO::trim(pair.first) << IO::trim(pp->PPSuffix) << '\n';
                 }
                 if(!pE.CPNL.empty()){
                     file << "  " << pE.CPNL << '\n';
                 }else{
-                    file << "  " << Vipster::settings.CPNL.val << '\n';
+                    file << "  " << pp->PPNonlocality << '\n';
                 }
                 file << "  " << pair.second.size() << '\n'
                      << std::fixed << std::setprecision(5);

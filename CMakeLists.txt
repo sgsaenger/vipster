@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(Vipster VERSION 1.17)
+project(Vipster VERSION 1.18)
 
 option(TESTS "Build tests" OFF)
 option(DESKTOP "Build QT-based desktop app" OFF)
@@ -33,7 +33,7 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT WEB)
     install(TARGETS libvipster
         LIBRARY
         DESTINATION "lib"

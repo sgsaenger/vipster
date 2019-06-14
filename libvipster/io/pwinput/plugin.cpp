@@ -363,7 +363,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
         file << std::left << std::setw(3) << t << ' '
              << std::right << std::setw(9) << e.m << ' ';
         if(e.PWPP.empty()){
-            file << t << settings.PWPP.val << '\n';
+            file << pp->PPPrefix << t << pp->PPSuffix << '\n';
         }else{
             file << e.PWPP << '\n';
         }
@@ -411,7 +411,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
                  << kd.pos[2] << ' ' << kd.weight << '\n';
         }
     }
-    file << "\nCELL_PARAMETERS\n" << std::fixed << std::setprecision(5);
+    file << "\nCELL_PARAMETERS alat\n" << std::fixed << std::setprecision(5);
     for(auto &v: s.getCellVec()){
         file << v[0] << ' ' << v[1] << ' ' << v[2] << '\n';
     }

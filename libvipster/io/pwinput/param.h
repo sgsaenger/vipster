@@ -12,9 +12,12 @@ struct PWParam final: BaseParam{
     Namelist electrons;
     Namelist ions;
     Namelist cell;
+    std::string PPPrefix;
+    std::string PPSuffix;
     static const std::map<std::string, Namelist PWParam::*> str2nl;
     PWParam(std::string="", Namelist={}, Namelist={},
-            Namelist={}, Namelist={}, Namelist={});
+            Namelist={}, Namelist={}, Namelist={},
+            std::string="", std::string="");
     IOFmt getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
