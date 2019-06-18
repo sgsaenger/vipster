@@ -1,8 +1,5 @@
 # [![vipster](util/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a276a159c93f47768c59dc264750f9f5)](https://www.codacy.com/app/sgsaenger/vipster?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sgsaenger/vipster&amp;utm_campaign=Badge_Grade)
-
 Master:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
 [![Build Status (Windows)](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/master)
@@ -12,6 +9,14 @@ Testing:
 [![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=testing)](https://travis-ci.com/sgsaenger/vipster)
 [![Build Status (Windows)](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/testing)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
+
+Cite me: 
+[![DOI](https://zenodo.org/badge/21859848.svg)](https://zenodo.org/badge/latestdoi/21859848)
+
+
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a276a159c93f47768c59dc264750f9f5)](https://www.codacy.com/app/sgsaenger/vipster?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sgsaenger/vipster&amp;utm_campaign=Badge_Grade)
+
 
 Visualization and editing framework for atomistic simulations.
 
@@ -38,6 +43,7 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
     </th>
     <th>
       <img src="https://raw.githubusercontent.com/emscripten-core/emscripten/master/media/switch_logo.png" alt="Emscripten port" height=60>
+    </th>
     <th>
       <img src="https://www.python.org/static/community_logos/python-logo-master-v3-TM.png" alt="Python bindings" height=36>
     </th>
