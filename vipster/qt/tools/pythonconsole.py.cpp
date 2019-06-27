@@ -1,15 +1,55 @@
 #include "pythonconsole.py.h"
-#include <pybind11/iostream.h>
+#include "pyvipster.h"
+#include "molecule.h"
 #include <QTextBlock>
 #include <QScrollBar>
 
-namespace py = pybind11;
-using namespace py::literals;
+using namespace Vipster;
+
+namespace Vipster::Py{
+void Vec(py::module&);
+void Atom(py::module&);
+void Bond(py::module&);
+void PSE(py::module&);
+void Step(py::module&);
+void Selection(py::module&);
+void KPoints(py::module&);
+void Molecule(py::module&);
+void IO(py::module&);
+void Data(py::module&);
+}
+
+PYBIND11_EMBEDDED_MODULE(vipster, m)
+{
+    m.doc() = "Python bindings for loaded data\n"
+              "===============================\n\n"
+              "Use curMol() to access the currently loaded molecule, "
+              "or getMol(n) to acces the n-th loaded molecule."
+              "Please inspect Molecule and Step as the main data containers "
+              "for more information.";
+    /*
+     * Basic containers
+     */
+
+    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap__");
+    py::bind_vector<std::vector<std::string>>(m, "__StrVector__");
+    bind_array<ColVec>(m, "ColVec");
+
+    /*
+     * Initialize library
+     */
+
+    Py::Vec(m);
+    Py::Atom(m);
+    Py::Bond(m);
+    Py::PSE(m);
+    Py::Step(m);
+    Py::KPoints(m);
+    Py::Molecule(m);
+}
 
 PythonConsole::PythonConsole(QWidget *parent) :
-    QPlainTextEdit(parent),
-    interp(new py::scoped_interpreter{}),
-    locals(new py::dict{})
+    QPlainTextEdit(parent)
 {
     // set up console-settings
     document()->setDefaultFont(QFont("Courier New", 10));
@@ -21,13 +61,31 @@ PythonConsole::PythonConsole(QWidget *parent) :
     textCursor().insertText("\nType \"help(vipster)\" for more information "
                             "about Vipster-specific functions."
                             "\n>>> ");
+    auto vip = py::module::import("vipster");
+    vip.def("curMol", [this](){return this->master->curMol;}, py::return_value_policy::reference);
+    vip.def("getMol", [this](size_t i){
+        if(i>=master->molecules.size())
+            throw std::range_error("Molecule-id out of range");
+        return &*std::next(master->molecules.begin(), i);
+    }, py::return_value_policy::reference);
+    py::exec("import vipster; from vipster import *");
+    py::exec("def help(*args, **kwds):\n"
+             "  if not args and not kwds:\n"
+             "    print('Call help(thing) to get information about the python object \"thing\".\\n Interactive help is disabled.')\n"
+             "  else:\n"
+             "    import pydoc\n"
+             "    return pydoc.help(*args, **kwds)");
+    locals = py::globals();
     cmdBlock = document()->lastBlock().blockNumber();
+}
+
+void PythonConsole::setMaster(MainWindow *m)
+{
+    master = m;
 }
 
 PythonConsole::~PythonConsole()
 {
-    delete locals;
-    delete interp;
 }
 
 void PythonConsole::mousePressEvent(QMouseEvent *e)
@@ -130,9 +188,10 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
                     auto sys = py::module::import("sys");
                     auto old = sys.attr("stdout");
                     sys.attr("stdout") = out;
+                    sys.attr("stderr") = out;
                     // forward compiled code and execute
-                    (*locals)["__res__"] = result;
-                    py::exec("exec(__res__)", py::globals(), *locals);
+                    locals["__res__"] = result;
+                    py::exec("exec(__res__)", py::globals(), locals);
                     // handle output
                     auto outval = out.attr("getvalue")();
                     if(py::len(outval)){

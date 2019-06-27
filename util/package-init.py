@@ -1,1 +1,1 @@
-from .vipster import *
+from ._vipster import *

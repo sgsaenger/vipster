@@ -8,6 +8,7 @@ PythonWidget::PythonWidget(QWidget *parent) :
     ui(new Ui::PythonWidget)
 {
     ui->setupUi(this);
+    ui->console->setMaster(master);
 }
 
 PythonWidget::~PythonWidget()

@@ -6,6 +6,7 @@
 #undef slots
 #include <pybind11/embed.h>
 #pragma pop_macro("slots")
+#include "../mainwindow.h"
 
 class PythonConsole : public QPlainTextEdit
 {
@@ -14,6 +15,7 @@ class PythonConsole : public QPlainTextEdit
 public:
     explicit PythonConsole(QWidget *parent = nullptr);
     ~PythonConsole() override;
+    void setMaster(MainWindow *master);
 protected:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
@@ -24,9 +26,10 @@ private:
     std::string tmpCmd{};
     std::vector<std::string> cmdHistory{};
     QStringList commandbuf{};
-    pybind11::scoped_interpreter *interp{nullptr};
-    pybind11::dict *locals{nullptr};
+    pybind11::scoped_interpreter interp{};
+    pybind11::dict locals{};
     int cmdBlock{-1};
+    MainWindow* master{nullptr};
 };
 
 #endif // PYTHONCONSOLE_H
