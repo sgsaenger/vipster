@@ -9,7 +9,9 @@
 #include "tools/pickwidget.h"
 #include "tools/pinwidget.h"
 #include "tools/scriptwidget.h"
+#ifdef USE_PYTHON
 #include "tools/pythonwidget.py.h"
+#endif
 
 std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
 {
@@ -20,7 +22,9 @@ std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
         {new PinWidget(parent), "Pin Steps"},
         {new CellModWidget(parent), "Modify Cell"},
         {new ScriptWidget(parent), "Script"},
+#ifdef USE_PYTHON
         {new PythonWidget(parent), "Python"},
+#endif
     };
 }
 

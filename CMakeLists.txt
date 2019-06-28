@@ -107,6 +107,7 @@ if(DESKTOP)
         file(GLOB_RECURSE QTPY_SOURCES "vipster/*.py.*")
         list(REMOVE_ITEM QT_SOURCES ${QTPY_SOURCES})
     else()
+        add_definitions(-DUSE_PYTHON)
         list(APPEND QT_SOURCES ${PY_SOURCES})
     endif()
 
