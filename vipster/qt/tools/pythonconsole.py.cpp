@@ -181,6 +181,8 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
                 if(result.is_none()){
                     // incomplete command
                     cursor.insertText("... ");
+                    cmdHistory.pop_back();
+                    curCmd = cmdHistory.size();
                 }else{
                     // complete command
                     // defer python's stdout
