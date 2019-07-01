@@ -56,7 +56,7 @@
         <item>
          <widget class="QLabel" name="atomFmtLabel">
           <property name="text">
-           <string>Display Format:</string>
+           <string>Coordinate format:</string>
           </property>
          </widget>
         </item>
