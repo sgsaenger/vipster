@@ -51,6 +51,10 @@ cmake -D CMAKE_BUILD_TYPE=Release -D DESKTOP=YES ..
 cmake --build .
 ```
 
+One may also want to add `make install` to deploy the files.
+The target directory for this is set by adding e.g. `-D CMAKE_INSTALL_PREFIX=/usr`.
+On linux, the default target directory will probably default to `$HOME/.local`, which may suffice for a per-user install.
+
 If cmake does not find your Qt installation (e.g. `qmake` not in your `$PATH`) or you want to specify a certain version,
 add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 
@@ -70,13 +74,15 @@ cd build
 cmake -D CMAKE_BUILD_TYPE=Release -D PYTHON=YES ..
 cmake --build .
 ```
-
-The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`.
 **NOTE**: By default, Python-Egg informations will be generated.
 This can be disabled by specifying `-DEGG_INFO=NO`.
 
+### Python-widget
 
-### Debugging
+The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`.
+This enables a console widget in the Qt-GUI where loaded structures are exposed in python.
+
+### Debugging/Tests
 
 If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
 Additionally, you can enable compilation of unit tests by adding `-D TESTS=YES`.

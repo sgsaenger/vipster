@@ -3,6 +3,8 @@
 # launch-script adapted from https://github.com/darealshinji/AppImageKit-checkrt
 # loads included libstdc++ if needed, then returns to real working directory
 
+export PYTHONHOME=$(dirname "$0")X_PYROOT_X
+
 cd "$(dirname "$0")/usr"
 
 exec="$PWD/bin/vipster"

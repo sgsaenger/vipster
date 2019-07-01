@@ -12,7 +12,6 @@ void Atom(py::module&);
 void Bond(py::module&);
 void Table(py::module&);
 void Step(py::module&);
-void Selection(py::module&);
 void KPoints(py::module&);
 void Molecule(py::module&);
 void IO(py::module&);
