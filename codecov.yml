@@ -1,5 +1,6 @@
 ignore:
-    - "python"
     - "vipster"
     - "tests"
     - "external"
+    - "util"
+    - "gh-pages"

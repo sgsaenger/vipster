@@ -53,7 +53,7 @@ case $1 in
                     desktop)
                         mkdir build
                         cd build
-                        cmake -D DESKTOP=YES -D PYTHON=YES -D TESTS=YES -D CMAKE_BUILD_TYPE=Debug $TRAVIS_BUILD_DIR
+                        cmake -D DESKTOP=YES -D PYTHON=YES -D TESTS=YES -D CMAKE_BUILD_TYPE=Debug -D CMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
                         make -j2
                         ./test_lib
                         ;;
@@ -80,7 +80,7 @@ case $1 in
         if [[ $2 = linux ]] && [[ ${3} = "desktop" ]]
         then
             echo Collecting coverage
-            bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
+            bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
         fi
         ;;
     before_deploy)
