@@ -162,7 +162,7 @@ public:
     }
 
 protected:
-    StepMutable(std::shared_ptr<PseMap> pse, AtomFmt fmt,
+    StepMutable(std::shared_ptr<PeriodicTable> pse, AtomFmt fmt,
              std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
         : StepConst<T>{pse, fmt, atoms, bonds, cell, comment}

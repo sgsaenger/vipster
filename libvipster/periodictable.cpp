@@ -1,10 +1,10 @@
-#include "pse.h"
+#include "periodictable.h"
 #include "configfile.h"
 #include <cctype>
 
 using namespace Vipster;
 
-Vipster::PseMap Vipster::pse = {
+Vipster::PeriodicTable Vipster::pse = {
     {{"",      { "", "", "", 0,   0.0f,       -1,   1.46f, 3.21f, {   0,   0,   0, 255 } }},
      {"H",     { "", "", "", 1,   1.0079f,    0.72f, 0.72f, 2.27f, { 190, 190, 190, 255 } }},
      {"He",    { "", "", "", 2,   4.0026f,    0.6f,  0.6f,  2.65f, { 215, 255, 255, 255 } }},
@@ -131,11 +131,11 @@ Vipster::PseMap Vipster::pse = {
     true
 };
 
-PseMap::PseMap(std::initializer_list<PseMap::value_type> il, bool r)
-    : std::map<std::string, PseEntry>{il}, root{r}
+PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il, bool r)
+    : std::map<std::string, Element>{il}, root{r}
 {}
 
-PseEntry& PseMap::operator [](const std::string& k)
+Element& PeriodicTable::operator [](const std::string& k)
 {
     auto entry = find(k);
     if(entry != end()){
@@ -180,7 +180,7 @@ PseEntry& PseMap::operator [](const std::string& k)
     return emplace(k, Vipster::pse.at("")).first->second;
 }
 
-void Vipster::to_json(nlohmann::json& j, const PseEntry& p)
+void Vipster::to_json(nlohmann::json& j, const Element& p)
 {
     j["PWPP"] = p.PWPP;
     j["CPPP"] = p.CPPP;
@@ -193,7 +193,7 @@ void Vipster::to_json(nlohmann::json& j, const PseEntry& p)
     j["col"] = p.col;
 }
 
-void Vipster::from_json(const nlohmann::json& j, PseEntry& p)
+void Vipster::from_json(const nlohmann::json& j, Element& p)
 {
     p.PWPP = j.value("PWPP", "");
     p.CPPP = j.value("CPPP", "");
@@ -206,14 +206,14 @@ void Vipster::from_json(const nlohmann::json& j, PseEntry& p)
     p.col = j.value("col", ColVec{0,0,0,255});
 }
 
-void Vipster::to_json(nlohmann::json& j, const PseMap& m)
+void Vipster::to_json(nlohmann::json& j, const PeriodicTable& m)
 {
     for(const auto& e: m){
         j[e.first] = e.second;
     }
 }
 
-void Vipster::from_json(const nlohmann::json& j, PseMap& m)
+void Vipster::from_json(const nlohmann::json& j, PeriodicTable& m)
 {
     for(auto it=j.begin(); it!=j.end(); ++it){
         m.emplace(it.key(), it.value());

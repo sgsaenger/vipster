@@ -19,7 +19,7 @@ public:
         steps.emplace_back(step);
         steps.back().pse = pse;
     }
-    std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
+    std::shared_ptr<PeriodicTable> pse = std::make_shared<PeriodicTable>();
 
     Step& newStep(const Step& step);
     Step& newStep(Step&& step={});

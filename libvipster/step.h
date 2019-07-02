@@ -28,7 +28,7 @@ struct AtomList{
     // Names (synced with type-pointers)
     std::vector<std::string>        names;
     bool                            name_changed;
-    std::vector<PseEntry*>          pse;
+    std::vector<Element*>          pse;
     // Properties
     std::vector<AtomProperties>     properties;
     bool                            prop_changed;
@@ -136,7 +136,7 @@ class Step: public StepMutable<AtomList>
 public:
     Step(AtomFmt at_fmt=AtomFmt::Bohr,
          std::string comment="");
-    Step(std::shared_ptr<PseMap>, AtomFmt,
+    Step(std::shared_ptr<PeriodicTable>, AtomFmt,
          std::shared_ptr<AtomList>, std::shared_ptr<BondList>,
          std::shared_ptr<CellData>, std::shared_ptr<std::string>);
     Step(const Step& s);

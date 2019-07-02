@@ -4,7 +4,7 @@
 using namespace Vipster;
 
 Step::Step(AtomFmt at_fmt, std::string comment)
-    : StepMutable{std::make_shared<PseMap>(),
+    : StepMutable{std::make_shared<PeriodicTable>(),
                   at_fmt,
                   std::make_shared<AtomList>(),
                   std::make_shared<BondList>(),
@@ -26,7 +26,7 @@ Step::Step(Step&& s)
                   s.cell, s.comment}
 {}
 
-Step::Step(std::shared_ptr<PseMap> p, AtomFmt f,
+Step::Step(std::shared_ptr<PeriodicTable> p, AtomFmt f,
            std::shared_ptr<AtomList> a, std::shared_ptr<BondList> b,
            std::shared_ptr<CellData> c, std::shared_ptr<std::string> s)
     : StepMutable{p,f,a,b,c,s}

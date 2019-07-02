@@ -297,7 +297,7 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                     // and try to guess type from mass
                     s.pse->insert_or_assign(id,
                         [&t1](){
-                        const Vipster::PseMap::mapped_type* cur_guess{&Vipster::pse.at("")};
+                        const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pse.at("")};
                         float cur_diff, best_diff{5};
                         for(const auto& pair: Vipster::pse){
                             cur_diff = std::abs(t1-pair.second.m);

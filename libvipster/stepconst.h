@@ -48,7 +48,7 @@ public:
     }
 
     // Don't know how to mask this yet
-    std::shared_ptr<PseMap> pse;
+    std::shared_ptr<PeriodicTable> pse;
 
     // Selection
     constSelection select(std::string filter) const
@@ -341,7 +341,7 @@ public:
     }
 
 protected:
-    StepConst(std::shared_ptr<PseMap> pse, AtomFmt fmt,
+    StepConst(std::shared_ptr<PeriodicTable> pse, AtomFmt fmt,
              std::shared_ptr<source> atoms, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
         : pse{pse}, at_fmt{fmt}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}

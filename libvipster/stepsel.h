@@ -381,7 +381,7 @@ public:
     using SelStep = B<SelSource>;
     using Source = AtomSelection<SelStep>;
     using Base = B<Source>;
-    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+    SelectionBase(std::shared_ptr<PeriodicTable> p, AtomFmt f,
                   const SelStep* s, SelectionFilter sf,
                   std::shared_ptr<CellData> c,
                   std::shared_ptr<std::string> co)
@@ -391,7 +391,7 @@ public:
         setFilter(sf);
         this->evaluateCache();
     }
-    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+    SelectionBase(std::shared_ptr<PeriodicTable> p, AtomFmt f,
                   const SelStep* s, std::string sf,
                   std::shared_ptr<CellData> c,
                   std::shared_ptr<std::string> co)
@@ -401,7 +401,7 @@ public:
         setFilter(sf);
         this->evaluateCache();
     }
-    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+    SelectionBase(std::shared_ptr<PeriodicTable> p, AtomFmt f,
                   std::shared_ptr<Source> a,
                   std::shared_ptr<BondList> b,
                   std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)

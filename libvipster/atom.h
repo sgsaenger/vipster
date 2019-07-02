@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "vec.h"
-#include "pse.h"
+#include "periodictable.h"
 
 //TODO: track changes in properties?
 
@@ -49,7 +49,7 @@ namespace Vipster{
     protected:
         // used as base for iterators, no standalone creation intended atm.
         AtomViewBase(Vec *co, bool *c_m, std::string *n, bool *n_m,
-             AtomProperties *p, PseEntry** pse, bool *p_m)
+             AtomProperties *p, Element** pse, bool *p_m)
             : coord_ptr{co}, coord_changed{c_m}, name_ptr{n}, name_changed{n_m},
               prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
         {}
@@ -65,7 +65,7 @@ namespace Vipster{
         std::string             *name_ptr;
         bool                    *name_changed;
         AtomProperties          *prop_ptr;
-        PseEntry*               *pse_ptr;
+        Element*               *pse_ptr;
         bool                    *prop_changed;
     private:
         template<typename U, U* AtomViewBase::*p_prop, bool* AtomViewBase::*p_mod>
@@ -81,7 +81,7 @@ namespace Vipster{
             coord{*this};
         ref<AtomProperties, &AtomViewBase::prop_ptr, &AtomViewBase::prop_changed>
             properties{*this};
-        const PropRef<PseEntry*, &AtomViewBase::pse_ptr, nullptr>
+        const PropRef<Element*, &AtomViewBase::pse_ptr, nullptr>
             pse{*this};
         virtual ~AtomViewBase() = default;
         AtomViewBase() = delete;

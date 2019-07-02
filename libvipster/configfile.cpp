@@ -1,6 +1,6 @@
 #include "configfile.h"
 #include "io.h"
-#include "pse.h"
+#include "periodictable.h"
 #include "settings.h"
 #include "io/parameters.h"
 #include "io/configs.h"

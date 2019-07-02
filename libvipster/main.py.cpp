@@ -11,7 +11,7 @@ namespace Py{
 void Vec(py::module&);
 void Atom(py::module&);
 void Bond(py::module&);
-void PSE(py::module&);
+void Table(py::module&);
 void Step(py::module&);
 void Selection(py::module&);
 void KPoints(py::module&);
@@ -44,7 +44,7 @@ PYBIND11_MODULE(vipster, m) {
     Py::Vec(m);
     Py::Atom(m);
     Py::Bond(m);
-    Py::PSE(m);
+    Py::Table(m);
     Py::Step(m);
     Py::KPoints(m);
     Py::Molecule(m);

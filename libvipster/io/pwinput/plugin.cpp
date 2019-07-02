@@ -70,7 +70,7 @@ void parseSpecies(std::ifstream& file, Molecule& m, IO::PWParam& p)
         std::stringstream linestream{line};
         linestream >> name >> mass >> pwpp;
         if(linestream.fail()) throw IO::Error("Failed to parse species");
-        PseEntry &type = (*m.pse)[name];
+        Element &type = (*m.pse)[name];
         type.m = std::stof(mass);
         type.PWPP = pwpp;
     }
