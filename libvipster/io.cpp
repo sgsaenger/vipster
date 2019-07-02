@@ -21,7 +21,7 @@ IO::Data Vipster::readFile(const std::string &fn, IOFmt fmt, std::string name)
     }
     catch(IO::Error& e){
         std::cout << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -54,6 +54,6 @@ bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
     }
     catch(IO::Error &e){
         std::cout << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }

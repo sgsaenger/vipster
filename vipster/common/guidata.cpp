@@ -74,7 +74,7 @@ void GUI::Data::syncToGPU()
     }
 }
 
-GLuint GUI::Data::loadShader(std::string vert, std::string frag)
+GLuint GUI::Data::loadShader(const std::string &vert, const std::string &frag)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);

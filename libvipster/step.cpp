@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-Step::Step(AtomFmt at_fmt, std::string comment)
+Step::Step(AtomFmt at_fmt, const std::string &comment)
     : StepMutable{std::make_shared<PeriodicTable>(),
                   at_fmt,
                   std::make_shared<AtomList>(),

@@ -265,7 +265,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         int i = 1;
                         std::string name2 = name + std::to_string(i);
                         while(tmp.find(name2) != tmp.end()){
-                            std::string name2 = name + std::to_string(++i);
+                            name2 = name + std::to_string(++i);
                         }
                         name = name2;
                     }
@@ -304,10 +304,11 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                             }else if(buf.find("ELEM") != buf.npos){
                                 bool seq = buf.find("SEQ") != buf.npos;
                                 std::getline(file, buf);
-                                size_t Z, beg, end;
+                                size_t Z;
                                 auto it=s.begin();
                                 auto it_end=s.end();
                                 if(seq){
+                                    size_t beg, end;
                                     std::stringstream{buf} >> Z >> beg >> end;
                                     it += beg-1;
                                     it_end = s.begin() + end;
@@ -322,10 +323,11 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                             }else if(buf.find("PPTY") != buf.npos){
                                 bool seq = buf.find("SEQ") != buf.npos;
                                 std::getline(file, buf);
-                                size_t pp, beg, end;
+                                size_t pp;
                                 auto it=s.begin();
                                 auto it_end=s.end();
                                 if(seq){
+                                    size_t beg, end;
                                     std::stringstream{buf} >> pp >> beg >> end;
                                     it += beg-1;
                                     it_end = s.begin() + end;

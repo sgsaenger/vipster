@@ -20,7 +20,7 @@ public:
     virtual nlohmann::json toJson() const = 0;
     virtual ~BaseConfig() = default;
 protected:
-    BaseConfig(std::string);
+    BaseConfig(const std::string &);
     BaseConfig(const BaseConfig&) = default;
     BaseConfig(BaseConfig &&) = default;
     BaseConfig& operator=(const BaseConfig&) = default;

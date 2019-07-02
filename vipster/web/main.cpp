@@ -64,13 +64,13 @@ int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
 
 // Atom
 std::string emGetAtName(const Atom& at){return at.name;}
-void emSetAtName(Atom& at, std::string name){at.name = name;}
+void emSetAtName(Atom& at, const std::string &name){at.name = name;}
 Vec emGetAtCoord(const Atom& at){return at.coord;}
 void emSetAtCoord(Atom& at, Vec v){at.coord = v;}
 
 // Iterator
 std::string emGetItName(const Step::iterator& it){return it->name;}
-void emSetItName(Step::iterator& it, std::string name){it->name = name;}
+void emSetItName(Step::iterator& it, const std::string &name){it->name = name;}
 Vec emGetItCoord(const Step::iterator& it){return it->coord;}
 void emSetItCoord(Step::iterator& it, Vec v){it->coord = v;}
 

@@ -298,9 +298,9 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                     s.pse->insert_or_assign(id,
                         [&t1](){
                         const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pse.at("")};
-                        float cur_diff, best_diff{5};
+                        float best_diff{5};
                         for(const auto& pair: Vipster::pse){
-                            cur_diff = std::abs(t1-pair.second.m);
+                            float cur_diff = std::abs(t1-pair.second.m);
                             if(cur_diff < best_diff){
                                 best_diff = cur_diff;
                                 cur_guess = &pair.second;

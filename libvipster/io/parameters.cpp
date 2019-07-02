@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-IO::BaseParam::BaseParam(std::string name)
+IO::BaseParam::BaseParam(const std::string &name)
     : name{name}
 {}
 

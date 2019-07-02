@@ -56,9 +56,9 @@ void PWParam::setParam(IO::BaseParam *p)
 void PWParam::addElement()
 {
     auto& nl = curParam->*curNL;
-    uint8_t idx{0};
     std::string key = "newKey";
     if(nl.find(key) != nl.end()){
+        uint8_t idx{0};
         std::string key2 = key + "0";
         while(nl.find(key2) != nl.end()){
             key2 = key + std::to_string(++idx);
