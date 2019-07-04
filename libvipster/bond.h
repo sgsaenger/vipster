@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace Vipster {
-    enum class BondLevel { None, Molecule, Cell };
+    enum class BondPolicy { None, Molecule, Cell };
     enum class BondFrequency { Never, Once, Always };
 
     struct Bond{
@@ -19,7 +19,7 @@ namespace Vipster {
 
     struct BondList{
         bool                outdated{true}, setOnce{false};
-        BondLevel           level{BondLevel::None};
+        BondPolicy           level{BondPolicy::None};
         float               cutoff_factor{-1};
         std::vector<Bond>   bonds;
     };

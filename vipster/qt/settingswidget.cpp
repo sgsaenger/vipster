@@ -128,14 +128,14 @@ QWidget* SettingsWidget::makeWidget(Vipster::ColVec& setting)
 }
 
 template<>
-QWidget* SettingsWidget::makeWidget(Vipster::BondLevel& setting)
+QWidget* SettingsWidget::makeWidget(Vipster::BondPolicy& setting)
 {
     auto* widget = new QComboBox(ui->settingsContainer);
     widget->addItems({{"None", "Molecule", "Cell"}});
     widget->setCurrentIndex(static_cast<int>(setting));
     connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
             [&setting, this](int index){
-                setting = static_cast<Vipster::BondLevel>(index);
+                setting = static_cast<Vipster::BondPolicy>(index);
                 triggerUpdate(GuiChange::settings);
             }
     );

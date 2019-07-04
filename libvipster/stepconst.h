@@ -234,13 +234,13 @@ public:
 
     // Bonds
     const std::vector<Bond>&    getBonds(float cutfac=settings.bondCutFac.val,
-                                         BondLevel l=settings.bondLvl.val,
+                                         BondPolicy l=settings.bondLvl.val,
                                          BondFrequency update=settings.bondFreq.val) const
     {
         if(cutfac < 0){
             throw Error("bond cutoff factor must be positive");
         }
-        if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
+        if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
         if(((update == BondFrequency::Always) or
             ((update == BondFrequency::Once) and not bonds->setOnce))
            and
@@ -256,7 +256,7 @@ public:
     {
         return getBonds().size();
     }
-    void                        setBonds(BondLevel l=settings.bondLvl.val,
+    void                        setBonds(BondPolicy l=settings.bondLvl.val,
                                          float cutfac=settings.bondCutFac.val) const
     {
         if(cutfac < 0){
@@ -267,16 +267,16 @@ public:
             return;
         }
         if(!getNat()){
-            l = BondLevel::None;
+            l = BondPolicy::None;
         }
-        if((l==BondLevel::Cell) && !cell->enabled){ l = BondLevel::Molecule; }
+        if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
         switch(l){
-        case BondLevel::None:
+        case BondPolicy::None:
             break;
-        case BondLevel::Molecule:
+        case BondPolicy::Molecule:
             setBondsMolecule(cutfac);
             break;
-        case BondLevel::Cell:
+        case BondPolicy::Cell:
             setBondsCell(cutfac);
             break;
         }

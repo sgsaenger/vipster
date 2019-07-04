@@ -54,7 +54,7 @@ py::class_<S> bind_step(py::handle &m, std::string name){
         .def("getCenter", [](const S& s, CdmFmt fmt, bool com){s.evaluateCache(); return s.getCenter(fmt, com);},
              "fmt"_a, "com"_a=false)
     // BONDS
-        .def("getBonds", [](const S& s, float c, BondLevel l, BondFrequency u){
+        .def("getBonds", [](const S& s, float c, BondPolicy l, BondFrequency u){
                 s.evaluateCache();
                 return s.getBonds(c,l,u);
             }, "cutfac"_a=settings.bondCutFac.val, "level"_a=settings.bondLvl.val, "update"_a=settings.bondFreq.val)
