@@ -15,7 +15,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
     size_t nat{}, ntype{};
     float celldim{};
     Mat cellvec;
-    bool gamma{false}, readInitial{false};
+    bool gamma{false};
     CdmFmt cdmfmt{CdmFmt::Bohr};
     std::vector<std::string> pseudopotentials{};
     while (std::getline(file, line)) {
@@ -30,22 +30,22 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
             if (gamma) {
                 continue;
             }
-            KPoints kpts{};
+            auto& kpts = m.getKPoints();
+            kpts.active = KPoints::Fmt::Discrete;
             size_t nk = static_cast<size_t>(std::stoi(line.substr(line.find('=')+1)));
             // skip header
-            std::getline(file, line);
-            if (line.find("cart. coord.") == std::string::npos){
-                continue;
+            while(line.find("k(") == std::string::npos){
+                std::getline(file, line);
             }
             kpts.discrete.kpoints.resize(nk);
             for (auto& k: kpts.discrete.kpoints) {
-                std::getline(file, line);
                 std::stringstream ss{line};
                 std::getline(ss, dummy_s, '(');
                 std::getline(ss, dummy_s, '(');
                 ss >> k.pos[0] >> k.pos[1] >> k.pos[2];
                 std::getline(ss, dummy_s, '=');
                 ss >> k.weight;
+                std::getline(file, line);
             }
         } else if (line.find("celldm(1)=") != std::string::npos) {
             /*
@@ -84,7 +84,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                 entry.m = std::stof(tmp);
                 entry.PWPP = pseudopotentials[i];
             }
-        } else if (!readInitial && (line.find("site n.") != std::string::npos)) {
+        } else if (line.find("site n.") != std::string::npos) {
             // parse initial coordinates
             // always given as ALAT (or aditionally as CRYSTAL with high verbosity)
             s->setFmt(AtomFmt::Alat);
@@ -98,7 +98,6 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                     throw IO::Error{"Failed to parse atom"};
                 }
             }
-            readInitial = true;
         } else if ((line.find("CELL_PARAMETERS") != std::string::npos) &&
                    (line.find("DEPRECATED") == std::string::npos)) {
             if (line.find("(bohr)") != std::string::npos) {
@@ -134,8 +133,13 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
             }
             for(auto& at: *s){
                 std::getline(file, line);
-                std::stringstream{line} >> at.name
-                        >> at.coord[0] >> at.coord[1] >> at.coord[2];
+                auto linestream = std::stringstream{line};
+                linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
+                bool x{true}, y{true}, z{true};
+                linestream >> x >> y >> z;
+                at.properties->flags[AtomFlag::FixX] = !x;
+                at.properties->flags[AtomFlag::FixY] = !y;
+                at.properties->flags[AtomFlag::FixZ] = !z;
             }
         }
         else if (line.find("Begin final coordinates") != std::string::npos) {

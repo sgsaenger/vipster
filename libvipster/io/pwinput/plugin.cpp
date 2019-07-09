@@ -129,7 +129,7 @@ void parseCoordinates(std::string name, std::ifstream& file,
         if (linestream.fail()) {
             throw IO::Error{"Failed to parse atom"};
         }
-        bool x{1},y{1},z{1};
+        bool x{true},y{true},z{true};
         linestream >> x >> y >> z;
         at.properties->flags[AtomFlag::FixX] = !x;
         at.properties->flags[AtomFlag::FixY] = !y;
