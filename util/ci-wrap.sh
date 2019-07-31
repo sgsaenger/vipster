@@ -26,6 +26,7 @@ case $1 in
             osx)
                 # install qt
                 brew update
+                brew install grep
                 brew install qt
                 export PATH=/usr/local/qt/bin:$PATH
                 ;;
@@ -123,7 +124,10 @@ case $1 in
             osx)
                 mkdir -p vipster.app/Contents/Frameworks
                 cp -a vipster.framework vipster.app/Contents/Frameworks
-                install_name_tool -change @rpath/vipster.framework/Versions/1.14/vipster @executable_path/../Frameworks/vipster.framework/Versions/1.14/vipster vipster.app/Contents/MacOS/vipster
+                export VIPVER=`ggrep "Vipster VERSION" $TRAVIS_BUILD_DIR/CMakeLists.txt | ggrep -o "[0-9.]*"`
+                echo $VIPVER
+                install_name_tool -change @rpath/vipster.framework/Versions/$VIPVER/vipster @executable_path/../Frameworks/vipster.framework/Versions/$VIPVER/vipster vipster.app/Contents/MacOS/vipster
+                otool -L vipster.app/Contents/MacOS/vipster
                 /usr/local/opt/qt/bin/macdeployqt vipster.app -dmg
                 mv vipster.dmg Vipster-OSX.dmg
                 export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
