@@ -14,12 +14,13 @@ case $1 in
                         for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
                         ;;
                     desktop)
-                        # select Python 3.6
-                        pyenv shell 3.6
-                        # make sure GCC5 is used:
+                        # select python version:
+                        pyenv shell 3.7
+                        pyenv versions
+                        # make sure GCC7 is used:
                         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
                         sudo update-alternatives --set gcc /usr/bin/gcc-7
-                        export PATH="/opt/qt510/bin":$PATH
+                        export PATH="/opt/qt512/bin":$PATH
                         ;;
                 esac
                 ;;
@@ -101,7 +102,7 @@ case $1 in
                         cmake -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
                         make DESTDIR=AppDir install -j2
                         # fill AppDir with dependencies
-                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/5/linuxdeployqt-5-x86_64.AppImage" -O linuxdeployqt
+                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt
                         chmod +x linuxdeployqt
                         ./linuxdeployqt AppDir/usr/share/applications/vipster.desktop -bundle-non-qt-libs;
                         # bundle libstdc++ to be compatible with older linuxes, see https://github.com/darealshinji/AppImageKit-checkrt
