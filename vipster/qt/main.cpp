@@ -60,22 +60,29 @@ int main(int argc, char *argv[])
                 return ext;
             }();
             for(const auto& file: app.remaining()){
+                std::string tmp = file;
                 auto pos = file.find_last_of('.');
                 if(pos != file.npos){
-                    std::string ext = file.substr(pos+1);
-                    auto pos = IOExt.find(ext);
-                    if(pos != IOExt.end()){
-                        data.push_back(readFile(file, pos->second));
-                    }else{
-                        throw CLI::ParseError(
-                                    "Could not deduce format of file "+file+
-                                    "\nPlease specify format explicitely", 1);
+                    tmp = file.substr(pos+1);
+                }else{
+                    pos = file.find_last_of("/\\");
+                    if(pos != file.npos){
+                        tmp = file.substr(pos+1);
                     }
+                }
+                auto ext = IOExt.find(tmp);
+                if(ext != IOExt.end()){
+                    data.push_back(readFile(file, ext->second));
                 }else{
                     throw CLI::ParseError(
                                 "Could not deduce format of file "+file+
                                 "\nPlease specify format explicitely", 1);
                 }
+//                }else{
+//                    throw CLI::ParseError(
+//                                "Could not deduce format of file "+file+
+//                                "\nPlease specify format explicitely", 1);
+//                }
             }
         }
         // parse files

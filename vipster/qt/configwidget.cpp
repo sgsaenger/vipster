@@ -68,6 +68,10 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
         ui->configStack->setCurrentWidget(ui->CPWidget);
         ui->CPWidget->setConfig(curConfig);
         break;
+    case IOFmt::POSCAR:
+        ui->configStack->setCurrentWidget(ui->PoscarWidget);
+        ui->PoscarWidget->setConfig(curConfig);
+        break;
     default:
         throw Error("Invalid config format");
     }
