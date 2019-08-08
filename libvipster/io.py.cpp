@@ -7,6 +7,7 @@ void LmpInput(py::module&);
 void XYZ(py::module&);
 void CPInput(py::module&);
 void ORCA(py::module&);
+void POSCAR(py::module&);
 
 void IO(py::module& m){
     auto io = m.def_submodule("IO");
@@ -20,6 +21,7 @@ void IO(py::module& m){
         .value("CPI", IOFmt::CPI)
         .value("CUBE", IOFmt::CUBE)
         .value("XSF", IOFmt::XSF)
+        .value("POSCAR", IOFmt::POSCAR)
     ;
 
     m.def("readFile",[](std::string fn, IOFmt fmt)->py::object{
@@ -66,5 +68,6 @@ void IO(py::module& m){
     XYZ(io);
     CPInput(io);
     ORCA(io);
+    POSCAR(io);
 }
 }
