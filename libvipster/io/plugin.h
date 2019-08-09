@@ -45,7 +45,10 @@ struct Plugin{
 class Error: public std::runtime_error
 {
     public:
-        Error(const std::string& reason):std::runtime_error(reason){}
+        Error(const std::string& reason, bool fatal=true)
+            : std::runtime_error{reason}, fatal{fatal}
+        {}
+        bool fatal;
 };
 
 }

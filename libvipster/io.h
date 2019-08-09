@@ -31,8 +31,8 @@ namespace Vipster{
             {IOFmt::ORCA, &IO::OrcaInput},
             {IOFmt::POSCAR, &IO::Poscar},
     };
+    IO::Data readFile(const std::string &fn);
     IO::Data readFile(const std::string &fn, IOFmt fmt);
-    IO::Data readFile(const std::string &fn, IOFmt fmt, std::string name);
     bool     writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
                        const IO::BaseParam *p=nullptr,
                        const IO::BaseConfig *c=nullptr,
