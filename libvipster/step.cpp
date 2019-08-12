@@ -13,7 +13,7 @@ Step::Step(AtomFmt at_fmt, const std::string &comment)
 {}
 
 Step::Step(const Step& s)
-    : StepMutable{s.pse, s.at_fmt,
+    : StepMutable{s.pte, s.at_fmt,
                   std::make_shared<AtomList>(*s.atoms),
                   std::make_shared<BondList>(*s.bonds),
                   std::make_shared<CellData>(*s.cell),
@@ -21,7 +21,7 @@ Step::Step(const Step& s)
 {}
 
 Step::Step(Step&& s)
-    : StepMutable{s.pse, s.at_fmt,
+    : StepMutable{s.pte, s.at_fmt,
                   s.atoms, s.bonds,
                   s.cell, s.comment}
 {}
@@ -34,7 +34,7 @@ Step::Step(std::shared_ptr<PeriodicTable> p, AtomFmt f,
 
 Step& Step::operator=(const Step& s)
 {
-    pse = s.pse;
+    pte = s.pte;
     at_fmt = s.at_fmt;
     *atoms = *s.atoms;
     *bonds = *s.bonds;
@@ -45,7 +45,7 @@ Step& Step::operator=(const Step& s)
 
 Step& Step::operator=(Step&& s)
 {
-    pse = std::move(s.pse);
+    pte = std::move(s.pte);
     at_fmt = s.at_fmt;
     atoms = std::move(s.atoms);
     bonds = std::move(s.bonds);
@@ -56,7 +56,7 @@ Step& Step::operator=(Step&& s)
 
 Step Step::asFmt(AtomFmt tgt)
 {
-    auto tmp = Step{pse, tgt, atoms, bonds, cell, comment};
+    auto tmp = Step{pte, tgt, atoms, bonds, cell, comment};
     tmp.evaluateCache();
     return tmp;
 }
@@ -68,9 +68,8 @@ void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
     al.coordinates[static_cast<size_t>(at_fmt)].emplace_back(coord);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
     // Type
-    al.names.emplace_back(name);
-    al.name_changed = true;
-    al.pse.push_back(&(*pse)[name]);
+    al.elements.push_back(&*pte->find_or_fallback(name));
+    al.element_changed = true;
     // Properties
     al.properties.emplace_back(prop);
     al.prop_changed = true;
@@ -82,9 +81,8 @@ void Step::newAtom(const Atom& at){
     al.coordinates[static_cast<size_t>(at_fmt)].push_back(at.coord);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
     // Type
-    al.names.push_back(at.name);
-    al.name_changed = true;
-    al.pse.push_back(&(*pse)[at.name]);
+    al.elements.push_back(&*pte->find_or_fallback(at.name));
+    al.element_changed = true;
     // Properties
     al.properties.push_back(at.properties);
     al.prop_changed = true;
@@ -97,16 +95,18 @@ void Step::newAtoms(size_t i){
     al.coordinates[static_cast<size_t>(at_fmt)].resize(nat);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
     // Type
-    al.names.resize(nat);
-    al.name_changed = true;
-    al.pse.resize(nat);
+    al.elements.reserve(nat);
+    for(size_t j=0; j<i; ++j){
+        al.elements.push_back(&*pte->find_or_fallback(""));
+    }
+    al.element_changed = true;
     // Properties
     al.properties.resize(nat);
     al.prop_changed = true;
 }
 
 void Step::newAtoms(const AtomList& atoms){
-    size_t nat = getNat() + atoms.names.size();
+    size_t nat = getNat() + atoms.elements.size();
     // Coordinates
     AtomList& al = *this->atoms;
     al.coordinates[static_cast<size_t>(at_fmt)].reserve(nat);
@@ -116,10 +116,11 @@ void Step::newAtoms(const AtomList& atoms){
                 atoms.coordinates[static_cast<size_t>(at_fmt)].end());
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
     // Type
-    al.names.reserve(nat);
-    al.names.insert(al.names.end(), atoms.names.begin(), atoms.names.end());
-    al.name_changed = true;
-    al.pse.resize(nat);
+    al.elements.reserve(nat);
+    for(const auto &el: atoms.elements){
+        al.elements.push_back(&*pte->find_or_fallback(el->first));
+    }
+    al.element_changed = true;
     // Properties
     al.properties.reserve(nat);
     al.properties.insert(al.properties.end(), atoms.properties.begin(), atoms.properties.end());
@@ -134,9 +135,8 @@ void Step::delAtom(size_t _i){
         al.coordinates[static_cast<size_t>(at_fmt)].begin()+i);
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
     // Type
-    al.names.erase(al.names.begin()+i);
-    al.name_changed = true;
-    al.pse.erase(al.pse.begin()+i);
+    al.elements.erase(al.elements.begin()+i);
+    al.element_changed = true;
     // Properties
     al.properties.erase(al.properties.begin()+i);
     al.prop_changed = true;
@@ -242,7 +242,7 @@ void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
 
 size_t AtomList::getNat() const noexcept
 {
-    return names.size();
+    return elements.size();
 }
 
 void AtomList::evaluateCache(const StepConst<AtomList> &step)
@@ -307,14 +307,9 @@ void AtomList::evaluateCache(const StepConst<AtomList> &step)
             coord_outdated[fmt] = false;
         }
     }
-    // if some atom-types changed, update pse pointers
-    if(name_changed){
-        if(size_t nat = names.size()){
-            for(size_t i=0; i<nat; ++i){
-                pse[i] = &(*step.pse)[names[i]];
-            }
-        }
-        name_changed = false;
+    // if some atom-types changed, bonds may be invalid
+    if(element_changed){
+        element_changed = false;
         step.bonds->outdated = true;
     }
 }

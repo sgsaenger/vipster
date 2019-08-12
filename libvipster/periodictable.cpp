@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-Vipster::PeriodicTable Vipster::pse = {
+Vipster::PeriodicTable Vipster::pte = {
     {{"",      { "", "", "", 0,   0.0f,       -1,   1.46f, 3.21f, {   0,   0,   0, 255 } }},
      {"H",     { "", "", "", 1,   1.0079f,    0.72f, 0.72f, 2.27f, { 190, 190, 190, 255 } }},
      {"He",    { "", "", "", 2,   4.0026f,    0.6f,  0.6f,  2.65f, { 215, 255, 255, 255 } }},
@@ -162,22 +162,22 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
                 }
                 if(!root){
                     // lookup in global PSE
-                    tmp = Vipster::pse.find(test);
-                    if(tmp != Vipster::pse.end()){
+                    tmp = Vipster::pte.find(test);
+                    if(tmp != Vipster::pte.end()){
                         return emplace(k, tmp->second).first;
                     }
                 }
             }
         }else{
             // interpret atomic number
-            for(const auto& pair: Vipster::pse){
+            for(const auto& pair: Vipster::pte){
                 if(pair.second.Z == Z){
                     return emplace(k, pair.second).first;
                 }
             }
         }
     }
-    return emplace(k, Vipster::pse.at("")).first;
+    return emplace(k, Vipster::pte.at("")).first;
 }
 
 Element& PeriodicTable::operator [](const std::string& k)

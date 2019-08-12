@@ -48,16 +48,16 @@ public:
     }
 
     // Don't know how to mask this yet
-    std::shared_ptr<PeriodicTable> pse;
+    std::shared_ptr<PeriodicTable> pte;
 
     // Selection
     constSelection select(std::string filter) const
     {
-        return {pse, at_fmt, this, filter, cell, comment};
+        return {pte, at_fmt, this, filter, cell, comment};
     }
     constSelection select(SelectionFilter filter) const
     {
-        return {pse, at_fmt, this, filter, cell, comment};
+        return {pte, at_fmt, this, filter, cell, comment};
     }
 
     // Atoms
@@ -67,7 +67,7 @@ public:
     }
     constAtom       operator[](size_t i) const noexcept
     {
-        return *const_iterator{atoms, at_fmt, i};
+        return *const_iterator{atoms, pte, at_fmt, i};
     }
     constAtom       at(size_t i) const
     {
@@ -83,19 +83,19 @@ public:
     }
     const_iterator   begin() const noexcept
     {
-        return const_iterator{atoms, at_fmt, 0};
+        return const_iterator{atoms, pte, at_fmt, 0};
     }
     const_iterator   cbegin() const noexcept
     {
-        return const_iterator{atoms, at_fmt, 0};
+        return const_iterator{atoms, pte, at_fmt, 0};
     }
     const_iterator   end() const noexcept
     {
-        return const_iterator{atoms, at_fmt, getNat()};
+        return const_iterator{atoms, pte, at_fmt, getNat()};
     }
     const_iterator   cend() const noexcept
     {
-        return const_iterator{atoms, at_fmt, getNat()};
+        return const_iterator{atoms, pte, at_fmt, getNat()};
     }
     const_reverse_iterator rbegin() const noexcept
     {
@@ -147,7 +147,7 @@ public:
     }
     StepConst           asFmt(AtomFmt tgt) const
     {
-        auto tmp = StepConst{pse, tgt, atoms, bonds, cell, comment};
+        auto tmp = StepConst{pte, tgt, atoms, bonds, cell, comment};
         tmp.evaluateCache();
         return tmp;
     }
@@ -341,10 +341,10 @@ public:
     }
 
 protected:
-    StepConst(std::shared_ptr<PeriodicTable> pse, AtomFmt fmt,
+    StepConst(std::shared_ptr<PeriodicTable> pte, AtomFmt fmt,
              std::shared_ptr<source> atoms, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
-        : pse{pse}, at_fmt{fmt}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}
+        : pte{pte}, at_fmt{fmt}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}
     {}
     // Data
     mutable AtomFmt                 at_fmt; // mutable, only controls visibility
@@ -382,7 +382,7 @@ private:
             max[0] = std::max(at.coord[0], max[0]);
             max[1] = std::max(at.coord[1], max[1]);
             max[2] = std::max(at.coord[2], max[2]);
-            cut = std::max(at.pse->bondcut, cut);
+            cut = std::max(at.type->bondcut, cut);
         }
         // fragment spanned space
         Vec diff = max - min;
@@ -419,7 +419,7 @@ private:
                     for (auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i) {
                         auto i = *it_i;
                         const auto& at_i = tgtFmt[i];
-                        auto cut_i = at_i.pse->bondcut;
+                        auto cut_i = at_i.type->bondcut;
                         if (cut_i <= 0){
                             continue;
                         }
@@ -427,7 +427,7 @@ private:
                         for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
                             auto j = *it_j;
                             const auto& at_j = tgtFmt[j];
-                            auto cut_j = at_j.pse->bondcut;
+                            auto cut_j = at_j.type->bondcut;
                             if (cut_j <= 0) {
                                 continue;
                             }
@@ -447,7 +447,7 @@ private:
                         auto bondcheck = [&](size_t xt, size_t yt, size_t zt){
                             for (const auto& j: boxes(xt, yt, zt)) {
                                 const auto& at_j = tgtFmt[j];
-                                auto cut_j = at_j.pse->bondcut;
+                                auto cut_j = at_j.type->bondcut;
                                 if (cut_j <= 0) {
                                     continue;
                                 }
@@ -531,12 +531,12 @@ private:
         auto at_i = tgtFmt.begin();
         for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
-            float cut_i = at_i->pse->bondcut;
+            float cut_i = at_i->type->bondcut;
             if (cut_i<=0){
                 continue;
             }
             for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
-                float cut_j = at_j->pse->bondcut;
+                float cut_j = at_j->type->bondcut;
                 if (cut_j<=0) {
                     continue;
                 }
@@ -571,7 +571,7 @@ private:
         // get largest cutoff
         float cut{0};
         for (const auto& at:asCrystal) {
-            cut = std::max(at.pse->bondcut, cut);
+            cut = std::max(at.type->bondcut, cut);
         }
         cut = 5*cut;
         auto cell = this->cell->cellvec * this->cell->dimBohr;
@@ -646,7 +646,7 @@ private:
                     for(auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i){
                         auto i = *it_i;
                         const auto& at_i = asCrystal[i];
-                        auto cut_i = at_i.pse->bondcut;
+                        auto cut_i = at_i.type->bondcut;
                         if (cut_i <= 0){
                             continue;
                         }
@@ -654,7 +654,7 @@ private:
                         for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
                             auto j = *it_j;
                             const auto& at_j = asCrystal[j];
-                            auto cut_j = at_j.pse->bondcut;
+                            auto cut_j = at_j.type->bondcut;
                             if (cut_j <= 0) {
                                 continue;
                             }
@@ -699,7 +699,7 @@ private:
                         auto wrapcheck = [&](size_t xt, size_t yt, size_t zt){
                             for (const auto& j: boxes(xt, yt, zt)) {
                                 const auto& at_j = asCrystal[j];
-                                auto cut_j = at_j.pse->bondcut;
+                                auto cut_j = at_j.type->bondcut;
                                 if (cut_j <= 0) {
                                     continue;
                                 }
@@ -793,13 +793,13 @@ private:
         std::array<int16_t, 3> diff_v, crit_v;
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
-            float cut_i = at_i->pse->bondcut;
+            float cut_i = at_i->type->bondcut;
             if (cut_i<0) {
                 continue;
             }
             for(auto at_j = at_i+1; at_j != asCrystal.end(); ++at_j){
                 size_t j = at_j.getIdx();
-                float cut_j = at_j->pse->bondcut;
+                float cut_j = at_j->type->bondcut;
                 if (cut_j<0) {
                     continue;
                 }

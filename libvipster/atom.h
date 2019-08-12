@@ -3,10 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <tuple>
 #include <bitset>
-#include <utility>
-#include <iostream>
 
 #include "vec.h"
 #include "periodictable.h"
@@ -23,6 +20,7 @@ namespace Vipster{
     constexpr size_t nAtFlag = 4;
     using AtomFlags = std::bitset<nAtFlag>;
 
+    // supported formats | TODO: crystal/alat to the beginning so we can extend it more easily?
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };
     constexpr size_t nAtFmt = 4;
 
@@ -37,164 +35,198 @@ namespace Vipster{
                std::tie(p2.charge, p2.flags, p2.forces);
     }
 
-
     /*
      * Basic atom interface
      *
      * Provides access-wrappers to properties
      */
-    template<typename T>
+    template<bool isConst>
     class AtomViewBase{
-        template<typename U> friend class AtomViewBase;
-    protected:
-        // used as base for iterators, no standalone creation intended atm.
-        AtomViewBase(Vec *co, bool *c_m, std::string *n, bool *n_m,
-             AtomProperties *p, Element** pse, bool *p_m)
-            : coord_ptr{co}, coord_changed{c_m}, name_ptr{n}, name_changed{n_m},
-              prop_ptr{p}, pse_ptr{pse}, prop_changed{p_m}
-        {}
-        // allow Atom to constAtom conversion
-        template <typename U, typename R=T, typename = typename std::enable_if<std::is_const<R>::value>::type>
-        AtomViewBase(const AtomViewBase<U>& at)
-            : coord_ptr{at.coord_ptr}, coord_changed{at.coord_changed},
-              name_ptr{at.name_ptr}, name_changed{at.name_changed},
-              prop_ptr{at.prop_ptr}, pse_ptr{at.pse_ptr}, prop_changed{at.prop_changed}
-        {}
-        Vec                     *coord_ptr;
-        bool                    *coord_changed;
-        std::string             *name_ptr;
-        bool                    *name_changed;
-        AtomProperties          *prop_ptr;
-        Element*               *pse_ptr;
-        bool                    *prop_changed;
-    private:
-        template<typename U, U* AtomViewBase::*p_prop, bool* AtomViewBase::*p_mod>
-        class PropRef;
-        template<typename U, U* AtomViewBase::*p_prop, bool* AtomViewBase::*p_mod>
-        using ref = typename std::conditional<std::is_const<T>::value,
-                        const class PropRef<U,p_prop,p_mod>,
-                        class PropRef<U,p_prop,p_mod>>::type;
+        /* Wrapper classes that control access to the atoms
+         *
+         * should behave like references to the wrapped values,
+         * but set the changed-flag whenever the values are accessed in a non-const way
+         */
+        struct _Vec{
+            _Vec(AtomViewBase& at):at{at}{}
+            // can only be explicitely constructed to reference an Atom
+            _Vec(const AtomViewBase& at) =delete;
+            // like real references, assigning changes the origin
+            _Vec& operator=(const Vec& rhs){
+                *at.coord_ptr = rhs;
+                *at.coord_changed = true;
+                return *this;
+            }
+            _Vec& operator=(const _Vec& rhs){
+                *at.coord_ptr = static_cast<const Vec&>(rhs);
+                *at.coord_changed = true;
+                return *this;
+            }
+            // convert to reference
+            operator Vec&() {*at.coord_changed = true; return *at.coord_ptr;}
+            operator const Vec&() const {return *at.coord_ptr;}
+            // array access
+            Vec::value_type& operator[](std::size_t i) {
+                *(at.coord_changed) = true;
+                return (*at.coord_ptr)[i];
+            }
+            const Vec::value_type& operator[](std::size_t i) const {
+                return (*at.coord_ptr)[i];
+            }
+            // comparison
+            bool operator==(const Vec& rhs) const { return *at.coord_ptr == rhs;}
+        private:
+            AtomViewBase &at;
+        };
+        struct _Name{
+            _Name(AtomViewBase& at):at{at}{}
+            // can only be explicitely constructed to reference an Atom
+            _Name(const AtomViewBase& at) =delete;
+            // like real references, assigning changes the origin
+            _Name& operator=(const std::string& rhs){
+                *at.element_ptr = &*(*at.pte).find_or_fallback(rhs);
+                *at.element_changed = true;
+                return *this;
+            }
+            _Name& operator=(const _Name& rhs){
+                *at.element_ptr = &*(*at.pte).find_or_fallback(rhs);
+                *at.element_changed = true;
+                return *this;
+            }
+            // convert to reference
+            operator const std::string&() const {return (*at.element_ptr)->first;}
+            // comparison
+            bool operator==(const std::string& rhs) const { return (*at.element_ptr)->first == rhs;}
+            // const char* access
+            const char* c_str() const{
+                return (*at.element_ptr)->first.c_str();
+            }
+            // I/O
+            friend std::ostream& operator<<(std::ostream& s, const _Name &n) {
+                return s << static_cast<const std::string&>(n);
+            }
+            friend std::istream& operator>>(std::istream& s, _Name &n){
+                std::string tmp;
+                s >> tmp;
+                n = tmp;
+                return s;
+            }
+        private:
+            AtomViewBase &at;
+        };
+        struct _Element{
+            _Element(AtomViewBase& at):at{at}{}
+            // can only be explicitely constructed to reference an Atom
+            _Element(const AtomViewBase& at) =delete;
+            // Allow member-access via pointer-syntax
+            const Element* operator->() const{return &(*at.element_ptr)->second;}
+            // convert to reference
+            operator const Element&() const {return (*at.element_ptr)->second;}
+        private:
+            AtomViewBase &at;
+        };
+        struct _Properties{
+            _Properties(AtomViewBase& at):at{at}{}
+            // can only be explicitely constructed to reference an Atom
+            _Properties(const AtomViewBase& at) =delete;
+            // like real references, assigning changes the origin
+            _Properties& operator=(const AtomProperties& rhs){
+                *at.prop_ptr = rhs;
+                *at.prop_changed = true;
+                return *this;
+            }
+            _Properties& operator=(const _Properties& rhs){
+                *at.prop_ptr = static_cast<const AtomProperties&>(rhs);
+                *at.prop_changed = true;
+                return *this;
+            }
+            // convert to reference
+            operator const AtomProperties&() const {return *at.prop_ptr;}
+            // comparison
+            bool operator==(const AtomProperties& rhs) const { return *at.prop_ptr == rhs; }
+            // Allow pointer-syntax
+            const AtomProperties* operator->() const{return at.prop_ptr;}
+            AtomProperties* operator->() {*at.prop_changed = true; return at.prop_ptr;}
+        private:
+            AtomViewBase &at;
+        };
     public:
-        ref<std::string, &AtomViewBase::name_ptr, &AtomViewBase::name_changed>
-            name{*this};
-        ref<Vec, &AtomViewBase::coord_ptr, &AtomViewBase::coord_changed>
-            coord{*this};
-        ref<AtomProperties, &AtomViewBase::prop_ptr, &AtomViewBase::prop_changed>
-            properties{*this};
-        const PropRef<Element*, &AtomViewBase::pse_ptr, nullptr>
-            pse{*this};
         virtual ~AtomViewBase() = default;
         AtomViewBase() = delete;
-        inline AtomViewBase(const AtomViewBase& at)
+        // copy constructor creates new object pointing to same data
+        AtomViewBase(const AtomViewBase& at)
             : coord_ptr{at.coord_ptr},
               coord_changed{at.coord_changed},
-              name_ptr{at.name_ptr},
-              name_changed{at.name_changed},
+              element_ptr{at.element_ptr},
+              element_changed{at.element_changed},
               prop_ptr{at.prop_ptr},
-              pse_ptr{at.pse_ptr},
-              prop_changed{at.prop_changed} {}
-        inline AtomViewBase& operator=(const AtomViewBase& at)
-        {
-            name = at.name;
+              prop_changed{at.prop_changed},
+              pte{at.pte}
+        {}
+        // allow Atom to constAtom conversion
+        template<bool B> friend class AtomViewBase;
+        template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
+        AtomViewBase(const AtomViewBase<B>& at)
+            : coord_ptr{at.coord_ptr},
+              coord_changed{at.coord_changed},
+              element_ptr{at.element_ptr},
+              element_changed{at.element_changed},
+              prop_ptr{at.prop_ptr},
+              prop_changed{at.prop_changed},
+              pte{at.pte}
+        {}
+        // copy assignment assigns values to old position
+        AtomViewBase& operator=(const AtomViewBase& at){
             coord = at.coord;
+            name = at.name;
             properties = at.properties;
-            pse_ptr = at.pse_ptr;
             return *this;
         }
-        template <typename U>
-        bool operator==(const AtomViewBase<U>& rhs) const
-        {
+
+        // "Data members", encapsulated in wrapper objects
+        _Vec        coord{*this};
+        _Name       name{*this};
+        _Element    type{*this};
+        _Properties properties{*this};
+
+        // comparison
+        bool operator==(const AtomViewBase& rhs) const {
             return std::tie(name, coord, properties)
                    ==
                    std::tie(rhs.name, rhs.coord, rhs.properties);
         }
-        template <typename U>
-        bool operator!=(const AtomViewBase<U>& rhs) const
-        {
-            return !(*this==rhs);
+        bool operator!=(const AtomViewBase& rhs) const {
+            return !operator==(rhs);
         }
-    private:
-        /*
-         * Wrapper for Atom-properties
+
+    protected:
+        /* actual constructors
          *
-         * dereferences pointers and exposes reference-semantics
+         * to be called from iterators, not standalone so far
          */
-        template<typename U, U* AtomViewBase::*p_prop, bool* AtomViewBase::*p_mod>
-        class PropRef {
-            // helper struct because std::bitset has no const_reference member type
-            template<typename V>
-            struct const_ref {
-                using type = decltype(std::declval<const V>()[0]);
-            };
-        public:
-            PropRef(AtomViewBase& at):at{at} {}
-            // can only be explicitely constructed to reference an Atom
-            PropRef(const PropRef&) = delete;
-            // like a real reference, assigning changes the origin
-            PropRef& operator=(const PropRef& rhs){
-                *(at.*p_prop) = static_cast<const U&>(rhs);
-                *(at.*p_mod) = true;
-                return *this;
-            }
-            PropRef& operator=(const U& prop)
-            {
-                *(at.*p_prop) = prop;
-                *(at.*p_mod) = true;
-                return *this;
-            }
-            // convert to reference
-            operator U&() {*(at.*p_mod) = true; return *(at.*p_prop);}
-            operator const U&() const {return *(at.*p_prop);}
-            // enable c_str-conversion for name
-            template <typename R=U>
-            const typename R::value_type* c_str() const {return (at.*p_prop)->c_str();}
-            // enable array-access for Vec
-            template <typename R=U>
-            typename R::reference operator [](std::size_t i) {
-                *(at.*p_mod) = true;
-                return (*(at.*p_prop))[i];
-            }
-            template <typename R=U>
-            typename const_ref<R>::type operator [](std::size_t i) const {
-                return (*(at.*p_prop))[i];
-            }
-            // Comparison
-            bool operator==(const U& rhs) const
-            {
-                return *(at.*p_prop) == rhs;
-            }
-            // Allow pointer-syntax for pse-pointer
-            template <typename R=U, typename =typename std::enable_if<std::is_pointer<R>::value>::type>
-            R operator->() const{
-                return *(at.*p_prop);
-            }
-            // Allow member-acces via pointer-syntax for properties
-            template <typename R=U, typename =typename std::enable_if<std::is_class<R>::value>::type>
-            R* operator->(){
-                *(at.*p_mod) = true;
-                return at.*p_prop;
-            }
-            template <typename R=U, typename =typename std::enable_if<std::is_class<R>::value>::type>
-            R const* operator->() const{
-                return at.*p_prop;
-            }
-            // I/O
-            friend std::ostream& operator<<(std::ostream& s, const PropRef& pr){
-                s << static_cast<const U&>(pr);
-                return s;
-            }
-            friend std::istream& operator>>(std::istream& s, PropRef& pr){
-                s >> static_cast<U&>(pr);
-                return s;
-            }
-        private:
-            AtomViewBase& at;
-        };
+        AtomViewBase(Vec *co, bool *c_m, PeriodicTable::value_type **el, bool *e_m,
+             AtomProperties *p, bool *p_m, PeriodicTable* pt)
+            : coord_ptr{co}, coord_changed{c_m},
+              element_ptr{el}, element_changed{e_m},
+              prop_ptr{p}, prop_changed{p_m},
+              pte{pt}
+        {}
+        // pointers to actual data-storage
+        Vec                         *coord_ptr;
+        bool                        *coord_changed;
+        PeriodicTable::value_type*  *element_ptr;
+        bool                        *element_changed;
+        AtomProperties                  *prop_ptr;
+        bool                        *prop_changed;
+        /* pointer to source's periodic table
+         *
+         * using raw-pointer here because rest depends on life-time of parent, anyways
+         */
+        PeriodicTable               *pte;
     };
 
     // Main interface declarations
-    using Atom = AtomViewBase<void>;
-    using constAtom = AtomViewBase<const void>;
+    using Atom = AtomViewBase<false>;
+    using constAtom = AtomViewBase<true>;
 }
-
 #endif // ATOM_H

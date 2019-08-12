@@ -79,7 +79,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                 std::string tmp;
                 auto ss = std::stringstream{line};
                 ss >> tmp;
-                auto& entry = (*s->pse)[tmp];
+                auto& entry = (*s->pte)[tmp];
                 ss >> tmp >> tmp;
                 entry.m = std::stof(tmp);
                 entry.PWPP = pseudopotentials[i];

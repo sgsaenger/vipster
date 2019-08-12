@@ -6,9 +6,9 @@ using namespace Vipster;
 
 TEST_CASE("Vipster::StepSel", "[step]") {
     Step s{};
-    (*s.pse)["C"].bondcut = 1.46f;
-    (*s.pse)["H"].bondcut = 0.72f;
-    (*s.pse)["O"].bondcut = 1.38f;
+    (*s.pte)["C"].bondcut = 1.46f;
+    (*s.pte)["H"].bondcut = 0.72f;
+    (*s.pte)["O"].bondcut = 1.38f;
     s.setFmt(AtomFmt::Bohr);
     s.newAtom("C");
     s.newAtom("H", Vec{1,0,0});

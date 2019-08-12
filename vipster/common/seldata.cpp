@@ -141,7 +141,7 @@ void GUI::SelData::update(Step::selection* sel)
         while(it != curSel->end()){
             for(const auto& off: it.getFilterPair().second){
                 sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
-                                      it->pse->vdwr*1.3f,
+                                      it->type->vdwr*1.3f,
                                       {(int16_t)off[0], (int16_t)off[1], (int16_t)off[2]},
                                      });
             }
@@ -152,7 +152,7 @@ void GUI::SelData::update(Step::selection* sel)
         while(it != curSel->end()){
             for(const auto& off: it.getFilterPair().second){
                 sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
-                                      it->pse->covr*1.3f,
+                                      it->type->covr*1.3f,
                                       {(int16_t)off[0], (int16_t)off[1], (int16_t)off[2]},
                                      });
             }

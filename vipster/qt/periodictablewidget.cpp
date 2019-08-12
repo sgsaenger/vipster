@@ -156,7 +156,7 @@ void PeriodicTableWidget::setTable(PeriodicTable* pse)
 {
     this->table = pse;
     ui->pseList->clear();
-    if(pse == &Vipster::pse){
+    if(pse == &Vipster::pte){
         isGlobal = true;
     }
     if(pse){
@@ -170,7 +170,7 @@ void PeriodicTableWidget::updateWidget(guiChange_t change)
 {
     if(!isGlobal){
         if((change & guiMolChanged) == guiMolChanged){
-            setTable(master->curMol->pse.get());
+            setTable(master->curMol->pte.get());
         }else if(change & GuiChange::atoms){
             setTable(this->table);
         }

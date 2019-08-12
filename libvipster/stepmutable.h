@@ -25,11 +25,11 @@ public:
     // Selection
     selection select(std::string filter)
     {
-        return selection{this->pse, this->at_fmt, this, filter, this->cell, this->comment};
+        return selection{this->pte, this->at_fmt, this, filter, this->cell, this->comment};
     }
     selection select(SelectionFilter filter)
     {
-        return selection{this->pse, this->at_fmt, this, filter, this->cell, this->comment};
+        return selection{this->pte, this->at_fmt, this, filter, this->cell, this->comment};
     }
 
     // Comment
@@ -42,7 +42,7 @@ public:
     using StepConst<T>::asFmt;
     StepMutable asFmt(AtomFmt tgt)
     {
-        auto tmp = StepMutable{this->pse, tgt,
+        auto tmp = StepMutable{this->pte, tgt,
                                this->atoms, this->bonds,
                                this->cell, this->comment};
         tmp.evaluateCache();
@@ -53,7 +53,7 @@ public:
     using StepConst<T>::operator[];
     Atom        operator[](size_t i) noexcept
     {
-        return *iterator{this->atoms, this->at_fmt, i};
+        return *iterator{this->atoms, this->pte, this->at_fmt, i};
     }
     using StepConst<T>::at;
     Atom        at(size_t i)
@@ -67,12 +67,12 @@ public:
     using StepConst<T>::begin;
     iterator    begin() noexcept
     {
-        return iterator{this->atoms, this->at_fmt, 0};
+        return iterator{this->atoms, this->pte, this->at_fmt, 0};
     }
     using StepConst<T>::end;
     iterator    end() noexcept
     {
-        return iterator{this->atoms, this->at_fmt, this->getNat()};
+        return iterator{this->atoms, this->pte, this->at_fmt, this->getNat()};
     }
     using StepConst<T>::rbegin;
     reverse_iterator rbegin() noexcept
@@ -90,8 +90,8 @@ public:
         if(tgt == this->at_fmt){ return; }
         this->evaluateCache();
         asFmt(tgt).evaluateCache();
-        iterator source{this->atoms, this->at_fmt, 0};
-        iterator target{this->atoms, tgt, 0};
+        iterator source{this->atoms, this->pte, this->at_fmt, 0};
+        iterator target{this->atoms, this->pte, tgt, 0};
         while(source.getIdx() != this->getNat()){
             target->coord = source->coord;
             ++target;
@@ -162,10 +162,10 @@ public:
     }
 
 protected:
-    StepMutable(std::shared_ptr<PeriodicTable> pse, AtomFmt fmt,
+    StepMutable(std::shared_ptr<PeriodicTable> pte, AtomFmt fmt,
              std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
-        : StepConst<T>{pse, fmt, atoms, bonds, cell, comment}
+        : StepConst<T>{pte, fmt, atoms, bonds, cell, comment}
     {}
 private:
     // Interface only:

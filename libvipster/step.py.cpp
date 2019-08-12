@@ -9,7 +9,7 @@ template <typename S>
 py::class_<S> bind_step(py::handle &m, std::string name){
     py::class_<StepConst<typename S::source>>(m, ("__"+name+"Base__").c_str());
     auto cl = py::class_<S, StepConst<typename S::source>>(m, name.c_str())
-        .def_readonly("pse", &S::pse)
+        .def_readonly("pte", &S::pte)
         .def_property("comment", &S::getComment, &S::setComment)
     // Atoms
         .def("__getitem__", [](S& s, int i){

@@ -82,7 +82,7 @@ void MainWindow::setupUI()
         toolWidgets.push_back(tmp);
     }
     // fill in global PSE
-    ui->pseWidget->setTable(&Vipster::pse);
+    ui->pseWidget->setTable(&Vipster::pte);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
         const auto& param_map = Vipster::params[pair.first];

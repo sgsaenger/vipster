@@ -5,7 +5,7 @@ namespace Vipster::Py{
 void Table(py::module& m){
     auto p = py::class_<PeriodicTable, std::shared_ptr<PeriodicTable>>(m, "PeriodicTable")
         .def("__getitem__", &PeriodicTable::operator [], py::return_value_policy::reference_internal)
-        .def("__setitem__", [](PeriodicTable &pse, std::string n, Element& e){pse[n] = e;})
+        .def("__setitem__", [](PeriodicTable &pte, std::string n, Element& e){pte[n] = e;})
     ;
 
     py::class_<Element>(p, "Element")

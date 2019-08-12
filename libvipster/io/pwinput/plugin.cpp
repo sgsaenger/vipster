@@ -70,7 +70,7 @@ void parseSpecies(std::ifstream& file, Molecule& m, IO::PWParam& p)
         std::stringstream linestream{line};
         linestream >> name >> mass >> pwpp;
         if(linestream.fail()) throw IO::Error("Failed to parse species");
-        Element &type = (*m.pse)[name];
+        Element &type = (*m.pte)[name];
         type.m = std::stof(mass);
         type.PWPP = pwpp;
     }
@@ -359,7 +359,7 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
     file << "ATOMIC_SPECIES\n"
          << std::fixed << std::setprecision(5);
     for(auto &t: s.getTypes()){
-        auto e = (*s.pse)[t];
+        auto e = (*s.pte)[t];
         file << std::left << std::setw(3) << t << ' '
              << std::right << std::setw(9) << e.m << ' ';
         if(e.PWPP.empty()){

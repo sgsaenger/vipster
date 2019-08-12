@@ -23,7 +23,7 @@ bool Vipster::readConfig()
             conf_file >> loc_file;
             // PSE
             if(loc_file.find("PSE") != loc_file.end()){
-                from_json(loc_file["PSE"], pse);
+                from_json(loc_file["PSE"], pte);
             }
             // General settings
             if(loc_file.find("Settings") != loc_file.end()){
@@ -77,7 +77,7 @@ bool Vipster::saveConfig()
         throw IO::Error("Cannot open config file at \""+user_config+"\" for writing");
     }
     json json_buf;
-    json_buf["PSE"] = pse;
+    json_buf["PSE"] = pte;
     json_buf["Settings"] = settings;
     json_buf["Parameters"] = json{};
     for(const auto& plug: IOPlugins){
