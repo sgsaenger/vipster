@@ -135,11 +135,11 @@ PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il
     : std::map<std::string, Element>{il}, root{r}
 {}
 
-Element& PeriodicTable::operator [](const std::string& k)
+PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
 {
     auto entry = find(k);
     if(entry != end()){
-        return entry->second;
+        return entry;
     }else{
         // if key is ONLY a number, interpret as atomic number
         char *p;
@@ -158,13 +158,13 @@ Element& PeriodicTable::operator [](const std::string& k)
                 auto tmp = find(test);
                 // local lookup, always works
                 if(tmp != end()){
-                    return emplace(k, tmp->second).first->second;
+                    return emplace(k, tmp->second).first;
                 }
                 if(!root){
                     // lookup in global PSE
                     tmp = Vipster::pse.find(test);
                     if(tmp != Vipster::pse.end()){
-                        return emplace(k, tmp->second).first->second;
+                        return emplace(k, tmp->second).first;
                     }
                 }
             }
@@ -172,12 +172,17 @@ Element& PeriodicTable::operator [](const std::string& k)
             // interpret atomic number
             for(const auto& pair: Vipster::pse){
                 if(pair.second.Z == Z){
-                    return emplace(k, pair.second).first->second;
+                    return emplace(k, pair.second).first;
                 }
             }
         }
     }
-    return emplace(k, Vipster::pse.at("")).first->second;
+    return emplace(k, Vipster::pse.at("")).first;
+}
+
+Element& PeriodicTable::operator [](const std::string& k)
+{
+    return find_or_fallback(k)->second;
 }
 
 void Vipster::to_json(nlohmann::json& j, const Element& p)

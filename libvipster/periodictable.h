@@ -40,6 +40,7 @@ public:
     using map_t::insert_or_assign;
     PeriodicTable(std::initializer_list<PeriodicTable::value_type> il={}, bool r=false);
     Element& operator [](const std::string &k);
+    iterator find_or_fallback(const std::string &k);
 private:
     bool root;
 };
