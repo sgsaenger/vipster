@@ -19,9 +19,9 @@ static unsigned long vrWidth, vrHeight;
 static bool vrMoving{false}, vrHasPos{false};
 static Vec vrPos{0,0,-10};
 
-std::string emReadFile(std::string fn, std::string name, int fmt){
+std::string emReadFile(std::string fn, int fmt){
     try {
-        auto d = readFile(fn, (IOFmt)fmt, name);
+        auto d = readFile(fn, (IOFmt)fmt);
         molecules.push_back(d.mol);
         return "";
     } catch (std::exception &e) {
