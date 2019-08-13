@@ -130,9 +130,18 @@ void MainWindow::setMol(int i)
 {
     curMol = &*std::next(molecules.begin(), i);
     int nstep = static_cast<int>(curMol->getNstep());
-    if(moldata[curMol].curStep < 0){
-        moldata[curMol].curStep = nstep;
+    auto &curData = moldata[curMol];
+    if(curData.curStep < 0){
+        curData.curStep = nstep;
     }
+    // set mult manually
+    QSignalBlocker xBlock{ui->xMultBox};
+    ui->xMultBox->setValue(curData.mult[0]);
+    QSignalBlocker yBlock{ui->yMultBox};
+    ui->yMultBox->setValue(curData.mult[1]);
+    QSignalBlocker zBlock{ui->zMultBox};
+    ui->zMultBox->setValue(curData.mult[2]);
+    ui->openGLWidget->setMult(curData.mult);
     //Step-control
     ui->stepLabel->setText(QString::number(nstep));
     QSignalBlocker boxBlocker(ui->stepEdit);
@@ -154,6 +163,8 @@ void MainWindow::setStep(int i)
 {
     moldata[curMol].curStep = i;
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    // if no cell exists, disable mult-selectors
+    setMultEnabled(curStep->hasCell());
     // if no previous selection exists, create one, afterwards assign it
     auto& tmpSel = stepdata[curStep].sel;
     if(!tmpSel && curStep){
@@ -185,6 +196,22 @@ void MainWindow::setStep(int i)
     }
     //Update child widgets
     updateWidgets(guiStepChanged);
+}
+
+void MainWindow::setMult(int i)
+{
+    auto &mult = moldata[curMol].mult;
+    if(sender() == ui->xMultBox){ mult[0] = static_cast<uint8_t>(i); }
+    else if(sender() == ui->yMultBox){ mult[1] = static_cast<uint8_t>(i); }
+    else if(sender() == ui->zMultBox){ mult[2] = static_cast<uint8_t>(i); }
+    ui->openGLWidget->setMult(mult);
+}
+
+void MainWindow::setMultEnabled(bool b)
+{
+    ui->xMultBox->setEnabled(b);
+    ui->yMultBox->setEnabled(b);
+    ui->zMultBox->setEnabled(b);
 }
 
 void MainWindow::stepBut(QAbstractButton* but)

@@ -104,11 +104,9 @@ void GLWidget::setMode(int mode, bool t)
     }
 }
 
-void GLWidget::setMult(int i)
+void GLWidget::setMult(PBCVec m)
 {
-    if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = static_cast<uint8_t>(i); }
-    else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = static_cast<uint8_t>(i); }
-    else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = static_cast<uint8_t>(i); }
+    mult = m;
     update();
 }
 

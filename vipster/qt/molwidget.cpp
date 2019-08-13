@@ -165,9 +165,11 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
             return;
         }
         curStep.setCellDim(dim, fmt, scale);
+        master->setMultEnabled(true);
         triggerUpdate(change);
     }else{
         curStep.enableCell(false);
+        master->setMultEnabled(false);
         triggerUpdate(GuiChange::cell);
     }
 }

@@ -23,9 +23,9 @@ public:
     void mouseReleaseEvent(QMouseEvent *e) override;
     void triggerUpdate(Vipster::guiChange_t change);
     void updateWidget(Vipster::guiChange_t change);
+    void setMult(Vipster::PBCVec mult);
 public slots:
     void setMode(int i,bool t);
-    void setMult(int i);
     void setCamera(int i);
 private:
     bool updateTriggered{false};

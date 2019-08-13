@@ -34,6 +34,7 @@ public:
     void newData(Vipster::IO::Data&& d);
     struct MolExtras{
         int curStep{-1};
+        Vipster::PBCVec mult{1,1,1};
     };
     struct StepExtras{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
@@ -48,10 +49,12 @@ public:
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
     const Vipster::GUI::GlobalData& getGLGlobals();
+    void setMultEnabled(bool);
 
 public slots:
     void setMol(int i);
     void setStep(int i);
+    void setMult(int i);
     void stepBut(QAbstractButton *but);
     void about();
     void newMol();
