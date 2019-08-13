@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-IO::BaseConfig::BaseConfig(std::string name)
+IO::BaseConfig::BaseConfig(const std::string &name)
     :name{name}
 {}
 

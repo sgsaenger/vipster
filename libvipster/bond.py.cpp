@@ -14,10 +14,10 @@ void Bond(py::module &m){
         .def_readwrite("zdiff", &Bond::zdiff)
     ;
 
-    py::enum_<BondLevel>(b, "Level")
-        .value("None", BondLevel::None)
-        .value("Molecule", BondLevel::Molecule)
-        .value("Cell", BondLevel::Cell)
+    py::enum_<BondPolicy>(b, "Policy")
+        .value("None", BondPolicy::None)
+        .value("Molecule", BondPolicy::Molecule)
+        .value("Cell", BondPolicy::Cell)
     ;
 
     py::enum_<BondFrequency>(b, "Frequency")

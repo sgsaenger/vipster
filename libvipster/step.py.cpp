@@ -9,7 +9,7 @@ template <typename S>
 py::class_<S> bind_step(py::handle &m, std::string name){
     py::class_<StepConst<typename S::source>>(m, ("__"+name+"Base__").c_str());
     auto cl = py::class_<S, StepConst<typename S::source>>(m, name.c_str())
-        .def_readonly("pse", &S::pse)
+        .def_readonly("pte", &S::pte)
         .def_property("comment", &S::getComment, &S::setComment)
     // Atoms
         .def("__getitem__", [](S& s, int i){
@@ -54,7 +54,7 @@ py::class_<S> bind_step(py::handle &m, std::string name){
         .def("getCenter", [](const S& s, CdmFmt fmt, bool com){s.evaluateCache(); return s.getCenter(fmt, com);},
              "fmt"_a, "com"_a=false)
     // BONDS
-        .def("getBonds", [](const S& s, float c, BondLevel l, BondFrequency u){
+        .def("getBonds", [](const S& s, float c, BondPolicy l, BondFrequency u){
                 s.evaluateCache();
                 return s.getBonds(c,l,u);
             }, "cutfac"_a=settings.bondCutFac.val, "level"_a=settings.bondLvl.val, "update"_a=settings.bondFreq.val)

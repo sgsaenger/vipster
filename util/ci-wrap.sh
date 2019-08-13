@@ -14,18 +14,20 @@ case $1 in
                         for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
                         ;;
                     desktop)
-                        # select Python 3.6
-                        pyenv shell 3.6
-                        # make sure GCC5 is used:
+                        # select python version:
+                        pyenv shell 3.7
+                        pyenv versions
+                        # make sure GCC7 is used:
                         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
                         sudo update-alternatives --set gcc /usr/bin/gcc-7
-                        export PATH="/opt/qt510/bin":$PATH
+                        export PATH="/opt/qt512/bin":$PATH
                         ;;
                 esac
                 ;;
             osx)
                 # install qt
                 brew update
+                brew install grep
                 brew install qt
                 export PATH=/usr/local/qt/bin:$PATH
                 ;;
@@ -53,7 +55,7 @@ case $1 in
                     desktop)
                         mkdir build
                         cd build
-                        cmake -D DESKTOP=YES -D PYTHON=YES -D TESTS=YES -D CMAKE_BUILD_TYPE=Debug $TRAVIS_BUILD_DIR
+                        cmake -D DESKTOP=YES -D PYTHON=YES -D TESTS=YES -D CMAKE_BUILD_TYPE=Debug -D CMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
                         make -j2
                         ./test_lib
                         ;;
@@ -80,7 +82,7 @@ case $1 in
         if [[ $2 = linux ]] && [[ ${3} = "desktop" ]]
         then
             echo Collecting coverage
-            bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-5
+            bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
         fi
         ;;
     before_deploy)
@@ -100,7 +102,7 @@ case $1 in
                         cmake -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
                         make DESTDIR=AppDir install -j2
                         # fill AppDir with dependencies
-                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/5/linuxdeployqt-5-x86_64.AppImage" -O linuxdeployqt
+                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt
                         chmod +x linuxdeployqt
                         ./linuxdeployqt AppDir/usr/share/applications/vipster.desktop -bundle-non-qt-libs;
                         # bundle libstdc++ to be compatible with older linuxes, see https://github.com/darealshinji/AppImageKit-checkrt
@@ -123,7 +125,10 @@ case $1 in
             osx)
                 mkdir -p vipster.app/Contents/Frameworks
                 cp -a vipster.framework vipster.app/Contents/Frameworks
-                install_name_tool -change @rpath/vipster.framework/Versions/1.14/vipster @executable_path/../Frameworks/vipster.framework/Versions/1.14/vipster vipster.app/Contents/MacOS/vipster
+                export VIPVER=`ggrep "Vipster VERSION" $TRAVIS_BUILD_DIR/CMakeLists.txt | ggrep -o "[0-9.]*"`
+                echo $VIPVER
+                install_name_tool -change @rpath/vipster.framework/Versions/$VIPVER/vipster @executable_path/../Frameworks/vipster.framework/Versions/$VIPVER/vipster vipster.app/Contents/MacOS/vipster
+                otool -L vipster.app/Contents/MacOS/vipster
                 /usr/local/opt/qt/bin/macdeployqt vipster.app -dmg
                 mv vipster.dmg Vipster-OSX.dmg
                 export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg

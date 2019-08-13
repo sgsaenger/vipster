@@ -52,30 +52,8 @@ int main(int argc, char *argv[])
         }
         std::vector<IO::Data> data{};
         if(app.remaining_size()!=0){
-            const auto IOExt = [](){
-                std::map<std::string, IOFmt> ext;
-                for(const auto& pair: IOPlugins){
-                    ext[pair.second->extension] = pair.first;
-                }
-                return ext;
-            }();
             for(const auto& file: app.remaining()){
-                auto pos = file.find_last_of('.');
-                if(pos != file.npos){
-                    std::string ext = file.substr(pos+1);
-                    auto pos = IOExt.find(ext);
-                    if(pos != IOExt.end()){
-                        data.push_back(readFile(file, pos->second));
-                    }else{
-                        throw CLI::ParseError(
-                                    "Could not deduce format of file "+file+
-                                    "\nPlease specify format explicitely", 1);
-                    }
-                }else{
-                    throw CLI::ParseError(
-                                "Could not deduce format of file "+file+
-                                "\nPlease specify format explicitely", 1);
-                }
+                data.push_back(readFile(file));
             }
         }
         // parse files

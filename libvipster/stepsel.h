@@ -305,7 +305,8 @@ struct AtomSelection{
         using reference = typename B::reference;
         using pointer = typename B::pointer;
         using iterator_category = std::bidirectional_iterator_tag;
-        AtomSelIterator(std::shared_ptr<AtomSelection> selection,
+        AtomSelIterator(const std::shared_ptr<AtomSelection> &selection,
+                        const std::shared_ptr<PeriodicTable> &,
                         AtomFmt fmt, size_t idx)
         //TODO: introduce a terminal-object (when c++17 is ready?)
             : B{selection->step->asFmt(fmt).begin()},
@@ -381,7 +382,7 @@ public:
     using SelStep = B<SelSource>;
     using Source = AtomSelection<SelStep>;
     using Base = B<Source>;
-    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+    SelectionBase(std::shared_ptr<PeriodicTable> p, AtomFmt f,
                   const SelStep* s, SelectionFilter sf,
                   std::shared_ptr<CellData> c,
                   std::shared_ptr<std::string> co)
@@ -391,7 +392,7 @@ public:
         setFilter(sf);
         this->evaluateCache();
     }
-    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+    SelectionBase(std::shared_ptr<PeriodicTable> p, AtomFmt f,
                   const SelStep* s, std::string sf,
                   std::shared_ptr<CellData> c,
                   std::shared_ptr<std::string> co)
@@ -401,21 +402,21 @@ public:
         setFilter(sf);
         this->evaluateCache();
     }
-    SelectionBase(std::shared_ptr<PseMap> p, AtomFmt f,
+    SelectionBase(std::shared_ptr<PeriodicTable> p, AtomFmt f,
                   std::shared_ptr<Source> a,
                   std::shared_ptr<BondList> b,
                   std::shared_ptr<CellData> c, std::shared_ptr<std::string> co)
         : Base{p, f, a, b, c, co}
     {}
     SelectionBase(const SelectionBase& s)
-        : Base{s.pse, s.at_fmt,
+        : Base{s.pte, s.at_fmt,
                std::make_shared<Source>(*s.atoms),
                std::make_shared<BondList>(*s.bonds),
                s.cell, s.comment}
     {}
     SelectionBase& operator=(const SelectionBase& s)
     {
-        this->pse = s.pse;
+        this->pte = s.pte;
         this->at_fmt = s.at_fmt;
         *this->bonds = *s.bonds;
         this->cell = s.cell;
@@ -430,7 +431,7 @@ public:
               typename = typename std::enable_if<std::is_same<StepConst<T>, R>::value>::type, // only allow for const_selection
               typename = typename std::enable_if<std::is_same<V, T>::value>::type> // if source is of same type
     SelectionBase(const SelectionBase<U,V>& sel)
-        : Base{sel.pse, sel.at_fmt,
+        : Base{sel.pte, sel.at_fmt,
                std::make_shared<Source>(*sel.atoms),
                std::make_shared<BondList>(),
                sel.cell, sel.comment}
@@ -439,7 +440,7 @@ public:
     template <template<typename> class U, class V,
               typename = typename std::enable_if<std::is_same<V, SelStep>::value>::type>
     SelectionBase(const SelectionBase<U,AtomSelection<V>>& sel)
-        : Base{sel.pse, sel.at_fmt,
+        : Base{sel.pte, sel.at_fmt,
                std::make_shared<Source>(),
                std::make_shared<BondList>(),
                sel.cell, sel.comment}
@@ -458,7 +459,7 @@ public:
 
     SelectionBase asFmt(AtomFmt tgt) // hides StepMutable::asFmt
     {
-        auto tmp = SelectionBase{this->pse, tgt, this->atoms,
+        auto tmp = SelectionBase{this->pte, tgt, this->atoms,
                 this->bonds, this->cell, this->comment};
         tmp.evaluateCache();
         return tmp;

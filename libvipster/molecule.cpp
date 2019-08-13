@@ -11,21 +11,21 @@ Molecule::Molecule(const std::string &name, size_t s):
 {
     for(decltype(steps)::size_type i=0; i!=s; ++i){
         steps.emplace_back();
-        steps.back().pse = pse;
+        steps.back().pte = pte;
     }
 }
 
 Step& Molecule::newStep(const Step&step)
 {
     steps.push_back(step);
-    steps.back().pse = pse;
+    steps.back().pte = pte;
     return steps.back();
 }
 
 Step& Molecule::newStep(Step&&step)
 {
     steps.push_back(std::move(step));
-    steps.back().pse = pse;
+    steps.back().pte = pte;
     return steps.back();
 }
 

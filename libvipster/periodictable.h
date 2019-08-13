@@ -9,7 +9,7 @@
 
 namespace Vipster{
 
-struct PseEntry{
+struct Element{
     std::string     PWPP;
     std::string     CPPP;
     std::string     CPNL;
@@ -21,12 +21,12 @@ struct PseEntry{
     ColVec          col;
 };
 
-void to_json(nlohmann::json& j,const PseEntry& p);
-void from_json(const nlohmann::json& j, PseEntry& p);
+void to_json(nlohmann::json& j,const Element& p);
+void from_json(const nlohmann::json& j, Element& p);
 
-class PseMap:private std::map<std::string,PseEntry>
+class PeriodicTable:private std::map<std::string,Element>
 {
-    using map_t = std::map<std::string, PseEntry>;
+    using map_t = std::map<std::string, Element>;
 public:
     using map_t::begin;
     using map_t::end;
@@ -38,16 +38,17 @@ public:
     using map_t::mapped_type;
     using map_t::value_type;
     using map_t::insert_or_assign;
-    PseMap(std::initializer_list<PseMap::value_type> il={}, bool r=false);
-    PseEntry& operator [](const std::string &k);
+    PeriodicTable(std::initializer_list<PeriodicTable::value_type> il={}, bool r=false);
+    Element& operator [](const std::string &k);
+    iterator find_or_fallback(const std::string &k);
 private:
     bool root;
 };
 
-void to_json(nlohmann::json& j,const PseMap& p);
-void from_json(const nlohmann::json& j, PseMap& p);
+void to_json(nlohmann::json& j,const PeriodicTable& p);
+void from_json(const nlohmann::json& j, PeriodicTable& p);
 
-extern PseMap pse;
+extern PeriodicTable pte;
 
 }
 

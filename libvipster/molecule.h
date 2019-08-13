@@ -17,9 +17,9 @@ public:
           kpoints{}
     {
         steps.emplace_back(step);
-        steps.back().pse = pse;
+        steps.back().pte = pte;
     }
-    std::shared_ptr<PseMap> pse = std::make_shared<PseMap>();
+    std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
 
     Step& newStep(const Step& step);
     Step& newStep(Step&& step={});

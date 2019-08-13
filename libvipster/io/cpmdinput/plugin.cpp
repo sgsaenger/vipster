@@ -265,14 +265,14 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                         int i = 1;
                         std::string name2 = name + std::to_string(i);
                         while(tmp.find(name2) != tmp.end()){
-                            std::string name2 = name + std::to_string(++i);
+                            name2 = name + std::to_string(++i);
                         }
                         name = name2;
                     }
                     types.push_back(name);
-                    (*s.pse)[name].CPPP = CPPP;
+                    (*s.pte)[name].CPPP = CPPP;
                     std::getline(file, buf);
-                    (*s.pse)[name].CPNL = IO::trim(buf);
+                    (*s.pte)[name].CPNL = IO::trim(buf);
                     std::getline(file, buf);
                     size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
@@ -304,10 +304,11 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                             }else if(buf.find("ELEM") != buf.npos){
                                 bool seq = buf.find("SEQ") != buf.npos;
                                 std::getline(file, buf);
-                                size_t Z, beg, end;
+                                size_t Z;
                                 auto it=s.begin();
                                 auto it_end=s.end();
                                 if(seq){
+                                    size_t beg, end;
                                     std::stringstream{buf} >> Z >> beg >> end;
                                     it += beg-1;
                                     it_end = s.begin() + end;
@@ -315,17 +316,18 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                                     std::stringstream{buf} >> Z;
                                 }
                                 for(;it != it_end; ++it){
-                                    if(it->pse->Z == Z){
+                                    if(it->type->Z == Z){
                                         it->properties->flags |= fixComp;
                                     }
                                 }
                             }else if(buf.find("PPTY") != buf.npos){
                                 bool seq = buf.find("SEQ") != buf.npos;
                                 std::getline(file, buf);
-                                size_t pp, beg, end;
+                                size_t pp;
                                 auto it=s.begin();
                                 auto it_end=s.end();
                                 if(seq){
+                                    size_t beg, end;
                                     std::stringstream{buf} >> pp >> beg >> end;
                                     it += beg-1;
                                     it_end = s.begin() + end;
@@ -381,7 +383,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
                     parsed = true;
                     for(auto& t: types){
                         std::getline(file, buf);
-                        (*s.pse)[t].m = std::stof(buf);
+                        (*s.pte)[t].m = std::stof(buf);
                     }
                 }
             }
@@ -440,7 +442,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             std::vector<std::pair<size_t, AtomFlags>> fixCoord;
             std::vector<float> masses;
             for(const auto& pair: types){
-                const auto& pE = (*m.pse)[pair.first];
+                const auto& pE = (*m.pte)[pair.first];
                 masses.push_back(pE.m);
                 if(!pE.CPPP.empty()){
                     file << '*' << pE.CPPP << '\n';

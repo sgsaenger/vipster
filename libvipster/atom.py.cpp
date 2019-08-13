@@ -30,7 +30,7 @@ void Atom(py::module& m){
 
     py::class_<AtomFlags>(a, "Flags")
         .def("__getitem__",[](const AtomFlags &bs, AtomFlag ap){
-            return bs[static_cast<uint8_t>(ap)];
+            return static_cast<bool>(bs[static_cast<uint8_t>(ap)]);
         })
         .def("__setitem__",[](AtomFlags &bs, AtomFlag ap, bool val){
             bs[static_cast<uint8_t>(ap)] = val;

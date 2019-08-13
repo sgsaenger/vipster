@@ -18,7 +18,7 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
         natline >> nat;
         if (natline.fail()) {
             if(m.getNstep() == 1u){
-                float f1, f2, f3;
+                float f1{}, f2{}, f3{};
                 std::getline(file, line);
                 natline = std::stringstream{line};
                 if(!(natline >> f1).fail()){
@@ -71,7 +71,7 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
         for (auto& at: sp) {
             std::getline(file, line);
             std::stringstream atline{line};
-            float f1, f2, f3;
+            float f1{}, f2{}, f3{};
             atline >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
             if (atline.fail()) {
                 throw IO::Error("XYZ: failed to parse atom");

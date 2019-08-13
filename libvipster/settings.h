@@ -21,8 +21,8 @@ struct Settings{
     Setting<float> atRadFac{"Atom radius factor", bohrrad};
     Setting<float> bondRad{"Bond radius", bohrrad};
     Setting<float> bondCutFac{"Bond cutoff factor", 1.1f};
-    Setting<BondFrequency> bondFreq{"Bond frequency", BondFrequency::Always};
-    Setting<BondLevel> bondLvl{"Bond level", BondLevel::Cell};
+    Setting<BondFrequency> bondFreq{"Bond update frequency", BondFrequency::Always};
+    Setting<BondPolicy> bondLvl{"Bond policy", BondPolicy::Cell};
     Setting<bool> showBonds{"Show bonds", true};
     Setting<bool> showCell{"Show cell", true};
     Setting<bool> antialias{"Antialiasing", true};

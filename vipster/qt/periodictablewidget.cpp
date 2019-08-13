@@ -3,18 +3,18 @@
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QColorDialog>
-#include "psewidget.h"
-#include "ui_psewidget.h"
+#include "periodictablewidget.h"
+#include "ui_periodictablewidget.h"
 #include "mainwindow.h"
 
 using namespace Vipster;
 
 template<typename T>
-void PSEWidget::registerProperty(QWidget*, T PseEntry::*)
+void PeriodicTableWidget::registerProperty(QWidget*, T Element::*)
 {}
 
 template<>
-void PSEWidget::registerProperty(QWidget* w, float PseEntry::* prop)
+void PeriodicTableWidget::registerProperty(QWidget* w, float Element::* prop)
 {
     connect(static_cast<QDoubleSpinBox*>(w),
             qOverload<double>(&QDoubleSpinBox::valueChanged), this,
@@ -23,7 +23,7 @@ void PSEWidget::registerProperty(QWidget* w, float PseEntry::* prop)
                 triggerUpdate(GuiChange::settings);
             }
     );
-    connect(this, &PSEWidget::currentEntryChanged, this,
+    connect(this, &PeriodicTableWidget::currentEntryChanged, this,
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
@@ -38,7 +38,7 @@ void PSEWidget::registerProperty(QWidget* w, float PseEntry::* prop)
 }
 
 template<>
-void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
+void PeriodicTableWidget::registerProperty(QWidget* w, unsigned int Element::* prop)
 {
     connect(static_cast<QSpinBox*>(w),
             qOverload<int>(&QSpinBox::valueChanged), this,
@@ -47,7 +47,7 @@ void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
                 triggerUpdate(GuiChange::settings);
             }
     );
-    connect(this, &PSEWidget::currentEntryChanged, this,
+    connect(this, &PeriodicTableWidget::currentEntryChanged, this,
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
@@ -62,7 +62,7 @@ void PSEWidget::registerProperty(QWidget* w, unsigned int PseEntry::* prop)
 }
 
 template<>
-void PSEWidget::registerProperty(QWidget* w, std::string PseEntry::* prop)
+void PeriodicTableWidget::registerProperty(QWidget* w, std::string Element::* prop)
 {
     connect(static_cast<QLineEdit*>(w),
             &QLineEdit::editingFinished, this,
@@ -71,7 +71,7 @@ void PSEWidget::registerProperty(QWidget* w, std::string PseEntry::* prop)
                 triggerUpdate(GuiChange::settings);
             }
     );
-    connect(this, &PSEWidget::currentEntryChanged, this,
+    connect(this, &PeriodicTableWidget::currentEntryChanged, this,
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
@@ -86,7 +86,7 @@ void PSEWidget::registerProperty(QWidget* w, std::string PseEntry::* prop)
 }
 
 template<>
-void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
+void PeriodicTableWidget::registerProperty(QWidget* w, ColVec Element::* prop)
 {
     connect(static_cast<QPushButton*>(w),
             &QPushButton::clicked, this,
@@ -106,7 +106,7 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
                 triggerUpdate(GuiChange::settings);
             }
     );
-    connect(this, &PSEWidget::currentEntryChanged, this,
+    connect(this, &PeriodicTableWidget::currentEntryChanged, this,
             [prop, w, this](){
                 if(currentEntry){
                     w->setEnabled(true);
@@ -120,43 +120,43 @@ void PSEWidget::registerProperty(QWidget* w, ColVec PseEntry::* prop)
     );
 }
 
-PSEWidget::PSEWidget(QWidget *parent) :
+PeriodicTableWidget::PeriodicTableWidget(QWidget *parent) :
     BaseWidget(parent),
-    ui(new Ui::PSEWidget)
+    ui(new Ui::PeriodicTableWidget)
 {
     ui->setupUi(this);
-    registerProperty(ui->mSel, &PseEntry::m);
-    registerProperty(ui->zSel, &PseEntry::Z);
-    registerProperty(ui->covSel, &PseEntry::covr);
-    registerProperty(ui->vdwSel, &PseEntry::vdwr);
-    registerProperty(ui->cpnlSel, &PseEntry::CPNL);
-    registerProperty(ui->cpppSel, &PseEntry::CPPP);
-    registerProperty(ui->pwppSel, &PseEntry::PWPP);
-    registerProperty(ui->colSel, &PseEntry::col);
-    registerProperty(ui->cutSel, &PseEntry::bondcut);
+    registerProperty(ui->mSel, &Element::m);
+    registerProperty(ui->zSel, &Element::Z);
+    registerProperty(ui->covSel, &Element::covr);
+    registerProperty(ui->vdwSel, &Element::vdwr);
+    registerProperty(ui->cpnlSel, &Element::CPNL);
+    registerProperty(ui->cpppSel, &Element::CPPP);
+    registerProperty(ui->pwppSel, &Element::PWPP);
+    registerProperty(ui->colSel, &Element::col);
+    registerProperty(ui->cutSel, &Element::bondcut);
     emit(currentEntryChanged());
 }
 
-PSEWidget::~PSEWidget()
+PeriodicTableWidget::~PeriodicTableWidget()
 {
     delete ui;
 }
 
-void PSEWidget::setEntry(QListWidgetItem *item)
+void PeriodicTableWidget::setEntry(QListWidgetItem *item)
 {
-    if(item && pse){
-        currentEntry = &pse->at(item->text().toStdString());
+    if(item && table){
+        currentEntry = &table->at(item->text().toStdString());
     }else{
         currentEntry = nullptr;
     }
     emit(currentEntryChanged());
 }
 
-void PSEWidget::setPSE(PseMap* pse)
+void PeriodicTableWidget::setTable(PeriodicTable* pse)
 {
-    this->pse = pse;
+    this->table = pse;
     ui->pseList->clear();
-    if(pse == &Vipster::pse){
+    if(pse == &Vipster::pte){
         isGlobal = true;
     }
     if(pse){
@@ -166,13 +166,13 @@ void PSEWidget::setPSE(PseMap* pse)
     }
 }
 
-void PSEWidget::updateWidget(guiChange_t change)
+void PeriodicTableWidget::updateWidget(guiChange_t change)
 {
     if(!isGlobal){
         if((change & guiMolChanged) == guiMolChanged){
-            setPSE(master->curMol->pse.get());
+            setTable(master->curMol->pte.get());
         }else if(change & GuiChange::atoms){
-            setPSE(this->pse);
+            setTable(this->table);
         }
     }
 }

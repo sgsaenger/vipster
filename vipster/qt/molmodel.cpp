@@ -54,7 +54,7 @@ QVariant MolModel::headerData(int section, Qt::Orientation orientation, int role
     if(orientation == Qt::Horizontal){
         return colNames[colMap[section]];
     }else{
-        return section+1;
+        return section;
     }
 }
 

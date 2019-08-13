@@ -19,9 +19,9 @@ static unsigned long vrWidth, vrHeight;
 static bool vrMoving{false}, vrHasPos{false};
 static Vec vrPos{0,0,-10};
 
-std::string emReadFile(std::string fn, std::string name, int fmt){
+std::string emReadFile(std::string fn, int fmt){
     try {
-        auto d = readFile(fn, (IOFmt)fmt, name);
+        auto d = readFile(fn, (IOFmt)fmt);
         molecules.push_back(d.mol);
         return "";
     } catch (std::exception &e) {
@@ -64,13 +64,13 @@ int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
 
 // Atom
 std::string emGetAtName(const Atom& at){return at.name;}
-void emSetAtName(Atom& at, std::string name){at.name = name;}
+void emSetAtName(Atom& at, const std::string &name){at.name = name;}
 Vec emGetAtCoord(const Atom& at){return at.coord;}
 void emSetAtCoord(Atom& at, Vec v){at.coord = v;}
 
 // Iterator
 std::string emGetItName(const Step::iterator& it){return it->name;}
-void emSetItName(Step::iterator& it, std::string name){it->name = name;}
+void emSetItName(Step::iterator& it, const std::string &name){it->name = name;}
 Vec emGetItCoord(const Step::iterator& it){return it->coord;}
 void emSetItCoord(Step::iterator& it, Vec v){it->coord = v;}
 

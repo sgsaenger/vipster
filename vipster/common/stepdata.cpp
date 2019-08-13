@@ -438,12 +438,12 @@ void GUI::StepData::update(Step* step, bool b, bool c)
     atom_buffer.reserve(curStep->getNat());
     if(settings.atRadVdW.val){
         for (const auto& at: *curStep){
-            atom_buffer.push_back({at.pse->vdwr, at.pse->col,
+            atom_buffer.push_back({at.type->vdwr, at.type->col,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }else{
         for (const auto& at: *curStep){
-            atom_buffer.push_back({at.pse->covr, at.pse->col,
+            atom_buffer.push_back({at.type->covr, at.type->col,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }
@@ -452,7 +452,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
     if(b){
         constexpr Vec x_axis{{1,0,0}};
         const auto& bonds = curStep->getBonds();
-        const auto& pse = curStep->getAtoms().pse;
+        const auto& elements = curStep->getAtoms().elements;
         const auto& at_coord = curStep->getAtoms().coordinates[
                 static_cast<size_t>(curStep->getFmt())];
         const auto& at_prop = curStep->getAtoms().properties;
@@ -504,7 +504,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                      static_cast<int16_t>(std::abs(bd.zdiff)),
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
-                    pse[bd.at1]->col, pse[bd.at2]->col});
+                    elements[bd.at1]->second.col, elements[bd.at2]->second.col});
             }else{
                 // all other bonds
                 rot_axis = -Vec_cross(bond_axis, x_axis);
@@ -532,7 +532,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     //2*vec4 with colors
-                    pse[bd.at1]->col, pse[bd.at2]->col});
+                    elements[bd.at1]->second.col, elements[bd.at2]->second.col});
             }
         }
         draw_bonds = true;

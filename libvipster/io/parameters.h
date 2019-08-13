@@ -20,7 +20,7 @@ public:
     virtual nlohmann::json toJson() const = 0;
     virtual ~BaseParam() = default;
 protected:
-    BaseParam(std::string);
+    BaseParam(const std::string&);
     BaseParam(const BaseParam&) = default;
     BaseParam(BaseParam&&) = default;
     BaseParam& operator=(const BaseParam&) = default;

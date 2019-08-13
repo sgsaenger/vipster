@@ -25,10 +25,9 @@ struct AtomList{
     std::array<std::vector<Vec>, nAtFmt> coordinates;
     std::array<bool, nAtFmt>             coord_changed;
     std::array<bool, nAtFmt>             coord_outdated;
-    // Names (synced with type-pointers)
-    std::vector<std::string>        names;
-    bool                            name_changed;
-    std::vector<PseEntry*>          pse;
+    // Pointers to PeriodicTable entries
+    std::vector<PeriodicTable::value_type*> elements;
+    bool                                    element_changed;
     // Properties
     std::vector<AtomProperties>     properties;
     bool                            prop_changed;
@@ -47,16 +46,35 @@ struct AtomList{
         using pointer = T*;
         using iterator_category = std::bidirectional_iterator_tag;
         AtomListIterator(const std::shared_ptr<AtomList> &atoms,
+                         const std::shared_ptr<PeriodicTable> &pte,
                          AtomFmt fmt, size_t idx)
             : T{&atoms->coordinates[static_cast<uint8_t>(fmt)][idx],
                 &atoms->coord_changed[static_cast<uint8_t>(fmt)],
-                &atoms->names[idx],
-                &atoms->name_changed,
+                &atoms->elements[idx],
+                &atoms->element_changed,
                 &atoms->properties[idx],
-                &atoms->pse[idx],
                 &atoms->prop_changed,
+                pte.get()
             }, atoms{atoms}, fmt{fmt}, idx{idx}
         {}
+        // default copy constructor
+        AtomListIterator(const AtomListIterator &it) = default;
+        // copy assignment just assigns the iterator, not to the atom (which has reference semantics)
+        AtomListIterator& operator=(const AtomListIterator &it){
+            // reset atom's pointers as it would happen in constructor
+            this->coord_ptr = it.coord_ptr;
+            this->coord_changed = it.coord_changed;
+            this->element_ptr = it.element_ptr;
+            this->element_changed = it.element_changed;
+            this->prop_ptr = it.prop_ptr;
+            this->prop_changed = it.prop_changed;
+            this->pte = it.pte;
+            // reset own properties
+            atoms = it.atoms;
+            fmt = it.fmt;
+            idx = it.idx;
+            return *this;
+        }
         // allow iterator to const_iterator conversion
         template <typename U, typename R=T, typename = typename std::enable_if<std::is_same<constAtom, R>::value>::type>
         AtomListIterator(const AtomListIterator<U>& it)
@@ -65,33 +83,29 @@ struct AtomList{
         AtomListIterator& operator++(){
             ++idx;
             ++(this->coord_ptr);
-            ++(this->name_ptr);
+            ++(this->element_ptr);
             ++(this->prop_ptr);
-            ++(this->pse_ptr);
             return *this;
         }
         AtomListIterator& operator--(){
             --idx;
             --(this->coord_ptr);
-            --(this->name_ptr);
+            --(this->element_ptr);
             --(this->prop_ptr);
-            --(this->pse_ptr);
             return *this;
         }
         AtomListIterator& operator+=(long i){
             idx += i;
             this->coord_ptr += i;
-            this->name_ptr += i;
+            this->element_ptr += i;
             this->prop_ptr += i;
-            this->pse_ptr += i;
             return *this;
         }
         AtomListIterator& operator-=(long i){
             idx -= i;
             this->coord_ptr -= i;
-            this->name_ptr -= i;
+            this->element_ptr -= i;
             this->prop_ptr -= i;
-            this->pse_ptr -= i;
             return *this;
         }
         AtomListIterator operator+(long i){
@@ -135,8 +149,8 @@ class Step: public StepMutable<AtomList>
 {
 public:
     Step(AtomFmt at_fmt=AtomFmt::Bohr,
-         std::string comment="");
-    Step(std::shared_ptr<PseMap>, AtomFmt,
+         const std::string &comment="");
+    Step(std::shared_ptr<PeriodicTable>, AtomFmt,
          std::shared_ptr<AtomList>, std::shared_ptr<BondList>,
          std::shared_ptr<CellData>, std::shared_ptr<std::string>);
     Step(const Step& s);
@@ -145,7 +159,7 @@ public:
     Step& operator=(Step&& s);
     template<typename T>
     Step(const StepConst<T>& s)
-        : StepMutable<AtomList>{s.pse, s.getFmt(),
+        : StepMutable<AtomList>{s.pte, s.getFmt(),
                             std::make_shared<AtomList>(),
                             std::make_shared<BondList>(),
                             std::make_shared<CellData>(),
@@ -176,25 +190,22 @@ public:
         // Coordinates
         AtomList& al = *this->atoms;
         al.coordinates[fmt].reserve(nat);
-        al.names.reserve(nat);
+        al.elements.reserve(nat);
         al.properties.reserve(nat);
-        al.pse.reserve(nat);
         al.coord_changed[fmt] = true;
-        al.name_changed = true;
+        al.element_changed = true;
         al.prop_changed = true;
         if(at_fmt >= AtomFmt::Crystal){
             auto tmp = getFormatter(AtomFmt::Bohr, AtomFmt::Crystal);
             for(const auto& at: step){
                 al.coordinates[fmt].push_back(tmp(at.coord));
-                al.names.push_back(at.name);
-                al.pse.push_back(&(*pse)[at.name]);
+                al.elements.push_back(&*pte->find_or_fallback(at.name));
                 al.properties.push_back(at.properties);
             }
         }else{
             for(const auto& at: step){
                 al.coordinates[fmt].push_back(at.coord);
-                al.names.push_back(at.name);
-                al.pse.push_back(&(*pse)[at.name]);
+                al.elements.push_back(&*pte->find_or_fallback(at.name));
                 al.properties.push_back(at.properties);
             }
         }

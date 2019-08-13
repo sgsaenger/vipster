@@ -469,12 +469,12 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>PSE (&amp;global)</string>
+    <string>Periodic Table (&amp;global)</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="PSEWidget" name="pseWidget"/>
+   <widget class="PeriodicTableWidget" name="pseWidget"/>
   </widget>
   <widget class="QDockWidget" name="mpseDock">
    <property name="features">
@@ -484,12 +484,12 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>PSE (Molec&amp;ule)</string>
+    <string>Periodic Table (Molec&amp;ule)</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="PSEWidget" name="mpseWidget"/>
+   <widget class="PeriodicTableWidget" name="mpseWidget"/>
   </widget>
   <widget class="QDockWidget" name="dataDock">
    <property name="features">
@@ -499,7 +499,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Add. Data</string>
+    <string>Additional Data</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -698,9 +698,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>PSEWidget</class>
+   <class>PeriodicTableWidget</class>
    <extends>QWidget</extends>
-   <header>psewidget.h</header>
+   <header>periodictablewidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1070,8 +1070,8 @@
   <slot>newMol(QAction*)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="modeGroup"/>
+  <buttongroup name="stepGroup"/>
   <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

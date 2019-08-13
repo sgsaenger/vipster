@@ -112,12 +112,19 @@ void DefineWidget::fillTable()
 
 void DefineWidget::on_newButton_clicked()
 {
+    bool ok{false};
     auto filter = QInputDialog::getText(this, "Create new filtered group",
-                                        "Enter filter for new group:").toStdString();
+                                        "Enter filter for new group:",
+                                        QLineEdit::Normal, QString(), &ok
+                                       ).toStdString();
+    if(!ok) return;
     try {
         auto tmp = curStep->select(filter);
         auto name = QInputDialog::getText(this, "Create new filtered group",
-                                          "Enter name for new group:").toStdString();
+                                          "Enter name for new group:",
+                                          QLineEdit::Normal, QString(), &ok
+                                         ).toStdString();
+        if(!ok) return;
         defMap->insert_or_assign(name, std::move(tmp));
         triggerUpdate(GuiChange::definitions);
     }catch(const Error &e){
@@ -142,8 +149,12 @@ void DefineWidget::deleteAction()
 
 void DefineWidget::on_fromSelButton_clicked()
 {
+    bool ok{false};
     auto tmp = QInputDialog::getText(this, "Copy selection to filtered group",
-                                     "Enter name for new group:").toStdString();
+                                     "Enter name for new group:",
+                                     QLineEdit::Normal, QString(), &ok
+                                    ).toStdString();
+    if(!ok) return;
     defMap->insert_or_assign(tmp, *master->curSel);
     triggerUpdate(GuiChange::definitions);
 }
@@ -192,23 +203,13 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
                 msg.exec();
                 return;
             }
-            auto it1 = defMap->find(name);
-            auto it2 = curMap.find(name);
+            auto nh1 = defMap->extract(name);
+            auto nh2 = curMap.extract(name);
             name = newName.toStdString();
-            master->delExtraData(&it2->second.gpu_data);
-            defMap->emplace(name, std::move(it1->second));
-            defMap->erase(it1);
-            auto res = curMap.emplace(name, std::move(it2->second));
-            curMap.erase(it2);
-            master->addExtraData(&res.first->second.gpu_data);
-            // TODO: reenable when libc++-8 is available
-//            auto nh1 = defMap->extract(name);
-//            auto nh2 = curMap.extract(name);
-//            name = cell->text().toStdString();
-//            nh1.key() = name;
-//            nh2.key() = name;
-//            defMap->insert(std::move(nh1));
-//            curMap.insert(std::move(nh2));
+            nh1.key() = name;
+            nh2.key() = name;
+            defMap->insert(std::move(nh1));
+            curMap.insert(std::move(nh2));
         }
     }else{
         try{

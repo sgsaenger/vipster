@@ -285,9 +285,9 @@ function readFile() {
     const reader = new FileReader();
 
     reader.onload = (e) => {
-        FS.createDataFile('/tmp', 'vipster.file', e.target.result, true);
-        const readError = Module.readFile('/tmp/vipster.file', Module.file.name, parseInt(dom.fileType.value));
-        FS.unlink('/tmp/vipster.file');
+        FS.createDataFile('/tmp', Module.file.name, e.target.result, true);
+        const readError = Module.readFile('/tmp/'+Module.file.name, parseInt(dom.fileType.value));
+        FS.unlink('/tmp/'+Module.file.name);
 
         if (readError.length) {
             $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));

@@ -62,6 +62,7 @@
      <widget class="PWConfig" name="PWWidget"/>
      <widget class="LmpConfig" name="LmpWidget"/>
      <widget class="CPConfig" name="CPWidget"/>
+     <widget class="PoscarConfig" name="PoscarWidget"/>
     </widget>
    </item>
   </layout>
@@ -89,6 +90,12 @@
    <class>CPConfig</class>
    <extends>QWidget</extends>
    <header>configs/cpconfig.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PoscarConfig</class>
+   <extends>QWidget</extends>
+   <header>configs/poscarconfig.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

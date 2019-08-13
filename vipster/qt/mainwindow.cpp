@@ -82,7 +82,7 @@ void MainWindow::setupUI()
         toolWidgets.push_back(tmp);
     }
     // fill in global PSE
-    ui->pseWidget->setPSE(&Vipster::pse);
+    ui->pseWidget->setTable(&Vipster::pte);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
         const auto& param_map = Vipster::params[pair.first];
@@ -299,43 +299,36 @@ void MainWindow::loadMol()
         ext2id[iop.second->extension] = formats.size();
         formats << QString::fromStdString(iop.second->name);
     }
-    QString fmt_s;
-    IOFmt fmt;
-    bool got_fmt{false};
     if(fileDiag.exec() != 0){
         auto files = fileDiag.selectedFiles();
         path = fileDiag.directory();
-        if(files.count() != 0){
-            int current = 0;
-            // try to determine filetype by extension
-            auto first = files[0].toStdString();
-            auto pos = first.find_last_of('.');
-            if(pos != first.npos){
-                auto ext = first.substr(pos+1);
-                auto pos = ext2id.find(ext);
-                if(pos != ext2id.end()){
-                    current = pos->second;
-                }
-            }
-            // request filetype
-            fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
-                                          formats, current, false, &got_fmt);
-            // load files
-            if(got_fmt){
-                fmt = static_cast<IOFmt>(formats.indexOf(fmt_s));
-                for(auto &file: files){
-                    IO::Data dat;
-                    try {
-                        dat = readFile(file.toStdString(), fmt);
-                    } catch (const IO::Error& e) {
-                        QMessageBox msg{this};
-                        msg.setText(QString{"Could not open file \""}+file+"\":\n"+e.what());
-                        msg.exec();
-                        continue;
+        // if cancelled by user, just return
+        if(files.empty()) return;
+        // else try to read file
+        const auto& file = files[0].toStdString();
+        try {
+            try {
+                // try to open file without explicit format
+                newData(readFile(file));
+            } catch (const IO::Error &e) {
+                // if error is not fatal, we just need the format, so request it
+                if(!e.fatal){
+                    bool got_fmt{false};
+                    auto fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
+                                                       formats, 0, false, &got_fmt);
+                    // if the user selected the format, read the file
+                    if(got_fmt){
+                        auto fmt = static_cast<IOFmt>(formats.indexOf(fmt_s));
+                        newData(readFile(file, fmt));
                     }
-                    newData(std::move(dat));
+                }else{
+                    throw;
                 }
             }
+        }catch (const IO::Error &e){
+            QMessageBox msg{this};
+            msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
+            msg.exec();
         }
     }
 }

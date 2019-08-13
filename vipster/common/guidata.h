@@ -41,7 +41,7 @@ public:
     virtual void drawCell(const Vec &off, const PBCVec &mult) = 0;
     virtual void updateGL() = 0;
     virtual void initGL() = 0;
-    GLuint loadShader(std::string vert, std::string frag);
+    GLuint loadShader(const std::string &vert, const std::string &frag);
     void syncToGPU();
 
     bool updated{true}, initialized{false};

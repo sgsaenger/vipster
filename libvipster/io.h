@@ -15,6 +15,7 @@
 #include "io/cube/plugin.h"
 #include "io/xsf/plugin.h"
 #include "io/orca/plugin.h"
+#include "io/poscar/plugin.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
@@ -27,10 +28,11 @@ namespace Vipster{
             {IOFmt::CPI, &IO::CPInput},
             {IOFmt::CUBE, &IO::Cube},
             {IOFmt::XSF, &IO::XSF},
-            {IOFmt::ORCA, &IO::OrcaInput}
+            {IOFmt::ORCA, &IO::OrcaInput},
+            {IOFmt::POSCAR, &IO::Poscar},
     };
+    IO::Data readFile(const std::string &fn);
     IO::Data readFile(const std::string &fn, IOFmt fmt);
-    IO::Data readFile(const std::string &fn, IOFmt fmt, std::string name);
     bool     writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
                        const IO::BaseParam *p=nullptr,
                        const IO::BaseConfig *c=nullptr,

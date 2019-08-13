@@ -5,7 +5,7 @@ namespace Vipster::Py{
 void Molecule(py::module& m){
     py::class_<Vipster::Molecule>(m, "Molecule")
         .def(py::init())
-        .def_readonly("pse", &Vipster::Molecule::pse)
+        .def_readonly("pte", &Vipster::Molecule::pte)
         .def("newStep", [](Vipster::Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const Step&>(&Vipster::Molecule::newStep), "step"_a)
         .def("__getitem__", [](Vipster::Molecule& m, int i)->Step&{

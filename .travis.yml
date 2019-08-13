@@ -9,7 +9,6 @@ matrix:
     fast_finish: true
     include:
         - os: linux
-          dist: xenial
           env: TARGET=web
         - os: linux
           compiler: gcc
@@ -18,14 +17,13 @@ matrix:
               apt:
                   sources:
                       - ubuntu-toolchain-r-test
-                      - sourceline: "ppa:beineri/opt-qt-5.10.1-trusty"
+                      - sourceline: "ppa:beineri/opt-qt-5.12.3-xenial"
                   packages:
-                      - python-dev
                       - g++-7
-                      - qt510-meta-minimal
-                      - qt510script
+                      - qt512-meta-minimal
+                      - libgl1-mesa-dev
         - os: osx
-          osx_image: xcode10
+          osx_image: xcode11
         - os: windows
     allow_failures:
         - os: windows
