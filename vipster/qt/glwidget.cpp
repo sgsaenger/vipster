@@ -284,7 +284,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
     switch(mouseMode){
     case MouseMode::Camera:
         if((e->buttons() & Qt::MouseButton::LeftButton) != 0u){
-            rotateViewMat(delta.x(), delta.y(), 0);
+            if(e->modifiers() & Qt::Modifier::SHIFT){
+                translateViewMat(delta.x(), -delta.y(), 0);
+            }else{
+                rotateViewMat(delta.x(), delta.y(), 0);
+            }
             update();
         }else if((e->buttons() & Qt::MouseButton::MiddleButton) != 0u){
             translateViewMat(delta.x(), -delta.y(), 0);

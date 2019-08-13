@@ -32,6 +32,9 @@
      <layout class="QHBoxLayout" name="modeLayout">
       <item>
        <widget class="QPushButton" name="camButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click&lt;/span&gt;: rotate camera around center of molecule or cell&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle-click&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Shift&lt;/span&gt;: shift camera&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right-click&lt;/span&gt;: align camera with z-axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Camera</string>
         </property>
@@ -51,6 +54,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="selButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click&lt;/span&gt;: Select atom(s)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle-click &lt;/span&gt;or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Ctrl&lt;/span&gt;: Add atom(s) to selection&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right-click&lt;/span&gt;: Clear selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Select</string>
         </property>
@@ -67,6 +73,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="modButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Modification operates on the selected atoms, or all atoms if none are selected.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click&lt;/span&gt;: rotate around atom, or center of mass if background has been clicked&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle-click&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Ctrl&lt;/span&gt;: Shift in xy-plane (relative to camera)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right-click&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Shift&lt;/span&gt;: Shift in z-direction (relative to camera)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Modify</string>
         </property>
