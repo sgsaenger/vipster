@@ -34,8 +34,6 @@ int main(int argc, char *argv[])
 {
     // read user-defined settings and make state known
     auto state = Vipster::readConfig();
-    const PeriodicTable &pte = std::get<0>(state);
-    const Settings &settings = std::get<1>(state);
     const IO::Parameters &params = std::get<2>(state);
     const IO::Configs &configs = std::get<3>(state);
 
@@ -304,5 +302,5 @@ int main(int argc, char *argv[])
     });
 
     // do the parsing
-    CLI11_PARSE(app, argc, argv);
+    CLI11_PARSE(app, argc, argv)
 }

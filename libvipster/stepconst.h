@@ -233,21 +233,9 @@ public:
     }
 
     // Bonds
-    /* WARNING: this breaks API-promises when not called from GUI
-     * must make sure that no call expected getBonds to actually set anything
-     * don't think this is possible...e.g. lammpsplugin needs to be able to be used in CLI
-     * maybe include configstate in iostate, after all
-     */
-    const std::vector<Bond>&    getExistingBonds() const
-    {
-        return bonds->bonds;
-    }
     const std::vector<Bond>&    getBonds(float cutfac, BondPolicy l,
                                          BondFrequency update) const
     {
-        if(cutfac < 0){
-            throw Error("bond cutoff factor must be positive");
-        }
         if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
         if(((update == BondFrequency::Always) or
             ((update == BondFrequency::Once) and not bonds->setOnce))
@@ -259,12 +247,6 @@ public:
             setBonds(l, cutfac);
         }
         return bonds->bonds;
-    }
-    // TODO: how surprising should this be?
-    size_t                      getNbond() const
-    {
-        return getExistingBonds().size();
-//        return getBonds().size();
     }
     void                        setBonds(BondPolicy l, float cutfac) const
     {

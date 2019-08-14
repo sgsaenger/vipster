@@ -73,8 +73,10 @@ public:
     void drawCell(const Vec &off, const PBCVec &mult) override;
     void updateGL() override;
     void initGL() override;
-    void update(Step* step, bool useVdW, float atRadFac, bool showBonds,
-                float bondRad, bool showCell);
+    void update(Step* step, bool useVdW, float atRadFac,
+                bool showBonds, float bondRad,
+                float cutfac, BondPolicy pol, BondFrequency freq,
+                bool showCell);
     void drawSel(Vec off, const PBCVec &mult);
 private:
     void initAtom();

@@ -262,7 +262,7 @@ void MainWindow::editAtoms(QAction* sender)
         curStep->newAtoms(copyBuf);
         change = GuiChange::atoms;
     }else if( sender == ui->actionSet_Bonds){
-        curStep->setBonds(settings.bondLvl.val, settings.bondCutFac.val);
+        curStep->setBonds(settings.bondPolicy.val, settings.bondCutFac.val);
         change = GuiChange::atoms;
     }
     if(change){
@@ -369,7 +369,9 @@ void MainWindow::saveMol()
                           sfd.getParam(), sfd.getConfig(),
                           IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
                                     ui->molWidget->getAtomFmt(),
-                                    ui->molWidget->getCellFmt()});
+                                    ui->molWidget->getCellFmt(),
+                                    settings
+                          });
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());

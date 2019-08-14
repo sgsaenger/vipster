@@ -19,7 +19,7 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
     readSetting(j, s.bondRad);
     readSetting(j, s.bondCutFac);
     readSetting(j, s.bondFreq);
-    readSetting(j, s.bondLvl);
+    readSetting(j, s.bondPolicy);
     readSetting(j, s.showBonds);
     readSetting(j, s.showCell);
     readSetting(j, s.antialias);
@@ -38,7 +38,7 @@ void Vipster::to_json(nlohmann::json& j, const Settings& s){
     j[s.bondRad.name] = s.bondRad.val;
     j[s.bondCutFac.name] = s.bondCutFac.val;
     j[s.bondFreq.name] = s.bondFreq.val;
-    j[s.bondLvl.name] = s.bondLvl.val;
+    j[s.bondPolicy.name] = s.bondPolicy.val;
     j[s.showBonds.name] = s.showBonds.val;
     j[s.showCell.name] = s.showCell.val;
     j[s.antialias.name] = s.antialias.val;

@@ -134,7 +134,8 @@ void GuiWrapper::setMainStep(Step* step)
     curStep = step;
     mainStep.update(step, settings.atRadVdW.val, settings.atRadFac.val,
                     settings.showBonds.val, settings.bondRad.val,
-                    settings.showCell.val);
+                    settings.bondCutFac.val, settings.bondPolicy.val,
+                    settings.bondFreq.val, settings.showCell.val);
 }
 
 void GuiWrapper::setMainSel(Step::selection* sel)
@@ -147,7 +148,8 @@ void GuiWrapper::updateMainStep()
 {
     mainStep.update(curStep, settings.atRadVdW.val, settings.atRadFac.val,
                     settings.showBonds.val, settings.bondRad.val,
-                    settings.showCell.val);
+                    settings.bondCutFac.val, settings.bondPolicy.val,
+                    settings.bondFreq.val, settings.showCell.val);
 }
 
 void GuiWrapper::updateMainSelection()

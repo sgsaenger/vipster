@@ -5,6 +5,7 @@
 #include "../data.h"
 #include "parameters.h"
 #include "configs.h"
+#include "settings.h"
 #include "fmt.h"
 
 #include <string>
@@ -25,6 +26,7 @@ struct State{
     size_t index = -1ul;
     AtomFmt atom_fmt = AtomFmt::Crystal;
     CdmFmt cell_fmt = CdmFmt::Bohr;
+    const Settings &settings = Vipster::settings;
 };
 
 struct Plugin{

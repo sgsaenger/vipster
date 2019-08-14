@@ -20,7 +20,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(master->settings.bondRad);
     registerSetting(master->settings.bondCutFac);
     registerSetting(master->settings.bondFreq);
-    registerSetting(master->settings.bondLvl);
+    registerSetting(master->settings.bondPolicy);
     registerSetting(master->settings.showBonds);
     registerSetting(master->settings.showCell);
     registerSetting(master->settings.antialias);
