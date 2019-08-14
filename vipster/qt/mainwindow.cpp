@@ -273,6 +273,7 @@ void MainWindow::editAtoms(QAction* sender)
 void MainWindow::newMol()
 {
     molecules.emplace_back();
+    molecules.back().pte->root = &pte;
     ui->molWidget->registerMol(molecules.back().getName());
 }
 
@@ -281,14 +282,17 @@ void MainWindow::newMol(QAction* sender)
     if(sender == ui->actionCopy_Trajector){
         molecules.emplace_back(*curMol);
         molecules.back().setName(molecules.back().getName() + " (copy)");
+        molecules.back().pte->root = &pte;
         ui->molWidget->registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_single_Step){
         molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
                                std::to_string(moldata[curMol].curStep) + ')');
+        molecules.back().pte->root = &pte;
         ui->molWidget->registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_current_Selection){
         molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
                                std::to_string(moldata[curMol].curStep) + ')');
+        molecules.back().pte->root = &pte;
         ui->molWidget->registerMol(molecules.back().getName());
     }
 }
@@ -296,6 +300,7 @@ void MainWindow::newMol(QAction* sender)
 void MainWindow::newData(IO::Data &&d)
 {
     molecules.push_back(std::move(d.mol));
+    molecules.back().pte->root = &pte;
     ui->molWidget->registerMol(molecules.back().getName());
     if(d.param){
         ui->paramWidget->registerParam(std::move(d.param));

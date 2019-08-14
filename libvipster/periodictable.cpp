@@ -1,6 +1,7 @@
 #include "periodictable.h"
 #include "configfile.h"
 #include <cctype>
+#include <optional>
 
 using namespace Vipster;
 
@@ -131,7 +132,7 @@ const Vipster::PeriodicTable Vipster::pte = {
 };
 
 PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il,
-                             const std::shared_ptr<const PeriodicTable> &r)
+                             const PeriodicTable *r)
     : std::map<std::string, Element>{il}, root{r}
 {}
 
@@ -146,32 +147,44 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
         std::size_t Z = std::strtoul(k.c_str(), &p, 10);
         if(*p){
             // found a derived/custom name, try to guess base-name
-            std::string kt{k};
-            // make sure first letter is upper case to match default names
-            if(std::islower(kt[0])){
-                kt[0] = std::toupper(kt[0]);
-            }
+            bool islower = std::islower(k[0]);
             // gradually ignore appended letters until we reach a matching atom type
-            for(size_t i=kt.length(); i>0; --i)
+            for(size_t i=k.length(); i>0; --i)
             {
-                std::string test = kt.substr(0,i);
-                const_iterator tmp = find(test);
-                // local lookup, always works
-                if(tmp != end()){
-                    return emplace(k, tmp->second).first;
+                auto search = [&](const std::string& key)->std::optional<const Element>{
+                    const_iterator tmp = find(key);
+                    // local lookup, always works
+                    if(tmp != end()){
+                        return {tmp->second};
+                    }
+                    if(root){
+                        // if we have a specific root, look up there
+                        tmp = root->find(key);
+                        if(tmp != root->end()){
+                            return {tmp->second};
+                        }
+                    }else{
+                        // lookup in global PSE
+                        tmp = Vipster::pte.find(key);
+                        if(tmp != Vipster::pte.end()){
+                            return {tmp->second};
+                        }
+                    }
+                    return {};
+                };
+                if(islower){
+                    // first check values starting with a uppercase letter to match defaults
+                    std::string tmp = k.substr(0,i);
+                    tmp[0] = std::toupper(k[0]);
+                    auto test = search(tmp);
+                    if(test){
+                        return emplace(k, test.value()).first;
+                    }
                 }
-                if(root){
-                    // if we have a specific root, look up there
-                    tmp = root->find(test);
-                    if(tmp != root->end()){
-                        return emplace(k, tmp->second).first;
-                    }
-                }else{
-                    // lookup in global PSE
-                    tmp = Vipster::pte.find(test);
-                    if(tmp != Vipster::pte.end()){
-                        return emplace(k, tmp->second).first;
-                    }
+                std::string tmp = k.substr(0,i);
+                auto test = search(tmp);
+                if(test){
+                    return emplace(k, test.value()).first;
                 }
             }
         }else{
@@ -227,6 +240,6 @@ void Vipster::to_json(nlohmann::json& j, const PeriodicTable& m)
 void Vipster::from_json(const nlohmann::json& j, PeriodicTable& m)
 {
     for(auto it=j.begin(); it!=j.end(); ++it){
-        m.emplace(it.key(), it.value());
+        m.insert_or_assign(it.key(), it.value());
     }
 }
