@@ -21,8 +21,8 @@ void Data3DWidget::updateWidget(guiChange_t change)
 {
     if(change & GuiChange::settings){
         for(auto& p: surfaces){
-            p.second.gpu_data.update({{settings.posCol.val,
-                                       settings.negCol.val}, 2, 1});
+            p.second.gpu_data.update({{master->settings.posCol.val,
+                                       master->settings.negCol.val}, 2, 1});
         }
     }
 }
@@ -721,8 +721,8 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                           mkSurf(isoval, pm),
                           curData->origin,
                           curData->cell,
-                          {{settings.posCol.val,
-                            settings.negCol.val}, 2, 1}}
+                          {{master->settings.posCol.val,
+                            master->settings.negCol.val}, 2, 1}}
             });
         curSurf = &tmp.first->second;
         master->addExtraData(&curSurf->gpu_data);

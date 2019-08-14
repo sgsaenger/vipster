@@ -11,7 +11,7 @@
 namespace em = emscripten;
 using namespace Vipster;
 
-static GuiWrapper gui;
+static GuiWrapper gui{settings};
 static std::vector<Molecule> molecules;
 
 static VRDisplayHandle handle;
@@ -55,7 +55,7 @@ int emGetMolNstep(int m){ return molecules[m].getNstep();}
 std::string emGetMolName(int m){ return molecules[m].getName();}
 
 // Steps
-void emSetStep(int m, int s){ gui.setMainStep(&molecules[m].getStep(s), true); }
+void emSetStep(int m, int s){ gui.setMainStep(&molecules[m].getStep(s)); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
 int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
 Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
@@ -83,7 +83,7 @@ void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
 bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
 
 // Expose Canvas operations
-void emUpdateView(void){ gui.updateMainStep(true); }
+void emUpdateView(void){ gui.updateMainStep(); }
 void emZoom(float val){gui.zoomViewMat(val);}
 void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
 void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
@@ -334,8 +334,6 @@ void tryInitVR(void*){
 
 int main()
 {
-    // initialize library
-    Vipster::readConfig();
     // create WebGL2 context
     EmscriptenWebGLContextAttributes attrs;
     emscripten_webgl_init_context_attributes(&attrs);

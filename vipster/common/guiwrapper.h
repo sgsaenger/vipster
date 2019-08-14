@@ -26,15 +26,16 @@ public:
     virtual ~GuiWrapper() = default;
 #endif
 public:
+    GuiWrapper(const Settings &s);
     void initGL(const std::string& header, const std::string& folder);
     void draw(void);
     void drawSel(void);
     void drawVR(const float* leftProj, const float* leftView,
                 const float* rightProj, const float* rightView,
                 const Vec& pos, unsigned long width, unsigned long height);
-    void setMainStep(Step* step, bool draw_bonds=true, bool draw_cell=true);
+    void setMainStep(Step* step);
     void setMainSel(Step::selection* sel);
-    void updateMainStep(bool draw_bonds=true, bool draw_cell=true);
+    void updateMainStep();
     void updateMainSelection();
     void addExtraData(GUI::Data* dat);
     void delExtraData(GUI::Data* dat);
@@ -52,18 +53,21 @@ public:
     Step::selection* curSel{nullptr};
     GUI::GlobalData globals;
     GUI::StepData mainStep{globals, nullptr};
-    GUI::SelData selection{globals, settings.selCol.val, nullptr};
+    GUI::SelData selection{globals, nullptr};
     std::set<GUI::Data*> extraData{};
 private:
+    const Settings &settings;
     void drawPre(void);
     void drawImpl(const Vec& pos);
-    void updateViewUBO(void);
+    void updateViewUBO();
     void updateViewUBOVR(const float* proj, const float* view);
     // gpu-side global data
     GLuint view_ubo;
     // cpu-side global data
     GUI::Mat vMat, oMat, pMat, rMat;
-    bool vMatChanged, pMatChanged, rMatChanged, drawPerspective;
+    bool vMatChanged, pMatChanged, rMatChanged;
+    // state
+    bool drawPerspective;
 };
 
 }

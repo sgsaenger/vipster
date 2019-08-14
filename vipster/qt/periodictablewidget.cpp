@@ -152,15 +152,15 @@ void PeriodicTableWidget::setEntry(QListWidgetItem *item)
     emit(currentEntryChanged());
 }
 
-void PeriodicTableWidget::setTable(PeriodicTable* pse)
+void PeriodicTableWidget::setTable(PeriodicTable* pte)
 {
-    this->table = pse;
+    this->table = pte;
     ui->pseList->clear();
-    if(pse == &Vipster::pte){
+    if(pte == &master->pte){
         isGlobal = true;
     }
-    if(pse){
-        for(const auto& entry: *pse){
+    if(pte){
+        for(const auto& entry: *pte){
             ui->pseList->addItem(QString::fromStdString(entry.first));
         }
     }

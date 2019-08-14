@@ -21,7 +21,12 @@ void PinWidget::updateWidget(guiChange_t change)
         // enable drawing of step previously selected in mainwindow
         if(mainStep){
             auto& dat = stepMap.at(mainStep);
-            dat.gpu_data.update(mainStep, settings.showBonds.val,
+            const auto& settings = master->settings;
+            dat.gpu_data.update(mainStep,
+                                settings.atRadVdW.val,
+                                settings.atRadFac.val,
+                                settings.showBonds.val,
+                                settings.bondRad.val,
                                 settings.showCell.val & dat.cell & mainStep->hasCell());
             if(dat.display){
                 master->addExtraData(&dat.gpu_data);
@@ -59,7 +64,12 @@ void PinWidget::on_showCell_toggled(bool checked)
 {
     auto& dat = stepMap.at(activeStep);
     dat.cell = checked;
-    dat.gpu_data.update(activeStep, settings.showBonds.val,
+    const auto& settings = master->settings;
+    dat.gpu_data.update(activeStep,
+                        settings.atRadVdW.val,
+                        settings.atRadFac.val,
+                        settings.showBonds.val,
+                        settings.bondRad.val,
                         checked & settings.showCell.val & activeStep->hasCell());
     triggerUpdate(GuiChange::extra);
 }
@@ -81,7 +91,7 @@ void PinWidget::on_addStep_clicked()
     mainStep = master->curStep;
     stepMap.emplace(mainStep, PinnedStep{
             true,
-            settings.showCell.val,
+            master->settings.showCell.val,
             GUI::StepData{master->getGLGlobals(),
                           mainStep}});
     stepList.push_back(mainStep);

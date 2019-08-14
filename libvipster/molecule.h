@@ -19,6 +19,7 @@ public:
         steps.emplace_back(step);
         steps.back().pte = pte;
     }
+    // TODO: make sure that this has the appropriate root!
     std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
 
     Step& newStep(const Step& step);

@@ -27,6 +27,7 @@ class StepData: public Data{
     std::array<float, 9>  cell_mat{};
     Step* curStep;
     // CPU-State:
+    float atRadFac{0};
     bool draw_bonds{false}, draw_cell{false};
     // GPU-State:
     GLuint vaos[4] = {0,0,0,0};
@@ -72,8 +73,9 @@ public:
     void drawCell(const Vec &off, const PBCVec &mult) override;
     void updateGL() override;
     void initGL() override;
-    void update(Step* step, bool b, bool c);
-    void drawSel(const PBCVec &mult);
+    void update(Step* step, bool useVdW, float atRadFac, bool showBonds,
+                float bondRad, bool showCell);
+    void drawSel(Vec off, const PBCVec &mult);
 private:
     void initAtom();
     void initBond();

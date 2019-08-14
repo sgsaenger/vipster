@@ -161,7 +161,7 @@ static std::vector<FilterPair> evalCoord(const T& step, const SelectionFilter& f
     std::vector<FilterPair> tmp;
     // TODO: move functionality to step?
     std::vector<size_t> coord_numbers(step.getNat());
-    for(const Bond& b: step.getBonds()){
+    for(const Bond& b: step.getExistingBonds()){
         coord_numbers[b.at1] += 1;
         coord_numbers[b.at2] += 1;
     }

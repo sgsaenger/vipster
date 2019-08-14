@@ -12,20 +12,14 @@
 
 using namespace Vipster;
 
-MainWindow::MainWindow(QString path, QWidget *parent):
+MainWindow::MainWindow(QString path, ConfigState& state,
+                       std::vector<IO::Data> &&d, QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow},
-    path{path}
-{
-    ui->setupUi(this);
-    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
-    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
-    setupUI();
-    newMol();
-}
-
-MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent):
-    QMainWindow{parent},
+    state{state},
+    pte{std::get<0>(state)},
+    settings{std::get<1>(state)},
+    params{std::get<2>(state)},
+    configs{std::get<3>(state)},
     ui{new Ui::MainWindow},
     path{path}
 {
@@ -82,10 +76,10 @@ void MainWindow::setupUI()
         toolWidgets.push_back(tmp);
     }
     // fill in global PSE
-    ui->pseWidget->setTable(&Vipster::pte);
+    ui->pseWidget->setTable(&pte);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
-        const auto& param_map = Vipster::params[pair.first];
+        const auto& param_map = params[pair.first];
         if(!param_map.empty()){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
                         QString::fromStdString(pair.second->name));
@@ -94,7 +88,7 @@ void MainWindow::setupUI()
                                       this, &MainWindow::loadParam);
             }
         }
-        const auto& conf_map = Vipster::configs[pair.first];
+        const auto& conf_map = configs[pair.first];
         if(!conf_map.empty()){
             auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
                         QString::fromStdString(pair.second->name));
@@ -268,7 +262,7 @@ void MainWindow::editAtoms(QAction* sender)
         curStep->newAtoms(copyBuf);
         change = GuiChange::atoms;
     }else if( sender == ui->actionSet_Bonds){
-        curStep->setBonds();
+        curStep->setBonds(settings.bondLvl.val, settings.bondCutFac.val);
         change = GuiChange::atoms;
     }
     if(change){
@@ -425,8 +419,8 @@ void MainWindow::loadParam()
         }
         throw Error("Invalid parameter set");
     }(p->title());
-    auto pos = Vipster::params[fmt].find(s->text().toStdString());
-    if(pos != Vipster::params[fmt].end()){
+    auto pos = params[fmt].find(s->text().toStdString());
+    if(pos != params[fmt].end()){
         ui->paramWidget->registerParam(pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
@@ -445,8 +439,8 @@ void MainWindow::loadConfig()
         }
         throw Error("Invalid IO-config");
     }(p->title());
-    auto pos = Vipster::configs[fmt].find(s->text().toStdString());
-    if(pos != Vipster::configs[fmt].end()){
+    auto pos = configs[fmt].find(s->text().toStdString());
+    if(pos != configs[fmt].end()){
         ui->configWidget->registerConfig(pos->second->copy());
     }else{
         throw Error("Invalid IO-config");
@@ -462,9 +456,16 @@ void MainWindow::saveParam()
     auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::params[ui->paramWidget->curFmt][name] =
-                ui->paramWidget->curParam->copy();
-        Vipster::params[ui->paramWidget->curFmt][name]->name = name;
+        auto& param = params[ui->paramWidget->curFmt];
+        if(param.find(name) != param.end()){
+            // register new name in menu
+            QString fmtName = IOPlugins.at(ui->configWidget->curFmt)->name.c_str();
+            auto* fmtMenu = ui->menuLoad_Parameter_set->findChild<QMenu*>(fmtName);
+            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
+        }
+        // save parameter
+        param[name] = ui->paramWidget->curParam->copy();
+        param[name]->name = name;
     }
 }
 
@@ -477,9 +478,16 @@ void MainWindow::saveConfig()
     auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::configs[ui->configWidget->curFmt][name] =
-                ui->configWidget->curConfig->copy();
-        Vipster::configs[ui->configWidget->curFmt][name]->name = name;
+        auto& conf = configs[ui->configWidget->curFmt];
+        if(conf.find(name) != conf.end()){
+            // register new name in menu
+            QString fmtName = IOPlugins.at(ui->configWidget->curFmt)->name.c_str();
+            auto* fmtMenu = ui->menuLoad_IO_Config->findChild<QMenu*>(fmtName);
+            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
+        }
+        // save config
+        conf[name] = ui->configWidget->curConfig->copy();
+        conf[name]->name = name;
     }
 }
 

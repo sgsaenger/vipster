@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include "settingswidget.h"
 #include "ui_settingswidget.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 
@@ -14,22 +15,22 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
-    registerSetting(settings.atRadVdW);
-    registerSetting(settings.atRadFac);
-    registerSetting(settings.bondRad);
-    registerSetting(settings.bondCutFac);
-    registerSetting(settings.bondFreq);
-    registerSetting(settings.bondLvl);
-    registerSetting(settings.showBonds);
-    registerSetting(settings.showCell);
-    registerSetting(settings.antialias);
-    registerSetting(settings.perspective);
-    registerSetting(settings.rotCom);
-    registerSetting(settings.animstep);
-    registerSetting(settings.selCol);
-    registerSetting(settings.milCol);
-    registerSetting(settings.posCol);
-    registerSetting(settings.negCol);
+    registerSetting(master->settings.atRadVdW);
+    registerSetting(master->settings.atRadFac);
+    registerSetting(master->settings.bondRad);
+    registerSetting(master->settings.bondCutFac);
+    registerSetting(master->settings.bondFreq);
+    registerSetting(master->settings.bondLvl);
+    registerSetting(master->settings.showBonds);
+    registerSetting(master->settings.showCell);
+    registerSetting(master->settings.antialias);
+    registerSetting(master->settings.perspective);
+    registerSetting(master->settings.rotCom);
+    registerSetting(master->settings.animstep);
+    registerSetting(master->settings.selCol);
+    registerSetting(master->settings.milCol);
+    registerSetting(master->settings.posCol);
+    registerSetting(master->settings.negCol);
 }
 
 SettingsWidget::~SettingsWidget()

@@ -1,9 +1,5 @@
 #include "configfile.h"
 #include "io.h"
-#include "periodictable.h"
-#include "settings.h"
-#include "io/parameters.h"
-#include "io/configs.h"
 #include "json.hpp"
 
 #include <fstream>
@@ -12,16 +8,24 @@
 using json = nlohmann::json;
 using namespace Vipster;
 
-bool readConfig();
-
-bool Vipster::readConfig()
+std::tuple<PeriodicTable, Settings, IO::Parameters, IO::Configs> Vipster::readConfig()
 {
+    ConfigState retVal{};
     std::ifstream conf_file{user_config};
+    PeriodicTable &pte = std::get<0>(retVal);
+    Settings &settings = std::get<1>(retVal);
+    IO::Parameters &params = std::get<2>(retVal);
+    IO::Configs &configs = std::get<3>(retVal);
+    // load defaults as a minimum starting point
+    pte = Vipster::pte;
+    settings = Vipster::settings;
+    params = IO::defaultParams();
+    configs = IO::defaultConfigs();
     if(conf_file){
         try {
             json loc_file;
             conf_file >> loc_file;
-            // PSE
+            // Periodic table
             if(loc_file.find("PSE") != loc_file.end()){
                 from_json(loc_file["PSE"], pte);
             }
@@ -62,20 +66,23 @@ bool Vipster::readConfig()
                     }
                 }
             }
-            return true;
         } catch (const json::exception& e) {
             std::cout << e.what() << std::endl;
         }
     }
-    return false;
+    return retVal;
 }
 
-bool Vipster::saveConfig()
+void Vipster::saveConfig(const ConfigState& cs)
 {
     std::ofstream conf_file{user_config};
     if(!conf_file){
         throw IO::Error("Cannot open config file at \""+user_config+"\" for writing");
     }
+    const PeriodicTable &pte = std::get<0>(cs);
+    const Settings &settings = std::get<1>(cs);
+    const IO::Parameters &params = std::get<2>(cs);
+    const IO::Configs &configs = std::get<3>(cs);
     json json_buf;
     json_buf["PSE"] = pte;
     json_buf["Settings"] = settings;
@@ -83,7 +90,7 @@ bool Vipster::saveConfig()
     for(const auto& plug: IOPlugins){
         if(plug.second->arguments & IO::Plugin::Args::Param){
             json& j = json_buf["Parameters"][plug.second->command];
-            for(const auto& p: params[plug.first]){
+            for(const auto& p: params.at(plug.first)){
                 j[p.first] = p.second->toJson();
             }
         }
@@ -92,11 +99,11 @@ bool Vipster::saveConfig()
     for(const auto& plug: IOPlugins){
         if(plug.second->arguments & IO::Plugin::Args::Config){
             json& j = json_buf["Configs"][plug.second->command];
-            for(const auto& p: configs[plug.first]){
+            for(const auto& p: configs.at(plug.first)){
                 j[p.first] = p.second->toJson();
             }
         }
     }
     conf_file << json_buf.dump(2);
-    return true;
+    return;
 }

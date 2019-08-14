@@ -28,6 +28,7 @@ protected:
 };
 
 using Configs = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseConfig>>>;
+Configs defaultConfigs();
 constexpr const char* ConfigsAbout =
     "IO-Config presets are used to control HOW the data is "
     "written to the formatted target file.\n\n"
@@ -40,10 +41,6 @@ constexpr const char* ConfigsAbout =
     "$vipster convert xyz input.xyz xyz output.xyz -c default"
     ;
 
-}
-
-namespace Vipster{
-extern IO::Configs configs;
 }
 
 #endif // CONFIGS_H

@@ -4,6 +4,12 @@
 
 using namespace Vipster;
 
+GuiWrapper::GuiWrapper(const Settings &s)
+    : settings{s}
+{
+    selection.update(s.selCol.val);
+}
+
 void GuiWrapper::initGL(const std::string& header, const std::string& folder)
 {
 #ifndef __EMSCRIPTEN__
@@ -109,29 +115,44 @@ void GuiWrapper::drawVR(const float *leftProj, const float *leftView,
 void GuiWrapper::drawSel()
 {
     mainStep.updateGL();
-    mainStep.drawSel(mult);
+#ifndef __EMSCRIPTEN__
+    if(settings.antialias.val){
+        glDisable(GL_MULTISAMPLE);
+    }
+#endif
+    Vec off = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
+    mainStep.drawSel(off, mult);
+#ifndef __EMSCRIPTEN__
+    if(settings.antialias.val){
+        glEnable(GL_MULTISAMPLE);
+    }
+#endif
 }
 
-void GuiWrapper::setMainStep(Step* step, bool draw_bonds, bool draw_cell)
+void GuiWrapper::setMainStep(Step* step)
 {
     curStep = step;
-    mainStep.update(step, draw_bonds, draw_cell);
+    mainStep.update(step, settings.atRadVdW.val, settings.atRadFac.val,
+                    settings.showBonds.val, settings.bondRad.val,
+                    settings.showCell.val);
 }
 
 void GuiWrapper::setMainSel(Step::selection* sel)
 {
     curSel = sel;
-    selection.update(sel);
+    selection.update(sel, settings.atRadVdW.val, settings.atRadFac.val);
 }
 
-void GuiWrapper::updateMainStep(bool draw_bonds, bool draw_cell)
+void GuiWrapper::updateMainStep()
 {
-    mainStep.update(curStep, draw_bonds, draw_cell);
+    mainStep.update(curStep, settings.atRadVdW.val, settings.atRadFac.val,
+                    settings.showBonds.val, settings.bondRad.val,
+                    settings.showCell.val);
 }
 
 void GuiWrapper::updateMainSelection()
 {
-    selection.update(curSel);
+    selection.update(curSel, settings.atRadVdW.val, settings.atRadFac.val);
 }
 
 void GuiWrapper::addExtraData(GUI::Data* dat)

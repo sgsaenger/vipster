@@ -2,7 +2,7 @@
 
 using namespace Vipster;
 
-Vipster::Settings Vipster::settings;
+const Vipster::Settings Vipster::settings{};
 
 template<typename T>
 void readSetting(const nlohmann::json& j, Setting<T>& s)

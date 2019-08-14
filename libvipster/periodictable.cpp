@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-Vipster::PeriodicTable Vipster::pte = {
+const Vipster::PeriodicTable Vipster::pte = {
     {{"",      { "", "", "", 0,   0.0f,       -1,   1.46f, 3.21f, {   0,   0,   0, 255 } }},
      {"H",     { "", "", "", 1,   1.0079f,    0.72f, 0.72f, 2.27f, { 190, 190, 190, 255 } }},
      {"He",    { "", "", "", 2,   4.0026f,    0.6f,  0.6f,  2.65f, { 215, 255, 255, 255 } }},
@@ -127,11 +127,11 @@ Vipster::PeriodicTable Vipster::pte = {
      {"BCP",   { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, {   0, 255,   0, 255 } }},
      {"RCP",   { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, { 255,   0,   0, 255 } }},
      {"CCP",   { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, { 255, 255,   0, 255 } }},
-     {"NNACP", { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, {   0,   0, 255, 255 } }}},
-    true
+     {"NNACP", { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, {   0,   0, 255, 255 } }}}
 };
 
-PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il, bool r)
+PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il,
+                             const std::shared_ptr<const PeriodicTable> &r)
     : std::map<std::string, Element>{il}, root{r}
 {}
 
@@ -155,12 +155,18 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
             for(size_t i=kt.length(); i>0; --i)
             {
                 std::string test = kt.substr(0,i);
-                auto tmp = find(test);
+                const_iterator tmp = find(test);
                 // local lookup, always works
                 if(tmp != end()){
                     return emplace(k, tmp->second).first;
                 }
-                if(!root){
+                if(root){
+                    // if we have a specific root, look up there
+                    tmp = root->find(test);
+                    if(tmp != root->end()){
+                        return emplace(k, tmp->second).first;
+                    }
+                }else{
                     // lookup in global PSE
                     tmp = Vipster::pte.find(test);
                     if(tmp != Vipster::pte.end()){

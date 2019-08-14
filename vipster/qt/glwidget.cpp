@@ -7,7 +7,9 @@
 using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent):
-    QOpenGLWidget(parent)
+    QOpenGLWidget(parent),
+    // WARNING: this has to fail somewhere down the line, at the latest when multiple widgets are used
+    GuiWrapper{qobject_cast<MainWindow*>(qApp->topLevelWidgets()[0])->settings}
 {
     setTextureFormat(GL_RGBA16);
     for(auto *w: qApp->topLevelWidgets()){
@@ -34,14 +36,14 @@ void GLWidget::triggerUpdate(guiChange_t change){
 void GLWidget::updateWidget(guiChange_t change)
 {
     if((change & guiStepChanged) == guiStepChanged ){
-        setMainStep(master->curStep, settings.showBonds.val, settings.showCell.val);
+        setMainStep(master->curStep);
         setMainSel(master->curSel);
     }else{
         if(change & GuiChange::settings){
-            selection.update(settings.selCol.val);
+            selection.update(master->settings.selCol.val);
         }
         if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::settings)) {
-            updateMainStep(settings.showBonds.val, settings.showCell.val);
+            updateMainStep();
             updateMainSelection();
         }else if(change & GuiChange::selection){
             updateMainSelection();

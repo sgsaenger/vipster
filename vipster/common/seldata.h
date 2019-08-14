@@ -19,6 +19,7 @@ namespace GUI {
         float color[4];
         Step::selection* curSel{nullptr};
         // GPU-State/Data:
+        float atRadFac{};
         GLuint vao{0}, vbo{0};
         // Shader:
         static struct{
@@ -28,8 +29,7 @@ namespace GUI {
             bool initialized{false};
         } shader;
     public:
-        SelData(const GlobalData& glob, const ColVec& color=settings.selCol.val,
-                Step::selection* sel=nullptr);
+        SelData(const GlobalData& glob, Step::selection* sel=nullptr);
         SelData(SelData&& dat);
         SelData& operator=(SelData&& dat)=delete;
         SelData(const SelData& dat)=delete;
@@ -39,7 +39,7 @@ namespace GUI {
         void drawCell(const Vec &off, const PBCVec &mult) override;
         void updateGL() override;
         void initGL() override;
-        void update(Step::selection* sel);
+        void update(Step::selection* sel, bool useVdW, float atRadFac);
         void update(const ColVec& col);
     };
 }

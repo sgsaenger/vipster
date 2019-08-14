@@ -159,7 +159,7 @@ void MillerWidget::updateWidget(guiChange_t change)
         }
     }else if(curPlane){
         if(change & GuiChange::settings){
-            curPlane->gpu_data.update({{settings.milCol.val}, 1, 1});
+            curPlane->gpu_data.update({{master->settings.milCol.val}, 1, 1});
         }
         if(change & GuiChange::cell){
             curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
@@ -239,7 +239,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
                             mkFaces(hkl, off),
                             Vec{},
                             curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
-                            {{settings.milCol.val}, 1, 1}}
+                            {{master->settings.milCol.val}, 1, 1}}
               });
         curPlane = &tmp.first->second;
         if(curPlane->display){

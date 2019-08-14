@@ -50,7 +50,9 @@ void DefineWidget::updateWidget(Vipster::guiChange_t change)
     }else if(change & GuiChange::atoms){
         auto& curMap = dataMap[curStep];
         for(auto& name: curNames){
-            curMap.at(name).gpu_data.update(&defMap->at(name));
+            curMap.at(name).gpu_data.update(&defMap->at(name),
+                                            master->settings.atRadVdW.val,
+                                            master->settings.atRadFac.val);
         }
     }
 }
@@ -69,8 +71,8 @@ void DefineWidget::fillTable()
             auto& curCol = colors[curMap.size()%5];
             auto tmp = curMap.emplace(name, GroupData{true, curCol,
                                            GUI::SelData{master->getGLGlobals(),
-                                                        curCol,
                                                         &def.second}});
+            tmp.first->second.gpu_data.update(curCol);
             master->addExtraData(&tmp.first->second.gpu_data);
         }
     }
@@ -82,7 +84,9 @@ void DefineWidget::fillTable()
             }
             it = curMap.erase(it);
         }else{
-            it->second.gpu_data.update(&pos->second);
+            it->second.gpu_data.update(&pos->second,
+                                       master->settings.atRadVdW.val,
+                                       master->settings.atRadFac.val);
             ++it;
         }
     }

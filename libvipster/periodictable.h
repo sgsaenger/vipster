@@ -38,17 +38,18 @@ public:
     using map_t::mapped_type;
     using map_t::value_type;
     using map_t::insert_or_assign;
-    PeriodicTable(std::initializer_list<PeriodicTable::value_type> il={}, bool r=false);
+    PeriodicTable(std::initializer_list<PeriodicTable::value_type> il={},
+                  const std::shared_ptr<const PeriodicTable> &r={});
     Element& operator [](const std::string &k);
     iterator find_or_fallback(const std::string &k);
 private:
-    bool root;
+    std::shared_ptr<const PeriodicTable> root;
 };
 
 void to_json(nlohmann::json& j,const PeriodicTable& p);
 void from_json(const nlohmann::json& j, PeriodicTable& p);
 
-extern PeriodicTable pte;
+extern const PeriodicTable pte;
 
 }
 
