@@ -27,8 +27,12 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     setupUI();
     connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
     connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
-    for(auto&& mol: d){
-        newData(std::move(mol));
+    if(d.empty()){
+        newMol();
+    }else{
+        for(auto&& mol: d){
+            newData(std::move(mol));
+        }
     }
 }
 
