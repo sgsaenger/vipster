@@ -161,15 +161,10 @@ static std::vector<FilterPair> evalCoord(const T& step, const SelectionFilter& f
     std::vector<FilterPair> tmp;
     // TODO: move functionality to step?
     std::vector<size_t> coord_numbers(step.getNat());
-    try {
-        // call getBonds so it will only success when bonds are already present
-        for(const Bond& b: step.getBonds(-1, BondPolicy::Cell, BondFrequency::Once)){
-            coord_numbers[b.at1] += 1;
-            coord_numbers[b.at2] += 1;
-        }
-    } catch (Error) {
-        // rethrow with meaningful error message
-        throw Error{"No coordinate numbers could be determined because bonds have not been set."};
+    // call getBonds so it will only return already present bonds, but never trigger a reset
+    for(const Bond& b: step.getBonds(0, BondPolicy::None, BondFrequency::Never)){
+        coord_numbers[b.at1] += 1;
+        coord_numbers[b.at2] += 1;
     }
     auto cmp = [&filter](const size_t c){
         auto cmp_op = filter.coord & filter.C_CMP_MASK;

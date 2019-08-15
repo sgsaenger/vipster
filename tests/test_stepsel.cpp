@@ -13,6 +13,7 @@ TEST_CASE("Vipster::StepSel", "[step]") {
     s.newAtom("C");
     s.newAtom("H", Vec{1,0,0});
     s.newAtom("O", Vec{2,2,2});
+    s.setBonds(Vipster::settings.bondPolicy.val, Vipster::settings.bondCutFac.val);
     SECTION("by type"){
         auto selC = s.select("type C");
         CHECK(selC.getNat() == 1);
