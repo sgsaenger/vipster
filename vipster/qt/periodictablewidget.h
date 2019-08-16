@@ -22,12 +22,17 @@ public:
 
 public slots:
     void setEntry(QListWidgetItem* item);
+    void changeEntry();
 
 signals:
     void currentEntryChanged();
 
+private slots:
+    void on_helpButton_clicked();
+
 private:
-    Vipster::Element* currentEntry{nullptr};
+    const std::string* currentName{nullptr};
+    Vipster::Element* currentElement{nullptr};
     Vipster::PeriodicTable* table{nullptr};
     Ui::PeriodicTableWidget *ui;
     bool isGlobal{false};

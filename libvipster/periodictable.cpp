@@ -138,6 +138,8 @@ PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il
 
 PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
 {
+    // send lookup either to specific root or hard-coded fallback-table
+    const PeriodicTable& root = this->root? *this->root : Vipster::pte;
     auto entry = find(k);
     if(entry != end()){
         return entry;
@@ -153,22 +155,14 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
             {
                 auto search = [&](const std::string& key)->std::optional<const Element>{
                     const_iterator tmp = find(key);
-                    // local lookup, always works
+                    // local lookup
                     if(tmp != end()){
                         return {tmp->second};
                     }
-                    if(root){
-                        // if we have a specific root, look up there
-                        tmp = root->find(key);
-                        if(tmp != root->end()){
-                            return {tmp->second};
-                        }
-                    }else{
-                        // lookup in global PSE
-                        tmp = Vipster::pte.find(key);
-                        if(tmp != Vipster::pte.end()){
-                            return {tmp->second};
-                        }
+                    // lookup in fallback table
+                    tmp = root.find(key);
+                    if(tmp != root.end()){
+                        return {tmp->second};
                     }
                     return {};
                 };
@@ -189,14 +183,14 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
             }
         }else{
             // interpret atomic number
-            for(const auto& pair: Vipster::pte){
+            for(const auto& pair: root){
                 if(pair.second.Z == Z){
                     return emplace(k, pair.second).first;
                 }
             }
         }
     }
-    return emplace(k, Vipster::pte.at("")).first;
+    return emplace(k, root.at("")).first;
 }
 
 Element& PeriodicTable::operator [](const std::string& k)
