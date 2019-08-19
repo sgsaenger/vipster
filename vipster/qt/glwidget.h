@@ -21,9 +21,9 @@ public:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-    void triggerUpdate(Vipster::guiChange_t change);
-    void updateWidget(Vipster::guiChange_t change);
-    void setMult(Vipster::PBCVec mult);
+    void triggerUpdate(Vipster::GUI::change_t change);
+    void updateWidget(Vipster::GUI::change_t change);
+    void setMult(Vipster::GUI::PBCVec mult);
 public slots:
     void setMode(int i,bool t);
     void setCamera(int i);

@@ -28,24 +28,24 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
-void GLWidget::triggerUpdate(guiChange_t change){
+void GLWidget::triggerUpdate(GUI::change_t change){
     updateTriggered = true;
     master->updateWidgets(change);
 }
 
-void GLWidget::updateWidget(guiChange_t change)
+void GLWidget::updateWidget(GUI::change_t change)
 {
-    if((change & guiStepChanged) == guiStepChanged ){
+    if((change & GUI::stepChanged) == GUI::stepChanged ){
         setMainStep(master->curStep);
         setMainSel(master->curSel);
     }else{
-        if(change & GuiChange::settings){
+        if(change & GUI::Change::settings){
             selection.update(master->settings.selCol.val);
         }
-        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::settings)) {
+        if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt | GUI::Change::settings)) {
             updateMainStep();
             updateMainSelection();
-        }else if(change & GuiChange::selection){
+        }else if(change & GUI::Change::selection){
             updateMainSelection();
         }
     }
@@ -106,7 +106,7 @@ void GLWidget::setMode(int mode, bool t)
     }
 }
 
-void GLWidget::setMult(PBCVec m)
+void GLWidget::setMult(GUI::PBCVec m)
 {
     mult = m;
     update();
@@ -201,7 +201,7 @@ void GLWidget::rotAtoms(QPoint delta)
     }else{
         curStep->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
     }
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::shiftAtomsXY(QPoint delta)
@@ -213,7 +213,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     }else{
         curStep->asFmt(AtomFmt::Bohr).modShift(axis, 0.01f);
     }
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::shiftAtomsZ(QPoint delta)
@@ -225,7 +225,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
     }else{
         curStep->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
     }
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::wheelEvent(QWheelEvent *e)
@@ -253,7 +253,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
             curSel->setFilter(SelectionFilter{});
-            triggerUpdate(GuiChange::selection);
+            triggerUpdate(GUI::Change::selection);
         }
         break;
     case MouseMode::Modify:
@@ -377,7 +377,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
             curSel->setFilter(filter);
             rectPos = mousePos;
-            triggerUpdate(GuiChange::selection);
+            triggerUpdate(GUI::Change::selection);
         }
         break;
     case MouseMode::Modify:

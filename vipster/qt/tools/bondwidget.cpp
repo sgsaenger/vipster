@@ -3,9 +3,9 @@
 
 using namespace Vipster;
 
-void BondWidget::updateWidget(Vipster::guiChange_t change)
+void BondWidget::updateWidget(Vipster::GUI::change_t change)
 {
-    if (change & GuiChange::atoms){
+    if (change & GUI::Change::atoms){
         bondModel.setStep(master->curStep);
     }
 }

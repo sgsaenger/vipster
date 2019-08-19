@@ -159,7 +159,7 @@ bool MolModel::setData(const QModelIndex &index, const QVariant &value, int role
             return false;
         }
         emit dataChanged(index, index, QVector<int>() << role);
-        parent->triggerUpdate(GuiChange::atoms);
+        parent->triggerUpdate(GUI::Change::atoms);
         return true;
     }
     return false;

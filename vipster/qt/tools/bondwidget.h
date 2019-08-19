@@ -16,7 +16,7 @@ class BondWidget : public BaseWidget
 public:
     explicit BondWidget(QWidget *parent = nullptr);
     ~BondWidget() override;
-    void updateWidget(Vipster::guiChange_t change) override;
+    void updateWidget(Vipster::GUI::change_t change) override;
 
 private:
     Ui::BondWidget *ui;

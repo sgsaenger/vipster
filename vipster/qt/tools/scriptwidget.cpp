@@ -181,7 +181,7 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
 void ScriptWidget::evalScript()
 {
     auto operations = parse();
-    guiChange_t change{};
+    GUI::change_t change{};
     if(ui->trajecCheck->isChecked()){
         for(auto& s: master->curMol->getSteps()){
             auto& dat = master->stepdata[&s];
@@ -199,7 +199,7 @@ void ScriptWidget::evalScript()
                 break;
             }
         }
-        if(change) change |= GuiChange::trajec;
+        if(change) change |= GUI::Change::trajec;
     }else{
         execute(operations, *master->curStep, master->stepdata[master->curStep]);
         change = curChange;
@@ -210,7 +210,7 @@ void ScriptWidget::evalScript()
 bool ScriptWidget::execute(const std::vector<ScriptOp>& operations,
                                   Step& step, MainWindow::StepExtras& data)
 {
-    curChange = guiChange_t{};
+    curChange = GUI::change_t{};
     auto mkVec = [&](const OpVec& in)->Vec{
         switch(in.mode){
         case OpVec::Mode::Direct:
@@ -240,29 +240,29 @@ bool ScriptWidget::execute(const std::vector<ScriptOp>& operations,
         switch (op.mode) {
         case ScriptOp::Mode::Rotate:
             step.modRotate(op.f, mkVec(op.v1), mkVec(op.v2));
-            curChange |= GuiChange::atoms;
+            curChange |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Shift:
             step.modShift(mkVec(op.v1), op.f);
-            curChange |= GuiChange::atoms;
+            curChange |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Mirror:
             step.modMirror(mkVec(op.v1), mkVec(op.v2), mkVec(op.v3));
-            curChange |= GuiChange::atoms;
+            curChange |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Rename:
             for(auto& at: step){
                 at.name = op.s1;
             }
-            curChange |= GuiChange::atoms;
+            curChange |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Select:
             *data.sel = step.select(op.s1);
-            curChange |= GuiChange::selection;
+            curChange |= GUI::Change::selection;
             break;
         case ScriptOp::Mode::Define:
             data.def.insert_or_assign(op.s1, step.select(op.s2));
-            curChange |= GuiChange::definitions;
+            curChange |= GUI::Change::definitions;
             break;
         default:
             throw Error("Invalid operation");

@@ -57,16 +57,16 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::updateWidget(guiChange_t change)
+void MolWidget::updateWidget(GUI::change_t change)
 {
     if (updateTriggered) {
         updateTriggered = false;
         return;
     }
-    if ((change & guiMolChanged) == guiMolChanged) {
+    if ((change & GUI::molChanged) == GUI::molChanged) {
         curMol = master->curMol;
     }
-    if ((change & guiStepChanged) == guiStepChanged) {
+    if ((change & GUI::stepChanged) == GUI::stepChanged) {
         QSignalBlocker blockAtFmt(ui->atomFmtBox);
         // reset old fmt-string
         auto oldFmt = static_cast<int>(curStep.getFmt());
@@ -79,16 +79,16 @@ void MolWidget::updateWidget(guiChange_t change)
         auto ifmt = static_cast<int>(fmt);
         ui->atomFmtBox->setCurrentIndex(ifmt);
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-    }else if (change & (GuiChange::atoms | GuiChange::fmt)) {
+    }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
         molModel.setStep(&curStep);
         setSelection();
-    }else if (change & (GuiChange::selection)){
+    }else if (change & (GUI::Change::selection)){
         setSelection();
     }
-    if (change & GuiChange::cell) {
+    if (change & GUI::Change::cell) {
         fillCell();
     }
-    if (change & GuiChange::kpoints) {
+    if (change & GUI::Change::kpoints) {
         ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->getKPoints().active));
         fillKPoints();
     }
@@ -136,15 +136,15 @@ void MolWidget::on_cellTrajecButton_clicked()
             step.enableCell(false);
         }
     }
-    triggerUpdate(GuiChange::trajec);
+    triggerUpdate(GUI::Change::trajec);
 }
 
 void MolWidget::on_cellEnabledBox_toggled(bool checked)
 {
     if(checked){
-        guiChange_t change = GuiChange::cell;
+        GUI::change_t change = GUI::Change::cell;
         auto scale = ui->cellScaleBox->isChecked();
-        if (scale) change |= GuiChange::atoms;
+        if (scale) change |= GUI::Change::atoms;
         auto dim = static_cast<float>(ui->cellDimBox->value());
         auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
         Mat vec{};
@@ -170,7 +170,7 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
     }else{
         curStep.enableCell(false);
         master->setMultEnabled(false);
-        triggerUpdate(GuiChange::cell);
+        triggerUpdate(GUI::Change::cell);
     }
 }
 
@@ -190,10 +190,10 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
     auto scale = ui->cellScaleBox->isChecked();
     curStep.setCellDim(dim, fmt, scale);
-    guiChange_t change = GuiChange::cell;
+    GUI::change_t change = GUI::Change::cell;
     // if needed, trigger atom update
     if(scale){
-        change |= GuiChange::atoms;
+        change |= GUI::Change::atoms;
     }
     if(scale != (curStep.getFmt()>=AtomFmt::Crystal)){
         molModel.setStep(&curStep);
@@ -221,10 +221,10 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
         fillCell();
         return;
     }
-    guiChange_t change = GuiChange::cell;
+    GUI::change_t change = GUI::Change::cell;
     // if needed, trigger atom update
     if(scale){
-        change |= GuiChange::atoms;
+        change |= GUI::Change::atoms;
     }
     if(scale != (curStep.getFmt()==AtomFmt::Crystal)){
         molModel.setStep(&curStep);
@@ -262,7 +262,7 @@ void MolWidget::on_atomFmtButton_clicked()
     if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){
         ui->cellEnabledBox->setChecked(true);
     }
-    triggerUpdate(GuiChange::fmt);
+    triggerUpdate(GUI::Change::fmt);
 }
 
 void MolWidget::on_molList_currentIndexChanged(int index)
@@ -285,7 +285,7 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
         filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
     }
     master->curSel->setFilter(filter);
-    triggerUpdate(GuiChange::selection);
+    triggerUpdate(GUI::Change::selection);
 }
 
 void MolWidget::setSelection()
@@ -359,7 +359,7 @@ void MolWidget::on_kFmtButton_clicked()
     auto newFmt = ui->activeKpoint->currentIndex();
     ui->activeKpoint->setItemText(newFmt, activeKpoints[newFmt]);
     curMol->getKPoints().active = static_cast<KPoints::Fmt>(newFmt);
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_bands_stateChanged(int arg)
@@ -369,7 +369,7 @@ void MolWidget::on_bands_stateChanged(int arg)
     }else{
         curMol->getKPoints().discrete.properties ^= KPoints::Discrete::band;
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_crystal_stateChanged(int arg)
@@ -379,7 +379,7 @@ void MolWidget::on_crystal_stateChanged(int arg)
     }else{
         curMol->getKPoints().discrete.properties ^= KPoints::Discrete::crystal;
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::mpg_change()
@@ -398,7 +398,7 @@ void MolWidget::mpg_change()
     }else if(sender() == ui->mpg_z_off){
         kpoints.sz = ui->mpg_z_off->value();
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_discretetable_itemSelectionChanged()
@@ -418,7 +418,7 @@ void MolWidget::on_actionNew_K_Point_triggered()
     auto& kpoints = curMol->getKPoints().discrete.kpoints;
     kpoints.push_back(KPoints::Discrete::Point{});
     fillKPoints();
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_actionDelete_K_Point_triggered()
@@ -429,7 +429,7 @@ void MolWidget::on_actionDelete_K_Point_triggered()
     auto& kpoints = curMol->getKPoints().discrete.kpoints;
     kpoints.erase(kpoints.begin()+curKPoint);
     fillKPoints();
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_discretetable_cellChanged(int row, int column)
@@ -441,5 +441,5 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
     }else{
         kp.pos[column] = cell->text().toFloat();
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }

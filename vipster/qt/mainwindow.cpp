@@ -104,13 +104,13 @@ void MainWindow::setupUI()
     }
 }
 
-void MainWindow::updateWidgets(guiChange_t change)
+void MainWindow::updateWidgets(GUI::change_t change)
 {
     // if necessary, make sure that data is up to date
-    if(change & (GuiChange::atoms | GuiChange::fmt)){
+    if(change & (GUI::Change::atoms | GUI::Change::fmt)){
         curStep->evaluateCache();
     }
-    if(change & GuiChange::selection){
+    if(change & GUI::Change::selection){
         curSel->evaluateCache();
     }
     // notify widgets
@@ -154,7 +154,7 @@ void MainWindow::setMol(int i)
         ui->stepSlider->setEnabled(true);
     }
     setStep(moldata[curMol].curStep);
-    updateWidgets(guiMolChanged);
+    updateWidgets(GUI::molChanged);
 }
 
 void MainWindow::setStep(int i)
@@ -193,7 +193,7 @@ void MainWindow::setStep(int i)
         ui->lastStepButton->setEnabled(true);
     }
     //Update child widgets
-    updateWidgets(guiStepChanged);
+    updateWidgets(GUI::stepChanged);
 }
 
 void MainWindow::setMult(int i)
@@ -231,23 +231,23 @@ void MainWindow::stepBut(QAbstractButton* but)
 
 void MainWindow::editAtoms(QAction* sender)
 {
-    guiChange_t change{};
+    GUI::change_t change{};
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionDelete_Atom_s){
         curStep->delAtoms(*curSel);
-        change = GuiChange::atoms | GuiChange::selection;
+        change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 1;
         }
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionShow_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 0;
         }
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionRename_Atom_s){
         auto tmp = QInputDialog::getText(this, "Rename atoms",
                                          "Enter new Atom-type for selected atoms:")
@@ -255,19 +255,19 @@ void MainWindow::editAtoms(QAction* sender)
         for(auto& at: *curSel){
             at.name = tmp;
         }
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionCopy_Atom_s){
         copyBuf = *curSel;
     }else if ( sender == ui->actionCut_Atom_s){
         copyBuf = *curSel;
         curStep->delAtoms(*curSel);
-        change = GuiChange::atoms | GuiChange::selection;
+        change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionPaste_Atom_s){
         curStep->newAtoms(copyBuf);
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if( sender == ui->actionSet_Bonds){
         curStep->setBonds(settings.bondPolicy.val, settings.bondCutFac.val);
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }
     if(change){
         updateWidgets(change);
@@ -404,13 +404,13 @@ const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 void MainWindow::addExtraData(GUI::Data* dat)
 {
     ui->openGLWidget->addExtraData(dat);
-    updateWidgets(GuiChange::extra);
+    updateWidgets(GUI::Change::extra);
 }
 
 void MainWindow::delExtraData(GUI::Data* dat)
 {
     ui->openGLWidget->delExtraData(dat);
-    updateWidgets(GuiChange::extra);
+    updateWidgets(GUI::Change::extra);
 }
 
 const GUI::GlobalData& MainWindow::getGLGlobals()

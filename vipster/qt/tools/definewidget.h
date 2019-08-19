@@ -16,7 +16,7 @@ class DefineWidget : public BaseWidget
 public:
     explicit DefineWidget(QWidget *parent = nullptr);
     ~DefineWidget();
-    void updateWidget(Vipster::guiChange_t) override;
+    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
     void on_newButton_clicked();

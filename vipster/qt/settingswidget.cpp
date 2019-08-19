@@ -52,7 +52,7 @@ QWidget* SettingsWidget::makeWidget(bool& setting)
     connect(widget, &QCheckBox::toggled, this,
             [&setting, this](bool checked){
                 setting = checked;
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -67,7 +67,7 @@ QWidget* SettingsWidget::makeWidget(size_t& setting)
     connect(widget, qOverload<int>(&QSpinBox::valueChanged), this,
             [&setting, this](int newVal){
                 setting = static_cast<size_t>(newVal);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -82,7 +82,7 @@ QWidget* SettingsWidget::makeWidget(float& setting)
     connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [&setting, this](double newVal){
                 setting = static_cast<float>(newVal);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -96,7 +96,7 @@ QWidget* SettingsWidget::makeWidget(std::string& setting)
     connect(widget, &QLineEdit::editingFinished, this,
             [&setting, widget, this](){
                 setting = widget->text().toStdString();
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -122,7 +122,7 @@ QWidget* SettingsWidget::makeWidget(Vipster::ColVec& setting)
                            static_cast<uint8_t>(newCol.blue()),
                            static_cast<uint8_t>(newCol.alpha())};
                 widget->setStyleSheet(QString("background-color: %1").arg(newCol.name()));
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -137,7 +137,7 @@ QWidget* SettingsWidget::makeWidget(Vipster::BondPolicy& setting)
     connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
             [&setting, this](int index){
                 setting = static_cast<Vipster::BondPolicy>(index);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -152,7 +152,7 @@ QWidget* SettingsWidget::makeWidget(Vipster::BondFrequency& setting)
     connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
             [&setting, this](int index){
                 setting = static_cast<Vipster::BondFrequency>(index);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;

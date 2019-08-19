@@ -30,12 +30,12 @@ public:
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
     Vipster::Step copyBuf{};
-    void updateWidgets(Vipster::guiChange_t change);
+    void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IO::Data&& d);
     void setMultEnabled(bool);
     struct MolExtras{
         int curStep{-1};
-        Vipster::PBCVec mult{1,1,1};
+        Vipster::GUI::PBCVec mult{1,1,1};
     };
     struct StepExtras{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};

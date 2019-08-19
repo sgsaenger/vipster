@@ -21,7 +21,7 @@ void PeriodicTableWidget::registerProperty(QWidget* w, float Element::* prop)
             qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [prop, this](double newVal){
                 currentElement->*prop = static_cast<float>(newVal);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     connect(this, &PeriodicTableWidget::currentEntryChanged, this,
@@ -45,7 +45,7 @@ void PeriodicTableWidget::registerProperty(QWidget* w, unsigned int Element::* p
             qOverload<int>(&QSpinBox::valueChanged), this,
             [prop, this](int newVal){
                 currentElement->*prop = static_cast<unsigned int>(newVal);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     connect(this, &PeriodicTableWidget::currentEntryChanged, this,
@@ -69,7 +69,7 @@ void PeriodicTableWidget::registerProperty(QWidget* w, std::string Element::* pr
             &QLineEdit::editingFinished, this,
             [prop, w, this](){
                 currentElement->*prop = static_cast<QLineEdit*>(w)->text().toStdString();
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     connect(this, &PeriodicTableWidget::currentEntryChanged, this,
@@ -104,7 +104,7 @@ void PeriodicTableWidget::registerProperty(QWidget* w, ColVec Element::* prop)
                        static_cast<uint8_t>(newCol.blue()),
                        static_cast<uint8_t>(newCol.alpha())};
                 w->setStyleSheet(QString("background-color: %1").arg(newCol.name()));
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     connect(this, &PeriodicTableWidget::currentEntryChanged, this,
@@ -214,19 +214,19 @@ void PeriodicTableWidget::changeEntry()
         throw Error{"PeriodicTable: changeEntry called with unknown sender"};
     }
     setEntry(ui->pteList->currentItem());
-    triggerUpdate(GuiChange::settings);
+    triggerUpdate(GUI::Change::settings);
 }
 
-void PeriodicTableWidget::updateWidget(guiChange_t change)
+void PeriodicTableWidget::updateWidget(GUI::change_t change)
 {
     if(isGlobal){
         // pull in changes to global table
         setTable(table);
     }else{
-        if((change & guiMolChanged) == guiMolChanged){
+        if((change & GUI::molChanged) == GUI::molChanged){
             // load table of new molecule...
             setTable(master->curMol->pte.get());
-        }else if(change & GuiChange::atoms){
+        }else if(change & GUI::Change::atoms){
             // ...or update current table
             setTable(this->table);
         }

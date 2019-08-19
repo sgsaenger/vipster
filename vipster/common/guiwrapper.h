@@ -48,7 +48,7 @@ public:
     void alignViewMat(alignDir d);
     Mat getAxes();
     // cpu-side data
-    PBCVec mult{{1,1,1}};
+    GUI::PBCVec mult{{1,1,1}};
     Step* curStep{nullptr};
     Step::selection* curSel{nullptr};
     GUI::GlobalData globals;

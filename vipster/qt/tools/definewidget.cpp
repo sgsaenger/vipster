@@ -33,9 +33,9 @@ DefineWidget::~DefineWidget()
     }
 }
 
-void DefineWidget::updateWidget(Vipster::guiChange_t change)
+void DefineWidget::updateWidget(Vipster::GUI::change_t change)
 {
-    if((change & guiStepChanged) == guiStepChanged){
+    if((change & GUI::stepChanged) == GUI::stepChanged){
         for(auto& pair: dataMap[curStep]){
             if(pair.second.display) master->delExtraData(&pair.second.gpu_data);
         }
@@ -45,9 +45,9 @@ void DefineWidget::updateWidget(Vipster::guiChange_t change)
         for(auto& pair: dataMap[curStep]){
             if(pair.second.display) master->addExtraData(&pair.second.gpu_data);
         }
-    }else if(change & GuiChange::definitions){
+    }else if(change & GUI::Change::definitions){
         fillTable();
-    }else if(change & GuiChange::atoms){
+    }else if(change & GUI::Change::atoms){
         auto& curMap = dataMap[curStep];
         for(auto& name: curNames){
             curMap.at(name).gpu_data.update(&defMap->at(name),
@@ -130,7 +130,7 @@ void DefineWidget::on_newButton_clicked()
                                          ).toStdString();
         if(!ok) return;
         defMap->insert_or_assign(name, std::move(tmp));
-        triggerUpdate(GuiChange::definitions);
+        triggerUpdate(GUI::Change::definitions);
     }catch(const Error &e){
         QMessageBox msg{this};
         msg.setText(QString{e.what()});
@@ -148,7 +148,7 @@ void DefineWidget::deleteAction()
         throw Error{"DefineWidget: \"delete group\" triggered with invalid selection"};
     }
     defMap->erase(curNames.at(curSel));
-    triggerUpdate(GuiChange::definitions);
+    triggerUpdate(GUI::Change::definitions);
 }
 
 void DefineWidget::on_fromSelButton_clicked()
@@ -160,7 +160,7 @@ void DefineWidget::on_fromSelButton_clicked()
                                     ).toStdString();
     if(!ok) return;
     defMap->insert_or_assign(tmp, *master->curSel);
-    triggerUpdate(GuiChange::definitions);
+    triggerUpdate(GUI::Change::definitions);
 }
 
 void DefineWidget::toSelAction()
@@ -169,7 +169,7 @@ void DefineWidget::toSelAction()
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
     *master->curSel = defMap->at(curNames.at(curSel));
-    triggerUpdate(GuiChange::selection);
+    triggerUpdate(GUI::Change::selection);
 }
 
 void DefineWidget::updateAction()
@@ -179,7 +179,7 @@ void DefineWidget::updateAction()
     }
     auto& step = defMap->at(curNames[curSel]);
     step.setFilter(step.getFilter());
-    triggerUpdate(GuiChange::definitions);
+    triggerUpdate(GUI::Change::definitions);
 }
 
 void DefineWidget::on_defTable_cellChanged(int row, int column)
@@ -219,7 +219,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
         try{
             auto filter = cell->text().toStdString();
             defMap->at(name).setFilter(filter);
-            triggerUpdate(GuiChange::definitions);
+            triggerUpdate(GUI::Change::definitions);
         }catch(const Error &e){
             QMessageBox msg{this};
             msg.setText(QString{e.what()});
@@ -265,7 +265,7 @@ void DefineWidget::colButton_clicked()
     curData.gpu_data.update(col);
     static_cast<QPushButton*>(sender())->setStyleSheet(
         QString("background-color: %1").arg(newCol.name()));
-    triggerUpdate(GuiChange::definitions);
+    triggerUpdate(GUI::Change::definitions);
 }
 
 void DefineWidget::on_helpButton_clicked()
