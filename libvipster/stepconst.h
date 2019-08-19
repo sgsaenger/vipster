@@ -431,7 +431,7 @@ private:
                             }
                             auto dist_n = Vec_dot(dist_v, dist_v);
                             if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                                bonds.push_back({i, j, std::sqrt(dist_n), {}});
                             }
                         }
                         // visit neighboring boxes
@@ -451,7 +451,7 @@ private:
                                 }
                                 auto dist_n = Vec_dot(dist_v, dist_v);
                                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                                    bonds.push_back({i, j, std::sqrt(dist_n), {}});
                                 }
                             }
                         };
@@ -540,7 +540,7 @@ private:
                 }
                 float dist_n = Vec_dot(dist_v, dist_v);
                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                    bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), 0, 0, 0});
+                    bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), {}});
                 }
             }
         }
@@ -682,8 +682,7 @@ private:
                             }
                             auto dist_n = Vec_dot(dist_v, dist_v);
                             if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                bonds.push_back({i, j, std::sqrt(dist_n),
-                                                 diff_v[0], diff_v[1], diff_v[2]});
+                                bonds.push_back({i, j, std::sqrt(dist_n), diff_v});
                             }
                         }
                         // other boxes should be evaluated in total
@@ -727,8 +726,7 @@ private:
                                 }
                                 auto dist_n = Vec_dot(dist_v, dist_v);
                                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    bonds.push_back({i, j, std::sqrt(dist_n),
-                                                     diff_v[0], diff_v[1], diff_v[2]});
+                                    bonds.push_back({i, j, std::sqrt(dist_n), diff_v});
                                 }
                             }
                         };
@@ -821,7 +819,7 @@ private:
                     }
                     float dist_n = Vec_dot(dist, dist);
                     if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                        bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
+                        bonds.push_back({i, j, std::sqrt(dist_n), offset});
                     }
                 };
                 // 0-vector

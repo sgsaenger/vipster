@@ -472,12 +472,12 @@ void GUI::StepData::update(Step* step,
         for(const Bond& bd:bonds){
             at_pos1 = at_coord[bd.at1];
             at_pos2 = at_coord[bd.at2];
-            if (bd.xdiff>0)     { at_pos2 += bd.xdiff*cv[0]; }
-            else if (bd.xdiff<0){ at_pos1 -= bd.xdiff*cv[0]; }
-            if (bd.ydiff>0)     { at_pos2 += bd.ydiff*cv[1]; }
-            else if (bd.ydiff<0){ at_pos1 -= bd.ydiff*cv[1]; }
-            if (bd.zdiff>0)     { at_pos2 += bd.zdiff*cv[2]; }
-            else if (bd.zdiff<0){ at_pos1 -= bd.zdiff*cv[2]; }
+            if (bd.diff[0]>0)     { at_pos2 += bd.diff[0]*cv[0]; }
+            else if (bd.diff[0]<0){ at_pos1 -= bd.diff[0]*cv[0]; }
+            if (bd.diff[1]>0)     { at_pos2 += bd.diff[1]*cv[1]; }
+            else if (bd.diff[1]<0){ at_pos1 -= bd.diff[1]*cv[1]; }
+            if (bd.diff[2]>0)     { at_pos2 += bd.diff[2]*cv[2]; }
+            else if (bd.diff[2]<0){ at_pos1 -= bd.diff[2]*cv[2]; }
             bond_axis = at_pos1 - at_pos2;
             if(fmt == AtomFmt::Crystal){
                 bond_axis = fmt_fun(bond_axis);
@@ -492,9 +492,9 @@ void GUI::StepData::update(Step* step,
                      0., bondRad, 0.,
                      0., 0., bondRad*c},
                     bond_pos,
-                    {static_cast<int16_t>(std::abs(bd.xdiff)),
-                     static_cast<int16_t>(std::abs(bd.ydiff)),
-                     static_cast<int16_t>(std::abs(bd.zdiff)),
+                    {static_cast<int16_t>(std::abs(bd.diff[0])),
+                     static_cast<int16_t>(std::abs(bd.diff[1])),
+                     static_cast<int16_t>(std::abs(bd.diff[2])),
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     elements[bd.at1]->second.col, elements[bd.at2]->second.col});
@@ -519,9 +519,9 @@ void GUI::StepData::update(Step* step,
                     //vec3 with position in modelspace
                     bond_pos,
                     //faux uvec4 with render criteria
-                    {static_cast<int16_t>(std::abs(bd.xdiff)),
-                     static_cast<int16_t>(std::abs(bd.ydiff)),
-                     static_cast<int16_t>(std::abs(bd.zdiff)),
+                    {static_cast<int16_t>(std::abs(bd.diff[0])),
+                     static_cast<int16_t>(std::abs(bd.diff[1])),
+                     static_cast<int16_t>(std::abs(bd.diff[2])),
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     //2*vec4 with colors

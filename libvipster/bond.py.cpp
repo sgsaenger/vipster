@@ -9,9 +9,7 @@ void Bond(py::module &m){
         .def_readwrite("at1", &Bond::at1)
         .def_readwrite("at2", &Bond::at2)
         .def_readwrite("dist", &Bond::dist)
-        .def_readwrite("xdiff", &Bond::xdiff)
-        .def_readwrite("ydiff", &Bond::ydiff)
-        .def_readwrite("zdiff", &Bond::zdiff)
+        .def_readwrite("diff", &Bond::diff)
     ;
 
     py::enum_<BondPolicy>(b, "Policy")
