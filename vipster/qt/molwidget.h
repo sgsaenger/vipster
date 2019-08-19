@@ -28,7 +28,6 @@ private slots:
     // atom slots
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();
-//    void on_atomTableButton_toggled(bool checked);
     void atomSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
     // cell slots
@@ -57,7 +56,6 @@ private:
     Vipster::Molecule* curMol;
     MolModel molModel{this};
     QList<QAction*> headerActions;
-    QList<QAction*> atomActions;
     int curKPoint{-1};
     static constexpr const char* inactiveKpoints[] = {"Gamma", "Monkhorst-Pack grid", "Discrete"};
     static constexpr const char* activeKpoints[] = {"Gamma (active)",
