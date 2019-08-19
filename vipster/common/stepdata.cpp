@@ -465,24 +465,18 @@ void GUI::StepData::update(Step* step,
         case AtomFmt::Angstrom:
             cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Angstrom);
             break;
-        default:
+        case AtomFmt::Bohr:
             break;
         }
-        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
         for(const Bond& bd:bonds){
-            at_pos1 = at_coord[bd.at1];
-            at_pos2 = at_coord[bd.at2];
-            if (bd.diff[0]>0)     { at_pos2 += bd.diff[0]*cv[0]; }
-            else if (bd.diff[0]<0){ at_pos1 -= bd.diff[0]*cv[0]; }
-            if (bd.diff[1]>0)     { at_pos2 += bd.diff[1]*cv[1]; }
-            else if (bd.diff[1]<0){ at_pos1 -= bd.diff[1]*cv[1]; }
-            if (bd.diff[2]>0)     { at_pos2 += bd.diff[2]*cv[2]; }
-            else if (bd.diff[2]<0){ at_pos1 -= bd.diff[2]*cv[2]; }
-            bond_axis = at_pos1 - at_pos2;
+            const auto& at_pos1 = at_coord[bd.at1];
+            const auto& at_pos2 = at_coord[bd.at2];
+            auto bond_axis = at_pos1 - at_pos2 - bd.diff[0]*cv[0]
+                      - bd.diff[1]*cv[1] - bd.diff[2]*cv[2];
             if(fmt == AtomFmt::Crystal){
                 bond_axis = fmt_fun(bond_axis);
             }
-            bond_pos = (at_pos1+at_pos2)/2;
+            auto bond_pos = (at_pos1+at_pos2)/2;
             // handle bonds parallel to x-axis
             if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
                std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
@@ -500,7 +494,7 @@ void GUI::StepData::update(Step* step,
                     elements[bd.at1]->second.col, elements[bd.at2]->second.col});
             }else{
                 // all other bonds
-                rot_axis = -Vec_cross(bond_axis, x_axis);
+                auto rot_axis = -Vec_cross(bond_axis, x_axis);
                 rot_axis /= Vec_length(rot_axis);
                 c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
                 ic = 1-c;

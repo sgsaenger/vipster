@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <tuple>
 
 #include "global.h"
 
@@ -17,8 +18,13 @@ namespace Vipster {
         std::size_t at2;
         float dist;
         DiffVec diff;
-        std::string* type{nullptr};
+        const std::string* type{nullptr};
     };
+    inline bool operator==(const Bond& lhs, const Bond& rhs){
+        return std::tie(lhs.at1, lhs.at2, lhs.diff)
+                ==
+               std::tie(rhs.at1, rhs.at2, rhs.diff);
+    }
 
     struct BondList{
         bool                    outdated{true}, setOnce{false};
