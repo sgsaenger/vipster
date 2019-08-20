@@ -5,12 +5,12 @@
 #include "molecule.h"
 
 class MolWidget;
-class MolModel : public QAbstractTableModel
+class AtomModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit MolModel(MolWidget *parent = nullptr);
+    explicit AtomModel(MolWidget *parent = nullptr);
     void setStep(Vipster::Step* curStep);
     void setColumns(int cols);
 

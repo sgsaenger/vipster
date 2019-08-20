@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-BondModel::BondModel(BondWidget *parent)
+BondModel::BondModel(MolWidget *parent)
     :parent{parent}
 {}
 
@@ -49,6 +49,11 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
         const auto& bond = (*curBonds)[index.row()];
         switch(index.column()){
         case 0:
+            if(std::any_of(bond.diff.begin(), bond.diff.end(),
+                           [](const auto&i)->bool{return i;})){
+                return QStringLiteral("%1-%2 <%3,%4,%5>").arg(bond.at1).arg(bond.at2)
+                        .arg(bond.diff[0]).arg(bond.diff[1]).arg(bond.diff[2]);
+            }
             return QStringLiteral("%1-%2").arg(bond.at1).arg(bond.at2);
         case 1:
             return bond.dist * invbohr;

@@ -6,6 +6,7 @@
 #include "basewidget.h"
 #include "molecule.h"
 #include "molmodel.h"
+#include "bondmodel.h"
 
 namespace Ui {
 class MolWidget;
@@ -54,7 +55,8 @@ private:
     Ui::MolWidget *ui;
     Vipster::Step curStep;
     Vipster::Molecule* curMol;
-    MolModel molModel{this};
+    AtomModel molModel{this};
+    BondModel bondModel{this};
     QList<QAction*> headerActions;
     int curKPoint{-1};
     static constexpr const char* inactiveKpoints[] = {"Gamma", "Monkhorst-Pack grid", "Discrete"};

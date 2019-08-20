@@ -4,12 +4,12 @@
 #include <QAbstractTableModel>
 #include "step.h"
 
-class BondWidget;
+class MolWidget;
 class BondModel: public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit BondModel(BondWidget* parent=nullptr);
+    explicit BondModel(MolWidget* parent=nullptr);
     void setStep(Vipster::Step* curStep);
 
     // Header:
@@ -28,10 +28,10 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 private:
-    BondWidget *parent;
+    MolWidget *parent;
     Vipster::Step *curStep{nullptr};
     const std::vector<Vipster::Bond> *curBonds{nullptr};
-    QStringList colNames = {"Atoms", "Length", "Type", "Color"};
+    QStringList colNames = {"Atoms", "Length / Å", "Type", "Color"};
 };
 
 #endif // BONDMODEL_H

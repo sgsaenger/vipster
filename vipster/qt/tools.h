@@ -9,7 +9,6 @@
 #include "tools/pickwidget.h"
 #include "tools/pinwidget.h"
 #include "tools/scriptwidget.h"
-#include "tools/bondwidget.h"
 
 std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
 {
@@ -20,7 +19,6 @@ std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
         {new PinWidget(parent), "Pin Steps"},
         {new CellModWidget(parent), "Modify Cell"},
         {new ScriptWidget(parent), "Script"},
-        {new BondWidget(parent), "Bonds"},
     };
 }
 

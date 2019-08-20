@@ -1,6 +1,7 @@
 #include "molwidget.h"
 #include "ui_molwidget.h"
 #include "mainwindow.h"
+#include "bonddelegate.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QMenu>
@@ -12,17 +13,27 @@ MolWidget::MolWidget(QWidget *parent) :
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
+
+    // try to match macOS look a bit more
     ui->atomTableButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->bondButton->setAttribute(Qt::WA_MacBrushedMetal, true);
     ui->cellWidgetButton->setAttribute(Qt::WA_MacBrushedMetal, true);
-    ui->kpointStackButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->kpointButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+
+    // setup k-points
     ui->discretetable->addAction(ui->actionNew_K_Point);
     ui->discretetable->addAction(ui->actionDelete_K_Point);
+    ui->kpointContainer->setVisible(ui->kpointButton->isChecked());
+
+    // setup cell-vectors
     QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
              ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
         }
     }
+
+    // setup atom table
     ui->atomTable->setModel(&molModel);
     connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MolWidget::atomSelectionChanged);
@@ -50,6 +61,11 @@ MolWidget::MolWidget(QWidget *parent) :
     }
     ui->atomTable->horizontalHeader()->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->atomTable->horizontalHeader()->addActions(headerActions);
+
+    // setup bond table
+    ui->bondTable->setModel(&bondModel);
+    ui->bondTable->setItemDelegateForColumn(3, new BondDelegate{});
+    ui->bondContainer->setVisible(ui->bondButton->isChecked());
 }
 
 MolWidget::~MolWidget()
@@ -75,12 +91,14 @@ void MolWidget::updateWidget(GUI::change_t change)
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep->asFmt(fmt);
         molModel.setStep(&curStep);
+        bondModel.setStep(&curStep);
         setSelection();
         auto ifmt = static_cast<int>(fmt);
         ui->atomFmtBox->setCurrentIndex(ifmt);
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
         molModel.setStep(&curStep);
+        bondModel.setStep(&curStep);
         setSelection();
     }else if (change & (GUI::Change::selection)){
         setSelection();
