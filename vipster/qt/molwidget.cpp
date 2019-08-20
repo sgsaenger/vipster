@@ -83,7 +83,6 @@ void MolWidget::updateWidget(GUI::change_t change)
         curMol = master->curMol;
     }
     if ((change & GUI::stepChanged) == GUI::stepChanged) {
-        QSignalBlocker blockAtFmt(ui->atomFmtBox);
         // reset old fmt-string
         auto oldFmt = static_cast<int>(curStep.getFmt());
         ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
@@ -91,17 +90,28 @@ void MolWidget::updateWidget(GUI::change_t change)
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep->asFmt(fmt);
         molModel.setStep(&curStep);
-        bondModel.setStep(&curStep);
         setSelection();
         auto ifmt = static_cast<int>(fmt);
+        QSignalBlocker blockAtFmt(ui->atomFmtBox);
         ui->atomFmtBox->setCurrentIndex(ifmt);
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
+        // expose BondMode
+        QSignalBlocker blockBondMode(ui->bondModeBox);
+        int imode = static_cast<int>(curStep.getBondMode());
+        ui->bondModeBox->setCurrentIndex(imode);
+        if(imode){
+            ui->bondSetButton->setDisabled(true);
+        }else{
+            ui->bondSetButton->setEnabled(true);
+        }
     }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
         molModel.setStep(&curStep);
-        bondModel.setStep(&curStep);
         setSelection();
     }else if (change & (GUI::Change::selection)){
         setSelection();
+    }
+    if (change & GUI::Change::atoms) {
+        bondModel.setStep(&curStep);
     }
     if (change & GUI::Change::cell) {
         fillCell();
@@ -309,27 +319,17 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
 void MolWidget::setSelection()
 {
     auto& table = ui->atomTable;
-    auto selMod = table->selectionModel();
-    // TODO: this is se problem, isn't it?
-//    QSignalBlocker tableBlocker{selMod};
-//    selMod->blockSignals(true);
     disconnect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MolWidget::atomSelectionChanged);
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
     for(const auto& i:master->curSel->getIndices()){
         table->selectRow(static_cast<int>(i.first));
-//        selMod->select()
     }
-//    selMod->blockSignals(false);
     connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MolWidget::atomSelectionChanged);
-//    table->setSelectionModel(table->selectionModel());
     update();
-//    table->update();
     table->setSelectionMode(QAbstractItemView::ExtendedSelection);
-//    emit selMod->
-//    emit table->
 }
 
 void MolWidget::fillKPoints()
@@ -460,4 +460,25 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
         kp.pos[column] = cell->text().toFloat();
     }
     triggerUpdate(GUI::Change::kpoints);
+}
+
+void MolWidget::on_bondSetButton_clicked()
+{
+    curStep.setBonds();
+    triggerUpdate(GUI::Change::atoms);
+}
+
+void MolWidget::on_bondHelpButton_clicked()
+{
+    QMessageBox::information(this, QString("About bonds"), Vipster::BondsAbout);
+}
+
+void MolWidget::on_bondModeBox_currentIndexChanged(int index)
+{
+    curStep.setBondMode(static_cast<BondMode>(index));
+    if(index){
+        ui->bondSetButton->setDisabled(true);
+    }else{
+        ui->bondSetButton->setEnabled(true);
+    }
 }

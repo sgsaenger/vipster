@@ -385,8 +385,6 @@
     <addaction name="actionRename_Atom_s"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
-    <addaction name="separator"/>
-    <addaction name="actionSet_Bonds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -983,22 +981,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>menuEdit</sender>
-   <signal>triggered(QAction*)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>editAtoms(QAction*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>74</x>
-     <y>104</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>620</x>
-     <y>320</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>menuFrom_existing_Molecule</sender>
    <signal>triggered(QAction*)</signal>
    <receiver>MainWindow</receiver>
@@ -1079,8 +1061,8 @@
   <slot>setMult(int)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="modeGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>

@@ -58,6 +58,9 @@
           <property name="text">
            <string>Coordinate format:</string>
           </property>
+          <property name="buddy">
+           <cstring>atomFmtBox</cstring>
+          </property>
          </widget>
         </item>
         <item>
@@ -134,8 +137,58 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="bondModeBox">
+        <item>
+         <property name="text">
+          <string>Manual</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Automatic</string>
+         </property>
+        </item>
+       </widget>
+      </item>
       <item row="0" column="0">
+       <widget class="QLabel" name="bondModeLabel">
+        <property name="text">
+         <string>Mode:</string>
+        </property>
+        <property name="buddy">
+         <cstring>bondModeBox</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="bondHelpButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>25</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>?</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
        <widget class="QTableView" name="bondTable"/>
+      </item>
+      <item row="2" column="0" colspan="3">
+       <widget class="QPushButton" name="bondSetButton">
+        <property name="text">
+         <string>(Re-)calculate bonds</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -627,8 +680,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>157</x>
-     <y>283</y>
+     <x>165</x>
+     <y>311</y>
     </hint>
     <hint type="destinationlabel">
      <x>174</x>
@@ -643,8 +696,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>195</x>
-     <y>488</y>
+     <x>203</x>
+     <y>549</y>
     </hint>
     <hint type="destinationlabel">
      <x>195</x>
@@ -660,7 +713,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>261</x>
-     <y>526</y>
+     <y>587</y>
     </hint>
     <hint type="destinationlabel">
      <x>298</x>
@@ -676,7 +729,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
-     <y>547</y>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>143</x>
@@ -692,7 +745,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>87</x>
-     <y>547</y>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>265</x>
@@ -708,7 +761,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>109</x>
-     <y>547</y>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -724,7 +777,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
-     <y>551</y>
+     <y>612</y>
     </hint>
     <hint type="destinationlabel">
      <x>111</x>
@@ -740,7 +793,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>87</x>
-     <y>551</y>
+     <y>612</y>
     </hint>
     <hint type="destinationlabel">
      <x>240</x>
@@ -756,7 +809,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>109</x>
-     <y>551</y>
+     <y>612</y>
     </hint>
     <hint type="destinationlabel">
      <x>369</x>

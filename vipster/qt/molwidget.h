@@ -48,6 +48,12 @@ private slots:
     void on_discretetable_itemSelectionChanged();
     void on_discretetable_cellChanged(int row, int column);
 
+    void on_bondSetButton_clicked();
+
+    void on_bondHelpButton_clicked();
+
+    void on_bondModeBox_currentIndexChanged(int index);
+
 private:
     void fillCell(void);
     void fillKPoints(void);

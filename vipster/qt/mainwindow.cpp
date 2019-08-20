@@ -265,9 +265,6 @@ void MainWindow::editAtoms(QAction* sender)
     }else if ( sender == ui->actionPaste_Atom_s){
         curStep->newAtoms(copyBuf);
         change = GUI::Change::atoms;
-    }else if( sender == ui->actionSet_Bonds){
-        curStep->setBonds();
-        change = GUI::Change::atoms;
     }
     if(change){
         updateWidgets(change);
