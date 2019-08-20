@@ -468,10 +468,15 @@ void GUI::StepData::update(Step* step,
             break;
         }
         for(const Bond& bd:bonds){
-            const auto& at_pos1 = at_coord[bd.at1];
-            const auto& at_pos2 = at_coord[bd.at2];
-            auto bond_axis = at_pos1 - at_pos2 - bd.diff[0]*cv[0]
-                      - bd.diff[1]*cv[1] - bd.diff[2]*cv[2];
+            auto at_pos1 = at_coord[bd.at1];
+            auto at_pos2 = at_coord[bd.at2];
+            if (bd.diff[0]>0)     { at_pos2 += bd.diff[0]*cv[0]; }
+            else if (bd.diff[0]<0){ at_pos1 -= bd.diff[0]*cv[0]; }
+            if (bd.diff[1]>0)     { at_pos2 += bd.diff[1]*cv[1]; }
+            else if (bd.diff[1]<0){ at_pos1 -= bd.diff[1]*cv[1]; }
+            if (bd.diff[2]>0)     { at_pos2 += bd.diff[2]*cv[2]; }
+            else if (bd.diff[2]<0){ at_pos1 -= bd.diff[2]*cv[2]; }
+            auto bond_axis = at_pos1 - at_pos2;
             if(fmt == AtomFmt::Crystal){
                 bond_axis = fmt_fun(bond_axis);
             }
