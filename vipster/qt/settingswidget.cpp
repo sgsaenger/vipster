@@ -18,9 +18,6 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(master->settings.atRadVdW);
     registerSetting(master->settings.atRadFac);
     registerSetting(master->settings.bondRad);
-    registerSetting(master->settings.bondCutFac);
-    registerSetting(master->settings.bondFreq);
-    registerSetting(master->settings.bondPolicy);
     registerSetting(master->settings.showBonds);
     registerSetting(master->settings.showCell);
     registerSetting(master->settings.antialias);
@@ -122,36 +119,6 @@ QWidget* SettingsWidget::makeWidget(Vipster::ColVec& setting)
                            static_cast<uint8_t>(newCol.blue()),
                            static_cast<uint8_t>(newCol.alpha())};
                 widget->setStyleSheet(QString("background-color: %1").arg(newCol.name()));
-                triggerUpdate(GUI::Change::settings);
-            }
-    );
-    return widget;
-}
-
-template<>
-QWidget* SettingsWidget::makeWidget(Vipster::BondPolicy& setting)
-{
-    auto* widget = new QComboBox(ui->settingsContainer);
-    widget->addItems({{"None", "Molecule", "Cell"}});
-    widget->setCurrentIndex(static_cast<int>(setting));
-    connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [&setting, this](int index){
-                setting = static_cast<Vipster::BondPolicy>(index);
-                triggerUpdate(GUI::Change::settings);
-            }
-    );
-    return widget;
-}
-
-template<>
-QWidget* SettingsWidget::makeWidget(Vipster::BondFrequency& setting)
-{
-    auto* widget = new QComboBox(ui->settingsContainer);
-    widget->addItems({{"Never", "Once", "Always"}});
-    widget->setCurrentIndex(static_cast<int>(setting));
-    connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [&setting, this](int index){
-                setting = static_cast<Vipster::BondFrequency>(index);
                 triggerUpdate(GUI::Change::settings);
             }
     );

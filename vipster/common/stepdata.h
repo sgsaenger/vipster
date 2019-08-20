@@ -74,9 +74,7 @@ public:
     void updateGL() override;
     void initGL() override;
     void update(Step* step, bool useVdW, float atRadFac,
-                bool showBonds, float bondRad,
-                float cutfac, BondPolicy pol, BondFrequency freq,
-                bool showCell);
+                bool showBonds, float bondRad, bool showCell);
     void drawSel(Vec off, const PBCVec &mult);
 private:
     void initAtom();

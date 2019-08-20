@@ -355,10 +355,8 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     std::vector<std::tuple<std::string, std::string>> bondtypelist;
     std::map<std::tuple<std::string, std::string>, size_t> bondtypemap;
     if(cc->bonds || cc->angles || cc->dihedrals || cc->impropers || needsMolID){
-        const auto& s = state.settings;
         // make sure this doesn't reset bonds so the user won't be surprised
-        for(const auto& bond: step.getBonds(s.bondCutFac.val, s.bondPolicy.val,
-                                            BondFrequency::Once)){
+        for(const auto& bond: step.getBonds()){
             bondlist.emplace_back(std::min(bond.at1, bond.at2),
                                   std::max(bond.at1, bond.at2));
         }
@@ -503,10 +501,8 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     std::list<std::set<size_t>> molSets{};
     if(needsMolID){
         molID.resize(step.getNat());
-        const auto& s = state.settings;
         // make sure this doesn't reset bonds so the user won't be surprised
-        for(const auto& bond: step.getBonds(s.bondCutFac.val, s.bondPolicy.val,
-                                            BondFrequency::Once)){
+        for(const auto& bond: step.getBonds()){
             molSets.push_back(std::set<size_t>{bond.at1, bond.at2});
         }
         groupSets(molSets);

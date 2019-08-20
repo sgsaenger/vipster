@@ -27,9 +27,6 @@ void PinWidget::updateWidget(GUI::change_t change)
                                 settings.atRadFac.val,
                                 settings.showBonds.val,
                                 settings.bondRad.val,
-                                settings.bondCutFac.val,
-                                settings.bondPolicy.val,
-                                settings.bondFreq.val,
                                 settings.showCell.val & dat.cell & mainStep->hasCell());
             if(dat.display){
                 master->addExtraData(&dat.gpu_data);
@@ -73,9 +70,6 @@ void PinWidget::on_showCell_toggled(bool checked)
                         settings.atRadFac.val,
                         settings.showBonds.val,
                         settings.bondRad.val,
-                        settings.bondCutFac.val,
-                        settings.bondPolicy.val,
-                        settings.bondFreq.val,
                         checked & settings.showCell.val & activeStep->hasCell());
     triggerUpdate(GUI::Change::extra);
 }

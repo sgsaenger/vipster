@@ -394,7 +394,6 @@ void GUI::StepData::updateGL()
 void GUI::StepData::update(Step* step,
                            bool useVdW, float atRadFac,
                            bool showBonds, float bondRad,
-                           float cutfac, BondPolicy pol, BondFrequency freq,
                            bool showCell)
 {
     curStep = step;
@@ -445,7 +444,7 @@ void GUI::StepData::update(Step* step,
 // BONDS
     if(showBonds){
         constexpr Vec x_axis{{1,0,0}};
-        const auto& bonds = curStep->getBonds(cutfac, pol, freq);
+        const auto& bonds = curStep->getBonds();
         const auto& elements = curStep->getAtoms().elements;
         const auto& at_coord = curStep->getAtoms().coordinates[
                 static_cast<size_t>(curStep->getFmt())];

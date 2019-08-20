@@ -266,7 +266,7 @@ void MainWindow::editAtoms(QAction* sender)
         curStep->newAtoms(copyBuf);
         change = GUI::Change::atoms;
     }else if( sender == ui->actionSet_Bonds){
-        curStep->setBonds(settings.bondPolicy.val, settings.bondCutFac.val);
+        curStep->setBonds();
         change = GUI::Change::atoms;
     }
     if(change){
@@ -378,8 +378,7 @@ void MainWindow::saveMol()
                           sfd.getParam(), sfd.getConfig(),
                           IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
                                     ui->molWidget->getAtomFmt(),
-                                    ui->molWidget->getCellFmt(),
-                                    settings
+                                    ui->molWidget->getCellFmt()
                           });
             }catch(const IO::Error& e){
                 QMessageBox msg{this};

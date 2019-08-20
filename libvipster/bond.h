@@ -10,8 +10,7 @@
 #include "global.h"
 
 namespace Vipster {
-    enum class BondPolicy { None, Molecule, Cell };
-    enum class BondFrequency { Never, Once, Always };
+    enum class BondMode {Manual, Automatic};
 
     struct Bond{
         std::size_t at1;
@@ -27,9 +26,8 @@ namespace Vipster {
     }
 
     struct BondList{
-        bool                            outdated{true}, setOnce{false};
-        BondPolicy                      level{BondPolicy::None};
-        float                           cutoff_factor{-1};
+        bool                            outdated{true};
+        BondMode                        mode{BondMode::Automatic};
         std::vector<Bond>               bonds;
         std::map<std::string, ColVec>   types;
     };

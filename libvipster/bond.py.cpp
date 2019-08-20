@@ -10,18 +10,7 @@ void Bond(py::module &m){
         .def_readwrite("at2", &Bond::at2)
         .def_readwrite("dist", &Bond::dist)
         .def_readwrite("diff", &Bond::diff)
-    ;
-
-    py::enum_<BondPolicy>(b, "Policy")
-        .value("None", BondPolicy::None)
-        .value("Molecule", BondPolicy::Molecule)
-        .value("Cell", BondPolicy::Cell)
-    ;
-
-    py::enum_<BondFrequency>(b, "Frequency")
-        .value("Never", BondFrequency::Never)
-        .value("Once", BondFrequency::Once)
-        .value("Always", BondFrequency::Always)
+        .def_property_readonly("type", [](const Vipster::Bond &b){return b.type->first;})
     ;
 }
 }

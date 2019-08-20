@@ -11,7 +11,7 @@ void BondModel::setStep(Vipster::Step *curStep)
 {
     beginResetModel();
     this->curStep = curStep;
-    curBonds =  &curStep->getBonds(0, BondPolicy::Cell, BondFrequency::Never);
+    curBonds =  &curStep->getBonds();
     endResetModel();
 }
 

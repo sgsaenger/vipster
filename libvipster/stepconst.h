@@ -233,48 +233,37 @@ public:
     }
 
     // Bonds
-    const std::vector<Bond>&    getBonds(float cutfac, BondPolicy l,
-                                         BondFrequency update) const
+    const std::vector<Bond>&    getBonds() const
     {
-        if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
-        if(((update == BondFrequency::Always) or
-            ((update == BondFrequency::Once) and not bonds->setOnce))
-           and
-           (bonds->outdated or
-            (!float_comp(cutfac, bonds->cutoff_factor)) or
-            (bonds->level != l)))
+        // TODO: was passiert wenn bindungen manuell sind, aber atome gelöscht werden?
+        if((bonds->mode == BondMode::Automatic) &&
+            bonds->outdated)
         {
-            setBonds(l, cutfac);
+            setBonds();
         }
         return bonds->bonds;
     }
-    void                        setBonds(BondPolicy l, float cutfac) const
+    void                        setBonds() const
     {
-        if(cutfac < 0){
-            throw Error("bond cutoff factor must be positive");
-        }
         bonds->bonds.clear();
-        if(!cutfac){
+        if(!getNat()){
+            bonds->outdated = false;
             return;
         }
-        if(!getNat()){
-            l = BondPolicy::None;
-        }
-        if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
-        switch(l){
-        case BondPolicy::None:
-            break;
-        case BondPolicy::Molecule:
-            setBondsMolecule(cutfac);
-            break;
-        case BondPolicy::Cell:
-            setBondsCell(cutfac);
-            break;
+        if(cell->enabled){
+            setBondsCell();
+        }else{
+            setBondsMolecule();
         }
         bonds->outdated = false;
-        bonds->setOnce = true;
-        bonds->cutoff_factor = cutfac;
-        bonds->level = l;
+    }
+    void                        setBondMode(BondMode mode) const
+    {
+        bonds->mode = mode;
+    }
+    BondMode                    getBondMode() const
+    {
+        return bonds->mode;
     }
 
     // Cell
@@ -347,15 +336,15 @@ protected:
 private:
 
     // Bonds
-    void setBondsMolecule(float cutfac) const
+    void setBondsMolecule() const
     {
         if(getNat() >= 1000){
-            setBondsMoleculeSplit(cutfac);
+            setBondsMoleculeSplit();
         }else{
-            setBondsMoleculeTrivial(cutfac);
+            setBondsMoleculeTrivial();
         }
     }
-    void setBondsMoleculeSplit(float cutfac) const
+    void setBondsMoleculeSplit() const
     {
         // get suitable absolute representation
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
@@ -422,7 +411,7 @@ private:
                             if (cut_j <= 0) {
                                 continue;
                             }
-                            auto effcut = (cut_i + cut_j) * cutfac;
+                            auto effcut = (cut_i + cut_j) * 1.1f;
                             Vec dist_v = at_i.coord - at_j.coord;
                             if (((dist_v[0] *= fmtscale) > effcut) ||
                                 ((dist_v[1] *= fmtscale) > effcut) ||
@@ -442,7 +431,7 @@ private:
                                 if (cut_j <= 0) {
                                     continue;
                                 }
-                                auto effcut = (cut_i + cut_j) * cutfac;
+                                auto effcut = (cut_i + cut_j) * 1.1f;
                                 Vec dist_v = at_i.coord - at_j.coord;
                                 if (((dist_v[0] *= fmtscale) > effcut) ||
                                     ((dist_v[1] *= fmtscale) > effcut) ||
@@ -512,7 +501,7 @@ private:
             }
         }
     }
-    void setBondsMoleculeTrivial(float cutfac) const
+    void setBondsMoleculeTrivial() const
     {
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
@@ -531,7 +520,7 @@ private:
                 if (cut_j<=0) {
                     continue;
                 }
-                float effcut = (cut_i + cut_j) * cutfac;
+                float effcut = (cut_i + cut_j) * 1.1f;
                 Vec dist_v = at_i->coord - at_j->coord;
                 if (((dist_v[0] *= fmtscale) > effcut) ||
                     ((dist_v[1] *= fmtscale) > effcut) ||
@@ -546,15 +535,15 @@ private:
         }
     }
 
-    void setBondsCell(float cutfac) const
+    void setBondsCell() const
     {
         if(getNat() >= 1000){
-            setBondsCellSplit(cutfac);
+            setBondsCellSplit();
         }else{
-            setBondsCellTrivial(cutfac);
+            setBondsCellTrivial();
         }
     }
-    void setBondsCellSplit(float cutfac) const
+    void setBondsCellSplit() const
     {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
@@ -649,7 +638,7 @@ private:
                             if (cut_j <= 0) {
                                 continue;
                             }
-                            auto effcut = (cut_i + cut_j) * cutfac;
+                            auto effcut = (cut_i + cut_j) * 1.1f;
                             Vec dist_v = at_i.coord - at_j.coord;
                             std::array<int16_t, 3> diff_v, crit_v;
                             // diff_v contains integer distance in cell-units
@@ -693,7 +682,7 @@ private:
                                 if (cut_j <= 0) {
                                     continue;
                                 }
-                                auto effcut = (cut_i + cut_j) * cutfac;
+                                auto effcut = (cut_i + cut_j) * 1.1f;
                                 Vec dist_v = at_i.coord - at_j.coord;
                                 std::array<int16_t, 3> diff_v, crit_v;
                                 // diff_v contains integer distance in cell-units
@@ -761,7 +750,7 @@ private:
             }
         }
     }
-    void setBondsCellTrivial(float cutfac) const
+    void setBondsCellTrivial() const
     {
         auto& bonds = this->bonds->bonds;
         const auto asCrystal = asFmt(AtomFmt::Crystal);
@@ -792,7 +781,7 @@ private:
                 if (cut_j<0) {
                     continue;
                 }
-                float effcut = (cut_i + cut_j) * cutfac;
+                float effcut = (cut_i + cut_j) * 1.1f;
                 Vec dist_v = at_i->coord - at_j->coord;
                 // diff_v contains integer distance in cell-units
                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
