@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <set>
+#include <map>
 #include <tuple>
 
 #include "global.h"
@@ -18,7 +18,7 @@ namespace Vipster {
         std::size_t at2;
         float dist;
         DiffVec diff;
-        const std::string* type{nullptr};
+        std::pair<const std::string, ColVec>* type{nullptr};
     };
     inline bool operator==(const Bond& lhs, const Bond& rhs){
         return std::tie(lhs.at1, lhs.at2, lhs.diff)
@@ -27,11 +27,11 @@ namespace Vipster {
     }
 
     struct BondList{
-        bool                    outdated{true}, setOnce{false};
-        BondPolicy              level{BondPolicy::None};
-        float                   cutoff_factor{-1};
-        std::vector<Bond>       bonds;
-        std::set<std::string>   types;
+        bool                            outdated{true}, setOnce{false};
+        BondPolicy                      level{BondPolicy::None};
+        float                           cutoff_factor{-1};
+        std::vector<Bond>               bonds;
+        std::map<std::string, ColVec>   types;
     };
 
 }

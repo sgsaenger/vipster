@@ -47,13 +47,6 @@ private:
     int curSel{-1};
     std::vector<std::string> curNames;
     QList<QAction*> contextActions;
-    constexpr static std::array<Vipster::ColVec, 5> colors{
-        Vipster::ColVec{80, 0, 0, 80},
-        Vipster::ColVec{0, 80, 0, 80},
-        Vipster::ColVec{80, 80, 0, 80},
-        Vipster::ColVec{80, 0, 80, 80},
-        Vipster::ColVec{0, 80, 80, 80}
-    };
 };
 
 #endif // DEFINEWIDGET_H

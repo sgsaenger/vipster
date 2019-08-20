@@ -23,15 +23,15 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     // Editable:
-//    bool setData(const QModelIndex &index, const QVariant &value,
-//                 int role = Qt::EditRole) override;
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole) override;
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 private:
     BondWidget *parent;
     Vipster::Step *curStep{nullptr};
     const std::vector<Vipster::Bond> *curBonds{nullptr};
-    QStringList colNames = {"Atoms", "Length", "Type"};
+    QStringList colNames = {"Atoms", "Length", "Type", "Color"};
 };
 
 #endif // BONDMODEL_H
