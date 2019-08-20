@@ -83,6 +83,14 @@ case $1 in
         then
             echo Collecting coverage
             bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
+            if [[ $TRAVIS_BRANCH == "testing" ]]
+            then
+                # build AppImage
+                bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
+                # upload continuous build
+                wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+                bash upload.sh $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+            fi
         fi
         ;;
     before_deploy)
@@ -95,28 +103,8 @@ case $1 in
                         mv vipster.{js,wasm} $TRAVIS_BUILD_DIR/gh-pages/emscripten
                         ;;
                     desktop)
-                        # build release-version
-                        cd $TRAVIS_BUILD_DIR
-                        mkdir release
-                        cd release
-                        cmake -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
-                        make DESTDIR=AppDir install -j2
-                        # fill AppDir with dependencies
-                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt
-                        chmod +x linuxdeployqt
-                        ./linuxdeployqt AppDir/usr/share/applications/vipster.desktop -bundle-non-qt-libs;
-                        # bundle libstdc++ to be compatible with older linuxes, see https://github.com/darealshinji/AppImageKit-checkrt
-                        mkdir -p AppDir/usr/optional/libstdc++
-                        wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so -O AppDir/usr/optional/exec.so
-                        cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/
-                        # use custom AppRun so we get the correct working directory
-                        rm AppDir/AppRun
-                        cp $TRAVIS_BUILD_DIR/util/AppRun AppDir
-                        chmod a+x AppDir/AppRun
-                        # create AppImage
-                        wget -c https://github.com/AppImage/AppImageKit/releases/download/11/appimagetool-x86_64.AppImage -O appimagetool
-                        chmod +x appimagetool
-                        ./appimagetool -g AppDir $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+                        # build AppImage
+                        bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
                         # enable deployment
                         export DEPLOY_FILE=$TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
                         ;;
