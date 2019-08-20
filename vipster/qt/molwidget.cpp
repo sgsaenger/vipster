@@ -293,6 +293,11 @@ void MolWidget::on_atomFmtButton_clicked()
     triggerUpdate(GUI::Change::fmt);
 }
 
+void MolWidget::on_atomHelpButton_clicked()
+{
+    QMessageBox::information(this, QString("About atoms"), Vipster::AtomsAbout);
+}
+
 void MolWidget::on_molList_currentIndexChanged(int index)
 {
     master->setMol(index);

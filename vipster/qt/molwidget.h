@@ -54,6 +54,8 @@ private slots:
 
     void on_bondModeBox_currentIndexChanged(int index);
 
+    void on_atomHelpButton_clicked();
+
 private:
     void fillCell(void);
     void fillKPoints(void);
