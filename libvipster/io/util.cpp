@@ -2,13 +2,24 @@
 
 using namespace Vipster;
 
-std::string IO::trim(const std::string& str, const std::string& ws){
+std::string IO::trim(const std::string& str, const std::string& ws)
+{
     const auto strBegin = str.find_first_not_of(ws);
     if(strBegin == std::string::npos){
         return "";
     }
     const auto strEnd = str.find_last_not_of(ws);
     return str.substr(strBegin, strEnd-strBegin+1);
+}
+
+std::pair<std::string, std::string> IO::stripComment(const std::string& str, const std::string& m)
+{
+    auto pos = str.find_first_of(m);
+    if(pos != str.npos){
+        return {str.substr(0, pos), str.substr(pos+1)};
+    }else{
+        return {str, std::string{}};
+    }
 }
 
 void IO::intToCart(Step& s, const std::string& name, const std::array<size_t,3>&ids, Vec values)

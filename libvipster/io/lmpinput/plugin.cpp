@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include "../util.h"
 #include <sstream>
 
 using namespace Vipster;
@@ -125,17 +126,19 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
 }
 
 auto makeParser(std::vector<lmpTok> fmt){
-    return [fmt](std::ifstream& file, Step& s, std::map<std::string, std::string>& types){
+    return [fmt](std::ifstream& file, Step& s, size_t nat, std::map<size_t, std::string>& types){
+        s.newAtoms(nat);
         std::string line{}, dummy{};
+        size_t id{};
         for (auto& at:s) {
             std::getline(file, line);
             std::stringstream ss{line};
-            ss >> dummy;
+            ss >> id;
             for (lmpTok tok: fmt) {
                 switch(tok){
                 case lmpTok::type:
-                    ss >> dummy;
-                    at.name = types[dummy];
+                    ss >> id;
+                    at.name = types[id];
                     break;
                 case lmpTok::charge:
                     ss >> at.properties->charge;
@@ -226,61 +229,91 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
     s.setFmt(AtomFmt::Angstrom);
     s.setCellDim(1, CdmFmt::Angstrom);
 
-    std::string line;
-    size_t nat{}, ntype{};
+    std::string tmp;
+    size_t nat{}, nbnd{}, ntype{};
     float t1, t2;
     Mat cell{};
-    std::map<std::string, std::string> types{};
-    while (std::getline(file, line)) {
+    std::map<size_t, std::string> types{};
+    std::map<size_t, std::string> bondtypes{};
+    while (std::getline(file, tmp)) {
+        auto [line, comment] = IO::stripComment(tmp);
         if (line.find("atoms") != std::string::npos) {
             std::stringstream ss{line};
             ss >> nat;
             if (ss.fail()) {
-                throw IO::Error("Lammps Input: failed to"
-                              "parse number of atoms");
+                throw IO::Error("Lammps Input: failed to "
+                                "parse number of atoms");
             }
-            s.newAtoms(nat);
         } else if (line.find("atom types") != std::string::npos) {
             std::stringstream ss{line};
             ss >> ntype;
             if (ss.fail()) {
-                throw IO::Error("Lammps Input: failed to"
-                              "parse number of types");
+                throw IO::Error("Lammps Input: failed to "
+                                "parse number of types");
             }
+        } else if (line.find("bonds") != std::string::npos) {
+            // bonds given -> deactive automatic bond generation
+            std::stringstream ss{line};
+            ss >> nbnd;
+            if (ss.fail()) {
+                throw IO::Error("Lammps Input: failed to "
+                                "parse number of bonds");
+            }
+            s.setBondMode(BondMode::Manual);
+        } else if (line.find("bond types") != std::string::npos){
+            // try comment-only lines to find out named bond types
+            bool seekType{true};
+            auto rewindpos = file.tellg();
+            while(seekType && std::getline(file, tmp)){
+                auto [line, comment] = IO::stripComment(tmp);
+                if(line.empty() && !comment.empty()){
+                    // use first value as idx, rest of line as name
+                    size_t pos{};
+                    size_t idx = std::stoul(comment, &pos);
+                    bondtypes[idx] = comment.substr(pos);
+                    // if succesfull, we consume this line
+                    rewindpos = file.tellg();
+                }else{
+                    seekType = false;
+                }
+            }
+            file.seekg(rewindpos);
         } else if (line.find("xlo xhi") != std::string::npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
-                throw IO::Error("Lammps Input: failed to"
-                              "parse cell X dimension");
+                throw IO::Error("Lammps Input: failed to "
+                                "parse cell X dimension");
             }
             cell[0][0] = t2 - t1;
         } else if (line.find("ylo yhi") != std::string::npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
-                throw IO::Error("Lammps Input: failed to"
-                              "parse cell Y dimension");
+                throw IO::Error("Lammps Input: failed to "
+                                "parse cell Y dimension");
             }
             cell[1][1] = t2 - t1;
         } else if (line.find("zlo zhi") != std::string::npos) {
             std::stringstream ss{line};
             ss >> t1 >> t2;
             if (ss.fail()) {
-                throw IO::Error("Lammps Input: failed to"
-                              "parse cell Z dimension");
+                throw IO::Error("Lammps Input: failed to "
+                                "parse cell Z dimension");
             }
             cell[2][2] = t2 - t1;
         } else if (line.find("xy xz yz") != std::string::npos) {
             std::stringstream ss{line};
             ss >> cell[1][0] >> cell[2][0] >> cell[2][1];
             if (ss.fail()) {
-                throw IO::Error("Lammps Input: failed to"
-                              "parse cell tilt factors");
+                throw IO::Error("Lammps Input: failed to "
+                                "parse cell tilt factors");
             }
         } else if (line.find("Masses") != std::string::npos) {
+            // skip empty line
             std::getline(file, line);
-            std::string id, name;
+            size_t id;
+            std::string name;
             for (size_t i=0; i<ntype; ++i) {
                 std::getline(file, line);
                 std::stringstream ss{line};
@@ -293,9 +326,10 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                     types[id] = name;
                 } else {
                     // else just number the types accordingly
-                    types[id] = id;
+                    name = std::to_string(id);
+                    types[id] = name;
                     // and try to guess type from mass
-                    s.pte->insert_or_assign(id,
+                    s.pte->insert_or_assign(name,
                         [&t1](){
                         const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pte.at("")};
                         float best_diff{5};
@@ -318,22 +352,72 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
         } else if (line.find("Atoms") != std::string::npos) {
             std::vector<lmpTok> fmt{};
             // lookup fixed parser if format is given
-            std::size_t cpos = line.find('#');
-            if (cpos != std::string::npos) {
-                std::string f{};
-                std::stringstream{line.substr(cpos+1)} >> f;
-                fmt = fmtmap.at(f);
+            if (!comment.empty()) {
+                auto pos = fmtmap.find(IO::trim(comment));
+                if(pos != fmtmap.end()){
+                    fmt = pos->second;
+                }
             }
+            // skip empty line
             std::getline(file, line);
             // if no format was given, try to determine a suitable parser
             if (fmt.empty()) {
                 fmt = getFmtGuess(file, nat);
             }
             // do the parsing
-            makeParser(fmt)(file, s, types);
+            makeParser(fmt)(file, s, nat, types);
+            // cell needs to be known at this point, so let's set it
+            s.setCellVec(cell);
+        } else if (line.find("Bonds") != std::string::npos) {
+            // skip empty line
+            std::getline(file, line);
+            // operate on crystal coordinates to interpret periodic bonds more easily
+            auto sc = s.asFmt(AtomFmt::Crystal);
+            sc.evaluateCache();
+            for(size_t i=0; i<nbnd; ++i){
+                size_t n, id, at1, at2;
+                std::getline(file, line);
+                std::stringstream{line} >> n >> id >> at1 >> at2;
+                at1 -= 1;
+                at2 -= 1;
+                // check if bond should be periodic, save accordingly
+                auto dist = sc.at(at1).coord - sc.at(at2).coord;
+                DiffVec diff, dir;
+                // diff contains integer distance in cell-units
+                std::transform(dist.begin(), dist.end(), diff.begin(), truncf);
+                // dist contains distance inside of cell
+                std::transform(dist.begin(), dist.end(), dist.begin(),
+                    [](float f){return std::fmod(f,1);});
+                // dir contains direction of dist
+                std::transform(dist.begin(), dist.end(), dir.begin(),
+                    [](float f){
+                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                                    0 : ((f<0) ? -1 : 1);
+                    });
+                // fail if atoms overlap
+                if(std::none_of(dir.begin(), dir.end(), [](auto& i){return i!=0;}) &&
+                   std::none_of(diff.begin(), diff.end(), [](auto& i){return i!=0;})){
+                    char errmsg[50];
+                    sprintf(errmsg, "Lammps Input: failed to parse bond %ul", i);
+                    throw IO::Error{errmsg};
+                }
+                // wrap if needed
+                for(size_t d=0; d<3; ++d){
+                    if(std::abs(dist[d]) > 0.5f){
+                        dist[d] -= dir[d];
+                        diff[d] += dir[d];
+                    }
+                }
+                // if bond type has been annotated, use name
+                auto pos = bondtypes.find(id);
+                if(pos != bondtypes.end()){
+                    sc.newBond(at1, at2, diff, &pos->second);
+                }else{
+                    sc.newBond(at1, at2, diff);
+                }
+            }
         }
     }
-    s.setCellVec(cell);
     return data;
 }
 
