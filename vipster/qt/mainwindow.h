@@ -63,6 +63,7 @@ public slots:
     void setMol(int i);
     void setStep(int i);
     void setMult(int i);
+    void setBondMode(int i);
     void stepBut(QAbstractButton *but);
     void about();
     void newMol();

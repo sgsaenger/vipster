@@ -486,4 +486,5 @@ void MolWidget::on_bondModeBox_currentIndexChanged(int index)
     }else{
         ui->bondSetButton->setEnabled(true);
     }
+    master->setBondMode(index);
 }

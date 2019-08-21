@@ -90,6 +90,28 @@
         </attribute>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="bondButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add or delete bonds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click + drag&lt;/span&gt; from one to the other atom to add a bond between them, or delete the bond if it is already present.&lt;/p&gt;&lt;p&gt;Only enabled when bonds are set manually.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Bonds</string>
+        </property>
+        <property name="shortcut">
+         <string>B</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">modeGroup</string>
+        </attribute>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -973,6 +995,22 @@
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>menuEdit</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editAtoms(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>104</y>
     </hint>
     <hint type="destinationlabel">
      <x>620</x>

@@ -86,41 +86,47 @@ public:
     }
 
     // Bonds
-    // TODO: take care of dist and type
-private:
-    // return distance in Ångström
-    float getDistance(size_t at1, size_t at2, DiffVec diff)
-    {
-        if(std::any_of(diff.begin(), diff.end(), [](auto i)->bool{return i;})){
-            // have to calculate periodic bond
-            auto cv = [this](){
-                switch(this->at_fmt){
-                case AtomFmt::Crystal:
-                    return Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
-                case AtomFmt::Alat:
-                    return this->getCellVec();
-                case AtomFmt::Angstrom:
-                    return this->getCellVec() * this->getCellDim(CdmFmt::Angstrom);
-                case AtomFmt::Bohr:
-                    return this->getCellVec() * this->getCellDim(CdmFmt::Bohr);
-                }
-            }();
-            return Vec_length(this->formatVec(
-                    operator[](at1).coord - operator[](at2).coord
-                    - diff[0]*cv[0] - diff[1]*cv[1] - diff[2]*cv[2],
-                    this->at_fmt, AtomFmt::Bohr));
-        }else{
-            // just use immediate distance
-            return Vec_length(this->formatVec(
-                    operator[](at1).coord - operator[](at2).coord,
-                    this->at_fmt, AtomFmt::Bohr));
-        }
-    }
-public:
     void newBond(size_t at1, size_t at2, DiffVec diff={}, const std::string* type=nullptr)
     {
-        this->bonds->bonds.emplace_back(at1, at2, getDistance(at1, at2, diff), diff,
-                                        &*this->bonds->types.insert(type).first);
+        // calc distance in bohr
+        auto getDistance = [&](size_t at1, size_t at2, DiffVec diff)
+        {
+            if(std::any_of(diff.begin(), diff.end(), [](auto i)->bool{return i;})){
+                // have to calculate periodic bond
+                auto cv = [&](){
+                    switch(this->at_fmt){
+                    case AtomFmt::Crystal:
+                        return Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
+                    case AtomFmt::Alat:
+                        return this->getCellVec();
+                    case AtomFmt::Angstrom:
+                        return this->getCellVec() * this->getCellDim(CdmFmt::Angstrom);
+                    case AtomFmt::Bohr:
+                        return this->getCellVec() * this->getCellDim(CdmFmt::Bohr);
+                    }
+                    throw Error("Invalid AtomFmt");
+                }();
+                return Vec_length(this->formatVec(
+                        operator[](at1).coord - operator[](at2).coord
+                        - diff[0]*cv[0] - diff[1]*cv[1] - diff[2]*cv[2],
+                        this->at_fmt, AtomFmt::Bohr));
+            }else{
+                // just use immediate distance
+                return Vec_length(this->formatVec(
+                        operator[](at1).coord - operator[](at2).coord,
+                        this->at_fmt, AtomFmt::Bohr));
+            }
+        };
+        if(type){
+            // register/look-up type, then create bond
+            this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
+                                            &*this->bonds->types.emplace(*type,
+                                             defaultColors[this->bonds->types.size()%5]).first});
+        }else{
+            // create untyped bond
+            this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
+                                            nullptr});
+        }
     }
     void delBond(size_t idx)
     {

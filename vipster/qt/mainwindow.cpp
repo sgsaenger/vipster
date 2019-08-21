@@ -161,6 +161,8 @@ void MainWindow::setStep(int i)
 {
     moldata[curMol].curStep = i;
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    // handle bond Mode
+    setBondMode(static_cast<int>(curStep->getBondMode()));
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
     // if no previous selection exists, create one, afterwards assign it
@@ -194,6 +196,18 @@ void MainWindow::setStep(int i)
     }
     //Update child widgets
     updateWidgets(GUI::stepChanged);
+}
+
+void MainWindow::setBondMode(int i)
+{
+    if(i){
+        if(ui->bondButton->isChecked()){
+            ui->camButton->setChecked(true);
+        }
+        ui->bondButton->setDisabled(true);
+    }else{
+        ui->bondButton->setEnabled(true);
+    }
 }
 
 void MainWindow::setMult(int i)

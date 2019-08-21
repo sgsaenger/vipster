@@ -640,7 +640,7 @@ private:
                             }
                             auto effcut = (cut_i + cut_j) * 1.1f;
                             Vec dist_v = at_i.coord - at_j.coord;
-                            std::array<int16_t, 3> diff_v, crit_v;
+                            DiffVec diff_v, crit_v;
                             // diff_v contains integer distance in cell-units
                             std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                             // dist_v now contains distance inside of cell
@@ -684,7 +684,7 @@ private:
                                 }
                                 auto effcut = (cut_i + cut_j) * 1.1f;
                                 Vec dist_v = at_i.coord - at_j.coord;
-                                std::array<int16_t, 3> diff_v, crit_v;
+                                DiffVec diff_v, crit_v;
                                 // diff_v contains integer distance in cell-units
                                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                                 // dist_v now contains distance inside of cell
@@ -768,7 +768,7 @@ private:
         const Vec xymz = xy - z;
         const Vec xmyz = xz - y;
         const Vec mxyz = yz - x;
-        std::array<int16_t, 3> diff_v, crit_v;
+        DiffVec diff_v, crit_v;
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
             float cut_i = at_i->type->bondcut;
@@ -801,7 +801,7 @@ private:
                 // convert dist_v to bohr
                 dist_v = dist_v * cell->cellvec * cell->dimBohr;
                 // evaluation-lambda
-                auto checkBond = [&](const Vec& dist, const std::array<int16_t, 3>& offset)
+                auto checkBond = [&](const Vec& dist, const DiffVec& offset)
                 {
                     if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
                         return;
