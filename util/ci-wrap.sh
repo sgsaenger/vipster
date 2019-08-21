@@ -79,19 +79,37 @@ case $1 in
         esac
         ;;
     after_success)
-        if [[ $2 = linux ]] && [[ ${3} = "desktop" ]]
-        then
-            echo Collecting coverage
-            bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
-            if [[ $TRAVIS_BRANCH == "testing" ]]
-            then
-                # build AppImage
-                bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
-                # upload continuous build
-                wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-                bash upload.sh $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
-            fi
-        fi
+        case $2 in
+            linux)
+                if [[ $3 = "desktop" ]]
+                then
+                    echo Collecting coverage
+                    bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
+                    if [[ $TRAVIS_BRANCH == "testing" ]]
+                    then
+                        # build AppImage
+                        bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
+                        # upload continuous build
+                        wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip
+                        unzip ciuploadtool_linux.zip
+                        chmod 755 ciuploadtool
+                        ./ciuploadtool $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+                    fi
+                fi
+                ;;
+            osx)
+                if [[ $TRAVIS_BRANCH == "testing" ]]
+                then
+                    # prepare .dmg file
+                    bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
+                    # upload continuous build
+                    wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip
+                    unzip ciuploadtool_mac.zip
+                    chmod 755 ciuploadtool
+                    ./ciuploadtool $TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
+                fi
+                ;;
+        esac
         ;;
     before_deploy)
         echo Preparing deployment
@@ -111,14 +129,9 @@ case $1 in
                 esac
                 ;;
             osx)
-                mkdir -p vipster.app/Contents/Frameworks
-                cp -a vipster.framework vipster.app/Contents/Frameworks
-                export VIPVER=`ggrep "Vipster VERSION" $TRAVIS_BUILD_DIR/CMakeLists.txt | ggrep -o "[0-9.]*"`
-                echo $VIPVER
-                install_name_tool -change @rpath/vipster.framework/Versions/$VIPVER/vipster @executable_path/../Frameworks/vipster.framework/Versions/$VIPVER/vipster vipster.app/Contents/MacOS/vipster
-                otool -L vipster.app/Contents/MacOS/vipster
-                /usr/local/opt/qt/bin/macdeployqt vipster.app -dmg
-                mv vipster.dmg Vipster-OSX.dmg
+                # prepare .dmg file
+                bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
+                # enable deployment
                 export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
                 ;;
         esac
