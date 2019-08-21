@@ -1,4 +1,5 @@
 #include "bondmodel.h"
+#include "molwidget.h"
 #include <QBrush>
 
 using namespace Vipster;
@@ -83,6 +84,15 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
             return QBrush{QColor{255,255,255}};
         }
     }
+    if(role == Qt::UserRole && index.column() == 3){
+        const auto& bond = (*curBonds)[index.row()];
+        if(bond.type){
+            const auto& col = bond.type->second;
+            return QColor{col[0],col[1],col[2], col[3]};
+        }else{
+            return QColor{255,255,255, 255};
+        }
+    }
     return QVariant{};
 }
 
@@ -92,6 +102,7 @@ bool BondModel::setData(const QModelIndex &index, const QVariant &value, int rol
         if(data(index, role) != value){
             if(index.column() == 2){
                 curStep->setBondType(index.row(), value.toString().toStdString());
+                parent->triggerUpdate(GUI::Change::atoms);
                 return true;
             }
         }
@@ -102,6 +113,8 @@ bool BondModel::setData(const QModelIndex &index, const QVariant &value, int rol
                 static_cast<uint8_t>(color.green()),
                 static_cast<uint8_t>(color.blue()),
                 static_cast<uint8_t>(color.alpha())};
+        parent->triggerUpdate(GUI::Change::atoms);
+        return true;
     }
     return false;
 }
@@ -111,8 +124,13 @@ Qt::ItemFlags BondModel::flags(const QModelIndex& index) const
     if (!index.isValid() || !curStep)
         return Qt::NoItemFlags;
 
-    if(index.column() == 2)
-        return Qt::ItemIsEnabled | Qt::ItemIsEditable;
+    if(index.column() == 2){
+        if (curStep->getBondMode() == BondMode::Manual) {
+            return Qt::ItemIsEnabled | Qt::ItemIsEditable;
+        } else {
+            return Qt::ItemIsEnabled;
+        }
+    }
     if(index.column() == 3){
         if((*curBonds)[index.row()].type){
             return Qt::ItemIsEnabled | Qt::ItemIsEditable;

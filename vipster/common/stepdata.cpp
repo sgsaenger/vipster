@@ -481,6 +481,8 @@ void GUI::StepData::update(Step* step,
                 bond_axis = fmt_fun(bond_axis);
             }
             auto bond_pos = (at_pos1+at_pos2)/2;
+            const auto& col1 = bd.type ? bd.type->second : elements[bd.at1]->second.col;
+            const auto& col2 = bd.type ? bd.type->second : elements[bd.at2]->second.col;
             // handle bonds parallel to x-axis
             if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
                std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
@@ -495,7 +497,7 @@ void GUI::StepData::update(Step* step,
                      static_cast<int16_t>(std::abs(bd.diff[2])),
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
-                    elements[bd.at1]->second.col, elements[bd.at2]->second.col});
+                     col1, col2});
             }else{
                 // all other bonds
                 auto rot_axis = -Vec_cross(bond_axis, x_axis);
@@ -523,7 +525,7 @@ void GUI::StepData::update(Step* step,
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     //2*vec4 with colors
-                    elements[bd.at1]->second.col, elements[bd.at2]->second.col});
+                    col1, col2});
             }
         }
         draw_bonds = true;

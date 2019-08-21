@@ -68,7 +68,9 @@ void DefineWidget::fillTable()
         def.second.evaluateCache();
         auto pos = curMap.find(name);
         if(pos == curMap.end()){
-            auto& curCol = defaultColors[curMap.size()%5];
+            auto curCol = defaultColors[curMap.size()%5];
+            // set to transparent by default
+            curCol[3] = 80;
             auto tmp = curMap.emplace(name, GroupData{true, curCol,
                                            GUI::SelData{master->getGLGlobals(),
                                                         &def.second}});
