@@ -265,12 +265,12 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
             bool seekType{true};
             auto rewindpos = file.tellg();
             while(seekType && std::getline(file, tmp)){
-                auto [line, comment] = IO::stripComment(tmp);
+                std::tie(line, comment) = IO::stripComment(tmp);
                 if(line.empty() && !comment.empty()){
                     // use first value as idx, rest of line as name
                     size_t pos{};
                     size_t idx = std::stoul(comment, &pos);
-                    bondtypes[idx] = comment.substr(pos);
+                    bondtypes[idx] = IO::trim(comment.substr(pos));
                     // if succesfull, we consume this line
                     rewindpos = file.tellg();
                 }else{
@@ -435,51 +435,66 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
     file << std::setprecision(std::numeric_limits<Vec::value_type>::max_digits10);
 
     // prepare bonds
-    std::vector<std::tuple<size_t, size_t>> bondlist;
-    std::vector<std::tuple<std::string, std::string>> bondtypelist;
-    std::map<std::tuple<std::string, std::string>, size_t> bondtypemap;
+    std::vector<std::tuple<size_t, size_t, size_t>> bondlist;
+    std::map<std::string, size_t> bondtypemap;
     if(cc->bonds || cc->angles || cc->dihedrals || cc->impropers || needsMolID){
-        // make sure this doesn't reset bonds so the user won't be surprised
-        for(const auto& bond: step.getBonds()){
-            bondlist.emplace_back(std::min(bond.at1, bond.at2),
-                                  std::max(bond.at1, bond.at2));
-        }
-        std::sort(bondlist.begin(), bondlist.end());
-        for(const auto& bond: bondlist){
-            const std::string& t0 = step[std::get<0>(bond)].name;
-            const std::string& t1 = step[std::get<1>(bond)].name;
-            if(t0 < t1){
-                bondtypelist.emplace_back(t0, t1);
+        for(auto& bond: step.getBonds()){
+            if(bond.type){
+                bondlist.push_back({std::min(bond.at1, bond.at2),
+                                    std::max(bond.at1, bond.at2),
+                                    bondtypemap.emplace(bond.type->first,
+                                     bondtypemap.size()+1).first->second});
             }else{
-                bondtypelist.emplace_back(t1, t0);
+                const std::string& t1 = step[bond.at1].name;
+                const std::string& t2 = step[bond.at2].name;
+                bondlist.push_back({std::min(bond.at1, bond.at2),
+                                    std::max(bond.at1, bond.at2),
+                                    bondtypemap.emplace(
+                                     std::min(t1, t2)+'-'+std::max(t1,t2),
+                                     bondtypemap.size()+1).first->second});
             }
-            bondtypemap.emplace(bondtypelist.back(), bondtypemap.size()+1);
         }
+        std::sort(bondlist.begin(), bondlist.end(), [](const auto& l, const auto& r){
+            return std::tie(std::get<0>(l), std::get<1>(l)) <
+                   std::tie(std::get<0>(r), std::get<1>(r));
+        });
     }
 
     // prepare angles and impropers
-    std::vector<std::tuple<size_t, size_t, size_t>> anglelist;
-    std::vector<std::tuple<std::string, std::string, std::string>> angletypelist;
-    std::map<std::tuple<std::string, std::string, std::string>, size_t> angletypemap;
+    std::vector<std::tuple<size_t, size_t, size_t, size_t>> anglelist;
+    std::map<std::string, size_t> angletypemap;
     std::vector<std::tuple<size_t, size_t, size_t, size_t>> improplist;
-    std::vector<std::tuple<std::string, std::string, std::string, std::string>> improptypelist;
-    std::map<std::tuple<std::string, std::string, std::string, std::string>, size_t> improptypemap;
+    std::vector<std::string> improptypelist;
+    std::map<std::string, size_t> improptypemap;
     if(cc->angles || cc->dihedrals || cc->impropers){
         for(auto it=bondlist.begin(); it!=bondlist.end(); ++it){
             const auto& a0 = std::get<0>(*it);
             const auto& a1 = std::get<1>(*it);
+            const std::string& na0 = step[a0].name;
+            const std::string& na1 = step[a1].name;
             for(auto it2=it+1; it2!=bondlist.end(); ++it2){
                 const auto& b0 = std::get<0>(*it2);
                 const auto& b1 = std::get<1>(*it2);
+                const std::string& nb0 = step[b0].name;
+                const std::string& nb1 = step[b1].name;
                 bool found{false};
                 if(a0 == b0){
-                    anglelist.emplace_back(a1, a0, b1);
+                    anglelist.emplace_back(a1, a0, b1,
+                        angletypemap.emplace(
+                          std::min(na1, nb1)+'-'+na0+'-'+std::max(na1, nb1),
+                          angletypemap.size()+1).first->second);
                     found = true;
                 }else if(a1 == b0){
-                    anglelist.emplace_back(a0, a1, b1);
+                    anglelist.emplace_back(a0, a1, b1,
+                        angletypemap.emplace(
+                          std::min(na0, nb1)+'-'+na1+'-'+std::max(na0, nb1),
+                          angletypemap.size()+1).first->second);
                     found = true;
                 }else if(a1 == b1){
-                    anglelist.emplace_back(a0, a1, b0);
+                    anglelist.emplace_back(a0, a1, b0,
+                        angletypemap.emplace(
+                          std::min(na0, nb0)+'-'+na1+'-'+std::max(na0, nb0),
+                          angletypemap.size()+1).first->second);
                     found = true;
                 }
                 // a0 == b1 impossible because of sorting
@@ -500,17 +515,6 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
                 }
             }
         }
-        for(const auto& angle: anglelist){
-            const std::string& t0 = step[std::get<0>(angle)].name;
-            const std::string& t1 = step[std::get<1>(angle)].name;
-            const std::string& t2 = step[std::get<2>(angle)].name;
-            if(t0 < t2){
-                angletypelist.emplace_back(t0, t1, t2);
-            }else{
-                angletypelist.emplace_back(t2, t1, t0);
-            }
-            angletypemap.emplace(angletypelist.back(), angletypemap.size()+1);
-        }
         for(const auto& improp: improplist){
             std::string t0 = step[std::get<0>(improp)].name;
             std::string t1 = step[std::get<1>(improp)].name;
@@ -525,15 +529,15 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
             if(t2 < t3){
                 std::swap(t2, t3);
             }
-            improptypelist.emplace_back(t0, t1, t2, t3);
+            improptypelist.emplace_back(t0+'-'+t1+'-'+t2+'-'+t3);
             improptypemap.emplace(improptypelist.back(), improptypemap.size()+1);
         }
     }
 
     // prepare dihedrals
     std::vector<std::tuple<size_t, size_t, size_t, size_t>> dihedlist;
-    std::vector<std::tuple<std::string, std::string, std::string, std::string>> dihedtypelist;
-    std::map<std::tuple<std::string, std::string, std::string, std::string>, size_t> dihedtypemap;
+    std::vector<std::string> dihedtypelist;
+    std::map<std::string, size_t> dihedtypemap;
     if(cc->dihedrals){
         for(auto it=anglelist.begin(); it!=anglelist.end(); ++it){
             const auto& a0 = std::get<0>(*it);
@@ -572,9 +576,9 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
             const std::string& t2 = step[std::get<2>(dihed)].name;
             const std::string& t3 = step[std::get<3>(dihed)].name;
             if((t0 < t3) || ((t0 == t3) && (t1 < t2))){
-                dihedtypelist.emplace_back(t0, t1, t2, t3);
+                dihedtypelist.emplace_back(t0+'-'+t1+'-'+t2+'-'+t3);
             }else{
-                dihedtypelist.emplace_back(t3, t2, t1, t0);
+                dihedtypelist.emplace_back(t3+'-'+t2+'-'+t1+'-'+t0);
             }
             dihedtypemap.emplace(dihedtypelist.back(), dihedtypemap.size()+1);
         }
@@ -608,41 +612,28 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         file << bondlist.size() << " bonds\n"
              << bondtypemap.size() << " bond types\n";
         for(const auto& pair: bondtypemap){
-            file << '#' << pair.second << ' '
-                 << std::get<0>(pair.first) << ' '
-                 << std::get<1>(pair.first) << '\n';
+            file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
     if(cc->angles && !anglelist.empty()){
         file << anglelist.size() << " angles\n"
              << angletypemap.size() << " angle types\n";
         for(const auto& pair: angletypemap){
-            file << '#' << pair.second << ' '
-                 << std::get<0>(pair.first) << ' '
-                 << std::get<1>(pair.first) << ' '
-                 << std::get<2>(pair.first) << '\n';
+            file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
     if(cc->dihedrals && !dihedlist.empty()){
         file << dihedlist.size() << " dihedrals\n"
              << dihedtypemap.size() << " dihedral types\n";
         for(const auto& pair: dihedtypemap){
-            file << '#' << pair.second << ' '
-                 << std::get<0>(pair.first) << ' '
-                 << std::get<1>(pair.first) << ' '
-                 << std::get<2>(pair.first) << ' '
-                 << std::get<3>(pair.first) << '\n';
+            file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
     if(cc->impropers && !improplist.empty()){
         file << improplist.size() << " impropers\n"
              << improptypemap.size() << " improper types\n";
         for(const auto& pair: improptypemap){
-            file << '#' << pair.second << ' '
-                 << std::get<0>(pair.first) << ' '
-                 << std::get<1>(pair.first) << ' '
-                 << std::get<2>(pair.first) << ' '
-                 << std::get<3>(pair.first) << '\n';
+            file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
 
@@ -672,7 +663,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         file << "\nBonds\n\n";
         for(size_t i=0; i!=bondlist.size(); ++i){
             file << (i+1) << ' '
-                 << bondtypemap.at(bondtypelist[i]) << ' '
+                 << std::get<2>(bondlist[i]) << ' '
                  << (std::get<0>(bondlist[i])+1) << ' '
                  << (std::get<1>(bondlist[i])+1) << '\n';
         }
@@ -682,7 +673,7 @@ bool LmpInpWriter(const Molecule& m, std::ofstream &file,
         file << "\nAngles\n\n";
         for(size_t i=0; i!=anglelist.size(); ++i){
             file << (i+1) << ' '
-                 << angletypemap.at(angletypelist[i]) << ' '
+                 << std::get<3>(anglelist[i]) << ' '
                  << (std::get<0>(anglelist[i])+1) << ' '
                  << (std::get<1>(anglelist[i])+1) << ' '
                  << (std::get<2>(anglelist[i])+1) << '\n';

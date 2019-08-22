@@ -62,8 +62,10 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
             if (bond.type) {
                 return bond.type->first.c_str();
             } else {
-                return QStringLiteral("%1-%2").arg((*curStep)[bond.at1].name.c_str())
-                                              .arg((*curStep)[bond.at2].name.c_str());
+                const std::string& n1 = (*curStep)[bond.at1].name;
+                const std::string& n2 = (*curStep)[bond.at2].name;
+                return QStringLiteral("%1-%2").arg(std::min(n1, n2).c_str())
+                                              .arg(std::max(n1, n2).c_str());
             }
         }
     }

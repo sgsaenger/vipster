@@ -136,10 +136,14 @@ public:
     void setBondType(size_t idx, std::string type)
     {
         auto& bond = this->bonds->bonds[idx];
-        bond.type = &*this->bonds->types.emplace(
-                    type,
-                    defaultColors[this->bonds->types.size()%5]
-                    ).first;
+        if(type.empty()){
+            bond.type = nullptr;
+        }else{
+            bond.type = &*this->bonds->types.emplace(
+                        type,
+                        defaultColors[this->bonds->types.size()%5]
+                        ).first;
+        }
     }
 
     // Modifier functions
