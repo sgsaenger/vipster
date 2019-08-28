@@ -488,4 +488,6 @@ void MolWidget::on_bondModeBox_currentIndexChanged(int index)
         ui->bondSetButton->setEnabled(true);
     }
     master->setBondMode(index);
+    bondModel.setStep(&curStep);
+    triggerUpdate(GUI::Change::atoms);
 }

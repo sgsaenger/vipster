@@ -35,10 +35,14 @@ int BondModel::rowCount(const QModelIndex &parent) const
 
 int BondModel::columnCount(const QModelIndex &parent) const
 {
-    if (parent.isValid() || !curBonds)
+    if (parent.isValid() || !curStep)
         return 0;
 
-    return 4;
+    if(curStep->getBondMode() == BondMode::Automatic){
+        return 3;
+    }else{
+        return 4;
+    }
 }
 
 QVariant BondModel::data(const QModelIndex &index, int role) const
@@ -67,6 +71,11 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
                 return QStringLiteral("%1-%2").arg(std::min(n1, n2).c_str())
                                               .arg(std::max(n1, n2).c_str());
             }
+        case 3:
+            if(!bond.type){
+                return "N/A";
+            }
+            break;
         }
     }
     if(role == Qt::ForegroundRole && index.column() == 2){
@@ -82,8 +91,6 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
         if(bond.type){
             const auto& col = bond.type->second;
             return QBrush{QColor{col[0],col[1],col[2]}};
-        }else{
-            return QBrush{QColor{255,255,255}};
         }
     }
     if(role == Qt::UserRole && index.column() == 3){
