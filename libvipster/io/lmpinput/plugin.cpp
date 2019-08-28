@@ -126,14 +126,18 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
 }
 
 auto makeParser(std::vector<lmpTok> fmt){
-    return [fmt](std::ifstream& file, Step& s, size_t nat, std::map<size_t, std::string>& types){
+    return [fmt](std::ifstream& file, Step& s, size_t nat,
+                 std::map<size_t, std::string>& types,
+                 std::map<size_t, size_t>& indices){
         s.newAtoms(nat);
         std::string line{}, dummy{};
         size_t id{};
-        for (auto& at:s) {
+        for (auto it=s.begin(); it!=s.end(); ++it) {
+            auto& at = *it;
             std::getline(file, line);
             std::stringstream ss{line};
             ss >> id;
+            indices[id] = it.getIdx();
             for (lmpTok tok: fmt) {
                 switch(tok){
                 case lmpTok::type:
@@ -233,6 +237,7 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
     size_t nat{}, nbnd{}, ntype{};
     float t1, t2;
     Mat cell{};
+    std::map<size_t, size_t> indices{};
     std::map<size_t, std::string> types{};
     std::map<size_t, std::string> bondtypes{};
     while (std::getline(file, tmp)) {
@@ -365,7 +370,7 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                 fmt = getFmtGuess(file, nat);
             }
             // do the parsing
-            makeParser(fmt)(file, s, nat, types);
+            makeParser(fmt)(file, s, nat, types, indices);
             // cell needs to be known at this point, so let's set it
             s.setCellVec(cell);
         } else if (line.find("Bonds") != std::string::npos) {
@@ -378,8 +383,14 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                 size_t n, id, at1, at2;
                 std::getline(file, line);
                 std::stringstream{line} >> n >> id >> at1 >> at2;
-                at1 -= 1;
-                at2 -= 1;
+                // lookup atoms by file-local index
+                auto f1 = indices.find(at1);
+                auto f2 = indices.find(at2);
+                if ((f1 == indices.end()) || (f2 == indices.end())) {
+                    throw IO::Error{"Invalid atom IDs in bond: "+line};
+                }
+                at1 = f1->second;
+                at2 = f2->second;
                 // check if bond should be periodic, save accordingly
                 auto dist = sc.at(at1).coord - sc.at(at2).coord;
                 DiffVec diff, dir;
@@ -411,9 +422,9 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                 // if bond type has been annotated, use name
                 auto pos = bondtypes.find(id);
                 if(pos != bondtypes.end()){
-                    sc.newBond(at1, at2, diff, &pos->second);
+                    sc.newBond(at1, at2, diff, pos->second);
                 }else{
-                    sc.newBond(at1, at2, diff);
+                    sc.newBond(at1, at2, diff, std::to_string(id));
                 }
             }
         }

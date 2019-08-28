@@ -86,7 +86,7 @@ public:
     }
 
     // Bonds
-    void newBond(size_t at1, size_t at2, DiffVec diff={}, const std::string* type=nullptr)
+    void newBond(size_t at1, size_t at2, DiffVec diff={}, const std::string& type="")
     {
         // calc distance in bohr
         auto getDistance = [&](size_t at1, size_t at2, DiffVec diff)
@@ -117,10 +117,10 @@ public:
                         this->at_fmt, AtomFmt::Bohr));
             }
         };
-        if(type){
+        if(!type.empty()){
             // register/look-up type, then create bond
             this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
-                                            &*this->bonds->types.emplace(*type,
+                                            &*this->bonds->types.emplace(type,
                                              defaultColors[this->bonds->types.size()%5]).first});
         }else{
             // create untyped bond
