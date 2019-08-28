@@ -7,7 +7,7 @@ cd release
 cmake -D DESKTOP=YES -D PYTHON=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
 make DESTDIR=AppDir install -j2
 # copy python standard-library and add libpython to LD_LIBRARY_PATH
-export PY_LIB_DIR=`python -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))"`
+export PY_LIB_DIR=$(python -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))")
 cp -r $PY_LIB_DIR/. AppDir/$PY_LIB_DIR
 export LD_LIBRARY_PATH=$PY_LIB_DIR/..
 # fill AppDir with dependencies

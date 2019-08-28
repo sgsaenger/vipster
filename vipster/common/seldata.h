@@ -16,7 +16,7 @@ namespace GUI {
         // CPU-Data:
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
-        float color[4];
+        std::array<float, 4> color{};
         Step::selection* curSel{nullptr};
         // GPU-State/Data:
         float atRadFac{};

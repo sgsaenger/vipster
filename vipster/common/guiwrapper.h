@@ -67,7 +67,7 @@ private:
     GUI::Mat vMat, oMat, pMat, rMat;
     bool vMatChanged, pMatChanged, rMatChanged;
     // state
-    bool drawPerspective;
+    bool drawPerspective{false};
 };
 
 }

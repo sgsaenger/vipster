@@ -86,7 +86,7 @@ void GUI::SelData::drawMol(const Vec &off)
         glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4fv(shader.color, 1, color);
+        glUniform4fv(shader.color, 1, color.data());
         glUniform3i(shader.mult, 1, 1, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
@@ -102,7 +102,7 @@ void GUI::SelData::drawCell(const Vec &off, const PBCVec &mult)
         glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4fv(shader.color, 1, color);
+        glUniform4fv(shader.color, 1, color.data());
         glUniform3i(shader.mult, mult[0], mult[1], mult[2]);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,

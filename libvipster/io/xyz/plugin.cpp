@@ -18,10 +18,11 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
         natline >> nat;
         if (natline.fail()) {
             if(m.getNstep() == 1u){
-                float f1{}, f2{}, f3{};
+                float f1{};
                 std::getline(file, line);
                 natline = std::stringstream{line};
                 if(!(natline >> f1).fail()){
+                    float f2{}, f3{};
                     if(!(natline >> f2 >> f3).fail()){
                         // this could be a cell-vector,
                         // expect next two lines to follow suit
@@ -71,12 +72,13 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
         for (auto& at: sp) {
             std::getline(file, line);
             std::stringstream atline{line};
-            float f1{}, f2{}, f3{};
+            float f1{};
             atline >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
             if (atline.fail()) {
                 throw IO::Error("XYZ: failed to parse atom");
             }
             if(!(atline >> f1).fail()){
+                float f2{}, f3{};
                 if(!(atline >> f2 >> f3).fail()){
                     at.properties->forces = {f1, f2, f3};
                 }else{

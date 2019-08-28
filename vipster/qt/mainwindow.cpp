@@ -335,9 +335,7 @@ void MainWindow::loadMol()
     fileDiag.setFileMode(QFileDialog::ExistingFile);
     // Format dialog
     QStringList formats{};
-    std::map<std::string, int> ext2id;
     for(auto &iop: IOPlugins){
-        ext2id[iop.second->extension] = formats.size();
         formats << QString::fromStdString(iop.second->name);
     }
     if(fileDiag.exec() != 0){

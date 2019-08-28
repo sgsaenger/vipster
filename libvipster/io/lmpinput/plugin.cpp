@@ -398,7 +398,7 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
                 if(std::none_of(dir.begin(), dir.end(), [](auto& i){return i!=0;}) &&
                    std::none_of(diff.begin(), diff.end(), [](auto& i){return i!=0;})){
                     char errmsg[50];
-                    sprintf(errmsg, "Lammps Input: failed to parse bond %ul", i);
+                    sprintf(errmsg, "Lammps Input: failed to parse bond %lu", i);
                     throw IO::Error{errmsg};
                 }
                 // wrap if needed
