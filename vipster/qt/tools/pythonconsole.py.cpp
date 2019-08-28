@@ -338,7 +338,7 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
                 cursor.movePosition(QTextCursor::End);
             }else{
                 // move through current cmd-block
-                auto mode = e->modifiers()&Qt::Modifier::CTRL ?
+                auto mode = (e->modifiers()&Qt::Modifier::CTRL) ?
                             QTextCursor::PreviousWord : QTextCursor::Left;
                 cursor.movePosition(mode);
                 if(cursor.positionInBlock() < 4){
