@@ -45,7 +45,8 @@ PYBIND11_EMBEDDED_MODULE(vipster, m)
     Py::Step(m);
     Py::KPoints(m);
     Py::Molecule(m);
-    Py::IO(m);
+    // TODO: does this make sense? should probably be custom-wrapped, if even
+//    Py::IO(m);
     Py::Data(m);
 }
 
@@ -205,6 +206,8 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
                     // reset state for new execution
                     cmdBlock = document()->lastBlock().blockNumber();
                     sys.attr("stdout") = old;
+                    // trigger update so GUI knows about changes
+                    master->updateWidgets(GUI::stepChanged);
                 }
             } catch (py::error_already_set& e) {
                 cursor.insertText(e.what());
