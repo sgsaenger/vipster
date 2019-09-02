@@ -21,21 +21,21 @@ public:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
-    void triggerUpdate(Vipster::guiChange_t change);
-    void updateWidget(Vipster::guiChange_t change);
+    void triggerUpdate(Vipster::GUI::change_t change);
+    void updateWidget(Vipster::GUI::change_t change);
+    void setMult(Vipster::GUI::PBCVec mult);
 public slots:
     void setMode(int i,bool t);
-    void setMult(int i);
     void setCamera(int i);
 private:
     bool updateTriggered{false};
     MainWindow* master;
     // Input handling
-    enum class MouseMode { Camera=-2, Select=-3, Modify=-4 };
+    enum class MouseMode { Camera=-2, Select=-3, Modify=-4, Bond=-5 };
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;
     Vipster::Vec shift;
-    std::map<size_t, std::vector<Vipster::SizeVec>> pickAtoms();
+    std::map<size_t, std::vector<Vipster::SizeVec>> pickAtoms(QPoint from, QPoint to);
     void rotAtoms(QPoint delta);
     void shiftAtomsXY(QPoint delta);
     void shiftAtomsZ(QPoint delta);

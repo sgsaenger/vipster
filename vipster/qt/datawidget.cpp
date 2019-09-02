@@ -20,7 +20,7 @@ DataWidget::~DataWidget()
     delete ui;
 }
 
-void DataWidget::updateWidget(guiChange_t change)
+void DataWidget::updateWidget(GUI::change_t change)
 {
     ui->ThreeDWidget->updateWidget(change);
     ui->VecWidget->updateWidget(change);

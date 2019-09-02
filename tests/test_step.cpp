@@ -50,7 +50,6 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         // no atom-based properties yet
         REQUIRE( s.getNat() == 0);
         REQUIRE( s.getNtyp() == 0 );
-        REQUIRE( s.getNbond() == 0 );
     }
 
     SECTION( "Basic atom-access" ){

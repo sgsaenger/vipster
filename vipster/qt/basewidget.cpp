@@ -17,7 +17,7 @@ BaseWidget::BaseWidget(QWidget* parent)
     throw Error("Could not determine MainWindow-instance.");
 }
 
-void BaseWidget::triggerUpdate(guiChange_t change)
+void BaseWidget::triggerUpdate(GUI::change_t change)
 {
     updateTriggered = true;
     master->updateWidgets(change);

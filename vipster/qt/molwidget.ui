@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>373</width>
-    <height>663</height>
+    <height>724</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,1,0,1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,0,0,1,0,1,0,0">
    <item>
     <widget class="QComboBox" name="molList"/>
    </item>
@@ -58,6 +58,9 @@
           <property name="text">
            <string>Coordinate format:</string>
           </property>
+          <property name="buddy">
+           <cstring>atomFmtBox</cstring>
+          </property>
          </widget>
         </item>
         <item>
@@ -69,7 +72,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Angstrom</string>
+            <string>Ångström</string>
            </property>
           </item>
           <item>
@@ -91,12 +94,118 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="atomHelpButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>25</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>?</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
        <widget class="QTableView" name="atomTable">
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="bondButton">
+     <property name="text">
+      <string>Bonds</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="bondContainer" native="true">
+     <property name="checked" stdset="0">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="bondModeBox">
+        <item>
+         <property name="text">
+          <string>Manual</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Automatic</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="bondModeLabel">
+        <property name="text">
+         <string>Mode:</string>
+        </property>
+        <property name="buddy">
+         <cstring>bondModeBox</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="bondHelpButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>25</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>?</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QTableView" name="bondTable"/>
+      </item>
+      <item row="2" column="0" colspan="3">
+       <widget class="QPushButton" name="bondSetButton">
+        <property name="text">
+         <string>(Re-)calculate bonds</string>
         </property>
        </widget>
       </item>
@@ -294,7 +403,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="kpointStackButton">
+    <widget class="QPushButton" name="kpointButton">
      <property name="text">
       <string>K-Points</string>
      </property>
@@ -302,7 +411,7 @@
       <bool>true</bool>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -322,7 +431,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="kTypeLabel">
         <property name="text">
          <string>Type:</string>
         </property>
@@ -590,28 +699,28 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>149</x>
-     <y>182</y>
+     <x>165</x>
+     <y>311</y>
     </hint>
     <hint type="destinationlabel">
-     <x>166</x>
-     <y>220</y>
+     <x>174</x>
+     <y>461</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>kpointStackButton</sender>
+   <sender>kpointButton</sender>
    <signal>toggled(bool)</signal>
    <receiver>kpointContainer</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>187</x>
-     <y>440</y>
+     <x>203</x>
+     <y>549</y>
     </hint>
     <hint type="destinationlabel">
-     <x>187</x>
-     <y>465</y>
+     <x>195</x>
+     <y>649</y>
     </hint>
    </hints>
   </connection>
@@ -622,12 +731,12 @@
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>160</x>
-     <y>480</y>
+     <x>261</x>
+     <y>587</y>
     </hint>
     <hint type="destinationlabel">
-     <x>280</x>
-     <y>512</y>
+     <x>298</x>
+     <y>639</y>
     </hint>
    </hints>
   </connection>
@@ -639,7 +748,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
-     <y>510</y>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>143</x>
@@ -655,7 +764,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>87</x>
-     <y>510</y>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>265</x>
@@ -671,7 +780,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>109</x>
-     <y>510</y>
+     <y>608</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -687,7 +796,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
-     <y>514</y>
+     <y>612</y>
     </hint>
     <hint type="destinationlabel">
      <x>111</x>
@@ -703,7 +812,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>87</x>
-     <y>514</y>
+     <y>612</y>
     </hint>
     <hint type="destinationlabel">
      <x>240</x>
@@ -719,7 +828,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>109</x>
-     <y>514</y>
+     <y>612</y>
     </hint>
     <hint type="destinationlabel">
      <x>369</x>
@@ -740,6 +849,22 @@
     <hint type="destinationlabel">
      <x>121</x>
      <y>63</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bondButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bondContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>176</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>186</x>
+     <y>223</y>
     </hint>
    </hints>
   </connection>

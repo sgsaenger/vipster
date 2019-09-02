@@ -41,7 +41,7 @@ private:
         std::string s1{}, s2{};
         OpVec v1{}, v2{}, v3{};
     };
-    Vipster::guiChange_t curChange{};
+    Vipster::GUI::change_t curChange{};
     std::vector<ScriptOp> parse();
     bool execute(const std::vector<ScriptOp>&, Vipster::Step&,
                  MainWindow::StepExtras &);

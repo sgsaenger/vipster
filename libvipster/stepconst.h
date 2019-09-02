@@ -233,57 +233,37 @@ public:
     }
 
     // Bonds
-    const std::vector<Bond>&    getBonds(float cutfac=settings.bondCutFac.val,
-                                         BondPolicy l=settings.bondLvl.val,
-                                         BondFrequency update=settings.bondFreq.val) const
+    const std::vector<Bond>&    getBonds() const
     {
-        if(cutfac < 0){
-            throw Error("bond cutoff factor must be positive");
-        }
-        if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
-        if(((update == BondFrequency::Always) or
-            ((update == BondFrequency::Once) and not bonds->setOnce))
-           and
-           (bonds->outdated or
-            (!float_comp(cutfac, bonds->cutoff_factor)) or
-            (bonds->level != l)))
+        // TODO: was passiert wenn bindungen manuell sind, aber atome gelöscht werden?
+        if((bonds->mode == BondMode::Automatic) &&
+            bonds->outdated)
         {
-            setBonds(l, cutfac);
+            setBonds();
         }
         return bonds->bonds;
     }
-    size_t                      getNbond() const
+    void                        setBonds() const
     {
-        return getBonds().size();
-    }
-    void                        setBonds(BondPolicy l=settings.bondLvl.val,
-                                         float cutfac=settings.bondCutFac.val) const
-    {
-        if(cutfac < 0){
-            throw Error("bond cutoff factor must be positive");
-        }
         bonds->bonds.clear();
-        if(!cutfac){
+        if(!getNat()){
+            bonds->outdated = false;
             return;
         }
-        if(!getNat()){
-            l = BondPolicy::None;
-        }
-        if((l==BondPolicy::Cell) && !cell->enabled){ l = BondPolicy::Molecule; }
-        switch(l){
-        case BondPolicy::None:
-            break;
-        case BondPolicy::Molecule:
-            setBondsMolecule(cutfac);
-            break;
-        case BondPolicy::Cell:
-            setBondsCell(cutfac);
-            break;
+        if(cell->enabled){
+            setBondsCell();
+        }else{
+            setBondsMolecule();
         }
         bonds->outdated = false;
-        bonds->setOnce = true;
-        bonds->cutoff_factor = cutfac;
-        bonds->level = l;
+    }
+    void                        setBondMode(BondMode mode) const
+    {
+        bonds->mode = mode;
+    }
+    BondMode                    getBondMode() const
+    {
+        return bonds->mode;
     }
 
     // Cell
@@ -356,15 +336,15 @@ protected:
 private:
 
     // Bonds
-    void setBondsMolecule(float cutfac) const
+    void setBondsMolecule() const
     {
         if(getNat() >= 1000){
-            setBondsMoleculeSplit(cutfac);
+            setBondsMoleculeSplit();
         }else{
-            setBondsMoleculeTrivial(cutfac);
+            setBondsMoleculeTrivial();
         }
     }
-    void setBondsMoleculeSplit(float cutfac) const
+    void setBondsMoleculeSplit() const
     {
         // get suitable absolute representation
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
@@ -431,7 +411,7 @@ private:
                             if (cut_j <= 0) {
                                 continue;
                             }
-                            auto effcut = (cut_i + cut_j) * cutfac;
+                            auto effcut = (cut_i + cut_j) * 1.1f;
                             Vec dist_v = at_i.coord - at_j.coord;
                             if (((dist_v[0] *= fmtscale) > effcut) ||
                                 ((dist_v[1] *= fmtscale) > effcut) ||
@@ -440,7 +420,7 @@ private:
                             }
                             auto dist_n = Vec_dot(dist_v, dist_v);
                             if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                                bonds.push_back({i, j, std::sqrt(dist_n), {}});
                             }
                         }
                         // visit neighboring boxes
@@ -451,7 +431,7 @@ private:
                                 if (cut_j <= 0) {
                                     continue;
                                 }
-                                auto effcut = (cut_i + cut_j) * cutfac;
+                                auto effcut = (cut_i + cut_j) * 1.1f;
                                 Vec dist_v = at_i.coord - at_j.coord;
                                 if (((dist_v[0] *= fmtscale) > effcut) ||
                                     ((dist_v[1] *= fmtscale) > effcut) ||
@@ -460,7 +440,7 @@ private:
                                 }
                                 auto dist_n = Vec_dot(dist_v, dist_v);
                                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    bonds.push_back({i, j, std::sqrt(dist_n), 0, 0, 0});
+                                    bonds.push_back({i, j, std::sqrt(dist_n), {}});
                                 }
                             }
                         };
@@ -521,7 +501,7 @@ private:
             }
         }
     }
-    void setBondsMoleculeTrivial(float cutfac) const
+    void setBondsMoleculeTrivial() const
     {
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
@@ -540,7 +520,7 @@ private:
                 if (cut_j<=0) {
                     continue;
                 }
-                float effcut = (cut_i + cut_j) * cutfac;
+                float effcut = (cut_i + cut_j) * 1.1f;
                 Vec dist_v = at_i->coord - at_j->coord;
                 if (((dist_v[0] *= fmtscale) > effcut) ||
                     ((dist_v[1] *= fmtscale) > effcut) ||
@@ -549,21 +529,21 @@ private:
                 }
                 float dist_n = Vec_dot(dist_v, dist_v);
                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                    bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), 0, 0, 0});
+                    bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), {}});
                 }
             }
         }
     }
 
-    void setBondsCell(float cutfac) const
+    void setBondsCell() const
     {
         if(getNat() >= 1000){
-            setBondsCellSplit(cutfac);
+            setBondsCellSplit();
         }else{
-            setBondsCellTrivial(cutfac);
+            setBondsCellTrivial();
         }
     }
-    void setBondsCellSplit(float cutfac) const
+    void setBondsCellSplit() const
     {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         asCrystal.evaluateCache();
@@ -658,9 +638,9 @@ private:
                             if (cut_j <= 0) {
                                 continue;
                             }
-                            auto effcut = (cut_i + cut_j) * cutfac;
+                            auto effcut = (cut_i + cut_j) * 1.1f;
                             Vec dist_v = at_i.coord - at_j.coord;
-                            std::array<int16_t, 3> diff_v, crit_v;
+                            DiffVec diff_v, crit_v;
                             // diff_v contains integer distance in cell-units
                             std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                             // dist_v now contains distance inside of cell
@@ -691,8 +671,7 @@ private:
                             }
                             auto dist_n = Vec_dot(dist_v, dist_v);
                             if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                bonds.push_back({i, j, std::sqrt(dist_n),
-                                                 diff_v[0], diff_v[1], diff_v[2]});
+                                bonds.push_back({i, j, std::sqrt(dist_n), diff_v});
                             }
                         }
                         // other boxes should be evaluated in total
@@ -703,9 +682,9 @@ private:
                                 if (cut_j <= 0) {
                                     continue;
                                 }
-                                auto effcut = (cut_i + cut_j) * cutfac;
+                                auto effcut = (cut_i + cut_j) * 1.1f;
                                 Vec dist_v = at_i.coord - at_j.coord;
-                                std::array<int16_t, 3> diff_v, crit_v;
+                                DiffVec diff_v, crit_v;
                                 // diff_v contains integer distance in cell-units
                                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                                 // dist_v now contains distance inside of cell
@@ -736,8 +715,7 @@ private:
                                 }
                                 auto dist_n = Vec_dot(dist_v, dist_v);
                                 if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    bonds.push_back({i, j, std::sqrt(dist_n),
-                                                     diff_v[0], diff_v[1], diff_v[2]});
+                                    bonds.push_back({i, j, std::sqrt(dist_n), diff_v});
                                 }
                             }
                         };
@@ -772,7 +750,7 @@ private:
             }
         }
     }
-    void setBondsCellTrivial(float cutfac) const
+    void setBondsCellTrivial() const
     {
         auto& bonds = this->bonds->bonds;
         const auto asCrystal = asFmt(AtomFmt::Crystal);
@@ -790,7 +768,7 @@ private:
         const Vec xymz = xy - z;
         const Vec xmyz = xz - y;
         const Vec mxyz = yz - x;
-        std::array<int16_t, 3> diff_v, crit_v;
+        DiffVec diff_v, crit_v;
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
             float cut_i = at_i->type->bondcut;
@@ -803,7 +781,7 @@ private:
                 if (cut_j<0) {
                     continue;
                 }
-                float effcut = (cut_i + cut_j) * cutfac;
+                float effcut = (cut_i + cut_j) * 1.1f;
                 Vec dist_v = at_i->coord - at_j->coord;
                 // diff_v contains integer distance in cell-units
                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
@@ -823,14 +801,14 @@ private:
                 // convert dist_v to bohr
                 dist_v = dist_v * cell->cellvec * cell->dimBohr;
                 // evaluation-lambda
-                auto checkBond = [&](const Vec& dist, const std::array<int16_t, 3>& offset)
+                auto checkBond = [&](const Vec& dist, const DiffVec& offset)
                 {
                     if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
                         return;
                     }
                     float dist_n = Vec_dot(dist, dist);
                     if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                        bonds.push_back({i, j, std::sqrt(dist_n), offset[0], offset[1], offset[2]});
+                        bonds.push_back({i, j, std::sqrt(dist_n), offset});
                     }
                 };
                 // 0-vector

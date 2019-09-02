@@ -5,15 +5,9 @@ using namespace Vipster;
 
 decltype(GUI::SelData::shader) GUI::SelData::shader;
 
-GUI::SelData::SelData(const GUI::GlobalData& glob, const ColVec& col, Step::selection *sel)
+GUI::SelData::SelData(const GUI::GlobalData& glob, Step::selection *sel)
     : Data{glob}, curSel{sel}
-{
-    color[0] = col[0]/255.f;
-    color[1] = col[1]/255.f;
-    color[2] = col[2]/255.f;
-    color[3] = col[3]/255.f;
-    update(curSel);
-}
+{}
 
 GUI::SelData::SelData(SelData&& dat)
 //    : Data{dat.global, dat.updated, dat.initialized},
@@ -89,10 +83,10 @@ void GUI::SelData::drawMol(const Vec &off)
     if(sel_buffer.size()){
         glBindVertexArray(vao);
         glUseProgram(shader.program);
-        glUniform1f(shader.scale_fac, settings.atRadFac.val);
+        glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4fv(shader.color, 1, color);
+        glUniform4fv(shader.color, 1, color.data());
         glUniform3i(shader.mult, 1, 1, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
@@ -105,10 +99,10 @@ void GUI::SelData::drawCell(const Vec &off, const PBCVec &mult)
     if(sel_buffer.size()){
         glBindVertexArray(vao);
         glUseProgram(shader.program);
-        glUniform1f(shader.scale_fac, settings.atRadFac.val);
+        glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4fv(shader.color, 1, color);
+        glUniform4fv(shader.color, 1, color.data());
         glUniform3i(shader.mult, mult[0], mult[1], mult[2]);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
@@ -127,8 +121,9 @@ void GUI::SelData::updateGL()
     }
 }
 
-void GUI::SelData::update(Step::selection* sel)
+void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
 {
+    this->atRadFac = atRadFac;
     curSel = sel;
     sel_buffer.clear();
     if(!curSel){
@@ -136,7 +131,7 @@ void GUI::SelData::update(Step::selection* sel)
     }
     sel_buffer.reserve(curSel->getNat()); // too small, but better than nothing
     auto fmt = curSel->getFormatter(AtomFmt::Crystal, curSel->getFmt());
-    if(settings.atRadVdW.val){
+    if(useVdW){
         auto it = curSel->begin();
         while(it != curSel->end()){
             for(const auto& off: it.getFilterPair().second){

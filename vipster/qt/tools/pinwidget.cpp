@@ -15,13 +15,18 @@ PinWidget::~PinWidget()
     delete ui;
 }
 
-void PinWidget::updateWidget(guiChange_t change)
+void PinWidget::updateWidget(GUI::change_t change)
 {
-    if((change & guiStepChanged) == guiStepChanged){
+    if((change & GUI::stepChanged) == GUI::stepChanged){
         // enable drawing of step previously selected in mainwindow
         if(mainStep){
             auto& dat = stepMap.at(mainStep);
-            dat.gpu_data.update(mainStep, settings.showBonds.val,
+            const auto& settings = master->settings;
+            dat.gpu_data.update(mainStep,
+                                settings.atRadVdW.val,
+                                settings.atRadFac.val,
+                                settings.showBonds.val,
+                                settings.bondRad.val,
                                 settings.showCell.val & dat.cell & mainStep->hasCell());
             if(dat.display){
                 master->addExtraData(&dat.gpu_data);
@@ -52,16 +57,21 @@ void PinWidget::on_showStep_toggled(bool checked)
             master->delExtraData(&dat.gpu_data);
         }
     }
-    triggerUpdate(GuiChange::extra);
+    triggerUpdate(GUI::Change::extra);
 }
 
 void PinWidget::on_showCell_toggled(bool checked)
 {
     auto& dat = stepMap.at(activeStep);
     dat.cell = checked;
-    dat.gpu_data.update(activeStep, settings.showBonds.val,
+    const auto& settings = master->settings;
+    dat.gpu_data.update(activeStep,
+                        settings.atRadVdW.val,
+                        settings.atRadFac.val,
+                        settings.showBonds.val,
+                        settings.bondRad.val,
                         checked & settings.showCell.val & activeStep->hasCell());
-    triggerUpdate(GuiChange::extra);
+    triggerUpdate(GUI::Change::extra);
 }
 
 void PinWidget::on_delStep_clicked()
@@ -81,7 +91,7 @@ void PinWidget::on_addStep_clicked()
     mainStep = master->curStep;
     stepMap.emplace(mainStep, PinnedStep{
             true,
-            settings.showCell.val,
+            master->settings.showCell.val,
             GUI::StepData{master->getGLGlobals(),
                           mainStep}});
     stepList.push_back(mainStep);
@@ -114,5 +124,5 @@ void PinWidget::on_insertStep_clicked()
 {
     if(activeStep == master->curStep) return;
     master->curStep->newAtoms(activeStep->asFmt(master->curStep->getFmt()).getAtoms());
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }

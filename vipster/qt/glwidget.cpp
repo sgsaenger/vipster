@@ -7,7 +7,9 @@
 using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent):
-    QOpenGLWidget(parent)
+    QOpenGLWidget(parent),
+    // WARNING: this has to fail somewhere down the line, at the latest when multiple widgets are used
+    GuiWrapper{qobject_cast<MainWindow*>(qApp->topLevelWidgets()[0])->settings}
 {
     setTextureFormat(GL_RGBA16);
     for(auto *w: qApp->topLevelWidgets()){
@@ -26,24 +28,24 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
-void GLWidget::triggerUpdate(guiChange_t change){
+void GLWidget::triggerUpdate(GUI::change_t change){
     updateTriggered = true;
     master->updateWidgets(change);
 }
 
-void GLWidget::updateWidget(guiChange_t change)
+void GLWidget::updateWidget(GUI::change_t change)
 {
-    if((change & guiStepChanged) == guiStepChanged ){
-        setMainStep(master->curStep, settings.showBonds.val, settings.showCell.val);
+    if((change & GUI::stepChanged) == GUI::stepChanged ){
+        setMainStep(master->curStep);
         setMainSel(master->curSel);
     }else{
-        if(change & GuiChange::settings){
-            selection.update(settings.selCol.val);
+        if(change & GUI::Change::settings){
+            selection.update(master->settings.selCol.val);
         }
-        if(change & (GuiChange::atoms | GuiChange::cell | GuiChange::fmt | GuiChange::settings)) {
-            updateMainStep(settings.showBonds.val, settings.showCell.val);
+        if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt | GUI::Change::settings)) {
+            updateMainStep();
             updateMainSelection();
-        }else if(change & GuiChange::selection){
+        }else if(change & GUI::Change::selection){
             updateMainSelection();
         }
     }
@@ -101,14 +103,15 @@ void GLWidget::setMode(int mode, bool t)
     case MouseMode::Select:
         setCursor(Qt::CrossCursor);
         break;
+    case MouseMode::Bond:
+        setCursor(Qt::CrossCursor);
+        break;
     }
 }
 
-void GLWidget::setMult(int i)
+void GLWidget::setMult(GUI::PBCVec m)
 {
-    if(QObject::sender()->objectName() == "xMultBox"){ mult[0] = static_cast<uint8_t>(i); }
-    else if(QObject::sender()->objectName() == "yMultBox"){ mult[1] = static_cast<uint8_t>(i); }
-    else if(QObject::sender()->objectName() == "zMultBox"){ mult[2] = static_cast<uint8_t>(i); }
+    mult = m;
     update();
 }
 
@@ -140,10 +143,10 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
-std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
+std::map<size_t, std::vector<SizeVec> > GLWidget::pickAtoms(QPoint from, QPoint to)
 {
     // return indices of atoms enclosed by rectangle
-    // defined by mousePos and rectPos
+    // defined by `from` and `to`
     std::map<size_t, std::vector<SizeVec>> idx;
     makeCurrent();
     drawSel();
@@ -159,11 +162,11 @@ std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
                       0, 0, fbo.width(), fbo.height(),
                       GL_COLOR_BUFFER_BIT, GL_NEAREST);
     fbo.bind();
-    auto x = std::min(mousePos.x(), rectPos.x());
-    auto y = std::min(height() - 1 - mousePos.y(),
-                      height() - 1 - rectPos.y());
-    auto w = std::max(1, std::abs(mousePos.x() - rectPos.x()));
-    auto h = std::max(1, std::abs(mousePos.y() - rectPos.y()));
+    auto x = std::min(from.x(), to.x());
+    auto y = std::min(height() - 1 - from.y(),
+                      height() - 1 - to.y());
+    auto w = std::max(1, std::abs(from.x() - to.x()));
+    auto h = std::max(1, std::abs(from.y() - to.y()));
     std::vector<GLuint64> data(static_cast<size_t>(w*h));
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ALIGNMENT, 2);
@@ -182,7 +185,7 @@ std::map<size_t, std::vector<SizeVec>> GLWidget::pickAtoms()
             auto y = yrem / mult[0];
             auto x = yrem % mult[0];
             // untangle atom-id
-            idx[i].push_back(SizeVec{x,y,z});
+            idx[i].push_back({x,y,z});
         }
     }
     return idx;
@@ -201,7 +204,7 @@ void GLWidget::rotAtoms(QPoint delta)
     }else{
         curStep->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
     }
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::shiftAtomsXY(QPoint delta)
@@ -213,7 +216,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     }else{
         curStep->asFmt(AtomFmt::Bohr).modShift(axis, 0.01f);
     }
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::shiftAtomsZ(QPoint delta)
@@ -225,7 +228,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
     }else{
         curStep->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
     }
-    triggerUpdate(GuiChange::atoms);
+    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::wheelEvent(QWheelEvent *e)
@@ -253,13 +256,13 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
             curSel->setFilter(SelectionFilter{});
-            triggerUpdate(GuiChange::selection);
+            triggerUpdate(GUI::Change::selection);
         }
         break;
     case MouseMode::Modify:
         if((e->button() == Qt::MouseButton::LeftButton) &&
            (e->modifiers() & (Qt::Modifier::CTRL|Qt::Modifier::SHIFT)) == 0u){
-            auto idx = pickAtoms();
+            auto idx = pickAtoms(mousePos, mousePos);
             if(idx.empty()){
                 if(curSel->getNat()){
                     shift = curSel->getCom(AtomFmt::Bohr);
@@ -270,6 +273,9 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
                 shift = curStep->asFmt(AtomFmt::Bohr)[idx.begin()->first].coord;
             }
         }
+        break;
+    case MouseMode::Bond:
+        // nop
         break;
     }
 }
@@ -284,7 +290,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
     switch(mouseMode){
     case MouseMode::Camera:
         if((e->buttons() & Qt::MouseButton::LeftButton) != 0u){
-            rotateViewMat(delta.x(), delta.y(), 0);
+            if(e->modifiers() & Qt::Modifier::SHIFT){
+                translateViewMat(delta.x(), -delta.y(), 0);
+            }else{
+                rotateViewMat(delta.x(), delta.y(), 0);
+            }
             update();
         }else if((e->buttons() & Qt::MouseButton::MiddleButton) != 0u){
             translateViewMat(delta.x(), -delta.y(), 0);
@@ -321,6 +331,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *e)
         }
         rectPos = mousePos = e->pos();
         break;
+    case MouseMode::Bond:
+        // nop
+        break;
     }
 }
 
@@ -340,7 +353,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                 const auto& origIndices = curSel->getIndices();
                 filter.indices.insert(origIndices.begin(), origIndices.end());
             }
-            auto idx = pickAtoms();
+            auto idx = pickAtoms(mousePos, rectPos);
             if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
                 auto i = *idx.begin();
                 auto pos = filter.indices.find(i.first);
@@ -373,11 +386,46 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
             curSel->setFilter(filter);
             rectPos = mousePos;
-            triggerUpdate(GuiChange::selection);
+            triggerUpdate(GUI::Change::selection);
         }
         break;
     case MouseMode::Modify:
         //TODO: undo
+        break;
+    case MouseMode::Bond:
+        // if we have manual bonds and picked exactly two atoms, toggle bond
+        if(curStep->getBondMode() != BondMode::Manual) break;
+        auto idx1 = pickAtoms(rectPos, rectPos);
+        if(idx1.size() != 1 && idx1.begin()->second.size() != 1) break;
+        auto idx2 = pickAtoms(e->pos(), e->pos());
+        if(idx2.size() != 1 && idx2.begin()->second.size() != 1) break;
+        auto at1 = *idx1.begin();
+        auto at2 = *idx2.begin();
+        DiffVec off_l = {static_cast<DiffVec::value_type>(at1.second.front()[0]-at2.second.front()[0]),
+                         static_cast<DiffVec::value_type>(at1.second.front()[1]-at2.second.front()[1]),
+                         static_cast<DiffVec::value_type>(at1.second.front()[2]-at2.second.front()[2]),
+                        };
+        DiffVec off_r = {static_cast<DiffVec::value_type>(-off_l[0]),
+                         static_cast<DiffVec::value_type>(-off_l[1]),
+                         static_cast<DiffVec::value_type>(-off_l[2]),
+                        };
+        // ignore bonds between one atom with itself
+        if((at1.first == at2.first) && (off_l == DiffVec{0,0,0}))
+            break;
+        const auto& bonds = curStep->getBonds();
+        // if bond is already present, delete it and return
+        for(size_t i=0; i<bonds.size(); ++i){
+            const auto& b = bonds[i];
+            if(((b.at1 == at1.first) && (b.at2 == at2.first) && (b.diff == off_r)) ||
+               ((b.at1 == at2.first) && (b.at2 == at1.first) && (b.diff == off_l))){
+                curStep->delBond(i);
+                triggerUpdate(GUI::Change::atoms);
+                return;
+            }
+        }
+        // create new bond
+        curStep->newBond(at1.first, at2.first, off_r);
+        triggerUpdate(GUI::Change::atoms);
         break;
     }
 }

@@ -15,7 +15,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
     size_t nat{}, ntype{};
     float celldim{};
     Mat cellvec;
-    bool gamma{false};
+    bool gamma{false}, readInitial{false};
     CdmFmt cdmfmt{CdmFmt::Bohr};
     std::vector<std::string> pseudopotentials{};
     while (std::getline(file, line)) {
@@ -84,7 +84,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                 entry.m = std::stof(tmp);
                 entry.PWPP = pseudopotentials[i];
             }
-        } else if (line.find("site n.") != std::string::npos) {
+        } else if (!readInitial && (line.find("site n.") != std::string::npos)) {
             // parse initial coordinates
             // always given as ALAT (or aditionally as CRYSTAL with high verbosity)
             s->setFmt(AtomFmt::Alat);
@@ -98,6 +98,7 @@ IO::Data PWOutParser(const std::string& name, std::ifstream &file)
                     throw IO::Error{"Failed to parse atom"};
                 }
             }
+            readInitial = true;
         } else if ((line.find("CELL_PARAMETERS") != std::string::npos) &&
                    (line.find("DEPRECATED") == std::string::npos)) {
             if (line.find("(bohr)") != std::string::npos) {

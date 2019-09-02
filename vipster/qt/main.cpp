@@ -9,7 +9,8 @@
 
 using namespace Vipster;
 
-[[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data){
+[[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data,
+                                ConfigState&& state){
     QSurfaceFormat format;
     format.setVersion(3,3);
     format.setSamples(8);
@@ -17,13 +18,13 @@ using namespace Vipster;
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
-    QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [](){saveConfig();});
+    QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});
     if(!data.empty()){
-        MainWindow w{QDir::currentPath(), std::move(data)};
+        MainWindow w{QDir::currentPath(), state, std::move(data)};
         w.show();
         throw CLI::RuntimeError(QApplication::exec());
     }else{
-        MainWindow w{QDir::currentPath()};
+        MainWindow w{QDir::currentPath(), state};
         w.show();
         throw CLI::RuntimeError(QApplication::exec());
     }
@@ -31,8 +32,12 @@ using namespace Vipster;
 
 int main(int argc, char *argv[])
 {
+    // read user-defined settings and make state known
+    auto state = Vipster::readConfig();
+    const IO::Parameters &params = std::get<2>(state);
+    const IO::Configs &configs = std::get<3>(state);
+
     // main parser + data-targets
-    Vipster::readConfig();
     CLI::App app{"Vipster v" VIPSTER_VERSION "b"};
     app.allow_extras(true);
     std::map<IOFmt, std::vector<std::string>> fmt_files{};
@@ -63,7 +68,7 @@ int main(int argc, char *argv[])
             }
         }
         // launch GUI
-        launchVipster(argc, argv, std::move(data));
+        launchVipster(argc, argv, std::move(data), std::move(state));
     });
 
     // conversion parser + data + options
@@ -114,9 +119,9 @@ int main(int argc, char *argv[])
                       },
                       "Display help for parameter sets");
     convert->add_flag("--list-param",
-                      [](size_t){
-                          auto printFmt = [](IOFmt fmt){
-                              for(const auto& pair: params[fmt]){
+                      [&](size_t){
+                          auto printFmt = [&](IOFmt fmt){
+                              for(const auto& pair: params.at(fmt)){
                                   std::cout << pair.first << '\n';
                               }
                           };
@@ -142,9 +147,9 @@ int main(int argc, char *argv[])
                       },
                       "Display help for output-behavior-presets");
     convert->add_flag("--list-config",
-                      [](size_t){
-                          auto printFmt = [](IOFmt fmt){
-                              for(const auto& pair: configs[fmt]){
+                      [&](size_t){
+                          auto printFmt = [&](IOFmt fmt){
+                              for(const auto& pair: configs.at(fmt)){
                                   std::cout << pair.first << '\n';
                               }
                           };
@@ -213,8 +218,8 @@ int main(int argc, char *argv[])
                 par_name = "default";
             }
             if(!par_name.empty()){
-                const auto& pos = params[fmt_out].find(par_name);
-                if(pos == params[fmt_out].end()){
+                const auto& pos = params.at(fmt_out).find(par_name);
+                if(pos == params.at(fmt_out).end()){
                     throw CLI::ParseError("Invalid parameter \""+par_name+
                                           "\" for format "+conv_data.output[0], 1);
                 }
@@ -228,8 +233,8 @@ int main(int argc, char *argv[])
             }else{
                 conf_name = "default";
             }
-            auto pos = configs[fmt_out].find(conf_name);
-            if(pos == configs[fmt_out].end()){
+            auto pos = configs.at(fmt_out).find(conf_name);
+            if(pos == configs.at(fmt_out).end()){
                 throw CLI::ParseError("Invalid configuration preset \""+conf_name+
                                       "\" for format "+conv_data.output[0], 1);
             }
@@ -297,5 +302,5 @@ int main(int argc, char *argv[])
     });
 
     // do the parsing
-    CLI11_PARSE(app, argc, argv);
+    CLI11_PARSE(app, argc, argv)
 }

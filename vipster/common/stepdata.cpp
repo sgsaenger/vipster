@@ -240,7 +240,7 @@ void GUI::StepData::drawMol(const Vec &off)
 // ATOMS
     glBindVertexArray(atom_vao);
     glUseProgram(atom_shader.program);
-    glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
+    glUniform1f(atom_shader.scale_fac, atRadFac);
     glUniform3fv(atom_shader.offset, 1, off.data());
     glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
     glDrawArraysInstanced(GL_TRIANGLES, 0,
@@ -267,7 +267,7 @@ void GUI::StepData::drawCell(const Vec &off, const PBCVec &mult)
     // atoms
     glBindVertexArray(atom_vao);
     glUseProgram(atom_shader.program);
-    glUniform1f(atom_shader.scale_fac, settings.atRadFac.val);
+    glUniform1f(atom_shader.scale_fac, atRadFac);
     glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
@@ -315,36 +315,30 @@ void GUI::StepData::drawCell(const Vec &off, const PBCVec &mult)
     }
 }
 
-void GUI::StepData::drawSel(const PBCVec &mult)
+void GUI::StepData::drawSel(Vec off, const PBCVec &mult)
 {
     // draw Atoms (as setup in atom_vao, shader locations must match)
     // with selection shader -> color by gl_InstanceID
     // to seperate Framebuffer
-#ifndef __EMSCRIPTEN__
-    if(settings.antialias.val){
-        glDisable(GL_MULTISAMPLE);
-    }
-#endif
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glClearColor(1,1,0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Vec center = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     glBindVertexArray(sel_vao);
     glUseProgram(sel_shader.program);
-    glUniform1f(sel_shader.scale_fac, settings.atRadFac.val);
+    glUniform1f(sel_shader.scale_fac, atRadFac);
     glUniformMatrix3fv(sel_shader.pos_scale, 1, 0, cell_mat.data());
     if(curStep->hasCell()){
-        Vec off;
+        Vec tmp;
         Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
-        center -= (mult[0]-1)*cv[0]/2.;
-        center -= (mult[1]-1)*cv[1]/2.;
-        center -= (mult[2]-1)*cv[2]/2.;
+        off -= (mult[0]-1)*cv[0]/2.;
+        off -= (mult[1]-1)*cv[1]/2.;
+        off -= (mult[2]-1)*cv[2]/2.;
         for(unsigned int x=0;x<mult[0];++x){
             for(unsigned int y=0;y<mult[1];++y){
                 for(unsigned int z=0;z<mult[2];++z){
-                    off = (center + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(sel_shader.offset, 1, off.data());
+                    tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
+                    glUniform3fv(sel_shader.offset, 1, tmp.data());
                     glUniform1ui(sel_shader.pbc_instance,
                                  1 + x + y*mult[0] + z*mult[0]*mult[1]);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
@@ -354,17 +348,12 @@ void GUI::StepData::drawSel(const PBCVec &mult)
             }
         }
     }else{
-        glUniform3fv(sel_shader.offset, 1, center.data());
+        glUniform3fv(sel_shader.offset, 1, off.data());
         glUniform1ui(sel_shader.pbc_instance, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
                               static_cast<GLsizei>(atom_buffer.size()));
     }
-#ifndef __EMSCRIPTEN__
-    if(settings.antialias.val){
-        glEnable(GL_MULTISAMPLE);
-    }
-#endif
 }
 
 void GUI::StepData::updateGL()
@@ -402,11 +391,15 @@ void GUI::StepData::updateGL()
                  static_cast<void*>(cell_buffer.data()), GL_STREAM_DRAW);
 }
 
-void GUI::StepData::update(Step* step, bool b, bool c)
+void GUI::StepData::update(Step* step,
+                           bool useVdW, float atRadFac,
+                           bool showBonds, float bondRad,
+                           bool showCell)
 {
     curStep = step;
     updated = true;
-    draw_cell = c;
+    this->atRadFac = atRadFac;
+    draw_cell = showCell;
 
 // CELL
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -436,7 +429,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
-    if(settings.atRadVdW.val){
+    if(useVdW){
         for (const auto& at: *curStep){
             atom_buffer.push_back({at.type->vdwr, at.type->col,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
@@ -449,7 +442,7 @@ void GUI::StepData::update(Step* step, bool b, bool c)
     }
 
 // BONDS
-    if(b){
+    if(showBonds){
         constexpr Vec x_axis{{1,0,0}};
         const auto& bonds = curStep->getBonds();
         const auto& elements = curStep->getAtoms().elements;
@@ -459,7 +452,6 @@ void GUI::StepData::update(Step* step, bool b, bool c)
         auto fmt = curStep->getFmt();
         auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
         float c, s, ic;
-        float rad = settings.bondRad.val;
         bond_buffer.clear();
         bond_buffer.reserve(bonds.size());
         switch(fmt){
@@ -472,42 +464,43 @@ void GUI::StepData::update(Step* step, bool b, bool c)
         case AtomFmt::Angstrom:
             cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Angstrom);
             break;
-        default:
+        case AtomFmt::Bohr:
             break;
         }
-        Vec at_pos1, at_pos2, bond_pos, bond_axis, rot_axis;
         for(const Bond& bd:bonds){
-            at_pos1 = at_coord[bd.at1];
-            at_pos2 = at_coord[bd.at2];
-            if (bd.xdiff>0)     { at_pos2 += bd.xdiff*cv[0]; }
-            else if (bd.xdiff<0){ at_pos1 -= bd.xdiff*cv[0]; }
-            if (bd.ydiff>0)     { at_pos2 += bd.ydiff*cv[1]; }
-            else if (bd.ydiff<0){ at_pos1 -= bd.ydiff*cv[1]; }
-            if (bd.zdiff>0)     { at_pos2 += bd.zdiff*cv[2]; }
-            else if (bd.zdiff<0){ at_pos1 -= bd.zdiff*cv[2]; }
-            bond_axis = at_pos1 - at_pos2;
+            auto at_pos1 = at_coord[bd.at1];
+            auto at_pos2 = at_coord[bd.at2];
+            if (bd.diff[0]>0)     { at_pos2 += bd.diff[0]*cv[0]; }
+            else if (bd.diff[0]<0){ at_pos1 -= bd.diff[0]*cv[0]; }
+            if (bd.diff[1]>0)     { at_pos2 += bd.diff[1]*cv[1]; }
+            else if (bd.diff[1]<0){ at_pos1 -= bd.diff[1]*cv[1]; }
+            if (bd.diff[2]>0)     { at_pos2 += bd.diff[2]*cv[2]; }
+            else if (bd.diff[2]<0){ at_pos1 -= bd.diff[2]*cv[2]; }
+            auto bond_axis = at_pos1 - at_pos2;
             if(fmt == AtomFmt::Crystal){
                 bond_axis = fmt_fun(bond_axis);
             }
-            bond_pos = (at_pos1+at_pos2)/2;
+            auto bond_pos = (at_pos1+at_pos2)/2;
+            const auto& col1 = bd.type ? bd.type->second : elements[bd.at1]->second.col;
+            const auto& col2 = bd.type ? bd.type->second : elements[bd.at2]->second.col;
             // handle bonds parallel to x-axis
             if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
                std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
                 c = std::copysign(1.f, bond_axis[0]);
                 bond_buffer.push_back({
                     {bd.dist*c, 0., 0.,
-                     0., rad, 0.,
-                     0., 0., rad*c},
+                     0., bondRad, 0.,
+                     0., 0., bondRad*c},
                     bond_pos,
-                    {static_cast<int16_t>(std::abs(bd.xdiff)),
-                     static_cast<int16_t>(std::abs(bd.ydiff)),
-                     static_cast<int16_t>(std::abs(bd.zdiff)),
+                    {static_cast<int16_t>(std::abs(bd.diff[0])),
+                     static_cast<int16_t>(std::abs(bd.diff[1])),
+                     static_cast<int16_t>(std::abs(bd.diff[2])),
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
-                    elements[bd.at1]->second.col, elements[bd.at2]->second.col});
+                     col1, col2});
             }else{
                 // all other bonds
-                rot_axis = -Vec_cross(bond_axis, x_axis);
+                auto rot_axis = -Vec_cross(bond_axis, x_axis);
                 rot_axis /= Vec_length(rot_axis);
                 c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
                 ic = 1-c;
@@ -517,22 +510,22 @@ void GUI::StepData::update(Step* step, bool b, bool c)
                     {bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
                      bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
                      bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
-                     rad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
-                     rad*(ic*rot_axis[1]*rot_axis[1]+c),
-                     rad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
-                     rad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
-                     rad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
-                     rad*(ic*rot_axis[2]*rot_axis[2]+c)},
+                     bondRad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
+                     bondRad*(ic*rot_axis[1]*rot_axis[1]+c),
+                     bondRad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
+                     bondRad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
+                     bondRad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
+                     bondRad*(ic*rot_axis[2]*rot_axis[2]+c)},
                     //vec3 with position in modelspace
                     bond_pos,
                     //faux uvec4 with render criteria
-                    {static_cast<int16_t>(std::abs(bd.xdiff)),
-                     static_cast<int16_t>(std::abs(bd.ydiff)),
-                     static_cast<int16_t>(std::abs(bd.zdiff)),
+                    {static_cast<int16_t>(std::abs(bd.diff[0])),
+                     static_cast<int16_t>(std::abs(bd.diff[1])),
+                     static_cast<int16_t>(std::abs(bd.diff[2])),
                      static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
                                           at_prop[bd.at2].flags[AtomFlag::Hidden])},
                     //2*vec4 with colors
-                    elements[bd.at1]->second.col, elements[bd.at2]->second.col});
+                    col1, col2});
             }
         }
         draw_bonds = true;

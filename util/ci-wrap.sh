@@ -72,18 +72,44 @@ case $1 in
                 mkdir build
                 cd build
                 mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
-                cmake -D TESTS=YES -D DESKTOP=YES -D CMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
+                cmake -D TESTS=YES -D PYTHON=YES -D DESKTOP=YES -D CMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
                 cmake --build .
                 ./test_lib.exe
                 ;;
         esac
         ;;
     after_success)
-        if [[ $2 = linux ]] && [[ ${3} = "desktop" ]]
-        then
-            echo Collecting coverage
-            bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
-        fi
+        case $2 in
+            linux)
+                if [[ $3 = "desktop" ]]
+                then
+                    echo Collecting coverage
+                    bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
+                    if [[ $TRAVIS_BRANCH == "testing" ]]
+                    then
+                        # build AppImage
+                        bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
+                        # upload continuous build
+                        wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip
+                        unzip ciuploadtool_linux.zip
+                        chmod 755 ciuploadtool
+                        ./ciuploadtool $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+                    fi
+                fi
+                ;;
+            osx)
+                if [[ $TRAVIS_BRANCH == "testing" ]]
+                then
+                    # prepare .dmg file
+                    bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
+                    # upload continuous build
+                    wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip
+                    unzip ciuploadtool_mac.zip
+                    chmod 755 ciuploadtool
+                    ./ciuploadtool $TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
+                fi
+                ;;
+        esac
         ;;
     before_deploy)
         echo Preparing deployment
@@ -95,42 +121,17 @@ case $1 in
                         mv vipster.{js,wasm} $TRAVIS_BUILD_DIR/gh-pages/emscripten
                         ;;
                     desktop)
-                        # build release-version
-                        cd $TRAVIS_BUILD_DIR
-                        mkdir release
-                        cd release
-                        cmake -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
-                        make DESTDIR=AppDir install -j2
-                        # fill AppDir with dependencies
-                        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt
-                        chmod +x linuxdeployqt
-                        ./linuxdeployqt AppDir/usr/share/applications/vipster.desktop -bundle-non-qt-libs;
-                        # bundle libstdc++ to be compatible with older linuxes, see https://github.com/darealshinji/AppImageKit-checkrt
-                        mkdir -p AppDir/usr/optional/libstdc++
-                        wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so -O AppDir/usr/optional/exec.so
-                        cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/
-                        # use custom AppRun so we get the correct working directory
-                        rm AppDir/AppRun
-                        cp $TRAVIS_BUILD_DIR/util/AppRun AppDir
-                        chmod a+x AppDir/AppRun
-                        # create AppImage
-                        wget -c https://github.com/AppImage/AppImageKit/releases/download/11/appimagetool-x86_64.AppImage -O appimagetool
-                        chmod +x appimagetool
-                        ./appimagetool -g AppDir $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+                        # build AppImage
+                        bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
                         # enable deployment
                         export DEPLOY_FILE=$TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
                         ;;
                 esac
                 ;;
             osx)
-                mkdir -p vipster.app/Contents/Frameworks
-                cp -a vipster.framework vipster.app/Contents/Frameworks
-                export VIPVER=`ggrep "Vipster VERSION" $TRAVIS_BUILD_DIR/CMakeLists.txt | ggrep -o "[0-9.]*"`
-                echo $VIPVER
-                install_name_tool -change @rpath/vipster.framework/Versions/$VIPVER/vipster @executable_path/../Frameworks/vipster.framework/Versions/$VIPVER/vipster vipster.app/Contents/MacOS/vipster
-                otool -L vipster.app/Contents/MacOS/vipster
-                /usr/local/opt/qt/bin/macdeployqt vipster.app -dmg
-                mv vipster.dmg Vipster-OSX.dmg
+                # prepare .dmg file
+                bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
+                # enable deployment
                 export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
                 ;;
         esac

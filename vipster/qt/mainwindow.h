@@ -8,6 +8,7 @@
 #include <vector>
 #include "io.h"
 #include "stepsel.h"
+#include "configfile.h"
 #include "../common/guiwrapper.h"
 #include "paramwidget.h"
 #include "configwidget.h"
@@ -21,19 +22,20 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QString path, QWidget *parent = nullptr);
-    explicit MainWindow(QString path,
-                        std::vector<Vipster::IO::Data> &&d,
+    explicit MainWindow(QString path, Vipster::ConfigState& state,
+                        std::vector<Vipster::IO::Data> &&d={},
                         QWidget *parent = nullptr);
     ~MainWindow() override;
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
     Vipster::Step copyBuf{};
-    void updateWidgets(Vipster::guiChange_t change);
+    void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IO::Data&& d);
+    void setMultEnabled(bool);
     struct MolExtras{
         int curStep{-1};
+        Vipster::GUI::PBCVec mult{1,1,1};
     };
     struct StepExtras{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
@@ -43,8 +45,16 @@ public:
     std::map<Vipster::Molecule*, MolExtras> moldata;
     std::map<Vipster::Step*, StepExtras> stepdata;
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
+    // expose configstate read from file
+    Vipster::ConfigState    &state;
+    Vipster::PeriodicTable  &pte;
+    Vipster::Settings       &settings;
+    Vipster::IO::Parameters &params;
+    Vipster::IO::Configs    &configs;
+    // actually loaded and sortet params/configs
     const decltype (ParamWidget::params)& getParams() const noexcept;
     const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
+    // GL helpers for additional render-data
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
     const Vipster::GUI::GlobalData& getGLGlobals();
@@ -52,6 +62,8 @@ public:
 public slots:
     void setMol(int i);
     void setStep(int i);
+    void setMult(int i);
+    void setBondMode(int i);
     void stepBut(QAbstractButton *but);
     void about();
     void newMol();

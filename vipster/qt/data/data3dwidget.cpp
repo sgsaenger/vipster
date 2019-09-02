@@ -17,12 +17,12 @@ Data3DWidget::~Data3DWidget()
     delete ui;
 }
 
-void Data3DWidget::updateWidget(guiChange_t change)
+void Data3DWidget::updateWidget(GUI::change_t change)
 {
-    if(change & GuiChange::settings){
+    if(change & GUI::Change::settings){
         for(auto& p: surfaces){
-            p.second.gpu_data.update({{settings.posCol.val,
-                                       settings.negCol.val}, 2, 1});
+            p.second.gpu_data.update({{master->settings.posCol.val,
+                                       master->settings.negCol.val}, 2, 1});
         }
     }
 }
@@ -167,7 +167,7 @@ void Data3DWidget::on_sliceVal_valueChanged(int pos)
         auto _dir = static_cast<size_t>(ui->sliceDir->currentIndex());
         curSlice->gpu_data.update(mkSlice(_dir, off));
         curSlice->gpu_data.update(mkSliceTex(*curData, _dir, static_cast<size_t>(pos)));
-        triggerUpdate(GuiChange::extra);
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
@@ -666,7 +666,7 @@ void Data3DWidget::on_surfToggle_stateChanged(int state)
         curSurf->plusmin = state;
         curSurf->gpu_data.update(mkSurf(curSurf->isoval, curSurf->plusmin));
         if(curSurf->display){
-            triggerUpdate(GuiChange::extra);
+            triggerUpdate(GUI::Change::extra);
         }
     }
 }
@@ -681,7 +681,7 @@ void Data3DWidget::on_surfSlider_valueChanged(int val)
         curSurf->isoval = static_cast<float>(_val);
         curSurf->gpu_data.update(mkSurf(curSurf->isoval, curSurf->plusmin));
         if(curSurf->display){
-            triggerUpdate(GuiChange::extra);
+            triggerUpdate(GUI::Change::extra);
         }
     }
 }
@@ -698,7 +698,7 @@ void Data3DWidget::on_surfVal_editingFinished()
         curSurf->isoval = val;
         curSurf->gpu_data.update(mkSurf(val, curSurf->plusmin));
         if(curSurf->display){
-            triggerUpdate(GuiChange::extra);
+            triggerUpdate(GUI::Change::extra);
         }
     }
 }
@@ -721,8 +721,8 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                           mkSurf(isoval, pm),
                           curData->origin,
                           curData->cell,
-                          {{settings.posCol.val,
-                            settings.negCol.val}, 2, 1}}
+                          {{master->settings.posCol.val,
+                            master->settings.negCol.val}, 2, 1}}
             });
         curSurf = &tmp.first->second;
         master->addExtraData(&curSurf->gpu_data);

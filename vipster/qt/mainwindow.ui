@@ -32,6 +32,9 @@
      <layout class="QHBoxLayout" name="modeLayout">
       <item>
        <widget class="QPushButton" name="camButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click&lt;/span&gt;: rotate camera around center of molecule or cell&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle-click&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Shift&lt;/span&gt;: shift camera&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right-click&lt;/span&gt;: align camera with z-axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Camera</string>
         </property>
@@ -51,6 +54,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="selButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click&lt;/span&gt;: Select atom(s)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle-click &lt;/span&gt;or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Ctrl&lt;/span&gt;: Add atom(s) to selection&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right-click&lt;/span&gt;: Clear selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Select</string>
         </property>
@@ -67,11 +73,36 @@
       </item>
       <item>
        <widget class="QPushButton" name="modButton">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Modification operates on the selected atoms, or all atoms if none are selected.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click&lt;/span&gt;: rotate around atom, or center of mass if background has been clicked&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle-click&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Ctrl&lt;/span&gt;: Shift in xy-plane (relative to camera)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right-click&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;Left-click+Shift&lt;/span&gt;: Shift in z-direction (relative to camera)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Modify</string>
         </property>
         <property name="shortcut">
          <string>M</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">modeGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bondButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add or delete bonds.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left-click + drag&lt;/span&gt; from one to the other atom to add a bond between them, or delete the bond if it is already present.&lt;/p&gt;&lt;p&gt;Only enabled when bonds are set manually.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Bonds</string>
+        </property>
+        <property name="shortcut">
+         <string>B</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -376,8 +407,6 @@
     <addaction name="actionRename_Atom_s"/>
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
-    <addaction name="separator"/>
-    <addaction name="actionSet_Bonds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -409,7 +438,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>&amp;Molecule</string>
+    <string>Molecule</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -424,7 +453,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>&amp;Parameter</string>
+    <string>Parameter</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -439,7 +468,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>&amp;Config</string>
+    <string>Config</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -454,7 +483,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Setti&amp;ngs</string>
+    <string>Settings</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -469,7 +498,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Periodic Table (&amp;global)</string>
+    <string>Periodic Table (global)</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -484,7 +513,7 @@
     <set>Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>Periodic Table (Molec&amp;ule)</string>
+    <string>Periodic Table (Molecule)</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -677,7 +706,6 @@
    <header>glwidget.h</header>
    <slots>
     <slot>setMode(int,bool)</slot>
-    <slot>setMult(int)</slot>
     <slot>setCamera(int)</slot>
    </slots>
   </customwidget>
@@ -757,7 +785,7 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1157</x>
+     <x>1207</x>
      <y>631</y>
     </hint>
     <hint type="destinationlabel">
@@ -847,54 +875,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>yMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1130</x>
-     <y>600</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1137</x>
-     <y>529</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1080</x>
-     <y>600</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1083</x>
-     <y>411</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>openGLWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1180</x>
-     <y>600</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1182</x>
-     <y>571</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>stepGroup</sender>
    <signal>buttonClicked(QAbstractButton*)</signal>
    <receiver>MainWindow</receiver>
@@ -921,7 +901,7 @@
      <y>627</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1157</x>
+     <x>1207</x>
      <y>631</y>
     </hint>
    </hints>
@@ -937,7 +917,7 @@
      <y>626</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1157</x>
+     <x>1207</x>
      <y>631</y>
     </hint>
    </hints>
@@ -1054,6 +1034,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>xMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1103</x>
+     <y>593</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>901</x>
+     <y>587</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1163</x>
+     <y>599</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>971</x>
+     <y>599</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1215</x>
+     <y>595</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>932</x>
+     <y>582</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>
@@ -1068,10 +1096,11 @@
   <slot>saveParam()</slot>
   <slot>saveScreenshot()</slot>
   <slot>newMol(QAction*)</slot>
+  <slot>setMult(int)</slot>
  </slots>
  <buttongroups>
+  <buttongroup name="cameraGroup"/>
   <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
-  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

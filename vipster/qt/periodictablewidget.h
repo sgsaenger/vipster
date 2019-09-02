@@ -18,16 +18,21 @@ public:
     explicit PeriodicTableWidget(QWidget *parent = nullptr);
     ~PeriodicTableWidget() override;
     void setTable(Vipster::PeriodicTable* table);
-    void updateWidget(Vipster::guiChange_t) override;
+    void updateWidget(Vipster::GUI::change_t) override;
 
 public slots:
     void setEntry(QListWidgetItem* item);
+    void changeEntry();
 
 signals:
     void currentEntryChanged();
 
+private slots:
+    void on_helpButton_clicked();
+
 private:
-    Vipster::Element* currentEntry{nullptr};
+    const std::string* currentName{nullptr};
+    Vipster::Element* currentElement{nullptr};
     Vipster::PeriodicTable* table{nullptr};
     Ui::PeriodicTableWidget *ui;
     bool isGlobal{false};

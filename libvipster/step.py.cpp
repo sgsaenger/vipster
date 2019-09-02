@@ -54,13 +54,11 @@ py::class_<S> bind_step(py::handle &m, std::string name){
         .def("getCenter", [](const S& s, CdmFmt fmt, bool com){s.evaluateCache(); return s.getCenter(fmt, com);},
              "fmt"_a, "com"_a=false)
     // BONDS
-        .def("getBonds", [](const S& s, float c, BondPolicy l, BondFrequency u){
+        .def("getBonds", [](const S& s){
                 s.evaluateCache();
-                return s.getBonds(c,l,u);
-            }, "cutfac"_a=settings.bondCutFac.val, "level"_a=settings.bondLvl.val, "update"_a=settings.bondFreq.val)
-        .def("setBonds", &S::setBonds,
-             "level"_a=settings.bondLvl.val, "cutfac"_a=settings.bondCutFac.val)
-        .def_property_readonly("nbond", [](const S& s){s.evaluateCache(); return s.getNbond();})
+                return s.getBonds();
+            })
+        .def("setBonds", &S::setBonds)
     // SELECTION
         .def("select", [](S& s, std::string sel)->Step::selection{s.evaluateCache(); return s.select(sel);}, "sel"_a)
     ;

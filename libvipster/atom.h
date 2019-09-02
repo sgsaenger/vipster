@@ -19,6 +19,39 @@ namespace Vipster{
     using Enums::AtomFlag;
     constexpr size_t nAtFlag = 4;
     using AtomFlags = std::bitset<nAtFlag>;
+    constexpr const char* AtomsAbout =
+        "Atoms have the following properties:\n\n"
+        "Type:\n"
+        "Each atom can be assigned an arbitrary name, which will define its type. "
+        "Each loaded molecule has its own periodic table where used types are saved. "
+        "When a name is assigned, Vipster will try to determine a suitable type by fuzzy "
+        "matching against known types in the global periodic table. "
+        "This will be done by successively stripping characters from the end of the atom's name. "
+        "If the name is an integer, it will match via the atom number. "
+        "The properties of this type can be changed in the periodic table and will only affect "
+        "the currently active molecule. "
+        "Changed and/or custom types can be saved to the global table for reuse."
+        "\n\n"
+        "Position:\n"
+        "Atomic coordinates are available in different formats:\n"
+        "Absolute coordinates in either Ångström or Bohr radii, "
+        "or relative coordinates scaled by the lattice constant, "
+        "either relative to the cartesian axes (alat) or to the cell vectors (crystal).\n"
+        "These formats can be used interchangeably. "
+        "The \"active\" format will determine the base format, "
+        "and will be the default for operations like script execution, "
+        "if no explicit format is given."
+        "\n\n"
+        "Charge/Forces:\n"
+        "Only used in reading and writing files."
+        "\n\n"
+        "Visibility:\n"
+        "Flag that controls whether this atom and its bonds will be drawn."
+        "\n\n"
+        "Constraints:\n"
+        "Flags used in some file formats that control whether this atom is allowed to move "
+        "in the specified direction."
+        ;
 
     // supported formats | TODO: crystal/alat to the beginning so we can extend it more easily?
     enum class AtomFmt { Bohr, Angstrom, Crystal, Alat };

@@ -5,6 +5,7 @@
 #include "../data.h"
 #include "parameters.h"
 #include "configs.h"
+#include "settings.h"
 #include "fmt.h"
 
 #include <string>

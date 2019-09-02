@@ -124,9 +124,9 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
     return faces;
 }
 
-void MillerWidget::updateWidget(guiChange_t change)
+void MillerWidget::updateWidget(GUI::change_t change)
 {
-    if((change & guiStepChanged) == guiStepChanged){
+    if((change & GUI::stepChanged) == GUI::stepChanged){
         //disable previous plane if necessary
         if(curPlane && curPlane->display){
             master->delExtraData(&curPlane->gpu_data);
@@ -158,10 +158,10 @@ void MillerWidget::updateWidget(guiChange_t change)
             ui->pushButton->setChecked(false);
         }
     }else if(curPlane){
-        if(change & GuiChange::settings){
-            curPlane->gpu_data.update({{settings.milCol.val}, 1, 1});
+        if(change & GUI::Change::settings){
+            curPlane->gpu_data.update({{master->settings.milCol.val}, 1, 1});
         }
-        if(change & GuiChange::cell){
+        if(change & GUI::Change::cell){
             curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
             curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
             if(curPlane->display != curStep->hasCell()){
@@ -191,7 +191,7 @@ void MillerWidget::updateIndex(int idx)
         }
         curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
         if(curPlane->display){
-            triggerUpdate(GuiChange::extra);
+            triggerUpdate(GUI::Change::extra);
         }
     }
 }
@@ -211,7 +211,7 @@ void MillerWidget::updateOffset(double off)
         }
         curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
         if(curPlane->display){
-            triggerUpdate(GuiChange::extra);
+            triggerUpdate(GUI::Change::extra);
         }
     }
 }
@@ -239,7 +239,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
                             mkFaces(hkl, off),
                             Vec{},
                             curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
-                            {{settings.milCol.val}, 1, 1}}
+                            {{master->settings.milCol.val}, 1, 1}}
               });
         curPlane = &tmp.first->second;
         if(curPlane->display){

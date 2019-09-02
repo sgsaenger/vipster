@@ -14,6 +14,15 @@ namespace Vipster {
 
     using ColVec = std::array<uint8_t, 4>;
     using SizeVec = std::array<size_t, 3>;
+    using DiffVec = std::array<int16_t, 3>;
+
+    constexpr static std::array<Vipster::ColVec, 5> defaultColors{
+        Vipster::ColVec{80, 0, 0, 255},
+        Vipster::ColVec{0, 80, 0, 255},
+        Vipster::ColVec{80, 80, 0, 255},
+        Vipster::ColVec{80, 0, 80, 255},
+        Vipster::ColVec{0, 80, 80, 255}
+    };
 
     class Error:public std::logic_error{
     public:

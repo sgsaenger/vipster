@@ -6,6 +6,7 @@
 #include "basewidget.h"
 #include "molecule.h"
 #include "molmodel.h"
+#include "bondmodel.h"
 
 namespace Ui {
 class MolWidget;
@@ -18,7 +19,7 @@ class MolWidget : public BaseWidget
 public:
     explicit MolWidget(QWidget *parent = nullptr);
     ~MolWidget() override;
-    void updateWidget(Vipster::guiChange_t change) override;
+    void updateWidget(Vipster::GUI::change_t change) override;
     void registerMol(const std::string& name);
     Vipster::AtomFmt getAtomFmt();
     Vipster::CdmFmt getCellFmt();
@@ -28,7 +29,6 @@ private slots:
     // atom slots
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();
-//    void on_atomTableButton_toggled(bool checked);
     void atomSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
     // cell slots
@@ -48,6 +48,14 @@ private slots:
     void on_discretetable_itemSelectionChanged();
     void on_discretetable_cellChanged(int row, int column);
 
+    void on_bondSetButton_clicked();
+
+    void on_bondHelpButton_clicked();
+
+    void on_bondModeBox_currentIndexChanged(int index);
+
+    void on_atomHelpButton_clicked();
+
 private:
     void fillCell(void);
     void fillKPoints(void);
@@ -55,9 +63,9 @@ private:
     Ui::MolWidget *ui;
     Vipster::Step curStep;
     Vipster::Molecule* curMol;
-    MolModel molModel{this};
+    AtomModel molModel{this};
+    BondModel bondModel{this};
     QList<QAction*> headerActions;
-    QList<QAction*> atomActions;
     int curKPoint{-1};
     static constexpr const char* inactiveKpoints[] = {"Gamma", "Monkhorst-Pack grid", "Discrete"};
     static constexpr const char* activeKpoints[] = {"Gamma (active)",

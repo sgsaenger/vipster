@@ -1,10 +1,11 @@
 #include "periodictable.h"
 #include "configfile.h"
 #include <cctype>
+#include <optional>
 
 using namespace Vipster;
 
-Vipster::PeriodicTable Vipster::pte = {
+const Vipster::PeriodicTable Vipster::pte = {
     {{"",      { "", "", "", 0,   0.0f,       -1,   1.46f, 3.21f, {   0,   0,   0, 255 } }},
      {"H",     { "", "", "", 1,   1.0079f,    0.72f, 0.72f, 2.27f, { 190, 190, 190, 255 } }},
      {"He",    { "", "", "", 2,   4.0026f,    0.6f,  0.6f,  2.65f, { 215, 255, 255, 255 } }},
@@ -127,16 +128,18 @@ Vipster::PeriodicTable Vipster::pte = {
      {"BCP",   { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, {   0, 255,   0, 255 } }},
      {"RCP",   { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, { 255,   0,   0, 255 } }},
      {"CCP",   { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, { 255, 255,   0, 255 } }},
-     {"NNACP", { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, {   0,   0, 255, 255 } }}},
-    true
+     {"NNACP", { "", "", "", 0,   0.0f,       -1.f,  0.72f, 2.27f, {   0,   0, 255, 255 } }}}
 };
 
-PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il, bool r)
+PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il,
+                             const PeriodicTable *r)
     : std::map<std::string, Element>{il}, root{r}
 {}
 
 PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
 {
+    // send lookup either to specific root or hard-coded fallback-table
+    const PeriodicTable& root = this->root? *this->root : Vipster::pte;
     auto entry = find(k);
     if(entry != end()){
         return entry;
@@ -146,38 +149,48 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
         std::size_t Z = std::strtoul(k.c_str(), &p, 10);
         if(*p){
             // found a derived/custom name, try to guess base-name
-            std::string kt{k};
-            // make sure first letter is upper case to match default names
-            if(std::islower(kt[0])){
-                kt[0] = std::toupper(kt[0]);
-            }
+            bool islower = std::islower(k[0]);
             // gradually ignore appended letters until we reach a matching atom type
-            for(size_t i=kt.length(); i>0; --i)
+            for(size_t i=k.length(); i>0; --i)
             {
-                std::string test = kt.substr(0,i);
-                auto tmp = find(test);
-                // local lookup, always works
-                if(tmp != end()){
-                    return emplace(k, tmp->second).first;
-                }
-                if(!root){
-                    // lookup in global PSE
-                    tmp = Vipster::pte.find(test);
-                    if(tmp != Vipster::pte.end()){
-                        return emplace(k, tmp->second).first;
+                auto search = [&](const std::string& key)->std::optional<const Element>{
+                    const_iterator tmp = find(key);
+                    // local lookup
+                    if(tmp != end()){
+                        return {tmp->second};
                     }
+                    // lookup in fallback table
+                    tmp = root.find(key);
+                    if(tmp != root.end()){
+                        return {tmp->second};
+                    }
+                    return {};
+                };
+                if(islower){
+                    // first check values starting with a uppercase letter to match defaults
+                    std::string tmp = k.substr(0,i);
+                    tmp[0] = std::toupper(k[0]);
+                    auto test = search(tmp);
+                    if(test){
+                        return emplace(k, test.value()).first;
+                    }
+                }
+                std::string tmp = k.substr(0,i);
+                auto test = search(tmp);
+                if(test){
+                    return emplace(k, test.value()).first;
                 }
             }
         }else{
             // interpret atomic number
-            for(const auto& pair: Vipster::pte){
+            for(const auto& pair: root){
                 if(pair.second.Z == Z){
                     return emplace(k, pair.second).first;
                 }
             }
         }
     }
-    return emplace(k, Vipster::pte.at("")).first;
+    return emplace(k, root.at("")).first;
 }
 
 Element& PeriodicTable::operator [](const std::string& k)
@@ -221,6 +234,6 @@ void Vipster::to_json(nlohmann::json& j, const PeriodicTable& m)
 void Vipster::from_json(const nlohmann::json& j, PeriodicTable& m)
 {
     for(auto it=j.begin(); it!=j.end(); ++it){
-        m.emplace(it.key(), it.value());
+        m.insert_or_assign(it.key(), it.value());
     }
 }

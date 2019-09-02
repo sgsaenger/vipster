@@ -28,6 +28,7 @@ protected:
 };
 
 using Parameters = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseParam>>>;
+Parameters defaultParams();
 constexpr const char* ParametersAbout =
     "Parameter presets are used to control additional data that is written "
     "to the formatted target file.\n\n"
@@ -40,12 +41,6 @@ constexpr const char* ParametersAbout =
     "The main use is in automatic conversion on the command-line:\n\n"
     "$vipster convert xyz input.xyz pwi output.pwi -p default"
     ;
-
-}
-
-namespace Vipster {
-
-extern IO::Parameters params;
 
 }
 

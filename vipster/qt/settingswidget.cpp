@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include "settingswidget.h"
 #include "ui_settingswidget.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 
@@ -14,22 +15,19 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
-    registerSetting(settings.atRadVdW);
-    registerSetting(settings.atRadFac);
-    registerSetting(settings.bondRad);
-    registerSetting(settings.bondCutFac);
-    registerSetting(settings.bondFreq);
-    registerSetting(settings.bondLvl);
-    registerSetting(settings.showBonds);
-    registerSetting(settings.showCell);
-    registerSetting(settings.antialias);
-    registerSetting(settings.perspective);
-    registerSetting(settings.rotCom);
-    registerSetting(settings.animstep);
-    registerSetting(settings.selCol);
-    registerSetting(settings.milCol);
-    registerSetting(settings.posCol);
-    registerSetting(settings.negCol);
+    registerSetting(master->settings.atRadVdW);
+    registerSetting(master->settings.atRadFac);
+    registerSetting(master->settings.bondRad);
+    registerSetting(master->settings.showBonds);
+    registerSetting(master->settings.showCell);
+    registerSetting(master->settings.antialias);
+    registerSetting(master->settings.perspective);
+    registerSetting(master->settings.rotCom);
+    registerSetting(master->settings.animstep);
+    registerSetting(master->settings.selCol);
+    registerSetting(master->settings.milCol);
+    registerSetting(master->settings.posCol);
+    registerSetting(master->settings.negCol);
 }
 
 SettingsWidget::~SettingsWidget()
@@ -51,7 +49,7 @@ QWidget* SettingsWidget::makeWidget(bool& setting)
     connect(widget, &QCheckBox::toggled, this,
             [&setting, this](bool checked){
                 setting = checked;
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -66,7 +64,7 @@ QWidget* SettingsWidget::makeWidget(size_t& setting)
     connect(widget, qOverload<int>(&QSpinBox::valueChanged), this,
             [&setting, this](int newVal){
                 setting = static_cast<size_t>(newVal);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -81,7 +79,7 @@ QWidget* SettingsWidget::makeWidget(float& setting)
     connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [&setting, this](double newVal){
                 setting = static_cast<float>(newVal);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -95,7 +93,7 @@ QWidget* SettingsWidget::makeWidget(std::string& setting)
     connect(widget, &QLineEdit::editingFinished, this,
             [&setting, widget, this](){
                 setting = widget->text().toStdString();
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;
@@ -121,37 +119,7 @@ QWidget* SettingsWidget::makeWidget(Vipster::ColVec& setting)
                            static_cast<uint8_t>(newCol.blue()),
                            static_cast<uint8_t>(newCol.alpha())};
                 widget->setStyleSheet(QString("background-color: %1").arg(newCol.name()));
-                triggerUpdate(GuiChange::settings);
-            }
-    );
-    return widget;
-}
-
-template<>
-QWidget* SettingsWidget::makeWidget(Vipster::BondPolicy& setting)
-{
-    auto* widget = new QComboBox(ui->settingsContainer);
-    widget->addItems({{"None", "Molecule", "Cell"}});
-    widget->setCurrentIndex(static_cast<int>(setting));
-    connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [&setting, this](int index){
-                setting = static_cast<Vipster::BondPolicy>(index);
-                triggerUpdate(GuiChange::settings);
-            }
-    );
-    return widget;
-}
-
-template<>
-QWidget* SettingsWidget::makeWidget(Vipster::BondFrequency& setting)
-{
-    auto* widget = new QComboBox(ui->settingsContainer);
-    widget->addItems({{"Never", "Once", "Always"}});
-    widget->setCurrentIndex(static_cast<int>(setting));
-    connect(widget, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [&setting, this](int index){
-                setting = static_cast<Vipster::BondFrequency>(index);
-                triggerUpdate(GuiChange::settings);
+                triggerUpdate(GUI::Change::settings);
             }
     );
     return widget;

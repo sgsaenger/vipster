@@ -1,18 +1,16 @@
-#ifndef MOLMODEL_H
-#define MOLMODEL_H
+#ifndef BONDMODEL_H
+#define BONDMODEL_H
 
 #include <QAbstractTableModel>
-#include "molecule.h"
+#include "step.h"
 
 class MolWidget;
-class AtomModel : public QAbstractTableModel
+class BondModel: public QAbstractTableModel
 {
     Q_OBJECT
-
 public:
-    explicit AtomModel(MolWidget *parent = nullptr);
+    explicit BondModel(MolWidget* parent=nullptr);
     void setStep(Vipster::Step* curStep);
-    void setColumns(int cols);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation,
@@ -29,13 +27,11 @@ public:
                  int role = Qt::EditRole) override;
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
-
 private:
     MolWidget *parent;
-    Vipster::Step* curStep{nullptr};
-    QStringList colNames = {"Type" , "x", "y", "z", "Charge", "fx", "fy", "fz",
-                            "Hide", "fix x", "fix y", "fix z"};
-    std::vector<int> colMap = {0,1,2,3};
+    Vipster::Step *curStep{nullptr};
+    const std::vector<Vipster::Bond> *curBonds{nullptr};
+    QStringList colNames = {"Atoms", "Length / Å", "Type", "Color"};
 };
 
-#endif // MOLMODEL_H
+#endif // BONDMODEL_H

@@ -2,18 +2,38 @@ version: 1.0.{build}
 clone_depth: 30
 clone_folder: c:\projects\vipster
 environment:
+    auth_token:
+      secure: B7byrQs5wuFQdK1ws3GCmTGI/0YCLZ3TUN+h3UxP9nl/uOlZX1jS1kO+AMWhprA5
     matrix:
-        - ARCH: "x86"
+        - prepare_mode: YES #special build for ciuploadtool
+        - prepare_mode: NO
+          ARCH: "x86"
           PYARCH: ""
           QTDIR: C:\Qt\5.12\mingw73_32
           MWDIR: C:\Qt\Tools\mingw730_32\bin
           PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
-        - ARCH: "x86_64"
+        - prepare_mode: NO
+          ARCH: "x86_64"
           PYARCH: "-x64"
           QTDIR: C:\Qt\5.12\mingw73_64
           MWDIR: C:\Qt\Tools\mingw730_64\bin
           PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
+branches:
+    except:
+        - continuous
+matrix:
+    allow_failures:
+        - prepare_mode: YES
+
+install:
+    # get uploadtool
+    - curl -fsSL https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_windows_x86.zip -o ciuploadtool_windows_x86.zip
+    - 7z x ciuploadtool_windows_x86.zip
 build_script:
+    # cancel prepare-build for CD
+    - if %prepare_mode%==YES ciuploadtool.exe -preponly
+    - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
+    # build vipster
     - git submodule update --init --recursive
     - mkdir build
     - cd build
@@ -26,9 +46,15 @@ after_test:
     - mkdir Vipster
     - mv vipster.exe Vipster
     - mv libvipster.dll Vipster
+    # prepare archive
     - windeployqt --release --compiler-runtime Vipster/vipster.exe
     - 7z a Vipster-Win-%ARCH%.7z Vipster
     - cd ..
+    # continuous deployment from testing branch
+    - IF "%APPVEYOR_REPO_BRANCH%" == "testing" (
+          ciuploadtool.exe build/Vipster-Win*.7z
+      )
+    # upload tagged release to PyPI
     - SET OLDPATH=%PATH%
       # Python 2.7
     - "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
@@ -45,7 +71,7 @@ after_test:
       # Python 3.7
     - "SET PATH=C:\\Python37%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
     - IF "%APPVEYOR_REPO_TAG%"=="true" (
-          pip install setuptools wheel cmake &&
+          python -m pip install setuptools wheel cmake &&
           python setup.py bdist_wheel
       )
       # Source archive
@@ -65,8 +91,6 @@ artifacts:
       path: 'build\*.7z'
 deploy:
     - provider: GitHub
-      auth_token:
-        secure: B7byrQs5wuFQdK1ws3GCmTGI/0YCLZ3TUN+h3UxP9nl/uOlZX1jS1kO+AMWhprA5
       draft: true
       artifacts: /.*\.(exe|7z)/
       on:

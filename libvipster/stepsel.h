@@ -484,10 +484,6 @@ public:
     {
         this->atoms->filter = std::move(filter);
     }
-    void evaluateFilter() const
-    {
-        this->atoms->indices = evalFilter(this->atoms->step, this->atoms->filter);
-    }
 };
 
 constexpr const char* FilterAbout =

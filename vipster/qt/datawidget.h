@@ -26,7 +26,7 @@ class DataWidget : public BaseWidget
 public:
     explicit DataWidget(QWidget *parent = nullptr);
     ~DataWidget() override;
-    void updateWidget(Vipster::guiChange_t change) override;
+    void updateWidget(Vipster::GUI::change_t change) override;
     void registerData(const std::string& name);
 
 private slots:

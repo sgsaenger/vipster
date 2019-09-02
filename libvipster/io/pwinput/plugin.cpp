@@ -35,6 +35,7 @@ void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
     const std::string keysep{"= \t\r"};
     const std::string valsep{"=, \t\r"};
     while (std::getline(file, line)) {
+        line = IO::trim(line);
         if (line[0] == '/') return;
         if (line[0] == '!') continue;
         end = 0;
@@ -65,7 +66,11 @@ void parseSpecies(std::ifstream& file, Molecule& m, IO::PWParam& p)
     std::string line;
     for(int i=0; i<ntyp; ++i) {
         std::getline(file, line);
-        while (line[0] == '!' || line[0] == '#') std::getline(file, line);
+        line = IO::trim(line);
+        while (line[0] == '!' || line[0] == '#'){
+            std::getline(file, line);
+            line = IO::trim(line);
+        }
         std::string name, mass, pwpp;
         std::stringstream linestream{line};
         linestream >> name >> mass >> pwpp;
@@ -114,8 +119,10 @@ void parseCoordinates(std::string name, std::ifstream& file,
     int err_pos;
     for (auto& at: s) {
         std::getline(file, line);
+        line = IO::trim(line);
         while(line[0]=='!' || line[0]=='#'){
-             std::getline(file, line);
+            std::getline(file, line);
+            line = IO::trim(line);
         }
         std::stringstream linestream{line};
         linestream >> at.name;
@@ -144,7 +151,11 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
     } else if (name.find("AUTOMATIC") != name.npos) {
         std::string line;
         std::getline(file, line);
-        while(line[0]=='!' || line[0]=='#') std::getline(file, line);
+        line = IO::trim(line);
+        while(line[0]=='!' || line[0]=='#'){
+            std::getline(file, line);
+            line = IO::trim(line);
+        }
         m.getKPoints().active = KPoints::Fmt::MPG;
         KPoints::MPG &mpg = m.getKPoints().mpg;
         std::stringstream linestream{line};
@@ -179,7 +190,11 @@ void parseCell(std::string name, std::ifstream& file, CellInp &cell)
     std::string line;
     for(size_t i=0; i<3; ++i){
         std::getline(file, line);
-        while(line[0]=='!' || line[0]=='#') std::getline(file, line);
+        line = IO::trim(line);
+        while(line[0]=='!' || line[0]=='#'){
+            std::getline(file, line);
+            line = IO::trim(line);
+        }
         std::stringstream linestream{line};
         linestream >> cell.cell[i][0] >> cell.cell[i][1] >> cell.cell[i][2];
         if (linestream.fail()) throw IO::Error("Failed to parse CELL_PARAMETERS");

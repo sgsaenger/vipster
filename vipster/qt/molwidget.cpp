@@ -1,6 +1,7 @@
 #include "molwidget.h"
 #include "ui_molwidget.h"
 #include "mainwindow.h"
+#include "bonddelegate.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QMenu>
@@ -12,17 +13,27 @@ MolWidget::MolWidget(QWidget *parent) :
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
+
+    // try to match macOS look a bit more
     ui->atomTableButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->bondButton->setAttribute(Qt::WA_MacBrushedMetal, true);
     ui->cellWidgetButton->setAttribute(Qt::WA_MacBrushedMetal, true);
-    ui->kpointStackButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+    ui->kpointButton->setAttribute(Qt::WA_MacBrushedMetal, true);
+
+    // setup k-points
     ui->discretetable->addAction(ui->actionNew_K_Point);
     ui->discretetable->addAction(ui->actionDelete_K_Point);
+    ui->kpointContainer->setVisible(ui->kpointButton->isChecked());
+
+    // setup cell-vectors
     QSignalBlocker tableBlocker(ui->cellVecTable);
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
              ui->cellVecTable->setItem(j,k,new QTableWidgetItem());
         }
     }
+
+    // setup atom table
     ui->atomTable->setModel(&molModel);
     connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MolWidget::atomSelectionChanged);
@@ -50,6 +61,11 @@ MolWidget::MolWidget(QWidget *parent) :
     }
     ui->atomTable->horizontalHeader()->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->atomTable->horizontalHeader()->addActions(headerActions);
+
+    // setup bond table
+    ui->bondTable->setModel(&bondModel);
+    ui->bondTable->setItemDelegateForColumn(3, new BondDelegate{});
+    ui->bondContainer->setVisible(ui->bondButton->isChecked());
 }
 
 MolWidget::~MolWidget()
@@ -57,17 +73,16 @@ MolWidget::~MolWidget()
     delete ui;
 }
 
-void MolWidget::updateWidget(guiChange_t change)
+void MolWidget::updateWidget(GUI::change_t change)
 {
     if (updateTriggered) {
         updateTriggered = false;
         return;
     }
-    if ((change & guiMolChanged) == guiMolChanged) {
+    if ((change & GUI::molChanged) == GUI::molChanged) {
         curMol = master->curMol;
     }
-    if ((change & guiStepChanged) == guiStepChanged) {
-        QSignalBlocker blockAtFmt(ui->atomFmtBox);
+    if ((change & GUI::stepChanged) == GUI::stepChanged) {
         // reset old fmt-string
         auto oldFmt = static_cast<int>(curStep.getFmt());
         ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
@@ -77,18 +92,31 @@ void MolWidget::updateWidget(guiChange_t change)
         molModel.setStep(&curStep);
         setSelection();
         auto ifmt = static_cast<int>(fmt);
+        QSignalBlocker blockAtFmt(ui->atomFmtBox);
         ui->atomFmtBox->setCurrentIndex(ifmt);
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-    }else if (change & (GuiChange::atoms | GuiChange::fmt)) {
+        // expose BondMode
+        QSignalBlocker blockBondMode(ui->bondModeBox);
+        int imode = static_cast<int>(curStep.getBondMode());
+        ui->bondModeBox->setCurrentIndex(imode);
+        if(imode){
+            ui->bondSetButton->setDisabled(true);
+        }else{
+            ui->bondSetButton->setEnabled(true);
+        }
+    }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
         molModel.setStep(&curStep);
         setSelection();
-    }else if (change & (GuiChange::selection)){
+    }else if (change & (GUI::Change::selection)){
         setSelection();
     }
-    if (change & GuiChange::cell) {
+    if (change & GUI::Change::atoms) {
+        bondModel.setStep(&curStep);
+    }
+    if (change & GUI::Change::cell) {
         fillCell();
     }
-    if (change & GuiChange::kpoints) {
+    if (change & GUI::Change::kpoints) {
         ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->getKPoints().active));
         fillKPoints();
     }
@@ -136,15 +164,15 @@ void MolWidget::on_cellTrajecButton_clicked()
             step.enableCell(false);
         }
     }
-    triggerUpdate(GuiChange::trajec);
+    triggerUpdate(GUI::Change::trajec);
 }
 
 void MolWidget::on_cellEnabledBox_toggled(bool checked)
 {
     if(checked){
-        guiChange_t change = GuiChange::cell;
+        GUI::change_t change = GUI::Change::cell;
         auto scale = ui->cellScaleBox->isChecked();
-        if (scale) change |= GuiChange::atoms;
+        if (scale) change |= GUI::Change::atoms;
         auto dim = static_cast<float>(ui->cellDimBox->value());
         auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
         Mat vec{};
@@ -165,10 +193,12 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
             return;
         }
         curStep.setCellDim(dim, fmt, scale);
+        master->setMultEnabled(true);
         triggerUpdate(change);
     }else{
         curStep.enableCell(false);
-        triggerUpdate(GuiChange::cell);
+        master->setMultEnabled(false);
+        triggerUpdate(GUI::Change::cell);
     }
 }
 
@@ -188,10 +218,10 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
     auto scale = ui->cellScaleBox->isChecked();
     curStep.setCellDim(dim, fmt, scale);
-    guiChange_t change = GuiChange::cell;
+    GUI::change_t change = GUI::Change::cell;
     // if needed, trigger atom update
     if(scale){
-        change |= GuiChange::atoms;
+        change |= GUI::Change::atoms;
     }
     if(scale != (curStep.getFmt()>=AtomFmt::Crystal)){
         molModel.setStep(&curStep);
@@ -219,10 +249,10 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
         fillCell();
         return;
     }
-    guiChange_t change = GuiChange::cell;
+    GUI::change_t change = GUI::Change::cell;
     // if needed, trigger atom update
     if(scale){
-        change |= GuiChange::atoms;
+        change |= GUI::Change::atoms;
     }
     if(scale != (curStep.getFmt()==AtomFmt::Crystal)){
         molModel.setStep(&curStep);
@@ -260,7 +290,12 @@ void MolWidget::on_atomFmtButton_clicked()
     if((fmt >= AtomFmt::Crystal) && !curStep.hasCell()){
         ui->cellEnabledBox->setChecked(true);
     }
-    triggerUpdate(GuiChange::fmt);
+    triggerUpdate(GUI::Change::fmt);
+}
+
+void MolWidget::on_atomHelpButton_clicked()
+{
+    QMessageBox::information(this, QString("About atoms"), Vipster::AtomsAbout);
 }
 
 void MolWidget::on_molList_currentIndexChanged(int index)
@@ -283,33 +318,23 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
         filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
     }
     master->curSel->setFilter(filter);
-    triggerUpdate(GuiChange::selection);
+    triggerUpdate(GUI::Change::selection);
 }
 
 void MolWidget::setSelection()
 {
     auto& table = ui->atomTable;
-    auto selMod = table->selectionModel();
-    // TODO: this is se problem, isn't it?
-//    QSignalBlocker tableBlocker{selMod};
-//    selMod->blockSignals(true);
     disconnect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MolWidget::atomSelectionChanged);
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
     for(const auto& i:master->curSel->getIndices()){
         table->selectRow(static_cast<int>(i.first));
-//        selMod->select()
     }
-//    selMod->blockSignals(false);
     connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MolWidget::atomSelectionChanged);
-//    table->setSelectionModel(table->selectionModel());
     update();
-//    table->update();
     table->setSelectionMode(QAbstractItemView::ExtendedSelection);
-//    emit selMod->
-//    emit table->
 }
 
 void MolWidget::fillKPoints()
@@ -357,7 +382,7 @@ void MolWidget::on_kFmtButton_clicked()
     auto newFmt = ui->activeKpoint->currentIndex();
     ui->activeKpoint->setItemText(newFmt, activeKpoints[newFmt]);
     curMol->getKPoints().active = static_cast<KPoints::Fmt>(newFmt);
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_bands_stateChanged(int arg)
@@ -367,7 +392,7 @@ void MolWidget::on_bands_stateChanged(int arg)
     }else{
         curMol->getKPoints().discrete.properties ^= KPoints::Discrete::band;
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_crystal_stateChanged(int arg)
@@ -377,7 +402,7 @@ void MolWidget::on_crystal_stateChanged(int arg)
     }else{
         curMol->getKPoints().discrete.properties ^= KPoints::Discrete::crystal;
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::mpg_change()
@@ -396,7 +421,7 @@ void MolWidget::mpg_change()
     }else if(sender() == ui->mpg_z_off){
         kpoints.sz = ui->mpg_z_off->value();
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_discretetable_itemSelectionChanged()
@@ -416,7 +441,7 @@ void MolWidget::on_actionNew_K_Point_triggered()
     auto& kpoints = curMol->getKPoints().discrete.kpoints;
     kpoints.push_back(KPoints::Discrete::Point{});
     fillKPoints();
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_actionDelete_K_Point_triggered()
@@ -427,7 +452,7 @@ void MolWidget::on_actionDelete_K_Point_triggered()
     auto& kpoints = curMol->getKPoints().discrete.kpoints;
     kpoints.erase(kpoints.begin()+curKPoint);
     fillKPoints();
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_discretetable_cellChanged(int row, int column)
@@ -439,5 +464,30 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
     }else{
         kp.pos[column] = cell->text().toFloat();
     }
-    triggerUpdate(GuiChange::kpoints);
+    triggerUpdate(GUI::Change::kpoints);
+}
+
+void MolWidget::on_bondSetButton_clicked()
+{
+    curStep.setBonds();
+    bondModel.setStep(&curStep);
+    triggerUpdate(GUI::Change::atoms);
+}
+
+void MolWidget::on_bondHelpButton_clicked()
+{
+    QMessageBox::information(this, QString("About bonds"), Vipster::BondsAbout);
+}
+
+void MolWidget::on_bondModeBox_currentIndexChanged(int index)
+{
+    curStep.setBondMode(static_cast<BondMode>(index));
+    if(index){
+        ui->bondSetButton->setDisabled(true);
+    }else{
+        ui->bondSetButton->setEnabled(true);
+    }
+    master->setBondMode(index);
+    bondModel.setStep(&curStep);
+    triggerUpdate(GUI::Change::atoms);
 }

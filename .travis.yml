@@ -4,6 +4,9 @@ language: cpp
 git:
     depth: 3
 
+branches:
+    except:
+        - continuous
 
 matrix:
     fast_finish: true

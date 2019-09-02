@@ -7,7 +7,8 @@ IO::BaseParam::BaseParam(const std::string &name)
     : name{name}
 {}
 
-IO::Parameters Vipster::params = [](){
+IO::Parameters Vipster::IO::defaultParams()
+{
     IO::Parameters tmp;
     for(const auto& p: IOPlugins){
         if(p.second->arguments & IO::Plugin::Args::Param){
@@ -15,4 +16,4 @@ IO::Parameters Vipster::params = [](){
         }
     }
     return tmp;
-}();
+}

@@ -16,7 +16,7 @@ class DefineWidget : public BaseWidget
 public:
     explicit DefineWidget(QWidget *parent = nullptr);
     ~DefineWidget();
-    void updateWidget(Vipster::guiChange_t) override;
+    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
     void on_newButton_clicked();
@@ -47,13 +47,6 @@ private:
     int curSel{-1};
     std::vector<std::string> curNames;
     QList<QAction*> contextActions;
-    constexpr static std::array<Vipster::ColVec, 5> colors{
-        Vipster::ColVec{80, 0, 0, 80},
-        Vipster::ColVec{0, 80, 0, 80},
-        Vipster::ColVec{80, 80, 0, 80},
-        Vipster::ColVec{80, 0, 80, 80},
-        Vipster::ColVec{0, 80, 80, 80}
-    };
 };
 
 #endif // DEFINEWIDGET_H

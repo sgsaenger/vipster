@@ -3,19 +3,19 @@
 
 using namespace Vipster;
 
-MolModel::MolModel(MolWidget *parent)
+AtomModel::AtomModel(MolWidget *parent)
     : QAbstractTableModel(parent), parent{parent}
 {
 }
 
-void MolModel::setStep(Vipster::Step *step)
+void AtomModel::setStep(Vipster::Step *step)
 {
     beginResetModel();
     curStep = step;
     endResetModel();
 }
 
-void MolModel::setColumns(int cols)
+void AtomModel::setColumns(int cols)
 {
     beginResetModel();
     if(cols){
@@ -48,7 +48,7 @@ void MolModel::setColumns(int cols)
     endResetModel();
 }
 
-QVariant MolModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant AtomModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(role != Qt::DisplayRole) return QVariant{};
     if(orientation == Qt::Horizontal){
@@ -58,7 +58,7 @@ QVariant MolModel::headerData(int section, Qt::Orientation orientation, int role
     }
 }
 
-int MolModel::rowCount(const QModelIndex &parent) const
+int AtomModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid() || !curStep)
         return 0;
@@ -66,7 +66,7 @@ int MolModel::rowCount(const QModelIndex &parent) const
     return curStep->getNat();
 }
 
-int MolModel::columnCount(const QModelIndex &parent) const
+int AtomModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid() || !curStep)
         return 0;
@@ -74,7 +74,7 @@ int MolModel::columnCount(const QModelIndex &parent) const
     return colMap.size();
 }
 
-QVariant MolModel::data(const QModelIndex &index, int role) const
+QVariant AtomModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || !curStep)
         return QVariant{};
@@ -114,7 +114,7 @@ QVariant MolModel::data(const QModelIndex &index, int role) const
     return QVariant{};
 }
 
-bool MolModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (data(index, role) != value) {
         if(role == Qt::EditRole){
@@ -159,13 +159,13 @@ bool MolModel::setData(const QModelIndex &index, const QVariant &value, int role
             return false;
         }
         emit dataChanged(index, index, QVector<int>() << role);
-        parent->triggerUpdate(GuiChange::atoms);
+        parent->triggerUpdate(GUI::Change::atoms);
         return true;
     }
     return false;
 }
 
-Qt::ItemFlags MolModel::flags(const QModelIndex &index) const
+Qt::ItemFlags AtomModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid() || !curStep)
         return Qt::NoItemFlags;

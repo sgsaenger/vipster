@@ -41,9 +41,9 @@ inline void printDihed(QPlainTextEdit& text,
     text.appendPlainText(tmp);
 }
 
-void PickWidget::updateWidget(guiChange_t change)
+void PickWidget::updateWidget(GUI::change_t change)
 {
-    if((change & (GuiChange::atoms|GuiChange::cell|GuiChange::selection)) == 0u){
+    if((change & (GUI::Change::atoms|GUI::Change::cell|GUI::Change::selection)) == 0u){
         return;
     }
     const auto& curSel = master->curSel->asFmt(AtomFmt::Angstrom);

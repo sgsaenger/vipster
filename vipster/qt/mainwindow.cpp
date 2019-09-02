@@ -12,20 +12,14 @@
 
 using namespace Vipster;
 
-MainWindow::MainWindow(QString path, QWidget *parent):
+MainWindow::MainWindow(QString path, ConfigState& state,
+                       std::vector<IO::Data> &&d, QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow},
-    path{path}
-{
-    ui->setupUi(this);
-    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
-    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
-    setupUI();
-    newMol();
-}
-
-MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent):
-    QMainWindow{parent},
+    state{state},
+    pte{std::get<0>(state)},
+    settings{std::get<1>(state)},
+    params{std::get<2>(state)},
+    configs{std::get<3>(state)},
     ui{new Ui::MainWindow},
     path{path}
 {
@@ -33,8 +27,12 @@ MainWindow::MainWindow(QString path, std::vector<IO::Data> &&d, QWidget *parent)
     setupUI();
     connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
     connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
-    for(auto&& mol: d){
-        newData(std::move(mol));
+    if(d.empty()){
+        newMol();
+    }else{
+        for(auto&& mol: d){
+            newData(std::move(mol));
+        }
     }
 }
 
@@ -82,10 +80,10 @@ void MainWindow::setupUI()
         toolWidgets.push_back(tmp);
     }
     // fill in global PSE
-    ui->pseWidget->setTable(&Vipster::pte);
+    ui->pseWidget->setTable(&pte);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
-        const auto& param_map = Vipster::params[pair.first];
+        const auto& param_map = params[pair.first];
         if(!param_map.empty()){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
                         QString::fromStdString(pair.second->name));
@@ -94,7 +92,7 @@ void MainWindow::setupUI()
                                       this, &MainWindow::loadParam);
             }
         }
-        const auto& conf_map = Vipster::configs[pair.first];
+        const auto& conf_map = configs[pair.first];
         if(!conf_map.empty()){
             auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
                         QString::fromStdString(pair.second->name));
@@ -106,13 +104,13 @@ void MainWindow::setupUI()
     }
 }
 
-void MainWindow::updateWidgets(guiChange_t change)
+void MainWindow::updateWidgets(GUI::change_t change)
 {
     // if necessary, make sure that data is up to date
-    if(change & (GuiChange::atoms | GuiChange::fmt)){
+    if(change & (GUI::Change::atoms | GUI::Change::fmt)){
         curStep->evaluateCache();
     }
-    if(change & GuiChange::selection){
+    if(change & GUI::Change::selection){
         curSel->evaluateCache();
     }
     // notify widgets
@@ -130,9 +128,18 @@ void MainWindow::setMol(int i)
 {
     curMol = &*std::next(molecules.begin(), i);
     int nstep = static_cast<int>(curMol->getNstep());
-    if(moldata[curMol].curStep < 0){
-        moldata[curMol].curStep = nstep;
+    auto &curData = moldata[curMol];
+    if(curData.curStep < 0){
+        curData.curStep = nstep;
     }
+    // set mult manually
+    QSignalBlocker xBlock{ui->xMultBox};
+    ui->xMultBox->setValue(curData.mult[0]);
+    QSignalBlocker yBlock{ui->yMultBox};
+    ui->yMultBox->setValue(curData.mult[1]);
+    QSignalBlocker zBlock{ui->zMultBox};
+    ui->zMultBox->setValue(curData.mult[2]);
+    ui->openGLWidget->setMult(curData.mult);
     //Step-control
     ui->stepLabel->setText(QString::number(nstep));
     QSignalBlocker boxBlocker(ui->stepEdit);
@@ -147,13 +154,17 @@ void MainWindow::setMol(int i)
         ui->stepSlider->setEnabled(true);
     }
     setStep(moldata[curMol].curStep);
-    updateWidgets(guiMolChanged);
+    updateWidgets(GUI::molChanged);
 }
 
 void MainWindow::setStep(int i)
 {
     moldata[curMol].curStep = i;
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    // handle bond Mode
+    setBondMode(static_cast<int>(curStep->getBondMode()));
+    // if no cell exists, disable mult-selectors
+    setMultEnabled(curStep->hasCell());
     // if no previous selection exists, create one, afterwards assign it
     auto& tmpSel = stepdata[curStep].sel;
     if(!tmpSel && curStep){
@@ -184,7 +195,35 @@ void MainWindow::setStep(int i)
         ui->lastStepButton->setEnabled(true);
     }
     //Update child widgets
-    updateWidgets(guiStepChanged);
+    updateWidgets(GUI::stepChanged);
+}
+
+void MainWindow::setBondMode(int i)
+{
+    if(i){
+        if(ui->bondButton->isChecked()){
+            ui->camButton->setChecked(true);
+        }
+        ui->bondButton->setDisabled(true);
+    }else{
+        ui->bondButton->setEnabled(true);
+    }
+}
+
+void MainWindow::setMult(int i)
+{
+    auto &mult = moldata[curMol].mult;
+    if(sender() == ui->xMultBox){ mult[0] = static_cast<uint8_t>(i); }
+    else if(sender() == ui->yMultBox){ mult[1] = static_cast<uint8_t>(i); }
+    else if(sender() == ui->zMultBox){ mult[2] = static_cast<uint8_t>(i); }
+    ui->openGLWidget->setMult(mult);
+}
+
+void MainWindow::setMultEnabled(bool b)
+{
+    ui->xMultBox->setEnabled(b);
+    ui->yMultBox->setEnabled(b);
+    ui->zMultBox->setEnabled(b);
 }
 
 void MainWindow::stepBut(QAbstractButton* but)
@@ -206,23 +245,23 @@ void MainWindow::stepBut(QAbstractButton* but)
 
 void MainWindow::editAtoms(QAction* sender)
 {
-    guiChange_t change{};
+    GUI::change_t change{};
     if ( sender == ui->actionNew_Atom){
         curStep->newAtom();
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionDelete_Atom_s){
         curStep->delAtoms(*curSel);
-        change = GuiChange::atoms | GuiChange::selection;
+        change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 1;
         }
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionShow_Atom_s){
         for(auto& at: *curSel){
             at.properties->flags[AtomFlag::Hidden] = 0;
         }
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionRename_Atom_s){
         auto tmp = QInputDialog::getText(this, "Rename atoms",
                                          "Enter new Atom-type for selected atoms:")
@@ -230,19 +269,16 @@ void MainWindow::editAtoms(QAction* sender)
         for(auto& at: *curSel){
             at.name = tmp;
         }
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }else if ( sender == ui->actionCopy_Atom_s){
         copyBuf = *curSel;
     }else if ( sender == ui->actionCut_Atom_s){
         copyBuf = *curSel;
         curStep->delAtoms(*curSel);
-        change = GuiChange::atoms | GuiChange::selection;
+        change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionPaste_Atom_s){
         curStep->newAtoms(copyBuf);
-        change = GuiChange::atoms;
-    }else if( sender == ui->actionSet_Bonds){
-        curStep->setBonds();
-        change = GuiChange::atoms;
+        change = GUI::Change::atoms;
     }
     if(change){
         updateWidgets(change);
@@ -252,6 +288,7 @@ void MainWindow::editAtoms(QAction* sender)
 void MainWindow::newMol()
 {
     molecules.emplace_back();
+    molecules.back().pte->root = &pte;
     ui->molWidget->registerMol(molecules.back().getName());
 }
 
@@ -260,14 +297,17 @@ void MainWindow::newMol(QAction* sender)
     if(sender == ui->actionCopy_Trajector){
         molecules.emplace_back(*curMol);
         molecules.back().setName(molecules.back().getName() + " (copy)");
+        molecules.back().pte->root = &pte;
         ui->molWidget->registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_single_Step){
         molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
                                std::to_string(moldata[curMol].curStep) + ')');
+        molecules.back().pte->root = &pte;
         ui->molWidget->registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_current_Selection){
         molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
                                std::to_string(moldata[curMol].curStep) + ')');
+        molecules.back().pte->root = &pte;
         ui->molWidget->registerMol(molecules.back().getName());
     }
 }
@@ -275,6 +315,7 @@ void MainWindow::newMol(QAction* sender)
 void MainWindow::newData(IO::Data &&d)
 {
     molecules.push_back(std::move(d.mol));
+    molecules.back().pte->root = &pte;
     ui->molWidget->registerMol(molecules.back().getName());
     if(d.param){
         ui->paramWidget->registerParam(std::move(d.param));
@@ -294,9 +335,7 @@ void MainWindow::loadMol()
     fileDiag.setFileMode(QFileDialog::ExistingFile);
     // Format dialog
     QStringList formats{};
-    std::map<std::string, int> ext2id;
     for(auto &iop: IOPlugins){
-        ext2id[iop.second->extension] = formats.size();
         formats << QString::fromStdString(iop.second->name);
     }
     if(fileDiag.exec() != 0){
@@ -348,7 +387,8 @@ void MainWindow::saveMol()
                           sfd.getParam(), sfd.getConfig(),
                           IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
                                     ui->molWidget->getAtomFmt(),
-                                    ui->molWidget->getCellFmt()});
+                                    ui->molWidget->getCellFmt()
+                          });
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
@@ -372,13 +412,13 @@ const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 void MainWindow::addExtraData(GUI::Data* dat)
 {
     ui->openGLWidget->addExtraData(dat);
-    updateWidgets(GuiChange::extra);
+    updateWidgets(GUI::Change::extra);
 }
 
 void MainWindow::delExtraData(GUI::Data* dat)
 {
     ui->openGLWidget->delExtraData(dat);
-    updateWidgets(GuiChange::extra);
+    updateWidgets(GUI::Change::extra);
 }
 
 const GUI::GlobalData& MainWindow::getGLGlobals()
@@ -398,8 +438,8 @@ void MainWindow::loadParam()
         }
         throw Error("Invalid parameter set");
     }(p->title());
-    auto pos = Vipster::params[fmt].find(s->text().toStdString());
-    if(pos != Vipster::params[fmt].end()){
+    auto pos = params[fmt].find(s->text().toStdString());
+    if(pos != params[fmt].end()){
         ui->paramWidget->registerParam(pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
@@ -418,8 +458,8 @@ void MainWindow::loadConfig()
         }
         throw Error("Invalid IO-config");
     }(p->title());
-    auto pos = Vipster::configs[fmt].find(s->text().toStdString());
-    if(pos != Vipster::configs[fmt].end()){
+    auto pos = configs[fmt].find(s->text().toStdString());
+    if(pos != configs[fmt].end()){
         ui->configWidget->registerConfig(pos->second->copy());
     }else{
         throw Error("Invalid IO-config");
@@ -435,9 +475,16 @@ void MainWindow::saveParam()
     auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::params[ui->paramWidget->curFmt][name] =
-                ui->paramWidget->curParam->copy();
-        Vipster::params[ui->paramWidget->curFmt][name]->name = name;
+        auto& param = params[ui->paramWidget->curFmt];
+        if(param.find(name) != param.end()){
+            // register new name in menu
+            QString fmtName = IOPlugins.at(ui->configWidget->curFmt)->name.c_str();
+            auto* fmtMenu = ui->menuLoad_Parameter_set->findChild<QMenu*>(fmtName);
+            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
+        }
+        // save parameter
+        param[name] = ui->paramWidget->curParam->copy();
+        param[name]->name = name;
     }
 }
 
@@ -450,9 +497,16 @@ void MainWindow::saveConfig()
     auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        Vipster::configs[ui->configWidget->curFmt][name] =
-                ui->configWidget->curConfig->copy();
-        Vipster::configs[ui->configWidget->curFmt][name]->name = name;
+        auto& conf = configs[ui->configWidget->curFmt];
+        if(conf.find(name) != conf.end()){
+            // register new name in menu
+            QString fmtName = IOPlugins.at(ui->configWidget->curFmt)->name.c_str();
+            auto* fmtMenu = ui->menuLoad_IO_Config->findChild<QMenu*>(fmtName);
+            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
+        }
+        // save config
+        conf[name] = ui->configWidget->curConfig->copy();
+        conf[name]->name = name;
     }
 }
 

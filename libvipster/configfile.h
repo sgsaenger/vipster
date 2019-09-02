@@ -18,11 +18,17 @@
 #include <libgen.h>
 #endif
 
+#include "periodictable.h"
+#include "settings.h"
+#include "io/parameters.h"
+#include "io/configs.h"
+
 namespace Vipster{
 
 // call this functions to read user-defined settings
-bool readConfig();
-bool saveConfig();
+using ConfigState = std::tuple<PeriodicTable, Settings, IO::Parameters, IO::Configs>;
+ConfigState readConfig();
+void saveConfig(const ConfigState &);
 
 #if __linux__ || defined(__FreeBSD__)
 const std::string user_path = [](){
