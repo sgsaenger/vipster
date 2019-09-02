@@ -38,6 +38,9 @@ case $1 in
                 export MWDIR="/c/Users/travis/Qt/Tools/mingw730_64"
                 export QTDIR="/c/Users/travis/Qt/5.12.3/mingw73_64"
                 export PATH="$MWDIR/bin:$QTDIR/bin:$PATH"
+                # install Python 3.7
+                choco install python
+                export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
                 ;;
         esac
         ;;

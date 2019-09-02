@@ -31,7 +31,9 @@ install:
     - 7z x ciuploadtool_windows_x86.zip
 build_script:
     # cancel prepare-build for CD
-    - if %prepare_mode%==YES ciuploadtool.exe -preponly
+    - IF "%APPVEYOR_REPO_BRANCH%" == "testing" (
+          if %prepare_mode%==YES ciuploadtool.exe -preponly
+      )
     - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
     # build vipster
     - git submodule update --init --recursive
