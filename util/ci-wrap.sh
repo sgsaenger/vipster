@@ -72,7 +72,7 @@ case $1 in
                 mkdir build
                 cd build
                 mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
-                cmake -D TESTS=YES -D DESKTOP=YES -D CMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
+                cmake -D TESTS=YES -D PYTHON=YES -D DESKTOP=YES -D CMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
                 cmake --build .
                 ./test_lib.exe
                 ;;
