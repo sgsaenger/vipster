@@ -18,7 +18,7 @@ void IO(py::module&);
 void Data(py::module&);
 }
 
-PYBIND11_MODULE(vipster, m) {
+PYBIND11_MODULE(_vipster, m) {
     m.doc() = "Vipster\n"
               "=======\n\n"
               "A molecular modeling framework with periodic structures in mind.\n"
