@@ -102,6 +102,7 @@ void MolWidget::updateWidget(GUI::change_t change)
         if(imode){
             ui->bondSetButton->setDisabled(true);
         }else{
+            ui->bondButton->setChecked(true);
             ui->bondSetButton->setEnabled(true);
         }
     }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
