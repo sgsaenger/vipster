@@ -219,6 +219,8 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
             // TODO: auto-completion?
             break;
         case Qt::Key_Backspace:
+            // when modifying cmd, make it "active copy"
+            curCmd = cmdHistory.size();
             if(cursor.blockNumber() >= cmdBlock){
                 if(e->modifiers()&Qt::Modifier::CTRL){
                     // do word delete
@@ -248,6 +250,8 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
             }
             break;
         case Qt::Key_Delete:
+            // when modifying cmd, make it "active copy"
+            curCmd = cmdHistory.size();
             if(cursor.blockNumber() >= cmdBlock){
                 if(e->modifiers()&Qt::Modifier::CTRL){
                     // do word delete
