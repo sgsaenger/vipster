@@ -63,7 +63,7 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 - [CMake >= 3.9](https://cmake.org)
 - and a C++17-capable compiler (g++/mingw > 7 or clang > 4)
 - optional:
-    - [Qt5 >= 5.7](https://www.qt.io) (desktop application)
+    - [Qt5 >= 5.10](https://www.qt.io) (desktop application)
     - [emscripten](http://kripken.github.io/emscripten-site) (web interface)
     - [pybind11](https://github.com/pybind/pybind11) (script interface, included)
     - [Catch2](https://github.com/catchorg/Catch2) (testing, included)

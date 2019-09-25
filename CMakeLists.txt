@@ -86,7 +86,7 @@ if(DESKTOP)
     # Qt-based desktop application
 
     # load and setup qt
-    find_package(Qt5 CONFIG REQUIRED COMPONENTS Widgets Gui)
+    find_package(Qt5 5.10 CONFIG REQUIRED COMPONENTS Widgets Gui)
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
