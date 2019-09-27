@@ -23,7 +23,7 @@ PYBIND11_EMBEDDED_MODULE(vipster, m)
     m.doc() = "Python bindings for loaded data\n"
               "===============================\n\n"
               "Use curMol() to access the currently loaded molecule, "
-              "or getMol(n) to acces the n-th loaded molecule."
+              "or getMol(n) to acces the n-th loaded molecule. "
               "Please inspect Molecule and Step as the main data containers "
               "for more information.";
     /*
@@ -64,6 +64,8 @@ PythonConsole::PythonConsole(QWidget *parent) :
                             "about Vipster-specific functions."
                             "\n>>> ");
     auto vip = py::module::import("vipster");
+    vip.def("curStep", [this](){return this->master->curStep;}, py::return_value_policy::reference);
+    vip.def("curSel", [this](){return this->master->curSel;}, py::return_value_policy::reference);
     vip.def("curMol", [this](){return this->master->curMol;}, py::return_value_policy::reference);
     vip.def("getMol", [this](size_t i){
         if(i>=master->molecules.size())
