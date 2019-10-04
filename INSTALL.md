@@ -36,6 +36,9 @@ The macOS release is distributed as a regular .dmg file that you can install as 
 ## Build from source
 
 In order to compile Vipster, you need a working [cmake](https://cmake.org) installation.
+Your C++ compiler should support C++17.
+Vipster is tested against GCC and Clang.
+So far, MSVC is not supported, please use MinGW if you are on Windows.
 
 ### Qt-Frontend
 

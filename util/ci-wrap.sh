@@ -52,13 +52,13 @@ case $1 in
                     web)
                         mkdir build
                         cd build
-                        emcmake cmake -D WEB=YES -D CMAKE_BUILD_TYPE=Release $TRAVIS_BUILD_DIR
+                        emcmake cmake -DWEB=ON -DCMAKE_BUILD_TYPE=Release $TRAVIS_BUILD_DIR
                         make -j2
                         ;;
                     desktop)
                         mkdir build
                         cd build
-                        cmake -D DESKTOP=YES -D PYTHON=YES -D TESTS=YES -D CMAKE_BUILD_TYPE=Debug -D CMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
+                        cmake -DDESKTOP=ON -DPYTHON=ON -DTESTS=ON -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
                         make -j2
                         ./test_lib
                         ;;
@@ -67,7 +67,7 @@ case $1 in
             osx)
                 mkdir build
                 cd build
-                cmake -D CMAKE_PREFIX_PATH=/usr/local/opt/qt -D TESTS=YES -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release $TRAVIS_BUILD_DIR
+                cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt -DTESTS=ON -DDESKTOP=ON -DCMAKE_BUILD_TYPE=Release $TRAVIS_BUILD_DIR
                 make -j2
                 ./test_lib
                 ;;
@@ -75,8 +75,8 @@ case $1 in
                 mkdir build
                 cd build
                 mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
-                cmake -D TESTS=YES -D PYTHON=YES -D DESKTOP=YES -D CMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
-                cmake --build . -- vipster
+                cmake -DTESTS=ON -DPYTHON=ON -DDESKTOP=ON -DCMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G"MinGW Makefiles" -DCMAKE_BUILD_TYPE=RELEASE ..
+                cmake --build . --
                 ./test_lib.exe
                 ;;
         esac

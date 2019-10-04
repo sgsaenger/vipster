@@ -1,4 +1,7 @@
 version: 1.0.{build}
+branches:
+    except:
+        - continuous
 clone_depth: 30
 clone_folder: c:\projects\vipster
 environment:
@@ -18,9 +21,6 @@ environment:
           QTDIR: C:\Qt\5.12\mingw73_64
           MWDIR: C:\Qt\Tools\mingw730_64\bin
           PATH: '%QTDIR%\lib;%QTDIR%\bin;%MWDIR%;C:\projects\vipster\libvipster\release;%PATH%'
-branches:
-    except:
-        - continuous
 matrix:
     allow_failures:
         - prepare_mode: YES
@@ -40,7 +40,9 @@ build_script:
     - mkdir build
     - cd build
     - mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
-    - cmake -D TESTS=YES -D DESKTOP=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH="$MWDIR" -G "MinGW Makefiles" ..
+    - SET OLDPATH=%PATH%
+    - "SET PATH=C:\\Python37%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
+    - cmake -DTESTS=ON -DPYTHON=ON -DDESKTOP=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$MWDIR" -G"MinGW Makefiles" ..
     - cmake --build .
 test_script:
     - test_lib.exe
@@ -57,7 +59,6 @@ after_test:
           ciuploadtool.exe build/Vipster-Win*.7z
       )
     # upload tagged release to PyPI
-    - SET OLDPATH=%PATH%
       # Python 2.7
     - "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
     - IF "%APPVEYOR_REPO_TAG%"=="true" (
