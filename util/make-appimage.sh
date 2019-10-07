@@ -9,6 +9,7 @@ make DESTDIR=AppDir install -j2
 # copy python standard-library and add libpython to LD_LIBRARY_PATH
 export PY_LIB_DIR=$(python -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))")
 cp -r $PY_LIB_DIR/. AppDir/$PY_LIB_DIR
+7z a AppDir/$PY_LIB_DIR.zip $PY_LIB_DIR/*
 export LD_LIBRARY_PATH=$(python -c "from distutils import sysconfig as s; print(s.get_config_var('LIBDIR'))")
 # fill AppDir with dependencies
 wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt

@@ -50,6 +50,8 @@ after_test:
     - mkdir Vipster
     - mv vipster.exe Vipster
     - mv libvipster.dll Vipster
+    - cp C:\Python37\python37.dll Vipster
+    - 7z a -tzip Vipster\python37.zip C:\Python37\Lib\*
     # prepare archive
     - windeployqt --release --compiler-runtime Vipster/vipster.exe
     - 7z a Vipster-Win-%ARCH%.7z Vipster
