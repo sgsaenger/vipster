@@ -90,13 +90,18 @@ case $1 in
                     bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
                     if [[ $TRAVIS_BRANCH == "testing" ]]
                     then
+                        # build release-version
+                        mkdir -p $TRAVIS_BUILD_DIR/release
+                        cd $TRAVIS_BUILD_DIR/release
+                        cmake -DDESKTOP=ON -DPYTHON=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
+                        make -j2
                         # build AppImage
                         bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
                         # upload continuous build
                         wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip
                         unzip ciuploadtool_linux.zip
                         chmod 755 ciuploadtool
-                        ./ciuploadtool $TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+                        ./ciuploadtool $TRAVIS_BUILD_DIR/release/Vipster-Linux-x86_64.AppImage
                     fi
                 fi
                 ;;
@@ -104,6 +109,7 @@ case $1 in
                 if [[ $TRAVIS_BRANCH == "testing" ]]
                 then
                     # prepare .dmg file
+                    cd $TRAVIS_BUILD_DIR/build
                     bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
                     # upload continuous build
                     wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip
@@ -124,10 +130,15 @@ case $1 in
                         mv vipster.{js,wasm} $TRAVIS_BUILD_DIR/gh-pages/emscripten
                         ;;
                     desktop)
+                        # build release-version
+                        mkdir -p $TRAVIS_BUILD_DIR/release
+                        cd $TRAVIS_BUILD_DIR/release
+                        cmake -DDESKTOP=ON -DPYTHON=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
+                        make -j2
                         # build AppImage
                         bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
                         # enable deployment
-                        export DEPLOY_FILE=$TRAVIS_BUILD_DIR/Vipster-Linux-x86_64.AppImage
+                        export DEPLOY_FILE=$TRAVIS_BUILD_DIR/release/Vipster-Linux-x86_64.AppImage
                         ;;
                 esac
                 ;;

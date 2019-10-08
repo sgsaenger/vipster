@@ -1,7 +1,6 @@
 #!/usr/bin/bash
+# create a dmg file from a pre-built tree
 
-# release-version is already built by travis
-cd $TRAVIS_BUILD_DIR/build
 mkdir -p vipster.app/Contents/Frameworks
 cp -a vipster.framework vipster.app/Contents/Frameworks
 # fix rpath
