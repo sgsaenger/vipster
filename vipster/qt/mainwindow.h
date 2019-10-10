@@ -10,8 +10,8 @@
 #include "stepsel.h"
 #include "configfile.h"
 #include "../common/guiwrapper.h"
-#include "paramwidget.h"
-#include "configwidget.h"
+#include "mainwidgets/paramwidget.h"
+#include "mainwidgets/configwidget.h"
 
 namespace Ui {
 class MainWindow;

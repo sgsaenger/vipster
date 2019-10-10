@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "savefmtdialog.h"
-#include "tools.h"
+#include "toolwidgets.h"
 
 #include <QMessageBox>
 #include <QFileDialog>

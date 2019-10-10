@@ -691,13 +691,13 @@
   <customwidget>
    <class>ParamWidget</class>
    <extends>QWidget</extends>
-   <header>paramwidget.h</header>
+   <header>mainwidgets/paramwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ConfigWidget</class>
    <extends>QWidget</extends>
-   <header>configwidget.h</header>
+   <header>mainwidgets/configwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -712,7 +712,7 @@
   <customwidget>
    <class>MolWidget</class>
    <extends>QWidget</extends>
-   <header>molwidget.h</header>
+   <header>mainwidgets/molwidget.h</header>
    <container>1</container>
    <slots>
     <signal>stepChanged()</signal>
@@ -722,19 +722,19 @@
   <customwidget>
    <class>SettingsWidget</class>
    <extends>QWidget</extends>
-   <header>settingswidget.h</header>
+   <header>mainwidgets/settingswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>PeriodicTableWidget</class>
    <extends>QWidget</extends>
-   <header>periodictablewidget.h</header>
+   <header>mainwidgets/periodictablewidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>DataWidget</class>
    <extends>QWidget</extends>
-   <header>datawidget.h</header>
+   <header>mainwidgets/datawidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -1041,8 +1041,8 @@
    <slot>setMult(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1103</x>
-     <y>593</y>
+     <x>1144</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>901</x>
@@ -1099,8 +1099,8 @@
   <slot>setMult(int)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="cameraGroup"/>
   <buttongroup name="modeGroup"/>
   <buttongroup name="stepGroup"/>
+  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

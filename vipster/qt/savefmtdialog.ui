@@ -83,13 +83,13 @@
   <customwidget>
    <class>ParamWidget</class>
    <extends>QWidget</extends>
-   <header>paramwidget.h</header>
+   <header>mainwidgets/paramwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ConfigWidget</class>
    <extends>QWidget</extends>
-   <header>configwidget.h</header>
+   <header>mainwidgets/configwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
