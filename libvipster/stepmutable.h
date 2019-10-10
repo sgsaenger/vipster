@@ -150,7 +150,8 @@ public:
     void modScale(AtomFmt tgt){
         if(tgt == this->at_fmt){ return; }
         this->evaluateCache();
-        asFmt(tgt).evaluateCache();
+        // evaluate tgt-cache via side-effect;
+        asFmt(tgt);
         iterator source{this->atoms, this->pte, this->at_fmt, 0};
         iterator target{this->atoms, this->pte, tgt, 0};
         while(source.getIdx() != this->getNat()){

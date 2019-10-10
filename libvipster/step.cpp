@@ -160,7 +160,8 @@ void Step::setCellVec(const Mat &vec, bool scale)
              *
              * calculates crystal-coordinates as intermediate
              */
-            asFmt(AtomFmt::Crystal).evaluateCache();
+            // evaluate crystal-cache via side-effect
+            asFmt(AtomFmt::Crystal);
             cell->cellvec = vec;
             cell->invvec = inv;
             constexpr auto crystal = static_cast<size_t>(AtomFmt::Crystal);
@@ -187,7 +188,8 @@ void Step::setCellVec(const Mat &vec, bool scale)
             }
             if (buf == nAtFmt) {
                 buf = static_cast<size_t>(AtomFmt::Alat);
-                asFmt(AtomFmt::Alat).evaluateCache();
+                // evaluate alat-cache via side-effect;
+                asFmt(AtomFmt::Alat);
             }
             cell->cellvec = vec;
             cell->invvec = inv;

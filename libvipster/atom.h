@@ -217,10 +217,10 @@ namespace Vipster{
         }
 
         // "Data members", encapsulated in wrapper objects
-        _Vec        coord{*this};
-        _Name       name{*this};
-        _Element    type{*this};
-        _Properties properties{*this};
+        std::conditional_t<isConst, const _Vec, _Vec>               coord{*this};
+        std::conditional_t<isConst, const _Name, _Name>             name{*this};
+        std::conditional_t<isConst, const _Element, _Element>       type{*this};
+        std::conditional_t<isConst, const _Properties, _Properties> properties{*this};
 
         // comparison
         bool operator==(const AtomViewBase& rhs) const {

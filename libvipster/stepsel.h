@@ -285,7 +285,8 @@ struct AtomSelection{
         auto fmt = (filter.mode == SelectionFilter::Mode::Pos) ?
                     static_cast<AtomFmt>(filter.pos & SelectionFilter::FMT_MASK) :
                     step.at_fmt;
-        this->step->asFmt(fmt).evaluateCache();
+        // evaluate fmt-cache via side-effect
+        this->step->asFmt(fmt);
         if(filter.op & SelectionFilter::UPDATE){
             indices = evalFilter(*this->step, filter);
         }

@@ -142,6 +142,7 @@ public:
     void                setFmt(AtomFmt tgt) const
     {
         if(tgt == at_fmt){ return; }
+        // evaluate tgt-cache via side-effect
         asFmt(tgt);
         at_fmt = tgt;
     }
@@ -350,7 +351,6 @@ private:
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
-        tgtFmt.evaluateCache();
         // get bounds of system and largest cutoff
         Vec min{0,0,0};
         Vec max{0,0,0};
@@ -506,7 +506,6 @@ private:
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
-        tgtFmt.evaluateCache();
         std::vector<Bond>& bonds = this->bonds->bonds;
         auto at_i = tgtFmt.begin();
         for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
@@ -537,7 +536,7 @@ private:
 
     void setBondsCell() const
     {
-        if(getNat() >= 1000){
+        if(getNat() >= 100){
             setBondsCellSplit();
         }else{
             setBondsCellTrivial();
@@ -546,7 +545,6 @@ private:
     void setBondsCellSplit() const
     {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
-        asCrystal.evaluateCache();
         enum wrapDir{x, y, z, xy, xmy, xz, xmz, yz, ymz, xyz, xymz, xmyz, mxyz};
         // get largest cutoff
         float cut{0};
@@ -754,7 +752,6 @@ private:
     {
         auto& bonds = this->bonds->bonds;
         const auto asCrystal = asFmt(AtomFmt::Crystal);
-        asCrystal.evaluateCache();
         const Vec x = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
         const Vec y = getCellVec()[1] * getCellDim(CdmFmt::Bohr);
         const Vec z = getCellVec()[2] * getCellDim(CdmFmt::Bohr);

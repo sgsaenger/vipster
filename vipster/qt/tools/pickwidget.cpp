@@ -49,12 +49,12 @@ void PickWidget::updateWidget(GUI::change_t change)
     const auto& curSel = master->curSel->asFmt(AtomFmt::Angstrom);
     auto& text = *ui->PickText;
     text.setPlainText("Atoms:");
-    auto it = curSel.begin();
+    auto it = curSel.cbegin();
     size_t nat = 0;
     std::vector<QString> names;
     std::vector<Vec> coords;
     auto fmt = curSel.getFormatter(AtomFmt::Crystal, AtomFmt::Angstrom);
-    while(it != curSel.end()){
+    while(it != curSel.cend()){
         int count = 0;
         const auto& pair = it.getFilterPair();
         for(const auto& off: pair.second){

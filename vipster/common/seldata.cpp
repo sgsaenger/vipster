@@ -132,8 +132,8 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
     sel_buffer.reserve(curSel->getNat()); // too small, but better than nothing
     auto fmt = curSel->getFormatter(AtomFmt::Crystal, curSel->getFmt());
     if(useVdW){
-        auto it = curSel->begin();
-        while(it != curSel->end()){
+        auto it = curSel->cbegin();
+        while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
                 sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
                                       it->type->vdwr*1.3f,
@@ -143,8 +143,8 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
             ++it;
         }
     }else{
-        auto it = curSel->begin();
-        while(it != curSel->end()){
+        auto it = curSel->cbegin();
+        while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
                 sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
                                       it->type->covr*1.3f,

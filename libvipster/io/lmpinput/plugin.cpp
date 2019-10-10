@@ -378,7 +378,6 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
             std::getline(file, line);
             // operate on crystal coordinates to interpret periodic bonds more easily
             auto sc = s.asFmt(AtomFmt::Crystal);
-            sc.evaluateCache();
             for(size_t i=0; i<nbnd; ++i){
                 size_t n, id, at1, at2;
                 std::getline(file, line);
