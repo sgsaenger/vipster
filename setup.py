@@ -12,7 +12,7 @@ import subprocess
 import platform
 
 # CMake arguments
-cmake_defines = "-DPYTHON=YES -DPYPI=YES"\
+cmake_defines = "-DPYBIND=YES -DPYPI=YES"\
     " -DPYTHON_EXECUTABLE:FILEPATH=\""+sys.executable+'"'
 if os.name == 'nt':
     # force mingw makefile generation
