@@ -50,7 +50,7 @@ To build the frontend, run:
 cd $VIPSTER_SOURCE
 mkdir build
 cd build
-cmake -D CMAKE_BUILD_TYPE=Release -D DESKTOP=YES ..
+cmake -D CMAKE_BUILD_TYPE=Release -D DESKTOP=ON ..
 cmake --build .
 ```
 
@@ -61,7 +61,11 @@ On linux, the default target directory will probably default to `$HOME/.local`, 
 If cmake does not find your Qt installation (e.g. `qmake` not in your `$PATH`) or you want to specify a certain version,
 add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 
-### Python-bindings
+#### Built-in Python-widget
+
+By adding `-D PYSHELL=ON` to the build of the Qt-frontend, a python terminal with embedded vipster bindings is enabled.
+
+### Standalone Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.
 
@@ -74,21 +78,16 @@ cd $VIPSTER_SOURCE
 git submodule update --init --recursive
 mkdir build
 cd build
-cmake -D CMAKE_BUILD_TYPE=Release -D PYTHON=YES ..
+cmake -D CMAKE_BUILD_TYPE=Release -D PYBIND=ON ..
 cmake --build .
 ```
 **NOTE**: By default, Python-Egg informations will be generated.
-This can be disabled by specifying `-DEGG_INFO=NO`.
-
-### Python-widget
-
-The python-bindings and Qt-frontend can be enabled at once by specifying both `-D PYTHON=YES -D DESKTOP=YES`.
-This enables a console widget in the Qt-GUI where loaded structures are exposed in python.
+This can be disabled by specifying `-DEGG_INFO=OFF`.
 
 ### Debugging/Tests
 
 If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
-Additionally, you can enable compilation of unit tests by adding `-D TESTS=YES`.
+Additionally, you can enable compilation of unit tests by adding `-D TESTS=ON`.
 
 ### Web-Frontend
 
@@ -99,7 +98,7 @@ To compile, use:
 cd $VIPSTER_SOURCE
 mkdir build
 cd build
-emcmake cmake -D CMAKE_BUILD_TYPE=Release -D WEB=YES -D DESKTOP=NO ..
+emcmake cmake -D CMAKE_BUILD_TYPE=Release -D WEB=ON -D DESKTOP=OFF ..
 emcmake cmake --build .
 ```
 

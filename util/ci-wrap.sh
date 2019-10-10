@@ -58,7 +58,7 @@ case $1 in
                     desktop)
                         mkdir build
                         cd build
-                        cmake -DDESKTOP=ON -DPYTHON=ON -DTESTS=ON -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DTESTS=ON -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
                         make -j2
                         ./test_lib
                         ;;
@@ -75,7 +75,7 @@ case $1 in
                 mkdir build
                 cd build
                 mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
-                cmake -DTESTS=ON -DPYTHON=ON -DDESKTOP=ON -DCMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G"MinGW Makefiles" -DCMAKE_BUILD_TYPE=RELEASE ..
+                cmake -DTESTS=ON -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DCMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G"MinGW Makefiles" -DCMAKE_BUILD_TYPE=RELEASE ..
                 cmake --build . --
                 ./test_lib.exe
                 ;;
@@ -93,7 +93,7 @@ case $1 in
                         # build release-version
                         mkdir -p $TRAVIS_BUILD_DIR/release
                         cd $TRAVIS_BUILD_DIR/release
-                        cmake -DDESKTOP=ON -DPYTHON=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
                         make -j2
                         # build AppImage
                         bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
@@ -133,7 +133,7 @@ case $1 in
                         # build release-version
                         mkdir -p $TRAVIS_BUILD_DIR/release
                         cd $TRAVIS_BUILD_DIR/release
-                        cmake -DDESKTOP=ON -DPYTHON=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
                         make -j2
                         # build AppImage
                         bash $TRAVIS_BUILD_DIR/util/make-appimage.sh

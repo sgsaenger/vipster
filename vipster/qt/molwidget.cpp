@@ -14,12 +14,6 @@ MolWidget::MolWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // try to match macOS look a bit more
-    ui->atomTableButton->setAttribute(Qt::WA_MacBrushedMetal, true);
-    ui->bondButton->setAttribute(Qt::WA_MacBrushedMetal, true);
-    ui->cellWidgetButton->setAttribute(Qt::WA_MacBrushedMetal, true);
-    ui->kpointButton->setAttribute(Qt::WA_MacBrushedMetal, true);
-
     // setup k-points
     ui->discretetable->addAction(ui->actionNew_K_Point);
     ui->discretetable->addAction(ui->actionDelete_K_Point);
