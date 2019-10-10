@@ -5,15 +5,15 @@
 
 using namespace Vipster;
 
-ParamBase::ParamBase(QWidget *parent):
-    QWidget(parent)
-{}
-
 ParamWidget::ParamWidget(QWidget *parent) :
     BaseWidget(parent),
     ui(new Ui::ParamWidget)
 {
     ui->setupUi(this);
+    formats = makeParamWidgets();
+    for(auto& p: formats){
+        ui->paramStack->addWidget(p.second);
+    }
 }
 
 ParamWidget::~ParamWidget()
@@ -50,23 +50,13 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
     }
     const auto& pair = params.at(static_cast<size_t>(index));
     curFmt = pair.first;
-    curParam = pair.second.get();
-    switch(curFmt){
-    case IOFmt::PWI:
-        ui->paramStack->setCurrentWidget(ui->PWWidget);
-        ui->PWWidget->setParam(curParam);
-        break;
-    case IOFmt::CPI:
-        ui->paramStack->setCurrentWidget(ui->CPWidget);
-        ui->CPWidget->setParam(curParam);
-        break;
-    case IOFmt::ORCA:
-        ui->paramStack->setCurrentWidget(ui->ORCAWidget);
-        ui->ORCAWidget->setParam(curParam);
-        break;
-    default:
+    auto pos = formats.find(curFmt);
+    if(pos == formats.end()){
         throw Error("Invalid parameter format");
     }
+    curParam = pair.second.get();
+    ui->paramStack->setCurrentWidget(pos->second);
+    pos->second->setParam(curParam);
 }
 
 void ParamWidget::on_pushButton_clicked()

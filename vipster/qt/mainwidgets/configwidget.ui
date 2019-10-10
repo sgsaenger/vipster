@@ -42,7 +42,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="configStack">
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="NoCWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -58,47 +58,10 @@
        </item>
       </layout>
      </widget>
-     <widget class="XYZConfig" name="XYZWidget"/>
-     <widget class="PWConfig" name="PWWidget"/>
-     <widget class="LmpConfig" name="LmpWidget"/>
-     <widget class="CPConfig" name="CPWidget"/>
-     <widget class="PoscarConfig" name="PoscarWidget"/>
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>PWConfig</class>
-   <extends>QWidget</extends>
-   <header>configwidgets/pwconfig.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>LmpConfig</class>
-   <extends>QWidget</extends>
-   <header>configwidgets/lmpconfig.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>XYZConfig</class>
-   <extends>QWidget</extends>
-   <header>configwidgets/xyzconfig.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CPConfig</class>
-   <extends>QWidget</extends>
-   <header>configwidgets/cpconfig.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PoscarConfig</class>
-   <extends>QWidget</extends>
-   <header>configwidgets/poscarconfig.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

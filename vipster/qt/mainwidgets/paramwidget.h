@@ -1,23 +1,13 @@
 #ifndef PARAMWIDGET_H
 #define PARAMWIDGET_H
 
-#include <QWidget>
 #include "../basewidget.h"
+#include "../paramwidgets.h"
 #include "io.h"
 
 namespace Ui {
 class ParamWidget;
 }
-
-class ParamBase: public QWidget
-{
-    Q_OBJECT
-
-public:
-    explicit ParamBase(QWidget *parent = nullptr);
-    virtual ~ParamBase() = default;
-    virtual void setParam(Vipster::IO::BaseParam *p)=0;
-};
 
 class ParamWidget : public BaseWidget
 {
@@ -39,6 +29,7 @@ private slots:
 
 private:
     Ui::ParamWidget *ui;
+    std::map<Vipster::IOFmt, ParamBase*> formats;
 };
 
 #endif // PARAMWIDGET_H

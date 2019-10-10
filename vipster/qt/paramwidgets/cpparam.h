@@ -2,7 +2,7 @@
 #define CPPARAM_H
 
 #include <QWidget>
-#include "../mainwidgets/paramwidget.h"
+#include "../parambase.h"
 #include "io/cpmdinput/param.h"
 
 namespace Ui {

@@ -1,23 +1,13 @@
 #ifndef CONFIGWIDGET_H
 #define CONFIGWIDGET_H
 
-#include <QWidget>
 #include "../basewidget.h"
+#include "../configwidgets.h"
 #include "io.h"
 
 namespace Ui {
 class ConfigWidget;
 }
-
-class ConfigBase: public QWidget
-{
-    Q_OBJECT
-
-public:
-    explicit ConfigBase(QWidget *parent = nullptr);
-    virtual ~ConfigBase() = default;
-    virtual void setConfig(Vipster::IO::BaseConfig *c)=0;
-};
 
 class ConfigWidget : public BaseWidget
 {
@@ -39,6 +29,7 @@ private slots:
 
 private:
     Ui::ConfigWidget *ui;
+    std::map<Vipster::IOFmt, ConfigBase*> formats;
 };
 
 #endif // CONFIGWIDGET_H

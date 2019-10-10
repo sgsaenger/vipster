@@ -13,7 +13,7 @@
 #include "toolwidgets/pythonwidget.py.h"
 #endif
 
-std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
+inline std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
 {
     return {
         {new PickWidget(parent), "Selected Atoms"},

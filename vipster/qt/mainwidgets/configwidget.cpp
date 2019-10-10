@@ -5,15 +5,15 @@
 
 using namespace Vipster;
 
-ConfigBase::ConfigBase(QWidget *parent):
-    QWidget{parent}
-{}
-
 ConfigWidget::ConfigWidget(QWidget *parent) :
     BaseWidget(parent),
     ui(new Ui::ConfigWidget)
 {
     ui->setupUi(this);
+    formats = makeConfigWidgets();
+    for(auto& p: formats){
+        ui->configStack->addWidget(p.second);
+    }
 }
 
 ConfigWidget::~ConfigWidget()
@@ -50,31 +50,13 @@ void ConfigWidget::on_configSel_currentIndexChanged(int index)
     }
     const auto& pair = configs.at(static_cast<size_t>(index));
     curFmt = pair.first;
-    curConfig = pair.second.get();
-    switch (curFmt) {
-    case IOFmt::XYZ:
-        ui->configStack->setCurrentWidget(ui->XYZWidget);
-        ui->XYZWidget->setConfig(curConfig);
-        break;
-    case IOFmt::PWI:
-        ui->configStack->setCurrentWidget(ui->PWWidget);
-        ui->PWWidget->setConfig(curConfig);
-        break;
-    case IOFmt::LMP:
-        ui->configStack->setCurrentWidget(ui->LmpWidget);
-        ui->LmpWidget->setConfig(curConfig);
-        break;
-    case IOFmt::CPI:
-        ui->configStack->setCurrentWidget(ui->CPWidget);
-        ui->CPWidget->setConfig(curConfig);
-        break;
-    case IOFmt::POSCAR:
-        ui->configStack->setCurrentWidget(ui->PoscarWidget);
-        ui->PoscarWidget->setConfig(curConfig);
-        break;
-    default:
-        throw Error("Invalid config format");
+    auto pos = formats.find(curFmt);
+    if(pos == formats.end()){
+        throw Error("Invalid parameter format");
     }
+    curConfig = pair.second.get();
+    ui->configStack->setCurrentWidget(pos->second);
+    pos->second->setConfig(curConfig);
 }
 
 void ConfigWidget::on_helpButton_clicked()

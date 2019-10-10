@@ -42,7 +42,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="paramStack">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="NoPWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -58,33 +58,10 @@
        </item>
       </layout>
      </widget>
-     <widget class="PWParam" name="PWWidget"/>
-     <widget class="CPParam" name="CPWidget"/>
-     <widget class="ORCAParam" name="ORCAWidget"/>
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>PWParam</class>
-   <extends>QWidget</extends>
-   <header>paramwidgets/pwparam.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CPParam</class>
-   <extends>QWidget</extends>
-   <header>paramwidgets/cpparam.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ORCAParam</class>
-   <extends>QWidget</extends>
-   <header>paramwidgets/orcaparam.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

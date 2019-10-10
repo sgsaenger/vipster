@@ -2,7 +2,7 @@
 #define ORCAPARAM_H
 
 #include <QWidget>
-#include "../mainwidgets/paramwidget.h"
+#include "../parambase.h"
 #include "io/orca/param.h"
 
 namespace Ui {

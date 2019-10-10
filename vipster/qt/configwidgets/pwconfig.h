@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "io/pwinput/config.h"
-#include "../mainwidgets/configwidget.h"
+#include "../configbase.h"
 
 namespace Ui {
 class PWConfig;

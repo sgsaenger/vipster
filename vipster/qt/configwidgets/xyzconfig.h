@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "io/xyz/config.h"
-#include "../mainwidgets/configwidget.h"
+#include "../configbase.h"
 
 namespace Ui {
 class XYZConfig;

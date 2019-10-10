@@ -5,7 +5,7 @@
 #include <QTreeWidgetItem>
 #include <QAction>
 #include "io/pwinput/param.h"
-#include "../mainwidgets/paramwidget.h"
+#include "../parambase.h"
 
 namespace Ui {
 class PWParam;
