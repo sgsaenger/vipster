@@ -2,8 +2,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "savefmtdialog.h"
+#include "mainwidgets.h"
 #include "toolwidgets.h"
 
+#include <QDockWidget>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -52,21 +54,31 @@ void MainWindow::setupUI()
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
     // setup left dock-area
-    baseWidgets = {
-        ui->paramDock,
-        ui->configDock,
-        ui->settingsDock,
-        ui->mpseDock,
-        ui->pseDock,
-        ui->dataDock,
-    };
-    for(auto& w: baseWidgets){
-        tabifyDockWidget(ui->molDock, w);
+    QDockWidget* firstDock{nullptr};
+    for(const auto& pair: makeMainWidgets(this)){
+        auto *tmp = new QDockWidget(this);
+        baseWidgets.push_back(pair.first);
+        tmp->setWidget(pair.first);
+        tmp->setAllowedAreas(Qt::LeftDockWidgetArea);
+        tmp->setFeatures(QDockWidget::DockWidgetMovable |
+                         QDockWidget::DockWidgetFloatable);
+        tmp->setWindowTitle(pair.second);
+        addDockWidget(Qt::LeftDockWidgetArea, tmp);
+        if(!firstDock){
+            firstDock = tmp;
+        }else{
+            tabifyDockWidget(firstDock, tmp);
+        }
+        auto p = dynamic_cast<ParamWidget*>(pair.first);
+        if (p) paramWidget = p;
+        auto c = dynamic_cast<ConfigWidget*>(pair.first);
+        if (c) configWidget = c;
     }
-    ui->molDock->raise();
+    firstDock->raise();
     // setup right dock-area
     for(const auto& pair: makeToolWidgets(this)){
         auto *tmp = new QDockWidget(this);
+        toolWidgets.push_back(pair.first);
         tmp->setWidget(pair.first);
         tmp->setAllowedAreas(Qt::BottomDockWidgetArea|
                              Qt::RightDockWidgetArea|
@@ -77,28 +89,31 @@ void MainWindow::setupUI()
         action->setCheckable(true);
         connect(action, &QAction::toggled, tmp, &QWidget::setVisible);
         tmp->hide();
-        toolWidgets.push_back(tmp);
     }
-    // fill in global PSE
-    ui->pseWidget->setTable(&pte);
     // fill in menu-options
     for(const auto& pair:IOPlugins){
-        const auto& param_map = params[pair.first];
-        if(!param_map.empty()){
+        if(pair.second->arguments & IO::Plugin::Param){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(const auto& p: param_map){
-                param_menu->addAction(QString::fromStdString(p.first),
-                                      this, &MainWindow::loadParam);
+            paramMenus[pair.first] = param_menu;
+            const auto& param_map = params[pair.first];
+            if(!param_map.empty()){
+                for(const auto& p: param_map){
+                    param_menu->addAction(QString::fromStdString(p.first),
+                                          this, &MainWindow::loadParam);
+                }
             }
         }
-        const auto& conf_map = configs[pair.first];
-        if(!conf_map.empty()){
+        if(pair.second->arguments & IO::Plugin::Config){
             auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
                         QString::fromStdString(pair.second->name));
-            for(const auto& p: conf_map){
-                conf_menu->addAction(QString::fromStdString(p.first),
-                                     this, &MainWindow::loadConfig);
+            configMenus[pair.first] = conf_menu;
+            const auto& conf_map = configs[pair.first];
+            if(!conf_map.empty()){
+                for(const auto& p: conf_map){
+                    conf_menu->addAction(QString::fromStdString(p.first),
+                                         this, &MainWindow::loadConfig);
+                }
             }
         }
     }
@@ -115,18 +130,22 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
     // notify widgets
     ui->openGLWidget->updateWidget(change);
-    ui->molWidget->updateWidget(change);
     for(auto& w: baseWidgets){
-        static_cast<BaseWidget*>(w->widget())->updateWidget(change);
+        w->updateWidget(change);
     }
     for(auto& w: toolWidgets){
-        static_cast<BaseWidget*>(w->widget())->updateWidget(change);
+        w->updateWidget(change);
     }
 }
 
 void MainWindow::setMol(int i)
 {
-    curMol = &*std::next(molecules.begin(), i);
+    //will be reused when functionality moved to viewport
+}
+
+void MainWindow::on_molList_currentIndexChanged(int index)
+{
+    curMol = &*std::next(molecules.begin(), index);
     int nstep = static_cast<int>(curMol->getNstep());
     auto &curData = moldata[curMol];
     if(curData.curStep < 0){
@@ -285,11 +304,17 @@ void MainWindow::editAtoms(QAction* sender)
     }
 }
 
+void MainWindow::registerMol(const std::string& name)
+{
+    ui->molList->addItem(name.c_str());
+    ui->molList->setCurrentIndex(ui->molList->count()-1);
+}
+
 void MainWindow::newMol()
 {
     molecules.emplace_back();
     molecules.back().pte->root = &pte;
-    ui->molWidget->registerMol(molecules.back().getName());
+    registerMol(molecules.back().getName());
 }
 
 void MainWindow::newMol(QAction* sender)
@@ -298,17 +323,17 @@ void MainWindow::newMol(QAction* sender)
         molecules.emplace_back(*curMol);
         molecules.back().setName(molecules.back().getName() + " (copy)");
         molecules.back().pte->root = &pte;
-        ui->molWidget->registerMol(molecules.back().getName());
+        registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_single_Step){
         molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
                                std::to_string(moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
-        ui->molWidget->registerMol(molecules.back().getName());
+        registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_current_Selection){
         molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
                                std::to_string(moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
-        ui->molWidget->registerMol(molecules.back().getName());
+        registerMol(molecules.back().getName());
     }
 }
 
@@ -316,13 +341,13 @@ void MainWindow::newData(IO::Data &&d)
 {
     molecules.push_back(std::move(d.mol));
     molecules.back().pte->root = &pte;
-    ui->molWidget->registerMol(molecules.back().getName());
+    registerMol(molecules.back().getName());
     if(d.param){
-        ui->paramWidget->registerParam(std::move(d.param));
+        paramWidget->registerParam(std::move(d.param));
     }
     for(auto& dat: d.data){
         data.push_back(std::move(dat));
-        ui->dataWidget->registerData(data.back()->name);
+        updateWidgets(GUI::Change::data);
     }
 }
 
@@ -385,10 +410,7 @@ void MainWindow::saveMol()
             try{
                 writeFile(target, sfd.fmt, *curMol,
                           sfd.getParam(), sfd.getConfig(),
-                          IO::State{static_cast<size_t>(ui->stepSlider->value()-1),
-                                    ui->molWidget->getAtomFmt(),
-                                    ui->molWidget->getCellFmt()
-                          });
+                          ui->stepSlider->value()-1);
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
@@ -398,15 +420,14 @@ void MainWindow::saveMol()
     }
 }
 
-
 const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
 {
-    return ui->paramWidget->params;
+    return paramWidget->params;
 }
 
 const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 {
-    return ui->configWidget->configs;
+    return configWidget->configs;
 }
 
 void MainWindow::addExtraData(GUI::Data* dat)
@@ -440,7 +461,7 @@ void MainWindow::loadParam()
     }(p->title());
     auto pos = params[fmt].find(s->text().toStdString());
     if(pos != params[fmt].end()){
-        ui->paramWidget->registerParam(pos->second->copy());
+        paramWidget->registerParam(pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
     }
@@ -460,7 +481,7 @@ void MainWindow::loadConfig()
     }(p->title());
     auto pos = configs[fmt].find(s->text().toStdString());
     if(pos != configs[fmt].end()){
-        ui->configWidget->registerConfig(pos->second->copy());
+        configWidget->registerConfig(pos->second->copy());
     }else{
         throw Error("Invalid IO-config");
     }
@@ -468,45 +489,45 @@ void MainWindow::loadConfig()
 
 void MainWindow::saveParam()
 {
-    if(!ui->paramWidget->curParam){
+    if(!paramWidget->curParam){
         return;
     }
     bool ok;
+    const auto &curParam = paramWidget->curParam;
     auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        auto& param = params[ui->paramWidget->curFmt];
-        if(param.find(name) != param.end()){
+        auto& map = params[curParam->getFmt()];
+        if(map.find(name) == map.end()){
             // register new name in menu
-            QString fmtName = IOPlugins.at(ui->configWidget->curFmt)->name.c_str();
-            auto* fmtMenu = ui->menuLoad_Parameter_set->findChild<QMenu*>(fmtName);
-            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
+            auto* fmtMenu = paramMenus.at(curParam->getFmt());
+            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadParam);
         }
         // save parameter
-        param[name] = ui->paramWidget->curParam->copy();
-        param[name]->name = name;
+        map[name] = curParam->copy();
+        map[name]->name = name;
     }
 }
 
 void MainWindow::saveConfig()
 {
-    if(!ui->configWidget->curConfig){
+    if(!configWidget->curConfig){
         return;
     }
+    const auto &curConfig = configWidget->curConfig;
     bool ok;
     auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        auto& conf = configs[ui->configWidget->curFmt];
-        if(conf.find(name) != conf.end()){
+        auto& map = configs[curConfig->getFmt()];
+        if(map.find(name) == map.end()){
             // register new name in menu
-            QString fmtName = IOPlugins.at(ui->configWidget->curFmt)->name.c_str();
-            auto* fmtMenu = ui->menuLoad_IO_Config->findChild<QMenu*>(fmtName);
+            auto* fmtMenu = configMenus.at(curConfig->getFmt());
             fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
         }
         // save config
-        conf[name] = ui->configWidget->curConfig->copy();
-        conf[name]->name = name;
+        map[name] = curConfig->copy();
+        map[name]->name = name;
     }
 }
 

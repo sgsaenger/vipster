@@ -6,9 +6,9 @@
 namespace Vipster::IO{
 
 struct CPConfig final: BaseConfig{
-    enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Current};
+    enum class AtomFmt {Bohr, Angstrom, Crystal, Alat, Active};
     AtomFmt fmt;
-    CPConfig(std::string="", AtomFmt=AtomFmt::Current);
+    CPConfig(std::string="", AtomFmt=AtomFmt::Active);
     IOFmt getFmt() const override;
     std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;

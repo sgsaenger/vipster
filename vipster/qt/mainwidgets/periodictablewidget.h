@@ -15,9 +15,8 @@ class PeriodicTableWidget : public BaseWidget
     Q_OBJECT
 
 public:
-    explicit PeriodicTableWidget(QWidget *parent = nullptr);
+    explicit PeriodicTableWidget(QWidget *parent = nullptr, bool isGlobal=false);
     ~PeriodicTableWidget() override;
-    void setTable(Vipster::PeriodicTable* table);
     void updateWidget(Vipster::GUI::change_t) override;
 
 public slots:
@@ -31,6 +30,7 @@ private slots:
     void on_helpButton_clicked();
 
 private:
+    void setTable(Vipster::PeriodicTable* table);
     const std::string* currentName{nullptr};
     Vipster::Element* currentElement{nullptr};
     Vipster::PeriodicTable* table{nullptr};

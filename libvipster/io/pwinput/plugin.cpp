@@ -331,13 +331,15 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
 bool PWInpWriter(const Molecule& m, std::ofstream &file,
                  const IO::BaseParam *const p,
                  const IO::BaseConfig *const c,
-                 IO::State state)
+                 size_t index)
 {
-    const auto& s = m.getStep(state.index);
     const auto *pp = dynamic_cast<const IO::PWParam*>(p);
     if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
     const auto *cc = dynamic_cast<const IO::PWConfig*>(c);
     if(!cc) throw IO::Error("PWI-Writer needs PWScf configuration preset");
+    const auto& s = (cc->atoms == IO::PWConfig::AtomFmt::Active) ?
+        static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
+        m.getStep(index).asFmt(static_cast<AtomFmt>(cc->atoms)); // use explicit fmt
     std::vector<std::pair<std::string, const IO::PWParam::Namelist*>>
             outNL = {{"control", &pp->control},
                      {"system", &pp->system},
@@ -357,9 +359,10 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
             file << " ibrav = 0\n";
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
-            auto cell_fmt = (cc->cell == IO::PWConfig::CellFmt::Current) ?
-                        state.cell_fmt : // use from GUI/CLI
-                        static_cast<CdmFmt>(cc->cell); // use from Step
+            auto cell_fmt = (cc->cell == IO::PWConfig::CellFmt::Active) ?
+                        ((s.getFmt() == AtomFmt::Angstrom) ?
+                             CdmFmt::Angstrom : CdmFmt::Bohr) : // match coordinates
+                        static_cast<CdmFmt>(cc->cell); // use explicit
             if(cell_fmt == CdmFmt::Bohr){
                 file << " celldm(1) = " << s.getCellDim(cell_fmt) << '\n';
             }else{
@@ -384,16 +387,13 @@ bool PWInpWriter(const Molecule& m, std::ofstream &file,
         }
     }
     const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
-    auto atom_fmt = (cc->atoms == IO::PWConfig::AtomFmt::Current) ?
-                state.atom_fmt : // use from GUI/CLI
-                static_cast<AtomFmt>(cc->atoms); // use from Step
-    file << "\nATOMIC_POSITIONS " << atfmt[static_cast<size_t>(atom_fmt)] << '\n'
+    file << "\nATOMIC_POSITIONS " << atfmt[static_cast<size_t>(s.getFmt())] << '\n'
          << std::fixed << std::setprecision(5);
     AtomFlags fixComp{};
     fixComp[AtomFlag::FixX] = true;
     fixComp[AtomFlag::FixY] = true;
     fixComp[AtomFlag::FixZ] = true;
-    for (const auto& at: s.asFmt(atom_fmt)) {
+    for (const auto& at: s) {
         file << std::left << std::setw(3) << at.name
              << ' ' << std::right << std::setw(10) << at.coord[0]
              << ' ' << std::right << std::setw(10) << at.coord[1]

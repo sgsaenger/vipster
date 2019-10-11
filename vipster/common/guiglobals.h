@@ -10,7 +10,9 @@ enum Change{
     atoms=0x1, cell=0x2, fmt=0x4, kpoints=0x8,
     selection=0x10, definitions=0x20,
     settings=0x40,
-    extra=0x80, trajec=0x100};
+    extra=0x80, trajec=0x100,
+    data=0x200,
+};
 }
 using Enums::Change;
 using change_t = std::underlying_type<Change>::type;

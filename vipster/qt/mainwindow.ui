@@ -27,7 +27,10 @@
    <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::VerticalTabs</set>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0,0">
+    <item>
+     <widget class="QComboBox" name="molList"/>
+    </item>
     <item>
      <layout class="QHBoxLayout" name="modeLayout">
       <item>
@@ -430,111 +433,6 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QDockWidget" name="molDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Molecule</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="MolWidget" name="molWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="paramDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Parameter</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="ParamWidget" name="paramWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="configDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Config</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="ConfigWidget" name="configWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="settingsDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Settings</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="SettingsWidget" name="settingsWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="pseDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Periodic Table (global)</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="PeriodicTableWidget" name="pseWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="mpseDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Periodic Table (Molecule)</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="PeriodicTableWidget" name="mpseWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="dataDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Additional Data</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="DataWidget" name="dataWidget"/>
-  </widget>
   <action name="actionNew_Molecule">
    <property name="text">
     <string>&amp;New Molecule</string>
@@ -689,18 +587,6 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>ParamWidget</class>
-   <extends>QWidget</extends>
-   <header>mainwidgets/paramwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ConfigWidget</class>
-   <extends>QWidget</extends>
-   <header>mainwidgets/configwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>GLWidget</class>
    <extends>QOpenGLWidget</extends>
    <header>glwidget.h</header>
@@ -708,34 +594,6 @@
     <slot>setMode(int,bool)</slot>
     <slot>setCamera(int)</slot>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>MolWidget</class>
-   <extends>QWidget</extends>
-   <header>mainwidgets/molwidget.h</header>
-   <container>1</container>
-   <slots>
-    <signal>stepChanged()</signal>
-    <signal>molChanged()</signal>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>SettingsWidget</class>
-   <extends>QWidget</extends>
-   <header>mainwidgets/settingswidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PeriodicTableWidget</class>
-   <extends>QWidget</extends>
-   <header>mainwidgets/periodictablewidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>DataWidget</class>
-   <extends>QWidget</extends>
-   <header>mainwidgets/datawidget.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>

@@ -415,17 +415,16 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
 bool CPInpWriter(const Molecule& m, std::ofstream &file,
                  const IO::BaseParam *const p,
                  const IO::BaseConfig *const c,
-                 IO::State state)
+                 size_t index)
 {
     const auto *pp = dynamic_cast<const IO::CPParam*>(p);
     if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
     const auto *cc = dynamic_cast<const IO::CPConfig*>(c);
     if(!cc) throw IO::Error("CPI-Writer needs CPMD config preset");
-    auto af = (cc->fmt == IO::CPConfig::AtomFmt::Current) ?
-                state.atom_fmt : // use from GUI/CLI
-                static_cast<AtomFmt>(cc->fmt); // use explicit fmt
-    auto cf = (af == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
-    const auto& s = m.getStep(state.index).asFmt(af);
+    const auto& s = (cc->fmt == IO::CPConfig::AtomFmt::Active) ?
+        static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
+        m.getStep(index).asFmt(static_cast<AtomFmt>(cc->fmt)); // use explicit fmt
+    auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
     for(const auto& pair: IO::CPParam::str2section){
         if(pair.second == &IO::CPParam::atoms){
             file << pair.first << '\n';
@@ -523,7 +522,7 @@ bool CPInpWriter(const Molecule& m, std::ofstream &file,
             file << "&END\n\n";
         }else if(pair.second == &IO::CPParam::system){
             file << pair.first << '\n';
-            switch(af){
+            switch(s.getFmt()){
             case AtomFmt::Angstrom:
                 file << "  ANGSTROM\n";
                 break;

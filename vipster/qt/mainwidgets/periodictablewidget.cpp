@@ -122,9 +122,10 @@ void PeriodicTableWidget::registerProperty(QWidget* w, ColVec Element::* prop)
     );
 }
 
-PeriodicTableWidget::PeriodicTableWidget(QWidget *parent) :
+PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlobal) :
     BaseWidget(parent),
-    ui(new Ui::PeriodicTableWidget)
+    ui(new Ui::PeriodicTableWidget),
+    isGlobal{isGlobal}
 {
     ui->setupUi(this);
     registerProperty(ui->mSel, &Element::m);
@@ -137,6 +138,10 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent) :
     registerProperty(ui->colSel, &Element::col);
     registerProperty(ui->cutSel, &Element::bondcut);
     emit(currentEntryChanged());
+    ui->toGlobalBut->setVisible(!isGlobal);
+    ui->fromGlobalBut->setVisible(!isGlobal);
+    ui->defaultBut->setVisible(isGlobal);
+    ui->deleteBut->setVisible(isGlobal);
 }
 
 PeriodicTableWidget::~PeriodicTableWidget()
@@ -184,15 +189,6 @@ void PeriodicTableWidget::setTable(PeriodicTable* pte)
 {
     table = pte;
     ui->pteList->clear();
-    if(pte == &master->pte){
-        isGlobal = true;
-    }else{
-        isGlobal = false;
-    }
-    ui->toGlobalBut->setVisible(!isGlobal);
-    ui->fromGlobalBut->setVisible(!isGlobal);
-    ui->defaultBut->setVisible(isGlobal);
-    ui->deleteBut->setVisible(isGlobal);
     if(pte){
         for(const auto& entry: *pte){
             ui->pteList->addItem(QString::fromStdString(entry.first));
@@ -221,7 +217,7 @@ void PeriodicTableWidget::updateWidget(GUI::change_t change)
 {
     if(isGlobal){
         // pull in changes to global table
-        setTable(table);
+        setTable(&master->pte);
     }else{
         if((change & GUI::molChanged) == GUI::molChanged){
             // load table of new molecule...

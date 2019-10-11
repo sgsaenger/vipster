@@ -20,12 +20,8 @@ public:
     explicit MolWidget(QWidget *parent = nullptr);
     ~MolWidget() override;
     void updateWidget(Vipster::GUI::change_t change) override;
-    void registerMol(const std::string& name);
-    Vipster::AtomFmt getAtomFmt();
-    Vipster::CdmFmt getCellFmt();
 
 private slots:
-    void on_molList_currentIndexChanged(int index);
     // atom slots
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();

@@ -22,12 +22,6 @@ struct Data{
     std::vector<std::unique_ptr<const BaseData>> data{};
 };
 
-struct State{
-    size_t index = -1ul;
-    AtomFmt atom_fmt = AtomFmt::Crystal;
-    CdmFmt cell_fmt = CdmFmt::Bohr;
-};
-
 struct Plugin{
     enum Args:uint8_t{None, Param, Config};
     std::string name;
@@ -38,7 +32,7 @@ struct Plugin{
     bool        (*writer)(const Molecule& m, std::ofstream &file,
                           const BaseParam *const p,
                           const BaseConfig *const c,
-                          State state) = nullptr;
+                          size_t idx) = nullptr;
     std::unique_ptr<BaseParam> (*makeParam)(const std::string& name) = nullptr;
     std::unique_ptr<BaseConfig> (*makeConfig)(const std::string& name) = nullptr;
 };

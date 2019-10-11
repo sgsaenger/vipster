@@ -31,7 +31,7 @@ nlohmann::json IO::CPConfig::toJson() const
 
 void IO::from_json(const nlohmann::json& j, IO::CPConfig& c)
 {
-    c.fmt = j.value("fmt", IO::CPConfig::AtomFmt::Current);
+    c.fmt = j.value("fmt", IO::CPConfig::AtomFmt::Active);
 }
 
 void IO::to_json(nlohmann::json& j, const IO::CPConfig& c)

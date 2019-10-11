@@ -92,11 +92,11 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
 
 bool XYZWriter(const Molecule& m, std::ofstream &file,
                const IO::BaseParam*const, const IO::BaseConfig*const c,
-               IO::State state)
+               size_t index)
 {
     const auto *cc = dynamic_cast<const IO::XYZConfig*>(c);
     if(!cc) throw IO::Error("XYZ-Writer needs configuration preset");
-    const Step& s = m.getStep(state.index).asFmt(AtomFmt::Angstrom);
+    const Step& s = m.getStep(index).asFmt(AtomFmt::Angstrom);
     auto stepWriter = [&file, cc](const Step& s){
         file << s.getNat() << '\n';
         file << s.getComment() << '\n';

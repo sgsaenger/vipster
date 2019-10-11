@@ -24,8 +24,8 @@ void Vipster::IO::to_json(nlohmann::json &j, const IO::PWConfig& c)
 
 void Vipster::IO::from_json(const nlohmann::json &j, IO::PWConfig& c)
 {
-    c.atoms = j.value("atomfmt", IO::PWConfig::AtomFmt::Current);
-    c.cell = j.value("cellfmt", IO::PWConfig::CellFmt::Current);
+    c.atoms = j.value("atomfmt", IO::PWConfig::AtomFmt::Active);
+    c.cell = j.value("cellfmt", IO::PWConfig::CellFmt::Active);
 }
 
 void IO::PWConfig::parseJson(const nlohmann::json::iterator& it)

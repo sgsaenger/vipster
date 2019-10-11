@@ -193,14 +193,14 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
 bool OrcaWriter(const Molecule& m, std::ofstream &file,
                 const IO::BaseParam *const p,
                 const IO::BaseConfig *const,
-                IO::State state)
+                size_t index)
 {
     const auto *pp = dynamic_cast<const IO::OrcaParam*>(p);
     if(!pp) throw IO::Error("OrcaWriter needs ORCA parameter set");
 
     auto af = AtomFmt::Angstrom; // TODO: deduce from parameter set
 
-    const auto& s = m.getStep(state.index).asFmt(af);
+    const auto& s = m.getStep(index).asFmt(af);
 
     for(const auto& line: pp->header){
         file << line << '\n';

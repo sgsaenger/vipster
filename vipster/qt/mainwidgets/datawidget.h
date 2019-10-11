@@ -27,7 +27,6 @@ public:
     explicit DataWidget(QWidget *parent = nullptr);
     ~DataWidget() override;
     void updateWidget(Vipster::GUI::change_t change) override;
-    void registerData(const std::string& name);
 
 private slots:
     void on_DataSel_currentIndexChanged(int index);

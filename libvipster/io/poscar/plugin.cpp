@@ -117,10 +117,10 @@ IO::Data PoscarParser(const std::string& name, std::ifstream &file){
 
 bool PoscarWriter(const Molecule& m, std::ofstream &file,
                   const IO::BaseParam* const, const IO::BaseConfig* const c,
-                  IO::State state)
+                  size_t index)
 {
     const auto * const cc = dynamic_cast<const IO::PoscarConfig*const>(c);
-    const Step& s = m.getStep(state.index).asFmt(cc->cartesian ?
+    const Step& s = m.getStep(index).asFmt(cc->cartesian ?
                                                  AtomFmt::Angstrom : AtomFmt::Crystal);
     file << s.getComment() << '\n';
     file << s.getCellDim(CdmFmt::Angstrom) << '\n';

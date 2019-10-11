@@ -256,16 +256,6 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     triggerUpdate(change);
 }
 
-AtomFmt MolWidget::getAtomFmt()
-{
-    return static_cast<AtomFmt>(ui->atomFmtBox->currentIndex());
-}
-
-CdmFmt MolWidget::getCellFmt()
-{
-    return static_cast<CdmFmt>(ui->cellFmt->currentIndex());
-}
-
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
     curStep = curStep.asFmt(static_cast<AtomFmt>(index));
@@ -291,17 +281,6 @@ void MolWidget::on_atomFmtButton_clicked()
 void MolWidget::on_atomHelpButton_clicked()
 {
     QMessageBox::information(this, QString("About atoms"), Vipster::AtomsAbout);
-}
-
-void MolWidget::on_molList_currentIndexChanged(int index)
-{
-    master->setMol(index);
-}
-
-void MolWidget::registerMol(const std::string& name)
-{
-    ui->molList->addItem(name.c_str());
-    ui->molList->setCurrentIndex(ui->molList->count()-1);
 }
 
 void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelection &)

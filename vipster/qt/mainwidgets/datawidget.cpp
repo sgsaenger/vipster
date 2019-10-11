@@ -22,15 +22,14 @@ DataWidget::~DataWidget()
 
 void DataWidget::updateWidget(GUI::change_t change)
 {
+    if(change & GUI::Change::data){
+        const BaseData& dat = *master->data.back();
+        ui->DataSel->addItem(dat.name.c_str());
+        ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
+    }
     ui->ThreeDWidget->updateWidget(change);
     ui->VecWidget->updateWidget(change);
     ui->TwoDWidget->updateWidget(change);
-}
-
-void DataWidget::registerData(const std::string& name)
-{
-    ui->DataSel->addItem(name.c_str());
-    ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
 }
 
 void DataWidget::on_DataSel_currentIndexChanged(int index)

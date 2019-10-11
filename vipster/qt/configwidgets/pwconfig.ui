@@ -28,7 +28,7 @@
      </item>
      <item>
       <property name="text">
-       <string>As selected</string>
+       <string>As Coord.</string>
       </property>
      </item>
     </widget>
@@ -57,7 +57,7 @@
      </item>
      <item>
       <property name="text">
-       <string>As selected</string>
+       <string>Active</string>
       </property>
      </item>
     </widget>

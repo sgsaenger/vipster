@@ -61,7 +61,7 @@
      </item>
      <item>
       <property name="text">
-       <string>As selected</string>
+       <string>Active</string>
       </property>
      </item>
     </widget>

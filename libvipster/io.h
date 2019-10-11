@@ -36,7 +36,7 @@ namespace Vipster{
     bool     writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
                        const IO::BaseParam *p=nullptr,
                        const IO::BaseConfig *c=nullptr,
-                       IO::State state={});
+                       size_t idx=-1ul);
 }
 
 #endif // IOWRAPPER

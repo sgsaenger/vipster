@@ -26,6 +26,7 @@ public:
                         std::vector<Vipster::IO::Data> &&d={},
                         QWidget *parent = nullptr);
     ~MainWindow() override;
+    // Molecule and Step data
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
@@ -44,6 +45,15 @@ public:
     std::list<Vipster::Molecule> molecules;
     std::map<Vipster::Molecule*, MolExtras> moldata;
     std::map<Vipster::Step*, StepExtras> stepdata;
+    // Parameter data
+    std::map<Vipster::IOFmt, QMenu*> paramMenus;
+    ParamWidget* paramWidget;
+    const decltype (ParamWidget::params)& getParams() const noexcept;
+    // Config data
+    std::map<Vipster::IOFmt, QMenu*> configMenus;
+    ConfigWidget* configWidget;
+    const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
+    // Extra data
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
     // expose configstate read from file
     Vipster::ConfigState    &state;
@@ -51,9 +61,6 @@ public:
     Vipster::Settings       &settings;
     Vipster::IO::Parameters &params;
     Vipster::IO::Configs    &configs;
-    // actually loaded and sortet params/configs
-    const decltype (ParamWidget::params)& getParams() const noexcept;
-    const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
     // GL helpers for additional render-data
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
@@ -77,13 +84,17 @@ public slots:
     void saveConfig();
     void saveScreenshot();
 
+private slots:
+    void on_molList_currentIndexChanged(int index);
+
 private:
     void setupUI(void);
+    void registerMol(const std::string& name);
 
     Ui::MainWindow *ui;
     QDir path{};
     QTimer playTimer{};
-    std::vector<QDockWidget*> baseWidgets;
-    std::vector<QDockWidget*> toolWidgets;
+    std::vector<BaseWidget*> baseWidgets;
+    std::vector<BaseWidget*> toolWidgets;
 };
 #endif // MAINWINDOW_H
