@@ -1,0 +1,188 @@
+#include "viewport.h"
+#include "glwidget.h"
+#include "mainwindow.h"
+#include "ui_viewport.h"
+
+using namespace Vipster;
+
+ViewPort::ViewPort(QWidget *parent) :
+    BaseWidget(parent),
+    ui(new Ui::ViewPort)
+{
+    ui->setupUi(this);
+    ui->checkActive->hide();
+    // try to create opengl-widget
+    // TODO: catch error when no gl3.3 is available
+    openGLWidget = new GLWidget{master, this};
+    ui->verticalLayout->insertWidget(1, openGLWidget, 1);
+    // connect timer for animation
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
+    // style buttons
+    ui->firstStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
+    ui->preStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekBackward));
+    ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
+    ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+}
+
+ViewPort::~ViewPort()
+{
+    delete ui;
+}
+
+void ViewPort::updateWidget(GUI::change_t change)
+{
+    openGLWidget->updateWidget(change);
+}
+
+void ViewPort::registerMol(const std::string &name)
+{
+    ui->molList->addItem(name.c_str());
+    if(active){
+        // if we are the main viewport,
+        // display new Molecule and make it active
+        ui->molList->setCurrentIndex(ui->molList->count()-1);
+    }
+}
+
+void ViewPort::setMol(int index)
+{
+    curMol = &*std::next(master->molecules.begin(), index);
+    int nstep = static_cast<int>(curMol->getNstep());
+    auto &curData = master->moldata[curMol];
+    if(curData.curStep < 0){
+        curData.curStep = nstep;
+    }
+    // set mult manually
+    QSignalBlocker xBlock{ui->xMultBox};
+    ui->xMultBox->setValue(curData.mult[0]);
+    QSignalBlocker yBlock{ui->yMultBox};
+    ui->yMultBox->setValue(curData.mult[1]);
+    QSignalBlocker zBlock{ui->zMultBox};
+    ui->zMultBox->setValue(curData.mult[2]);
+    openGLWidget->setMult(curData.mult);
+    //Step-control
+    ui->stepLabel->setText(QString::number(nstep));
+    QSignalBlocker boxBlocker(ui->stepEdit);
+    QSignalBlocker slideBlocker(ui->stepSlider);
+    ui->stepEdit->setMaximum(nstep);
+    ui->stepSlider->setMaximum(nstep);
+    if(nstep == 1){
+        ui->stepEdit->setDisabled(true);
+        ui->stepSlider->setDisabled(true);
+    }else{
+        ui->stepEdit->setEnabled(true);
+        ui->stepSlider->setEnabled(true);
+    }
+    // setStep will load the step and trigger the needed updates
+    setStep(master->moldata[curMol].curStep, true);
+}
+
+void ViewPort::setStep(int i, bool setMol)
+{
+    curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    // handle bond Mode
+    setBondMode(static_cast<bool>(curStep->getBondMode()));
+    // if no cell exists, disable mult-selectors
+    setMultEnabled(curStep->hasCell());
+    // if no previous selection exists, create one, afterwards assign it
+    auto& tmpSel = master->stepdata[curStep].sel;
+    if(!tmpSel && curStep){
+        tmpSel = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
+    }
+    curSel = tmpSel.get();
+    //Handle control-elements
+    if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
+        playTimer.stop();
+        ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    }
+    QSignalBlocker boxBlocker(ui->stepEdit);
+    QSignalBlocker slideBlocker(ui->stepSlider);
+    ui->stepEdit->setValue(i);
+    ui->stepSlider->setValue(i);
+    if(i == 1){
+        ui->preStepButton->setDisabled(true);
+        ui->firstStepButton->setDisabled(true);
+    }else{
+        ui->preStepButton->setEnabled(true);
+        ui->firstStepButton->setEnabled(true);
+    }
+    if(i == static_cast<int>(curMol->getNstep())){
+        ui->nextStepButton->setDisabled(true);
+        ui->lastStepButton->setDisabled(true);
+    }else{
+        ui->nextStepButton->setEnabled(true);
+        ui->lastStepButton->setEnabled(true);
+    }
+    if (active){
+        if(setMol){
+            triggerUpdate(GUI::stepChanged | GUI::molChanged);
+        }else{
+            triggerUpdate(GUI::stepChanged);
+        }
+    }
+}
+
+void ViewPort::setMult(int i)
+{
+    auto mult = master->moldata[curMol].mult;
+    if(sender() == ui->xMultBox){ mult[0] = static_cast<uint8_t>(i); }
+    else if(sender() == ui->yMultBox){ mult[1] = static_cast<uint8_t>(i); }
+    else if(sender() == ui->zMultBox){ mult[2] = static_cast<uint8_t>(i); }
+    // save mult if needed
+    if (active) master->moldata[curMol].mult = mult;
+    // trigger redraw
+    openGLWidget->setMult(mult);
+}
+
+void ViewPort::setMultEnabled(bool b)
+{
+    ui->xMultBox->setEnabled(b);
+    ui->yMultBox->setEnabled(b);
+    ui->zMultBox->setEnabled(b);
+}
+
+void ViewPort::setCamera(int i)
+{
+    openGLWidget->setCamera(i);
+}
+
+void ViewPort::setMouseMode(int i)
+{
+    if (i >= ui->mouseMode->count()) return;
+    ui->mouseMode->setCurrentIndex(i);
+}
+
+void ViewPort::setBondMode(bool b)
+{
+    if(b){
+        if(ui->mouseMode->currentIndex() == 3){
+            ui->mouseMode->setCurrentIndex(0);
+        }
+        ui->mouseMode->removeItem(3);
+    }else{
+        ui->mouseMode->addItem("Modify Bonds");
+    }
+}
+
+void ViewPort::stepBut(QAbstractButton *but)
+{
+    if(but == ui->firstStepButton){
+        setStep(1);
+    }else if(but == ui->lastStepButton){
+        setStep(static_cast<int>(curMol->getNstep()));
+    }else if(but == ui->playButton){
+        if(playTimer.isActive()){
+            playTimer.stop();
+            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        }else{
+            playTimer.start(static_cast<int>(settings.animstep.val));
+            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+        }
+    }
+}
+
+void ViewPort::on_mouseMode_currentIndexChanged(int i)
+{
+    openGLWidget->setMouseMode(static_cast<GLWidget::MouseMode>(i));
+}

@@ -2,13 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QAbstractButton>
 #include <QDir>
-#include <QTimer>
 #include <vector>
+
 #include "io.h"
 #include "stepsel.h"
 #include "configfile.h"
+
+#include "viewport.h"
 #include "../common/guiwrapper.h"
 #include "mainwidgets/paramwidget.h"
 #include "mainwidgets/configwidget.h"
@@ -26,6 +27,8 @@ public:
                         std::vector<Vipster::IO::Data> &&d={},
                         QWidget *parent = nullptr);
     ~MainWindow() override;
+    // Viewports
+    std::vector<ViewPort*> viewports;
     // Molecule and Step data
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
@@ -34,6 +37,7 @@ public:
     void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IO::Data&& d);
     void setMultEnabled(bool);
+    void setBondMode(bool);
     struct MolExtras{
         int curStep{-1};
         Vipster::GUI::PBCVec mult{1,1,1};
@@ -67,11 +71,6 @@ public:
     const Vipster::GUI::GlobalData& getGLGlobals();
 
 public slots:
-    void setMol(int i);
-    void setStep(int i);
-    void setMult(int i);
-    void setBondMode(int i);
-    void stepBut(QAbstractButton *but);
     void about();
     void newMol();
     void newMol(QAction *sender);
@@ -84,16 +83,12 @@ public slots:
     void saveConfig();
     void saveScreenshot();
 
-private slots:
-    void on_molList_currentIndexChanged(int index);
-
 private:
     void setupUI(void);
     void registerMol(const std::string& name);
 
     Ui::MainWindow *ui;
     QDir path{};
-    QTimer playTimer{};
     std::vector<BaseWidget*> baseWidgets;
     std::vector<BaseWidget*> toolWidgets;
 };

@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ViewPort</class>
+ <widget class="QWidget" name="ViewPort">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>952</width>
+    <height>103</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+   <item>
+    <layout class="QHBoxLayout" name="mainLayout">
+     <item>
+      <widget class="QLabel" name="molLabel">
+       <property name="text">
+        <string>Select Molecule:</string>
+       </property>
+       <property name="buddy">
+        <cstring>molList</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="molList"/>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::MinimumExpanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="mouseLabel">
+       <property name="text">
+        <string>Mouse mode:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="mouseMode">
+       <item>
+        <property name="text">
+         <string>Camera</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Select Atoms</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Modify Atoms</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkActive">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Active Molecule:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="displayLayout" stretch="0,0,0,0,0">
+     <item>
+      <widget class="QLabel" name="camLabel">
+       <property name="text">
+        <string>Align camera:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="alignLayout">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetMinimumSize</enum>
+       </property>
+       <item>
+        <widget class="QPushButton" name="pxButton">
+         <property name="text">
+          <string notr="true">+x</string>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">cameraGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pyButton">
+         <property name="text">
+          <string notr="true">+y</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">cameraGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pzButton">
+         <property name="text">
+          <string notr="true">+z</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">cameraGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="mxButton">
+         <property name="text">
+          <string notr="true">-x</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">cameraGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="myButton">
+         <property name="text">
+          <string notr="true">-y</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">cameraGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="mzButton">
+         <property name="text">
+          <string notr="true">-z</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">cameraGroup</string>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="displaySpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="QLabel" name="multLabel">
+       <property name="text">
+        <string>Cell multiply:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="multLayout">
+       <item>
+        <widget class="QSpinBox" name="xMultBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="yMultBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="zMultBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="stepLayout" stretch="0,0,1,0,0,0">
+     <item>
+      <widget class="QLabel" name="selectLabel">
+       <property name="text">
+        <string>Select step:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="controlLayout">
+       <item>
+        <widget class="QPushButton" name="firstStepButton">
+         <attribute name="buttonGroup">
+          <string notr="true">stepGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="preStepButton">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="playButton">
+         <property name="text">
+          <string/>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">stepGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="nextStepButton">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="lastStepButton">
+         <property name="text">
+          <string/>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">stepGroup</string>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QSlider" name="stepSlider">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>1</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="stepEdit">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>1</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="dividerLabel">
+       <property name="text">
+        <string>/</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="stepLabel">
+       <property name="text">
+        <string>1</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>stepSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>stepEdit</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>671</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>905</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stepGroup</sender>
+   <signal>buttonClicked(QAbstractButton*)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>stepBut(QAbstractButton*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>536</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>830</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>951</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>874</x>
+     <y>56</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>951</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zMultBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>setMult(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>930</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>951</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>molList</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>setMol(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>15</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>331</x>
+     <y>3</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stepEdit</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>setStep(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>905</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>793</x>
+     <y>98</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>preStepButton</sender>
+   <signal>clicked()</signal>
+   <receiver>stepEdit</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>158</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>908</x>
+     <y>84</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nextStepButton</sender>
+   <signal>clicked()</signal>
+   <receiver>stepEdit</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>260</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>908</x>
+     <y>82</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>stepBut(QAbstractButton*)</slot>
+  <slot>setMult(int)</slot>
+  <slot>setMol(int)</slot>
+  <slot>setStep(int)</slot>
+  <slot>setMouseMode(int)</slot>
+ </slots>
+ <buttongroups>
+  <buttongroup name="cameraGroup"/>
+  <buttongroup name="stepGroup"/>
+ </buttongroups>
+</ui>

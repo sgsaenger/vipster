@@ -11,7 +11,8 @@ class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
     Q_OBJECT
 
 public:
-    explicit GLWidget(QWidget *parent = nullptr);
+    enum class MouseMode { Camera, Select, Modify, Bond };
+    explicit GLWidget(MainWindow *master, QWidget *parent = nullptr);
     ~GLWidget() override;
     void initializeGL(void) override;
     void paintGL(void) override;
@@ -24,14 +25,12 @@ public:
     void triggerUpdate(Vipster::GUI::change_t change);
     void updateWidget(Vipster::GUI::change_t change);
     void setMult(Vipster::GUI::PBCVec mult);
-public slots:
-    void setMode(int i,bool t);
+    void setMouseMode(MouseMode i);
     void setCamera(int i);
 private:
     bool updateTriggered{false};
     MainWindow* master;
     // Input handling
-    enum class MouseMode { Camera=-2, Select=-3, Modify=-4, Bond=-5 };
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;
     Vipster::Vec shift;

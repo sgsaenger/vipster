@@ -6,19 +6,12 @@
 
 using namespace Vipster;
 
-GLWidget::GLWidget(QWidget *parent):
+GLWidget::GLWidget(MainWindow *master, QWidget *parent):
     QOpenGLWidget(parent),
-    // WARNING: this has to fail somewhere down the line, at the latest when multiple widgets are used
-    GuiWrapper{qobject_cast<MainWindow*>(qApp->topLevelWidgets()[0])->settings}
+    GuiWrapper{master->settings},
+    master{master}
 {
     setTextureFormat(GL_RGBA16);
-    for(auto *w: qApp->topLevelWidgets()){
-        if(auto *t = qobject_cast<MainWindow*>(w)){
-            master = t;
-            return;
-        }
-    }
-    throw Error("Could not determine MainWindow-instance.");
 }
 
 GLWidget::~GLWidget()
@@ -87,12 +80,9 @@ void GLWidget::resizeGL(int w, int h)
     resizeViewMat(w, h);
 }
 
-void GLWidget::setMode(int mode, bool t)
+void GLWidget::setMouseMode(MouseMode mode)
 {
-    if(!t) {
-        return;
-    }
-    mouseMode = static_cast<MouseMode>(mode);
+    mouseMode = mode;
     switch(mouseMode){
     case MouseMode::Camera:
         setCursor(Qt::ArrowCursor);
@@ -136,8 +126,20 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_Right:
         rotateViewMat(10, 0, 0);
         break;
+    case Qt::Key_R:
+        static_cast<ViewPort*>(parent())->setMouseMode(0);
+        break;
+    case Qt::Key_S:
+        static_cast<ViewPort*>(parent())->setMouseMode(1);
+        break;
+    case Qt::Key_M:
+        static_cast<ViewPort*>(parent())->setMouseMode(2);
+        break;
+    case Qt::Key_B:
+        static_cast<ViewPort*>(parent())->setMouseMode(3);
+        break;
     default:
-        return;
+        return QWidget::keyPressEvent(e);
     }
     e->accept();
     update();

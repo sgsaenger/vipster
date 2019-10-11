@@ -456,12 +456,13 @@ void MolWidget::on_bondHelpButton_clicked()
 void MolWidget::on_bondModeBox_currentIndexChanged(int index)
 {
     curStep.setBondMode(static_cast<BondMode>(index));
-    if(index){
+    auto automatic = static_cast<bool>(index);
+    if(automatic){
         ui->bondSetButton->setDisabled(true);
     }else{
         ui->bondSetButton->setEnabled(true);
     }
-    master->setBondMode(index);
+    master->setBondMode(automatic);
     bondModel.setStep(&curStep);
     triggerUpdate(GUI::Change::atoms);
 }

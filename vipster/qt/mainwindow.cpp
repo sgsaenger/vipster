@@ -4,6 +4,7 @@
 #include "savefmtdialog.h"
 #include "mainwidgets.h"
 #include "toolwidgets.h"
+#include "glwidget.h"
 
 #include <QDockWidget>
 #include <QMessageBox>
@@ -28,7 +29,10 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     ui->setupUi(this);
     setupUI();
     connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
-    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
+    // create main viewport
+    viewports.push_back(new ViewPort{this});
+    setCentralWidget(viewports.front());
+    // load molecules
     if(d.empty()){
         newMol();
     }else{
@@ -45,11 +49,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUI()
 {
-    ui->firstStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
-    ui->preStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekBackward));
-    ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-    ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
-    ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
@@ -121,6 +120,14 @@ void MainWindow::setupUI()
 
 void MainWindow::updateWidgets(GUI::change_t change)
 {
+    // pull in mol/step selection from active viewport
+    if((change & GUI::molChanged) == GUI::molChanged){
+        curMol = viewports.front()->curMol;
+    }
+    if((change & GUI::stepChanged) == GUI::stepChanged){
+        curStep = viewports.front()->curStep;
+        curSel = viewports.front()->curSel;
+    }
     // if necessary, make sure that data is up to date
     if(change & (GUI::Change::atoms | GUI::Change::fmt)){
         curStep->evaluateCache();
@@ -129,7 +136,9 @@ void MainWindow::updateWidgets(GUI::change_t change)
         curSel->evaluateCache();
     }
     // notify widgets
-    ui->openGLWidget->updateWidget(change);
+    for(auto& w: viewports){
+        w->updateWidget(change);
+    }
     for(auto& w: baseWidgets){
         w->updateWidget(change);
     }
@@ -138,128 +147,16 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
 }
 
-void MainWindow::setMol(int i)
+void MainWindow::setBondMode(bool b)
 {
-    //will be reused when functionality moved to viewport
-}
-
-void MainWindow::on_molList_currentIndexChanged(int index)
-{
-    curMol = &*std::next(molecules.begin(), index);
-    int nstep = static_cast<int>(curMol->getNstep());
-    auto &curData = moldata[curMol];
-    if(curData.curStep < 0){
-        curData.curStep = nstep;
-    }
-    // set mult manually
-    QSignalBlocker xBlock{ui->xMultBox};
-    ui->xMultBox->setValue(curData.mult[0]);
-    QSignalBlocker yBlock{ui->yMultBox};
-    ui->yMultBox->setValue(curData.mult[1]);
-    QSignalBlocker zBlock{ui->zMultBox};
-    ui->zMultBox->setValue(curData.mult[2]);
-    ui->openGLWidget->setMult(curData.mult);
-    //Step-control
-    ui->stepLabel->setText(QString::number(nstep));
-    QSignalBlocker boxBlocker(ui->stepEdit);
-    QSignalBlocker slideBlocker(ui->stepSlider);
-    ui->stepEdit->setMaximum(nstep);
-    ui->stepSlider->setMaximum(nstep);
-    if(nstep == 1){
-        ui->stepEdit->setDisabled(true);
-        ui->stepSlider->setDisabled(true);
-    }else{
-        ui->stepEdit->setEnabled(true);
-        ui->stepSlider->setEnabled(true);
-    }
-    setStep(moldata[curMol].curStep);
-    updateWidgets(GUI::molChanged);
-}
-
-void MainWindow::setStep(int i)
-{
-    moldata[curMol].curStep = i;
-    curStep = &curMol->getStep(static_cast<size_t>(i-1));
-    // handle bond Mode
-    setBondMode(static_cast<int>(curStep->getBondMode()));
-    // if no cell exists, disable mult-selectors
-    setMultEnabled(curStep->hasCell());
-    // if no previous selection exists, create one, afterwards assign it
-    auto& tmpSel = stepdata[curStep].sel;
-    if(!tmpSel && curStep){
-        tmpSel = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
-    }
-    curSel = tmpSel.get();
-    //Handle control-elements
-    if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
-        playTimer.stop();
-        ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-    }
-    QSignalBlocker boxBlocker(ui->stepEdit);
-    QSignalBlocker slideBlocker(ui->stepSlider);
-    ui->stepEdit->setValue(i);
-    ui->stepSlider->setValue(i);
-    if(i == 1){
-        ui->preStepButton->setDisabled(true);
-        ui->firstStepButton->setDisabled(true);
-    }else{
-        ui->preStepButton->setEnabled(true);
-        ui->firstStepButton->setEnabled(true);
-    }
-    if(i == static_cast<int>(curMol->getNstep())){
-        ui->nextStepButton->setDisabled(true);
-        ui->lastStepButton->setDisabled(true);
-    }else{
-        ui->nextStepButton->setEnabled(true);
-        ui->lastStepButton->setEnabled(true);
-    }
-    //Update child widgets
-    updateWidgets(GUI::stepChanged);
-}
-
-void MainWindow::setBondMode(int i)
-{
-    if(i){
-        if(ui->bondButton->isChecked()){
-            ui->camButton->setChecked(true);
-        }
-        ui->bondButton->setDisabled(true);
-    }else{
-        ui->bondButton->setEnabled(true);
-    }
-}
-
-void MainWindow::setMult(int i)
-{
-    auto &mult = moldata[curMol].mult;
-    if(sender() == ui->xMultBox){ mult[0] = static_cast<uint8_t>(i); }
-    else if(sender() == ui->yMultBox){ mult[1] = static_cast<uint8_t>(i); }
-    else if(sender() == ui->zMultBox){ mult[2] = static_cast<uint8_t>(i); }
-    ui->openGLWidget->setMult(mult);
+    // TODO: keep tied viewports in sync?
+    viewports.front()->setBondMode(b);
 }
 
 void MainWindow::setMultEnabled(bool b)
 {
-    ui->xMultBox->setEnabled(b);
-    ui->yMultBox->setEnabled(b);
-    ui->zMultBox->setEnabled(b);
-}
-
-void MainWindow::stepBut(QAbstractButton* but)
-{
-    if(but == ui->firstStepButton){
-        setStep(1);
-    }else if(but == ui->lastStepButton){
-        setStep(static_cast<int>(curMol->getNstep()));
-    }else if(but == ui->playButton){
-        if(playTimer.isActive()){
-            playTimer.stop();
-            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-        }else{
-            playTimer.start(static_cast<int>(settings.animstep.val));
-            ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-        }
-    }
+    // TODO: keep tied viewports in sync?
+    viewports.front()->setMultEnabled(b);
 }
 
 void MainWindow::editAtoms(QAction* sender)
@@ -306,8 +203,10 @@ void MainWindow::editAtoms(QAction* sender)
 
 void MainWindow::registerMol(const std::string& name)
 {
-    ui->molList->addItem(name.c_str());
-    ui->molList->setCurrentIndex(ui->molList->count()-1);
+    // delegate to active viewport which has relevant molList
+    for(auto& w: viewports){
+        w->registerMol(name);
+    }
 }
 
 void MainWindow::newMol()
@@ -410,7 +309,7 @@ void MainWindow::saveMol()
             try{
                 writeFile(target, sfd.fmt, *curMol,
                           sfd.getParam(), sfd.getConfig(),
-                          ui->stepSlider->value()-1);
+                          moldata[curMol].curStep);
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
@@ -432,19 +331,20 @@ const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 
 void MainWindow::addExtraData(GUI::Data* dat)
 {
-    ui->openGLWidget->addExtraData(dat);
+//    ui->openGLWidget->addExtraData(dat);
     updateWidgets(GUI::Change::extra);
 }
 
 void MainWindow::delExtraData(GUI::Data* dat)
 {
-    ui->openGLWidget->delExtraData(dat);
+//    ui->openGLWidget->delExtraData(dat);
     updateWidgets(GUI::Change::extra);
 }
 
 const GUI::GlobalData& MainWindow::getGLGlobals()
 {
-    return ui->openGLWidget->globals;
+//    return ui->openGLWidget->globals;
+    return GUI::GlobalData{};
 }
 
 void MainWindow::loadParam()
@@ -569,7 +469,7 @@ void MainWindow::saveScreenshot()
 
         auto aa = settings.antialias.val;
         settings.antialias.val = false;
-        auto img = ui->openGLWidget->grabFramebuffer();
+        auto img = viewports.front()->openGLWidget->grabFramebuffer();
         img.save(target);
         settings.antialias.val = aa;
         updateWidgets(0);
