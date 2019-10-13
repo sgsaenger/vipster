@@ -5,9 +5,10 @@
 
 using namespace Vipster;
 
-ViewPort::ViewPort(QWidget *parent) :
+ViewPort::ViewPort(QWidget *parent, bool active) :
     BaseWidget(parent),
-    ui(new Ui::ViewPort)
+    ui(new Ui::ViewPort),
+    active{active}
 {
     ui->setupUi(this);
     ui->checkActive->hide();
@@ -185,4 +186,25 @@ void ViewPort::stepBut(QAbstractButton *but)
 void ViewPort::on_mouseMode_currentIndexChanged(int i)
 {
     openGLWidget->setMouseMode(static_cast<GLWidget::MouseMode>(i));
+}
+
+void ViewPort::on_closeButton_clicked()
+{
+    master->changeViewports(this, MainWindow::VP_CLOSE);
+}
+
+void ViewPort::on_vSplitButton_clicked()
+{
+    master->changeViewports(this, MainWindow::VP_VSPLIT);
+}
+
+void ViewPort::on_hSplitButton_clicked()
+{
+    master->changeViewports(this, MainWindow::VP_HSPLIT);
+}
+
+void ViewPort::on_checkActive_toggled(bool checked)
+{
+    if(checked)
+        master->changeViewports(this, MainWindow::VP_ACTIVE);
 }

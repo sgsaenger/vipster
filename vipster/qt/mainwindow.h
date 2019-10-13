@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QDir>
+#include <QSplitter>
 #include <vector>
 
 #include "io.h"
@@ -29,6 +30,8 @@ public:
     ~MainWindow() override;
     // Viewports
     std::vector<ViewPort*> viewports;
+    enum VPChange{VP_CLOSE, VP_VSPLIT, VP_HSPLIT, VP_ACTIVE};
+    void changeViewports(ViewPort* sender, VPChange change);
     // Molecule and Step data
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
@@ -89,6 +92,8 @@ private:
 
     Ui::MainWindow *ui;
     QDir path{};
+    QSplitter *vsplit;
+    std::vector<QSplitter*> hsplits;
     std::vector<BaseWidget*> baseWidgets;
     std::vector<BaseWidget*> toolWidgets;
 };

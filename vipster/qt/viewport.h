@@ -20,7 +20,7 @@ class ViewPort : public BaseWidget
     Q_OBJECT
 
 public:
-    explicit ViewPort(QWidget *parent = nullptr);
+    explicit ViewPort(QWidget *parent = nullptr, bool active=false);
     ~ViewPort();
     void updateWidget(Vipster::GUI::change_t) override;
     void registerMol(const std::string& name);
@@ -37,6 +37,10 @@ public slots:
 
 private slots:
     void on_mouseMode_currentIndexChanged(int index);
+    void on_closeButton_clicked();
+    void on_vSplitButton_clicked();
+    void on_hSplitButton_clicked();
+    void on_checkActive_toggled(bool checked);
 
 private:
     friend class GLWidget;

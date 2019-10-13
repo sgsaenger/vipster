@@ -29,9 +29,13 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     ui->setupUi(this);
     setupUI();
     connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
-    // create main viewport
-    viewports.push_back(new ViewPort{this});
-    setCentralWidget(viewports.front());
+    // create first level of splitters and main viewport
+    viewports.push_back(new ViewPort{this, true});
+    vsplit = new QSplitter{this};
+    vsplit->setOrientation(Qt::Vertical);
+    hsplits.push_back(new QSplitter{vsplit});
+    hsplits.front()->addWidget(viewports.front());
+    setCentralWidget(vsplit);
     // load molecules
     if(d.empty()){
         newMol();
@@ -144,6 +148,52 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
     for(auto& w: toolWidgets){
         w->updateWidget(change);
+    }
+}
+
+void MainWindow::changeViewports(ViewPort *sender, VPChange change)
+{
+    try{
+        switch(change){
+        case VP_CLOSE:
+            if(sender->active){
+                throw Error{"Cannot close active viewport"};
+            }else{
+                auto pos = std::find(viewports.begin(), viewports.end(), sender);
+                if(pos == viewports.end()){
+                    throw Error{"Invalid viewport"};
+                }else{
+                    viewports.erase(pos);
+                    delete sender;
+                }
+            }
+            break;
+        case VP_VSPLIT:
+            viewports.push_back(new ViewPort{this});
+            viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
+            hsplits.push_back(new QSplitter{vsplit});
+            hsplits.back()->addWidget(viewports.back());
+            vsplit->addWidget(hsplits.back());
+            break;
+        case VP_HSPLIT:
+            viewports.push_back(new ViewPort{this});
+            viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
+            for(auto& h: hsplits){
+                for(auto& c: h->children()){
+                    if (c == sender){
+                        h->addWidget(viewports.back());
+                        return;
+                    }
+                }
+            }
+            throw Error{"Could not determine horizontal splitter for viewport"};
+        case VP_ACTIVE:
+            break;
+        default:
+            throw Error{"Invalid viewport change"};
+        }
+    }catch(const Error& e){
+        QMessageBox::information(this, "ViewPort Error", e.what());
     }
 }
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>952</width>
-    <height>103</height>
+    <height>106</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,6 +78,36 @@
        </property>
        <property name="text">
         <string>Active Molecule:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeButton">
+       <property name="toolTip">
+        <string>Close this view</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="vSplitButton">
+       <property name="toolTip">
+        <string>Split this view vertically</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="hSplitButton">
+       <property name="toolTip">
+        <string>Split this view horizontally</string>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
