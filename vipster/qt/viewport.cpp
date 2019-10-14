@@ -11,10 +11,9 @@ ViewPort::ViewPort(QWidget *parent, bool active) :
     active{active}
 {
     ui->setupUi(this);
-    ui->checkActive->hide();
     // try to create opengl-widget
     // TODO: catch error when no gl3.3 is available
-    openGLWidget = new GLWidget{master, this};
+    openGLWidget = new GLWidget{this, master->settings};
     ui->verticalLayout->insertWidget(1, openGLWidget, 1);
     // connect timer for animation
     connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
@@ -25,11 +24,52 @@ ViewPort::ViewPort(QWidget *parent, bool active) :
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     ui->closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+    // fill mol-list
+    for(const auto& mol: master->molecules){
+        ui->molList->addItem(mol.getName().c_str());
+    }
+    // init active-checkbox
+    auto block = QSignalBlocker{ui->checkActive};
+    ui->checkActive->setChecked(active);
+    ui->checkActive->setDisabled(active);
+    ui->closeButton->setDisabled(active);
+}
+
+ViewPort::ViewPort(const ViewPort &vp) :
+    ViewPort{vp.parentWidget(), false}
+{
+    ui->molList->setCurrentIndex(vp.ui->molList->currentIndex());
+    ui->stepEdit->setValue(vp.ui->stepEdit->value());
 }
 
 ViewPort::~ViewPort()
 {
     delete ui;
+}
+
+void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
+{
+    // if we are the active viewport or display the same step,
+    // trigger global update
+    if(active ||
+       (curStep == master->curStep)){
+        BaseWidget::triggerUpdate(change);
+    }else{
+        // short-circuit
+        // if necessary, make sure that data is up to date
+        if(change & (GUI::Change::atoms | GUI::Change::fmt)){
+            curStep->evaluateCache();
+        }
+        if(change & GUI::Change::selection){
+            curSel->evaluateCache();
+        }
+        // trigger update in viewports that display the same step
+        for(auto& vp: master->viewports){
+            if(curStep == vp->curStep){
+                vp->updateWidget(change);
+            }
+        }
+    }
 }
 
 void ViewPort::updateWidget(GUI::change_t change)
@@ -116,12 +156,10 @@ void ViewPort::setStep(int i, bool setMol)
         ui->nextStepButton->setEnabled(true);
         ui->lastStepButton->setEnabled(true);
     }
-    if (active){
-        if(setMol){
-            triggerUpdate(GUI::stepChanged | GUI::molChanged);
-        }else{
-            triggerUpdate(GUI::stepChanged);
-        }
+    if(setMol){
+        triggerUpdate(GUI::stepChanged | GUI::molChanged);
+    }else{
+        triggerUpdate(GUI::stepChanged);
     }
 }
 
@@ -206,6 +244,14 @@ void ViewPort::on_hSplitButton_clicked()
 
 void ViewPort::on_checkActive_toggled(bool checked)
 {
-    if(checked)
+    active = checked;
+    ui->checkActive->setDisabled(active);
+    ui->closeButton->setDisabled(active);
+    if(active)
         master->changeViewports(this, MainWindow::VP_ACTIVE);
+}
+
+void ViewPort::makeActive(bool active)
+{
+    ui->checkActive->setChecked(active);
 }

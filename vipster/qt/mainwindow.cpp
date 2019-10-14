@@ -158,20 +158,24 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
     try{
         switch(change){
         case VP_CLOSE:
-            if(sender->active){
-                throw Error{"Cannot close active viewport"};
-            }else{
+            {
                 auto pos = std::find(viewports.begin(), viewports.end(), sender);
                 if(pos == viewports.end()){
                     throw Error{"Invalid viewport"};
                 }else{
                     viewports.erase(pos);
                     delete sender;
+                    // clean-up hsplits if sender was last child
+                    for(auto it = hsplits.begin(); it != hsplits.end(); ++it){
+                        if(!(*it)->count()) delete *it;
+                        hsplits.erase(it);
+                        break;
+                    }
                 }
             }
             break;
         case VP_VSPLIT:
-            viewports.push_back(new ViewPort{this});
+            viewports.push_back(new ViewPort{*sender});
             viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
             hsplits.push_back(new QSplitter{vsplit});
             hsplits.back()->setChildrenCollapsible(false);
@@ -179,7 +183,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             vsplit->addWidget(hsplits.back());
             break;
         case VP_HSPLIT:
-            viewports.push_back(new ViewPort{this});
+            viewports.push_back(new ViewPort{*sender});
             viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
             for(auto& h: hsplits){
                 for(auto& c: h->children()){
@@ -191,6 +195,11 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             }
             throw Error{"Could not determine horizontal splitter for viewport"};
         case VP_ACTIVE:
+            for(auto& vp: viewports){
+                if(vp != sender) vp->makeActive(false);
+            }
+            // inform all non-viewports of changes
+            updateWidgets(GUI::molChanged | GUI::stepChanged);
             break;
         default:
             throw Error{"Invalid viewport change"};
@@ -256,7 +265,6 @@ void MainWindow::editAtoms(QAction* sender)
 
 void MainWindow::registerMol(const std::string& name)
 {
-    // delegate to active viewport which has relevant molList
     for(auto& w: viewports){
         w->registerMol(name);
     }

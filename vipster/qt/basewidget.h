@@ -11,7 +11,7 @@ class BaseWidget: public QWidget{
 
 public:
     BaseWidget(QWidget *parent = nullptr);
-    void triggerUpdate(Vipster::GUI::change_t change);
+    virtual void triggerUpdate(Vipster::GUI::change_t change);
     virtual void updateWidget(Vipster::GUI::change_t){}
     virtual ~BaseWidget()=default;
 

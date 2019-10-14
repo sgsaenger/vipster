@@ -3,7 +3,7 @@
 
 #include <QOpenGLWidget>
 #include "step.h"
-#include "mainwindow.h"
+#include "viewport.h"
 #include "../common/guiwrapper.h"
 
 class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
@@ -12,7 +12,7 @@ class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
 
 public:
     enum class MouseMode { Camera, Select, Modify, Bond };
-    explicit GLWidget(MainWindow *master, QWidget *parent = nullptr);
+    explicit GLWidget(QWidget *parent, Vipster::Settings& settings);
     ~GLWidget() override;
     void initializeGL(void) override;
     void paintGL(void) override;
@@ -29,7 +29,7 @@ public:
     void setCamera(int i);
 private:
     bool updateTriggered{false};
-    MainWindow* master;
+    Vipster::Settings &settings;
     // Input handling
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;

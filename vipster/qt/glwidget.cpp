@@ -6,10 +6,10 @@
 
 using namespace Vipster;
 
-GLWidget::GLWidget(MainWindow *master, QWidget *parent):
+GLWidget::GLWidget(QWidget *parent, Vipster::Settings& settings):
     QOpenGLWidget(parent),
-    GuiWrapper{master->settings},
-    master{master}
+    GuiWrapper{settings},
+    settings{settings}
 {
     setTextureFormat(GL_RGBA16);
 }
@@ -23,17 +23,17 @@ GLWidget::~GLWidget()
 
 void GLWidget::triggerUpdate(GUI::change_t change){
     updateTriggered = true;
-    master->updateWidgets(change);
+    static_cast<ViewPort*>(parent())->triggerUpdate(change);
 }
 
 void GLWidget::updateWidget(GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged ){
-        setMainStep(master->curStep);
-        setMainSel(master->curSel);
+        setMainStep(static_cast<ViewPort*>(parent())->curStep);
+        setMainSel(static_cast<ViewPort*>(parent())->curSel);
     }else{
         if(change & GUI::Change::settings){
-            selection.update(master->settings.selCol.val);
+            selection.update(settings.selCol.val);
         }
         if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt | GUI::Change::settings)) {
             updateMainStep();

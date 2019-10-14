@@ -21,9 +21,12 @@ class ViewPort : public BaseWidget
 
 public:
     explicit ViewPort(QWidget *parent = nullptr, bool active=false);
-    ~ViewPort();
-    void updateWidget(Vipster::GUI::change_t) override;
+    explicit ViewPort(const ViewPort &vp);
+    ~ViewPort() override;
+    void triggerUpdate(Vipster::GUI::change_t change) override;
+    void updateWidget(Vipster::GUI::change_t change) override;
     void registerMol(const std::string& name);
+    void makeActive(bool active);
 
 public slots:
     void setMol(int i);

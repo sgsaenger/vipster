@@ -132,15 +132,13 @@ void GuiWrapper::drawSel()
 void GuiWrapper::setMainStep(Step* step)
 {
     curStep = step;
-    mainStep.update(step, settings.atRadVdW.val, settings.atRadFac.val,
-                    settings.showBonds.val, settings.bondRad.val,
-                    settings.showCell.val);
+    updateMainStep();
 }
 
 void GuiWrapper::setMainSel(Step::selection* sel)
 {
     curSel = sel;
-    selection.update(sel, settings.atRadVdW.val, settings.atRadFac.val);
+    updateMainSelection();
 }
 
 void GuiWrapper::updateMainStep()
