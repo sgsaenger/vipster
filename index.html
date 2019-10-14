@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/styles.css">
+
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
+
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">
+                            VIPSTER
+                    </a>
+                    <a href="https://travis-ci.com/sgsaenger/vipster" class="navbar-text">
+                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/sgsaenger/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> About <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="about.html">Overview</a></li>
+                                <li><a href="gui.html">QtVipster</a></li>
+                                <li><a href="python.html">PyVipster</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="download.html">Get it!</a></li>
+                        <li><a href="emscripten/index.html">Try it!</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <header class="container">
+            <div class="jumbotron">
+                <img id="logo" src="images/logo.png" alt="logo" width="645" height="501">
+                <h1> VIPSTER</h1>
+                <h2>
+                    Visual Periodic STructure EditoR
+                </h2>
+            </div>
+        </header>
+        <main id="cover" class="container">
+            <div class="row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-8"> <p>Vipster is a powerful editor for molecular structures.
+                    It's designed from the ground up for periodic simulations,
+                    and it's scriptable in python!</p>
+                    <a type="button" class="btn btn-dark" href="about.html">About</a>
+                </div>
+                <div class="col-sm-2"></div>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
+            </div>
+        </footer>
+    </body>
+</html>

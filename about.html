@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/styles.css">
+
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
+
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="index.html">
+                            VIPSTER
+                    </a>
+                    <a href="https://travis-ci.com/sgsaenger/vipster" class="navbar-text">
+                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=master" alt="Travis build status" height="17">
+                    </a>
+                    <a href="https://codecov.io/gh/sgsaenger/vipster" class="navbar-text">
+                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
+                    </a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                      data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> About <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li class="active"><a href="#">Overview</a></li>
+                                <li><a href="gui.html">QtVipster</a></li>
+                                <li><a href="python.html">PyVipster</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="download.html">Get it!</a></li>
+                        <li><a href="emscripten/index.html">Try it!</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <main class="container">
+            <div class="row">
+                <p> Vipster is a powerful and versatile tool for pre- and post-processing
+                    of periodic chemical structures.</p>
+                <p> It's core is a library that provides access to atomistic data,
+                    designed with periodic simulations in mind.</p>
+                <p> Three interfaces are available: </p>
+                <p> <a href="gui.html"><em> QtVipster </em></a> is a graphical editor for Linux, OSX and Windows,
+                    with various editing capabilities and a useful cli-interface </p>
+                <p> <a href="emscripten/index.html"><em>WebVipster</em></a> is an emscripten-based visualisation
+                    tool that works in every WebGL2/WebASM capable browser</p>
+                <p> <a href="python.html"><em> PyVipster </em></a> is a python interface for advanced scripting needs </p>
+                <table class="table">
+                    <thead><tr>
+                            <th scope="col">These formats are implemented:</th>
+                            <th scope="col">... with write support</th>
+                        </tr></thead>
+                    <tbody>
+                        <tr><td>xyz (canonical and non-canonical)</td><td>&#10004;</td></tr>
+                        <tr><td>PWScf input</td><td>&#10004;</td></tr>
+                        <tr><td>PWScf output</td><td></td></tr>
+                        <tr><td>LAMMPS data</td><td>&#10004;</td></tr>
+                        <tr><td>LAMMPS dump</td><td></td></tr>
+                        <tr><td>CPMD input</td><td>&#10004;</td></tr>
+                        <tr><td>Gaussian cube files</td><td></td></tr>
+                        <tr><td>XCrysDen structure files</td><td></td></tr>
+                        <tr><td>ORCA input</td><td>&#10004;</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+                <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
+            </div>
+        </footer>
+    </body>
+</html>
