@@ -11,6 +11,7 @@ export PY_PREFIX=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.P
 
 # copy python standard-library
 export PY_LIB_DIR=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))")
+mkdir -p AppDir/$PY_LIB_DIR
 cp -r $PY_LIB_DIR/. AppDir/$PY_LIB_DIR
 
 # add libpython to LD_LIBRARY_PATH so linuxdeployqt finds it when pyenv is used
@@ -23,7 +24,7 @@ chmod +x linuxdeployqt
 
 # move libpython so we can use system's version if compatible
 mkdir -p AppDir/usr/optional/python
-mv AppDir/usr/libpython* AppDir/usr/optional/python
+mv AppDir/usr/lib/libpython* AppDir/usr/optional/python
 
 # bundle libstdc++ to be compatible with older linuxes, see https://github.com/darealshinji/AppImageKit-checkrt
 mkdir -p AppDir/usr/optional/libstdc++
