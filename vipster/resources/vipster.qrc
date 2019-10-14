@@ -15,5 +15,7 @@
     </qresource>
     <qresource prefix="/images">
         <file>vipster.png</file>
+        <file>vsplit.svg</file>
+        <file>hsplit.svg</file>
     </qresource>
 </RCC>

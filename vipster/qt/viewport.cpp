@@ -24,6 +24,7 @@ ViewPort::ViewPort(QWidget *parent, bool active) :
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+    ui->closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
 }
 
 ViewPort::~ViewPort()

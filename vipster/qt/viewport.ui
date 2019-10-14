@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>952</width>
-    <height>106</height>
+    <width>677</width>
+    <height>103</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -83,31 +83,66 @@
      </item>
      <item>
       <widget class="QPushButton" name="closeButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Close this view</string>
-       </property>
-       <property name="text">
-        <string/>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="vSplitButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Split this view vertically</string>
        </property>
-       <property name="text">
-        <string/>
+       <property name="icon">
+        <iconset resource="../resources/vipster.qrc">
+         <normaloff>:/images/vsplit.svg</normaloff>:/images/vsplit.svg</iconset>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="hSplitButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="toolTip">
         <string>Split this view horizontally</string>
        </property>
-       <property name="text">
-        <string/>
+       <property name="icon">
+        <iconset resource="../resources/vipster.qrc">
+         <normaloff>:/images/hsplit.svg</normaloff>:/images/hsplit.svg</iconset>
        </property>
       </widget>
      </item>
@@ -129,6 +164,18 @@
        </property>
        <item>
         <widget class="QPushButton" name="pxButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string notr="true">+x</string>
          </property>
@@ -142,6 +189,18 @@
        </item>
        <item>
         <widget class="QPushButton" name="pyButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string notr="true">+y</string>
          </property>
@@ -152,6 +211,18 @@
        </item>
        <item>
         <widget class="QPushButton" name="pzButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string notr="true">+z</string>
          </property>
@@ -162,6 +233,18 @@
        </item>
        <item>
         <widget class="QPushButton" name="mxButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string notr="true">-x</string>
          </property>
@@ -172,6 +255,18 @@
        </item>
        <item>
         <widget class="QPushButton" name="myButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string notr="true">-y</string>
          </property>
@@ -182,6 +277,18 @@
        </item>
        <item>
         <widget class="QPushButton" name="mzButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string notr="true">-z</string>
          </property>
@@ -196,6 +303,9 @@
       <spacer name="displaySpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::MinimumExpanding</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -295,6 +405,18 @@
      </item>
      <item>
       <widget class="QSlider" name="stepSlider">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="minimum">
         <number>1</number>
        </property>
@@ -334,7 +456,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/vipster.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>stepSlider</sender>
@@ -489,7 +613,7 @@
   <slot>setMouseMode(int)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="cameraGroup"/>
   <buttongroup name="stepGroup"/>
+  <buttongroup name="cameraGroup"/>
  </buttongroups>
 </ui>

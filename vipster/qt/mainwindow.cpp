@@ -33,8 +33,10 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     viewports.push_back(new ViewPort{this, true});
     vsplit = new QSplitter{this};
     vsplit->setOrientation(Qt::Vertical);
+    vsplit->setChildrenCollapsible(false);
     hsplits.push_back(new QSplitter{vsplit});
-    hsplits.front()->addWidget(viewports.front());
+    hsplits.back()->setChildrenCollapsible(false);
+    hsplits.back()->addWidget(viewports.front());
     setCentralWidget(vsplit);
     // load molecules
     if(d.empty()){
@@ -172,6 +174,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             viewports.push_back(new ViewPort{this});
             viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
             hsplits.push_back(new QSplitter{vsplit});
+            hsplits.back()->setChildrenCollapsible(false);
             hsplits.back()->addWidget(viewports.back());
             vsplit->addWidget(hsplits.back());
             break;
