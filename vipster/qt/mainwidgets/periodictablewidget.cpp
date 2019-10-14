@@ -21,7 +21,21 @@ void PeriodicTableWidget::registerProperty(QWidget* w, float Element::* prop)
             qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [prop, this](double newVal){
                 currentElement->*prop = static_cast<float>(newVal);
-                triggerUpdate(GUI::Change::settings);
+                if(isGlobal){
+                    triggerUpdate(GUI::Change::settings);
+                }else{
+                    /* WARNING: this may break when cache-validation is changed
+                       reassign one atom-type to taint bond-caches
+                       when changing bond cutoff radius
+                       (also triggered for other floats atm. unneeded but not harmful)
+                    */
+                    for(auto& step: master->curMol->getSteps()){
+                        if(step.getNat()){
+                            step[0].name = step[0].name;
+                        }
+                    }
+                    triggerUpdate(GUI::Change::settings | GUI::Change::atoms);
+                }
             }
     );
     connect(this, &PeriodicTableWidget::currentEntryChanged, this,
@@ -160,9 +174,7 @@ void PeriodicTableWidget::setEntry(QListWidgetItem *item)
             if(isGlobal){
                 bool defElem = pte.find(*currentName) != pte.end();
                 ui->defaultBut->setEnabled(defElem);
-                ui->defaultBut->setVisible(defElem);
                 ui->deleteBut->setEnabled(!defElem);
-                ui->deleteBut->setVisible(!defElem);
             }else{
                 ui->toGlobalBut->setEnabled(true);
                 ui->fromGlobalBut->setEnabled(master->pte.find(*currentName)
@@ -188,20 +200,25 @@ void PeriodicTableWidget::setEntry(QListWidgetItem *item)
 void PeriodicTableWidget::setTable(PeriodicTable* pte)
 {
     table = pte;
+    auto row = ui->pteList->currentRow();
     ui->pteList->clear();
     if(pte){
         for(const auto& entry: *pte){
             ui->pteList->addItem(QString::fromStdString(entry.first));
         }
     }
+    if (row > ui->pteList->count()) row = ui->pteList->count()-1;
+    ui->pteList->setCurrentRow(row);
 }
 
 void PeriodicTableWidget::changeEntry()
 {
+    GUI::change_t change = GUI::Change::settings;
     if(sender() == ui->toGlobalBut){
         master->pte[*currentName] = *currentElement;
     }else if(sender() == ui->fromGlobalBut){
         *currentElement = master->pte.at(*currentName);
+        change |= GUI::Change::atoms;
     }else if(sender() == ui->defaultBut){
         *currentElement = Vipster::pte.at(*currentName);
     }else if(sender() == ui->deleteBut){
@@ -210,7 +227,7 @@ void PeriodicTableWidget::changeEntry()
         throw Error{"PeriodicTable: changeEntry called with unknown sender"};
     }
     setEntry(ui->pteList->currentItem());
-    triggerUpdate(GUI::Change::settings);
+    triggerUpdate(change);
 }
 
 void PeriodicTableWidget::updateWidget(GUI::change_t change)
