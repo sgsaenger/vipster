@@ -1,3 +1,4 @@
+#include "../mainwindow.h"
 #include "pythonconsole.py.h"
 #include "pyvipster.h"
 #include "molecule.h"

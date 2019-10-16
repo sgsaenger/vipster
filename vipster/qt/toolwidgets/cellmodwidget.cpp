@@ -1,3 +1,4 @@
+#include "../mainwindow.h"
 #include "cellmodwidget.h"
 #include "ui_cellmodwidget.h"
 

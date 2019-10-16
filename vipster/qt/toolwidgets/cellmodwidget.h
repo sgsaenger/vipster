@@ -2,7 +2,7 @@
 #define CELLMODWIDGET_H
 
 #include <QWidget>
-#include "../mainwindow.h"
+#include "../basewidget.h"
 
 namespace Ui {
 class CellModWidget;

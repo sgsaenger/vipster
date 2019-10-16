@@ -4,8 +4,8 @@
 
 using namespace Vipster;
 
-GuiWrapper::GuiWrapper(const Settings &s)
-    : settings{s}
+GuiWrapper::GuiWrapper(GUI::GlobalData &g, const Settings &s)
+    : globals{g}, settings{s}
 {
     selection.update(s.selCol.val);
 }

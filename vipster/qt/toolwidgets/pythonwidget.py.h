@@ -2,7 +2,7 @@
 #define PYTHONWIDGET_PY_H
 
 #include <QWidget>
-#include "../mainwindow.h"
+#include "../basewidget.h"
 
 namespace Ui {
 class PythonWidget;

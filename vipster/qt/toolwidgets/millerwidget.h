@@ -2,7 +2,7 @@
 #define MILLERWIDGET_H
 
 #include <QWidget>
-#include "../mainwindow.h"
+#include "../basewidget.h"
 #include "../../common/meshdata.h"
 #include "molecule.h"
 

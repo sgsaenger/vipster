@@ -32,28 +32,30 @@ std::string readShader(const std::string &filePath)
 #endif
 
 GUI::GlobalData::GlobalData()
-    : sphere_vbo{buffers[0]}, cylinder_vbo{buffers[1]},
-      cell_ibo{buffers[2]}
 {}
 
 void GUI::GlobalData::initGL(const std::string& h, const std::string& f)
 {
+    if (initialized) return;
     header = h;
     folder = f;
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
 #endif
     // generate buffers and upload data
-    glGenBuffers(3, buffers);
+    glGenBuffers(1, &sphere_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(atom_model),
                  static_cast<const void*>(&atom_model), GL_STATIC_DRAW);
+    glGenBuffers(1, &cylinder_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, cylinder_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(bond_model),
                  static_cast<const void*>(&bond_model), GL_STATIC_DRAW);
+    glGenBuffers(1, &cell_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
     GLushort indices[24] = {0,1,0,2,0,3,1,4,1,5,2,4,2,6,3,5,3,6,4,7,5,7,6,7};
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), static_cast<void*>(indices), GL_STATIC_DRAW);
+    initialized = true;
 }
 
 void GUI::Data::syncToGPU()

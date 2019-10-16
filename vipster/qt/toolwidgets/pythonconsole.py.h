@@ -6,7 +6,8 @@
 #undef slots
 #include <pybind11/embed.h>
 #pragma pop_macro("slots")
-#include "../mainwindow.h"
+
+class MainWindow;
 
 class PythonConsole : public QPlainTextEdit
 {

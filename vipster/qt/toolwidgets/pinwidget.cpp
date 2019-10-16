@@ -1,3 +1,4 @@
+#include "../mainwindow.h"
 #include "pinwidget.h"
 #include "ui_pinwidget.h"
 
@@ -92,11 +93,11 @@ void PinWidget::on_addStep_clicked()
     stepMap.emplace(mainStep, PinnedStep{
             true,
             master->settings.showCell.val,
-            GUI::StepData{master->getGLGlobals(),
+            GUI::StepData{master->globals,
                           mainStep}});
     stepList.push_back(mainStep);
     ui->stepList->addItem(QString::fromStdString(master->curMol->getName() + " (Step " +
-                          std::to_string(master->moldata[master->curMol].curStep) + ')'));
+                          std::to_string(master->curVP->moldata[master->curMol].curStep) + ')'));
 }
 
 void PinWidget::on_stepList_currentRowChanged(int currentRow)

@@ -40,7 +40,7 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
             if(pair.second.display) master->delExtraData(&pair.second.gpu_data);
         }
         curStep = master->curStep;
-        defMap = &master->stepdata[curStep].def;
+        defMap = &master->curVP->stepdata[curStep].def;
         fillTable();
         for(auto& pair: dataMap[curStep]){
             if(pair.second.display) master->addExtraData(&pair.second.gpu_data);
@@ -72,7 +72,7 @@ void DefineWidget::fillTable()
             // set to transparent by default
             curCol[3] = 80;
             auto tmp = curMap.emplace(name, GroupData{true, curCol,
-                                           GUI::SelData{master->getGLGlobals(),
+                                           GUI::SelData{master->globals,
                                                         &def.second}});
             tmp.first->second.gpu_data.update(curCol);
             master->addExtraData(&tmp.first->second.gpu_data);

@@ -1,19 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ViewPort</class>
- <widget class="QWidget" name="ViewPort">
+ <widget class="QFrame" name="ViewPort">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>677</width>
-    <height>103</height>
+    <height>105</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="frameShape">
+   <enum>QFrame::Panel</enum>
+  </property>
+  <property name="frameShadow">
+   <enum>QFrame::Raised</enum>
+  </property>
+  <property name="lineWidth">
+   <number>2</number>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="mainLayout">
      <item>
@@ -69,16 +90,6 @@
          <string>Modify Atoms</string>
         </property>
        </item>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkActive">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Active Molecule:</string>
-       </property>
       </widget>
      </item>
      <item>
@@ -309,7 +320,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
@@ -613,7 +624,7 @@
   <slot>setMouseMode(int)</slot>
  </slots>
  <buttongroups>
-  <buttongroup name="stepGroup"/>
   <buttongroup name="cameraGroup"/>
+  <buttongroup name="stepGroup"/>
  </buttongroups>
 </ui>

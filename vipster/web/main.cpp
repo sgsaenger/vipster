@@ -11,7 +11,8 @@
 namespace em = emscripten;
 using namespace Vipster;
 
-static GuiWrapper gui{settings};
+static GUI::GlobalData glGlobals{};
+static GuiWrapper gui{glGlobals, settings};
 static std::vector<Molecule> molecules;
 
 static VRDisplayHandle handle;

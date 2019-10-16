@@ -1,4 +1,5 @@
 #include "glwidget.h"
+#include "mainwindow.h"
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
 #include <QApplication>
@@ -6,12 +7,13 @@
 
 using namespace Vipster;
 
-GLWidget::GLWidget(QWidget *parent, Vipster::Settings& settings):
+GLWidget::GLWidget(QWidget *parent, GUI::GlobalData &g, const Vipster::Settings& settings):
     QOpenGLWidget(parent),
-    GuiWrapper{settings},
+    GuiWrapper{g, settings},
     settings{settings}
 {
     setTextureFormat(GL_RGBA16);
+    setFocusPolicy(Qt::WheelFocus);
 }
 
 GLWidget::~GLWidget()
@@ -243,7 +245,6 @@ void GLWidget::wheelEvent(QWheelEvent *e)
 void GLWidget::mousePressEvent(QMouseEvent *e)
 {
     e->accept();
-    setFocus();
     if (!(e->buttons()&7)) {
         return;
     }
@@ -429,5 +430,14 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
         curStep->newBond(at1.first, at2.first, off_r);
         triggerUpdate(GUI::Change::atoms);
         break;
+    }
+}
+
+void GLWidget::focusInEvent(QFocusEvent *e)
+{
+    // make sure our viewport is the active one
+    auto vp = static_cast<ViewPort*>(parentWidget());
+    if(!vp->active){
+        vp->master->changeViewports(vp, MainWindow::VP_ACTIVE);
     }
 }

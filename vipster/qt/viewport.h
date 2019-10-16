@@ -4,29 +4,42 @@
 #include <QAbstractButton>
 #include <QTimer>
 #include <QKeyEvent>
-
-#include "basewidget.h"
+#include <QFrame>
 
 #include "molecule.h"
+#include "toolwidgets.h"
+#include "../common/guiglobals.h"
 
 namespace Ui {
 class ViewPort;
 }
 
 class GLWidget;
+class MainWindow;
 
-class ViewPort : public BaseWidget
+class ViewPort : public QFrame
 {
     Q_OBJECT
 
+    friend class MainWindow;
 public:
-    explicit ViewPort(QWidget *parent = nullptr, bool active=false);
+    explicit ViewPort(MainWindow *parent, bool active=false);
     explicit ViewPort(const ViewPort &vp);
     ~ViewPort() override;
-    void triggerUpdate(Vipster::GUI::change_t change) override;
-    void updateWidget(Vipster::GUI::change_t change) override;
+    void triggerUpdate(Vipster::GUI::change_t change);
+    void updateWidget(Vipster::GUI::change_t change);
     void registerMol(const std::string& name);
     void makeActive(bool active);
+    struct MolExtras{
+        int curStep{-1};
+        Vipster::GUI::PBCVec mult{1,1,1};
+    };
+    struct StepExtras{
+        std::unique_ptr<Vipster::Step::selection> sel{nullptr};
+        std::map<std::string, Vipster::Step::selection> def{};
+    };
+    std::map<Vipster::Molecule*, MolExtras> moldata;
+    std::map<Vipster::Step*, StepExtras> stepdata;
 
 public slots:
     void setMol(int i);
@@ -43,12 +56,10 @@ private slots:
     void on_closeButton_clicked();
     void on_vSplitButton_clicked();
     void on_hSplitButton_clicked();
-    void on_checkActive_toggled(bool checked);
 
-private:
-    friend class GLWidget;
-    friend class MainWindow;
+public:
     Ui::ViewPort *ui;
+    MainWindow *master;
     GLWidget *openGLWidget{nullptr};
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};

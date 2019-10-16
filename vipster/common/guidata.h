@@ -15,6 +15,11 @@
 namespace Vipster{
 namespace GUI {
 
+/* Global OpenGL Data
+ *
+ * Contains strings to find/compile shaders correctly (platform/runtime dependent)
+ * indices for shared OpenGL objects like basic mesh data
+ */
 #ifdef __EMSCRIPTEN__
 struct GlobalData{
 #else
@@ -22,12 +27,17 @@ struct GlobalData: protected QOpenGLFunctions_3_3_Core{
 #endif
     GlobalData();
     void initGL(const std::string& header, const std::string& folder);
-    GLuint buffers[3]{0,0,0};
-    GLuint& sphere_vbo, &cylinder_vbo;
-    GLuint& cell_ibo;
+    GLuint sphere_vbo, cylinder_vbo;
+    GLuint cell_ibo;
     std::string header, folder;
+    bool initialized{false};
 };
 
+/* Base for concrete OpenGL Wrappers
+ *
+ * provides mechanism to load shaders
+ * public interface for syncing data between cpu/gpu
+ */
 #ifdef __EMSCRIPTEN__
 class Data
 #else

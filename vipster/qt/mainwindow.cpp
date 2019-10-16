@@ -1,6 +1,7 @@
 #include "version.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "ui_viewport.h"
 #include "savefmtdialog.h"
 #include "mainwidgets.h"
 #include "toolwidgets.h"
@@ -38,6 +39,9 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     hsplits.back()->setChildrenCollapsible(false);
     hsplits.back()->addWidget(viewports.front());
     setCentralWidget(vsplit);
+    curVP = viewports.front();
+    curVP->makeActive(true);
+    curVP->ui->closeButton->setDisabled(true);
     // load molecules
     if(d.empty()){
         newMol();
@@ -128,11 +132,11 @@ void MainWindow::updateWidgets(GUI::change_t change)
 {
     // pull in mol/step selection from active viewport
     if((change & GUI::molChanged) == GUI::molChanged){
-        curMol = viewports.front()->curMol;
+        curMol = curVP->curMol;
     }
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        curStep = viewports.front()->curStep;
-        curSel = viewports.front()->curSel;
+        curStep = curVP->curStep;
+        curSel = curVP->curSel;
     }
     // if necessary, make sure that data is up to date
     if(change & (GUI::Change::atoms | GUI::Change::fmt)){
@@ -159,6 +163,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
         switch(change){
         case VP_CLOSE:
             {
+                bool wasActive = sender->active;
                 auto pos = std::find(viewports.begin(), viewports.end(), sender);
                 if(pos == viewports.end()){
                     throw Error{"Invalid viewport"};
@@ -167,14 +172,22 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
                     delete sender;
                     // clean-up hsplits if sender was last child
                     for(auto it = hsplits.begin(); it != hsplits.end(); ++it){
-                        if(!(*it)->count()) delete *it;
-                        hsplits.erase(it);
-                        break;
+                        if(!(*it)->count()){
+                            delete *it;
+                            hsplits.erase(it);
+                            break;
+                        }
                     }
                 }
+                // make sure we don't close last viewport
+                if(viewports.size() == 1)
+                    viewports.front()->ui->closeButton->setDisabled(true);
+                if(wasActive)
+                    viewports.front()->openGLWidget->setFocus();
             }
             break;
         case VP_VSPLIT:
+            if(viewports.size() == 1) viewports.front()->ui->closeButton->setEnabled(true);
             viewports.push_back(new ViewPort{*sender});
             viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
             hsplits.push_back(new QSplitter{vsplit});
@@ -183,6 +196,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             vsplit->addWidget(hsplits.back());
             break;
         case VP_HSPLIT:
+            if(viewports.size() == 1) viewports.front()->ui->closeButton->setEnabled(true);
             viewports.push_back(new ViewPort{*sender});
             viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
             for(auto& h: hsplits){
@@ -195,10 +209,13 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             }
             throw Error{"Could not determine horizontal splitter for viewport"};
         case VP_ACTIVE:
+            // deactivate other viewports
             for(auto& vp: viewports){
-                if(vp != sender) vp->makeActive(false);
+                vp->makeActive(vp == sender);
             }
-            // inform all non-viewports of changes
+            // make sender current viewport
+            curVP = sender;
+            // change to sender's mol/step
             updateWidgets(GUI::molChanged | GUI::stepChanged);
             break;
         default:
@@ -207,18 +224,6 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
     }catch(const Error& e){
         QMessageBox::information(this, "ViewPort Error", e.what());
     }
-}
-
-void MainWindow::setBondMode(bool b)
-{
-    // TODO: keep tied viewports in sync?
-    viewports.front()->setBondMode(b);
-}
-
-void MainWindow::setMultEnabled(bool b)
-{
-    // TODO: keep tied viewports in sync?
-    viewports.front()->setMultEnabled(b);
 }
 
 void MainWindow::editAtoms(QAction* sender)
@@ -286,12 +291,12 @@ void MainWindow::newMol(QAction* sender)
         registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_single_Step){
         molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
-                               std::to_string(moldata[curMol].curStep) + ')');
+                               std::to_string(curVP->moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
         registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_current_Selection){
         molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
-                               std::to_string(moldata[curMol].curStep) + ')');
+                               std::to_string(curVP->moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
         registerMol(molecules.back().getName());
     }
@@ -370,7 +375,7 @@ void MainWindow::saveMol()
             try{
                 writeFile(target, sfd.fmt, *curMol,
                           sfd.getParam(), sfd.getConfig(),
-                          moldata[curMol].curStep);
+                          curVP->moldata[curMol].curStep);
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
@@ -392,20 +397,16 @@ const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 
 void MainWindow::addExtraData(GUI::Data* dat)
 {
+    //FIXME
 //    ui->openGLWidget->addExtraData(dat);
     updateWidgets(GUI::Change::extra);
 }
 
 void MainWindow::delExtraData(GUI::Data* dat)
 {
+    //FIXME
 //    ui->openGLWidget->delExtraData(dat);
     updateWidgets(GUI::Change::extra);
-}
-
-const GUI::GlobalData& MainWindow::getGLGlobals()
-{
-//    return ui->openGLWidget->globals;
-    return GUI::GlobalData{};
 }
 
 void MainWindow::loadParam()

@@ -12,7 +12,8 @@ class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
 
 public:
     enum class MouseMode { Camera, Select, Modify, Bond };
-    explicit GLWidget(QWidget *parent, Vipster::Settings& settings);
+    explicit GLWidget(QWidget *parent, Vipster::GUI::GlobalData &globals,
+                      const Vipster::Settings &settings);
     ~GLWidget() override;
     void initializeGL(void) override;
     void paintGL(void) override;
@@ -22,6 +23,7 @@ public:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
+    void focusInEvent(QFocusEvent *e) override;
     void triggerUpdate(Vipster::GUI::change_t change);
     void updateWidget(Vipster::GUI::change_t change);
     void setMult(Vipster::GUI::PBCVec mult);
@@ -29,7 +31,7 @@ public:
     void setCamera(int i);
 private:
     bool updateTriggered{false};
-    Vipster::Settings &settings;
+    const Vipster::Settings &settings;
     // Input handling
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;

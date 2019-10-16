@@ -26,7 +26,7 @@ public:
     virtual ~GuiWrapper() = default;
 #endif
 public:
-    GuiWrapper(const Settings &s);
+    GuiWrapper(GUI::GlobalData &g, const Settings &s);
     void initGL(const std::string& header, const std::string& folder);
     void draw(void);
     void drawSel(void);
@@ -51,7 +51,7 @@ public:
     GUI::PBCVec mult{{1,1,1}};
     Step* curStep{nullptr};
     Step::selection* curSel{nullptr};
-    GUI::GlobalData globals;
+    GUI::GlobalData& globals;
     GUI::StepData mainStep{globals, nullptr};
     GUI::SelData selection{globals, nullptr};
     std::set<GUI::Data*> extraData{};

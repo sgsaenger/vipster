@@ -3,7 +3,10 @@
 
 #include <QWidget>
 #include <QAction>
-#include "../mainwindow.h"
+
+#include "molecule.h"
+#include "../basewidget.h"
+#include "../common/seldata.h"
 
 namespace Ui {
 class DefineWidget;

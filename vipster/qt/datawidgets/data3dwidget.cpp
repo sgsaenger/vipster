@@ -186,7 +186,7 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
         auto off = static_cast<float>(pos) / curData->extent[dir];
         auto tmp = slices.emplace(curData, DatSlice{
             true, dir, pos,
-            GUI::MeshData{master->getGLGlobals(),
+            GUI::MeshData{master->globals,
                           mkSlice(dir, off),
                           curData->origin,
                           curData->cell,
@@ -717,7 +717,7 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
         auto pm = static_cast<bool>(ui->surfToggle->checkState());
         auto tmp = surfaces.emplace(curData, IsoSurf{
             true, pm, isoval,
-            GUI::MeshData{master->getGLGlobals(),
+            GUI::MeshData{master->globals,
                           mkSurf(isoval, pm),
                           curData->origin,
                           curData->cell,

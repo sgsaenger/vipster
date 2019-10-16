@@ -12,6 +12,7 @@
 
 #include "viewport.h"
 #include "../common/guiwrapper.h"
+#include "../common/guidata.h"
 #include "mainwidgets/paramwidget.h"
 #include "mainwidgets/configwidget.h"
 
@@ -32,26 +33,16 @@ public:
     std::vector<ViewPort*> viewports;
     enum VPChange{VP_CLOSE, VP_VSPLIT, VP_HSPLIT, VP_ACTIVE};
     void changeViewports(ViewPort* sender, VPChange change);
+    ViewPort* curVP{nullptr};
+    Vipster::GUI::GlobalData globals{};
     // Molecule and Step data
+    std::list<Vipster::Molecule> molecules;
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
     Vipster::Step copyBuf{};
     void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IO::Data&& d);
-    void setMultEnabled(bool);
-    void setBondMode(bool);
-    struct MolExtras{
-        int curStep{-1};
-        Vipster::GUI::PBCVec mult{1,1,1};
-    };
-    struct StepExtras{
-        std::unique_ptr<Vipster::Step::selection> sel{nullptr};
-        std::map<std::string, Vipster::Step::selection> def{};
-    };
-    std::list<Vipster::Molecule> molecules;
-    std::map<Vipster::Molecule*, MolExtras> moldata;
-    std::map<Vipster::Step*, StepExtras> stepdata;
     // Parameter data
     std::map<Vipster::IOFmt, QMenu*> paramMenus;
     ParamWidget* paramWidget;
@@ -71,7 +62,6 @@ public:
     // GL helpers for additional render-data
     void addExtraData(Vipster::GUI::Data* dat);
     void delExtraData(Vipster::GUI::Data* dat);
-    const Vipster::GUI::GlobalData& getGLGlobals();
 
 public slots:
     void about();

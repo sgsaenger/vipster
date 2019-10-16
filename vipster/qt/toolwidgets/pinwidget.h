@@ -2,7 +2,9 @@
 #define PINWIDGET_H
 
 #include <QWidget>
-#include "../mainwindow.h"
+#include "../basewidget.h"
+#include "../common/stepdata.h"
+#include "molecule.h"
 
 namespace Ui {
 class PinWidget;

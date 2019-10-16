@@ -1,3 +1,4 @@
+#include "../mainwindow.h"
 #include "pickwidget.h"
 #include "ui_pickwidget.h"
 using namespace Vipster;

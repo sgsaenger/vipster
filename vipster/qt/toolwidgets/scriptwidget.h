@@ -3,7 +3,8 @@
 
 #include <QWidget>
 #include "scripthelp.h"
-#include "../mainwindow.h"
+#include "../basewidget.h"
+#include "molecule.h"
 
 namespace Ui {
 class ScriptWidget;
@@ -22,7 +23,7 @@ public slots:
 private slots:
     void on_helpButton_clicked();
 
-private:
+public:
     struct OpVec{
         enum class Mode{Direct, Relative, Position, Combination};
         Mode mode{Mode::Direct};
@@ -41,10 +42,10 @@ private:
         std::string s1{}, s2{};
         OpVec v1{}, v2{}, v3{};
     };
-    Vipster::GUI::change_t curChange{};
     std::vector<ScriptOp> parse();
-    bool execute(const std::vector<ScriptOp>&, Vipster::Step&,
-                 MainWindow::StepExtras &);
+//    bool execute(const std::vector<ScriptOp>&, Vipster::Step&,
+//                 Vipster::Step::selection &,
+//                 std::map<std::string, Vipster::Step::selection>&);
     Ui::ScriptWidget *ui;
     ScriptHelp *help;
 };

@@ -1,3 +1,4 @@
+#include "../mainwindow.h"
 #include "millerwidget.h"
 #include "ui_millerwidget.h"
 
@@ -235,7 +236,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
                        static_cast<float>(ui->zOff->value())};
         auto tmp = planes.emplace(curStep, MillerPlane{
               curStep->hasCell(), hkl, off,
-              GUI::MeshData{master->getGLGlobals(),
+              GUI::MeshData{master->globals,
                             mkFaces(hkl, off),
                             Vec{},
                             curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),

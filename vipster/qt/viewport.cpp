@@ -5,16 +5,19 @@
 
 using namespace Vipster;
 
-ViewPort::ViewPort(QWidget *parent, bool active) :
-    BaseWidget(parent),
+ViewPort::ViewPort(MainWindow *parent, bool active) :
+    QFrame(parent),
     ui(new Ui::ViewPort),
+    master{parent},
     active{active}
 {
     ui->setupUi(this);
+    setFocusPolicy(Qt::StrongFocus);
     // try to create opengl-widget
     // TODO: catch error when no gl3.3 is available
-    openGLWidget = new GLWidget{this, master->settings};
+    openGLWidget = new GLWidget{this, master->globals, master->settings};
     ui->verticalLayout->insertWidget(1, openGLWidget, 1);
+    setFocusProxy(openGLWidget);
     // connect timer for animation
     connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
     // style buttons
@@ -28,16 +31,17 @@ ViewPort::ViewPort(QWidget *parent, bool active) :
     for(const auto& mol: master->molecules){
         ui->molList->addItem(mol.getName().c_str());
     }
-    // init active-checkbox
-    auto block = QSignalBlocker{ui->checkActive};
-    ui->checkActive->setChecked(active);
-    ui->checkActive->setDisabled(active);
-    ui->closeButton->setDisabled(active);
 }
 
 ViewPort::ViewPort(const ViewPort &vp) :
-    ViewPort{vp.parentWidget(), false}
+    ViewPort{vp.master, false}
 {
+    //TODO: make this optional?
+    moldata = vp.moldata;
+    for(const auto& p: vp.stepdata){
+        stepdata[p.first].sel = std::make_unique<Vipster::Step::selection>(*p.second.sel);
+        //FIXME: copy p.second.def?
+    }
     ui->molList->setCurrentIndex(vp.ui->molList->currentIndex());
     ui->stepEdit->setValue(vp.ui->stepEdit->value());
 }
@@ -49,11 +53,10 @@ ViewPort::~ViewPort()
 
 void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
 {
-    // if we are the active viewport or display the same step,
-    // trigger global update
-    if(active ||
-       (curStep == master->curStep)){
-        BaseWidget::triggerUpdate(change);
+    if(active || (curStep == master->curStep)){
+        // if we are the active viewport or display the same step,
+        // trigger global update
+        master->updateWidgets(change);
     }else{
         // short-circuit
         // if necessary, make sure that data is up to date
@@ -91,7 +94,7 @@ void ViewPort::setMol(int index)
 {
     curMol = &*std::next(master->molecules.begin(), index);
     int nstep = static_cast<int>(curMol->getNstep());
-    auto &curData = master->moldata[curMol];
+    auto &curData = moldata[curMol];
     if(curData.curStep < 0){
         curData.curStep = nstep;
     }
@@ -117,18 +120,20 @@ void ViewPort::setMol(int index)
         ui->stepSlider->setEnabled(true);
     }
     // setStep will load the step and trigger the needed updates
-    setStep(master->moldata[curMol].curStep, true);
+    setStep(moldata[curMol].curStep, true);
 }
 
 void ViewPort::setStep(int i, bool setMol)
 {
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
+    // ensure this step will be reused when mol is selected again
+    moldata[curMol].curStep = i;
     // handle bond Mode
     setBondMode(static_cast<bool>(curStep->getBondMode()));
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
     // if no previous selection exists, create one, afterwards assign it
-    auto& tmpSel = master->stepdata[curStep].sel;
+    auto& tmpSel = stepdata[curStep].sel;
     if(!tmpSel && curStep){
         tmpSel = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
     }
@@ -165,12 +170,12 @@ void ViewPort::setStep(int i, bool setMol)
 
 void ViewPort::setMult(int i)
 {
-    auto mult = master->moldata[curMol].mult;
+    auto mult = moldata[curMol].mult;
     if(sender() == ui->xMultBox){ mult[0] = static_cast<uint8_t>(i); }
     else if(sender() == ui->yMultBox){ mult[1] = static_cast<uint8_t>(i); }
     else if(sender() == ui->zMultBox){ mult[2] = static_cast<uint8_t>(i); }
     // save mult if needed
-    if (active) master->moldata[curMol].mult = mult;
+    if (active) moldata[curMol].mult = mult;
     // trigger redraw
     openGLWidget->setMult(mult);
 }
@@ -242,16 +247,8 @@ void ViewPort::on_hSplitButton_clicked()
     master->changeViewports(this, MainWindow::VP_HSPLIT);
 }
 
-void ViewPort::on_checkActive_toggled(bool checked)
+void ViewPort::makeActive(bool a)
 {
-    active = checked;
-    ui->checkActive->setDisabled(active);
-    ui->closeButton->setDisabled(active);
-    if(active)
-        master->changeViewports(this, MainWindow::VP_ACTIVE);
-}
-
-void ViewPort::makeActive(bool active)
-{
-    ui->checkActive->setChecked(active);
+    active = a;
+    setFrameShadow(active ? QFrame::Sunken : QFrame::Raised);
 }

@@ -57,7 +57,8 @@ private:
     void fillKPoints(void);
     void setSelection(void);
     Ui::MolWidget *ui;
-    Vipster::Step curStep;
+    Vipster::Step *curStep;
+    Vipster::Step ownStep;
     Vipster::Molecule* curMol;
     AtomModel molModel{this};
     BondModel bondModel{this};
