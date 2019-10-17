@@ -187,7 +187,7 @@ void ViewPort::setMultEnabled(bool b)
     ui->zMultBox->setEnabled(b);
 }
 
-void ViewPort::setCamera(int i)
+void ViewPort::on_cameraGroup_buttonClicked(int i)
 {
     openGLWidget->setCamera(i);
 }

@@ -49,7 +49,7 @@ public slots:
     void setBondMode(bool b);
     void stepBut(QAbstractButton *but);
     void setMouseMode(int i);
-    void setCamera(int i);
+    void on_cameraGroup_buttonClicked(int i);
 
 private slots:
     void on_mouseMode_currentIndexChanged(int index);
