@@ -55,8 +55,10 @@ void GuiWrapper::drawPre(void)
     // synchronize data
     mainStep.syncToGPU();
     selection.syncToGPU();
-    for(const auto& i: extraData){
-        i->syncToGPU();
+    if(stepExtras){
+        for(const auto& i: *stepExtras){
+            i->syncToGPU();
+        }
     }
 }
 
@@ -71,14 +73,18 @@ void GuiWrapper::drawImpl(const Vec &pos)
         off -= (mult[2]-1)*cv[2]/2.;
         mainStep.drawCell(off, mult);
         selection.drawCell(off, mult);
-        for(const auto& i: extraData){
-            i->drawCell(off, mult);
+        if(stepExtras){
+            for(const auto& i: *stepExtras){
+                i->drawCell(off, mult);
+            }
         }
     }else{
         mainStep.drawMol(off);
         selection.drawMol(off);
-        for(const auto& i: extraData){
-            i->drawMol(off);
+        if(stepExtras){
+            for(const auto& i: *stepExtras){
+                i->drawMol(off);
+            }
         }
     }
 }
@@ -153,14 +159,9 @@ void GuiWrapper::updateMainSelection()
     selection.update(curSel, settings.atRadVdW.val, settings.atRadFac.val);
 }
 
-void GuiWrapper::addExtraData(GUI::Data* dat)
+void GuiWrapper::setStepExtras(std::vector<std::unique_ptr<GUI::Data> > *extra)
 {
-    extraData.insert(dat);
-}
-
-void GuiWrapper::delExtraData(GUI::Data* dat)
-{
-    extraData.erase(dat);
+    stepExtras = extra;
 }
 
 void GuiWrapper::updateViewUBOVR(const float* proj, const float* view)

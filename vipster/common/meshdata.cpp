@@ -110,7 +110,7 @@ void GUI::MeshData::update(const Texture& tex)
     updated = true;
 }
 
-void GUI::MeshData::update(Mat c)
+void GUI::MeshData::update(const Mat &c)
 {
     cell = c;
     cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],

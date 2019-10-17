@@ -35,10 +35,9 @@ public:
                 const Vec& pos, unsigned long width, unsigned long height);
     void setMainStep(Step* step);
     void setMainSel(Step::selection* sel);
+    void setStepExtras(std::vector<std::unique_ptr<GUI::Data>>* extra);
     void updateMainStep();
     void updateMainSelection();
-    void addExtraData(GUI::Data* dat);
-    void delExtraData(GUI::Data* dat);
 public:
     void resizeViewMat(long w, long h);
     void zoomViewMat(float i);
@@ -54,7 +53,7 @@ public:
     GUI::GlobalData& globals;
     GUI::StepData mainStep{globals, nullptr};
     GUI::SelData selection{globals, nullptr};
-    std::set<GUI::Data*> extraData{};
+    std::vector<std::unique_ptr<GUI::Data>> *stepExtras{nullptr};
 private:
     const Settings &settings;
     void drawPre(void);

@@ -11,7 +11,7 @@ using ScriptOp = ScriptWidget::ScriptOp;
 using OpVec = ScriptWidget::OpVec;
 
 std::pair<bool, GUI::change_t> execute(const std::vector<ScriptOp>& operations,
-                                  Step& step, ViewPort::StepExtras& data)
+                                  Step& step, ViewPort::StepState& data)
 {
     auto change = GUI::change_t{};
     auto mkVec = [&](const OpVec& in)->Vec{

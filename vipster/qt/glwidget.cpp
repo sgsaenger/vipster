@@ -33,6 +33,7 @@ void GLWidget::updateWidget(GUI::change_t change)
     if((change & GUI::stepChanged) == GUI::stepChanged ){
         setMainStep(static_cast<ViewPort*>(parent())->curStep);
         setMainSel(static_cast<ViewPort*>(parent())->curSel);
+        setStepExtras(&static_cast<ViewPort*>(parent())->stepdata[curStep].extras);
     }else{
         if(change & GUI::Change::settings){
             selection.update(settings.selCol.val);

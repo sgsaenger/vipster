@@ -9,6 +9,7 @@
 #include "molecule.h"
 #include "toolwidgets.h"
 #include "../common/guiglobals.h"
+#include "../common/guidata.h"
 
 namespace Ui {
 class ViewPort;
@@ -30,16 +31,17 @@ public:
     void updateWidget(Vipster::GUI::change_t change);
     void registerMol(const std::string& name);
     void makeActive(bool active);
-    struct MolExtras{
+    struct MolState{
         int curStep{-1};
         Vipster::GUI::PBCVec mult{1,1,1};
     };
-    struct StepExtras{
+    struct StepState{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
         std::map<std::string, Vipster::Step::selection> def{};
+        std::vector<std::unique_ptr<Vipster::GUI::Data>> extras{};
     };
-    std::map<Vipster::Molecule*, MolExtras> moldata;
-    std::map<Vipster::Step*, StepExtras> stepdata;
+    std::map<Vipster::Molecule*, MolState> moldata;
+    std::map<Vipster::Step*, StepState> stepdata;
 
 public slots:
     void setMol(int i);

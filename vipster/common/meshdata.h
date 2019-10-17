@@ -20,7 +20,9 @@ public:
 private:
     // CPU-Data:
     std::vector<Face> faces;
+public:
     Vec offset;
+private:
     Mat cell;
     std::array<Vec, 8> cell_buffer;
     std::array<float, 9> cell_gpu;
@@ -56,11 +58,12 @@ public:
     void drawCell(const Vec &off, const PBCVec &mult) override;
     void updateGL(void) override;
     void initGL(void) override;
-    void initMesh();
-    void initCell();
     void update(std::vector<Face>&& faces);
     void update(const Texture& tex);
-    void update(Vipster::Mat cell);
+    void update(const Vipster::Mat &cell);
+private:
+    void initMesh();
+    void initCell();
 };
 
 }

@@ -16,7 +16,15 @@ MillerWidget::~MillerWidget()
     delete ui;
 }
 
-std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec off)
+MillerWidget::MillerPlane::MillerPlane(
+        const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+        Vipster::Vec offset, Vipster::Mat cell, Texture texture,
+        const std::array<int8_t, 3> &hkl) :
+    GUI::MeshData{glob, std::move(faces), offset, cell, texture},
+    hkl{hkl}
+{}
+
+std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl)
 {
     std::vector<GUI::MeshData::Face> faces{};
     auto hasH = hkl[0] != 0;
@@ -119,60 +127,51 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl, Vec of
             }
         }
     }
-    for(auto& f: faces){
-        f.pos += off;
-    }
     return faces;
 }
 
 void MillerWidget::updateWidget(GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        //disable previous plane if necessary
-        if(curPlane && curPlane->display){
-            master->delExtraData(&curPlane->gpu_data);
-        }
         // set new pointers
         curStep = master->curStep;
-        auto pos = planes.find(curStep);
-        QSignalBlocker block{this};
-        if(pos != planes.end()){
-            curPlane = &pos->second;
+        curPlane = nullptr;
+        // find out if a plane had previously been created in this viewport for this step
+        for(auto& dat: master->curVP->stepdata[curStep].extras){
+            auto* test = dynamic_cast<MillerPlane*>(dat.get());
+            if(test){
+                curPlane = test;
+                break;
+            }
+        }
+        // set GUI state as needed
+        if(curPlane){
             ui->hSel->setValue(curPlane->hkl[0]);
             ui->kSel->setValue(curPlane->hkl[1]);
             ui->lSel->setValue(curPlane->hkl[2]);
             ui->xOff->setValue(static_cast<double>(curPlane->offset[0]));
             ui->yOff->setValue(static_cast<double>(curPlane->offset[1]));
             ui->zOff->setValue(static_cast<double>(curPlane->offset[2]));
-            ui->pushButton->setChecked(curPlane->display);
-            if(curPlane->display){
-                master->addExtraData(&curPlane->gpu_data);
-            }
+            // TODO: mask event?
+            auto block = QSignalBlocker{ui->pushButton};
+            ui->pushButton->setChecked(true);
         }else{
-            curPlane = nullptr;
             ui->hSel->setValue(0);
             ui->kSel->setValue(0);
             ui->lSel->setValue(0);
             ui->xOff->setValue(0.);
             ui->yOff->setValue(0.);
             ui->zOff->setValue(0.);
+            auto block = QSignalBlocker{ui->pushButton};
             ui->pushButton->setChecked(false);
         }
     }else if(curPlane){
         if(change & GUI::Change::settings){
-            curPlane->gpu_data.update({{master->settings.milCol.val}, 1, 1});
+            curPlane->update({{master->settings.milCol.val}, 1, 1});
         }
         if(change & GUI::Change::cell){
-            curPlane->gpu_data.update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
-            curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
-            if(curPlane->display != curStep->hasCell()){
-                curPlane->display = curStep->hasCell();
-                if(curPlane->display){
-                    master->addExtraData(&curPlane->gpu_data);
-                }else{
-                    master->delExtraData(&curPlane->gpu_data);
-                }
-            }
+            curPlane->update(curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr));
+            curPlane->update(mkFaces(curPlane->hkl));
         }
     }
 }
@@ -190,10 +189,8 @@ void MillerWidget::updateIndex(int idx)
         }else{
             throw Error("Unknown sender for HKL-plane index");
         }
-        curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
-        if(curPlane->display){
-            triggerUpdate(GUI::Change::extra);
-        }
+        curPlane->update(mkFaces(curPlane->hkl));
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
@@ -210,23 +207,15 @@ void MillerWidget::updateOffset(double off)
         }else{
             throw Error("Unknown sender for HKL-plane offset");
         }
-        curPlane->gpu_data.update(mkFaces(curPlane->hkl, curPlane->offset));
-        if(curPlane->display){
-            triggerUpdate(GUI::Change::extra);
-        }
+        curPlane->update(mkFaces(curPlane->hkl));
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
 void MillerWidget::on_pushButton_toggled(bool checked)
 {
-    if(curPlane){
-        curPlane->display = checked;
-        if(checked){
-            master->addExtraData(&curPlane->gpu_data);
-        }else{
-            master->delExtraData(&curPlane->gpu_data);
-        }
-    }else if(checked){
+    if(checked){
+        // create new Plane
         auto hkl = std::array<int8_t,3>{
             static_cast<int8_t>(ui->hSel->value()),
             static_cast<int8_t>(ui->kSel->value()),
@@ -234,17 +223,25 @@ void MillerWidget::on_pushButton_toggled(bool checked)
         auto off = Vec{static_cast<float>(ui->xOff->value()),
                        static_cast<float>(ui->yOff->value()),
                        static_cast<float>(ui->zOff->value())};
-        auto tmp = planes.emplace(curStep, MillerPlane{
-              curStep->hasCell(), hkl, off,
-              GUI::MeshData{master->globals,
-                            mkFaces(hkl, off),
-                            Vec{},
-                            curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
-                            {{master->settings.milCol.val}, 1, 1}}
-              });
-        curPlane = &tmp.first->second;
-        if(curPlane->display){
-            master->addExtraData(&curPlane->gpu_data);
+        auto& extras = master->curVP->stepdata[curStep].extras;
+        extras.push_back(
+        std::make_unique<MillerPlane>(
+            master->globals, mkFaces(hkl), off,
+            curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
+            MillerPlane::Texture{{master->settings.milCol.val}, 1, 1}, hkl
+        ));
+        curPlane = static_cast<MillerPlane*>(extras.back().get());
+    }else{
+        // delete Plane
+        auto& extras = master->curVP->stepdata[curStep].extras;
+        auto pos = std::find_if(extras.begin(), extras.end(), [&](const auto& up){
+            return up.get() == curPlane;
+        });
+        if(pos != extras.end()){
+            extras.erase(pos);
+        }else{
+            throw Error{"Invalid hkl plane"};
         }
     }
+    triggerUpdate(GUI::Change::extra);
 }

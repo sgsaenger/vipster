@@ -26,15 +26,15 @@ private slots:
 
 private:
     Ui::MillerWidget *ui;
-    struct MillerPlane{
-        bool display;
+    struct MillerPlane: Vipster::GUI::MeshData
+    {
+        MillerPlane(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+                    Vipster::Vec offset, Vipster::Mat cell, Texture texture,
+                    const std::array<int8_t, 3> &hkl);
         std::array<int8_t, 3> hkl;
-        Vipster::Vec offset;
-        Vipster::GUI::MeshData gpu_data;
     };
     Vipster::Step* curStep{nullptr};
     MillerPlane* curPlane{nullptr};
-    std::map<Vipster::Step*, MillerPlane> planes;
 };
 
 #endif // MILLERWIDGET_H
