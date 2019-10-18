@@ -32,7 +32,7 @@ public:
     void registerMol(const std::string& name);
     void makeActive(bool active);
     struct MolState{
-        int curStep{-1};
+        size_t curStep{0};
         Vipster::GUI::PBCVec mult{1,1,1};
     };
     struct StepState{

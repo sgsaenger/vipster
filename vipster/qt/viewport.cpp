@@ -95,7 +95,7 @@ void ViewPort::setMol(int index)
     curMol = &*std::next(master->molecules.begin(), index);
     int nstep = static_cast<int>(curMol->getNstep());
     auto &curData = moldata[curMol];
-    if(curData.curStep < 0){
+    if(curData.curStep == 0){
         curData.curStep = nstep;
     }
     // set mult manually

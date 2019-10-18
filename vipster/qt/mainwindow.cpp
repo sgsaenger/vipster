@@ -375,7 +375,7 @@ void MainWindow::saveMol()
             try{
                 writeFile(target, sfd.fmt, *curMol,
                           sfd.getParam(), sfd.getConfig(),
-                          curVP->moldata[curMol].curStep);
+                          curVP->moldata[curMol].curStep-1);
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
