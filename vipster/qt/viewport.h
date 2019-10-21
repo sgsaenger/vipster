@@ -7,9 +7,10 @@
 #include <QFrame>
 
 #include "molecule.h"
-#include "toolwidgets.h"
+//#include "toolwidgets.h"
 #include "../common/guiglobals.h"
 #include "../common/guidata.h"
+#include "../common/seldata.h"
 
 namespace Ui {
 class ViewPort;
@@ -37,8 +38,10 @@ public:
     };
     struct StepState{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
-        std::map<std::string, Vipster::Step::selection> def{};
-        std::vector<std::unique_ptr<Vipster::GUI::Data>> extras{};
+        std::map<std::string,
+            std::pair<Vipster::Step::selection,
+            std::shared_ptr<Vipster::GUI::SelData>>> def{};
+        std::vector<std::shared_ptr<Vipster::GUI::Data>> extras{};
     };
     std::map<Vipster::Molecule*, MolState> moldata;
     std::map<Vipster::Step*, StepState> stepdata;

@@ -36,82 +36,50 @@ DefineWidget::~DefineWidget()
 void DefineWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        for(auto& pair: dataMap[curStep]){
-            if(pair.second.display) master->delExtraData(&pair.second.gpu_data);
-        }
         curStep = master->curStep;
-        defMap = &master->curVP->stepdata[curStep].def;
+        curState = &master->curVP->stepdata[curStep];
+        defMap = &curState->def;
         fillTable();
-        for(auto& pair: dataMap[curStep]){
-            if(pair.second.display) master->addExtraData(&pair.second.gpu_data);
-        }
     }else if(change & GUI::Change::definitions){
         fillTable();
-    }else if(change & GUI::Change::atoms){
-        auto& curMap = dataMap[curStep];
-        for(auto& name: curNames){
-            curMap.at(name).gpu_data.update(&defMap->at(name),
-                                            master->settings.atRadVdW.val,
-                                            master->settings.atRadFac.val);
+    }else if(change & (GUI::Change::atoms|GUI::Change::settings)){
+        for(auto& def: *defMap){
+            def.second.second->update(&def.second.first,
+                                      master->settings.atRadVdW.val,
+                                      master->settings.atRadFac.val);
         }
     }
 }
 
 void DefineWidget::fillTable()
 {
-    ui->defTable->clearSelection();
+    auto& table = *ui->defTable;
+    table.clearSelection();
     QSignalBlocker blockTable{ui->defTable};
-    auto& curMap = dataMap[curStep];
-    // make sure data is up to date and synchronized
-    for(auto& def: *defMap){
-        const auto& name = def.first;
-        def.second.evaluateCache();
-        auto pos = curMap.find(name);
-        if(pos == curMap.end()){
-            auto curCol = defaultColors[curMap.size()%5];
-            // set to transparent by default
-            curCol[3] = 80;
-            auto tmp = curMap.emplace(name, GroupData{true, curCol,
-                                           GUI::SelData{master->globals,
-                                                        &def.second}});
-            tmp.first->second.gpu_data.update(curCol);
-            master->addExtraData(&tmp.first->second.gpu_data);
-        }
-    }
-    for(auto it = curMap.begin(); it != curMap.end();){
-        auto pos = defMap->find(it->first);
-        if(pos == defMap->end()){
-            if(it->second.display){
-                master->delExtraData(&it->second.gpu_data);
-            }
-            it = curMap.erase(it);
-        }else{
-            it->second.gpu_data.update(&pos->second,
-                                       master->settings.atRadVdW.val,
-                                       master->settings.atRadFac.val);
-            ++it;
-        }
-    }
     // setup table
     int i{0};
-    auto& table = *ui->defTable;
     table.clearContents();
-    curNames.clear();
     ui->defTable->setRowCount(defMap->size());
-    for(auto& pair: curMap){
-        curNames.push_back(pair.first);
-        auto& dat = pair.second;
-        table.setItem(i, 0, new QTableWidgetItem(QString::fromStdString(pair.first)));
-        table.item(i, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable|
+    for(auto& def: *defMap){
+        // if contained in extras, this group is displayed
+        table.setItem(i, 0, new QTableWidgetItem{});
+        table.item(i, 0)->setFlags(Qt::ItemIsSelectable|
                                    Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-        table.item(i, 0)->setCheckState(Qt::CheckState(static_cast<int>(dat.display)*2));
-        table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(
-                                                     defMap->at(pair.first).getFilter().toStr())));
+        table.item(i, 0)->setCheckState(Qt::CheckState(
+            (std::find(curState->extras.begin(), curState->extras.end(), def.second.second)
+             != curState->extras.end())*2));
+        // name
+        table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(def.first)));
+        // filter-str
+        table.setItem(i, 2, new QTableWidgetItem(QString::fromStdString(
+            def.second.first.getFilter().toStr())));
+        // color button
         auto* but = new QPushButton("Select");
+        const auto& color = def.second.second->color;
         but->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
-                           .arg(dat.color[0]).arg(dat.color[1]).arg(dat.color[2]));
+                           .arg(color[0]).arg(color[1]).arg(color[2]));
         connect(but, &QPushButton::clicked, this, &DefineWidget::colButton_clicked);
-        table.setCellWidget(i, 2, but);
+        table.setCellWidget(i, 3, but);
         i++;
     }
 }
@@ -125,13 +93,18 @@ void DefineWidget::on_newButton_clicked()
                                        ).toStdString();
     if(!ok) return;
     try {
-        auto tmp = curStep->select(filter);
+        auto sel = curStep->select(filter);
         auto name = QInputDialog::getText(this, "Create new filtered group",
                                           "Enter name for new group:",
                                           QLineEdit::Normal, QString(), &ok
                                          ).toStdString();
         if(!ok) return;
-        defMap->insert_or_assign(name, std::move(tmp));
+        auto [it, _] = defMap->insert_or_assign(name, std::pair{std::move(sel),
+            std::make_shared<GUI::SelData>(master->globals)});
+        it->second.second->update(&it->second.first,
+            master->settings.atRadVdW.val, master->settings.atRadFac.val);
+        it->second.second->color = defaultColors[defMap->size()%5];
+        master->curVP->stepdata[curStep].extras.push_back(it->second.second);
         triggerUpdate(GUI::Change::definitions);
     }catch(const Error &e){
         QMessageBox msg{this};
@@ -146,10 +119,13 @@ void DefineWidget::on_newButton_clicked()
 
 void DefineWidget::deleteAction()
 {
-    if(curSel < 0){
+    if(curSel == defMap->end()){
         throw Error{"DefineWidget: \"delete group\" triggered with invalid selection"};
     }
-    defMap->erase(curNames.at(curSel));
+    auto posExtra = std::find(curState->extras.begin(), curState->extras.end(),
+                              curSel->second.second);
+    if(posExtra != curState->extras.end()) curState->extras.erase(posExtra);
+    defMap->erase(curSel);
     triggerUpdate(GUI::Change::definitions);
 }
 
@@ -161,25 +137,30 @@ void DefineWidget::on_fromSelButton_clicked()
                                      QLineEdit::Normal, QString(), &ok
                                     ).toStdString();
     if(!ok) return;
-    defMap->insert_or_assign(tmp, *master->curSel);
+    auto [it, _] = defMap->insert_or_assign(tmp, std::pair{*master->curSel,
+        std::make_shared<GUI::SelData>(master->globals)});
+    it->second.second->update(&it->second.first,
+        master->settings.atRadVdW.val, master->settings.atRadFac.val);
+    it->second.second->color = defaultColors[defMap->size()%5];
+    master->curVP->stepdata[curStep].extras.push_back(it->second.second);
     triggerUpdate(GUI::Change::definitions);
 }
 
 void DefineWidget::toSelAction()
 {
-    if(curSel < 0){
+    if(curSel == defMap->end()){
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
-    *master->curSel = defMap->at(curNames.at(curSel));
+    *master->curSel = curSel->second.first;
     triggerUpdate(GUI::Change::selection);
 }
 
 void DefineWidget::updateAction()
 {
-    if(curSel < 0){
+    if(curSel == defMap->end()){
         throw Error{"DefineWidget: \"update group\" triggered with invalid selection"};
     }
-    auto& step = defMap->at(curNames[curSel]);
+    auto& step = curSel->second.first;
     step.setFilter(step.getFilter());
     triggerUpdate(GUI::Change::definitions);
 }
@@ -187,40 +168,41 @@ void DefineWidget::updateAction()
 void DefineWidget::on_defTable_cellChanged(int row, int column)
 {
     QTableWidgetItem *cell = ui->defTable->item(row, column);
-    auto& name = curNames[static_cast<size_t>(row)];
-    auto& curMap = dataMap[curStep];
-    auto& curData = curMap.at(name);
-    if(column == 0){
-        bool checkState = cell->checkState() != Qt::CheckState::Unchecked;
-        if(checkState != curData.display){
-            curData.display = checkState;
-            if(checkState){
-                master->addExtraData(&curData.gpu_data);
-            }else{
-                master->delExtraData(&curData.gpu_data);
-            }
+    switch(column){
+    case 0:
+        // toggle visibility
+        if(cell->checkState()){
+            curState->extras.push_back(curSel->second.second);
         }else{
-            auto newName = cell->text();
-            if(defMap->find(newName.toStdString()) != defMap->end()){
-                QSignalBlocker block{ui->defTable};
-                cell->setText(name.c_str());
-                QMessageBox msg{this};
-                msg.setText("Name \""+newName+"\" is already in use.");
-                msg.exec();
-                return;
-            }
-            auto nh1 = defMap->extract(name);
-            auto nh2 = curMap.extract(name);
-            name = newName.toStdString();
-            nh1.key() = name;
-            nh2.key() = name;
-            defMap->insert(std::move(nh1));
-            curMap.insert(std::move(nh2));
+            auto pos = std::find(curState->extras.begin(),
+                                 curState->extras.end(),
+                                 curSel->second.second);
+            curState->extras.erase(pos);
         }
-    }else{
+        break;
+    case 1:
+        // change name
+        if(defMap->find(cell->text().toStdString()) != defMap->end()){
+            QMessageBox msg{this};
+            msg.setText("Name \""+cell->text()+"\" is already in use.");
+            msg.exec();
+            QSignalBlocker block{ui->defTable};
+            cell->setText(curSel->first.c_str());
+            return;
+        }else{
+            auto node = defMap->extract(curSel);
+            node.key() = cell->text().toStdString();
+            defMap->insert(std::move(node));
+        }
+        break;
+    case 2:
+        // change filter
         try{
             auto filter = cell->text().toStdString();
-            defMap->at(name).setFilter(filter);
+            curSel->second.first.setFilter(filter);
+            curSel->second.first.evaluateCache();
+            curSel->second.second->update(&curSel->second.first,
+                master->settings.atRadVdW.val, master->settings.atRadFac.val);
             triggerUpdate(GUI::Change::definitions);
         }catch(const Error &e){
             QMessageBox msg{this};
@@ -231,6 +213,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
             msg.setText("Unknown error when parsing new filter");
             msg.exec();
         }
+        break;
     }
 }
 
@@ -238,12 +221,13 @@ void DefineWidget::on_defTable_itemSelectionChanged()
 {
     auto sel = ui->defTable->selectedItems();
     if(sel.empty()){
-        curSel = -1;
+        curSel = defMap->end();
         for(auto* a: contextActions){
             a->setDisabled(true);
         }
     }else{
-        curSel = sel[0]->row();
+        const auto& curName = ui->defTable->item(sel[0]->row(), 1)->text();
+        curSel = defMap->find(curName.toStdString());
         for(auto* a: contextActions){
             a->setEnabled(true);
         }
@@ -252,8 +236,7 @@ void DefineWidget::on_defTable_itemSelectionChanged()
 
 void DefineWidget::colButton_clicked()
 {
-    auto& curData = dataMap.at(curStep).at(curNames.at(curSel));
-    auto& col = curData.color;
+    auto& col = curSel->second.second->color;
     auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
     auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                          QColorDialog::ShowAlphaChannel);
@@ -264,7 +247,6 @@ void DefineWidget::colButton_clicked()
            static_cast<uint8_t>(newCol.green()),
            static_cast<uint8_t>(newCol.blue()),
            static_cast<uint8_t>(newCol.alpha())};
-    curData.gpu_data.update(col);
     static_cast<QPushButton*>(sender())->setStyleSheet(
         QString("background-color: %1").arg(newCol.name()));
     triggerUpdate(GUI::Change::definitions);

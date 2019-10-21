@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "scripthelp.h"
 #include "../basewidget.h"
+#include "../viewport.h"
+#include "../common/guiglobals.h"
 #include "molecule.h"
 
 namespace Ui {
@@ -43,9 +45,9 @@ public:
         OpVec v1{}, v2{}, v3{};
     };
     std::vector<ScriptOp> parse();
-//    bool execute(const std::vector<ScriptOp>&, Vipster::Step&,
-//                 Vipster::Step::selection &,
-//                 std::map<std::string, Vipster::Step::selection>&);
+    std::pair<bool, Vipster::GUI::change_t> execute(
+            const std::vector<ScriptOp>&, Vipster::Step&,
+            ViewPort::StepState&);
     Ui::ScriptWidget *ui;
     ScriptHelp *help;
 };

@@ -36,7 +36,7 @@ void GLWidget::updateWidget(GUI::change_t change)
         setStepExtras(&static_cast<ViewPort*>(parent())->stepdata[curStep].extras);
     }else{
         if(change & GUI::Change::settings){
-            selection.update(settings.selCol.val);
+            selection.color = settings.selCol.val;
         }
         if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt | GUI::Change::settings)) {
             updateMainStep();

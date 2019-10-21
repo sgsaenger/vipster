@@ -7,7 +7,7 @@ using namespace Vipster;
 GuiWrapper::GuiWrapper(GUI::GlobalData &g, const Settings &s)
     : globals{g}, settings{s}
 {
-    selection.update(s.selCol.val);
+    selection.color = s.selCol.val;
 }
 
 void GuiWrapper::initGL(const std::string& header, const std::string& folder)
@@ -159,7 +159,7 @@ void GuiWrapper::updateMainSelection()
     selection.update(curSel, settings.atRadVdW.val, settings.atRadFac.val);
 }
 
-void GuiWrapper::setStepExtras(std::vector<std::unique_ptr<GUI::Data> > *extra)
+void GuiWrapper::setStepExtras(std::vector<std::shared_ptr<GUI::Data> > *extra)
 {
     stepExtras = extra;
 }

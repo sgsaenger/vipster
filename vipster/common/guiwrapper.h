@@ -35,7 +35,7 @@ public:
                 const Vec& pos, unsigned long width, unsigned long height);
     void setMainStep(Step* step);
     void setMainSel(Step::selection* sel);
-    void setStepExtras(std::vector<std::unique_ptr<GUI::Data>>* extra);
+    void setStepExtras(std::vector<std::shared_ptr<GUI::Data>>* extra);
     void updateMainStep();
     void updateMainSelection();
 public:
@@ -53,7 +53,7 @@ public:
     GUI::GlobalData& globals;
     GUI::StepData mainStep{globals, nullptr};
     GUI::SelData selection{globals, nullptr};
-    std::vector<std::unique_ptr<GUI::Data>> *stepExtras{nullptr};
+    std::vector<std::shared_ptr<GUI::Data>> *stepExtras{nullptr};
 private:
     const Settings &settings;
     void drawPre(void);

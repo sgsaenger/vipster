@@ -16,7 +16,6 @@ namespace GUI {
         // CPU-Data:
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
-        std::array<float, 4> color{};
         Step::selection* curSel{nullptr};
         // GPU-State/Data:
         float atRadFac{};
@@ -29,6 +28,7 @@ namespace GUI {
             bool initialized{false};
         } shader;
     public:
+        ColVec color{};
         SelData(const GlobalData& glob, Step::selection* sel=nullptr);
         SelData(SelData&& dat);
         SelData& operator=(SelData&& dat)=delete;
@@ -40,7 +40,6 @@ namespace GUI {
         void updateGL() override;
         void initGL() override;
         void update(Step::selection* sel, bool useVdW, float atRadFac);
-        void update(const ColVec& col);
     };
 }
 }

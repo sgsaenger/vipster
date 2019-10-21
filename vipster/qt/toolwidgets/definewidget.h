@@ -6,6 +6,7 @@
 
 #include "molecule.h"
 #include "../basewidget.h"
+#include "../viewport.h"
 #include "../common/seldata.h"
 
 namespace Ui {
@@ -39,16 +40,11 @@ private:
     void fillTable();
 
     Ui::DefineWidget *ui;
-    struct GroupData{
-        bool display;
-        Vipster::ColVec color;
-        Vipster::GUI::SelData gpu_data;
-    };
     Vipster::Step* curStep{nullptr};
-    std::map<std::string, Vipster::Step::selection>* defMap;
-    std::map<Vipster::Step*, std::map<std::string, GroupData>> dataMap;
-    int curSel{-1};
-    std::vector<std::string> curNames;
+    ViewPort::StepState *curState{nullptr};
+    decltype(ViewPort::StepState::def)* defMap{nullptr};
+    decltype(ViewPort::StepState::def)::iterator curSel;
+    std::vector<std::shared_ptr<Vipster::GUI::SelData>> defList;
     QList<QAction*> contextActions;
 };
 

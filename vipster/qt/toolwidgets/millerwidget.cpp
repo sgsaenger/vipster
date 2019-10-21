@@ -225,7 +225,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
                        static_cast<float>(ui->zOff->value())};
         auto& extras = master->curVP->stepdata[curStep].extras;
         extras.push_back(
-        std::make_unique<MillerPlane>(
+        std::make_shared<MillerPlane>(
             master->globals, mkFaces(hkl), off,
             curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
             MillerPlane::Texture{{master->settings.milCol.val}, 1, 1}, hkl

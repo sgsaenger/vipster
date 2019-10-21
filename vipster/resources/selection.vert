@@ -10,7 +10,7 @@ layout(std140, row_major) uniform viewMat{
 uniform mat3 pos_scale;
 uniform float scale_fac;
 uniform vec3 offset;
-uniform vec4 color;
+uniform uvec4 color;
 uniform ivec3 mult;
 
 out vec3 normals_cameraspace;
@@ -30,7 +30,7 @@ void main(void)
         EyeDirection_cameraspace = vec3(0,0,25) - vertex_cameraspace;
         LightDirection_cameraspace = vec3(10,10,10) + EyeDirection_cameraspace;
         normals_cameraspace = (rMatrix * vec4(vertex, 0)).xyz;
-        MaterialDiffuseColor = color;
+        MaterialDiffuseColor = vec4(color)/255.;
     }
 }
 

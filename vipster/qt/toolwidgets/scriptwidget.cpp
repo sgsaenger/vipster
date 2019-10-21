@@ -10,8 +10,9 @@ using namespace Vipster;
 using ScriptOp = ScriptWidget::ScriptOp;
 using OpVec = ScriptWidget::OpVec;
 
-std::pair<bool, GUI::change_t> execute(const std::vector<ScriptOp>& operations,
-                                  Step& step, ViewPort::StepState& data)
+std::pair<bool, GUI::change_t> ScriptWidget::execute(
+        const std::vector<ScriptOp>& operations,
+        Step& step, ViewPort::StepState& data)
 {
     auto change = GUI::change_t{};
     auto mkVec = [&](const OpVec& in)->Vec{
@@ -64,8 +65,14 @@ std::pair<bool, GUI::change_t> execute(const std::vector<ScriptOp>& operations,
             change |= GUI::Change::selection;
             break;
         case ScriptOp::Mode::Define:
-            data.def.insert_or_assign(op.s1, step.select(op.s2));
+        {
+            auto [it, _] = data.def.insert_or_assign(op.s1,
+                std::pair{step.select(op.s2), std::make_shared<GUI::SelData>(master->globals)});
+            it->second.second->update(&it->second.first, master->settings.atRadVdW.val,
+                                 master->settings.atRadFac.val);
+            it->second.second->color = defaultColors[data.def.size()%5];
             change |= GUI::Change::definitions;
+        }
             break;
         default:
             throw Error("Invalid operation");
@@ -83,8 +90,8 @@ std::pair<bool, GUI::change_t> execute(const std::vector<ScriptOp>& operations,
                     throw Error("Unknown target: "+op.target);
                 }
                 // make sure that formats match
-                def->second.setFmt(step.getFmt());
-                execOp(def->second, op);
+                def->second.first.setFmt(step.getFmt());
+                execOp(def->second.first, op);
             }
         } catch (const Error &e) {
             QMessageBox msg{};

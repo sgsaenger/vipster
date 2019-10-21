@@ -86,7 +86,7 @@ void GUI::SelData::drawMol(const Vec &off)
         glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4fv(shader.color, 1, color.data());
+        glUniform4ui(shader.color, color[0], color[1], color[2], color[3]);
         glUniform3i(shader.mult, 1, 1, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
@@ -102,7 +102,7 @@ void GUI::SelData::drawCell(const Vec &off, const PBCVec &mult)
         glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4fv(shader.color, 1, color.data());
+        glUniform4ui(shader.color, color[0], color[1], color[2], color[3]);
         glUniform3i(shader.mult, mult[0], mult[1], mult[2]);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
@@ -176,12 +176,4 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
     cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
                  tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
                  tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
-}
-
-void GUI::SelData::update(const ColVec &col)
-{
-    color[0] = col[0]/255.f;
-    color[1] = col[1]/255.f;
-    color[2] = col[2]/255.f;
-    color[3] = col[3]/255.f;
 }
