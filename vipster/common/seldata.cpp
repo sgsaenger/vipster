@@ -78,23 +78,8 @@ GUI::SelData::~SelData()
     }
 }
 
-void GUI::SelData::drawMol(const Vec &off)
-{
-    if(sel_buffer.size()){
-        glBindVertexArray(vao);
-        glUseProgram(shader.program);
-        glUniform1f(shader.scale_fac, atRadFac);
-        glUniform3fv(shader.offset, 1, off.data());
-        glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
-        glUniform4ui(shader.color, color[0], color[1], color[2], color[3]);
-        glUniform3i(shader.mult, 1, 1, 1);
-        glDrawArraysInstanced(GL_TRIANGLES, 0,
-                              atom_model_npoly,
-                              static_cast<GLsizei>(sel_buffer.size()));
-    }
-}
-
-void GUI::SelData::drawCell(const Vec &off, const PBCVec &mult)
+void GUI::SelData::draw(const Vec &off, const PBCVec &mult,
+                        const Mat &, bool)
 {
     if(sel_buffer.size()){
         glBindVertexArray(vao);

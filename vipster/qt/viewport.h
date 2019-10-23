@@ -7,7 +7,6 @@
 #include <QFrame>
 
 #include "molecule.h"
-//#include "toolwidgets.h"
 #include "../common/guiglobals.h"
 #include "../common/guidata.h"
 #include "../common/seldata.h"
@@ -32,6 +31,9 @@ public:
     void updateWidget(Vipster::GUI::change_t change);
     void registerMol(const std::string& name);
     void makeActive(bool active);
+    struct {
+        std::vector<std::shared_ptr<Vipster::GUI::Data>> extras{};
+    } vpdata{};
     struct MolState{
         size_t curStep{0};
         Vipster::GUI::PBCVec mult{1,1,1};
@@ -43,8 +45,8 @@ public:
             std::shared_ptr<Vipster::GUI::SelData>>> def{};
         std::vector<std::shared_ptr<Vipster::GUI::Data>> extras{};
     };
-    std::map<Vipster::Molecule*, MolState> moldata;
-    std::map<Vipster::Step*, StepState> stepdata;
+    std::map<Vipster::Molecule*, MolState> moldata{};
+    std::map<Vipster::Step*, StepState> stepdata{};
 
 public slots:
     void setMol(int i);

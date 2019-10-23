@@ -18,6 +18,7 @@ using Enums::Change;
 using change_t = std::underlying_type<Change>::type;
 constexpr auto stepChanged = Change::atoms | Change::cell | Change::fmt | Change::selection;
 constexpr auto molChanged = Change::kpoints | Change::trajec;
+constexpr auto vpChanged = stepChanged | molChanged;
 
 using PBCVec = std::array<uint8_t, 3>;
 

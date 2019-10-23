@@ -47,8 +47,8 @@ class Data: protected QOpenGLFunctions_3_3_Core
 public:
     const GlobalData& global;
 
-    virtual void drawMol(const Vec &off) = 0;
-    virtual void drawCell(const Vec &off, const PBCVec &mult) = 0;
+    virtual void draw(const Vec &off, const PBCVec &mult,
+                      const Mat &cv, bool drawCell) = 0;
     virtual void updateGL() = 0;
     virtual void initGL() = 0;
     GLuint loadShader(const std::string &vert, const std::string &frag);

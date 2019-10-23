@@ -14,6 +14,7 @@ GLWidget::GLWidget(QWidget *parent, GUI::GlobalData &g, const Vipster::Settings&
 {
     setTextureFormat(GL_RGBA16);
     setFocusPolicy(Qt::WheelFocus);
+    vpExtras = &static_cast<ViewPort*>(parent)->vpdata.extras;
 }
 
 GLWidget::~GLWidget()
@@ -33,12 +34,13 @@ void GLWidget::updateWidget(GUI::change_t change)
     if((change & GUI::stepChanged) == GUI::stepChanged ){
         setMainStep(static_cast<ViewPort*>(parent())->curStep);
         setMainSel(static_cast<ViewPort*>(parent())->curSel);
-        setStepExtras(&static_cast<ViewPort*>(parent())->stepdata[curStep].extras);
+        stepExtras = &static_cast<ViewPort*>(parent())->stepdata[curStep].extras;
     }else{
         if(change & GUI::Change::settings){
             selection.color = settings.selCol.val;
         }
-        if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt | GUI::Change::settings)) {
+        if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt |
+                     GUI::Change::settings | GUI::Change::trajec)) {
             updateMainStep();
             updateMainSelection();
         }else if(change & GUI::Change::selection){

@@ -19,7 +19,7 @@ struct BondProp{ // 64 bytes
     ColVec col_a, col_b; // 2*4 = 8 bytes
 };
 
-class StepData: public Data{
+struct StepData: public Data{
     // CPU-Data:
     std::vector<AtomProp> atom_buffer{};
     std::vector<BondProp> bond_buffer{};
@@ -28,7 +28,6 @@ class StepData: public Data{
     Step* curStep;
     // CPU-State:
     float atRadFac{0};
-    bool draw_bonds{false}, draw_cell{false};
     // GPU-State:
     GLuint vaos[4] = {0,0,0,0};
     GLuint &atom_vao{vaos[0]}, &bond_vao{vaos[1]};
@@ -62,19 +61,18 @@ class StepData: public Data{
         GLint offset, pos_scale, scale_fac, pbc_instance;
         bool initialized{false};
     } sel_shader;
-public:
+    // Methods:
     StepData(const GlobalData& glob, Step* step=nullptr);
     ~StepData() override;
     StepData(StepData&& s);
     StepData(const StepData& s)=delete;
     StepData& operator=(const StepData& s)=delete;
     StepData& operator=(StepData&& s)=delete;
-    void drawMol(const Vec &off) override;
-    void drawCell(const Vec &off, const PBCVec &mult) override;
+    void draw(const Vec &off, const PBCVec &mult,
+              const Mat &cv, bool drawCell) override;
     void updateGL() override;
     void initGL() override;
-    void update(Step* step, bool useVdW, float atRadFac,
-                bool showBonds, float bondRad, bool showCell);
+    void update(Step* step, bool useVdW, float atRadFac, float bondRad);
     void drawSel(Vec off, const PBCVec &mult);
 private:
     void initAtom();

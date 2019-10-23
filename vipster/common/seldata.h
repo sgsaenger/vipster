@@ -35,8 +35,8 @@ namespace GUI {
         SelData(const SelData& dat)=delete;
         SelData& operator=(const SelData& dat)=delete;
         ~SelData() override;
-        void drawMol(const Vec &off) override;
-        void drawCell(const Vec &off, const PBCVec &mult) override;
+        void draw(const Vec &off, const PBCVec &mult,
+                  const Mat &cv, bool drawCell) override;
         void updateGL() override;
         void initGL() override;
         void update(Step::selection* sel, bool useVdW, float atRadFac);

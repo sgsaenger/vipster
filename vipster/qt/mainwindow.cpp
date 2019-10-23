@@ -215,8 +215,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             }
             // make sender current viewport
             curVP = sender;
-            // change to sender's mol/step
-            updateWidgets(GUI::molChanged | GUI::stepChanged);
+            updateWidgets(GUI::vpChanged);
             break;
         default:
             throw Error{"Invalid viewport change"};

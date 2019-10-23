@@ -20,28 +20,32 @@ public:
     void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
+    void on_showCell_toggled(bool checked);
+    void on_repeatStep_toggled(bool checked);
+    void on_delStep_clicked();
+    void on_addStep_clicked();
+    void on_stepList_currentRowChanged(int currentRow);
+    void on_insertStep_clicked();
+    void setMult(int);
+    void setOffset(double);
     void on_showStep_toggled(bool checked);
 
-    void on_showCell_toggled(bool checked);
-
-    void on_delStep_clicked();
-
-    void on_addStep_clicked();
-
-    void on_stepList_currentRowChanged(int currentRow);
-
-    void on_insertStep_clicked();
+    void on_helpButton_clicked();
 
 private:
     Ui::PinWidget *ui;
-    struct PinnedStep{
-        bool display, cell;
-        Vipster::GUI::StepData gpu_data;
+    struct PinnedStep: public Vipster::GUI::StepData{
+        PinnedStep(const Vipster::GUI::GlobalData &glob, Vipster::Step *step,
+                   const std::string& name, Vipster::GUI::PBCVec mult);
+        std::string name;
+        Vipster::GUI::PBCVec mult;
+        Vipster::Vec offset{};
+        bool repeat{true}, cell{true};
+        void draw(const Vipster::Vec &off, const Vipster::GUI::PBCVec &mult,
+                  const Vipster::Mat &cv, bool drawCell) override;
     };
-    std::vector<Vipster::Step*> stepList;
-    std::map<Vipster::Step*, PinnedStep> stepMap;
-    Vipster::Step* mainStep{nullptr};
-    Vipster::Step* activeStep{nullptr};
+    std::vector<std::shared_ptr<PinnedStep>> pinnedSteps;
+    std::shared_ptr<PinnedStep> curPin{nullptr};
 };
 
 #endif // PINWIDGET_H

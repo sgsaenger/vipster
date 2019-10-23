@@ -139,22 +139,8 @@ void GUI::MeshData::updateGL()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void GUI::MeshData::drawMol(const Vec& off)
-{
-    glDisable(GL_CULL_FACE);
-    Vec tmp = offset + off;
-    glBindVertexArray(mesh_vao);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glUseProgram(mesh_shader.program);
-    glUniformMatrix3fv(mesh_shader.pos_scale, 1, 0, cell_gpu.data());
-    glUniform1i(mesh_shader.tex, 0);
-    glUniform3fv(mesh_shader.offset, 1, tmp.data());
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(faces.size()));
-    glEnable(GL_CULL_FACE);
-}
-
-void GUI::MeshData::drawCell(const Vec& off, const PBCVec &mult)
+void GUI::MeshData::draw(const Vec &off, const PBCVec &mult,
+                         const Mat &cv, bool drawCell)
 {
     glDisable(GL_CULL_FACE);
     Vec tmp = offset + off;
@@ -174,14 +160,16 @@ void GUI::MeshData::drawCell(const Vec& off, const PBCVec &mult)
             }
         }
     }
-    glBindVertexArray(cell_vao);
-    glUseProgram(cell_shader.program);
-    for(int x=0;x<mult[0];++x){
-        for(int y=0;y<mult[1];++y){
-            for(int z=0;z<mult[2];++z){
-                tmp2 = (tmp + x*cell[0] + y*cell[1] + z*cell[2]);
-                glUniform3fv(cell_shader.offset, 1, tmp2.data());
-                glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
+    if(drawCell){
+        glBindVertexArray(cell_vao);
+        glUseProgram(cell_shader.program);
+        for(int x=0;x<mult[0];++x){
+            for(int y=0;y<mult[1];++y){
+                for(int z=0;z<mult[2];++z){
+                    tmp2 = (tmp + x*cell[0] + y*cell[1] + z*cell[2]);
+                    glUniform3fv(cell_shader.offset, 1, tmp2.data());
+                    glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
+                }
             }
         }
     }

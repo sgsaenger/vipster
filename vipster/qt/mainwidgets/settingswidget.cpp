@@ -18,7 +18,6 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(master->settings.atRadVdW);
     registerSetting(master->settings.atRadFac);
     registerSetting(master->settings.bondRad);
-    registerSetting(master->settings.showBonds);
     registerSetting(master->settings.showCell);
     registerSetting(master->settings.antialias);
     registerSetting(master->settings.perspective);

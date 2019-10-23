@@ -21,7 +21,7 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
     // init ViewUBO
     glGenBuffers(1, &view_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(GUI::Mat), nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(GUI::Mat_16f), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
     // init view matrices
@@ -60,31 +60,29 @@ void GuiWrapper::drawPre(void)
             i->syncToGPU();
         }
     }
+    if(vpExtras){
+        for(const auto& i: *vpExtras){
+            i->syncToGPU();
+        }
+    }
 }
 
 void GuiWrapper::drawImpl(const Vec &pos)
 {
     Vec off = pos - curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
+    Mat cv = {{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
     if(curStep->hasCell()){
-        Mat cv = curStep->getCellVec() *
-                 curStep->getCellDim(CdmFmt::Bohr);
+        cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
         off -= (mult[0]-1)*cv[0]/2.;
         off -= (mult[1]-1)*cv[1]/2.;
         off -= (mult[2]-1)*cv[2]/2.;
-        mainStep.drawCell(off, mult);
-        selection.drawCell(off, mult);
-        if(stepExtras){
-            for(const auto& i: *stepExtras){
-                i->drawCell(off, mult);
-            }
-        }
-    }else{
-        mainStep.drawMol(off);
-        selection.drawMol(off);
-        if(stepExtras){
-            for(const auto& i: *stepExtras){
-                i->drawMol(off);
-            }
+    }
+    auto m = curStep->hasCell() ? mult : GUI::PBCVec{{1,1,1}};
+    mainStep.draw(off, m, cv, settings.showCell.val);
+    selection.draw(off, m, cv, settings.showCell.val);
+    if(vpExtras){
+        for(const auto& i: *vpExtras){
+            i->draw(off, m, cv, settings.showCell.val);
         }
     }
 }
@@ -149,9 +147,8 @@ void GuiWrapper::setMainSel(Step::selection* sel)
 
 void GuiWrapper::updateMainStep()
 {
-    mainStep.update(curStep, settings.atRadVdW.val, settings.atRadFac.val,
-                    settings.showBonds.val, settings.bondRad.val,
-                    settings.showCell.val);
+    mainStep.update(curStep, settings.atRadVdW.val,
+                    settings.atRadFac.val, settings.bondRad.val);
 }
 
 void GuiWrapper::updateMainSelection()
@@ -159,26 +156,21 @@ void GuiWrapper::updateMainSelection()
     selection.update(curSel, settings.atRadVdW.val, settings.atRadFac.val);
 }
 
-void GuiWrapper::setStepExtras(std::vector<std::shared_ptr<GUI::Data> > *extra)
-{
-    stepExtras = extra;
-}
-
 void GuiWrapper::updateViewUBOVR(const float* proj, const float* view)
 {
     glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-    auto pTemp = GUI::Mat{proj[0],  proj[4],  proj[8],  proj[12],
+    auto pTemp = GUI::Mat_16f{proj[0],  proj[4],  proj[8],  proj[12],
                           proj[1],  proj[5],  proj[9],  proj[13],
                           proj[2],  proj[6],  proj[10], proj[14],
                           proj[3], proj[7], proj[11], proj[15]};
-    auto vTemp = GUI::Mat{view[0],  view[4],  view[8],  view[12],
+    auto vTemp = GUI::Mat_16f{view[0],  view[4],  view[8],  view[12],
                           view[1],  view[5],  view[9],  view[13],
                           view[2],  view[6],  view[10], view[14],
                           view[3], view[7], view[11], view[15]};
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
                     (pTemp*vTemp).data());
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat), sizeof(GUI::Mat),
-                    GUI::Mat{1,0,0,0,
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat_16f), sizeof(GUI::Mat_16f),
+                    GUI::Mat_16f{1,0,0,0,
                              0,1,0,0,
                              0,0,1,0,
                              0,0,0,1}.data());
@@ -191,21 +183,21 @@ void GuiWrapper::updateViewUBO(void)
     if(rMatChanged){
         glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
         if(settings.perspective.val){
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
                             (pMat*vMat*rMat).data());
         }else{
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
                             (oMat*vMat*rMat).data());
         }
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat), sizeof(GUI::Mat), rMat.data());
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat_16f), sizeof(GUI::Mat_16f), rMat.data());
         rMatChanged = vMatChanged = pMatChanged = false;
     }else if (pMatChanged || vMatChanged){
         glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
         if(settings.perspective.val){
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
                             (pMat*vMat*rMat).data());
         }else{
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat),
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
                             (oMat*vMat*rMat).data());
         }
         vMatChanged = pMatChanged = false;

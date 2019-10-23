@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-void Vipster::guiMatScale(GUI::Mat &m, float f)
+void Vipster::guiMatScale(GUI::Mat_16f &m, float f)
 {
     for(size_t i=0;i<4;i++){
         m[i*4+0]*=f;
@@ -12,7 +12,7 @@ void Vipster::guiMatScale(GUI::Mat &m, float f)
     }
 }
 
-void Vipster::guiMatTranslate(GUI::Mat &m, float x, float y, float z)
+void Vipster::guiMatTranslate(GUI::Mat_16f &m, float x, float y, float z)
 {
     //assuming 0 0 0 1 in last row of m
     m[3]+=x;
@@ -20,7 +20,7 @@ void Vipster::guiMatTranslate(GUI::Mat &m, float x, float y, float z)
     m[11]+=z;
 }
 
-void Vipster::guiMatRot(GUI::Mat &m, float a, float x, float y, float z)
+void Vipster::guiMatRot(GUI::Mat_16f &m, float a, float x, float y, float z)
 {
     if(float_comp(a,0)){
         return;
@@ -78,7 +78,7 @@ void Vipster::guiMatRot(GUI::Mat &m, float a, float x, float y, float z)
         Vec axis{{x,y,z}};
         axis /= Vec_length(axis);
         Vec axismc = axis*(1-c);
-        GUI::Mat rotate{{c+axismc[0]*axis[0], axismc[1]*axis[0]-s*axis[2], axismc[2]*axis[0]+s*axis[1], 0,
+        GUI::Mat_16f rotate{{c+axismc[0]*axis[0], axismc[1]*axis[0]-s*axis[2], axismc[2]*axis[0]+s*axis[1], 0,
                       axismc[0]*axis[1]+s*axis[2], c+axismc[1]*axis[1], axismc[2]*axis[1]-s*axis[0], 0,
                       axismc[0]*axis[2]-s*axis[1], axismc[1]*axis[2]+s*axis[0], c+axismc[2]*axis[2], 0,
                       0,0,0,1}};
@@ -86,42 +86,42 @@ void Vipster::guiMatRot(GUI::Mat &m, float a, float x, float y, float z)
     }
 }
 
-GUI::Mat Vipster::guiMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
+GUI::Mat_16f Vipster::guiMatMkOrtho(float left, float right, float bottom, float top, float near, float far)
 {
-    return GUI::Mat{{2/(right-left), 0, 0, (right+left)/(left-right),
+    return GUI::Mat_16f{{2/(right-left), 0, 0, (right+left)/(left-right),
                    0, 2/(top-bottom), 0, (top+bottom)/(bottom-top),
                    0, 0, (2/(near-far)), ((far+near)/(near-far)),
                    0, 0, 0, 1}};
 }
 
-GUI::Mat Vipster::guiMatMkPerspective(float vertAng, float aspect, float near, float far)
+GUI::Mat_16f Vipster::guiMatMkPerspective(float vertAng, float aspect, float near, float far)
 {
     float rad = deg2rad * vertAng/2;
     float sin = std::sin(rad);
     float cotan = std::cos(rad) / sin;
     float clip = far - near;
-    return GUI::Mat{{cotan/aspect, 0, 0, 0,
+    return GUI::Mat_16f{{cotan/aspect, 0, 0, 0,
                      0, cotan, 0, 0,
                      0, 0, -(near + far)/clip, -(2*near*far)/clip,
                      0, 0, -1, 0}};
 }
 
-GUI::Mat Vipster::guiMatMkLookAt(Vec eye, Vec target, Vec up)
+GUI::Mat_16f Vipster::guiMatMkLookAt(Vec eye, Vec target, Vec up)
 {
     Vec dir = target - eye;
     dir /= Vec_length(dir);
     Vec r = Vec_cross(dir, up);
     r /= Vec_length(r);
     Vec u = Vec_cross(r, dir);
-    return GUI::Mat{{r[0], r[1], r[2], -Vec_dot(r, eye),
+    return GUI::Mat_16f{{r[0], r[1], r[2], -Vec_dot(r, eye),
                   u[0], u[1], u[2], -Vec_dot(u, eye),
                   -dir[0], -dir[1], -dir[2], Vec_dot(dir, eye),
                   0, 0, 0, 1}};
 }
 
-GUI::Mat Vipster::operator *=(GUI::Mat &a, const GUI::Mat &b)
+GUI::Mat_16f Vipster::operator *=(GUI::Mat_16f &a, const GUI::Mat_16f &b)
 {
-    a = GUI::Mat{{a[0]*b[0]+a[1]*b[4]+a[2]*b[ 8]+a[3]*b[12],
+    a = GUI::Mat_16f{{a[0]*b[0]+a[1]*b[4]+a[2]*b[ 8]+a[3]*b[12],
                a[0]*b[1]+a[1]*b[5]+a[2]*b[ 9]+a[3]*b[13],
                a[0]*b[2]+a[1]*b[6]+a[2]*b[10]+a[3]*b[14],
                a[0]*b[3]+a[1]*b[7]+a[2]*b[11]+a[3]*b[15],
@@ -140,7 +140,7 @@ GUI::Mat Vipster::operator *=(GUI::Mat &a, const GUI::Mat &b)
     return a;
 }
 
-GUI::Mat Vipster::operator *(GUI::Mat a, const GUI::Mat &b)
+GUI::Mat_16f Vipster::operator *(GUI::Mat_16f a, const GUI::Mat_16f &b)
 {
     return a*=b;
 }

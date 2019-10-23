@@ -19,10 +19,10 @@ public:
     };
 private:
     // CPU-Data:
-    std::vector<Face> faces;
 public:
     Vec offset;
 private:
+    std::vector<Face> faces;
     Mat cell;
     std::array<Vec, 8> cell_buffer;
     std::array<float, 9> cell_gpu;
@@ -54,8 +54,8 @@ public:
     MeshData& operator=(const MeshData& dat)=delete;
     MeshData& operator=(MeshData&& dat)=delete;
     ~MeshData() override;
-    void drawMol(const Vec &off) override;
-    void drawCell(const Vec &off, const PBCVec &mult) override;
+    void draw(const Vec &off, const PBCVec &mult,
+              const Mat &cv, bool drawCell) override;
     void updateGL(void) override;
     void initGL(void) override;
     void update(std::vector<Face>&& faces);
