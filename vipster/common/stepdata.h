@@ -29,10 +29,9 @@ struct StepData: public Data{
     // CPU-State:
     float atRadFac{0};
     // GPU-State:
-    GLuint vaos[4] = {0,0,0,0};
-    GLuint &atom_vao{vaos[0]}, &bond_vao{vaos[1]};
-    GLuint &cell_vao{vaos[2]}, &sel_vao{vaos[3]};
+    std::map<void*, GLuint[4]> vaos;
     // GPU-Data:
+    bool vbo_initialized{false};
     GLuint vbos[4] = {0,0,0,0};
     GLuint &atom_prop_vbo{vbos[0]}, &atom_pos_vbo{vbos[1]};
     GLuint &bond_vbo{vbos[2]}, &cell_vbo{vbos[3]};
@@ -68,17 +67,17 @@ struct StepData: public Data{
     StepData(const StepData& s)=delete;
     StepData& operator=(const StepData& s)=delete;
     StepData& operator=(StepData&& s)=delete;
-    void draw(const Vec &off, const PBCVec &mult,
-              const Mat &cv, bool drawCell) override;
-    void updateGL() override;
-    void initGL() override;
+    void draw(const Vec &off, const PBCVec &mult, const Mat &cv,
+              bool drawCell, void *context) override;
     void update(Step* step, bool useVdW, float atRadFac, float bondRad);
-    void drawSel(Vec off, const PBCVec &mult);
+    void drawSel(Vec off, const PBCVec &mult, void *context);
 private:
-    void initAtom();
-    void initBond();
-    void initCell();
-    void initSel();
+    void updateGL() override;
+    void initGL(void *context) override;
+    void initAtom(GLuint vao);
+    void initBond(GLuint vao);
+    void initCell(GLuint vao);
+    void initSel(GLuint vao);
 };
 }
 }

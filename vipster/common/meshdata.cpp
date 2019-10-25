@@ -7,8 +7,9 @@ decltype (GUI::MeshData::cell_shader) GUI::MeshData::cell_shader;
 
 GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Face>&& faces,
                         Vec offset, Mat cell, Texture texture)
-    : Data{glob}, faces{std::move(faces)},
-      offset{offset}, cell{cell}, texture{texture}
+    : Data{glob}, offset{offset},
+      faces{std::move(faces)},
+      cell{cell}, texture{texture}
 {
     cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],
                    cell[0]+cell[2], cell[1]+cell[2], cell[0]+cell[1]+cell[2]}};
@@ -20,8 +21,8 @@ GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Face>&& faces,
 GUI::MeshData::MeshData(MeshData&& dat)
 //    : Data{dat.global, dat.updated, dat.initialized},
     : Data{std::move(dat)},
-      faces{std::move(dat.faces)},
       offset{dat.offset},
+      faces{std::move(dat.faces)},
       cell{dat.cell},
       cell_buffer{dat.cell_buffer},
       cell_gpu{dat.cell_gpu},
@@ -32,31 +33,35 @@ GUI::MeshData::MeshData(MeshData&& dat)
     std::swap(tex, dat.tex);
 }
 
-void GUI::MeshData::initGL()
+void GUI::MeshData::initGL(void *context)
 {
-    glGenVertexArrays(2, vaos);
-    glGenBuffers(2, vbos);
-    glGenTextures(1, &tex);
+    auto &vao = vaos[context];
+    glGenVertexArrays(2, vao);
+    if(!vbo_initialized){
+        glGenBuffers(2, vbos);
+        glGenTextures(1, &tex);
+        vbo_initialized = true;
+    }
 
-    initMesh();
-    initCell();
+    initMesh(vao[0]);
+    initCell(vao[1]);
     glBindVertexArray(0);
 }
 
-void GUI::MeshData::initMesh()
+void GUI::MeshData::initMesh(GLuint vao)
 {
     if(!mesh_shader.initialized){
         mesh_shader.program = loadShader("/mesh.vert", "/mesh.frag");
-        READATTRIB(mesh_shader, vertex);
-        READATTRIB(mesh_shader, normal);
-        READATTRIB(mesh_shader, vert_UV);
-        READUNIFORM(mesh_shader, pos_scale);
-        READUNIFORM(mesh_shader, offset);
-        READUNIFORM(mesh_shader, tex);
+        READATTRIB(mesh_shader, vertex)
+        READATTRIB(mesh_shader, normal)
+        READATTRIB(mesh_shader, vert_UV)
+        READUNIFORM(mesh_shader, pos_scale)
+        READUNIFORM(mesh_shader, offset)
+        READUNIFORM(mesh_shader, tex)
         mesh_shader.initialized = true;
     }
 
-    glBindVertexArray(mesh_vao);
+    glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
     glVertexAttribPointer(mesh_shader.vertex, 3, GL_FLOAT, GL_FALSE, sizeof(Face),
                           reinterpret_cast<const GLvoid*>(offsetof(Face, pos)));
@@ -69,19 +74,18 @@ void GUI::MeshData::initMesh()
 //    glVertexAttribIPointer(mesh_shader.vert_UV, 2, GL_UNSIGNED_BYTE, sizeof(Face),
 //                          reinterpret_cast<const GLvoid*>(offsetof(Face, uv)));
     glEnableVertexAttribArray(mesh_shader.vert_UV);
-    glBindVertexArray(0);
 }
 
-void GUI::MeshData::initCell()
+void GUI::MeshData::initCell(GLuint vao)
 {
     if(!cell_shader.initialized){
         cell_shader.program = loadShader("/cell.vert", "/cell.frag");
-        READATTRIB(cell_shader, vertex);
-        READUNIFORM(cell_shader, offset);
+        READATTRIB(cell_shader, vertex)
+        READUNIFORM(cell_shader, offset)
         cell_shader.initialized = true;
     }
 
-    glBindVertexArray(cell_vao);
+    glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
     glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -91,10 +95,12 @@ void GUI::MeshData::initCell()
 
 GUI::MeshData::~MeshData()
 {
-    if(initialized){
+    if(vbo_initialized){
         glDeleteBuffers(2, vbos);
-        glDeleteVertexArrays(2, vaos);
         glDeleteTextures(1, &tex);
+    }
+    for(auto& vao: vaos){
+        glDeleteVertexArrays(2, vao.second);
     }
 }
 
@@ -140,12 +146,13 @@ void GUI::MeshData::updateGL()
 }
 
 void GUI::MeshData::draw(const Vec &off, const PBCVec &mult,
-                         const Mat &cv, bool drawCell)
+                         const Mat &, bool drawCell, void *context)
 {
     glDisable(GL_CULL_FACE);
     Vec tmp = offset + off;
     Vec tmp2;
-    glBindVertexArray(mesh_vao);
+    const auto& vao = vaos[context];
+    glBindVertexArray(vao[0]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
     glUseProgram(mesh_shader.program);
@@ -161,7 +168,7 @@ void GUI::MeshData::draw(const Vec &off, const PBCVec &mult,
         }
     }
     if(drawCell){
-        glBindVertexArray(cell_vao);
+        glBindVertexArray(vao[1]);
         glUseProgram(cell_shader.program);
         for(int x=0;x<mult[0];++x){
             for(int y=0;y<mult[1];++y){

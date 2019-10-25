@@ -65,7 +65,7 @@ PinWidget::PinnedStep::PinnedStep(const GUI::GlobalData &glob,
 
 void PinWidget::PinnedStep::draw(const Vec &off,
                                  const GUI::PBCVec &m,
-                                 const Mat &cv, bool drawCell)
+                                 const Mat &cv, bool drawCell, void *context)
 {
     Vec off_loc = off + this->offset;
     Mat cv_loc = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
@@ -75,12 +75,12 @@ void PinWidget::PinnedStep::draw(const Vec &off,
             for(int y=0; y<m[1]; ++y){
                 for(int z=0; z<m[2]; ++z){
                     StepData::draw(off_loc + x*cv[0] + y*cv[1] + z*cv[2],
-                            mult_loc, cv_loc, drawCell & this->cell);
+                            mult_loc, cv_loc, drawCell & this->cell, context);
                 }
             }
         }
     }else{
-        StepData::draw(off_loc, mult_loc, cv_loc, drawCell & this->cell);
+        StepData::draw(off_loc, mult_loc, cv_loc, drawCell & this->cell, context);
     }
 }
 

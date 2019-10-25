@@ -28,11 +28,11 @@ private:
     std::array<float, 9> cell_gpu;
     Texture texture;
     // GPU-State/Data:
-    GLuint vaos[2] = {0,0};
+    std::map<void*, GLuint[2]> vaos;
     GLuint vbos[2] = {0,0};
+    bool vbo_initialized{false};
     GLuint tex{0};
-    GLuint &mesh_vao{vaos[0]}, &mesh_vbo{vbos[0]};
-    GLuint &cell_vao{vaos[1]}, &cell_vbo{vbos[1]};
+    GLuint &mesh_vbo{vbos[0]}, &cell_vbo{vbos[1]};
     // Shader:
     static struct{
         GLuint program;
@@ -54,16 +54,16 @@ public:
     MeshData& operator=(const MeshData& dat)=delete;
     MeshData& operator=(MeshData&& dat)=delete;
     ~MeshData() override;
-    void draw(const Vec &off, const PBCVec &mult,
-              const Mat &cv, bool drawCell) override;
-    void updateGL(void) override;
-    void initGL(void) override;
+    void draw(const Vec &off, const PBCVec &mult, const Mat &cv,
+              bool drawCell, void *context) override;
     void update(std::vector<Face>&& faces);
     void update(const Texture& tex);
     void update(const Vipster::Mat &cell);
 private:
-    void initMesh();
-    void initCell();
+    void updateGL(void) override;
+    void initGL(void *context) override;
+    void initMesh(GLuint vao);
+    void initCell(GLuint vao);
 };
 
 }

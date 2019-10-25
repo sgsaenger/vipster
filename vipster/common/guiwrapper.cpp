@@ -36,7 +36,7 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
     drawPerspective = settings.perspective.val;
 }
 
-void GuiWrapper::drawPre(void)
+void GuiWrapper::drawPre(void *context)
 {
     // reset OGL state
 #ifndef __EMSCRIPTEN__
@@ -53,21 +53,21 @@ void GuiWrapper::drawPre(void)
     glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // synchronize data
-    mainStep.syncToGPU();
-    selection.syncToGPU();
+    mainStep.syncToGPU(context);
+    selection.syncToGPU(context);
     if(stepExtras){
         for(const auto& i: *stepExtras){
-            i->syncToGPU();
+            i->syncToGPU(context);
         }
     }
     if(vpExtras){
         for(const auto& i: *vpExtras){
-            i->syncToGPU();
+            i->syncToGPU(context);
         }
     }
 }
 
-void GuiWrapper::drawImpl(const Vec &pos)
+void GuiWrapper::drawImpl(const Vec &pos, void *context)
 {
     Vec off = pos - curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
     Mat cv = {{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
@@ -78,18 +78,18 @@ void GuiWrapper::drawImpl(const Vec &pos)
         off -= (mult[2]-1)*cv[2]/2.;
     }
     auto m = curStep->hasCell() ? mult : GUI::PBCVec{{1,1,1}};
-    mainStep.draw(off, m, cv, settings.showCell.val);
-    selection.draw(off, m, cv, settings.showCell.val);
+    mainStep.draw(off, m, cv, settings.showCell.val, context);
+    selection.draw(off, m, cv, settings.showCell.val, context);
     if(vpExtras){
         for(const auto& i: *vpExtras){
-            i->draw(off, m, cv, settings.showCell.val);
+            i->draw(off, m, cv, settings.showCell.val, context);
         }
     }
 }
 
-void GuiWrapper::draw(void)
+void GuiWrapper::draw(void *context)
 {
-    drawPre();
+    drawPre(context);
     if(drawPerspective != settings.perspective.val){
         drawPerspective = settings.perspective.val;
         pMatChanged = true;
@@ -97,7 +97,7 @@ void GuiWrapper::draw(void)
     if(rMatChanged||pMatChanged||vMatChanged){
         updateViewUBO();
     }
-    drawImpl(Vec{0,0,0});
+    drawImpl(Vec{0,0,0}, context);
 }
 
 void GuiWrapper::drawVR(const float *leftProj, const float *leftView,
@@ -116,16 +116,16 @@ void GuiWrapper::drawVR(const float *leftProj, const float *leftView,
     drawImpl(pos);
 }
 
-void GuiWrapper::drawSel()
+void GuiWrapper::drawSel(void *context)
 {
-    mainStep.updateGL();
+    mainStep.syncToGPU(context);
 #ifndef __EMSCRIPTEN__
     if(settings.antialias.val){
         glDisable(GL_MULTISAMPLE);
     }
 #endif
     Vec off = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
-    mainStep.drawSel(off, mult);
+    mainStep.drawSel(off, mult, context);
 #ifndef __EMSCRIPTEN__
     if(settings.antialias.val){
         glEnable(GL_MULTISAMPLE);

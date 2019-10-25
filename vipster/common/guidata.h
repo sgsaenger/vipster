@@ -45,26 +45,28 @@ class Data: protected QOpenGLFunctions_3_3_Core
 #endif
 {
 public:
-    const GlobalData& global;
-
-    virtual void draw(const Vec &off, const PBCVec &mult,
-                      const Mat &cv, bool drawCell) = 0;
-    virtual void updateGL() = 0;
-    virtual void initGL() = 0;
-    GLuint loadShader(const std::string &vert, const std::string &frag);
-    void syncToGPU();
-
-    bool updated{true}, initialized{false};
-#ifndef __EMSCRIPTEN__
-    bool wrap_initialized{false};
-#endif
-
     Data(const GlobalData&);
     virtual ~Data() = default;
     Data(Data&&);
     Data(const Data&) = delete;
     Data& operator=(const Data&) = delete;
     Data& operator=(Data&&) = delete;
+    const GlobalData& global;
+
+    virtual void draw(const Vec &off, const PBCVec &mult,
+                      const Mat &cv, bool drawCell, void *context) = 0;
+    GLuint loadShader(const std::string &vert, const std::string &frag);
+    // TODO: split this in shader/vbo/vao management to reduce context sensitivity
+    void syncToGPU(void *context);
+
+protected:
+    virtual void updateGL() = 0;
+    virtual void initGL(void *context) = 0;
+    std::map<void*, bool> initialized{};
+    bool updated{true};
+#ifndef __EMSCRIPTEN__
+    bool wrap_initialized{false};
+#endif
 };
 
 #define READATTRIB(shader, name) \

@@ -58,7 +58,7 @@ void GUI::GlobalData::initGL(const std::string& h, const std::string& f)
     initialized = true;
 }
 
-void GUI::Data::syncToGPU()
+void GUI::Data::syncToGPU(void *context)
 {
     #ifndef __EMSCRIPTEN__
     if(!wrap_initialized){
@@ -66,9 +66,9 @@ void GUI::Data::syncToGPU()
         wrap_initialized = true;
     }
     #endif
-    if(!initialized){
-        initGL();
-        initialized = true;
+    if(!initialized[context]){
+        initGL(context);
+        initialized[context] = true;
     }
     if(updated){
         updateGL();

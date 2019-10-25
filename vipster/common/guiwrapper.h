@@ -28,8 +28,8 @@ public:
 public:
     GuiWrapper(GUI::GlobalData &g, const Settings &s);
     void initGL(const std::string& header, const std::string& folder);
-    void draw(void);
-    void drawSel(void);
+    void draw(void *context=nullptr);
+    void drawSel(void *context=nullptr);
     void drawVR(const float* leftProj, const float* leftView,
                 const float* rightProj, const float* rightView,
                 const Vec& pos, unsigned long width, unsigned long height);
@@ -56,8 +56,8 @@ public:
     std::vector<std::shared_ptr<GUI::Data>> *vpExtras{nullptr};
 private:
     const Settings &settings;
-    void drawPre(void);
-    void drawImpl(const Vec& pos);
+    void drawPre(void *context=nullptr);
+    void drawImpl(const Vec& pos, void *context=nullptr);
     void updateViewUBO();
     void updateViewUBOVR(const float* proj, const float* view);
     // gpu-side global data

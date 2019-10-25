@@ -25,25 +25,31 @@ GUI::StepData::StepData(StepData&& dat)
 
 GUI::StepData::~StepData()
 {
-    if(initialized){
+    if(vbo_initialized){
         glDeleteBuffers(4, vbos);
-        glDeleteVertexArrays(4, vaos);
+    }
+    for(auto &vao: vaos){
+        glDeleteVertexArrays(4, vao.second);
     }
 }
 
-void GUI::StepData::initGL()
+void GUI::StepData::initGL(void *context)
 {
-    glGenVertexArrays(4, vaos);
-    glGenBuffers(4, vbos);
+    auto &vao = vaos[context];
+    glGenVertexArrays(4, vao);
+    if(!vbo_initialized){
+        glGenBuffers(4, vbos);
+        vbo_initialized = true;
+    }
 
-    initAtom();
-    initBond();
-    initCell();
-    initSel();
+    initAtom(vao[0]);
+    initBond(vao[1]);
+    initCell(vao[2]);
+    initSel(vao[3]);
     glBindVertexArray(0);
 }
 
-void GUI::StepData::initSel()
+void GUI::StepData::initSel(GLuint vao)
 {
     if(!sel_shader.initialized){
         sel_shader.program = loadShader("/select.vert", "/select.frag");
@@ -58,7 +64,7 @@ void GUI::StepData::initSel()
         sel_shader.initialized = true;
     }
 
-    glBindVertexArray(sel_vao);
+    glBindVertexArray(vao);
 
     // sphere vertices
     glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
@@ -89,7 +95,7 @@ void GUI::StepData::initSel()
     glEnableVertexAttribArray(sel_shader.hide);
 }
 
-void GUI::StepData::initAtom()
+void GUI::StepData::initAtom(GLuint vao)
 {
     if(!atom_shader.initialized){
         atom_shader.program = loadShader("/atom.vert", "/atom.frag");
@@ -104,7 +110,7 @@ void GUI::StepData::initAtom()
         atom_shader.initialized = true;
     }
 
-    glBindVertexArray(atom_vao);
+    glBindVertexArray(vao);
 
     // sphere vertices
     glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
@@ -141,7 +147,7 @@ void GUI::StepData::initAtom()
     glEnableVertexAttribArray(atom_shader.hide);
 }
 
-void GUI::StepData::initBond()
+void GUI::StepData::initBond(GLuint vao)
 {
     if(!bond_shader.initialized){
         bond_shader.program = loadShader("/bond.vert", "/bond.frag");
@@ -158,7 +164,7 @@ void GUI::StepData::initBond()
         bond_shader.initialized = true;
     }
 
-    glBindVertexArray(bond_vao);
+    glBindVertexArray(vao);
 
     // cylinder vertices
     glBindBuffer(GL_ARRAY_BUFFER, global.cylinder_vbo);
@@ -218,7 +224,7 @@ void GUI::StepData::initBond()
     glEnableVertexAttribArray(bond_shader.color2);
 }
 
-void GUI::StepData::initCell()
+void GUI::StepData::initCell(GLuint vao)
 {
     if(!cell_shader.initialized){
         cell_shader.program = loadShader("/cell.vert", "/cell.frag");
@@ -227,7 +233,7 @@ void GUI::StepData::initCell()
         cell_shader.initialized = true;
     }
 
-    glBindVertexArray(cell_vao);
+    glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
     glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -235,11 +241,12 @@ void GUI::StepData::initCell()
 }
 
 void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
-                         const Mat &cv, bool drawCell)
+                         const Mat &cv, bool drawCell, void *context)
 {
     Vec tmp;
+    const auto& vao = vaos[context];
     // atoms
-    glBindVertexArray(atom_vao);
+    glBindVertexArray(vao[0]);
     glUseProgram(atom_shader.program);
     glUniform1f(atom_shader.scale_fac, atRadFac);
     glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
@@ -255,7 +262,7 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
         }
     }
     // bonds
-    glBindVertexArray(bond_vao);
+    glBindVertexArray(vao[1]);
     glUseProgram(bond_shader.program);
     glUniform3i(bond_shader.mult, mult[0], mult[1], mult[2]);
     glUniformMatrix3fv(bond_shader.pos_scale, 1, 0, cell_mat.data());
@@ -273,7 +280,7 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
     }
     // cell
     if(drawCell && curStep->hasCell()){
-        glBindVertexArray(cell_vao);
+        glBindVertexArray(vao[2]);
         glUseProgram(cell_shader.program);
         for(int x=0;x<mult[0];++x){
             for(int y=0;y<mult[1];++y){
@@ -287,7 +294,7 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
     }
 }
 
-void GUI::StepData::drawSel(Vec off, const PBCVec &mult)
+void GUI::StepData::drawSel(Vec off, const PBCVec &mult, void *context)
 {
     // draw Atoms (as setup in atom_vao, shader locations must match)
     // with selection shader -> color by gl_InstanceID
@@ -296,7 +303,7 @@ void GUI::StepData::drawSel(Vec off, const PBCVec &mult)
     glEnable(GL_DEPTH_TEST);
     glClearColor(1,1,0,0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBindVertexArray(sel_vao);
+    glBindVertexArray(vaos[context][3]);
     glUseProgram(sel_shader.program);
     glUniform1f(sel_shader.scale_fac, atRadFac);
     glUniformMatrix3fv(sel_shader.pos_scale, 1, 0, cell_mat.data());

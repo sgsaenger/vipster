@@ -60,7 +60,7 @@ void GLWidget::paintGL()
 {
     QPainter painter{this};
     painter.beginNativePainting();
-    draw();
+    draw(this);
     if(rectPos != mousePos){
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -156,7 +156,7 @@ std::map<size_t, std::vector<SizeVec> > GLWidget::pickAtoms(QPoint from, QPoint 
     // defined by `from` and `to`
     std::map<size_t, std::vector<SizeVec>> idx;
     makeCurrent();
-    drawSel();
+    drawSel(this);
     QOpenGLFramebufferObjectFormat format;
     format.setSamples(0);
     format.setInternalTextureFormat(GL_RGBA16);

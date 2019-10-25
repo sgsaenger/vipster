@@ -42,7 +42,7 @@ private:
         Vipster::Vec offset{};
         bool repeat{true}, cell{true};
         void draw(const Vipster::Vec &off, const Vipster::GUI::PBCVec &mult,
-                  const Vipster::Mat &cv, bool drawCell) override;
+                  const Vipster::Mat &cv, bool drawCell, void *context) override;
     };
     std::vector<std::shared_ptr<PinnedStep>> pinnedSteps;
     std::shared_ptr<PinnedStep> curPin{nullptr};

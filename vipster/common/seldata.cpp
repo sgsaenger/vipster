@@ -17,11 +17,11 @@ GUI::SelData::SelData(SelData&& dat)
       curSel{dat.curSel}
 {
     std::swap(color, dat.color);
-    std::swap(vao, dat.vao);
+    std::swap(vaos, dat.vaos);
     std::swap(vbo, dat.vbo);
 }
 
-void GUI::SelData::initGL()
+void GUI::SelData::initGL(void *context)
 {
     if(!shader.initialized){
         shader.program = loadShader("/selection.vert", "/selection.frag");
@@ -37,14 +37,18 @@ void GUI::SelData::initGL()
         shader.initialized = true;
     }
 
+    auto& vao = vaos[context];
     glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
     glVertexAttribPointer(shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(shader.vertex);
 
+    if(!vbo_initialized){
+        glGenBuffers(1, &vbo);
+        vbo_initialized = true;
+    }
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glVertexAttribPointer(shader.position, 3,
@@ -72,17 +76,19 @@ void GUI::SelData::initGL()
 
 GUI::SelData::~SelData()
 {
-    if(initialized){
+    if(vbo_initialized){
         glDeleteBuffers(1, &vbo);
-        glDeleteVertexArrays(1, &vao);
+    }
+    for(auto& vao: vaos){
+        glDeleteVertexArrays(1, &vao.second);
     }
 }
 
 void GUI::SelData::draw(const Vec &off, const PBCVec &mult,
-                        const Mat &, bool)
+                        const Mat &, bool, void *context)
 {
     if(sel_buffer.size()){
-        glBindVertexArray(vao);
+        glBindVertexArray(vaos[context]);
         glUseProgram(shader.program);
         glUniform1f(shader.scale_fac, atRadFac);
         glUniform3fv(shader.offset, 1, off.data());
