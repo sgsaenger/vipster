@@ -80,6 +80,11 @@ void GuiWrapper::drawImpl(const Vec &pos, void *context)
     auto m = curStep->hasCell() ? mult : GUI::PBCVec{{1,1,1}};
     mainStep.draw(off, m, cv, settings.showCell.val, context);
     selection.draw(off, m, cv, settings.showCell.val, context);
+    if(stepExtras){
+        for(const auto& i: *stepExtras){
+            i->draw(off, m, cv, settings.showCell.val, context);
+        }
+    }
     if(vpExtras){
         for(const auto& i: *vpExtras){
             i->draw(off, m, cv, settings.showCell.val, context);

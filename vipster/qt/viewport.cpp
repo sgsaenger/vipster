@@ -39,7 +39,13 @@ ViewPort::ViewPort(const ViewPort &vp) :
     //TODO: make this optional?
     moldata = vp.moldata;
     for(const auto& p: vp.stepdata){
-        stepdata[p.first].sel = std::make_unique<Vipster::Step::selection>(*p.second.sel);
+        if(p.second.sel){
+            if(stepdata[p.first].sel){
+                *stepdata[p.first].sel = *p.second.sel;
+            }else{
+                stepdata[p.first].sel = std::make_unique<Step::selection>(*p.second.sel);
+            }
+        }
         //FIXME: copy p.second.def?
     }
     ui->molList->setCurrentIndex(vp.ui->molList->currentIndex());

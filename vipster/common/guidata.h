@@ -5,6 +5,7 @@
 #include <GLES3/gl3.h>
 #include <string>
 #include <vector>
+#include <map>
 #else
 #include <QOpenGLFunctions_3_3_Core>
 #endif

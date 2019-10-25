@@ -39,6 +39,7 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
         curStep = master->curStep;
         curState = &master->curVP->stepdata[curStep];
         defMap = &curState->def;
+        curSel = defMap->end();
         fillTable();
     }else if(change & GUI::Change::definitions){
         fillTable();
@@ -167,6 +168,9 @@ void DefineWidget::updateAction()
 
 void DefineWidget::on_defTable_cellChanged(int row, int column)
 {
+    if(curSel == defMap->end()){
+        throw Error{"DefineWidget: selection is invalid."};
+    }
     QTableWidgetItem *cell = ui->defTable->item(row, column);
     switch(column){
     case 0:
