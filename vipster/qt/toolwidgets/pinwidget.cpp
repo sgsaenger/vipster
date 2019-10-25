@@ -19,19 +19,17 @@ PinWidget::~PinWidget()
 
 void PinWidget::updateWidget(GUI::change_t change)
 {
-//    if((change & GUI::vpChanged) == GUI::vpChanged){
-//        // fill list with steps pinned in current viewport
-//        QSignalBlocker block{this};
-//        ui->stepList->clear();
-//        curPin = nullptr;
-//        pinnedSteps.clear();
-//        for(auto &p : master->curVP->vpdata.extras){
-//            auto test = std::dynamic_pointer_cast<PinnedStep>(p);
-//            if(test){
-//                pinnedSteps.push_back(std::move(test));
-//                ui->stepList->addItem(pinnedSteps.back()->name.c_str());
-//            }
-//        }
+    if(change & (GUI::Change::atoms | GUI::Change::trajec |
+                 GUI::Change::cell | GUI::Change::settings)){
+        // set gui-state
+        on_stepList_currentRowChanged(ui->stepList->currentRow());
+        // update GPU data
+        for(auto &dat: pinnedSteps){
+            const auto& settings = master->settings;
+            dat->update(dat->curStep, settings.atRadVdW.val,
+                        settings.atRadFac.val, settings.bondRad.val);
+        }
+    }
     if((change & GUI::stepChanged) == GUI::stepChanged){
         // disable add-button when already pinned
         for(auto &dat: pinnedSteps){
@@ -41,17 +39,6 @@ void PinWidget::updateWidget(GUI::change_t change)
             }
         }
         ui->addStep->setEnabled(true);
-    }
-    if(change & (GUI::Change::atoms | GUI::Change::trajec |
-                       GUI::Change::cell | GUI::Change::settings)){
-        // set gui-state
-        on_stepList_currentRowChanged(ui->stepList->currentRow());
-        // update GPU data
-        for(auto &dat: pinnedSteps){
-            const auto& settings = master->settings;
-            dat->update(dat->curStep, settings.atRadVdW.val,
-                        settings.atRadFac.val, settings.bondRad.val);
-        }
     }
 }
 
@@ -131,8 +118,8 @@ void PinWidget::on_delStep_clicked()
     // remove from viewports
     for(auto& vp: master->viewports){
         auto& vpdata = vp->vpdata.extras;
-        auto pos = std::find_if(vpdata.begin(), vpdata.end(),
-                                [&](const auto& p){return curPin.get() == p.get();});
+        auto pos = std::find(vpdata.begin(), vpdata.end(), curPin);
+//                                [&](const auto& p){return curPin.get() == p.get();});
         if(pos != vpdata.end()){
             vpdata.erase(pos);
         }
@@ -142,8 +129,8 @@ void PinWidget::on_delStep_clicked()
     if(curPin->curStep == master->curStep){
         ui->addStep->setEnabled(true);
     }
-    auto pos2 = std::find_if(pinnedSteps.begin(), pinnedSteps.end(),
-                            [&](const auto& p){return curPin.get() == p.get();});
+    auto pos2 = std::find(pinnedSteps.begin(), pinnedSteps.end(), curPin);
+//                            [&](const auto& p){return curPin.get() == p.get();});
     pinnedSteps.erase(pos2);
     delete ui->stepList->takeItem(ui->stepList->currentRow());
     triggerUpdate(GUI::Change::extra);
@@ -199,6 +186,12 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
         ui->yMultBox->setValue(curPin->mult[1]);
         QSignalBlocker blockz{ui->zMultBox};
         ui->zMultBox->setValue(curPin->mult[2]);
+        QSignalBlocker blockox{ui->xOffset};
+        ui->xOffset->setValue(curPin->offset[0]);
+        QSignalBlocker blockoy{ui->yOffset};
+        ui->yOffset->setValue(curPin->offset[1]);
+        QSignalBlocker blockoz{ui->zOffset};
+        ui->zOffset->setValue(curPin->offset[2]);
     }
 }
 
