@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-IO::Data OrcaParser(const std::string& name, std::ifstream &file){
+IO::Data OrcaParser(const std::string& name, std::istream &file){
     IO::Data d{};
     d.param = std::make_unique<IO::OrcaParam>(name);
     auto& p = static_cast<IO::OrcaParam&>(*d.param.get());
@@ -20,7 +20,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
         std::stringstream ls{line};
         std::string test;
         // prepare parsers for specific formats
-        const auto xyzParser = [](Step& s, std::ifstream &file, std::string term){
+        const auto xyzParser = [](Step& s, std::istream &file, std::string term){
             std::string line, test;
             std::stringstream ls;
             Vec coord;
@@ -36,7 +36,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
             }
             throw IO::Error("ORCA: unterminated coordinates");
         };
-        const auto intParser = [](Step& s, std::ifstream &file, std::string term){
+        const auto intParser = [](Step& s, std::istream &file, std::string term){
             std::string line, test;
             std::stringstream ls;
             SizeVec ids;
@@ -59,7 +59,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
                 }
             }
         };
-        const auto gzmtParser = [](Step& s, std::ifstream &file, std::string term){
+        const auto gzmtParser = [](Step& s, std::istream &file, std::string term){
             std::string line, test;
             std::stringstream ls;
             SizeVec ids;
@@ -190,7 +190,7 @@ IO::Data OrcaParser(const std::string& name, std::ifstream &file){
     return d;
 }
 
-bool OrcaWriter(const Molecule& m, std::ofstream &file,
+bool OrcaWriter(const Molecule& m, std::ostream &file,
                 const IO::BaseParam *const p,
                 const IO::BaseConfig *const,
                 size_t index)

@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-IO::Data PoscarParser(const std::string& name, std::ifstream &file){
+IO::Data PoscarParser(const std::string& name, std::istream &file){
     IO::Data d{};
     Molecule &m = d.mol;
     m.setName(name);
@@ -115,7 +115,7 @@ IO::Data PoscarParser(const std::string& name, std::ifstream &file){
     return d;
 }
 
-bool PoscarWriter(const Molecule& m, std::ofstream &file,
+bool PoscarWriter(const Molecule& m, std::ostream &file,
                   const IO::BaseParam* const, const IO::BaseConfig* const c,
                   size_t index)
 {

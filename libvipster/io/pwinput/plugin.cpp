@@ -16,7 +16,7 @@ struct CellInp{
     Mat cell;
 };
 
-void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
+void parseNamelist(std::string name, std::istream& file, IO::PWParam& p)
 {
     const std::map<std::string, IO::PWParam::Namelist IO::PWParam::*> nlmap = {
         {"&CONTROL", &IO::PWParam::control},
@@ -56,7 +56,7 @@ void parseNamelist(std::string name, std::ifstream& file, IO::PWParam& p)
     throw IO::Error("Error in Namelist-parsing");
 }
 
-void parseSpecies(std::ifstream& file, Molecule& m, IO::PWParam& p)
+void parseSpecies(std::istream& file, Molecule& m, IO::PWParam& p)
 {
     auto dataentry = p.system.find("ntyp");
     if (dataentry == p.system.end()) throw IO::Error("ntyp not specified");
@@ -81,7 +81,7 @@ void parseSpecies(std::ifstream& file, Molecule& m, IO::PWParam& p)
     }
 }
 
-void parseCoordinates(std::string name, std::ifstream& file,
+void parseCoordinates(std::string name, std::istream& file,
                       Molecule& m, IO::PWParam& p)
 {
     auto dataentry = p.system.find("nat");
@@ -144,7 +144,7 @@ void parseCoordinates(std::string name, std::ifstream& file,
     }
 }
 
-void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
+void parseKPoints(std::string name, std::istream& file, Molecule& m)
 {
     if (name.find("GAMMA") != name.npos) {
         return;
@@ -185,7 +185,7 @@ void parseKPoints(std::string name, std::ifstream& file, Molecule& m)
     }
 }
 
-void parseCell(std::string name, std::ifstream& file, CellInp &cell)
+void parseCell(std::string name, std::istream& file, CellInp &cell)
 {
     std::string line;
     for(size_t i=0; i<3; ++i){
@@ -291,7 +291,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
     }
 }
 
-void parseCard(std::string name, std::ifstream& file,
+void parseCard(std::string name, std::istream& file,
                Molecule& m, IO::PWParam& p,
                CellInp &cell)
 {
@@ -304,7 +304,7 @@ void parseCard(std::string name, std::ifstream& file,
     else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("ATOMIC_FORCES not implemented");
 }
 
-IO::Data PWInpParser(const std::string& name, std::ifstream &file)
+IO::Data PWInpParser(const std::string& name, std::istream &file)
 {
     IO::Data d{};
     Molecule &m = d.mol;
@@ -328,7 +328,7 @@ IO::Data PWInpParser(const std::string& name, std::ifstream &file)
     return d;
 }
 
-bool PWInpWriter(const Molecule& m, std::ofstream &file,
+bool PWInpWriter(const Molecule& m, std::ostream &file,
                  const IO::BaseParam *const p,
                  const IO::BaseConfig *const c,
                  size_t index)

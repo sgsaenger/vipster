@@ -5,7 +5,7 @@
 
 using namespace Vipster;
 
-IO::Data XYZParser(const std::string& name, std::ifstream &file)
+IO::Data XYZParser(const std::string& name, std::istream &file)
 {
     IO::Data data{};
     Molecule &m = data.mol;
@@ -90,7 +90,7 @@ IO::Data XYZParser(const std::string& name, std::ifstream &file)
     return data;
 }
 
-bool XYZWriter(const Molecule& m, std::ofstream &file,
+bool XYZWriter(const Molecule& m, std::ostream &file,
                const IO::BaseParam*const, const IO::BaseConfig*const c,
                size_t index)
 {

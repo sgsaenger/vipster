@@ -28,8 +28,8 @@ struct Plugin{
     std::string extension;
     std::string command;
     uint8_t     arguments;
-    Data        (*parser)(const std::string& name, std::ifstream &file);
-    bool        (*writer)(const Molecule& m, std::ofstream &file,
+    Data        (*parser)(const std::string& name, std::istream &file);
+    bool        (*writer)(const Molecule& m, std::ostream &file,
                           const BaseParam *const p,
                           const BaseConfig *const c,
                           size_t idx) = nullptr;

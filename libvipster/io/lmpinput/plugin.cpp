@@ -45,7 +45,7 @@ const static std::map<std::string, std::vector<lmpTok>> fmtmap{
     {"hybrid", {{lmpTok::type, lmpTok::pos}}}
 };
 
-std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
+std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
     // TODO: WILL fail if fmt == tdpd, hybrid, template
     // probably also for dipole and ellipsoid
     auto rewindpos = file.tellg();
@@ -126,7 +126,7 @@ std::vector<lmpTok> getFmtGuess(std::ifstream& file, size_t nat){
 }
 
 auto makeParser(std::vector<lmpTok> fmt){
-    return [fmt](std::ifstream& file, Step& s, size_t nat,
+    return [fmt](std::istream& file, Step& s, size_t nat,
                  std::map<size_t, std::string>& types,
                  std::map<size_t, size_t>& indices){
         s.newAtoms(nat);
@@ -222,7 +222,7 @@ auto makeWriter(const std::vector<lmpTok>& fmt,
     };
 }
 
-IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
+IO::Data LmpInpParser(const std::string& name, std::istream &file)
 {
     enum class ParseMode{Header,Atoms,Types};
 
@@ -431,7 +431,7 @@ IO::Data LmpInpParser(const std::string& name, std::ifstream &file)
     return data;
 }
 
-bool LmpInpWriter(const Molecule& m, std::ofstream &file,
+bool LmpInpWriter(const Molecule& m, std::ostream &file,
                   const IO::BaseParam *const,
                   const IO::BaseConfig *const c,
                   size_t index)

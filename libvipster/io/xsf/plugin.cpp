@@ -6,7 +6,7 @@ using namespace Vipster;
 
 template<typename T>
 auto mkparser(){
-    return [](IO::Data& d, std::string&& n, std::ifstream& f){
+    return [](IO::Data& d, std::string&& n, std::istream& f){
         constexpr size_t N = T::Dim;
         std::array<size_t, N> extent;
         f >> extent[0] >> extent[1] >> extent[2];
@@ -26,7 +26,7 @@ auto mkparser(){
     };
 };
 
-IO::Data XSFParser(const std::string& name, std::ifstream &file)
+IO::Data XSFParser(const std::string& name, std::istream &file)
 {
     IO::Data data{};
     auto& m = data.mol;
@@ -35,7 +35,7 @@ IO::Data XSFParser(const std::string& name, std::ifstream &file)
     std::string line, buf;
     bool animated{false};
     bool hasCell{false};
-    std::ifstream::pos_type fpos;
+    std::istream::pos_type fpos;
     size_t dim{0}, grp{1};
     auto tokenizeLine = [&](){
         std::getline(file, line);
@@ -173,7 +173,7 @@ IO::Data XSFParser(const std::string& name, std::ifstream &file)
         }else if(line.find("BEGIN_") != line.npos){
             auto type = line.substr(6);
             std::string block_end, data_begin, data_end;
-            std::function<void(IO::Data&, std::string&&, std::ifstream&)> parser;
+            std::function<void(IO::Data&, std::string&&, std::istream&)> parser;
             if(type == "INFO"){
                 // ignore
                 block_end = "END_INFO";

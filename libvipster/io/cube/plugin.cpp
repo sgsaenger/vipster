@@ -2,7 +2,7 @@
 
 using namespace Vipster;
 
-IO::Data CubeParser(const std::string& name, std::ifstream &file){
+IO::Data CubeParser(const std::string& name, std::istream &file){
     IO::Data d{};
     d.mol.setName(name);
     Step &s = d.mol.newStep();

@@ -92,7 +92,7 @@ static Mat makeCell(int ibrav, float b, float c,
     throw IO::Error("Invalid ibrav");
 }
 
-IO::Data CPInpParser(const std::string& name, std::ifstream &file){
+IO::Data CPInpParser(const std::string& name, std::istream &file){
     IO::Data d{};
     Molecule &m = d.mol;
     m.setName(name);
@@ -412,7 +412,7 @@ IO::Data CPInpParser(const std::string& name, std::ifstream &file){
     return d;
 }
 
-bool CPInpWriter(const Molecule& m, std::ofstream &file,
+bool CPInpWriter(const Molecule& m, std::ostream &file,
                  const IO::BaseParam *const p,
                  const IO::BaseConfig *const c,
                  size_t index)

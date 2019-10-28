@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-IO::Data PWOutParser(const std::string& name, std::ifstream &file)
+IO::Data PWOutParser(const std::string& name, std::istream &file)
 {
     IO::Data d{};
     Molecule& m = d.mol;

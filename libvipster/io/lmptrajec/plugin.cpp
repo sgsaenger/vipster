@@ -45,7 +45,7 @@ auto IdentifyColumns(std::string& line)
     case unscaled:
         [[fallthrough]];
     case scaled:
-        return [=](std::ifstream &file, Step& s){
+        return [=](std::istream &file, Step& s){
             if(cs == scaled) {
                 s.modScale(AtomFmt::Crystal);
             } else {
@@ -73,7 +73,7 @@ auto IdentifyColumns(std::string& line)
 }
 
 IO::Data
-LmpTrajecParser(const std::string& name, std::ifstream &file)
+LmpTrajecParser(const std::string& name, std::istream &file)
 {
     enum class ParseMode{Header, Cell, Atoms};
 
