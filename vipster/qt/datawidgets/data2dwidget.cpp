@@ -18,7 +18,7 @@ Data2DWidget::~Data2DWidget()
 
 void Data2DWidget::updateWidget(GUI::change_t change)
 {
-    if(curData && curPlane &&
+    if(curPlane &&
        ((change & GUI::stepChanged) == GUI::stepChanged)){
         QSignalBlocker block{ui->sliceBut};
         const auto& extradat = master->curVP->stepdata[master->curStep].extras;
@@ -33,7 +33,6 @@ void Data2DWidget::setData(const BaseData* data)
     if(!curData){
         throw Error("Invalid dataset");
     }
-    //TODO: this will break, will it?
     QSignalBlocker block{ui->sliceBut};
     auto pos = planes.find(curData);
     if(pos != planes.end()){
@@ -54,9 +53,9 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
             master->curVP->stepdata[master->curStep].extras.push_back(curPlane);
         }else{
             auto& extradat = master->curVP->stepdata[master->curStep].extras;
-            auto pos2 = std::find(extradat.begin(), extradat.end(), curPlane);
-            if(pos2 != extradat.end()){
-                extradat.erase(pos2);
+            auto pos = std::find(extradat.begin(), extradat.end(), curPlane);
+            if(pos != extradat.end()){
+                extradat.erase(pos);
             }
         }
         triggerUpdate(GUI::Change::extra);

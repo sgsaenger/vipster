@@ -1,6 +1,7 @@
 #ifndef DATA3DWIDGET_H
 #define DATA3DWIDGET_H
 
+#include <memory>
 #include <QWidget>
 #include <QDoubleValidator>
 #include "../mainwidgets/datawidget.h"
@@ -34,21 +35,24 @@ private:
     const Vipster::DataGrid3D_f* curData{nullptr};
     QDoubleValidator validator;
 
-    struct DatSlice{
-        bool display;
+    struct DatSlice: public Vipster::GUI::MeshData{
         size_t dir, pos;
-        Vipster::GUI::MeshData gpu_data;
+        DatSlice(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+                 Vipster::Vec offset, Vipster::Mat cell,
+                 Texture texture, size_t dir, size_t pos);
     };
-    DatSlice* curSlice{nullptr};
-    std::map<const Vipster::DataGrid3D_f*, DatSlice> slices;
+    std::shared_ptr<DatSlice> curSlice{nullptr};
+    std::map<const Vipster::DataGrid3D_f*, std::shared_ptr<DatSlice>> slices;
 
-    struct IsoSurf{
-        bool display, plusmin;
+    struct IsoSurf: public Vipster::GUI::MeshData{
+        bool plusmin;
         float isoval;
-        Vipster::GUI::MeshData gpu_data;
+        IsoSurf(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+                Vipster::Vec offset, Vipster::Mat cell,
+                Texture texture, bool plusmin, float isoval);
     };
-    IsoSurf* curSurf{nullptr};
-    std::map<const Vipster::DataGrid3D_f*, IsoSurf> surfaces;
+    std::shared_ptr<IsoSurf> curSurf{nullptr};
+    std::map<const Vipster::DataGrid3D_f*, std::shared_ptr<IsoSurf>> surfaces;
     std::vector<Vipster::GUI::MeshData::Face> mkSurf(float isoval, bool pm);
 };
 

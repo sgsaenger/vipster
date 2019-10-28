@@ -17,12 +17,40 @@ Data3DWidget::~Data3DWidget()
     delete ui;
 }
 
+Data3DWidget::IsoSurf::IsoSurf(const GUI::GlobalData& glob, std::vector<Face>&& faces,
+                Vec off, Mat cell, Texture texture, bool plusmin, float isoval)
+    : GUI::MeshData{glob, std::move(faces), off, cell, texture},
+      plusmin{plusmin},
+      isoval{isoval}
+{}
+
+Data3DWidget::DatSlice::DatSlice(const GUI::GlobalData& glob, std::vector<Face>&& faces,
+                Vec off, Mat cell, Texture texture, size_t dir, size_t pos)
+    : GUI::MeshData{glob, std::move(faces), off, cell, texture},
+      dir{dir}, pos{pos}
+{}
+
 void Data3DWidget::updateWidget(GUI::change_t change)
 {
+    // update display state
+    if((change & GUI::stepChanged) == GUI::stepChanged){
+        const auto& extradat = master->curVP->stepdata[master->curStep].extras;
+        if(curSlice){
+            QSignalBlocker block{ui->sliceBut};
+            auto pos = std::find(extradat.begin(), extradat.end(), curSlice);
+            ui->sliceBut->setChecked(pos != extradat.end());
+        }
+        if(curSurf){
+            QSignalBlocker block{ui->surfBut};
+            auto pos = std::find(extradat.begin(), extradat.end(), curSurf);
+            ui->surfBut->setChecked(pos != extradat.end());
+        }
+    }
+    // change isosurface colors
     if(change & GUI::Change::settings){
         for(auto& p: surfaces){
-            p.second.gpu_data.update({{master->settings.posCol.val,
-                                       master->settings.negCol.val}, 2, 1});
+            p.second->update({{master->settings.posCol.val,
+                             master->settings.negCol.val}, 2, 1});
         }
     }
 }
@@ -33,13 +61,16 @@ void Data3DWidget::setData(const BaseData* data)
     if(curData == nullptr){
         throw Error("Invalid dataset");
     }
+    // TODO: this is wrong, isn't it?
     QSignalBlocker block{this};
+    const auto& extradat = master->curVP->stepdata[master->curStep].extras;
 
     // init plane-state
     auto slicePos = slices.find(curData);
     if(slicePos != slices.end()){
-        curSlice = &slicePos->second;
-        ui->sliceBut->setChecked(curSlice->display);
+        curSlice = slicePos->second;
+        auto pos = std::find(extradat.begin(), extradat.end(), curSlice);
+        ui->sliceBut->setChecked(pos != extradat.end());
         ui->sliceDir->setCurrentIndex(static_cast<int>(curSlice->dir));
         ui->sliceVal->setMaximum(static_cast<int>(curData->extent[curSlice->dir]));
         ui->sliceVal->setValue(static_cast<int>(curSlice->pos));
@@ -62,8 +93,9 @@ void Data3DWidget::setData(const BaseData* data)
     ui->minLabel->setText(QString::number(min, 'g', dec));
     auto surfPos = surfaces.find(curData);
     if(surfPos != surfaces.end()){
-        curSurf = &surfPos->second;
-        ui->surfBut->setChecked(curSurf->display);
+        curSurf = surfPos->second;
+        auto pos = std::find(extradat.begin(), extradat.end(), curSurf);
+        ui->surfBut->setChecked(pos != extradat.end());
         ui->surfToggle->setCheckState(Qt::CheckState(curSurf->plusmin*2));
         auto isoval = static_cast<double>(curSurf->isoval);
         ui->surfVal->setText(QString::number(isoval));
@@ -165,8 +197,8 @@ void Data3DWidget::on_sliceVal_valueChanged(int pos)
         curSlice->pos = static_cast<size_t>(pos);
         auto off = static_cast<float>(pos)/curData->extent[curSlice->dir];
         auto _dir = static_cast<size_t>(ui->sliceDir->currentIndex());
-        curSlice->gpu_data.update(mkSlice(_dir, off));
-        curSlice->gpu_data.update(mkSliceTex(*curData, _dir, static_cast<size_t>(pos)));
+        curSlice->update(mkSlice(_dir, off));
+        curSlice->update(mkSliceTex(*curData, _dir, static_cast<size_t>(pos)));
         triggerUpdate(GUI::Change::extra);
     }
 }
@@ -174,26 +206,31 @@ void Data3DWidget::on_sliceVal_valueChanged(int pos)
 void Data3DWidget::on_sliceBut_toggled(bool checked)
 {
     if(curSlice){
-        curSlice->display = checked;
         if(checked){
-            master->addExtraData(&curSlice->gpu_data);
+            master->curVP->stepdata[master->curStep].extras.push_back(curSlice);
         }else{
-            master->delExtraData(&curSlice->gpu_data);
+            auto& extradat = master->curVP->stepdata[master->curStep].extras;
+            auto pos = std::find(extradat.begin(), extradat.end(), curSlice);
+            if(pos != extradat.end()){
+                extradat.erase(pos);
+            }
         }
+        triggerUpdate(GUI::Change::extra);
     }else if(checked){
         auto dir = static_cast<size_t>(ui->sliceDir->currentIndex());
         auto pos = static_cast<size_t>(ui->sliceVal->value());
         auto off = static_cast<float>(pos) / curData->extent[dir];
-        auto tmp = slices.emplace(curData, DatSlice{
-            true, dir, pos,
-            GUI::MeshData{master->globals,
-                          mkSlice(dir, off),
-                          curData->origin,
-                          curData->cell,
-                          mkSliceTex(*curData, dir, pos)}
-            });
-        curSlice = &tmp.first->second;
-        master->addExtraData(&curSlice->gpu_data);
+        curSlice =  std::make_shared<DatSlice>(
+            master->globals,
+            mkSlice(dir, off),
+            curData->origin,
+            curData->cell,
+            mkSliceTex(*curData, dir, pos),
+            dir, pos
+            );
+        slices.emplace(curData, curSlice);
+        master->curVP->stepdata[master->curStep].extras.push_back(curSlice);
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
@@ -664,10 +701,8 @@ void Data3DWidget::on_surfToggle_stateChanged(int state)
 {
     if(curSurf){
         curSurf->plusmin = state;
-        curSurf->gpu_data.update(mkSurf(curSurf->isoval, curSurf->plusmin));
-        if(curSurf->display){
-            triggerUpdate(GUI::Change::extra);
-        }
+        curSurf->update(mkSurf(curSurf->isoval, curSurf->plusmin));
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
@@ -679,10 +714,8 @@ void Data3DWidget::on_surfSlider_valueChanged(int val)
     ui->surfVal->setText(QString::number(_val));
     if(curSurf){
         curSurf->isoval = static_cast<float>(_val);
-        curSurf->gpu_data.update(mkSurf(curSurf->isoval, curSurf->plusmin));
-        if(curSurf->display){
-            triggerUpdate(GUI::Change::extra);
-        }
+        curSurf->update(mkSurf(curSurf->isoval, curSurf->plusmin));
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
@@ -696,35 +729,38 @@ void Data3DWidget::on_surfVal_editingFinished()
     ui->surfSlider->setValue(static_cast<int>(_val));
     if(curSurf){
         curSurf->isoval = val;
-        curSurf->gpu_data.update(mkSurf(val, curSurf->plusmin));
-        if(curSurf->display){
-            triggerUpdate(GUI::Change::extra);
-        }
+        curSurf->update(mkSurf(val, curSurf->plusmin));
+        triggerUpdate(GUI::Change::extra);
     }
 }
 
 void Data3DWidget::on_surfBut_toggled(bool checked)
 {
     if(curSurf){
-        curSurf->display = checked;
         if(checked){
-            master->addExtraData(&curSurf->gpu_data);
+            master->curVP->stepdata[master->curStep].extras.push_back(curSurf);
         }else{
-            master->delExtraData(&curSurf->gpu_data);
+            auto& extradat = master->curVP->stepdata[master->curStep].extras;
+            auto pos = std::find(extradat.begin(), extradat.end(), curSurf);
+            if(pos != extradat.end()){
+                extradat.erase(pos);
+            }
         }
+        triggerUpdate(GUI::Change::extra);
     }else if(checked){
         auto isoval = ui->surfVal->text().toFloat();
         auto pm = static_cast<bool>(ui->surfToggle->checkState());
-        auto tmp = surfaces.emplace(curData, IsoSurf{
-            true, pm, isoval,
-            GUI::MeshData{master->globals,
-                          mkSurf(isoval, pm),
-                          curData->origin,
-                          curData->cell,
-                          {{master->settings.posCol.val,
-                            master->settings.negCol.val}, 2, 1}}
-            });
-        curSurf = &tmp.first->second;
-        master->addExtraData(&curSurf->gpu_data);
+        curSurf = std::make_shared<IsoSurf>(
+                    master->globals,
+                    mkSurf(isoval, pm),
+                    curData->origin,
+                    curData->cell,
+                    GUI::MeshData::Texture{{master->settings.posCol.val,
+                      master->settings.negCol.val}, 2, 1},
+                    pm, isoval
+                    );
+        surfaces.emplace(curData, curSurf);
+        master->curVP->stepdata[master->curStep].extras.push_back(curSurf);
+        triggerUpdate(GUI::Change::extra);
     }
 }

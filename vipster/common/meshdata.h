@@ -48,7 +48,7 @@ private:
     } cell_shader;
 public:
     MeshData(const GlobalData& glob, std::vector<Face>&& faces,
-             Vec offset, Vipster::Mat cell, Texture texture);
+             Vec offset, Mat cell, Texture texture);
     MeshData(MeshData&& dat);
     MeshData(const MeshData& dat)=delete;
     MeshData& operator=(const MeshData& dat)=delete;
