@@ -1,6 +1,7 @@
 #ifndef DATA2DWIDGET_H
 #define DATA2DWIDGET_H
 
+#include <memory>
 #include <QWidget>
 #include "../mainwidgets/datawidget.h"
 #include "../../common/meshdata.h"
@@ -17,19 +18,17 @@ public:
     explicit Data2DWidget(QWidget *parent = nullptr);
     ~Data2DWidget() override;
     void setData(const Vipster::BaseData *d) override;
+    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
     void on_sliceBut_toggled(bool checked);
 
 private:
     Ui::Data2DWidget *ui;
-    struct DatPlane{
-        bool display;
-        Vipster::GUI::MeshData gpu_data;
-    };
     const Vipster::DataGrid2D_f* curData{nullptr};
-    DatPlane* curPlane{nullptr};
-    std::map<const Vipster::DataGrid2D_f*, DatPlane> planes;
+    std::map<const Vipster::DataGrid2D_f*,
+             std::shared_ptr<Vipster::GUI::MeshData>> planes;
+    std::shared_ptr<Vipster::GUI::MeshData> curPlane{nullptr};
 };
 
 #endif // DATA2DWIDGET_H

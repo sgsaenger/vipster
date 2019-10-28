@@ -16,17 +16,31 @@ Data2DWidget::~Data2DWidget()
     delete ui;
 }
 
+void Data2DWidget::updateWidget(GUI::change_t change)
+{
+    if(curData && curPlane &&
+       ((change & GUI::stepChanged) == GUI::stepChanged)){
+        QSignalBlocker block{ui->sliceBut};
+        const auto& extradat = master->curVP->stepdata[master->curStep].extras;
+        auto pos2 = std::find(extradat.begin(), extradat.end(), curPlane);
+        ui->sliceBut->setChecked(pos2 != extradat.end());
+    }
+}
+
 void Data2DWidget::setData(const BaseData* data)
 {
     curData = dynamic_cast<const DataGrid2D_f*>(data);
     if(!curData){
         throw Error("Invalid dataset");
     }
-    QSignalBlocker block{this};
+    //TODO: this will break, will it?
+    QSignalBlocker block{ui->sliceBut};
     auto pos = planes.find(curData);
     if(pos != planes.end()){
-        curPlane = &pos->second;
-        ui->sliceBut->setChecked(curPlane->display);
+        curPlane = pos->second;
+        const auto& extradat = master->curVP->stepdata[master->curStep].extras;
+        auto pos2 = std::find(extradat.begin(), extradat.end(), curPlane);
+        ui->sliceBut->setChecked(pos2 != extradat.end());
     }else{
         curPlane = nullptr;
         ui->sliceBut->setChecked(false);
@@ -36,13 +50,17 @@ void Data2DWidget::setData(const BaseData* data)
 void Data2DWidget::on_sliceBut_toggled(bool checked)
 {
     if(curPlane){
-        curPlane->display = checked;
         if(checked){
-            master->addExtraData(&curPlane->gpu_data);
+            master->curVP->stepdata[master->curStep].extras.push_back(curPlane);
         }else{
-            master->delExtraData(&curPlane->gpu_data);
+            auto& extradat = master->curVP->stepdata[master->curStep].extras;
+            auto pos2 = std::find(extradat.begin(), extradat.end(), curPlane);
+            if(pos2 != extradat.end()){
+                extradat.erase(pos2);
+            }
         }
-    }else if(checked){
+        triggerUpdate(GUI::Change::extra);
+    }else if(curData && checked){
         GUI::MeshData::Texture texture;
         texture.width = static_cast<int>(curData->extent[0]);
         texture.height = static_cast<int>(curData->extent[1]);
@@ -60,16 +78,13 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
                                         128});
             }
         }
-        auto tmp = planes.emplace(curData, DatPlane{
-            true,
-            GUI::MeshData{master->globals,
-                          {{{0,0,0},{},{0,0}},{{0,1,0},{},{0,1}},{{1,1,0},{},{1,1}},
-                           {{0,0,0},{},{0,0}},{{1,0,0},{},{1,0}},{{1,1,0},{},{1,1}}},
-                          curData->origin,
-                          curData->cell,
-                          texture}
-            });
-        curPlane = &tmp.first->second;
-        master->addExtraData(&curPlane->gpu_data);
+        curPlane = std::make_shared<GUI::MeshData>(
+                    master->globals, std::vector<GUI::MeshData::Face>{
+                        {{0,0,0},{},{0,0}},{{0,1,0},{},{0,1}},{{1,1,0},{},{1,1}},
+                        {{0,0,0},{},{0,0}},{{1,0,0},{},{1,0}},{{1,1,0},{},{1,1}}
+                    }, curData->origin, curData->cell, texture);
+        planes.emplace(curData, curPlane);
+        master->curVP->stepdata[master->curStep].extras.push_back(curPlane);
+        triggerUpdate(GUI::Change::extra);
     }
 }

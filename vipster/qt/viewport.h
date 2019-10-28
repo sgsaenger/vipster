@@ -40,6 +40,7 @@ public:
     };
     struct StepState{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
+        // TODO: should not be tied to viewport
         std::map<std::string,
             std::pair<Vipster::Step::selection,
             std::shared_ptr<Vipster::GUI::SelData>>> def{};
