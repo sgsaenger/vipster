@@ -14,9 +14,9 @@ class SaveFmtDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SaveFmtDialog(QWidget *parent = nullptr);
+    explicit SaveFmtDialog(const Vipster::IO::Plugins& plugins, QWidget *parent = nullptr);
     ~SaveFmtDialog();
-    Vipster::IOFmt fmt{};
+    const Vipster::IO::Plugin* plugin{};
     Vipster::IO::BaseConfig* getConfig();
     Vipster::IO::BaseParam* getParam();
 
@@ -26,7 +26,7 @@ private slots:
 private:
     void enableParamWidget(bool);
     void enableConfWidget(bool);
-    std::vector<Vipster::IOFmt> outFormats;
+    std::vector<const Vipster::IO::Plugin*> outFormats;
     Ui::SaveFmtDialog *ui;
 };
 

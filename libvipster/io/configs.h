@@ -1,7 +1,6 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-#include "fmt.h"
 #include "json.hpp"
 
 #include <string>
@@ -14,21 +13,19 @@ class BaseConfig
 {
 public:
     std::string name;
-    virtual IOFmt getFmt() const = 0;
+    virtual const struct Plugin* getFmt() const = 0;
     virtual std::unique_ptr<BaseConfig> copy() const = 0;
     virtual void parseJson(const nlohmann::json::iterator&) = 0;
     virtual nlohmann::json toJson() const = 0;
     virtual ~BaseConfig() = default;
 protected:
-    BaseConfig(const std::string &);
+    BaseConfig(const std::string &name);
     BaseConfig(const BaseConfig&) = default;
     BaseConfig(BaseConfig &&) = default;
     BaseConfig& operator=(const BaseConfig&) = default;
     BaseConfig& operator=(BaseConfig&&) = default;
 };
 
-using Configs = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseConfig>>>;
-Configs defaultConfigs();
 constexpr const char* ConfigsAbout =
     "IO-Config presets are used to control HOW the data is "
     "written to the formatted target file.\n\n"

@@ -191,7 +191,7 @@ const IO::Plugin IO::Poscar =
     "VASP POSCAR",
     "POSCAR",
     "pos",
-    IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Config,
     &PoscarParser,
     &PoscarWriter,
     nullptr,

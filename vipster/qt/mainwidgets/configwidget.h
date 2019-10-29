@@ -16,11 +16,11 @@ class ConfigWidget : public BaseWidget
 public:
     explicit ConfigWidget(QWidget *parent = nullptr);
     ~ConfigWidget() override;
-    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseConfig>>> configs;
+    std::vector<std::pair<const Vipster::IO::Plugin*, std::unique_ptr<Vipster::IO::BaseConfig>>> configs;
     void registerConfig(std::unique_ptr<Vipster::IO::BaseConfig>&& data);
     void clearConfigs();
-    Vipster::IOFmt curFmt;
-    Vipster::IO::BaseConfig* curConfig{nullptr};
+    const Vipster::IO::Plugin *curFmt;
+    Vipster::IO::BaseConfig *curConfig{nullptr};
 
 private slots:
     void on_configSel_currentIndexChanged(int index);
@@ -29,7 +29,7 @@ private slots:
 
 private:
     Ui::ConfigWidget *ui;
-    std::map<Vipster::IOFmt, ConfigBase*> formats;
+    std::map<const Vipster::IO::Plugin*, ConfigBase*> formats;
 };
 
 #endif // CONFIGWIDGET_H

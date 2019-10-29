@@ -1,60 +1,106 @@
-#include "io.h"
 #include <iostream>
+#include "io.h"
+#include "io/xyz/plugin.h"
+#include "io/pwinput/plugin.h"
+#include "io/pwoutput/plugin.h"
+#include "io/lmpinput/plugin.h"
+#include "io/lmptrajec/plugin.h"
+#include "io/cpmdinput/plugin.h"
+#include "io/cube/plugin.h"
+#include "io/xsf/plugin.h"
+#include "io/orca/plugin.h"
+#include "io/poscar/plugin.h"
 
 using namespace Vipster;
 
-IO::Data Vipster::readFile(const std::string &fn)
+IO::Plugins IO::defaultPlugins()
 {
-    // check if file can be read
-    std::ifstream file{fn};
-    if(!file){
-        throw IO::Error("Could not open "+fn);
-    }
-    // determine filetype
-    static const auto IOExt2Fmt = [](){
-        std::map<std::string, IOFmt> ext;
-        for(const auto& pair: IOPlugins){
-            ext[pair.second->extension] = pair.first;
+    return {
+            &IO::XYZ,
+            &IO::PWInput,
+            &IO::PWOutput,
+            &IO::LmpInput,
+            &IO::LmpTrajec,
+            &IO::CPInput,
+            &IO::Cube,
+            &IO::XSF,
+            &IO::OrcaInput,
+            &IO::Poscar
+    };
+}
+
+IO::Parameters Vipster::IO::defaultParams(const Plugins &p)
+{
+    IO::Parameters tmp;
+    for(const auto& plug: p){
+        if(plug->arguments & IO::Plugin::Args::Param){
+            tmp[plug]["default"] = plug->makeParam("default");
         }
-        return ext;
-    }();
-    std::string name = fn;
+    }
+    return tmp;
+}
+
+IO::Configs Vipster::IO::defaultConfigs(const Plugins &p)
+{
+    IO::Configs tmp;
+    for(const auto& plug: p){
+        if(plug->arguments & IO::Plugin::Args::Config){
+            tmp[plug]["default"] = plug->makeConfig("default");
+        }
+    }
+    return tmp;
+}
+
+std::optional<const IO::Plugin*> Vipster::guessFmt(std::string fn,
+                                                   IO::Plugin::Args arg,
+                                                   const IO::Plugins &p)
+{
     auto pos = fn.find_last_of('.');
     if(pos != fn.npos){
-        name = fn.substr(pos+1);
+        fn = fn.substr(pos+1);
     }else{
         pos = fn.find_last_of("/\\");
         if(pos != fn.npos){
-            name = fn.substr(pos+1);
+            fn = fn.substr(pos+1);
         }
     }
-    auto ext = IOExt2Fmt.find(name);
-    if(ext == IOExt2Fmt.end()){
+    auto plug = std::find_if(p.begin(), p.end(), [&](const IO::Plugin* p){
+        return (((p->arguments & arg) == arg) &&
+           (p->extension == fn));
+    });
+    if(plug != p.end()){
+        return *plug;
+    }else{
+        return {};
+    }
+}
+
+// read with format guess
+IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
+{
+    // get format
+    auto plugin = guessFmt(fn, IO::Plugin::Read, p);
+    if(!plugin){
         throw IO::Error{"Could not deduce format of file "+fn+
                         "\nPlease specify format explicitely", false};
     }
-    // try to parse
-    auto tmp = IOPlugins.at(ext->second)->parser(fn, file);
-    if(!tmp.mol.getNstep()){
-        throw IO::Error("No Molecule could be parsed");
-    }
-    // return if successful
-    return tmp;
+    // read file
+    return readFile(fn, plugin.value());
 }
 
-IO::Data Vipster::readFile(const std::string &fn, IOFmt fmt)
+// read with explicit format
+IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
 {
     // check if file can be read
     std::ifstream file{fn};
     if(!file){
         throw IO::Error("Could not open "+fn);
     }
-    // check filetype
-    if(IOPlugins.find(fmt)==IOPlugins.end()){
-        throw IO::Error("Unknown format");
-    }
     // try to parse
-    auto tmp = IOPlugins.at(fmt)->parser(fn, file);
+    if(plug->parser == nullptr){
+        throw IO::Error("Format is not readable");
+    }
+    auto tmp = plug->parser(fn, file);
     if(!tmp.mol.getNstep()){
         throw IO::Error("No Molecule could be parsed");
     }
@@ -62,7 +108,9 @@ IO::Data Vipster::readFile(const std::string &fn, IOFmt fmt)
     return tmp;
 }
 
-bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
+bool  Vipster::writeFile(const std::string &fn,
+                         const IO::Plugin *plug,
+                         const Molecule &m,
                          const IO::BaseParam *const p,
                          const IO::BaseConfig *const c,
                          size_t idx)
@@ -75,14 +123,10 @@ bool  Vipster::writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
         if(!file){
             throw IO::Error("Could not open "+fn);
         }
-        if(IOPlugins.find(fmt)==IOPlugins.end()){
-            throw IO::Error("Unknown format");
-        }
-        const IO::Plugin * const w = IOPlugins.at(fmt);
-        if(w->writer == nullptr){
+        if(plug->writer == nullptr){
             throw IO::Error("Read-only format");
         }
-        return w->writer(m, file, p, c, idx);
+        return plug->writer(m, file, p, c, idx);
     }
     catch(IO::Error &e){
         std::cout << e.what() << std::endl;

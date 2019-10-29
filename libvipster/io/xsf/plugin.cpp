@@ -225,6 +225,6 @@ const IO::Plugin IO::XSF =
     "XCrysDen Structure File",
     "xsf",
     "xsf",
-    IO::Plugin::None,
+    IO::Plugin::Read,
     &XSFParser
 };

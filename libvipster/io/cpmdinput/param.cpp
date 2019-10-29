@@ -1,4 +1,5 @@
 #include "param.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -13,9 +14,9 @@ IO::CPParam::CPParam(std::string name, Section info, Section cpmd, Section syste
       PPPrefix{PPPrefix}, PPSuffix{PPSuffix}, PPNonlocality{PPNonlocality}
 {}
 
-IOFmt IO::CPParam::getFmt() const
+const IO::Plugin *IO::CPParam::getFmt() const
 {
-    return IOFmt::CPI;
+    return &CPInput;
 }
 
 std::unique_ptr<IO::BaseParam> IO::CPParam::copy() const

@@ -4,39 +4,35 @@
 #include <map>
 
 #include "molecule.h"
-#include "io/fmt.h"
+#include "io/data.h"
 #include "io/plugin.h"
-#include "io/xyz/plugin.h"
-#include "io/pwinput/plugin.h"
-#include "io/pwoutput/plugin.h"
-#include "io/lmpinput/plugin.h"
-#include "io/lmptrajec/plugin.h"
-#include "io/cpmdinput/plugin.h"
-#include "io/cube/plugin.h"
-#include "io/xsf/plugin.h"
-#include "io/orca/plugin.h"
-#include "io/poscar/plugin.h"
+#include "io/parameters.h"
+#include "io/configs.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
-    const std::map<IOFmt, IO::Plugin const *const> IOPlugins{
-            {IOFmt::XYZ, &IO::XYZ},
-            {IOFmt::PWI, &IO::PWInput},
-            {IOFmt::PWO, &IO::PWOutput},
-            {IOFmt::LMP, &IO::LmpInput},
-            {IOFmt::DMP, &IO::LmpTrajec},
-            {IOFmt::CPI, &IO::CPInput},
-            {IOFmt::CUBE, &IO::Cube},
-            {IOFmt::XSF, &IO::XSF},
-            {IOFmt::ORCA, &IO::OrcaInput},
-            {IOFmt::POSCAR, &IO::Poscar},
-    };
-    IO::Data readFile(const std::string &fn);
-    IO::Data readFile(const std::string &fn, IOFmt fmt);
-    bool     writeFile(const std::string &fn, IOFmt fmt, const Molecule &m,
+    // convenience containers and defaults
+    namespace IO{
+        using Plugins = std::vector<const Plugin*>;
+        Plugins defaultPlugins();
+        using Configs = std::map<const Plugin*, std::map<std::string, std::unique_ptr<BaseConfig>>>;
+        Configs defaultConfigs(const Plugins& p);
+        using Parameters = std::map<const Plugin*, std::map<std::string, std::unique_ptr<BaseParam>>>;
+        Parameters defaultParams(const Plugins& p);
+    }
+
+    // read with format guess
+    IO::Data readFile(const std::string &fn,
+                      const IO::Plugins &p=IO::defaultPlugins());
+    // read with explicit format
+    IO::Data readFile(const std::string &fn, const IO::Plugin* plug);
+    bool     writeFile(const std::string &fn, const IO::Plugin* plug, const Molecule &m,
                        const IO::BaseParam *p=nullptr,
                        const IO::BaseConfig *c=nullptr,
                        size_t idx=-1ul);
+    std::optional<const IO::Plugin*> guessFmt(std::string fn,
+                                   IO::Plugin::Args arg = IO::Plugin::Read,
+                                   const IO::Plugins &p=IO::defaultPlugins());
 }
 
 #endif // IOWRAPPER

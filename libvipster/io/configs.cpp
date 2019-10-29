@@ -6,14 +6,3 @@ using namespace Vipster;
 IO::BaseConfig::BaseConfig(const std::string &name)
     :name{name}
 {}
-
-IO::Configs Vipster::IO::defaultConfigs()
-{
-    IO::Configs tmp;
-    for(const auto& p: IOPlugins){
-        if(p.second->arguments & IO::Plugin::Args::Config){
-            tmp[p.first]["default"] = p.second->makeConfig("default");
-        }
-    }
-    return tmp;
-}

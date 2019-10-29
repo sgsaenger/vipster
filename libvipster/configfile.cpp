@@ -8,19 +8,21 @@
 using json = nlohmann::json;
 using namespace Vipster;
 
-std::tuple<PeriodicTable, Settings, IO::Parameters, IO::Configs> Vipster::readConfig()
+ConfigState Vipster::readConfig()
 {
     ConfigState retVal{};
     std::ifstream conf_file{user_config};
     PeriodicTable &pte = std::get<0>(retVal);
     Settings &settings = std::get<1>(retVal);
-    IO::Parameters &params = std::get<2>(retVal);
-    IO::Configs &configs = std::get<3>(retVal);
+    IO::Plugins &plugins = std::get<2>(retVal);
+    IO::Parameters &params = std::get<3>(retVal);
+    IO::Configs &configs = std::get<4>(retVal);
     // load defaults as a minimum starting point
     pte = Vipster::pte;
     settings = Vipster::settings;
-    params = IO::defaultParams();
-    configs = IO::defaultConfigs();
+    plugins = IO::defaultPlugins();
+    params = IO::defaultParams(plugins);
+    configs = IO::defaultConfigs(plugins);
     if(conf_file){
         try {
             json loc_file;
@@ -37,10 +39,9 @@ std::tuple<PeriodicTable, Settings, IO::Parameters, IO::Configs> Vipster::readCo
             if(loc_file.find("Parameters") != loc_file.end()){
                 for(auto it=loc_file["Parameters"].begin(); it!=loc_file["Parameters"].end(); ++it)
                 {
-                    for(const auto& pair: IOPlugins){
-                        const auto& plugin = pair.second;
+                    for(const auto& plugin: plugins){
                         if(it.key() == plugin->command){
-                            auto& tmp = params[pair.first];
+                            auto& tmp = params[plugin];
                             for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
                                 tmp[it2.key()] = plugin->makeParam(it2.key());
                                 tmp[it2.key()]->parseJson(it2);
@@ -53,10 +54,9 @@ std::tuple<PeriodicTable, Settings, IO::Parameters, IO::Configs> Vipster::readCo
             // Config presets
             if(loc_file.find("Configs") != loc_file.end()){
                 for(auto it=loc_file["Configs"].begin(); it!=loc_file["Configs"].end(); ++it){
-                    for(const auto& pair: IOPlugins){
-                        const auto& plugin = pair.second;
+                    for(const auto& plugin: plugins){
                         if(it.key() == plugin->command){
-                            auto& tmp = configs[pair.first];
+                            auto& tmp = configs[plugin];
                             for(auto it2=it.value().begin(); it2!=it.value().end(); ++it2){
                                 tmp[it2.key()] = plugin->makeConfig(it2.key());
                                 tmp[it2.key()]->parseJson(it2);
@@ -81,25 +81,26 @@ void Vipster::saveConfig(const ConfigState& cs)
     }
     const PeriodicTable &pte = std::get<0>(cs);
     const Settings &settings = std::get<1>(cs);
-    const IO::Parameters &params = std::get<2>(cs);
-    const IO::Configs &configs = std::get<3>(cs);
+    const IO::Plugins &plugins = std::get<2>(cs);
+    const IO::Parameters &params = std::get<3>(cs);
+    const IO::Configs &configs = std::get<4>(cs);
     json json_buf;
     json_buf["PSE"] = pte;
     json_buf["Settings"] = settings;
     json_buf["Parameters"] = json{};
-    for(const auto& plug: IOPlugins){
-        if(plug.second->arguments & IO::Plugin::Args::Param){
-            json& j = json_buf["Parameters"][plug.second->command];
-            for(const auto& p: params.at(plug.first)){
+    for(const auto& plug: plugins){
+        if(plug->arguments & IO::Plugin::Args::Param){
+            json& j = json_buf["Parameters"][plug->command];
+            for(const auto& p: params.at(plug)){
                 j[p.first] = p.second->toJson();
             }
         }
     }
     json_buf["Configs"] = json{};
-    for(const auto& plug: IOPlugins){
-        if(plug.second->arguments & IO::Plugin::Args::Config){
-            json& j = json_buf["Configs"][plug.second->command];
-            for(const auto& p: configs.at(plug.first)){
+    for(const auto& plug: plugins){
+        if(plug->arguments & IO::Plugin::Args::Config){
+            json& j = json_buf["Configs"][plug->command];
+            for(const auto& p: configs.at(plug)){
                 j[p.first] = p.second->toJson();
             }
         }

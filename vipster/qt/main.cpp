@@ -34,20 +34,21 @@ int main(int argc, char *argv[])
 {
     // read user-defined settings and make state known
     auto state = Vipster::readConfig();
-    const IO::Parameters &params = std::get<2>(state);
-    const IO::Configs &configs = std::get<3>(state);
+    const IO::Plugins &plugins = std::get<2>(state);
+    const IO::Parameters &params = std::get<3>(state);
+    const IO::Configs &configs = std::get<4>(state);
 
     // main parser + data-targets
     CLI::App app{"Vipster v" VIPSTER_VERSION "b"};
     app.allow_extras(true);
-    std::map<IOFmt, std::vector<std::string>> fmt_files{};
-    std::map<CLI::Option*, IOFmt> fmt_opts{};
-    for(auto& fmt: IOPlugins){
+    std::map<const IO::Plugin*, std::vector<std::string>> fmt_files{};
+    std::map<CLI::Option*, const IO::Plugin*> fmt_opts{};
+    for(auto& fmt: plugins){
         // parser
-        auto opt = app.add_option("--" + fmt.second->command,
-                                  fmt_files[fmt.first],
-                                  fmt.second->name);
-        fmt_opts[opt] = fmt.first;
+        auto opt = app.add_option("--" + fmt->command,
+                                  fmt_files[fmt],
+                                  fmt->name);
+        fmt_opts[opt] = fmt;
         opt->group("Parse files");
         opt->check(CLI::ExistingFile);
     }
@@ -83,12 +84,13 @@ int main(int argc, char *argv[])
 
     // formats
     convert->add_flag("--list-fmt",
-                      [](size_t){
+                      [&](size_t){
                           std::cout << "Available formats (r: parsing, w: writing)\n\n";
-                          for(const auto& pair: IOPlugins){
-                              std::cout << pair.second->command << "\t(r"
-                                        << ((pair.second->writer!=nullptr)?'w':' ')
-                                        << ")\t" << pair.second->name << '\n';
+                          for(const auto& plug: plugins){
+                              std::cout << plug->command << "\t("
+                                        << ((plug->parser!=nullptr)?'r':' ')
+                                        << ((plug->writer!=nullptr)?'w':' ')
+                                        << ")\t" << plug->name << '\n';
                           }
                           throw CLI::Success();
                       },
@@ -120,16 +122,16 @@ int main(int argc, char *argv[])
                       "Display help for parameter sets");
     convert->add_flag("--list-param",
                       [&](size_t){
-                          auto printFmt = [&](IOFmt fmt){
+                          auto printFmt = [&](const IO::Plugin* fmt){
                               for(const auto& pair: params.at(fmt)){
                                   std::cout << pair.first << '\n';
                               }
                           };
-                          for(const auto& pair: IOPlugins){
-                              if(pair.second->arguments&IO::Plugin::Param){
-                                  std::cout << pair.second->command << ": "
-                                            << pair.second->name << "\n";
-                                  printFmt(pair.first);
+                          for(const auto& plug: plugins){
+                              if(plug->arguments&IO::Plugin::Param){
+                                  std::cout << plug->command << ": "
+                                            << plug->name << "\n";
+                                  printFmt(plug);
                                   std::cout << '\n';
                               }
                           }
@@ -148,16 +150,16 @@ int main(int argc, char *argv[])
                       "Display help for output-behavior-presets");
     convert->add_flag("--list-config",
                       [&](size_t){
-                          auto printFmt = [&](IOFmt fmt){
+                          auto printFmt = [&](const IO::Plugin* fmt){
                               for(const auto& pair: configs.at(fmt)){
                                   std::cout << pair.first << '\n';
                               }
                           };
-                          for(const auto& pair: IOPlugins){
-                              if(pair.second->arguments&IO::Plugin::Config){
-                                  std::cout << pair.second->command << ": "
-                                            << pair.second->name << "\n";
-                                  printFmt(pair.first);
+                          for(const auto& plug: plugins){
+                              if(plug->arguments & IO::Plugin::Config){
+                                  std::cout << plug->command << ": "
+                                            << plug->name << "\n";
+                                  printFmt(plug);
                                   std::cout << '\n';
                               }
                           }
@@ -177,19 +179,21 @@ int main(int argc, char *argv[])
 
     convert->callback([&](){
         // determine/check in&out formats
-        IOFmt fmt_in, fmt_out;
-        const auto IOCmdIn = [](){
-            std::map<std::string, IOFmt> fmts_in;
-            for(const auto& pair: IOPlugins){
-                fmts_in[pair.second->command] = pair.first;
+        const IO::Plugin *fmt_in, *fmt_out;
+        const auto IOCmdIn = [&](){
+            std::map<std::string, const IO::Plugin*> fmts_in;
+            for(const auto& plug: plugins){
+                if(plug->parser !=nullptr){
+                    fmts_in[plug->command] = plug;
+                }
             }
             return fmts_in;
         }();
-        const auto IOCmdOut = [](){
-            std::map<std::string, IOFmt> fmts_out;
-            for(const auto& pair: IOPlugins){
-                if(pair.second->writer!=nullptr){
-                    fmts_out[pair.second->command] = pair.first;
+        const auto IOCmdOut = [&](){
+            std::map<std::string, const IO::Plugin*> fmts_out;
+            for(const auto& plug: plugins){
+                if(plug->writer!=nullptr){
+                    fmts_out[plug->command] = plug;
                 }
             }
             return fmts_out;
@@ -209,8 +213,7 @@ int main(int argc, char *argv[])
         // read input
         auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
         std::unique_ptr<IO::BaseConfig> config{nullptr};
-        auto arguments = IOPlugins.at(fmt_out)->arguments;
-        if(arguments & IO::Plugin::Args::Param){
+        if(fmt_out->arguments & IO::Plugin::Args::Param){
             std::string par_name;
             if(!conv_data.param.empty()){
                 par_name = conv_data.param;
@@ -226,7 +229,7 @@ int main(int argc, char *argv[])
                 param = pos->second->copy();
             }
         }
-        if(arguments & IO::Plugin::Args::Config){
+        if(fmt_out->arguments & IO::Plugin::Args::Config){
             std::string conf_name;
             if(!conv_data.config.empty()){
                 conf_name = conv_data.config;

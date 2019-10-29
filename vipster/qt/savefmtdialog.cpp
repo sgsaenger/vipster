@@ -4,15 +4,15 @@
 
 using namespace Vipster;
 
-SaveFmtDialog::SaveFmtDialog(QWidget *parent) :
+SaveFmtDialog::SaveFmtDialog(const IO::Plugins &plugins, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SaveFmtDialog)
 {
     ui->setupUi(this);
-    for(const auto &iop: IOPlugins){
-        if(iop.second->writer){
-            outFormats.push_back(iop.first);
-            ui->fmtSel->addItem(QString::fromStdString(iop.second->name));
+    for(const auto &plugin: plugins){
+        if(plugin->writer){
+            outFormats.push_back(plugin);
+            ui->fmtSel->addItem(QString::fromStdString(plugin->name));
         }
     }
 }
@@ -24,10 +24,9 @@ SaveFmtDialog::~SaveFmtDialog()
 
 void SaveFmtDialog::selFmt(int i)
 {
-    fmt = outFormats[static_cast<size_t>(i)];
-    const auto& iop = IOPlugins.at(fmt);
-    enableParamWidget(iop->arguments & IO::Plugin::Args::Param);
-    enableConfWidget(iop->arguments & IO::Plugin::Args::Config);
+    plugin = outFormats[static_cast<size_t>(i)];
+    enableParamWidget(plugin->arguments & IO::Plugin::Args::Param);
+    enableConfWidget(plugin->arguments & IO::Plugin::Args::Config);
 }
 
 void SaveFmtDialog::enableParamWidget(bool on)
@@ -37,11 +36,11 @@ void SaveFmtDialog::enableParamWidget(bool on)
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(const auto& p: mw.params.at(fmt)){
+        for(const auto& p: mw.params.at(plugin)){
             widget->registerParam(p.second->copy());
         }
         for(auto& p: mw.getParams()){
-            if(p.first == fmt){
+            if(p.first == plugin){
                 widget->registerParam(p.second->copy());
             }
         }
@@ -57,11 +56,11 @@ void SaveFmtDialog::enableConfWidget(bool on)
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(const auto& c: mw.configs.at(fmt)){
+        for(const auto& c: mw.configs.at(plugin)){
             widget->registerConfig(c.second->copy());
         }
         for(auto& p: mw.getConfigs()){
-            if(p.first == fmt){
+            if(p.first == plugin){
                 widget->registerConfig(p.second->copy());
             }
         }

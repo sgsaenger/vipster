@@ -727,7 +727,7 @@ const IO::Plugin IO::LmpInput =
     "Lammps Data File",
     "lmp",
     "lmp",
-    IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Config,
     &LmpInpParser,
     &LmpInpWriter,
     nullptr,

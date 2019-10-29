@@ -1,4 +1,5 @@
 #include "param.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -11,9 +12,9 @@ IO::PWParam::PWParam(std::string name, IO::PWParam::Namelist control,
       PPPrefix{PPPrefix}, PPSuffix{PPSuffix}
 {}
 
-IOFmt IO::PWParam::getFmt() const
+const IO::Plugin *IO::PWParam::getFmt() const
 {
-    return IOFmt::PWI;
+    return &PWInput;
 }
 
 std::unique_ptr<IO::BaseParam> IO::PWParam::copy() const

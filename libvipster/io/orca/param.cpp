@@ -1,4 +1,5 @@
 #include "param.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -6,9 +7,9 @@ IO::OrcaParam::OrcaParam(std::string name, Header header)
     : BaseParam{name}, header{header}
 {}
 
-IOFmt IO::OrcaParam::getFmt() const
+const IO::Plugin* IO::OrcaParam::getFmt() const
 {
-    return IOFmt::ORCA;
+    return &OrcaInput;
 }
 
 std::unique_ptr<IO::BaseParam> IO::OrcaParam::copy() const

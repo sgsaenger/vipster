@@ -44,11 +44,11 @@ public:
     void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IO::Data&& d);
     // Parameter data
-    std::map<Vipster::IOFmt, QMenu*> paramMenus;
+    std::map<const Vipster::IO::Plugin*, QMenu*> paramMenus;
     ParamWidget* paramWidget;
     const decltype (ParamWidget::params)& getParams() const noexcept;
     // Config data
-    std::map<Vipster::IOFmt, QMenu*> configMenus;
+    std::map<const Vipster::IO::Plugin*, QMenu*> configMenus;
     ConfigWidget* configWidget;
     const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
     // Extra data
@@ -57,11 +57,9 @@ public:
     Vipster::ConfigState    &state;
     Vipster::PeriodicTable  &pte;
     Vipster::Settings       &settings;
+    Vipster::IO::Plugins    &plugins;
     Vipster::IO::Parameters &params;
     Vipster::IO::Configs    &configs;
-    // GL helpers for additional render-data
-    void addExtraData(Vipster::GUI::Data* dat);
-    void delExtraData(Vipster::GUI::Data* dat);
 
 public slots:
     void about();

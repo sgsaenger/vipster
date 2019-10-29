@@ -2,7 +2,7 @@
 #define POSCARCONFIG_H
 
 #include <QWidget>
-#include "io/poscar/config.h"
+#include "io/poscar/plugin.h"
 #include "../configbase.h"
 
 namespace Ui {

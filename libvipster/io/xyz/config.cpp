@@ -1,3 +1,4 @@
+#include "config.h"
 #include "plugin.h"
 
 using namespace Vipster;
@@ -6,9 +7,9 @@ IO::XYZConfig::XYZConfig(std::string n, Mode m, Data d)
     : BaseConfig{n}, filemode{m}, atomdata{d}
 {}
 
-IOFmt IO::XYZConfig::getFmt() const
+const IO::Plugin *IO::XYZConfig::getFmt() const
 {
-    return IOFmt::XYZ;
+    return &XYZ;
 }
 
 std::unique_ptr<IO::BaseConfig> IO::XYZConfig::copy() const

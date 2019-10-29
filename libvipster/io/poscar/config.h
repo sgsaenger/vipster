@@ -1,7 +1,7 @@
 #ifndef POSCAR_CONFIG_H
 #define POSCAR_CONFIG_H
 
-#include "../plugin.h"
+#include "../configs.h"
 
 namespace Vipster::IO{
 
@@ -9,7 +9,7 @@ struct PoscarConfig final: BaseConfig{
     bool selective;
     bool cartesian;
     PoscarConfig(std::string="", bool selective=true, bool cartesian=false);
-    IOFmt getFmt() const override;
+    const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator &) override;
     nlohmann::json toJson() const override;

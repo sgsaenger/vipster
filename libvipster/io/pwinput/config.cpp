@@ -1,4 +1,5 @@
 #include "config.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -6,9 +7,9 @@ IO::PWConfig::PWConfig(std::string name, PWConfig::AtomFmt atoms, CellFmt cell)
     : BaseConfig{name}, atoms{atoms}, cell{cell}
 {}
 
-IOFmt IO::PWConfig::getFmt() const
+const IO::Plugin *IO::PWConfig::getFmt() const
 {
-    return IOFmt::PWI;
+    return &PWInput;
 }
 
 std::unique_ptr<IO::BaseConfig> IO::PWConfig::copy() const

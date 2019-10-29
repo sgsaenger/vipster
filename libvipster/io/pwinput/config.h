@@ -1,7 +1,7 @@
 #ifndef PWI_CONF_H
 #define PWI_CONF_H
 
-#include "../plugin.h"
+#include "../configs.h"
 
 namespace Vipster::IO{
 
@@ -11,7 +11,7 @@ struct PWConfig final: BaseConfig{
     AtomFmt atoms;
     CellFmt cell;
     PWConfig(std::string="", AtomFmt=AtomFmt::Active, CellFmt=CellFmt::Active);
-    IOFmt getFmt() const override;
+    const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() const override;

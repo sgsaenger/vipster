@@ -7,14 +7,14 @@
 #include "configwidgets/cpconfig.h"
 #include "configwidgets/poscarconfig.h"
 
-inline std::map<Vipster::IOFmt, ConfigBase*> makeConfigWidgets()
+inline std::map<const Vipster::IO::Plugin*, ConfigBase*> makeConfigWidgets()
 {
     return {
-        {Vipster::IOFmt::PWI, new PWConfig()},
-        {Vipster::IOFmt::LMP, new LmpConfig()},
-        {Vipster::IOFmt::XYZ, new XYZConfig()},
-        {Vipster::IOFmt::CPI, new CPConfig()},
-        {Vipster::IOFmt::POSCAR, new PoscarConfig()},
+        {&Vipster::IO::PWInput, new PWConfig()},
+        {&Vipster::IO::LmpInput, new LmpConfig()},
+        {&Vipster::IO::XYZ, new XYZConfig()},
+        {&Vipster::IO::CPInput, new CPConfig()},
+        {&Vipster::IO::Poscar, new PoscarConfig()},
     };
 }
 

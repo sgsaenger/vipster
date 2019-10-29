@@ -1,7 +1,7 @@
 #ifndef XYZ_CONF_H
 #define XYZ_CONF_H
 
-#include "../plugin.h"
+#include "../configs.h"
 
 namespace Vipster::IO{
 
@@ -11,7 +11,7 @@ struct XYZConfig final: BaseConfig{
     Mode filemode;
     Data atomdata;
     XYZConfig(std::string="", Mode=Mode::Step, Data=Data::None);
-    IOFmt getFmt() const override;
+    const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() const override;

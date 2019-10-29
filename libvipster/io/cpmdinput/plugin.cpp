@@ -606,7 +606,7 @@ const IO::Plugin IO::CPInput =
     "CPMD Input File",
     "cpi",
     "cpi",
-    IO::Plugin::Param|IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param|IO::Plugin::Config,
     &CPInpParser,
     &CPInpWriter,
     &makeParam,

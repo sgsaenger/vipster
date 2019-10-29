@@ -12,18 +12,7 @@ void POSCAR(py::module&);
 void IO(py::module& m){
     auto io = m.def_submodule("IO");
 
-    py::enum_<IOFmt>(io,"Fmt")
-        .value("XYZ", IOFmt::XYZ)
-        .value("PWI", IOFmt::PWI)
-        .value("PWO", IOFmt::PWO)
-        .value("LMP", IOFmt::LMP)
-        .value("DMP", IOFmt::DMP)
-        .value("CPI", IOFmt::CPI)
-        .value("CUBE", IOFmt::CUBE)
-        .value("XSF", IOFmt::XSF)
-        .value("POSCAR", IOFmt::POSCAR)
-    ;
-
+    // TODO: state handling
     m.def("readFile",[](std::string fn){
         auto data = readFile(fn);
         if(data.data.empty()){
@@ -36,8 +25,13 @@ void IO(py::module& m){
             return py::make_tuple(data.mol, std::move(data.param), l);
         }
     }, "filename"_a);
-    m.def("readFile",[](std::string fn, IOFmt fmt){
-        auto data = readFile(fn,fmt);
+    m.def("readFile",[](std::string fn, std::string fmt){
+        const auto plugins = IO::defaultPlugins();
+        auto pos = std::find_if(plugins.begin(), plugins.end(), [&](const auto& plug){return plug->command == fmt;});
+        if(pos == plugins.end()){
+            throw IO::Error{"Invalid format given: "+fmt};
+        }
+        auto data = readFile(fn, *pos);
         if(data.data.empty()){
             return py::make_tuple(data.mol, std::move(data.param), py::none());
         }else{

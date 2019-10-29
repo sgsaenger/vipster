@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -6,9 +7,9 @@ IO::PoscarConfig::PoscarConfig(std::string n, bool s, bool c)
     : BaseConfig{n}, selective{s}, cartesian{c}
 {}
 
-IOFmt IO::PoscarConfig::getFmt() const
+const IO::Plugin *IO::PoscarConfig::getFmt() const
 {
-    return IOFmt::POSCAR;
+    return &Poscar;
 }
 
 std::unique_ptr<IO::BaseConfig> IO::PoscarConfig::copy() const

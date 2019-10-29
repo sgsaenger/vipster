@@ -1,7 +1,7 @@
 #ifndef PWI_PARAM_H
 #define PWI_PARAM_H
 
-#include "../plugin.h"
+#include "../parameters.h"
 
 namespace Vipster::IO{
 
@@ -18,7 +18,7 @@ struct PWParam final: BaseParam{
     PWParam(std::string="", Namelist={}, Namelist={},
             Namelist={}, Namelist={}, Namelist={},
             std::string="", std::string="");
-    IOFmt getFmt() const override;
+    const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() const override;

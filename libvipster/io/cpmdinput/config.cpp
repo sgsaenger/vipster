@@ -1,4 +1,5 @@
 #include "config.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -6,9 +7,9 @@ IO::CPConfig::CPConfig(std::string name, CPConfig::AtomFmt fmt)
     : BaseConfig{name}, fmt{fmt}
 {}
 
-IOFmt IO::CPConfig::getFmt() const
+const IO::Plugin *IO::CPConfig::getFmt() const
 {
-    return IOFmt::CPI;
+    return &CPInput;
 }
 
 std::unique_ptr<IO::BaseConfig> IO::CPConfig::copy() const

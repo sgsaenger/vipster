@@ -162,7 +162,7 @@ const IO::Plugin IO::XYZ =
     "xyz",
     "xyz",
     "xyz",
-    IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Config,
     &XYZParser,
     &XYZWriter,
     nullptr,

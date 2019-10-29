@@ -448,7 +448,7 @@ const IO::Plugin IO::PWInput =
     "PWScf Input File",
     "pwi",
     "pwi",
-    IO::Plugin::Param|IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param | IO::Plugin::Config,
     &PWInpParser,
     &PWInpWriter,
     &makeParam,

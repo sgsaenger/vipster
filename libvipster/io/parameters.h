@@ -1,7 +1,6 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include "fmt.h"
 #include "json.hpp"
 
 #include <string>
@@ -14,21 +13,19 @@ class BaseParam
 {
 public:
     std::string name;
-    virtual IOFmt getFmt() const = 0;
+    virtual const struct Plugin* getFmt() const = 0;
     virtual std::unique_ptr<BaseParam> copy() const = 0;
     virtual void parseJson(const nlohmann::json::iterator&) = 0;
     virtual nlohmann::json toJson() const = 0;
     virtual ~BaseParam() = default;
 protected:
-    BaseParam(const std::string&);
+    BaseParam(const std::string& name);
     BaseParam(const BaseParam&) = default;
     BaseParam(BaseParam&&) = default;
     BaseParam& operator=(const BaseParam&) = default;
     BaseParam& operator=(BaseParam&&) = default;
 };
 
-using Parameters = std::map<IOFmt, std::map<std::string, std::unique_ptr<BaseParam>>>;
-Parameters defaultParams();
 constexpr const char* ParametersAbout =
     "Parameter presets are used to control additional data that is written "
     "to the formatted target file.\n\n"

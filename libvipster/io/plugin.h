@@ -2,11 +2,10 @@
 #define IOPLUGIN_H
 
 #include "../molecule.h"
-#include "../data.h"
 #include "parameters.h"
 #include "configs.h"
 #include "settings.h"
-#include "fmt.h"
+#include "data.h"
 
 #include <string>
 #include <map>
@@ -16,19 +15,14 @@
 
 namespace Vipster::IO{
 
-struct Data{
-    Molecule mol{"",0};
-    std::unique_ptr<BaseParam> param{};
-    std::vector<std::unique_ptr<const BaseData>> data{};
-};
-
 struct Plugin{
-    enum Args:uint8_t{None, Param, Config};
+    // TODO: remove Args?
+    enum Args:uint8_t{None=0x0, Read=0x1, Write=0x2, Param=0x4, Config=0x8};
     std::string name;
     std::string extension;
     std::string command;
     uint8_t     arguments;
-    Data        (*parser)(const std::string& name, std::istream &file);
+    IO::Data    (*parser)(const std::string& name, std::istream &file);
     bool        (*writer)(const Molecule& m, std::ostream &file,
                           const BaseParam *const p,
                           const BaseConfig *const c,

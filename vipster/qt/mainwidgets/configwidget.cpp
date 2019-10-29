@@ -32,7 +32,7 @@ void ConfigWidget::registerConfig(std::unique_ptr<Vipster::IO::BaseConfig>&& dat
     auto fmt = data->getFmt();
     configs.emplace_back(fmt, std::move(data));
     ui->configSel->addItem(QString::fromStdString(
-                               "(" + IOPlugins.at(fmt)->command +
+                               "(" + fmt->command +
                                ") " + configs.back().second->name
                                ));
     ui->configSel->setCurrentIndex(ui->configSel->count()-1);

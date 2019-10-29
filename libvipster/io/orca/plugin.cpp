@@ -228,7 +228,7 @@ const IO::Plugin IO::OrcaInput =
     "ORCA Input File",
     "inp",
     "orca",
-    IO::Plugin::Param,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param,
     &OrcaParser,
     &OrcaWriter,
     &makeParam,

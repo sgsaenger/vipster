@@ -22,8 +22,9 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     state{state},
     pte{std::get<0>(state)},
     settings{std::get<1>(state)},
-    params{std::get<2>(state)},
-    configs{std::get<3>(state)},
+    plugins{std::get<2>(state)},
+    params{std::get<3>(state)},
+    configs{std::get<4>(state)},
     ui{new Ui::MainWindow},
     path{path}
 {
@@ -100,12 +101,12 @@ void MainWindow::setupUI()
         tmp->hide();
     }
     // fill in menu-options
-    for(const auto& pair:IOPlugins){
-        if(pair.second->arguments & IO::Plugin::Param){
+    for(const auto& plug: plugins){
+        if(plug->arguments & IO::Plugin::Param){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
-                        QString::fromStdString(pair.second->name));
-            paramMenus[pair.first] = param_menu;
-            const auto& param_map = params[pair.first];
+                        QString::fromStdString(plug->name));
+            paramMenus[plug] = param_menu;
+            const auto& param_map = params[plug];
             if(!param_map.empty()){
                 for(const auto& p: param_map){
                     param_menu->addAction(QString::fromStdString(p.first),
@@ -113,11 +114,11 @@ void MainWindow::setupUI()
                 }
             }
         }
-        if(pair.second->arguments & IO::Plugin::Config){
+        if(plug->arguments & IO::Plugin::Config){
             auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
-                        QString::fromStdString(pair.second->name));
-            configMenus[pair.first] = conf_menu;
-            const auto& conf_map = configs[pair.first];
+                        QString::fromStdString(plug->name));
+            configMenus[plug] = conf_menu;
+            const auto& conf_map = configs[plug];
             if(!conf_map.empty()){
                 for(const auto& p: conf_map){
                     conf_menu->addAction(QString::fromStdString(p.first),
@@ -324,8 +325,8 @@ void MainWindow::loadMol()
     fileDiag.setFileMode(QFileDialog::ExistingFile);
     // Format dialog
     QStringList formats{};
-    for(auto &iop: IOPlugins){
-        formats << QString::fromStdString(iop.second->name);
+    for(const auto plug: plugins){
+        formats << QString::fromStdString(plug->name);
     }
     if(fileDiag.exec() != 0){
         auto files = fileDiag.selectedFiles();
@@ -346,7 +347,7 @@ void MainWindow::loadMol()
                                                        formats, 0, false, &got_fmt);
                     // if the user selected the format, read the file
                     if(got_fmt){
-                        auto fmt = static_cast<IOFmt>(formats.indexOf(fmt_s));
+                        auto fmt = plugins[formats.indexOf(fmt_s)];
                         newData(readFile(file, fmt));
                     }
                 }else{
@@ -369,10 +370,10 @@ void MainWindow::saveMol()
     if(fileDiag.exec() == QDialog::Accepted){
         auto target = fileDiag.selectedFiles()[0].toStdString();
         path = fileDiag.directory();
-        SaveFmtDialog sfd{this};
+        SaveFmtDialog sfd{plugins, this};
         if(sfd.exec() == QDialog::Accepted){
             try{
-                writeFile(target, sfd.fmt, *curMol,
+                writeFile(target, sfd.plugin, *curMol,
                           sfd.getParam(), sfd.getConfig(),
                           curVP->moldata[curMol].curStep-1);
             }catch(const IO::Error& e){
@@ -394,34 +395,17 @@ const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
     return configWidget->configs;
 }
 
-void MainWindow::addExtraData(GUI::Data* dat)
-{
-    //FIXME
-//    ui->openGLWidget->addExtraData(dat);
-    updateWidgets(GUI::Change::extra);
-}
-
-void MainWindow::delExtraData(GUI::Data* dat)
-{
-    //FIXME
-//    ui->openGLWidget->delExtraData(dat);
-    updateWidgets(GUI::Change::extra);
-}
-
 void MainWindow::loadParam()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    IOFmt fmt = [](QString name){
-        for(const auto& pair:IOPlugins){
-            if(name == pair.second->name.c_str()){
-                return pair.first;
-            }
-        }
-        throw Error("Invalid parameter set");
-    }(p->title());
-    auto pos = params[fmt].find(s->text().toStdString());
-    if(pos != params[fmt].end()){
+    auto fmt = std::find_if(plugins.begin(), plugins.end(),
+                 [&](const auto& plug){return plug->name.c_str() == p->title();});
+    if(fmt == plugins.end()){
+        throw Error{"Invalid parameter set"};
+    }
+    auto pos = params[*fmt].find(s->text().toStdString());
+    if(pos != params[*fmt].end()){
         paramWidget->registerParam(pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
@@ -432,16 +416,13 @@ void MainWindow::loadConfig()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    IOFmt fmt = [](QString name){
-        for(const auto& pair:IOPlugins){
-            if(name == pair.second->name.c_str()){
-                return pair.first;
-            }
-        }
-        throw Error("Invalid IO-config");
-    }(p->title());
-    auto pos = configs[fmt].find(s->text().toStdString());
-    if(pos != configs[fmt].end()){
+    auto fmt = std::find_if(plugins.begin(), plugins.end(),
+                 [&](const auto& plug){return plug->name.c_str() == p->title();});
+    if(fmt == plugins.end()){
+        throw Error{"Invalid IO-config"};
+    }
+    auto pos = configs[*fmt].find(s->text().toStdString());
+    if(pos != configs[*fmt].end()){
         configWidget->registerConfig(pos->second->copy());
     }else{
         throw Error("Invalid IO-config");

@@ -2,7 +2,7 @@
 #define CPCONFIG_H
 
 #include <QWidget>
-#include "io/cpmdinput/config.h"
+#include "io/cpmdinput/plugin.h"
 #include "../configbase.h"
 
 namespace Ui {

@@ -1,7 +1,7 @@
 #ifndef LMPI_CONF_H
 #define LMPI_CONF_H
 
-#include "../plugin.h"
+#include "../configs.h"
 
 namespace Vipster::IO{
 
@@ -12,7 +12,7 @@ struct LmpConfig final: BaseConfig{
     const static std::map<AtomStyle, std::string> fmt2str;
     LmpConfig(std::string="", AtomStyle=AtomStyle::Atomic,
               bool=false, bool=false, bool=false, bool=false);
-    IOFmt getFmt() const override;
+    const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseConfig> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() const override;

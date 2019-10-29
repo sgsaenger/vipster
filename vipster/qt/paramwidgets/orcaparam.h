@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "../parambase.h"
-#include "io/orca/param.h"
+#include "io/orca/plugin.h"
 
 namespace Ui {
 class ORCAParam;

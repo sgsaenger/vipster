@@ -32,7 +32,7 @@ void ParamWidget::registerParam(std::unique_ptr<Vipster::IO::BaseParam>&& data)
     auto fmt = data->getFmt();
     params.emplace_back(fmt, std::move(data));
     ui->paramSel->addItem(QString::fromStdString(
-                          "(" +  IOPlugins.at(fmt)->command +
+                          "(" +  fmt->command +
                            ") " + params.back().second->name
                          ));
     ui->paramSel->setCurrentIndex(ui->paramSel->count()-1);

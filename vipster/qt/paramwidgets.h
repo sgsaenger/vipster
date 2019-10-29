@@ -5,12 +5,12 @@
 #include "paramwidgets/orcaparam.h"
 #include "paramwidgets/cpparam.h"
 
-inline std::map<Vipster::IOFmt, ParamBase*> makeParamWidgets()
+inline std::map<const Vipster::IO::Plugin*, ParamBase*> makeParamWidgets()
 {
     return {
-        {Vipster::IOFmt::PWI, new PWParam()},
-        {Vipster::IOFmt::ORCA, new ORCAParam()},
-        {Vipster::IOFmt::CPI, new CPParam()},
+        {&Vipster::IO::PWInput, new PWParam()},
+        {&Vipster::IO::OrcaInput, new ORCAParam()},
+        {&Vipster::IO::CPInput, new CPParam()},
     };
 }
 

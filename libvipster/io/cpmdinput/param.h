@@ -1,7 +1,7 @@
 #ifndef CPI_PARAM_H
 #define CPI_PARAM_H
 
-#include "../plugin.h"
+#include "../parameters.h"
 
 namespace Vipster::IO{
 
@@ -32,7 +32,7 @@ struct CPParam final: BaseParam{
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={}, Section={}, Section={},
             std::string="", std::string="", std::string="");
-    IOFmt getFmt() const override;
+    const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
     void parseJson(const nlohmann::json::iterator&) override;
     nlohmann::json toJson() const override;

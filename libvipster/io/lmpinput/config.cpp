@@ -1,4 +1,5 @@
 #include "config.h"
+#include "plugin.h"
 
 using namespace Vipster;
 
@@ -10,9 +11,9 @@ IO::LmpConfig::LmpConfig(std::string name, AtomStyle style,
       dihedrals{dihedrals}, impropers{impropers}
 {}
 
-IOFmt IO::LmpConfig::getFmt() const
+const IO::Plugin *IO::LmpConfig::getFmt() const
 {
-    return IOFmt::LMP;
+    return &LmpInput;
 }
 
 std::unique_ptr<IO::BaseConfig> IO::LmpConfig::copy() const
