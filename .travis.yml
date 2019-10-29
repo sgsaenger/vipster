@@ -29,6 +29,8 @@ matrix:
           osx_image: xcode11
         - os: windows
     allow_failures:
+        - os: osx
+          osx_image: xcode11
         - os: windows
 
 install:
