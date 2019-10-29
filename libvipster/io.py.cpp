@@ -46,19 +46,15 @@ void IO(py::module& m){
     /*
      * TODO: provide wrapper
      *
-     * fall back to default-config/param
+     * fall back to default-preset/param
      * only index of state is relevant when not wrapping the GUI
      */
     m.def("writeFile", &writeFile, "filename"_a, "format"_a, "molecule"_a,
           "param"_a=nullptr, "config"_a=nullptr, "index"_a=-1ul);
 
-    py::class_<IO::BaseParam>(io, "BaseParam")
-        .def_readwrite("name", &IO::BaseParam::name)
-    ;
+    py::class_<IO::BaseParam>(io, "BaseParam");
 
-    py::class_<IO::BaseConfig>(io, "BaseConfig")
-        .def_readwrite("name", &IO::BaseConfig::name)
-    ;
+    py::class_<IO::BasePreset>(io, "BasePreset");
 
     /*
      * Initialize plugins if needed

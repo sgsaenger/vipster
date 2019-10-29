@@ -22,7 +22,7 @@ matrix:
                       - ubuntu-toolchain-r-test
                       - sourceline: "ppa:beineri/opt-qt-5.12.3-xenial"
                   packages:
-                      - g++-7
+                      - g++-8
                       - qt512-meta-minimal
                       - libgl1-mesa-dev
         - os: osx

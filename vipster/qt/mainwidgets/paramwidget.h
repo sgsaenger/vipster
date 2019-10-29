@@ -16,10 +16,11 @@ class ParamWidget : public BaseWidget
 public:
     explicit ParamWidget(QWidget *parent = nullptr);
     ~ParamWidget() override;
-    std::vector<std::pair<const Vipster::IO::Plugin*, std::unique_ptr<Vipster::IO::BaseParam>>> params;
-    void registerParam(std::unique_ptr<Vipster::IO::BaseParam>&& data);
+    std::vector<std::pair<std::string, std::unique_ptr<Vipster::IO::BaseParam>>> params;
+    void registerParam(const std::string& name,
+                       std::unique_ptr<Vipster::IO::BaseParam>&& data);
     void clearParams();
-    const Vipster::IO::Plugin *curFmt;
+    const Vipster::IO::Plugin *curFmt{nullptr};
     Vipster::IO::BaseParam *curParam{nullptr};
 
 private slots:

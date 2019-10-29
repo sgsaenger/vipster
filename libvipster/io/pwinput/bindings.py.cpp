@@ -1,5 +1,5 @@
 #include "pyvipster.h"
-#include "io/pwinput/plugin.h"
+#include "plugin.h"
 
 namespace Vipster::Py{
 void PWInput(py::module& m){
@@ -11,21 +11,21 @@ void PWInput(py::module& m){
         .def_readwrite("cell", &IO::PWParam::cell)
     ;
 
-    auto c = py::class_<IO::PWConfig, IO::BaseConfig>(m, "PWConfig")
-        .def_readwrite("atoms", &IO::PWConfig::atoms)
-        .def_readwrite("cell", &IO::PWConfig::cell)
+    auto c = py::class_<IO::PWPreset, IO::BasePreset>(m, "PWPreset")
+        .def_readwrite("atoms", &IO::PWPreset::atoms)
+        .def_readwrite("cell", &IO::PWPreset::cell)
     ;
-    py::enum_<IO::PWConfig::AtomFmt>(c, "AtomFmt")
-        .value("Bohr", IO::PWConfig::AtomFmt::Bohr)
-        .value("Angstrom", IO::PWConfig::AtomFmt::Angstrom)
-        .value("Crystal", IO::PWConfig::AtomFmt::Crystal)
-        .value("Alat", IO::PWConfig::AtomFmt::Alat)
-//        .value("Current", IO::PWConfig::AtomFmt::Current) // TODO: makes sense to expose this?
+    py::enum_<IO::PWPreset::AtomFmt>(c, "AtomFmt")
+        .value("Bohr", IO::PWPreset::AtomFmt::Bohr)
+        .value("Angstrom", IO::PWPreset::AtomFmt::Angstrom)
+        .value("Crystal", IO::PWPreset::AtomFmt::Crystal)
+        .value("Alat", IO::PWPreset::AtomFmt::Alat)
+//        .value("Current", IO::PWPreset::AtomFmt::Current) // TODO: makes sense to expose this?
     ;
-    py::enum_<IO::PWConfig::CellFmt>(c, "CellFmt")
-        .value("Angstrom", IO::PWConfig::CellFmt::Angstrom)
-        .value("Bohr", IO::PWConfig::CellFmt::Bohr)
-//        .value("Current", IO::PWConfig::CellFmt::Current) // TODO: makes sense to expose this?
+    py::enum_<IO::PWPreset::CellFmt>(c, "CellFmt")
+        .value("Angstrom", IO::PWPreset::CellFmt::Angstrom)
+        .value("Bohr", IO::PWPreset::CellFmt::Bohr)
+//        .value("Current", IO::PWPreset::CellFmt::Current) // TODO: makes sense to expose this?
     ;
 }
 }

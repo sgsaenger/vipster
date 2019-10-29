@@ -26,7 +26,7 @@ void SaveFmtDialog::selFmt(int i)
 {
     plugin = outFormats[static_cast<size_t>(i)];
     enableParamWidget(plugin->arguments & IO::Plugin::Args::Param);
-    enableConfWidget(plugin->arguments & IO::Plugin::Args::Config);
+    enablePresetWidget(plugin->arguments & IO::Plugin::Args::Preset);
 }
 
 void SaveFmtDialog::enableParamWidget(bool on)
@@ -37,11 +37,11 @@ void SaveFmtDialog::enableParamWidget(bool on)
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(const auto& p: mw.params.at(plugin)){
-            widget->registerParam(p.second->copy());
+            widget->registerParam(p.first, p.second->copy());
         }
         for(auto& p: mw.getParams()){
-            if(p.first == plugin){
-                widget->registerParam(p.second->copy());
+            if(p.second->getFmt() == plugin){
+                widget->registerParam(p.first, p.second->copy());
             }
         }
     }else{
@@ -49,19 +49,19 @@ void SaveFmtDialog::enableParamWidget(bool on)
     }
 }
 
-void SaveFmtDialog::enableConfWidget(bool on)
+void SaveFmtDialog::enablePresetWidget(bool on)
 {
-    auto* widget = ui->configWidget;
-    widget->clearConfigs();
+    auto* widget = ui->presetWidget;
+    widget->clearPresets();
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(const auto& c: mw.configs.at(plugin)){
-            widget->registerConfig(c.second->copy());
+        for(const auto& p: mw.presets.at(plugin)){
+            widget->registerPreset(p.first, p.second->copy());
         }
-        for(auto& p: mw.getConfigs()){
-            if(p.first == plugin){
-                widget->registerConfig(p.second->copy());
+        for(auto& p: mw.getPresets()){
+            if(p.second->getFmt() == plugin){
+                widget->registerPreset(p.first, p.second->copy());
             }
         }
     }else{
@@ -69,9 +69,9 @@ void SaveFmtDialog::enableConfWidget(bool on)
     }
 }
 
-IO::BaseConfig* SaveFmtDialog::getConfig()
+IO::BasePreset* SaveFmtDialog::getPreset()
 {
-    return ui->configWidget->curConfig;
+    return ui->presetWidget->curPreset;
 }
 
 IO::BaseParam* SaveFmtDialog::getParam()

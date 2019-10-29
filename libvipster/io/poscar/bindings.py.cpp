@@ -3,9 +3,9 @@
 
 namespace Vipster::Py{
 void POSCAR(py::module& m){
-    auto c = py::class_<IO::PoscarConfig>(m, "POSCARConfig")
-        .def_readwrite("selective", &IO::PoscarConfig::selective)
-        .def_readwrite("cartesian", &IO::PoscarConfig::cartesian)
+    auto c = py::class_<IO::PoscarPreset>(m, "POSCARPreset")
+        .def_readwrite("selective", &IO::PoscarPreset::selective)
+        .def_readwrite("cartesian", &IO::PoscarPreset::cartesian)
     ;
 }
 }

@@ -116,10 +116,10 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
 }
 
 bool PoscarWriter(const Molecule& m, std::ostream &file,
-                  const IO::BaseParam* const, const IO::BaseConfig* const c,
+                  const IO::BaseParam* const, const IO::BasePreset* const c,
                   size_t index)
 {
-    const auto * const cc = dynamic_cast<const IO::PoscarConfig*const>(c);
+    const auto * const cc = dynamic_cast<const IO::PoscarPreset*const>(c);
     const Step& s = m.getStep(index).asFmt(cc->cartesian ?
                                                  AtomFmt::Angstrom : AtomFmt::Crystal);
     file << s.getComment() << '\n';
@@ -181,9 +181,9 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BasePreset> makePreset()
 {
-    return std::make_unique<IO::PoscarConfig>(name);
+    return std::make_unique<IO::PoscarPreset>();
 }
 
 const IO::Plugin IO::Poscar =
@@ -191,9 +191,9 @@ const IO::Plugin IO::Poscar =
     "VASP POSCAR",
     "POSCAR",
     "pos",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Preset,
     &PoscarParser,
     &PoscarWriter,
     nullptr,
-    &makeConfig,
+    &makePreset,
 };

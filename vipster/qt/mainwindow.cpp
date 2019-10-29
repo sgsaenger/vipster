@@ -24,7 +24,7 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     settings{std::get<1>(state)},
     plugins{std::get<2>(state)},
     params{std::get<3>(state)},
-    configs{std::get<4>(state)},
+    presets{std::get<4>(state)},
     ui{new Ui::MainWindow},
     path{path}
 {
@@ -81,8 +81,8 @@ void MainWindow::setupUI()
         }
         auto p = dynamic_cast<ParamWidget*>(pair.first);
         if (p) paramWidget = p;
-        auto c = dynamic_cast<ConfigWidget*>(pair.first);
-        if (c) configWidget = c;
+        auto c = dynamic_cast<PresetWidget*>(pair.first);
+        if (c) presetWidget = c;
     }
     firstDock->raise();
     // setup right dock-area
@@ -114,15 +114,15 @@ void MainWindow::setupUI()
                 }
             }
         }
-        if(plug->arguments & IO::Plugin::Config){
-            auto* conf_menu = ui->menuLoad_IO_Config->addMenu(
+        if(plug->arguments & IO::Plugin::Preset){
+            auto* conf_menu = ui->menuLoad_IO_Preset->addMenu(
                         QString::fromStdString(plug->name));
-            configMenus[plug] = conf_menu;
-            const auto& conf_map = configs[plug];
+            presetMenus[plug] = conf_menu;
+            const auto& conf_map = presets[plug];
             if(!conf_map.empty()){
                 for(const auto& p: conf_map){
                     conf_menu->addAction(QString::fromStdString(p.first),
-                                         this, &MainWindow::loadConfig);
+                                         this, &MainWindow::loadPreset);
                 }
             }
         }
@@ -305,10 +305,10 @@ void MainWindow::newMol(QAction* sender)
 void MainWindow::newData(IO::Data &&d)
 {
     molecules.push_back(std::move(d.mol));
-    molecules.back().pte->root = &pte;
-    registerMol(molecules.back().getName());
+    const auto& name = molecules.back().getName();
+    registerMol(name);
     if(d.param){
-        paramWidget->registerParam(std::move(d.param));
+        paramWidget->registerParam(name, std::move(d.param));
     }
     for(auto& dat: d.data){
         data.push_back(std::move(dat));
@@ -374,7 +374,7 @@ void MainWindow::saveMol()
         if(sfd.exec() == QDialog::Accepted){
             try{
                 writeFile(target, sfd.plugin, *curMol,
-                          sfd.getParam(), sfd.getConfig(),
+                          sfd.getParam(), sfd.getPreset(),
                           curVP->moldata[curMol].curStep-1);
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
@@ -390,9 +390,9 @@ const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
     return paramWidget->params;
 }
 
-const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
+const decltype (PresetWidget::presets)& MainWindow::getPresets() const noexcept
 {
-    return configWidget->configs;
+    return presetWidget->presets;
 }
 
 void MainWindow::loadParam()
@@ -404,28 +404,30 @@ void MainWindow::loadParam()
     if(fmt == plugins.end()){
         throw Error{"Invalid parameter set"};
     }
-    auto pos = params[*fmt].find(s->text().toStdString());
+    auto name = s->text().toStdString();
+    auto pos = params[*fmt].find(name);
     if(pos != params[*fmt].end()){
-        paramWidget->registerParam(pos->second->copy());
+        paramWidget->registerParam(name, pos->second->copy());
     }else{
         throw Error("Invalid parameter set");
     }
 }
 
-void MainWindow::loadConfig()
+void MainWindow::loadPreset()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
     auto fmt = std::find_if(plugins.begin(), plugins.end(),
                  [&](const auto& plug){return plug->name.c_str() == p->title();});
     if(fmt == plugins.end()){
-        throw Error{"Invalid IO-config"};
+        throw Error{"Invalid IO-preset"};
     }
-    auto pos = configs[*fmt].find(s->text().toStdString());
-    if(pos != configs[*fmt].end()){
-        configWidget->registerConfig(pos->second->copy());
+    auto name = s->text().toStdString();
+    auto pos = presets[*fmt].find(name);
+    if(pos != presets[*fmt].end()){
+        presetWidget->registerPreset(name, pos->second->copy());
     }else{
-        throw Error("Invalid IO-config");
+        throw Error("Invalid IO preset");
     }
 }
 
@@ -447,29 +449,27 @@ void MainWindow::saveParam()
         }
         // save parameter
         map[name] = curParam->copy();
-        map[name]->name = name;
     }
 }
 
-void MainWindow::saveConfig()
+void MainWindow::savePreset()
 {
-    if(!configWidget->curConfig){
+    if(!presetWidget->curPreset){
         return;
     }
-    const auto &curConfig = configWidget->curConfig;
+    const auto &curPreset = presetWidget->curPreset;
     bool ok;
-    auto name = QInputDialog::getText(this, "Save IO-Config", "Name of preset",
+    auto name = QInputDialog::getText(this, "Save IO preset", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        auto& map = configs[curConfig->getFmt()];
+        auto& map = presets[curPreset->getFmt()];
         if(map.find(name) == map.end()){
             // register new name in menu
-            auto* fmtMenu = configMenus.at(curConfig->getFmt());
-            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadConfig);
+            auto* fmtMenu = presetMenus.at(curPreset->getFmt());
+            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadPreset);
         }
-        // save config
-        map[name] = curConfig->copy();
-        map[name]->name = name;
+        // save preset
+        map[name] = curPreset->copy();
     }
 }
 

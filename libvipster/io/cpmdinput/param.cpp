@@ -3,12 +3,12 @@
 
 using namespace Vipster;
 
-IO::CPParam::CPParam(std::string name, Section info, Section cpmd, Section system,
-                     Section pimd, Section path, Section ptddft, Section atoms,
-                     Section dft, Section prop, Section resp, Section linres,
-                     Section tddft, Section hardness, Section classic, Section vdw, Section qmmm,
+IO::CPParam::CPParam(Section info, Section cpmd, Section system, Section pimd,
+                     Section path, Section ptddft, Section atoms, Section dft,
+                     Section prop, Section resp, Section linres, Section tddft,
+                     Section hardness, Section classic, Section vdw, Section qmmm,
                      std::string PPPrefix, std::string PPSuffix, std::string PPNonlocality)
-    : BaseParam{name}, info{info}, cpmd{cpmd}, system{system}, pimd{pimd}, path{path},
+    : info{info}, cpmd{cpmd}, system{system}, pimd{pimd}, path{path},
       ptddft{ptddft}, atoms{atoms}, dft{dft}, prop{prop}, resp{resp}, linres{linres},
       tddft{tddft}, hardness{hardness}, classic{classic}, vdw{vdw}, qmmm{qmmm},
       PPPrefix{PPPrefix}, PPSuffix{PPSuffix}, PPNonlocality{PPNonlocality}
@@ -44,35 +44,24 @@ const std::vector<std::pair<std::string, IO::CPParam::Section IO::CPParam::*>> I
     {"&QMMM", &IO::CPParam::qmmm},
 };
 
-void IO::CPParam::parseJson(const nlohmann::json::iterator& it)
+void IO::CPParam::parseJson(const nlohmann::json& j)
 {
-    name = it.key();
-    from_json(it.value(), *this);
+    for(const auto& pair: CPParam::str2section){
+        this->*pair.second = j.value(pair.first, CPParam::Section{});
+    }
+    PPPrefix = j.value("PPPrefix", "");
+    PPSuffix = j.value("PPSuffix", "");
+    PPNonlocality = j.value("PPNonlocality", "");
 }
 
 nlohmann::json IO::CPParam::toJson() const
 {
     nlohmann::json j;
-    to_json(j, *this);
+    for(const auto& pair: CPParam::str2section){
+        j[pair.first] = this->*pair.second;
+    }
+    j["PPPrefix"] = PPPrefix;
+    j["PPSuffix"] = PPSuffix;
+    j["PPNonlocality"] = PPNonlocality;
     return j;
-}
-
-void IO::from_json(const nlohmann::json& j, IO::CPParam& p)
-{
-    for(const auto& pair: CPParam::str2section){
-        p.*pair.second = j.value(pair.first, CPParam::Section{});
-    }
-    p.PPPrefix = j.value("PPPrefix", "");
-    p.PPSuffix = j.value("PPSuffix", "");
-    p.PPNonlocality = j.value("PPNonlocality", "");
-}
-
-void IO::to_json(nlohmann::json& j,const CPParam& p)
-{
-    for(const auto& pair: CPParam::str2section){
-        j[pair.first] = p.*pair.second;
-    }
-    j["PPPrefix"] = p.PPPrefix;
-    j["PPSuffix"] = p.PPSuffix;
-    j["PPNonlocality"] = p.PPNonlocality;
 }

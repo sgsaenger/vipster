@@ -36,14 +36,14 @@ std::string emWriteFile(int m, int s, int f){
         const auto& plug = IOPlugins.at(fmt);
         std::unique_ptr<IO::BaseParam> param{nullptr};
         if(plug->arguments & IO::Plugin::Param){
-            param = plug->makeParam("");
+            param = plug->makeParam();
         }
-        std::unique_ptr<IO::BaseConfig> config{nullptr};
-        if(plug->arguments & IO::Plugin::Config){
-            config = plug->makeConfig("");
+        std::unique_ptr<IO::BasePreset> preset{nullptr};
+        if(plug->arguments & IO::Plugin::Preset){
+            preset = plug->makePreset();
         }
         writeFile("/tmp/output.file", fmt, molecules[m],
-                  param.get(), config.get(), {(size_t)s});
+                  param.get(), preset.get(), {(size_t)s});
         return "";
     } catch(std::exception &e) {
         return e.what();

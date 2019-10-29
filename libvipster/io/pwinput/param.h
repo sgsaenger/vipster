@@ -15,17 +15,14 @@ struct PWParam final: BaseParam{
     std::string PPPrefix;
     std::string PPSuffix;
     static const std::map<std::string, Namelist PWParam::*> str2nl;
-    PWParam(std::string="", Namelist={}, Namelist={},
+    PWParam(Namelist={}, Namelist={},
             Namelist={}, Namelist={}, Namelist={},
             std::string="", std::string="");
     const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
-    void parseJson(const nlohmann::json::iterator&) override;
+    void parseJson(const nlohmann::json&) override;
     nlohmann::json toJson() const override;
 };
-
-void to_json(nlohmann::json& j,const PWParam& p);
-void from_json(const nlohmann::json& j, PWParam& p);
 
 }
 

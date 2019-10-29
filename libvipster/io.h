@@ -7,7 +7,7 @@
 #include "io/data.h"
 #include "io/plugin.h"
 #include "io/parameters.h"
-#include "io/configs.h"
+#include "io/presets.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
@@ -15,8 +15,8 @@ namespace Vipster{
     namespace IO{
         using Plugins = std::vector<const Plugin*>;
         Plugins defaultPlugins();
-        using Configs = std::map<const Plugin*, std::map<std::string, std::unique_ptr<BaseConfig>>>;
-        Configs defaultConfigs(const Plugins& p);
+        using Presets = std::map<const Plugin*, std::map<std::string, std::unique_ptr<BasePreset>>>;
+        Presets defaultPresets(const Plugins& p);
         using Parameters = std::map<const Plugin*, std::map<std::string, std::unique_ptr<BaseParam>>>;
         Parameters defaultParams(const Plugins& p);
     }
@@ -28,7 +28,7 @@ namespace Vipster{
     IO::Data readFile(const std::string &fn, const IO::Plugin* plug);
     bool     writeFile(const std::string &fn, const IO::Plugin* plug, const Molecule &m,
                        const IO::BaseParam *p=nullptr,
-                       const IO::BaseConfig *c=nullptr,
+                       const IO::BasePreset *c=nullptr,
                        size_t idx=-1ul);
     std::optional<const IO::Plugin*> guessFmt(std::string fn,
                                    IO::Plugin::Args arg = IO::Plugin::Read,

@@ -14,7 +14,7 @@
 #include "../common/guiwrapper.h"
 #include "../common/guidata.h"
 #include "mainwidgets/paramwidget.h"
-#include "mainwidgets/configwidget.h"
+#include "mainwidgets/presetwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -47,10 +47,10 @@ public:
     std::map<const Vipster::IO::Plugin*, QMenu*> paramMenus;
     ParamWidget* paramWidget;
     const decltype (ParamWidget::params)& getParams() const noexcept;
-    // Config data
-    std::map<const Vipster::IO::Plugin*, QMenu*> configMenus;
-    ConfigWidget* configWidget;
-    const decltype (ConfigWidget::configs)& getConfigs() const noexcept;
+    // Preset data
+    std::map<const Vipster::IO::Plugin*, QMenu*> presetMenus;
+    PresetWidget* presetWidget;
+    const decltype (PresetWidget::presets)& getPresets() const noexcept;
     // Extra data
     std::list<std::unique_ptr<const Vipster::BaseData>> data;
     // expose configstate read from file
@@ -59,7 +59,7 @@ public:
     Vipster::Settings       &settings;
     Vipster::IO::Plugins    &plugins;
     Vipster::IO::Parameters &params;
-    Vipster::IO::Configs    &configs;
+    Vipster::IO::Presets    &presets;
 
 public slots:
     void about();
@@ -70,8 +70,8 @@ public slots:
     void editAtoms(QAction *sender);
     void loadParam();
     void saveParam();
-    void loadConfig();
-    void saveConfig();
+    void loadPreset();
+    void savePreset();
     void saveScreenshot();
 
 private:

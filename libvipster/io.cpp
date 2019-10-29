@@ -34,18 +34,18 @@ IO::Parameters Vipster::IO::defaultParams(const Plugins &p)
     IO::Parameters tmp;
     for(const auto& plug: p){
         if(plug->arguments & IO::Plugin::Args::Param){
-            tmp[plug]["default"] = plug->makeParam("default");
+            tmp[plug]["default"] = plug->makeParam();
         }
     }
     return tmp;
 }
 
-IO::Configs Vipster::IO::defaultConfigs(const Plugins &p)
+IO::Presets Vipster::IO::defaultPresets(const Plugins &p)
 {
-    IO::Configs tmp;
+    IO::Presets tmp;
     for(const auto& plug: p){
-        if(plug->arguments & IO::Plugin::Args::Config){
-            tmp[plug]["default"] = plug->makeConfig("default");
+        if(plug->arguments & IO::Plugin::Args::Preset){
+            tmp[plug]["default"] = plug->makePreset();
         }
     }
     return tmp;
@@ -112,7 +112,7 @@ bool  Vipster::writeFile(const std::string &fn,
                          const IO::Plugin *plug,
                          const Molecule &m,
                          const IO::BaseParam *const p,
-                         const IO::BaseConfig *const c,
+                         const IO::BasePreset *const c,
                          size_t idx)
 {
     std::ofstream file{fn};

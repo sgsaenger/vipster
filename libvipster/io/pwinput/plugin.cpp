@@ -310,7 +310,7 @@ IO::Data PWInpParser(const std::string& name, std::istream &file)
     Molecule &m = d.mol;
     m.setName(name);
     m.newStep();
-    d.param = std::make_unique<IO::PWParam>(name);
+    d.param = std::make_unique<IO::PWParam>();
     IO::PWParam &p = *static_cast<IO::PWParam*>(d.param.get());
     CellInp cell{};
 
@@ -330,14 +330,14 @@ IO::Data PWInpParser(const std::string& name, std::istream &file)
 
 bool PWInpWriter(const Molecule& m, std::ostream &file,
                  const IO::BaseParam *const p,
-                 const IO::BaseConfig *const c,
+                 const IO::BasePreset *const c,
                  size_t index)
 {
     const auto *pp = dynamic_cast<const IO::PWParam*>(p);
     if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
-    const auto *cc = dynamic_cast<const IO::PWConfig*>(c);
-    if(!cc) throw IO::Error("PWI-Writer needs PWScf configuration preset");
-    const auto& s = (cc->atoms == IO::PWConfig::AtomFmt::Active) ?
+    const auto *cc = dynamic_cast<const IO::PWPreset*>(c);
+    if(!cc) throw IO::Error("PWI-Writer needs PWScf IO preset");
+    const auto& s = (cc->atoms == IO::PWPreset::AtomFmt::Active) ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(cc->atoms)); // use explicit fmt
     std::vector<std::pair<std::string, const IO::PWParam::Namelist*>>
@@ -359,7 +359,7 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             file << " ibrav = 0\n";
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
-            auto cell_fmt = (cc->cell == IO::PWConfig::CellFmt::Active) ?
+            auto cell_fmt = (cc->cell == IO::PWPreset::CellFmt::Active) ?
                         ((s.getFmt() == AtomFmt::Angstrom) ?
                              CdmFmt::Angstrom : CdmFmt::Bohr) : // match coordinates
                         static_cast<CdmFmt>(cc->cell); // use explicit
@@ -433,14 +433,14 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BaseParam> makeParam(const std::string& name)
+static std::unique_ptr<IO::BaseParam> makeParam()
 {
-    return std::make_unique<IO::PWParam>(name);
+    return std::make_unique<IO::PWParam>();
 }
 
-static std::unique_ptr<IO::BaseConfig> makeConfig(const std::string& name)
+static std::unique_ptr<IO::BasePreset> makePreset()
 {
-    return std::make_unique<IO::PWConfig>(name);
+    return std::make_unique<IO::PWPreset>();
 }
 
 const IO::Plugin IO::PWInput =
@@ -448,9 +448,9 @@ const IO::Plugin IO::PWInput =
     "PWScf Input File",
     "pwi",
     "pwi",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param | IO::Plugin::Config,
+    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param | IO::Plugin::Preset,
     &PWInpParser,
     &PWInpWriter,
     &makeParam,
-    &makeConfig
+    &makePreset
 };

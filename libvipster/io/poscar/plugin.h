@@ -2,7 +2,7 @@
 #define POSCAR_H
 
 #include "../plugin.h"
-#include "config.h"
+#include "preset.h"
 
 namespace Vipster::IO{
 
