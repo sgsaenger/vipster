@@ -13,7 +13,7 @@ Mat Vipster::makeBravais(int ibrav, Vec axes, Vec angles)
                  {{0, 0, 1}}}};
     case 2:
         // fcc
-        return {{{{-0.5f,  0.0f,  1.0f}},
+        return {{{{-0.5f,  0.0f,  0.5f}},
                  {{ 0.0f,  0.5f,  0.5f}},
                  {{-0.5f,  0.5f,  0.0f}}}};
     case 3:
