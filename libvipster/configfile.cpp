@@ -137,7 +137,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path pte_path = dir/"periodictable.json";
     std::ofstream pte_file{pte_path};
     if(!pte_file){
-        std::cout << "Can not open file at \"" << std::string{pte_path} << "\" for writing Periodic Table" << std::endl;
+        std::cout << "Can not open file at \"" << pte_path << "\" for writing Periodic Table" << std::endl;
         success = false;
     }
     j = pte;
@@ -146,7 +146,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path settings_path = dir/"settings.json";
     std::ofstream settings_file{settings_path};
     if(!settings_file){
-        std::cout << "Can not open file at \"" << std::string{settings_path} << "\" for writing settings";
+        std::cout << "Can not open file at \"" << settings_path << "\" for writing settings";
         success = false;
     }
     j = settings;
@@ -155,7 +155,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path param_path = dir/"parameters.json";
     std::ofstream param_file{param_path};
     if(!param_file){
-        std::cout << "Can not open file at \"" << std::string{param_path} << "\" for writing parameter sets";
+        std::cout << "Can not open file at \"" << param_path << "\" for writing parameter sets";
         success = false;
     }
     j = json{};
@@ -174,7 +174,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path preset_path = dir/"iopresets.json";
     std::ofstream preset_file{preset_path};
     if(!preset_file){
-        std::cout << "Can not open file at \"" << std::string{preset_path} << "\" for writing IO-presets";
+        std::cout << "Can not open file at \"" << preset_path << "\" for writing IO-presets";
         success = false;
     }
     j = json{};

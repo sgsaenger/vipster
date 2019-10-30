@@ -6,7 +6,7 @@
 #include "../common/guiwrapper.h"
 #include "configfile.h"
 #include "molecule.h"
-#include "io.h"
+#include "fileio.h"
 
 namespace em = emscripten;
 using namespace Vipster;
@@ -20,9 +20,11 @@ static unsigned long vrWidth, vrHeight;
 static bool vrMoving{false}, vrHasPos{false};
 static Vec vrPos{0,0,-10};
 
+static IO::Plugins plugins = IO::defaultPlugins();
+
 std::string emReadFile(std::string fn, int fmt){
     try {
-        auto d = readFile(fn, (IOFmt)fmt);
+        auto d = readFile(fn, plugins[fmt]);
         molecules.push_back(d.mol);
         return "";
     } catch (std::exception &e) {
@@ -32,8 +34,7 @@ std::string emReadFile(std::string fn, int fmt){
 
 std::string emWriteFile(int m, int s, int f){
     try{
-        auto fmt = static_cast<IOFmt>(f);
-        const auto& plug = IOPlugins.at(fmt);
+        const auto& plug = plugins[f];
         std::unique_ptr<IO::BaseParam> param{nullptr};
         if(plug->arguments & IO::Plugin::Param){
             param = plug->makeParam();
@@ -42,8 +43,8 @@ std::string emWriteFile(int m, int s, int f){
         if(plug->arguments & IO::Plugin::Preset){
             preset = plug->makePreset();
         }
-        writeFile("/tmp/output.file", fmt, molecules[m],
-                  param.get(), preset.get(), {(size_t)s});
+        writeFile("/tmp/output.file", plug, molecules[m],
+                  param.get(), preset.get(), (size_t)s);
         return "";
     } catch(std::exception &e) {
         return e.what();
@@ -96,14 +97,14 @@ int emGuessFmt(std::string file){
     auto pos = file.find_last_of('.');
     if(pos != file.npos){
         std::string ext = file.substr(pos+1);
-        auto pos = std::find_if(IOPlugins.begin(), IOPlugins.end(),
-                                [&](const decltype(IOPlugins)::value_type& pair){
-                                    return pair.second->extension == ext;
+        auto pos = std::find_if(plugins.begin(), plugins.end(),
+                                [&](const IO::Plugin* plug){
+                                    return plug->extension == ext;
                                 });
-        if(pos == IOPlugins.end()){
+        if(pos == plugins.end()){
             return 0;
         }else{
-            return static_cast<int>(pos->first);
+            return std::distance(plugins.begin(), pos);
         }
     }else{
         return 0;
@@ -116,7 +117,7 @@ std::string emFmtName(int m, int f){
     if(dot != name.npos){
         name = name.substr(0, dot);
     }
-    return name + '.' + IOPlugins.at((IOFmt)f)->extension;
+    return name + '.' + plugins[f]->extension;
 }
 
 void emVrMove(int val){vrMoving = val;}
@@ -388,10 +389,10 @@ int main()
     emscripten_set_wheel_callback("#canvas", nullptr, 0, wheel_event);
 
     //start
-    for(auto& fmt: IOPlugins){
-        EM_ASM_({addParser($0, $1)}, fmt.first, fmt.second->name.c_str());
-        if(fmt.second->writer){
-            EM_ASM_({addWriter($0, $1)}, fmt.first, fmt.second->name.c_str());
+    for(int i=0; i<plugins.size(); ++i){
+        EM_ASM_({addParser($0, $1)}, i, plugins[i]->name.c_str());
+        if(plugins[i]->writer){
+            EM_ASM_({addWriter($0, $1)}, i, plugins[i]->name.c_str());
         }
     }
     EM_ASM(setMol(0));

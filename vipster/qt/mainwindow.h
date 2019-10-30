@@ -6,7 +6,7 @@
 #include <QSplitter>
 #include <vector>
 
-#include "io.h"
+#include "fileio.h"
 #include "stepsel.h"
 #include "configfile.h"
 

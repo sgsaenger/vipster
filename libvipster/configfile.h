@@ -20,7 +20,7 @@
 
 #include "periodictable.h"
 #include "settings.h"
-#include "io.h"
+#include "fileio.h"
 
 namespace Vipster{
 

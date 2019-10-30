@@ -1,6 +1,6 @@
 #include "parameters.h"
 #include "io/plugin.h"
-#include "../io.h"
+#include "../fileio.h"
 
 using namespace Vipster;
 

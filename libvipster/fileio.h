@@ -2,6 +2,7 @@
 #define IOWRAPPER
 
 #include <map>
+#include <optional>
 
 #include "molecule.h"
 #include "io/data.h"

@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <vector>
-#include "io.h"
+#include "fileio.h"
 
 namespace Ui {
 class SaveFmtDialog;
