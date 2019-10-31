@@ -119,7 +119,6 @@ void PinWidget::on_delStep_clicked()
     for(auto& vp: master->viewports){
         auto& vpdata = vp->vpdata.extras;
         auto pos = std::find(vpdata.begin(), vpdata.end(), curPin);
-//                                [&](const auto& p){return curPin.get() == p.get();});
         if(pos != vpdata.end()){
             vpdata.erase(pos);
         }
@@ -130,7 +129,6 @@ void PinWidget::on_delStep_clicked()
         ui->addStep->setEnabled(true);
     }
     auto pos2 = std::find(pinnedSteps.begin(), pinnedSteps.end(), curPin);
-//                            [&](const auto& p){return curPin.get() == p.get();});
     pinnedSteps.erase(pos2);
     delete ui->stepList->takeItem(ui->stepList->currentRow());
     triggerUpdate(GUI::Change::extra);

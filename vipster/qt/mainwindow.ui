@@ -409,6 +409,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>menuFrom_existing_Molecule</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>newMol(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>setMol(int)</slot>

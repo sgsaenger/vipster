@@ -59,9 +59,6 @@ public:
     Vipster::Settings       &settings;
     Vipster::IO::Parameters &params;
     Vipster::IO::Configs    &configs;
-    // GL helpers for additional render-data
-    void addExtraData(Vipster::GUI::Data* dat);
-    void delExtraData(Vipster::GUI::Data* dat);
 
 public slots:
     void about();

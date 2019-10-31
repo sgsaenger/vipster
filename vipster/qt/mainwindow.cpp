@@ -294,7 +294,7 @@ void MainWindow::newMol(QAction* sender)
         molecules.back().pte->root = &pte;
         registerMol(molecules.back().getName());
     }else if( sender == ui->actionCopy_current_Selection){
-        molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step" +
+        molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step " +
                                std::to_string(curVP->moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
         registerMol(molecules.back().getName());
@@ -392,20 +392,6 @@ const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
 const decltype (ConfigWidget::configs)& MainWindow::getConfigs() const noexcept
 {
     return configWidget->configs;
-}
-
-void MainWindow::addExtraData(GUI::Data* dat)
-{
-    //FIXME
-//    ui->openGLWidget->addExtraData(dat);
-    updateWidgets(GUI::Change::extra);
-}
-
-void MainWindow::delExtraData(GUI::Data* dat)
-{
-    //FIXME
-//    ui->openGLWidget->delExtraData(dat);
-    updateWidgets(GUI::Change::extra);
 }
 
 void MainWindow::loadParam()
