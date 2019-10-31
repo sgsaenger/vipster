@@ -175,47 +175,52 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
         switch(e->key()){
         case Qt::Key_Enter:
         case Qt::Key_Return:
-            cursor.movePosition(QTextCursor::End);
-            cmdHistory.push_back(getCurCmd());
-            curCmd = cmdHistory.size();
-            tmpCmd.clear();
-            cursor.insertText("\n");
-            try {
-                auto code = py::module::import("code");
-                auto result = code.attr("compile_command")(cmdHistory.back());
-                if(result.is_none()){
-                    // incomplete command
-                    cursor.insertText("... ");
-                    cmdHistory.pop_back();
-                    curCmd = cmdHistory.size();
-                }else{
-                    // complete command
-                    // defer python's stdout
-                    auto out = py::module::import("io").attr("StringIO")();
-                    auto sys = py::module::import("sys");
-                    auto old = sys.attr("stdout");
-                    sys.attr("stdout") = out;
-                    sys.attr("stderr") = out;
-                    // forward compiled code and execute
-                    locals["__res__"] = result;
-                    py::exec("exec(__res__)", py::globals(), locals);
-                    // handle output
-                    auto outval = out.attr("getvalue")();
-                    if(py::len(outval)){
-                        std::string output = py::str(outval);
-                        cursor.insertText(output.c_str());
+            if(!cursor.atEnd()){
+                // insert new line when we're not at end
+                cursor.insertText("\n... ");
+            }else{
+                // otherwise try to run command if complete
+                cmdHistory.push_back(getCurCmd());
+                curCmd = cmdHistory.size();
+                tmpCmd.clear();
+                cursor.insertText("\n");
+                try {
+                    auto code = py::module::import("code");
+                    auto result = code.attr("compile_command")(cmdHistory.back());
+                    if(result.is_none()){
+                        // incomplete command
+                        cursor.insertText("... ");
+                        cmdHistory.pop_back();
+                        curCmd = cmdHistory.size();
+                    }else{
+                        // complete command
+                        // defer python's stdout
+                        auto out = py::module::import("io").attr("StringIO")();
+                        auto sys = py::module::import("sys");
+                        auto old = sys.attr("stdout");
+                        sys.attr("stdout") = out;
+                        sys.attr("stderr") = out;
+                        // forward compiled code and execute
+                        locals["__res__"] = result;
+                        py::exec("exec(__res__)", py::globals(), locals);
+                        // handle output
+                        auto outval = out.attr("getvalue")();
+                        if(py::len(outval)){
+                            std::string output = py::str(outval);
+                            cursor.insertText(output.c_str());
+                        }
+                        cursor.insertText("\n>>> ");
+                        // reset state for new execution
+                        cmdBlock = document()->lastBlock().blockNumber();
+                        sys.attr("stdout") = old;
+                        // trigger update so GUI knows about changes
+                        master->updateWidgets(GUI::stepChanged);
                     }
+                } catch (py::error_already_set& e) {
+                    cursor.insertText(e.what());
                     cursor.insertText("\n>>> ");
-                    // reset state for new execution
                     cmdBlock = document()->lastBlock().blockNumber();
-                    sys.attr("stdout") = old;
-                    // trigger update so GUI knows about changes
-                    master->updateWidgets(GUI::stepChanged);
                 }
-            } catch (py::error_already_set& e) {
-                cursor.insertText(e.what());
-                cursor.insertText("\n>>> ");
-                cmdBlock = document()->lastBlock().blockNumber();
             }
             break;
         case Qt::Key_Tab:
