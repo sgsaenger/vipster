@@ -2,7 +2,6 @@
 #include "step.h"
 
 // TODO: think about const-correctness!
-// can wait until "view"-interface to running libvipster instance is implemented
 
 namespace Vipster::Py{
 template <typename S>

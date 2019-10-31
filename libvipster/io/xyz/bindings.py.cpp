@@ -3,7 +3,7 @@
 
 namespace Vipster::Py{
 void XYZ(py::module& m){
-    auto c = py::class_<IO::XYZPreset>(m, "XYZPreset")
+    auto c = py::class_<IO::XYZPreset, IO::BasePreset>(m, "XYZPreset")
         .def_readwrite("filemode", &IO::XYZPreset::filemode)
         .def_readwrite("atomdata", &IO::XYZPreset::atomdata)
     ;

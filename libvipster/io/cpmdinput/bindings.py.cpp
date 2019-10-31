@@ -3,7 +3,7 @@
 
 namespace Vipster::Py{
 void CPInput(py::module& m){
-    auto p = py::class_<IO::CPParam>(m, "CPParam")
+    auto p = py::class_<IO::CPParam, IO::BaseParam>(m, "CPParam")
         .def_readwrite("info", &IO::CPParam::info)
         .def_readwrite("cpmd", &IO::CPParam::cpmd)
         .def_readwrite("system", &IO::CPParam::system)
@@ -23,7 +23,7 @@ void CPInput(py::module& m){
         .def_readwrite("qmmm", &IO::CPParam::qmmm)
     ;
 
-    auto c = py::class_<IO::CPPreset>(m, "CPPreset")
+    auto c = py::class_<IO::CPPreset, IO::BasePreset>(m, "CPPreset")
         .def_readwrite("fmt", &IO::CPPreset::fmt)
     ;
 

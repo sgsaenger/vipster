@@ -63,7 +63,7 @@ endif()
 
 # find pybind11 if needed
 if(PYBIND OR PYSHELL)
-    find_package(pybind11 CONFIG)
+    find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
     endif()
