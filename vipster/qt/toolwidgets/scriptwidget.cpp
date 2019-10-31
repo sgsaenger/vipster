@@ -40,37 +40,38 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
         }
         }
     };
-    auto execOp = [&](auto& step, const ScriptOp& op){
+    auto execOp = [&](auto& s, const ScriptOp& op){
         switch (op.mode) {
         case ScriptOp::Mode::Rotate:
-            step.modRotate(op.f, mkVec(op.v1), mkVec(op.v2));
+            s.modRotate(op.f, mkVec(op.v1), mkVec(op.v2));
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Shift:
-            step.modShift(mkVec(op.v1), op.f);
+            s.modShift(mkVec(op.v1), op.f);
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Mirror:
-            step.modMirror(mkVec(op.v1), mkVec(op.v2), mkVec(op.v3));
+            s.modMirror(mkVec(op.v1), mkVec(op.v2), mkVec(op.v3));
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Rename:
-            for(auto& at: step){
+            for(auto& at: s){
                 at.name = op.s1;
             }
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Select:
-            *data.sel = step.select(op.s1);
+            *data.sel = s.select(op.s1);
             change |= GUI::Change::selection;
             break;
         case ScriptOp::Mode::Define:
         {
-            auto [it, _] = data.def.insert_or_assign(op.s1,
-                std::pair{step.select(op.s2), std::make_shared<GUI::SelData>(master->globals)});
+            auto &defMap = master->definitions[&step];
+            auto [it, _] = defMap.insert_or_assign(op.s1,
+                std::pair{s.select(op.s2), std::make_shared<GUI::SelData>(master->globals)});
             it->second.second->update(&it->second.first, master->settings.atRadVdW.val,
                                  master->settings.atRadFac.val);
-            it->second.second->color = defaultColors[data.def.size()%5];
+            it->second.second->color = defaultColors[defMap.size()%5];
             change |= GUI::Change::definitions;
         }
             break;
@@ -85,8 +86,9 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             }else if(op.target == "sel"){
                 execOp(*data.sel, op);
             }else{
-                auto def = data.def.find(op.target);
-                if(def == data.def.end()){
+                auto &defMap = master->definitions[&step];
+                auto def = defMap.find(op.target);
+                if(def == defMap.end()){
                     throw Error("Unknown target: "+op.target);
                 }
                 // make sure that formats match

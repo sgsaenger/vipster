@@ -3,11 +3,13 @@
 
 #include <QWidget>
 #include <QAction>
+#include <type_traits>
 
 #include "molecule.h"
 #include "../basewidget.h"
 #include "../viewport.h"
 #include "../common/seldata.h"
+#include "../mainwindow.h"
 
 namespace Ui {
 class DefineWidget;
@@ -19,7 +21,7 @@ class DefineWidget : public BaseWidget
 
 public:
     explicit DefineWidget(QWidget *parent = nullptr);
-    ~DefineWidget();
+    ~DefineWidget() override;
     void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
@@ -42,9 +44,8 @@ private:
     Ui::DefineWidget *ui;
     Vipster::Step* curStep{nullptr};
     ViewPort::StepState *curState{nullptr};
-    decltype(ViewPort::StepState::def)* defMap{nullptr};
-    decltype(ViewPort::StepState::def)::iterator curSel;
-    std::vector<std::shared_ptr<Vipster::GUI::SelData>> defList;
+    decltype(MainWindow::definitions)::mapped_type *defMap{nullptr};
+    std::remove_pointer_t<decltype(defMap)>::iterator curSel;
     QList<QAction*> contextActions;
 };
 

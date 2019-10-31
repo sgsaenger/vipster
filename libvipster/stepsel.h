@@ -484,6 +484,7 @@ public:
     void setFilter(SelectionFilter filter)
     {
         this->atoms->filter = std::move(filter);
+        this->atoms->filter.op |= SelectionFilter::UPDATE;
     }
 };
 

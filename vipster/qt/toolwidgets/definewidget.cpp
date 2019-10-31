@@ -1,6 +1,5 @@
 #include "definewidget.h"
 #include "ui_definewidget.h"
-#include "mainwindow.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QColorDialog>
@@ -38,7 +37,7 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
     if((change & GUI::stepChanged) == GUI::stepChanged){
         curStep = master->curStep;
         curState = &master->curVP->stepdata[curStep];
-        defMap = &curState->def;
+        defMap = &master->definitions[curStep];
         curSel = defMap->end();
         fillTable();
     }else if(change & GUI::Change::definitions){
@@ -106,7 +105,7 @@ void DefineWidget::on_newButton_clicked()
             master->settings.atRadVdW.val, master->settings.atRadFac.val);
         it->second.second->color = defaultColors[defMap->size()%5];
         master->curVP->stepdata[curStep].extras.push_back(it->second.second);
-        triggerUpdate(GUI::Change::definitions);
+        triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
     }catch(const Error &e){
         QMessageBox msg{this};
         msg.setText(QString{e.what()});
@@ -127,7 +126,7 @@ void DefineWidget::deleteAction()
                               curSel->second.second);
     if(posExtra != curState->extras.end()) curState->extras.erase(posExtra);
     defMap->erase(curSel);
-    triggerUpdate(GUI::Change::definitions);
+    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
 void DefineWidget::on_fromSelButton_clicked()
@@ -144,7 +143,7 @@ void DefineWidget::on_fromSelButton_clicked()
         master->settings.atRadVdW.val, master->settings.atRadFac.val);
     it->second.second->color = defaultColors[defMap->size()%5];
     master->curVP->stepdata[curStep].extras.push_back(it->second.second);
-    triggerUpdate(GUI::Change::definitions);
+    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
 void DefineWidget::toSelAction()
@@ -163,11 +162,18 @@ void DefineWidget::updateAction()
     }
     auto& step = curSel->second.first;
     step.setFilter(step.getFilter());
-    triggerUpdate(GUI::Change::definitions);
+    step.evaluateCache();
+    curSel->second.second->update(&curSel->second.first,
+        master->settings.atRadVdW.val, master->settings.atRadFac.val);
+    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
 void DefineWidget::on_defTable_cellChanged(int row, int column)
 {
+    if(column == 0){
+        // checkbox consumes mouse event, need to select row manually
+        ui->defTable->selectRow(row);
+    }
     if(curSel == defMap->end()){
         throw Error{"DefineWidget: selection is invalid."};
     }
@@ -183,6 +189,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
                                  curSel->second.second);
             curState->extras.erase(pos);
         }
+        triggerUpdate(GUI::Change::extra);
         break;
     case 1:
         // change name
@@ -207,7 +214,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
             curSel->second.first.evaluateCache();
             curSel->second.second->update(&curSel->second.first,
                 master->settings.atRadVdW.val, master->settings.atRadFac.val);
-            triggerUpdate(GUI::Change::definitions);
+            triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         }catch(const Error &e){
             QMessageBox msg{this};
             msg.setText(QString{e.what()});
@@ -253,7 +260,7 @@ void DefineWidget::colButton_clicked()
            static_cast<uint8_t>(newCol.alpha())};
     static_cast<QPushButton*>(sender())->setStyleSheet(
         QString("background-color: %1").arg(newCol.name()));
-    triggerUpdate(GUI::Change::definitions);
+    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
 void DefineWidget::on_helpButton_clicked()

@@ -37,6 +37,11 @@ public:
     Vipster::GUI::GlobalData globals{};
     // Molecule and Step data
     std::list<Vipster::Molecule> molecules;
+    // TODO: store StepData with weak_ptr
+    std::map<Vipster::Step*,
+        std::map<std::string, std::pair<
+            Vipster::Step::selection,
+            std::shared_ptr<Vipster::GUI::SelData>>>> definitions;
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
