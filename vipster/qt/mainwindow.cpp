@@ -374,8 +374,8 @@ void MainWindow::saveMol()
         if(sfd.exec() == QDialog::Accepted){
             try{
                 writeFile(target, sfd.plugin, *curMol,
-                          sfd.getParam(), sfd.getPreset(),
-                          curVP->moldata[curMol].curStep-1);
+                          curVP->moldata[curMol].curStep-1,
+                          sfd.getParam(), sfd.getPreset());
             }catch(const IO::Error& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());

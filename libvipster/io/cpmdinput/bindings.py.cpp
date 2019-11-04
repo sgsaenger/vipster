@@ -1,6 +1,10 @@
 #include "pyvipster.h"
 #include "plugin.h"
 
+namespace std {
+
+}
+
 namespace Vipster::Py{
 void CPInput(py::module& m){
     auto p = py::class_<IO::CPParam, IO::BaseParam>(m, "CPParam")

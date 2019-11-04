@@ -111,9 +111,9 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
 bool  Vipster::writeFile(const std::string &fn,
                          const IO::Plugin *plug,
                          const Molecule &m,
+                         size_t idx,
                          const IO::BaseParam *const p,
-                         const IO::BasePreset *const c,
-                         size_t idx)
+                         const IO::BasePreset *const c)
 {
     std::ofstream file{fn};
     if(idx == -1ul){

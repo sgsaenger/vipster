@@ -44,7 +44,7 @@ std::string emWriteFile(int m, int s, int f){
             preset = plug->makePreset();
         }
         writeFile("/tmp/output.file", plug, molecules[m],
-                  param.get(), preset.get(), (size_t)s);
+                  (size_t)s, param.get(), preset.get());
         return "";
     } catch(std::exception &e) {
         return e.what();

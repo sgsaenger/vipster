@@ -1,22 +1,98 @@
 #include "pyvipster.h"
 #include "fileio.h"
+#include "configfile.h"
 #include <map>
 
-namespace std{
-ostream& operator<<(ostream& os, const Vipster::IO::Plugin* p){
-    return os << p->command;
+namespace Vipster::IO {
+std::ostream& operator<<(std::ostream& os, const Plugin *p){
+    return os << "Plugins."+p->command;
 }
-//TODO: what's wrong with map_if_insertion_operator?
-//ostream& operator<<(ostream& os, const Vipster::IO::BaseParam &p){
-//    return os << p.toJson();
-//}
-//ostream& operator<<(ostream& os, const Vipster::IO::BaseParam *p){
-//    return os << p->toJson();
-//}
-//ostream& operator<<(ostream& os, const std::unique_ptr<Vipster::IO::BaseParam> &p){
-//    return os << p->toJson();
-//}
+
+// TODO: nicer representation, json maybe misleading in a python context
+std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BaseParam> &p){
+    return os << p->toJson();
 }
+
+std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BasePreset> &p){
+    return os << p->toJson();
+}
+
+}
+
+class E_nc {
+public:
+    explicit E_nc(int i) : value{i} {}
+    E_nc(const E_nc &) = delete;
+    E_nc &operator=(const E_nc &) = delete;
+    E_nc(E_nc &&) = default;
+    E_nc &operator=(E_nc &&) = default;
+
+    int value;
+};
+
+template <typename Map>
+auto bind_map_own(py::handle scope, const std::string &name) {
+    using KeyType = typename Map::key_type;
+    using holder_type = std::shared_ptr<Map>;
+    using Class_ = py::class_<Map, holder_type>;
+
+
+    Class_ cl(scope, name.c_str());
+
+    cl.def("__repr__",
+        [name](const Map &m) {
+            std::ostringstream s;
+            s << name << '{';
+            bool f = false;
+            for (auto const &kv : m) {
+                if (f) s << ", ";
+                s << '"' << kv.first << "\": " << kv.second;
+                f = true;
+            }
+            s << '}';
+            return s.str();
+        }
+    );
+
+    cl.def("__bool__",
+        [](const Map &m) -> bool { return !m.empty(); }
+    );
+
+    cl.def("__iter__",
+           [](Map &m) { return py::make_key_iterator(m.begin(), m.end()); },
+           py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
+    );
+
+    //TODO:
+//    cl.def("items",
+//           [](Map &m) { return py::make_iterator(m.begin(), m.end()); },
+//           py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
+//    );
+
+    cl.def("__getitem__",
+        [](Map &m, const KeyType &k){
+            auto it = m.find(k);
+            if (it == m.end())
+              throw py::key_error();
+           return it->second.get();
+        },
+        py::return_value_policy::reference_internal
+    );
+
+    cl.def("__contains__",
+        [](Map &m, const KeyType &k) -> bool {
+            auto it = m.find(k);
+            if (it == m.end())
+              return false;
+           return true;
+        }
+    );
+
+    cl.def("__len__", &Map::size);
+
+    return cl;
+}
+
 
 namespace Vipster::Py{
 void PWInput(py::module&);
@@ -26,12 +102,14 @@ void CPInput(py::module&);
 void ORCA(py::module&);
 void POSCAR(py::module&);
 
-void IO(py::module& m){
+void IO(py::module& m, const ConfigState& state){
     auto io = m.def_submodule("IO");
 
-    // TODO: state handling
-    m.def("readFile",[](std::string fn){
-        auto data = readFile(fn);
+    /*
+     * read a file
+     */
+    m.def("readFile",[&state](std::string fn){
+        auto data = readFile(fn, std::get<2>(state));
         if(data.data.empty()){
             return py::make_tuple(data.mol, std::move(data.param), py::none());
         }else{
@@ -42,14 +120,8 @@ void IO(py::module& m){
             return py::make_tuple(data.mol, std::move(data.param), l);
         }
     }, "filename"_a);
-    m.def("readFile",[](std::string fn, std::string fmt){
-        const auto plugins = IO::defaultPlugins();
-        auto pos = std::find_if(plugins.begin(), plugins.end(),
-            [&](const auto& plug){return plug->command == fmt;});
-        if(pos == plugins.end()){
-            throw IO::Error{"Invalid format given: "+fmt};
-        }
-        auto data = readFile(fn, *pos);
+    m.def("readFile",[](std::string fn, const IO::Plugin* plug){
+        auto data = readFile(fn, plug);
         if(data.data.empty()){
             return py::make_tuple(data.mol, std::move(data.param), py::none());
         }else{
@@ -62,123 +134,75 @@ void IO(py::module& m){
     }, "filename"_a, "format"_a);
 
     /*
-     * TODO: provide wrapper
+     * write a file
      *
-     * fall back to default-preset/param
+     * falling back to default-preset/param
      */
-    m.def("writeFile", &writeFile, "filename"_a, "format"_a, "molecule"_a,
-          "param"_a=nullptr, "config"_a=nullptr, "index"_a=-1ul);
+    m.def("writeFile", [&state](const std::string &fn, const IO::Plugin* plug, const Molecule &m,
+                       size_t idx=-1ul, const IO::BaseParam *p=nullptr, const IO::BasePreset *c=nullptr){
+        if(!p && plug->makeParam){
+            p = std::get<3>(state).at(plug).at("default").get();
+        }
+        if(!c && plug->makePreset){
+            c = std::get<4>(state).at(plug).at("default").get();
+        }
+        return writeFile(fn, plug, m, idx, p, c);
+        },
+          "filename"_a, "format"_a, "molecule"_a,
+          "index"_a=-1ul, "param"_a=nullptr, "config"_a=nullptr);
 
     // Expose plugins
     py::class_<IO::Plugin>(io, "__Plugin")
-            // TODO: this fails on temporary objects!
-            // works when wrapper is bound to a name
-        .def(py::init([](const std::string &s){
-            const auto plugins = IO::defaultPlugins();
-            auto pos = std::find_if(plugins.begin(), plugins.end(),
-                [&](const auto &plug){return plug->command == s;});
-            if(pos == plugins.end()){
-                throw IO::Error{"Invalid format given: "+s};
-            }
-            return const_cast<IO::Plugin*>(*pos);
-        }), py::return_value_policy::reference_internal)
-        .def("__repr__", [](const IO::Plugin *p){return p->command;})
+        .def("__repr__", [](const IO::Plugin *p){return "Plugins."+p->command;})
+        .def_readonly("name", &IO::Plugin::name)
+        .def_readonly("extension", &IO::Plugin::extension)
+        .def_readonly("command", &IO::Plugin::command)
+        //TODO: shall be removed on C++ side, how can it be replaced here?
+        .def_readonly("arguments", &IO::Plugin::arguments)
     ;
-    py::bind_vector<IO::Plugins>(io, "__Plugins");
 
     /*
-     * Expose parameters
+     * Expose parameters and presets
      *
      * Circumvent bind_map for inner map
      */
-    using _TPM = IO::Parameters::mapped_type;
-    auto cl = py::class_<_TPM>(m, "__StrParMap__")
-        .def("__getitem__", [](const _TPM &m, const std::string &s){
-            auto tmp = m.find(s);
-            if(tmp != m.end()){
-                return tmp->second->copy();
-            }else{
-                throw py::key_error();
-            }})
-        .def("__setitem__", [](_TPM &m, const std::string &s,
-                               const IO::BaseParam *p){
-                m.insert_or_assign(s, p->copy());
-            })
-        .def("__repr__",
-            [](_TPM &m) {
+    bind_map_own<IO::Parameters::mapped_type>(io, "__StrParMap__");
+    py::bind_map<IO::Parameters>(io, "__Parameters")
+        .def("__repr__", [](IO::Parameters& p){
             std::ostringstream s;
-            s << "__StrParMap__{";
+            s << "__Parameters{";
             bool f = false;
-            for (auto const &kv : m) {
+            for (auto const &kv:p){
                 if (f)
                     s << ", ";
-                s << kv.first << ": " << kv.second->toJson();
+                s << kv.first << ": __StrParMap__";
                 f = true;
             }
             s << '}';
             return s.str();
-        }, "Return the canonical string representation of this map.")
-    ;
-    py::bind_map<IO::Parameters>(io, "__Parameters")
-//        .def("__getitem__", [](const IO::Parameters ){})
+        })
     ;
 
-//    {
-//        auto cl = py::class_<IO::Parameters::mapped_type>(io, "__StrParMap");
-//            cl.def(py::init<>());
-//        using Map = IO::Parameters::mapped_type;
-//        using KeyType = Map::key_type;
-//        using MappedType = Map::mapped_type;
-//        using Class_ = py::class_<Map, std::unique_ptr<Map>>;
-//        using namespace py;
-//        // Register stream insertion operator (if possible)
-//        detail::map_if_insertion_operator<Map, Class_>(cl, "__StrParMap");
-//        cl.def("__bool__",
-//            [](const Map &m) -> bool { return !m.empty(); },
-//            "Check whether the map is nonempty"
-//        );
-//        cl.def("__iter__",
-//               [](Map &m) { return make_key_iterator(m.begin(), m.end()); },
-//               keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
-//        );
-////        cl.def("items",
-////               [](Map &m) { return make_iterator(m.begin(), m.end()); },
-////               keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
-////        );
-//        cl.def("__getitem__",
-//            [](Map &m, const KeyType &k) -> MappedType & {
-//                auto it = m.find(k);
-//                if (it == m.end())
-//                  throw key_error();
-//               return it->second;
-//            },
-//            return_value_policy::reference_internal // ref + keepalive
-//        );
-//        cl.def("__contains__",
-//            [](Map &m, const KeyType &k) -> bool {
-//                auto it = m.find(k);
-//                if (it == m.end())
-//                  return false;
-//               return true;
-//            }
-//        );
-//        // Assignment provided only if the type is copyable
-//        detail::map_assignment<Map, Class_>(cl);
-//        cl.def("__delitem__",
-//               [](Map &m, const KeyType &k) {
-//                   auto it = m.find(k);
-//                   if (it == m.end())
-//                       throw key_error();
-//                   m.erase(it);
-//               }
-//        );
-//        cl.def("__len__", &Map::size);
-//    }
+    bind_map_own<IO::Presets::mapped_type>(io, "__StrPresMap__");
+    py::bind_map<IO::Presets>(io, "__IOPresets")
+        .def("__repr__", [](IO::Presets& p){
+            std::ostringstream s;
+            s << "__Parameters{";
+            bool f = false;
+            for (auto const &kv:p){
+                if (f)
+                    s << ", ";
+                s << kv.first << ": __StrPresMap__";
+                f = true;
+            }
+            s << '}';
+            return s.str();
+        })
+    ;
 
-
-
-    py::bind_map<IO::Presets>(io, "__IOPresets");
-
+    /*
+     * Initialize plugins' parameters and presets
+     */
     py::class_<IO::BaseParam>(io, "__BaseParam")
         .def("__repr__", [](const IO::BaseParam &p){
             std::ostringstream s;
@@ -191,10 +215,6 @@ void IO(py::module& m){
             s << p.getFmt()->command << "-IOPreset" << p.toJson();
             return s.str();
         });
-
-    /*
-     * Initialize plugins
-     */
     PWInput(io);
     LmpInput(io);
     XYZ(io);

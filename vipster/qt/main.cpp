@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, param.get(), preset.get());
+        writeFile(conv_data.output[1], fmt_out, mol, -1ul, param.get(), preset.get());
         throw CLI::Success();
     });
 
