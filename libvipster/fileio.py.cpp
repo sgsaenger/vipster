@@ -30,6 +30,15 @@ public:
     int value;
 };
 
+/*
+ * Custom map-binding routine for map containing unique_ptr
+ *
+ * Doesn't fit assumptions made by pybind11,
+ * probably because unique_ptr is default holder_type and clashes
+ *
+ * Borrowed and modified from bind_map @ pybind11/stl_bind.h
+ * and make_iterator @ pybind11.h
+ */
 template <typename Map>
 auto bind_map_own(py::handle scope, const std::string &name) {
     using KeyType = typename Map::key_type;
@@ -63,11 +72,32 @@ auto bind_map_own(py::handle scope, const std::string &name) {
            py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
     );
 
-    //TODO:
-//    cl.def("items",
-//           [](Map &m) { return py::make_iterator(m.begin(), m.end()); },
-//           py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
-//    );
+    cl.def("items",
+           [](Map &m) {
+               using Iterator = decltype(std::declval<Map>().begin());
+               using Sentinel = decltype(std::declval<Map>().end());
+               constexpr auto Policy = py::return_value_policy::reference_internal;
+               using state = py::detail::iterator_state<Iterator, Sentinel,
+                                false, Policy>;
+               if(!py::detail::get_type_info(typeid(state), false)){
+                   py::class_<state>(py::handle(), "iterator", pybind11::module_local())
+                       .def("__iter__", [](state &s) -> state& { return s; })
+                       .def("__next__", [](state &s) -> typename Map::iterator& {
+                           if (!s.first_or_done)
+                               ++s.it;
+                           else
+                               s.first_or_done = false;
+                           if (s.it == s.end) {
+                               s.first_or_done = true;
+                               throw py::stop_iteration();
+                           }
+                           return s.it;
+                       }, Policy);
+               }
+               return py::cast(state{m.begin(), m.end(), true});
+           },
+           py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
+    );
 
     cl.def("__getitem__",
         [](Map &m, const KeyType &k){
