@@ -1,6 +1,7 @@
 #include "../mainwindow.h"
 #include "cellmodwidget.h"
 #include "ui_cellmodwidget.h"
+#include <QMessageBox>
 
 using namespace Vipster;
 
@@ -90,6 +91,12 @@ void CellModWidget::on_reshapeButton_clicked()
         for(int j=0; j<3; ++j){
             newMat[i][j] = table->item(i,j)->text().toFloat();
         }
+    }
+    try{
+        Mat_inv(newMat);
+    }catch(Error& e){
+        QMessageBox::critical(this, "Could not reshape cell", e.what());
+        return;
     }
     auto cdm = static_cast<float>(ui->cdmSel->value());
     auto fmt = static_cast<CdmFmt>(ui->cdmFmtSel->currentIndex());

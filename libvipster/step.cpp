@@ -3,13 +3,13 @@
 
 using namespace Vipster;
 
-Step::Step(AtomFmt at_fmt, const std::string &comment)
+Step::Step(AtomFmt fmt, const std::string &c)
     : StepMutable{std::make_shared<PeriodicTable>(),
-                  at_fmt,
+                  fmt,
                   std::make_shared<AtomList>(),
                   std::make_shared<BondList>(),
                   std::make_shared<CellData>(),
-                  std::make_shared<std::string>(comment)}
+                  std::make_shared<std::string>(c)}
 {}
 
 Step::Step(const Step& s)
@@ -105,25 +105,25 @@ void Step::newAtoms(size_t i){
     al.prop_changed = true;
 }
 
-void Step::newAtoms(const AtomList& atoms){
-    size_t nat = getNat() + atoms.elements.size();
+void Step::newAtoms(const AtomList& at){
+    size_t nat = getNat() + at.elements.size();
     // Coordinates
     AtomList& al = *this->atoms;
     al.coordinates[static_cast<size_t>(at_fmt)].reserve(nat);
     al.coordinates[static_cast<size_t>(at_fmt)].insert(
                 al.coordinates[static_cast<size_t>(at_fmt)].end(),
-                atoms.coordinates[static_cast<size_t>(at_fmt)].begin(),
-                atoms.coordinates[static_cast<size_t>(at_fmt)].end());
+                at.coordinates[static_cast<size_t>(at_fmt)].begin(),
+                at.coordinates[static_cast<size_t>(at_fmt)].end());
     al.coord_changed[static_cast<size_t>(at_fmt)] = true;
     // Type
     al.elements.reserve(nat);
-    for(const auto &el: atoms.elements){
+    for(const auto &el: at.elements){
         al.elements.push_back(&*pte->find_or_fallback(el->first));
     }
     al.element_changed = true;
     // Properties
     al.properties.reserve(nat);
-    al.properties.insert(al.properties.end(), atoms.properties.begin(), atoms.properties.end());
+    al.properties.insert(al.properties.end(), at.properties.begin(), at.properties.end());
     al.prop_changed = true;
 }
 
@@ -349,11 +349,11 @@ void Step::modMultiply(size_t x, size_t y, size_t z){
     }
     auto handle = asFmt(AtomFmt::Crystal);
     auto cell = this->getCellVec();
-    auto multiply = [&](uint8_t dir, uint8_t mult){
+    auto multiply = [&](uint8_t dir, size_t mult){
         auto atoms = handle.getAtoms();
         auto oldNat = handle.getNat();
         cell[dir] *= mult;
-        for(uint8_t i=1; i<mult; ++i){
+        for(size_t i=1; i<mult; ++i){
             handle.newAtoms(atoms);
             auto refIt = handle.begin();
             for(auto it=refIt+i*oldNat; it!=refIt+(i+1)*oldNat; ++it){
@@ -410,26 +410,45 @@ void Step::modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
     size_t fac;
     if(newMat == oldMat){
         // only changing cdm
-        fac = std::ceil(newCdm/oldCdm);
+        fac = static_cast<size_t>(std::ceil(newCdm/oldCdm));
+        modMultiply(fac, fac, fac);
     }else{
         // change vectors or both
-        auto getExtent = [](const Mat& m){
-            return Vec{m[0][0] + m[1][0] + m[2][0],
-                       m[0][1] + m[1][1] + m[2][1],
-                       m[0][2] + m[1][2] + m[2][2]
-                       };
+        auto getMin = [](const Mat& m){
+            return Vec{std::min({m[0][0], m[1][0], m[2][0]}),
+                       std::min({m[0][1], m[1][1], m[2][1]}),
+                       std::min({m[0][2], m[1][2], m[2][2]})};
         };
-        auto compExtLt = [](const Vec& v1, const Vec& v2){
-            return (v1[0] < v2[0]) || (v1[1] < v2[1]) || (v1[2] < v2[2]);
+        auto oldMin = getMin(oldMat);
+        auto newMin = getMin(newMat);
+        auto getExtent = [](const Mat& m){
+            return Vec{std::abs(m[0][0]) + std::abs(m[1][0]) + std::abs(m[2][0]),
+                       std::abs(m[0][1]) + std::abs(m[1][1]) + std::abs(m[2][1]),
+                       std::abs(m[0][2]) + std::abs(m[1][2]) + std::abs(m[2][2])
+                       };
         };
         Vec newExtent = getExtent(newMat*newCdm);
         Vec oldExtent = getExtent(oldMat*oldCdm);
-        fac = 1;
-        while(compExtLt(oldExtent*fac, newExtent)){
-            fac += 1;
+        size_t fac[3] = {static_cast<size_t>(std::ceil(newExtent[0]/oldExtent[0])),
+                         static_cast<size_t>(std::ceil(newExtent[1]/oldExtent[1])),
+                         static_cast<size_t>(std::ceil(newExtent[2]/oldExtent[2]))};
+        bool off[3]{};
+        for(size_t i=0; i<3; ++i){
+            if(newMin[i]<oldMin[i]){
+                fac[i] += 1;
+                off[i] = true;
+            }
+        }
+        modMultiply(fac[0], fac[1], fac[2]);
+        if(off[0] || off[1] || off[2]){
+            Vec offset{
+                off[0] ? -1.f/fac[0] : 0.f,
+                off[1] ? -1.f/fac[1] : 0.f,
+                off[2] ? -1.f/fac[2] : 0.f,
+            };
+            modShift(offset);
         }
     }
-    modMultiply(fac, fac, fac);
     setCellVec(newMat);
     setCellDim(newCdm, cdmFmt);
     modCrop();
