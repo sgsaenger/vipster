@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <vector>
-#include "io.h"
+#include "fileio.h"
 
 namespace Ui {
 class SaveFmtDialog;
@@ -14,10 +14,10 @@ class SaveFmtDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SaveFmtDialog(QWidget *parent = nullptr);
+    explicit SaveFmtDialog(const Vipster::IO::Plugins& plugins, QWidget *parent = nullptr);
     ~SaveFmtDialog();
-    Vipster::IOFmt fmt{};
-    Vipster::IO::BaseConfig* getConfig();
+    const Vipster::IO::Plugin* plugin{};
+    Vipster::IO::BasePreset* getPreset();
     Vipster::IO::BaseParam* getParam();
 
 private slots:
@@ -25,8 +25,8 @@ private slots:
 
 private:
     void enableParamWidget(bool);
-    void enableConfWidget(bool);
-    std::vector<Vipster::IOFmt> outFormats;
+    void enablePresetWidget(bool);
+    std::vector<const Vipster::IO::Plugin*> outFormats;
     Ui::SaveFmtDialog *ui;
 };
 

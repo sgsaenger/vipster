@@ -3,7 +3,7 @@
 
 namespace Vipster::Py{
 void Data(py::module& m){
-   auto b = py::class_<BaseData>(m, "BaseData")
+   auto b = py::class_<BaseData>(m, "__BaseData")
        .def_readwrite("name", &BaseData::name)
    ;
    auto f2 = py::class_<DataGrid2D_f, BaseData>(m, "DataGrid2D_f")

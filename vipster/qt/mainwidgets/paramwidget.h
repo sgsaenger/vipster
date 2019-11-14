@@ -3,7 +3,7 @@
 
 #include "../basewidget.h"
 #include "../paramwidgets.h"
-#include "io.h"
+#include "fileio.h"
 
 namespace Ui {
 class ParamWidget;
@@ -16,10 +16,11 @@ class ParamWidget : public BaseWidget
 public:
     explicit ParamWidget(QWidget *parent = nullptr);
     ~ParamWidget() override;
-    std::vector<std::pair< Vipster::IOFmt, std::unique_ptr<Vipster::IO::BaseParam>>> params;
-    void registerParam(std::unique_ptr<Vipster::IO::BaseParam>&& data);
+    std::vector<std::pair<std::string, std::unique_ptr<Vipster::IO::BaseParam>>> params;
+    void registerParam(const std::string& name,
+                       std::unique_ptr<Vipster::IO::BaseParam>&& data);
     void clearParams();
-    Vipster::IOFmt curFmt;
+    const Vipster::IO::Plugin *curFmt{nullptr};
     Vipster::IO::BaseParam *curParam{nullptr};
 
 private slots:
@@ -29,7 +30,7 @@ private slots:
 
 private:
     Ui::ParamWidget *ui;
-    std::map<Vipster::IOFmt, ParamBase*> formats;
+    std::map<const Vipster::IO::Plugin*, ParamBase*> formats;
 };
 
 #endif // PARAMWIDGET_H

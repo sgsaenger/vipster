@@ -27,13 +27,13 @@ void ParamWidget::clearParams()
     ui->paramSel->clear();
 }
 
-void ParamWidget::registerParam(std::unique_ptr<Vipster::IO::BaseParam>&& data)
+void ParamWidget::registerParam(const std::string &name,
+                                std::unique_ptr<Vipster::IO::BaseParam>&& data)
 {
-    auto fmt = data->getFmt();
-    params.emplace_back(fmt, std::move(data));
+    params.emplace_back(name, std::move(data));
     ui->paramSel->addItem(QString::fromStdString(
-                          "(" +  IOPlugins.at(fmt)->command +
-                           ") " + params.back().second->name
+                          "(" +  params.back().second->getFmt()->command +
+                           ") " + params.back().first
                          ));
     ui->paramSel->setCurrentIndex(ui->paramSel->count()-1);
 }
@@ -49,7 +49,7 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
         throw Error("Invalid parameter set selected");
     }
     const auto& pair = params.at(static_cast<size_t>(index));
-    curFmt = pair.first;
+    curFmt = pair.second->getFmt();
     auto pos = formats.find(curFmt);
     if(pos == formats.end()){
         throw Error("Invalid parameter format");

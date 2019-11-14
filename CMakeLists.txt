@@ -26,6 +26,11 @@ file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "libvipster/*.h" "libvipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 list(REMOVE_ITEM PY_SOURCES "libvipster/main.py.cpp")
+if(WEB)
+    # not needed here, so we can circumvent missing <filesystem>
+    file(GLOB CONF_SOURCES "libvipster/configfile.*")
+    list(REMOVE_ITEM LIB_SOURCES ${CONF_SOURCES})
+endif()
 add_library(libvipster ${LIB_SOURCES})
 configure_file("libvipster/version.h.in" "version.h")
 set_target_properties(libvipster
@@ -58,7 +63,7 @@ endif()
 
 # find pybind11 if needed
 if(PYBIND OR PYSHELL)
-    find_package(pybind11 CONFIG)
+    find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
     endif()

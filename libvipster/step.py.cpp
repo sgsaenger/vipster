@@ -2,7 +2,6 @@
 #include "step.h"
 
 // TODO: think about const-correctness!
-// can wait until "view"-interface to running libvipster instance is implemented
 
 namespace Vipster::Py{
 template <typename S>
@@ -59,8 +58,15 @@ py::class_<S> bind_step(py::handle &m, std::string name){
                 return s.getBonds();
             })
         .def("setBonds", &S::setBonds)
+        .def("getBondMode", &S::getBondMode)
+        .def("setBondMode", &S::setBondMode, "mode"_a)
     // SELECTION
         .def("select", [](S& s, std::string sel)->Step::selection{s.evaluateCache(); return s.select(sel);}, "sel"_a)
+    // Modification functions
+        .def("modScale", &S::modScale, "fmt"_a)
+        .def("modShift", &S::modShift, "shift"_a, "factor"_a=1.0f)
+        .def("modRotate", &S::modRotate, "angle"_a, "axis"_a, "shift"_a=Vec{})
+        .def("modMirror", &S::modMirror, "axis1"_a, "axis1"_a, "shift"_a=Vec{})
     ;
     return std::move(cl);
 }
@@ -83,11 +89,15 @@ void Step(py::module& m){
     // CELL
         .def("setCellDim", &Vipster::Step::setCellDim, "cdm"_a, "fmt"_a, "scale"_a=false)
         .def("setCellVec", &Vipster::Step::setCellVec, "vec"_a, "scale"_a=false)
-    // TODO: Modification functions
+    // Modification functions
+        .def("modWrap", &Step::modWrap)
+        .def("modCrop", &Step::modCrop)
+        .def("modMultiply", &Step::modMultiply, "x"_a, "y"_a, "z"_a)
+        .def("modAlign", &Step::modAlign, "step_dir"_a, "target_dir"_a)
+        .def("modReshape", &Step::modReshape, "newMat"_a, "newCdm"_a, "cdmFmt"_a)
     ;
 
     bind_step<Vipster::Step::selection>(s, "Selection");
-    // TODO: Modification functions
     // TODO: selection specific functions?
 
 }

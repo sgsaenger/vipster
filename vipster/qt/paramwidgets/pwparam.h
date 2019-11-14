@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 #include <QAction>
-#include "io/pwinput/param.h"
+#include "io/pwinput/plugin.h"
 #include "../parambase.h"
 
 namespace Ui {

@@ -3,7 +3,7 @@
 
 #include "mainwidgets/molwidget.h"
 #include "mainwidgets/paramwidget.h"
-#include "mainwidgets/configwidget.h"
+#include "mainwidgets/presetwidget.h"
 #include "mainwidgets/periodictablewidget.h"
 #include "mainwidgets/settingswidget.h"
 #include "mainwidgets/datawidget.h"
@@ -13,7 +13,7 @@ inline std::vector<std::pair<BaseWidget*, QString>> makeMainWidgets(QWidget* par
     return {
         {new MolWidget(parent), "Molecule"},
         {new ParamWidget(parent), "Parameter"},
-        {new ConfigWidget(parent), "Config"},
+        {new PresetWidget(parent), "IO-Presets"},
         {new SettingsWidget(parent), "Settings"},
         {new PeriodicTableWidget(parent), "Periodic Table (Molecule)"},
         {new PeriodicTableWidget(parent, true), "Periodic Table (Global)"},

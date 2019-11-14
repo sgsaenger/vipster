@@ -2,11 +2,13 @@
 
 #include <sstream>
 #include "molecule.h"
-#include "io.h"
+#include "fileio.h"
+#include "configfile.h"
 
 using namespace Vipster;
 
 namespace Vipster::Py{
+static ConfigState state;
 void Vec(py::module&);
 void Atom(py::module&);
 void Bond(py::module&);
@@ -14,8 +16,9 @@ void Table(py::module&);
 void Step(py::module&);
 void KPoints(py::module&);
 void Molecule(py::module&);
-void IO(py::module&);
 void Data(py::module&);
+void IO(py::module&, const ConfigState&, bool);
+void config(py::module&, const ConfigState&);
 }
 
 PYBIND11_MODULE(_vipster, m) {
@@ -39,6 +42,7 @@ PYBIND11_MODULE(_vipster, m) {
      * Initialize library
      */
 
+
     Py::Vec(m);
     Py::Atom(m);
     Py::Bond(m);
@@ -46,6 +50,9 @@ PYBIND11_MODULE(_vipster, m) {
     Py::Step(m);
     Py::KPoints(m);
     Py::Molecule(m);
-    Py::IO(m);
     Py::Data(m);
+    // I/O
+    Py::state = readConfig();
+    Py::IO(m, Py::state, true);
+    Py::config(m, Py::state);
 }

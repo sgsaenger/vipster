@@ -53,9 +53,9 @@
       <string>Load &amp;Parameter set</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuLoad_IO_Config">
+    <widget class="QMenu" name="menuLoad_IO_Preset">
      <property name="title">
-      <string>Load &amp;IO-Config</string>
+      <string>Load &amp;IO Preset</string>
      </property>
     </widget>
     <addaction name="actionNew_Molecule"/>
@@ -66,8 +66,8 @@
     <addaction name="menuLoad_Parameter_set"/>
     <addaction name="actionSave_Parameter_set"/>
     <addaction name="separator"/>
-    <addaction name="menuLoad_IO_Config"/>
-    <addaction name="actionSave_IO_Config"/>
+    <addaction name="menuLoad_IO_Preset"/>
+    <addaction name="actionSave_IO_Preset"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshot"/>
     <addaction name="separator"/>
@@ -221,9 +221,9 @@
     <string>About &amp;Qt</string>
    </property>
   </action>
-  <action name="actionSave_IO_Config">
+  <action name="actionSave_IO_Preset">
    <property name="text">
-    <string>Save I&amp;O-Config</string>
+    <string>Save I&amp;O Preset</string>
    </property>
   </action>
   <action name="actionParamDummy">
@@ -346,10 +346,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionSave_IO_Config</sender>
+   <sender>actionSave_IO_Preset</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>saveConfig()</slot>
+   <slot>savePreset()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -435,7 +435,7 @@
   <slot>stepBut(QAbstractButton*)</slot>
   <slot>loadMol()</slot>
   <slot>saveMol()</slot>
-  <slot>saveConfig()</slot>
+  <slot>savePreset()</slot>
   <slot>saveParam()</slot>
   <slot>saveScreenshot()</slot>
   <slot>newMol(QAction*)</slot>

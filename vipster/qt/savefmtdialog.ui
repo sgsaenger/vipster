@@ -63,7 +63,7 @@
       <widget class="ParamWidget" name="paramWidget" native="true"/>
      </item>
      <item>
-      <widget class="ConfigWidget" name="configWidget" native="true"/>
+      <widget class="PresetWidget" name="presetWidget" native="true"/>
      </item>
     </layout>
    </item>
@@ -87,9 +87,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ConfigWidget</class>
+   <class>PresetWidget</class>
    <extends>QWidget</extends>
-   <header>mainwidgets/configwidget.h</header>
+   <header>mainwidgets/presetwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
