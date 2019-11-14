@@ -19,17 +19,6 @@ std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BasePreset> &p)
 
 }
 
-class E_nc {
-public:
-    explicit E_nc(int i) : value{i} {}
-    E_nc(const E_nc &) = delete;
-    E_nc &operator=(const E_nc &) = delete;
-    E_nc(E_nc &&) = default;
-    E_nc &operator=(E_nc &&) = default;
-
-    int value;
-};
-
 /*
  * Custom map-binding routine for map containing unique_ptr
  *
@@ -132,7 +121,7 @@ void CPInput(py::module&);
 void ORCA(py::module&);
 void POSCAR(py::module&);
 
-void IO(py::module& m, const ConfigState& state){
+void IO(py::module& m, const ConfigState& state, bool enableRead){
     auto io = m.def_submodule("IO");
 
     /*

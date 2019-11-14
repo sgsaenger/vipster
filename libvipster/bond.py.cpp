@@ -12,5 +12,10 @@ void Bond(py::module &m){
         .def_readwrite("diff", &Bond::diff)
         .def_property_readonly("type", [](const Vipster::Bond &b){return b.type->first;})
     ;
+
+    py::enum_<BondMode>(m, "Mode")
+        .value("Manual", BondMode::Manual)
+        .value("Automatic", BondMode::Automatic)
+    ;
 }
 }
