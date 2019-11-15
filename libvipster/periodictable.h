@@ -2,7 +2,7 @@
 #define PSE_H
 
 #include "global.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 #include <string>
 #include <map>

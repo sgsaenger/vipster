@@ -2,9 +2,9 @@
 #define IOPLUGIN_H
 
 #include "../molecule.h"
+#include "../settings.h"
 #include "parameters.h"
 #include "presets.h"
-#include "settings.h"
 #include "data.h"
 
 #include <string>

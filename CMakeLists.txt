@@ -40,7 +40,9 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE AND NOT WEB)
+if(UNIX)
+    target_link_libraries(libvipster dl)
+    if(NOT APPLE AND NOT WEB)
     install(TARGETS libvipster
         LIBRARY
         DESTINATION "lib"
@@ -50,6 +52,7 @@ if(UNIX AND NOT APPLE AND NOT WEB)
         FILES_MATCHING PATTERN "*.h"
         )
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+    endif()
 endif()
 
 if(TESTS)

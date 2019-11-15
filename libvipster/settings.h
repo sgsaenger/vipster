@@ -1,7 +1,7 @@
 #ifndef Settings_H
 #define Settings_H
 
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include "global.h"
 #include "bond.h"
 

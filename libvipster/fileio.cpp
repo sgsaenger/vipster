@@ -33,7 +33,7 @@ IO::Parameters Vipster::IO::defaultParams(const Plugins &p)
 {
     IO::Parameters tmp;
     for(const auto& plug: p){
-        if(plug->arguments & IO::Plugin::Args::Param){
+        if(plug->makeParam){
             tmp[plug]["default"] = plug->makeParam();
         }
     }
@@ -44,7 +44,7 @@ IO::Presets Vipster::IO::defaultPresets(const Plugins &p)
 {
     IO::Presets tmp;
     for(const auto& plug: p){
-        if(plug->arguments & IO::Plugin::Args::Preset){
+        if(plug->makePreset){
             tmp[plug]["default"] = plug->makePreset();
         }
     }
@@ -97,7 +97,7 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
         throw IO::Error("Could not open "+fn);
     }
     // try to parse
-    if(plug->parser == nullptr){
+    if(!plug->parser){
         throw IO::Error("Format is not readable");
     }
     auto tmp = plug->parser(fn, file);

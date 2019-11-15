@@ -1,7 +1,7 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 #include <string>
 #include <map>

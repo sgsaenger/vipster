@@ -1,13 +1,49 @@
 #include "configfile.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 #include <fstream>
 #include <tuple>
 #include <filesystem>
 
+#include <cstdlib>
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#include <dlfcn.h>
+#endif
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#endif
+#ifdef __linux__
+#include <unistd.h>
+#include <libgen.h>
+#include <dlfcn.h>
+#endif
+
 using json = nlohmann::json;
 using namespace Vipster;
 namespace fs = std::filesystem;
+
+const IO::Plugin* openPlugin(fs::path name)
+{
+#ifdef _WIN32
+    try{
+        auto file = LoadLibrary(TEXT(name.c_str()));
+        if(file == NULL) return nullptr;
+        return static_cast<const IO::Plugin*>(GetProcAddress(file, "plugin"));
+    }catch(...){
+        return nullptr;
+    }
+#else
+    try{
+        auto *file = dlopen(name.c_str(), RTLD_LAZY);
+        if(!file) return nullptr;
+        return static_cast<const IO::Plugin*>(dlsym(file, "plugin"));
+    }catch(...){
+        return nullptr;
+    }
+#endif
+}
 
 fs::path getConfigDir(){
 #if defined(__linux__) || defined(__FreeBSD__)
@@ -41,6 +77,17 @@ ConfigState Vipster::readConfig()
         std::cout << "Config directory at \"" << dir << "\" does not exist" << std::endl;
         return retVal;
     }
+    // User-created plugins
+    auto pluginDir = dir/"plugins";
+    if(fs::exists(pluginDir)){
+        for(const auto& file: fs::directory_iterator(pluginDir)){
+            auto* plug = openPlugin(file);
+            if(plug){
+                std::cout << "Loading plugin" << file << std::endl;
+                plugins.push_back(plug);
+            }
+        }
+    }
     // Periodic table
     fs::path pte_path = dir/"periodictable.json";
     std::ifstream pte_file{pte_path};
@@ -73,7 +120,7 @@ ConfigState Vipster::readConfig()
             json j;
             param_file >> j;
             for(const auto& plugin: plugins){
-                if(!(plugin->arguments & IO::Plugin::Param)) continue;
+                if(!plugin->makeParam) continue;
                 auto pos = j.find(plugin->command);
                 if(pos != j.end()){
                     auto& tmp = params[plugin];
@@ -95,7 +142,7 @@ ConfigState Vipster::readConfig()
             json j;
             presets_file >> j;
             for(const auto& plugin: plugins){
-                if(!(plugin->arguments & IO::Plugin::Preset)) continue;
+                if(!plugin->makePreset) continue;
                 auto pos = j.find(plugin->command);
                 if(pos != j.end()){
                     auto& tmp = presets[plugin];

@@ -88,8 +88,8 @@ int main(int argc, char *argv[])
                           std::cout << "Available formats (r: parsing, w: writing)\n\n";
                           for(const auto& plug: plugins){
                               std::cout << plug->command << "\t("
-                                        << ((plug->parser!=nullptr)?'r':' ')
-                                        << ((plug->writer!=nullptr)?'w':' ')
+                                        << (plug->parser?'r':' ')
+                                        << (plug->writer?'w':' ')
                                         << ")\t" << plug->name << '\n';
                           }
                           throw CLI::Success();
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
                               }
                           };
                           for(const auto& plug: plugins){
-                              if(plug->arguments&IO::Plugin::Param){
+                              if(plug->makeParam){
                                   std::cout << plug->command << ": "
                                             << plug->name << "\n";
                                   printFmt(plug);
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
                               }
                           };
                           for(const auto& plug: plugins){
-                              if(plug->arguments & IO::Plugin::Preset){
+                              if(plug->makePreset){
                                   std::cout << plug->command << ": "
                                             << plug->name << "\n";
                                   printFmt(plug);
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
         const auto IOCmdIn = [&](){
             std::map<std::string, const IO::Plugin*> fmts_in;
             for(const auto& plug: plugins){
-                if(plug->parser !=nullptr){
+                if(plug->parser){
                     fmts_in[plug->command] = plug;
                 }
             }
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
         const auto IOCmdOut = [&](){
             std::map<std::string, const IO::Plugin*> fmts_out;
             for(const auto& plug: plugins){
-                if(plug->writer!=nullptr){
+                if(plug->writer){
                     fmts_out[plug->command] = plug;
                 }
             }
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
         // read input
         auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
         std::unique_ptr<IO::BasePreset> preset{nullptr};
-        if(fmt_out->arguments & IO::Plugin::Args::Param){
+        if(fmt_out->makeParam){
             std::string par_name;
             if(!conv_data.param.empty()){
                 par_name = conv_data.param;
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
                 param = pos->second->copy();
             }
         }
-        if(fmt_out->arguments & IO::Plugin::Args::Preset){
+        if(fmt_out->makePreset){
             std::string pres_name;
             if(!conv_data.preset.empty()){
                 pres_name = conv_data.preset;
