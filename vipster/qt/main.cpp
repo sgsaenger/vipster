@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include "fileio.h"
 #include "configfile.h"
-#include "CLI11.hpp"
+#include "CLI/CLI.hpp"
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>

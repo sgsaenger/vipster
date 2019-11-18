@@ -8,7 +8,7 @@ Vipster has four main components:
 
 ## Precompiled releases
 
-Binary releases of *QtVipster* are provided for Windows, Linux and macOS on [github](https://github.com/sgsaenger/vipster/releases).
+Binary releases of *QtVipster* are provided for Windows, Linux and (infrequently) macOS on [github](https://github.com/sgsaenger/vipster/releases).
 An exemplary implementation of *WebVipster* can be found [here](https://sgsaenger.github.io/vipster/emscripten).
 An easy way to install *PyVipster* is via pip and PyPi: `pip install vipster`
 
@@ -29,16 +29,19 @@ chmod +x Vipster-Linux-x86_64.AppImage
 ./Vipster-Linux-x86_64.AppImage
 ```
 
-### QtVipster on macOS
-
-The macOS release is distributed as a regular .dmg file that you can install as usual.
-
 ## Build from source
 
-In order to compile Vipster, you need a working [cmake](https://cmake.org) installation.
+In order to compile Vipster, you need a working [cmake (>= 3.9)](https://cmake.org) installation.
 Your C++ compiler should support C++17.
-Vipster is tested against GCC and Clang.
-So far, MSVC is not supported, please use MinGW if you are on Windows.
+Vipster is tested against GCC (>=8) and Clang (>=4).
+So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see [MSYS2](https://www.msys2.org)).
+
+### Dependencies
+
+Besides the toolchain and Qt for the desktop clients, vipster uses a few header-only libraries.
+Please see `external/README.md` for information about which target needs which library in which version.
+Some dependencies are supplied as git submodules.
+If they can or shall not be provided by the operating system, they can be provided in-tree via `git submodule update --init`.
 
 ### Qt-Frontend
 
