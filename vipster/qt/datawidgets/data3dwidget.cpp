@@ -18,7 +18,7 @@ Data3DWidget::~Data3DWidget()
 }
 
 Data3DWidget::IsoSurf::IsoSurf(const GUI::GlobalData& glob, std::vector<Face>&& faces,
-                Vec off, Mat cell, Texture texture, bool plusmin, float isoval)
+                Vec off, Mat cell, Texture texture, bool plusmin, double isoval)
     : GUI::MeshData{glob, std::move(faces), off, cell, texture},
       plusmin{plusmin},
       isoval{isoval}
@@ -166,9 +166,9 @@ GUI::MeshData::Texture mkSliceTex(const DataGrid3D_f& dat, size_t dir, size_t of
             for(auto x=xl; x < xh; ++x){
                 const auto& val = dat(x,y,z);
                 auto tmp = (val-min)*factor;
-                texture.data.push_back({static_cast<uint8_t>(std::round(2.55f*tmp)),
-                                        static_cast<uint8_t>(std::round(2.55f*(100-abs(2*tmp-100)))),
-                                        static_cast<uint8_t>(std::round(2.55f*(100-tmp))),
+                texture.data.push_back({static_cast<uint8_t>(std::round(2.55*tmp)),
+                                        static_cast<uint8_t>(std::round(2.55*(100-abs(2*tmp-100)))),
+                                        static_cast<uint8_t>(std::round(2.55*(100-tmp))),
                                         128});
             }
         }
@@ -235,14 +235,14 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
 }
 
 static constexpr Vec vert_off[8]={
-    {{0.f, 0.f, 0.f}},
-    {{0.f, 0.f, 1.f}},
-    {{0.f, 1.f, 0.f}},
-    {{0.f, 1.f, 1.f}},
-    {{1.f, 0.f, 0.f}},
-    {{1.f, 0.f, 1.f}},
-    {{1.f, 1.f, 0.f}},
-    {{1.f, 1.f, 1.f}},
+    {{0., 0., 0.}},
+    {{0., 0., 1.}},
+    {{0., 1., 0.}},
+    {{0., 1., 1.}},
+    {{1., 0., 0.}},
+    {{1., 0., 1.}},
+    {{1., 1., 0.}},
+    {{1., 1., 1.}},
 };
 
 static constexpr int nvert_lut[256]={
@@ -614,7 +614,7 @@ DataGrid3D_v makeGradient(const DataGrid3D_f& dat)
     return grad;
 }
 
-std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float isoval)
+std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, double isoval)
 {
     std::vector<GUI::MeshData::Face> faces;
     auto grad = makeGradient(dat);
@@ -668,10 +668,12 @@ std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float is
 
                 for(int l=0; l<nvert_lut[vert_sum]; ++l){
                     for(const auto& vert: tri_lut[vert_sum][l]){
-                        faces.push_back({Vec{(i + tmppos[vert][0])/x,
-                                             (j + tmppos[vert][1])/y,
-                                             (k + tmppos[vert][2])/z},
-                                         normdir * tmpnorm[vert],
+                        faces.push_back({{static_cast<float>(i + tmppos[vert][0])/x,
+                                          static_cast<float>(j + tmppos[vert][1])/y,
+                                          static_cast<float>(k + tmppos[vert][2])/z},
+                                         {normdir * static_cast<float>(tmpnorm[vert][0]),
+                                          normdir * static_cast<float>(tmpnorm[vert][1]),
+                                          normdir * static_cast<float>(tmpnorm[vert][2])},
                                          {color_u,0}});
                     }
                 }
@@ -681,11 +683,11 @@ std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, float is
     return faces;
 }
 
-std::vector<GUI::MeshData::Face> Data3DWidget::mkSurf(float isoval, bool pm)
+std::vector<GUI::MeshData::Face> Data3DWidget::mkSurf(double isoval, bool pm)
 {
     std::vector<GUI::MeshData::Face> retval;
-    if(isoval > static_cast<float>(validator.top()) ||
-       isoval < static_cast<float>(validator.bottom())){
+    if(isoval > validator.top() ||
+       isoval < validator.bottom()){
         retval = {};
     }else{
         retval = marchingCubes(*curData, isoval);
@@ -713,7 +715,7 @@ void Data3DWidget::on_surfSlider_valueChanged(int val)
                  ui->surfSlider->maximum()) + validator.bottom();
     ui->surfVal->setText(QString::number(_val));
     if(curSurf){
-        curSurf->isoval = static_cast<float>(_val);
+        curSurf->isoval = _val;
         curSurf->update(mkSurf(curSurf->isoval, curSurf->plusmin));
         triggerUpdate(GUI::Change::extra);
     }
@@ -722,8 +724,8 @@ void Data3DWidget::on_surfSlider_valueChanged(int val)
 void Data3DWidget::on_surfVal_editingFinished()
 {
     QSignalBlocker block{ui->surfSlider};
-    auto val = ui->surfVal->text().toFloat();
-    auto _val = (static_cast<double>(val) - validator.bottom()) *
+    auto val = ui->surfVal->text().toDouble();
+    auto _val = (val - validator.bottom()) *
                 ui->surfSlider->maximum() /
                 (validator.top()-validator.bottom());
     ui->surfSlider->setValue(static_cast<int>(_val));
@@ -748,7 +750,7 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
         }
         triggerUpdate(GUI::Change::extra);
     }else if(checked){
-        auto isoval = ui->surfVal->text().toFloat();
+        auto isoval = ui->surfVal->text().toDouble();
         auto pm = static_cast<bool>(ui->surfToggle->checkState());
         curSurf = std::make_shared<IsoSurf>(
                     master->globals,

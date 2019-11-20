@@ -46,7 +46,6 @@ ViewPort::ViewPort(const ViewPort &vp) :
                 stepdata[p.first].sel = std::make_unique<Step::selection>(*p.second.sel);
             }
         }
-        //FIXME: copy p.second.def?
     }
     ui->molList->setCurrentIndex(vp.ui->molList->currentIndex());
     ui->stepEdit->setValue(vp.ui->stepEdit->value());

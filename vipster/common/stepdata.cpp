@@ -74,7 +74,7 @@ void GUI::StepData::initSel(GLuint vao)
     // atom positions
     glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     glVertexAttribPointer(sel_shader.position, 3,
-                          GL_FLOAT, GL_FALSE,
+                          GL_DOUBLE, GL_FALSE,
                           sizeof(Vec), nullptr);
     glVertexAttribDivisor(sel_shader.position, 1);
     glEnableVertexAttribArray(sel_shader.position);
@@ -120,7 +120,7 @@ void GUI::StepData::initAtom(GLuint vao)
     // atom positions
     glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     glVertexAttribPointer(atom_shader.position, 3,
-                          GL_FLOAT, GL_FALSE,
+                          GL_DOUBLE, GL_FALSE,
                           sizeof(Vec), nullptr);
     glVertexAttribDivisor(atom_shader.position, 1);
     glEnableVertexAttribArray(atom_shader.position);
@@ -236,7 +236,7 @@ void GUI::StepData::initCell(GLuint vao)
     glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-    glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(cell_shader.vertex, 3, GL_DOUBLE, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(cell_shader.vertex);
 }
 
@@ -254,7 +254,10 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
                 tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
-                glUniform3fv(atom_shader.offset, 1, tmp.data());
+                glUniform3f(atom_shader.offset,
+                            static_cast<float>(tmp[0]),
+                            static_cast<float>(tmp[1]),
+                            static_cast<float>(tmp[2]));
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       atom_model_npoly,
                                       static_cast<GLsizei>(atom_buffer.size()));
@@ -270,7 +273,10 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
         for(GLint y=0;y<mult[1];++y){
             for(GLint z=0;z<mult[2];++z){
                 tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
-                glUniform3fv(bond_shader.offset, 1, tmp.data());
+                glUniform3f(bond_shader.offset,
+                            static_cast<float>(tmp[0]),
+                            static_cast<float>(tmp[1]),
+                            static_cast<float>(tmp[2]));
                 glUniform3i(bond_shader.pbc_cell, x, y, z);
                 glDrawArraysInstanced(GL_TRIANGLES, 0,
                                       bond_model_npoly,
@@ -286,7 +292,10 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
                     tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(cell_shader.offset, 1, tmp.data());
+                    glUniform3f(cell_shader.offset,
+                                static_cast<float>(tmp[0]),
+                                static_cast<float>(tmp[1]),
+                                static_cast<float>(tmp[2]));
                     glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
                 }
             }
@@ -317,7 +326,10 @@ void GUI::StepData::drawSel(Vec off, const PBCVec &mult, void *context)
             for(unsigned int y=0;y<mult[1];++y){
                 for(unsigned int z=0;z<mult[2];++z){
                     tmp = (off + x*cv[0] + y*cv[1] + z*cv[2]);
-                    glUniform3fv(sel_shader.offset, 1, tmp.data());
+                    glUniform3f(sel_shader.offset,
+                                static_cast<float>(tmp[0]),
+                                static_cast<float>(tmp[1]),
+                                static_cast<float>(tmp[2]));
                     glUniform1ui(sel_shader.pbc_instance,
                                  1 + x + y*mult[0] + z*mult[0]*mult[1]);
                     glDrawArraysInstanced(GL_TRIANGLES, 0,
@@ -327,7 +339,10 @@ void GUI::StepData::drawSel(Vec off, const PBCVec &mult, void *context)
             }
         }
     }else{
-        glUniform3fv(sel_shader.offset, 1, off.data());
+        glUniform3f(sel_shader.offset,
+                    static_cast<float>(off[0]),
+                    static_cast<float>(off[1]),
+                    static_cast<float>(off[2]));
         glUniform1ui(sel_shader.pbc_instance, 1);
         glDrawArraysInstanced(GL_TRIANGLES, 0,
                               atom_model_npoly,
@@ -400,21 +415,27 @@ void GUI::StepData::update(Step* step,
     default:
         break;
     }
-    cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
-                 tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
-                 tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
+    cell_mat = {{static_cast<float>(tmp_mat[0][0]),
+                 static_cast<float>(tmp_mat[1][0]),
+                 static_cast<float>(tmp_mat[2][0]),
+                 static_cast<float>(tmp_mat[0][1]),
+                 static_cast<float>(tmp_mat[1][1]),
+                 static_cast<float>(tmp_mat[2][1]),
+                 static_cast<float>(tmp_mat[0][2]),
+                 static_cast<float>(tmp_mat[1][2]),
+                 static_cast<float>(tmp_mat[2][2])}};
 
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
     if(useVdW){
         for (const auto& at: *curStep){
-            atom_buffer.push_back({at.type->vdwr, at.type->col,
+            atom_buffer.push_back({static_cast<float>(at.type->vdwr), at.type->col,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }else{
         for (const auto& at: *curStep){
-            atom_buffer.push_back({at.type->covr, at.type->col,
+            atom_buffer.push_back({static_cast<float>(at.type->covr), at.type->col,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }
@@ -461,14 +482,19 @@ void GUI::StepData::update(Step* step,
         const auto& col1 = bd.type ? bd.type->second : elements[bd.at1]->second.col;
         const auto& col2 = bd.type ? bd.type->second : elements[bd.at2]->second.col;
         // handle bonds parallel to x-axis
-        if(std::abs(bond_axis[1])<std::numeric_limits<float>::epsilon()&&
-           std::abs(bond_axis[2])<std::numeric_limits<float>::epsilon()){
-            c = std::copysign(1.f, bond_axis[0]);
+        if(std::abs(bond_axis[1])<std::numeric_limits<double>::epsilon()&&
+           std::abs(bond_axis[2])<std::numeric_limits<double>::epsilon()){
+            c = std::copysign(1.f, static_cast<float>(bond_axis[0]));
             bond_buffer.push_back({
-                {bd.dist*c, 0., 0.,
+                //mat3 with rotation and scaling
+                {static_cast<float>(bd.dist)*c, 0., 0.,
                  0., bondRad, 0.,
                  0., 0., bondRad*c},
-                bond_pos,
+                //vec3 with position in modelspace
+                {static_cast<float>(bond_pos[0]),
+                 static_cast<float>(bond_pos[1]),
+                 static_cast<float>(bond_pos[2])},
+                //faux uvec4 with render criteria
                 {static_cast<int16_t>(std::abs(bd.diff[0])),
                  static_cast<int16_t>(std::abs(bd.diff[1])),
                  static_cast<int16_t>(std::abs(bd.diff[2])),
@@ -479,22 +505,28 @@ void GUI::StepData::update(Step* step,
             // all other bonds
             auto rot_axis = -Vec_cross(bond_axis, x_axis);
             rot_axis /= Vec_length(rot_axis);
-            c = Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis);
+            c = static_cast<float>(Vec_dot(bond_axis, x_axis)/Vec_length(bond_axis));
             ic = 1-c;
             s = -std::sqrt(1-c*c);
+            const auto dist = static_cast<float>(bd.dist);
+            const float ax[3] = {static_cast<float>(rot_axis[0]),
+                                 static_cast<float>(rot_axis[1]),
+                                 static_cast<float>(rot_axis[2])};
             bond_buffer.push_back({
                 //mat3 with rotation and scaling
-                {bd.dist*(ic*rot_axis[0]*rot_axis[0]+c),
-                 bd.dist*(ic*rot_axis[0]*rot_axis[1]-s*rot_axis[2]),
-                 bd.dist*(ic*rot_axis[0]*rot_axis[2]+s*rot_axis[1]),
-                 bondRad*(ic*rot_axis[1]*rot_axis[0]+s*rot_axis[2]),
-                 bondRad*(ic*rot_axis[1]*rot_axis[1]+c),
-                 bondRad*(ic*rot_axis[1]*rot_axis[2]-s*rot_axis[0]),
-                 bondRad*(ic*rot_axis[2]*rot_axis[0]-s*rot_axis[1]),
-                 bondRad*(ic*rot_axis[2]*rot_axis[1]+s*rot_axis[0]),
-                 bondRad*(ic*rot_axis[2]*rot_axis[2]+c)},
+                {dist*(ic*ax[0]*ax[0]+c),
+                 dist*(ic*ax[0]*ax[1]-s*ax[2]),
+                 dist*(ic*ax[0]*ax[2]+s*ax[1]),
+                 bondRad*(ic*ax[1]*ax[0]+s*ax[2]),
+                 bondRad*(ic*ax[1]*ax[1]+c),
+                 bondRad*(ic*ax[1]*ax[2]-s*ax[0]),
+                 bondRad*(ic*ax[2]*ax[0]-s*ax[1]),
+                 bondRad*(ic*ax[2]*ax[1]+s*ax[0]),
+                 bondRad*(ic*ax[2]*ax[2]+c)},
                 //vec3 with position in modelspace
-                bond_pos,
+                {static_cast<float>(bond_pos[0]),
+                 static_cast<float>(bond_pos[1]),
+                 static_cast<float>(bond_pos[2])},
                 //faux uvec4 with render criteria
                 {static_cast<int16_t>(std::abs(bd.diff[0])),
                  static_cast<int16_t>(std::abs(bd.diff[1])),

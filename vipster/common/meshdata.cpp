@@ -13,9 +13,15 @@ GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Face>&& faces,
 {
     cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],
                    cell[0]+cell[2], cell[1]+cell[2], cell[0]+cell[1]+cell[2]}};
-    cell_gpu = {{cell[0][0], cell[1][0], cell[2][0],
-                 cell[0][1], cell[1][1], cell[2][1],
-                 cell[0][2], cell[1][2], cell[2][2]}};
+    cell_gpu = {{static_cast<float>(cell[0][0]),
+                 static_cast<float>(cell[1][0]),
+                 static_cast<float>(cell[2][0]),
+                 static_cast<float>(cell[0][1]),
+                 static_cast<float>(cell[1][1]),
+                 static_cast<float>(cell[2][1]),
+                 static_cast<float>(cell[0][2]),
+                 static_cast<float>(cell[1][2]),
+                 static_cast<float>(cell[2][2])}};
 }
 
 GUI::MeshData::MeshData(MeshData&& dat)
@@ -88,7 +94,7 @@ void GUI::MeshData::initCell(GLuint vao)
     glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-    glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(cell_shader.vertex, 3, GL_DOUBLE, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(cell_shader.vertex);
 
 }
@@ -121,9 +127,15 @@ void GUI::MeshData::update(const Mat &c)
     cell = c;
     cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],
                    cell[0]+cell[2], cell[1]+cell[2], cell[0]+cell[1]+cell[2]}};
-    cell_gpu = {{cell[0][0], cell[1][0], cell[2][0],
-                 cell[0][1], cell[1][1], cell[2][1],
-                 cell[0][2], cell[1][2], cell[2][2]}};
+    cell_gpu = {{static_cast<float>(cell[0][0]),
+                 static_cast<float>(cell[1][0]),
+                 static_cast<float>(cell[2][0]),
+                 static_cast<float>(cell[0][1]),
+                 static_cast<float>(cell[1][1]),
+                 static_cast<float>(cell[2][1]),
+                 static_cast<float>(cell[0][2]),
+                 static_cast<float>(cell[1][2]),
+                 static_cast<float>(cell[2][2])}};
     updated = true;
 }
 
@@ -162,7 +174,10 @@ void GUI::MeshData::draw(const Vec &off, const PBCVec &mult,
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
                 tmp2 = (tmp + x*cell[0] + y*cell[1] + z*cell[2]);
-                glUniform3fv(mesh_shader.offset, 1, tmp2.data());
+                glUniform3f(mesh_shader.offset,
+                            static_cast<float>(tmp2[0]),
+                            static_cast<float>(tmp2[1]),
+                            static_cast<float>(tmp2[2]));
                 glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(faces.size()));
             }
         }
@@ -174,7 +189,10 @@ void GUI::MeshData::draw(const Vec &off, const PBCVec &mult,
             for(int y=0;y<mult[1];++y){
                 for(int z=0;z<mult[2];++z){
                     tmp2 = (tmp + x*cell[0] + y*cell[1] + z*cell[2]);
-                    glUniform3fv(cell_shader.offset, 1, tmp2.data());
+                    glUniform3f(mesh_shader.offset,
+                                static_cast<float>(tmp2[0]),
+                                static_cast<float>(tmp2[1]),
+                                static_cast<float>(tmp2[2]));
                     glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, nullptr);
                 }
             }

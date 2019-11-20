@@ -261,9 +261,9 @@ int main(int argc, char *argv[])
                                        std::stoi(kpoints[1]),
                                        std::stoi(kpoints[2]),
                                        std::stoi(kpoints[3]),
-                                       std::stof(kpoints[4]),
-                                       std::stof(kpoints[5]),
-                                       std::stof(kpoints[6]),
+                                       std::stod(kpoints[4]),
+                                       std::stod(kpoints[5]),
+                                       std::stod(kpoints[6]),
                                    }, {}});
                 } catch (...) {
                     throw CLI::ParseError(mpg_err, 1);
@@ -289,10 +289,10 @@ int main(int argc, char *argv[])
                 list.resize(N);
                 size_t i = 4;
                 for(auto& kpoint: list){
-                    kpoint = {{std::stof(kpoints[i]),
-                               std::stof(kpoints[i+1]),
-                               std::stof(kpoints[i+2])},
-                              std::stof(kpoints[i+3]),
+                    kpoint = {{std::stod(kpoints[i]),
+                               std::stod(kpoints[i+1]),
+                               std::stod(kpoints[i+2])},
+                              std::stod(kpoints[i+3]),
                              };
                     i+=4;
                 }

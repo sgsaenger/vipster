@@ -52,7 +52,7 @@ void GUI::SelData::initGL(void *context)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glVertexAttribPointer(shader.position, 3,
-                          GL_FLOAT, GL_FALSE,
+                          GL_DOUBLE, GL_FALSE,
                           sizeof(SelProp),
                           reinterpret_cast<const GLvoid*>(offsetof(SelProp, pos)));
     glVertexAttribDivisor(shader.position, 1);
@@ -91,7 +91,10 @@ void GUI::SelData::draw(const Vec &off, const PBCVec &mult,
         glBindVertexArray(vaos[context]);
         glUseProgram(shader.program);
         glUniform1f(shader.scale_fac, atRadFac);
-        glUniform3fv(shader.offset, 1, off.data());
+        glUniform3f(shader.offset,
+                    static_cast<float>(off[0]),
+                    static_cast<float>(off[1]),
+                    static_cast<float>(off[2]));
         glUniformMatrix3fv(shader.pos_scale, 1, 0, cell_mat.data());
         glUniform4ui(shader.color, color[0], color[1], color[2], color[3]);
         glUniform3i(shader.mult, mult[0], mult[1], mult[2]);
@@ -126,9 +129,13 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
-                sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
-                                      it->type->vdwr*1.3f,
-                                      {(int16_t)off[0], (int16_t)off[1], (int16_t)off[2]},
+                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<double>(off[0]),
+                                                          static_cast<double>(off[1]),
+                                                          static_cast<double>(off[2])}),
+                                      static_cast<float>(it->type->vdwr*1.3),
+                                      {static_cast<int16_t>(off[0]),
+                                       static_cast<int16_t>(off[1]),
+                                       static_cast<int16_t>(off[2])},
                                      });
             }
             ++it;
@@ -137,9 +144,13 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
-                sel_buffer.push_back({it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}),
-                                      it->type->covr*1.3f,
-                                      {(int16_t)off[0], (int16_t)off[1], (int16_t)off[2]},
+                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<double>(off[0]),
+                                                          static_cast<double>(off[1]),
+                                                          static_cast<double>(off[2])}),
+                                      static_cast<float>(it->type->covr*1.3),
+                                      {static_cast<int16_t>(off[0]),
+                                       static_cast<int16_t>(off[1]),
+                                       static_cast<int16_t>(off[2])},
                                      });
             }
             ++it;
@@ -164,7 +175,13 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
     default:
         break;
     }
-    cell_mat = {{tmp_mat[0][0], tmp_mat[1][0], tmp_mat[2][0],
-                 tmp_mat[0][1], tmp_mat[1][1], tmp_mat[2][1],
-                 tmp_mat[0][2], tmp_mat[1][2], tmp_mat[2][2]}};
+    cell_mat = {{static_cast<float>(tmp_mat[0][0]),
+                 static_cast<float>(tmp_mat[1][0]),
+                 static_cast<float>(tmp_mat[2][0]),
+                 static_cast<float>(tmp_mat[0][1]),
+                 static_cast<float>(tmp_mat[1][1]),
+                 static_cast<float>(tmp_mat[2][1]),
+                 static_cast<float>(tmp_mat[0][2]),
+                 static_cast<float>(tmp_mat[1][2]),
+                 static_cast<float>(tmp_mat[2][2])}};
 }

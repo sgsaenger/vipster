@@ -162,10 +162,10 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                                     KPoints::Discrete::Properties::band;
                             auto isTerm = [](const KPoints::Discrete::Point& p1,
                                              const KPoints::Discrete::Point& p2){
-                                return float_comp(p1.pos[0], 0) && float_comp(p1.pos[1], 0)
-                                        && float_comp(p1.pos[2], 0) && float_comp(p1.weight, 0)
-                                        && float_comp(p2.pos[0], 0) && float_comp(p2.pos[1], 0)
-                                        && float_comp(p2.pos[2], 0);
+                                return float_comp(p1.pos[0], 0.) && float_comp(p1.pos[1], 0.)
+                                        && float_comp(p1.pos[2], 0.) && float_comp(p1.weight, 0.)
+                                        && float_comp(p2.pos[0], 0.) && float_comp(p2.pos[1], 0.)
+                                        && float_comp(p2.pos[2], 0.);
                             };
                             bool cont{true};
                             do{
@@ -544,7 +544,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
             if(kp.active == KPoints::Fmt::MPG){
                 const auto& mpg = kp.mpg;
                 file << "  KPOINTS MONKHORST-PACK";
-                if(float_comp(mpg.sx, 0) || float_comp(mpg.sy, 0) || float_comp(mpg.sz, 0)){
+                if(float_comp(mpg.sx, 0.) || float_comp(mpg.sy, 0.) || float_comp(mpg.sz, 0.)){
                     file << " SHIFT=" << mpg.sx << ' ' << mpg.sy << ' ' << mpg.sz;
                 }
                 file << "\n  " << mpg.x << ' ' << mpg.y << ' ' << mpg.z << '\n';

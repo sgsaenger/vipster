@@ -10,7 +10,7 @@ namespace GUI {
 class MeshData: public Data{
 public:
     struct Face{
-        Vec pos, norm;
+        float pos[3], norm[3];
         std::array<float, 2> uv;
     };
     struct Texture{

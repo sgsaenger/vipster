@@ -12,11 +12,12 @@ namespace Vipster{
 using Vec = std::array<double, 3>;
 using Mat = std::array<Vec, 3>;
 
-inline bool float_comp(double a, double b)
+template<typename T>
+inline bool float_comp(T a, T b)
 {
     return std::abs(a-b) <=
-            std::numeric_limits<double>::epsilon() * 5 *
-            std::max({1., std::abs(a), std::abs(b)});
+            std::numeric_limits<T>::epsilon() * 5 *
+            std::max({static_cast<T>(1), std::abs(a), std::abs(b)});
 }
 
 inline bool operator==(const Vec &v1, const Vec &v2)

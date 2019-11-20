@@ -46,14 +46,14 @@ private:
 
     struct IsoSurf: public Vipster::GUI::MeshData{
         bool plusmin;
-        float isoval;
+        double isoval;
         IsoSurf(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
                 Vipster::Vec offset, Vipster::Mat cell,
-                Texture texture, bool plusmin, float isoval);
+                Texture texture, bool plusmin, double isoval);
     };
     std::shared_ptr<IsoSurf> curSurf{nullptr};
     std::map<const Vipster::DataGrid3D_f*, std::shared_ptr<IsoSurf>> surfaces;
-    std::vector<Vipster::GUI::MeshData::Face> mkSurf(float isoval, bool pm);
+    std::vector<Vipster::GUI::MeshData::Face> mkSurf(double isoval, bool pm);
 };
 
 #endif // DATA3DWIDGET_H

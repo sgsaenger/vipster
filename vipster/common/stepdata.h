@@ -7,14 +7,14 @@
 namespace Vipster{
 namespace GUI {
 // CPU-side buffers for render-data
-struct AtomProp{ // 9 bytes + 3 bytes padding + 12 bytes directly from step
+struct AtomProp{ // 9 bytes + 3 bytes padding + 24 bytes directly from step
     float   rad;  // 4 bytes
     ColVec  col;  // 4 bytes
     uint8_t hide; // 1 byte
 };
 struct BondProp{ // 64 bytes
     float mat[9];        // 9*4 = 36 bytes
-    Vec pos;             // 3*4 = 12 bytes
+    float pos[3];        // 3*4 = 12 bytes
     int16_t mult[4];     // 4*2 = 8 bytes
     ColVec col_a, col_b; // 2*4 = 8 bytes
 };
