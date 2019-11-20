@@ -11,13 +11,13 @@ struct KPoints{
     Fmt active = Fmt::Gamma;
     struct MPG{
         int x{1},y{1},z{1};
-        float sx{},sy{},sz{};
+        double sx{},sy{},sz{};
     } mpg;
     struct Discrete{
         enum Properties{none=0x0,crystal=0x1,band=0x2,contour=0x4};
         struct Point{
             Vec pos;
-            float weight;
+            double weight;
         };
         uint8_t properties{};
         std::vector<Point> kpoints{};

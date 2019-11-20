@@ -97,7 +97,7 @@ struct SelectionFilter{
     uint8_t op{Op::UPDATE};
     uint8_t pos;
     uint8_t coord;
-    float posVal;
+    double posVal;
     size_t coordVal;
     std::map<size_t, std::vector<SizeVec>> indices;
     std::set<std::string> types;

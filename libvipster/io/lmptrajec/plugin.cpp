@@ -119,13 +119,13 @@ LmpTrajecParser(const std::string& name, std::istream &file)
                 ss >> tmp[2][0] >> tmp[2][1] >> tmp[2][2];
                 // untangle lammps' boundary mess
                 // xlo = xlo_bound - MIN(0, xy, xz, xy+xz)
-                tmp[0][0] = tmp[0][0] - std::min({0.f, tmp[0][2], tmp[1][2], tmp[0][2]+tmp[1][2]});
+                tmp[0][0] = tmp[0][0] - std::min({0., tmp[0][2], tmp[1][2], tmp[0][2]+tmp[1][2]});
                 // xhi = xhi_bound - MAX(0, xy, xz, xy+xz)
-                tmp[0][1] = tmp[0][1] - std::max({0.f, tmp[0][2], tmp[1][2], tmp[0][2]+tmp[1][2]});
+                tmp[0][1] = tmp[0][1] - std::max({0., tmp[0][2], tmp[1][2], tmp[0][2]+tmp[1][2]});
                 // ylo = ylo_bound - MIN(0, yz)
-                tmp[1][0] = tmp[1][0] - std::min(0.f, tmp[2][2]);
+                tmp[1][0] = tmp[1][0] - std::min(0., tmp[2][2]);
                 // yhi = yhi_bound - MAX(0, yz)
-                tmp[1][1] = tmp[1][1] - std::max(0.f, tmp[2][2]);
+                tmp[1][1] = tmp[1][1] - std::max(0., tmp[2][2]);
                 // x = xhi - xlo
                 cell[0][0] = tmp[0][1] - tmp[0][0];
                 // y = yhi - ylo
@@ -137,7 +137,7 @@ LmpTrajecParser(const std::string& name, std::istream &file)
                 // zlo_bound == zlo, same for zhi. use directly
                 cell[2][2] = tmp[2][1] - tmp[2][0];
             } else {
-                float t1, t2;
+                double t1, t2;
                 // xlo, xhi
                 std::getline(file, line);
                 ss = std::stringstream{line};

@@ -223,7 +223,7 @@ public:
     }
 
     // Cell
-    void setCellDim(float cdm, CdmFmt fmt, bool scale=false);
+    void setCellDim(double cdm, CdmFmt fmt, bool scale=false);
     void setCellVec(const Mat &vec, bool scale=false);
 
     // Modifier functions
@@ -231,7 +231,7 @@ public:
     void modCrop();
     void modMultiply(size_t x, size_t y, size_t z);
     void modAlign(uint8_t step_dir, uint8_t target_dir);
-    void modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt);
+    void modReshape(Mat newMat, double newCdm, CdmFmt cdmFmt);
 };
 
 }

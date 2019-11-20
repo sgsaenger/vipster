@@ -117,7 +117,6 @@ void Vipster::saveConfig(const ConfigState& cs)
     // convenience refs
     const PeriodicTable &pte = std::get<0>(cs);
     const Settings &settings = std::get<1>(cs);
-    const IO::Plugins &plugins = std::get<2>(cs);
     const IO::Parameters &params = std::get<3>(cs);
     const IO::Presets &presets = std::get<4>(cs);
     // check dir, try to create if it doesn't exist

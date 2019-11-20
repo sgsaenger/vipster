@@ -161,21 +161,21 @@ public:
         }
         this->at_fmt = tgt;
     }
-    void modShift(Vec shift, float fac=1.0f){
+    void modShift(Vec shift, double fac=1.0){
         shift *= fac;
         for(Atom& at:*this){
             at.coord += shift;
         }
     }
-    void modRotate(float angle, Vec axis, Vec shift={0,0,0}){
+    void modRotate(double angle, Vec axis, Vec shift={0,0,0}){
         angle *= deg2rad;
-        float c = std::cos(angle);
-        float s = -std::sin(angle);
-        float ic = 1.f-c;
+        double c = std::cos(angle);
+        double s = -std::sin(angle);
+        double ic = 1.-c;
         auto relative = this->at_fmt >= AtomFmt::Crystal;
         if(relative) axis = this->formatVec(axis, this->at_fmt, AtomFmt::Bohr);
-        float len = Vec_length(axis);
-        if(float_comp(len, 0.f)){
+        double len = Vec_length(axis);
+        if(float_comp(len, 0.)){
             throw Error("0-Vector cannot be rotation axis");
         }
         axis /= len;

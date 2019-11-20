@@ -46,14 +46,14 @@ IO::Data XSFParser(const std::string& name, std::istream &file)
     auto makeAtom = [](Step& s, const std::vector<std::string>& tokens){
         AtomProperties prop{};
         if(tokens.size() == 7){
-            prop.forces = Vec{stof(tokens[4]),
-                              stof(tokens[5]),
-                              stof(tokens[6])};
+            prop.forces = Vec{stod(tokens[4]),
+                              stod(tokens[5]),
+                              stod(tokens[6])};
         }
         s.newAtom(tokens[0],
-                  Vec{stof(tokens[1]),
-                      stof(tokens[2]),
-                      stof(tokens[3])},
+                  Vec{stod(tokens[1]),
+                      stod(tokens[2]),
+                      stod(tokens[3])},
                   prop);
     };
 

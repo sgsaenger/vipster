@@ -208,7 +208,7 @@ void Step::setCellVec(const Mat &vec, bool scale)
     atoms->coord_changed[static_cast<size_t>(at_fmt)] = true;
 }
 
-void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
+void Step::setCellDim(double cdm, CdmFmt fmt, bool scale)
 {
     if(!(cdm>0)) {
         throw Error("Step::setCellDim(): "
@@ -222,7 +222,7 @@ void Step::setCellDim(float cdm, CdmFmt fmt, bool scale)
     size_t int_fmt = static_cast<size_t>(at_fmt);
     bool relative = at_fmt>=AtomFmt::Crystal;
     if (scale != relative){
-        float ratio;
+        double ratio;
         if (relative) {
             ratio = getCellDim(fmt) / cdm;
         } else {
@@ -400,7 +400,7 @@ void Step::modAlign(uint8_t step_dir, uint8_t target_dir){
     setCellVec(newCell, true);
 }
 
-void Step::modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
+void Step::modReshape(Mat newMat, double newCdm, CdmFmt cdmFmt){
     auto oldCdm = getCellDim(cdmFmt);
     auto oldMat = getCellVec();
     if((newMat == oldMat) && (float_comp(newCdm, oldCdm))){
@@ -442,9 +442,9 @@ void Step::modReshape(Mat newMat, float newCdm, CdmFmt cdmFmt){
         modMultiply(fac[0], fac[1], fac[2]);
         if(off[0] || off[1] || off[2]){
             Vec offset{
-                off[0] ? -1.f/fac[0] : 0.f,
-                off[1] ? -1.f/fac[1] : 0.f,
-                off[2] ? -1.f/fac[2] : 0.f,
+                off[0] ? -1./fac[0] : 0.,
+                off[1] ? -1./fac[1] : 0.,
+                off[2] ? -1./fac[2] : 0.,
             };
             modShift(offset);
         }

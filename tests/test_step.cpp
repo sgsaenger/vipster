@@ -83,18 +83,18 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         // Bohr:
         s_comp[0].newAtom("H", {{1,2,3}});
         s_comp[0].newAtom("H", {{1*bohrrad, 2*bohrrad, 3*bohrrad}});
-        s_comp[0].newAtom("H", {{1/5.f, 0, 0}});
-        s_comp[0].newAtom("H", {{1/5.f, 2/5.f, 3/5.f}});
+        s_comp[0].newAtom("H", {{1/5., 0, 0}});
+        s_comp[0].newAtom("H", {{1/5., 2/5., 3/5.}});
         // Angstrom:
         s_comp[1].newAtom("H", {{1*invbohr, 2*invbohr, 3*invbohr}});
         s_comp[1].newAtom("H", {{1, 2, 3}});
-        s_comp[1].newAtom("H", {{1*invbohr/5.f, 0, 0}});
-        s_comp[1].newAtom("H", {{1*invbohr/5.f, 2*invbohr/5.f, 3*invbohr/5.f}});
+        s_comp[1].newAtom("H", {{1*invbohr/5., 0, 0}});
+        s_comp[1].newAtom("H", {{1*invbohr/5., 2*invbohr/5., 3*invbohr/5.}});
         // Crystal:
-        s_comp[2].newAtom("H", {{5, 20, 37.5f}});
-        s_comp[2].newAtom("H", {{5*bohrrad, 20*bohrrad, 37.5f*bohrrad}});
+        s_comp[2].newAtom("H", {{5, 20, 37.5}});
+        s_comp[2].newAtom("H", {{5*bohrrad, 20*bohrrad, 37.5*bohrrad}});
         s_comp[2].newAtom("H", {{1, 2, 3}});
-        s_comp[2].newAtom("H", {{1, 4, 7.5f}});
+        s_comp[2].newAtom("H", {{1, 4, 7.5}});
         // Alat:
         s_comp[3].newAtom("H", {{5, 10, 15}});
         s_comp[3].newAtom("H", {{5*bohrrad, 10*bohrrad, 15*bohrrad}});
@@ -153,10 +153,10 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
                 sd.setCellVec(cv);
                 // Bohr:
                 sd.newAtom("H", v);
-                sd.newAtom("H", v*1.2f);
+                sd.newAtom("H", v*1.2);
                 // Angstrom:
                 sd.newAtom("H", v*bohrrad);
-                sd.newAtom("H", v*1.2f*bohrrad);
+                sd.newAtom("H", v*1.2*bohrrad);
                 // Crystal:
                 sd.newAtom("H", Vec{{1,0,0}}/5);
                 sd.newAtom("H", Vec{{1,0,0}}/6);

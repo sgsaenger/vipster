@@ -31,7 +31,7 @@ void KPoints(py::module& m){
     ;
 
     py::class_<KPoints::Discrete::Point>(disc, "Point")
-        .def(py::init([](const Vec& p, float w){return KPoints::Discrete::Point{p,w};}))
+        .def(py::init([](const Vec& p, double w){return KPoints::Discrete::Point{p,w};}))
         .def_readwrite("pos", &KPoints::Discrete::Point::pos)
         .def_readwrite("weight", &KPoints::Discrete::Point::weight)
     ;

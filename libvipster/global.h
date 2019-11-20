@@ -6,11 +6,11 @@
 #include <array>
 
 namespace Vipster {
-    constexpr float pi = 3.14159265358979323846264338327950288f;
-    constexpr float rad2deg = 180.f / pi;
-    constexpr float deg2rad = pi / 180.f;
-    constexpr float bohrrad = 0.52917721092f;
-    constexpr float invbohr = 1/bohrrad;
+    constexpr double pi = 3.14159265358979323846264338327950288;
+    constexpr double rad2deg = 180. / pi;
+    constexpr double deg2rad = pi / 180.;
+    constexpr double bohrrad = 0.52917721092;
+    constexpr double invbohr = 1./bohrrad;
 
     using ColVec = std::array<uint8_t, 4>;
     using SizeVec = std::array<size_t, 3>;

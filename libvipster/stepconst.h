@@ -155,7 +155,7 @@ public:
     std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
                                                  AtomFmt target) const
     {
-        float fac{};
+        double fac{};
         Mat fmat{};
         switch(source) {
         case AtomFmt::Bohr:
@@ -272,7 +272,7 @@ public:
     {
         return cell->enabled;
     }
-    float   getCellDim(CdmFmt fmt) const noexcept
+    double   getCellDim(CdmFmt fmt) const noexcept
     {
         if (fmt == CdmFmt::Bohr) {
             return cell->dimBohr;
@@ -296,12 +296,12 @@ public:
         if(!getNat()){
             return Vec{{0,0,0}};
         }
-        Vec min{{std::numeric_limits<float>::max(),
-                 std::numeric_limits<float>::max(),
-                 std::numeric_limits<float>::max()}};
-        Vec max{{std::numeric_limits<float>::lowest(),
-                 std::numeric_limits<float>::lowest(),
-                 std::numeric_limits<float>::lowest()}};
+        Vec min{{std::numeric_limits<double>::max(),
+                 std::numeric_limits<double>::max(),
+                 std::numeric_limits<double>::max()}};
+        Vec max{{std::numeric_limits<double>::lowest(),
+                 std::numeric_limits<double>::lowest(),
+                 std::numeric_limits<double>::lowest()}};
         for(const auto& at: *this){
             min[0]=std::min(min[0],at.coord[0]);
             min[1]=std::min(min[1],at.coord[1]);
@@ -349,12 +349,12 @@ private:
     {
         // get suitable absolute representation
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
-        const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
+        const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
         // get bounds of system and largest cutoff
         Vec min{0,0,0};
         Vec max{0,0,0};
-        float cut{0};
+        double cut{0};
         for (const auto& at:tgtFmt) {
             min[0] = std::min(at.coord[0], min[0]);
             min[1] = std::min(at.coord[1], min[1]);
@@ -504,30 +504,30 @@ private:
     void setBondsMoleculeTrivial() const
     {
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
-        const float fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
+        const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
         std::vector<Bond>& bonds = this->bonds->bonds;
         auto at_i = tgtFmt.begin();
         for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
         {
-            float cut_i = at_i->type->bondcut;
+            double cut_i = at_i->type->bondcut;
             if (cut_i<=0){
                 continue;
             }
             for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
-                float cut_j = at_j->type->bondcut;
+                double cut_j = at_j->type->bondcut;
                 if (cut_j<=0) {
                     continue;
                 }
-                float effcut = (cut_i + cut_j) * 1.1f;
+                double effcut = (cut_i + cut_j) * 1.1;
                 Vec dist_v = at_i->coord - at_j->coord;
                 if (((dist_v[0] *= fmtscale) > effcut) ||
                     ((dist_v[1] *= fmtscale) > effcut) ||
                     ((dist_v[2] *= fmtscale) > effcut)) {
                     continue;
                 }
-                float dist_n = Vec_dot(dist_v, dist_v);
-                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                double dist_n = Vec_dot(dist_v, dist_v);
+                if((0.57 < dist_n) && (dist_n < effcut*effcut)) {
                     bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), {}});
                 }
             }
@@ -547,7 +547,7 @@ private:
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         enum wrapDir{x, y, z, xy, xmy, xz, xmz, yz, ymz, xyz, xymz, xmyz, mxyz};
         // get largest cutoff
-        float cut{0};
+        double cut{0};
         for (const auto& at:asCrystal) {
             cut = std::max(at.type->bondcut, cut);
         }
@@ -562,15 +562,15 @@ private:
         SizeVec n_split{1,1,1};
         if(size_split[0] >= cut){
             n_split[0] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[0] / cut)));
-            size_split[0] = 1.f/n_split[0];
+            size_split[0] = 1./n_split[0];
         }
         if(size_split[1] >= cut){
             n_split[1] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[1] / cut)));
-            size_split[1] = 1.f/n_split[1];
+            size_split[1] = 1./n_split[1];
         }
         if(size_split[2] >= cut){
             n_split[2] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[2] / cut)));
-            size_split[2] = 1.f/n_split[2];
+            size_split[2] = 1./n_split[2];
         }
         // put atoms in boxes
         DataGrid3D<std::vector<size_t>> boxes{n_split};
@@ -643,11 +643,11 @@ private:
                             std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                             // dist_v now contains distance inside of cell
                             std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                                [](float f){return std::fmod(f,1);});
+                                [](double f){return std::fmod(f,1);});
                             // crit_v contains direction of distance-vector
                             std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                                [](float f){
-                                    return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                                [](double f){
+                                    return (std::abs(f) < std::numeric_limits<double>::epsilon())?
                                                 0 : ((f<0) ? -1 : 1);
                                 });
                             if(!(crit_v[0]|crit_v[1]|crit_v[2])){
@@ -656,7 +656,7 @@ private:
                             }
                             // convert dist_v to bohr, wrap into cell if needed
                             for(size_t d=0; d<3; ++d){
-                                if(std::abs(dist_v[d]) > 0.5f){
+                                if(std::abs(dist_v[d]) > 0.5){
                                     dist_v[d] -= crit_v[d];
                                     diff_v[d] += crit_v[d];
                                 }
@@ -687,11 +687,11 @@ private:
                                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                                 // dist_v now contains distance inside of cell
                                 std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                                    [](float f){return std::fmod(f,1);});
+                                    [](double f){return std::fmod(f,1);});
                                 // crit_v contains direction of distance-vector
                                 std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                                    [](float f){
-                                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                                    [](double f){
+                                        return (std::abs(f) < std::numeric_limits<double>::epsilon())?
                                                     0 : ((f<0) ? -1 : 1);
                                     });
                                 if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
@@ -700,7 +700,7 @@ private:
                                 }
                                 // convert dist_v to bohr, wrap into cell if needed
                                 for(size_t d=0; d<3; ++d){
-                                    if(std::abs(dist_v[d]) > 0.5f){
+                                    if(std::abs(dist_v[d]) > 0.5){
                                         dist_v[d] -= crit_v[d];
                                         diff_v[d] += crit_v[d];
                                     }
@@ -768,27 +768,27 @@ private:
         DiffVec diff_v, crit_v;
         for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
             size_t i = at_i.getIdx();
-            float cut_i = at_i->type->bondcut;
+            double cut_i = at_i->type->bondcut;
             if (cut_i<0) {
                 continue;
             }
             for(auto at_j = at_i+1; at_j != asCrystal.end(); ++at_j){
                 size_t j = at_j.getIdx();
-                float cut_j = at_j->type->bondcut;
+                double cut_j = at_j->type->bondcut;
                 if (cut_j<0) {
                     continue;
                 }
-                float effcut = (cut_i + cut_j) * 1.1f;
+                double effcut = (cut_i + cut_j) * 1.1;
                 Vec dist_v = at_i->coord - at_j->coord;
                 // diff_v contains integer distance in cell-units
                 std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
                 // dist_v now contains distance inside of cell
                 std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                    [](float f){return std::fmod(f,1);});
+                    [](double f){return std::fmod(f,1);});
                 // crit_v contains direction of distance-vector
                 std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                    [](float f){
-                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                    [](double f){
+                        return (std::abs(f) < std::numeric_limits<double>::epsilon())?
                                     0 : ((f<0) ? -1 : 1);
                     });
                 if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
@@ -803,8 +803,8 @@ private:
                     if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
                         return;
                     }
-                    float dist_n = Vec_dot(dist, dist);
-                    if ((0.57f < dist_n) && (dist_n < effcut*effcut)) {
+                    double dist_n = Vec_dot(dist, dist);
+                    if ((0.57 < dist_n) && (dist_n < effcut*effcut)) {
                         bonds.push_back({i, j, std::sqrt(dist_n), offset});
                     }
                 };

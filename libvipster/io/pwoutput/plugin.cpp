@@ -13,7 +13,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
 
     std::string line, dummy_s;
     size_t nat{}, ntype{};
-    float celldim{};
+    double celldim{};
     Mat cellvec;
     bool gamma{false}, readInitial{false};
     CdmFmt cdmfmt{CdmFmt::Bohr};
@@ -81,7 +81,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
                 ss >> tmp;
                 auto& entry = (*s->pte)[tmp];
                 ss >> tmp >> tmp;
-                entry.m = std::stof(tmp);
+                entry.m = std::stod(tmp);
                 entry.PWPP = pseudopotentials[i];
             }
         } else if (!readInitial && (line.find("site n.") != std::string::npos)) {
@@ -109,7 +109,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
                 celldim = 1;
             }else{
                 cdmfmt = CdmFmt::Bohr;
-                celldim = std::stof(line.substr(line.find('=')+1));
+                celldim = std::stod(line.substr(line.find('=')+1));
             }
             // parse vectors
             for(Vec& v: cellvec){

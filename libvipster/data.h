@@ -77,8 +77,8 @@ struct DataGrid3D: public DataGrid<3, T>
     using DataGrid<3, T>::DataGrid;
 };
 
-using DataGrid2D_f = DataGrid2D<float>;
-using DataGrid3D_f = DataGrid3D<float>;
+using DataGrid2D_f = DataGrid2D<double>;
+using DataGrid3D_f = DataGrid3D<double>;
 using DataGrid3D_v = DataGrid3D<Vec>;
 
 }

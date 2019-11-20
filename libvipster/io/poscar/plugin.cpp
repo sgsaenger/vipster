@@ -17,7 +17,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     std::vector<std::string> types;
     std::vector<size_t> n_per_type;
     bool selective{false};
-    float alat;
+    double alat;
     auto readline = [&](){
         if(!std::getline(file, line)){
             throw IO::Error{"POSCAR file is missing necessary lines."};
@@ -33,7 +33,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
      */
     readline();
     ss >> tmp;
-    alat = std::stof(tmp);
+    alat = std::stod(tmp);
     // lines 3-5: cell vectors
     Mat cell{};
     for(size_t i=0; i<3; ++i){
@@ -87,7 +87,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     if(std::tolower(line[0]) == 'c' || std::tolower(line[0]) == 'k'){
         s.setFmt(AtomFmt::Angstrom);
     }
-    // atom coordinates: 3 float columns, if selective 3 columns with T or F
+    // atom coordinates: 3 double columns, if selective 3 columns with T or F
     n = 0;
     std::array<char, 3> sel;
     for(size_t i=0; i<n_per_type.back(); ++i){
@@ -107,7 +107,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     // finally, scale coordinates with scaling factor
     if(alat < 0){
         // target volume given, calculate real alat here
-        float vol = Mat_det(cell);
+        double vol = Mat_det(cell);
         alat = -alat/vol;
     }
     s.setCellDim(alat, CdmFmt::Angstrom, true);

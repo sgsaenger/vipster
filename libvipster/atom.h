@@ -58,9 +58,9 @@ namespace Vipster{
     constexpr size_t nAtFmt = 4;
 
     struct AtomProperties{
-        float charge;
-        Vec forces;
-        AtomFlags flags;
+        double      charge;
+        Vec         forces;
+        AtomFlags   flags;
     };
     inline bool operator==(const AtomProperties &p1, const AtomProperties &p2){
         return std::tie(p1.charge, p1.flags, p1.forces)

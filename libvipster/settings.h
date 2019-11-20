@@ -17,13 +17,13 @@ struct Setting{
 };
 
 struct Settings{
-    Setting<bool> atRadVdW{"Atom radius VdW", false};
-    Setting<float> atRadFac{"Atom radius factor", bohrrad};
-    Setting<float> bondRad{"Bond radius", bohrrad};
-    Setting<bool> showCell{"Show cell", true};
-    Setting<bool> antialias{"Antialiasing", true};
-    Setting<bool> perspective{"Perspective projection", false};
-    Setting<bool> rotCom{"Rotate around center of mass", false};
+    Setting<bool>   atRadVdW{"Atom radius VdW", false};
+    Setting<double> atRadFac{"Atom radius factor", bohrrad};
+    Setting<double> bondRad{"Bond radius", bohrrad};
+    Setting<bool>   showCell{"Show cell", true};
+    Setting<bool>   antialias{"Antialiasing", true};
+    Setting<bool>   perspective{"Perspective projection", false};
+    Setting<bool>   rotCom{"Rotate around center of mass", false};
     Setting<size_t> animstep{"Animation step (ms)", 100};
     Setting<ColVec> selCol{"Selection color", ColVec{0, 0, 80, 80}};
     Setting<ColVec> milCol{"Miller-plane color", ColVec{130, 0, 0, 80}};

@@ -76,7 +76,7 @@ void parseSpecies(std::istream& file, Molecule& m, IO::PWParam& p)
         linestream >> name >> mass >> pwpp;
         if(linestream.fail()) throw IO::Error("Failed to parse species");
         Element &type = (*m.pte)[name];
-        type.m = std::stof(mass);
+        type.m = std::stod(mass);
         type.PWPP = pwpp;
     }
 }
@@ -128,7 +128,7 @@ void parseCoordinates(std::string name, std::istream& file,
         linestream >> at.name;
         for(size_t i=0; i<3; ++i){
             linestream >> coord_expr;
-            at.coord[i] = static_cast<float>(te_interp(coord_expr.c_str(), &err_pos));
+            at.coord[i] = te_interp(coord_expr.c_str(), &err_pos);
             if(err_pos){
                 throw IO::Error("Error parsing atom: "+coord_expr);
             }
@@ -229,10 +229,10 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
                 auto celldm = sys.find("celldm(1)");
                 auto cellA = sys.find("A");
                 if ((celldm != sys.end()) && (cellA == sys.end())) {
-                    s.setCellDim(std::stof(celldm->second), CdmFmt::Bohr, scale);
+                    s.setCellDim(std::stod(celldm->second), CdmFmt::Bohr, scale);
                     sys.erase(celldm);
                 } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-                    s.setCellDim(std::stof(cellA->second), CdmFmt::Angstrom, scale);
+                    s.setCellDim(std::stod(cellA->second), CdmFmt::Angstrom, scale);
                     sys.erase(cellA);
                 } else if ((celldm == sys.end()) && (cellA == sys.end())) {
                     s.setCellDim(1, CdmFmt::Bohr, scale);
@@ -261,29 +261,29 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
         }
         Vec axes{}, angles{};
         if(cdmFmt == CdmFmt::Bohr){
-            axes[0] = stof(celldm->second);
+            axes[0] = stod(celldm->second);
             auto celldm2 = sys.find("celldm(2)");
-            if(celldm2 != sys.end()) axes[1] = stof(celldm2->second);
+            if(celldm2 != sys.end()) axes[1] = stod(celldm2->second);
             auto celldm3 = sys.find("celldm(3)");
-            if(celldm3 != sys.end()) axes[2] = stof(celldm3->second);
+            if(celldm3 != sys.end()) axes[2] = stod(celldm3->second);
             auto celldm4 = sys.find("celldm(4)");
-            if(celldm4 != sys.end()) angles[0] = stof(celldm4->second);
+            if(celldm4 != sys.end()) angles[0] = stod(celldm4->second);
             auto celldm5 = sys.find("celldm(5)");
-            if(celldm5 != sys.end()) angles[1] = stof(celldm5->second);
+            if(celldm5 != sys.end()) angles[1] = stod(celldm5->second);
             auto celldm6 = sys.find("celldm(6)");
-            if(celldm6 != sys.end()) angles[2] = stof(celldm6->second);
+            if(celldm6 != sys.end()) angles[2] = stod(celldm6->second);
         }else{
-            axes[0] = stof(cellA->second);
+            axes[0] = stod(cellA->second);
             auto cellB = sys.find("B");
-            if(cellB != sys.end()) axes[1] = stof(cellB->second)/axes[0];
+            if(cellB != sys.end()) axes[1] = stod(cellB->second)/axes[0];
             auto cellC = sys.find("C");
-            if(cellC != sys.end()) axes[2] = stof(cellC->second)/axes[0];
+            if(cellC != sys.end()) axes[2] = stod(cellC->second)/axes[0];
             auto cosAB = sys.find("cosAB");
-            if(cosAB != sys.end()) angles[0] = stof(cosAB->second);
+            if(cosAB != sys.end()) angles[0] = stod(cosAB->second);
             auto cosAC = sys.find("cosAC");
-            if(cosAC != sys.end()) angles[1] = stof(cosAC->second);
+            if(cosAC != sys.end()) angles[1] = stod(cosAC->second);
             auto cosBC = sys.find("cosBC");
-            if(cosBC != sys.end()) angles[2] = stof(cosBC->second);
+            if(cosBC != sys.end()) angles[2] = stod(cosBC->second);
         }
         s.setCellDim(axes[0], cdmFmt, s.getFmt() >= AtomFmt::Crystal);
         auto cell = makeBravais(ibrav, axes, angles);

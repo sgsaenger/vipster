@@ -15,8 +15,8 @@ namespace Vipster {
     struct Bond{
         std::size_t at1;
         std::size_t at2;
-        float dist;
-        DiffVec diff;
+        double      dist;
+        DiffVec     diff;
         std::pair<const std::string, ColVec>* type{nullptr};
     };
     inline bool operator==(const Bond& lhs, const Bond& rhs){

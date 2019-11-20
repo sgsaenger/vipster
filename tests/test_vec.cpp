@@ -33,18 +33,18 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
         REQUIRE( 0.5+v1 == v2 );
         REQUIRE( v2-0.5 == v1 );
         v1 += 0.5;
-        INFO( "In-place vec-float addition" );
+        INFO( "In-place vec-float addition" )
         REQUIRE( v1 == v2 );
         v1 -= 0.5;
-        INFO( "In-place vec-float subtraction" );
+        INFO( "In-place vec-float subtraction" )
         REQUIRE( v1+0.5 == v2 );
         REQUIRE( v1+v2 == v3 );
         REQUIRE( v3-v2 == v1 );
         v1 += v2;
-        INFO( "In-place vec-vec addition" );
+        INFO( "In-place vec-vec addition" )
         REQUIRE( v1 == v3 );
         v1 -= v2;
-        INFO( "In-place vec-vec subtraction" );
+        INFO( "In-place vec-vec subtraction" )
         REQUIRE( v1+v2 == v3 );
     }
 
@@ -53,16 +53,16 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
         REQUIRE( 1.5*v1 == v2 );
         REQUIRE( v2/1.5 == v1 );
         v1 *= 1.5;
-        INFO( "In-place multiplication" );
+        INFO( "In-place multiplication" )
         REQUIRE( v1 == v2 );
         v1 /= 1.5;
-        INFO( "In-place division" );
+        INFO( "In-place division" )
         REQUIRE( v1*1.5 == v2 );
     }
 
     SECTION( "Linear algebra ops" ) {
-        REQUIRE( float_comp(Vec_dot(v1,v2), 4.5f) );
-        REQUIRE( float_comp(Vec_length(v1), sqrtf(3)) );
+        REQUIRE( float_comp(Vec_dot(v1,v2), 4.5) );
+        REQUIRE( float_comp(Vec_length(v1), sqrt(3)) );
         REQUIRE( Vec_cross(v1, v2) == Vec{{0,0,0}} );
         Vec v3{{1,0,0}};
         REQUIRE( Vec_cross(v1, v3) == Vec{{0,1,-1}} );
@@ -93,13 +93,13 @@ TEST_CASE( "Vipster::Mat operators", "[mat]" ) {
         REQUIRE( v1*m2 == Vec{{1,4,6}} );
         REQUIRE( m1*m2 == m2 );
         REQUIRE( m2*m2 == Mat{{{{1,4,6}},{{0,1,0}},{{0,0,1}}}} );
-        REQUIRE( Mat_det(m2) == 1.f );
+        REQUIRE( Mat_det(m2) == 1. );
         REQUIRE( Mat_inv(m2) == Mat{{{{1,-2,-3}},{{0,1,0}},{{0,0,1}}}} );
         REQUIRE( m2*Mat_inv(m2) == m1 );
         m2*=Mat_inv(m2);
         REQUIRE( m2 == m1 );
         Mat m3{{{{1,2,3}}, {{4,5,6}}, {{7,8,9}}}};
-        REQUIRE( Mat_det(m3) == 0.f );
+        REQUIRE( Mat_det(m3) == 0. );
         REQUIRE_THROWS( Mat_inv(m3) );
     }
 }

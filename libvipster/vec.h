@@ -9,14 +9,14 @@
 
 namespace Vipster{
 
-using Vec = std::array<float, 3>;
+using Vec = std::array<double, 3>;
 using Mat = std::array<Vec, 3>;
 
-inline bool float_comp(float a, float b)
+inline bool float_comp(double a, double b)
 {
     return std::abs(a-b) <=
-            std::numeric_limits<float>::epsilon() * 5 *
-            std::max({1.f, std::abs(a), std::abs(b)});
+            std::numeric_limits<double>::epsilon() * 5 *
+            std::max({1., std::abs(a), std::abs(b)});
 }
 
 inline bool operator==(const Vec &v1, const Vec &v2)
@@ -42,7 +42,7 @@ inline Vec operator +(Vec v1, const Vec &v2)
     return v1+=v2;
 }
 
-inline Vec& operator +=(Vec &v, const float &f)
+inline Vec& operator +=(Vec &v, const double &f)
 {
     v[0]+=f;
     v[1]+=f;
@@ -50,12 +50,12 @@ inline Vec& operator +=(Vec &v, const float &f)
     return v;
 }
 
-inline Vec operator +(Vec v, const float &f)
+inline Vec operator +(Vec v, const double &f)
 {
     return v+=f;
 }
 
-inline Vec operator +(const float &f, Vec v)
+inline Vec operator +(const double &f, Vec v)
 {
     return v+=f;
 }
@@ -78,7 +78,7 @@ inline Vec operator -(Vec v1, const Vec &v2)
     return v1-=v2;
 }
 
-inline Vec& operator -=(Vec &v, const float &f)
+inline Vec& operator -=(Vec &v, const double &f)
 {
     v[0]-=f;
     v[1]-=f;
@@ -86,12 +86,12 @@ inline Vec& operator -=(Vec &v, const float &f)
     return v;
 }
 
-inline Vec operator -(Vec v, const float &f)
+inline Vec operator -(Vec v, const double &f)
 {
     return v-=f;
 }
 
-inline Vec& operator *=(Vec &v, const float &f)
+inline Vec& operator *=(Vec &v, const double &f)
 {
     v[0]*=f;
     v[1]*=f;
@@ -99,17 +99,17 @@ inline Vec& operator *=(Vec &v, const float &f)
     return v;
 }
 
-inline Vec operator *(Vec v, const float &f)
+inline Vec operator *(Vec v, const double &f)
 {
     return v*=f;
 }
 
-inline Vec operator *(const float &f, Vec v)
+inline Vec operator *(const double &f, Vec v)
 {
     return v*=f;
 }
 
-inline Vec& operator /=(Vec &v, const float &f)
+inline Vec& operator /=(Vec &v, const double &f)
 {
     v[0]/=f;
     v[1]/=f;
@@ -117,17 +117,17 @@ inline Vec& operator /=(Vec &v, const float &f)
     return v;
 }
 
-inline Vec operator /(Vec v, const float &f)
+inline Vec operator /(Vec v, const double &f)
 {
     return v/=f;
 }
 
-inline float Vec_dot(const Vec &v1, const Vec &v2)
+inline double Vec_dot(const Vec &v1, const Vec &v2)
 {
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
-inline float Vec_length(const Vec &v)
+inline double Vec_length(const Vec &v)
 {
     return std::sqrt(Vec_dot(v,v));
 }
@@ -148,7 +148,7 @@ inline Vec operator*(const Mat &m, const Vec &v)
     return t;
 }
 
-inline Mat& operator*=(Mat &m, const float &f)
+inline Mat& operator*=(Mat &m, const double &f)
 {
     m[0]*=f;
     m[1]*=f;
@@ -156,17 +156,17 @@ inline Mat& operator*=(Mat &m, const float &f)
     return m;
 }
 
-inline Mat operator*(Mat m, const float &f)
+inline Mat operator*(Mat m, const double &f)
 {
     return m*=f;
 }
 
-inline Mat operator*(const float &f, Mat m)
+inline Mat operator*(const double &f, Mat m)
 {
     return m*=f;
 }
 
-inline Mat& operator/=(Mat &m, const float&f)
+inline Mat& operator/=(Mat &m, const double&f)
 {
     m[0]/=f;
     m[1]/=f;
@@ -174,7 +174,7 @@ inline Mat& operator/=(Mat &m, const float&f)
     return m;
 }
 
-inline Mat operator/(Mat m, const float &f)
+inline Mat operator/(Mat m, const double &f)
 {
     return m/=f;
 }
@@ -217,7 +217,7 @@ inline Mat operator*(Mat lhs, const Mat &rhs)
     return lhs*=rhs;
 }
 
-inline float Mat_det(const Mat &m)
+inline double Mat_det(const Mat &m)
 {
     return  m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
            +m[0][1]*(m[1][2]*m[2][0]-m[1][0]*m[2][2])
@@ -226,8 +226,8 @@ inline float Mat_det(const Mat &m)
 
 inline Mat Mat_inv(const Mat &m)
 {
-    float d = Mat_det(m);
-    if(std::abs(d) < std::numeric_limits<float>::epsilon())
+    double d = Mat_det(m);
+    if(std::abs(d) < std::numeric_limits<double>::epsilon())
     {
         throw Error("Mat_inv: singular matrix has no inverse!");
     }

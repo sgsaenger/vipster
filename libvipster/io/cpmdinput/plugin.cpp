@@ -22,8 +22,8 @@ const std::map<std::string, int> str2ibrav{
     {"TRICLINIC", 14}
 };
 
-static Mat makeCell(int ibrav, float b, float c,
-                    float alpha, float beta, float gamma)
+static Mat makeCell(int ibrav, double b, double c,
+                    double alpha, double beta, double gamma)
 {
     switch(ibrav){
     case 1:
@@ -44,14 +44,14 @@ static Mat makeCell(int ibrav, float b, float c,
     case 4:
         // hexagonal
         return {Vec{   1, 0.0,           0},
-                Vec{-0.5, 0.5f*sqrtf(3), 0},
+                Vec{-0.5, 0.5*sqrt(3), 0},
                 Vec{   0, 0,             c}};
     case 5:
         // trigonal
     {
-        float tx = sqrtf((1 -   alpha)/2.f);
-        float ty = sqrtf((1 -   alpha)/6.f);
-        float tz = sqrtf((1 + 2*alpha)/3.f);
+        double tx = sqrt((1 -   alpha)/2.);
+        double ty = sqrt((1 -   alpha)/6.);
+        double tz = sqrt((1 + 2*alpha)/3.);
         return {Vec{ tx,  -ty, tz},
                 Vec{  0, 2*ty, tz},
                 Vec{-tx,  -ty, tz}};
@@ -63,9 +63,9 @@ static Mat makeCell(int ibrav, float b, float c,
                 Vec{0, 0, c}};
     case 7:
         // body centered tetragonal
-        return {Vec{ 0.5, -0.5, c*0.5f},
-                Vec{ 0.5,  0.5, c*0.5f},
-                Vec{-0.5, -0.5, c*0.5f}};
+        return {Vec{ 0.5, -0.5, c*0.5},
+                Vec{ 0.5,  0.5, c*0.5},
+                Vec{-0.5, -0.5, c*0.5}};
     case 0:
         [[fallthrough]];
     case 8:
@@ -75,15 +75,15 @@ static Mat makeCell(int ibrav, float b, float c,
                 Vec{0, 0, c}};
     case 12:
         return {Vec{      1,                        0, 0},
-                Vec{b*alpha, b*sqrtf(1.f-alpha*alpha), 0},
+                Vec{b*alpha, b*sqrt(1.-alpha*alpha), 0},
                 Vec{      0,                        0, c}};
     case 14:
     {
-        float singam = sqrtf(1 - gamma*gamma);
+        double singam = sqrt(1 - gamma*gamma);
         return {Vec{      1,        0, 0},
                 Vec{b*gamma, b*singam, 0},
                 Vec{ c*beta, c*(alpha-beta*gamma)/singam,
-                     c*sqrtf(1 + 2*alpha*beta*gamma - alpha*alpha - beta*beta - gamma*gamma)
+                     c*sqrt(1 + 2*alpha*beta*gamma - alpha*alpha - beta*beta - gamma*gamma)
                             /singam}};
     }
     default:
@@ -103,7 +103,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
 
     std::string buf, line;
     int ibrav{0};
-    float cellDim{1}, b{1}, c{1}, alpha{0}, beta{0}, gamma{0};
+    double cellDim{1}, b{1}, c{1}, alpha{0}, beta{0}, gamma{0};
     CdmFmt cf{CdmFmt::Bohr};
     AtomFmt af{AtomFmt::Bohr};
     std::vector<std::string> types;
@@ -203,7 +203,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                     size_t pos;
                     if((pos = line.find("S=")) != line.npos){
                         scale = true;
-                        float fac;
+                        double fac;
                         std::stringstream{line.substr(pos+2)} >> fac;
                         scaleVec = Vec{fac,fac,fac};
                     }
@@ -383,7 +383,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                     parsed = true;
                     for(auto& t: types){
                         std::getline(file, buf);
-                        (*s.pte)[t].m = std::stof(buf);
+                        (*s.pte)[t].m = std::stod(buf);
                     }
                 }
             }
@@ -439,7 +439,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
             size_t count{0};
             std::vector<size_t> fixAtom;
             std::vector<std::pair<size_t, AtomFlags>> fixCoord;
-            std::vector<float> masses;
+            std::vector<double> masses;
             for(const auto& pair: types){
                 const auto& pE = (*m.pte)[pair.first];
                 masses.push_back(pE.m);

@@ -14,10 +14,10 @@ struct Element{
     std::string     CPPP;
     std::string     CPNL;
     unsigned int    Z;
-    float           m;
-    float           bondcut;
-    float           covr;
-    float           vdwr;
+    double          m;
+    double          bondcut;
+    double          covr;
+    double          vdwr;
     ColVec          col;
 };
 

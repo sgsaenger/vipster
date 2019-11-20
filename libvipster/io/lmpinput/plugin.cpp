@@ -72,8 +72,8 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
     auto checkInt = [&atoms](size_t col){
         try{
             for (auto& at: atoms){
-                auto f = stof(at[col]);
-                if(f != floorf(f)){
+                auto f = stod(at[col]);
+                if(f != floor(f)){
                     return false;
                 }
             }
@@ -235,7 +235,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
 
     std::string tmp;
     size_t nat{}, nbnd{}, ntype{};
-    float t1, t2;
+    double t1, t2;
     Mat cell{};
     std::map<size_t, size_t> indices{};
     std::map<size_t, std::string> types{};
@@ -337,9 +337,9 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                     s.pte->insert_or_assign(name,
                         [&t1](){
                         const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pte.at("")};
-                        float best_diff{5};
+                        double best_diff{5};
                         for(const auto& pair: Vipster::pte){
-                            float cur_diff = std::abs(t1-pair.second.m);
+                            double cur_diff = std::abs(t1-pair.second.m);
                             if(cur_diff < best_diff){
                                 best_diff = cur_diff;
                                 cur_guess = &pair.second;
@@ -397,11 +397,11 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                 std::transform(dist.begin(), dist.end(), diff.begin(), truncf);
                 // dist contains distance inside of cell
                 std::transform(dist.begin(), dist.end(), dist.begin(),
-                    [](float f){return std::fmod(f,1);});
+                    [](double f){return std::fmod(f,1);});
                 // dir contains direction of dist
                 std::transform(dist.begin(), dist.end(), dir.begin(),
-                    [](float f){
-                        return (std::abs(f) < std::numeric_limits<float>::epsilon())?
+                    [](double f){
+                        return (std::abs(f) < std::numeric_limits<double>::epsilon())?
                                     0 : ((f<0) ? -1 : 1);
                     });
                 // fail if atoms overlap
@@ -413,7 +413,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                 }
                 // wrap if needed
                 for(size_t d=0; d<3; ++d){
-                    if(std::abs(dist[d]) > 0.5f){
+                    if(std::abs(dist[d]) > 0.5){
                         dist[d] -= dir[d];
                         diff[d] += dir[d];
                     }
@@ -648,14 +648,14 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     }
 
     auto vec = step.getCellVec() * step.getCellDim(CdmFmt::Angstrom);
-    if(!float_comp(vec[0][1], 0.f) || !float_comp(vec[0][2], 0.f) || !float_comp(vec[1][2], 0.f)){
+    if(!float_comp(vec[0][1], 0.) || !float_comp(vec[0][2], 0.) || !float_comp(vec[1][2], 0.)){
         throw IO::Error("Cell vectors must form diagonal or lower triangular matrix for Lammps");
     }
     file << "\n0.0 "
          << vec[0][0] << " xlo xhi\n0.0 "
          << vec[1][1] << " ylo yhi\n0.0 "
          << vec[2][2] << " zlo zhi\n";
-    if(!float_comp(vec[1][0], 0.f) || !float_comp(vec[2][0], 0.f) || !float_comp(vec[2][1], 0.f)){
+    if(!float_comp(vec[1][0], 0.) || !float_comp(vec[2][0], 0.) || !float_comp(vec[2][1], 0.)){
         file << vec[1][0] << ' ' << vec[2][0] << ' ' << vec[2][1] << " xy xz yz\n";
     }
 
