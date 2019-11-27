@@ -61,12 +61,6 @@ after_test:
           ciuploadtool.exe build/Vipster-Win*.7z
       )
     # upload tagged release to PyPI
-      # Python 2.7
-    - "SET PATH=C:\\Python27%PYARCH%;C:\\Python27%PYARCH%\\Scripts;%OLDPATH%"
-    - IF "%APPVEYOR_REPO_TAG%"=="true" (
-          python -m pip install setuptools wheel cmake &&
-          python setup.py bdist_wheel
-      )
       # Python 3.6
     - "SET PATH=C:\\Python36%PYARCH%;C:\\Python36%PYARCH%\\Scripts;%OLDPATH%"
     - IF "%APPVEYOR_REPO_TAG%"=="true" (
@@ -75,6 +69,12 @@ after_test:
       )
       # Python 3.7
     - "SET PATH=C:\\Python37%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
+    - IF "%APPVEYOR_REPO_TAG%"=="true" (
+          python -m pip install setuptools wheel cmake &&
+          python setup.py bdist_wheel
+      )
+      # Python 3.8
+    - "SET PATH=C:\\Python38%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
     - IF "%APPVEYOR_REPO_TAG%"=="true" (
           python -m pip install setuptools wheel cmake &&
           python setup.py bdist_wheel

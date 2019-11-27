@@ -25,8 +25,8 @@ SaveFmtDialog::~SaveFmtDialog()
 void SaveFmtDialog::selFmt(int i)
 {
     plugin = outFormats[static_cast<size_t>(i)];
-    enableParamWidget(plugin->makeParam);
-    enablePresetWidget(plugin->makePreset);
+    enableParamWidget(static_cast<bool>(plugin->makeParam));
+    enablePresetWidget(static_cast<bool>(plugin->makePreset));
 }
 
 void SaveFmtDialog::enableParamWidget(bool on)

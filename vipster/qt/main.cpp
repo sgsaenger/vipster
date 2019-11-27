@@ -7,8 +7,17 @@
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
 
+#ifdef USE_PYTHON
+#pragma push_macro("slots")
+#undef slots
+#include <pybind11/embed.h>
+#include "pyvipster.h"
+#pragma pop_macro("slots")
+#endif
+
 using namespace Vipster;
 
+// setup and launch GUI
 [[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data,
                                 ConfigState&& state){
     QSurfaceFormat format;
@@ -30,6 +39,53 @@ using namespace Vipster;
     }
 }
 
+#ifdef USE_PYTHON
+// setup embedded python module
+namespace Vipster::Py{
+void Vec(py::module&);
+void Atom(py::module&);
+void Bond(py::module&);
+void Table(py::module&);
+void Step(py::module&);
+void KPoints(py::module&);
+void Molecule(py::module&);
+void Data(py::module&);
+void IO(py::module&, const ConfigState&, bool);
+void config(py::module&, ConfigState&);
+}
+
+PYBIND11_EMBEDDED_MODULE(vipster, m)
+{
+    m.doc() = "Python bindings for loaded data\n"
+              "===============================\n\n"
+              "Use curMol() to access the currently loaded molecule, "
+              "or getMol(n) to acces the n-th loaded molecule. "
+              "Please inspect Molecule and Step as the main data containers "
+              "for more information.";
+    /*
+     * Basic containers
+     */
+
+    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap__");
+    py::bind_vector<std::vector<std::string>>(m, "__StrVector__");
+    bind_array<ColVec>(m, "ColVec");
+
+    /*
+     * Initialize library
+     */
+
+    Py::Vec(m);
+    Py::Atom(m);
+    Py::Bond(m);
+    Py::Table(m);
+    Py::Step(m);
+    Py::KPoints(m);
+    Py::Molecule(m);
+    Py::Data(m);
+}
+#endif
+
+// command-line handling
 int main(int argc, char *argv[])
 {
     // read user-defined settings and make state known
@@ -37,6 +93,15 @@ int main(int argc, char *argv[])
     const IO::Plugins &plugins = std::get<2>(state);
     const IO::Parameters &params = std::get<3>(state);
     const IO::Presets &presets = std::get<4>(state);
+
+#ifdef USE_PYTHON
+    // instance the python-interpreter, keep it alive for the program's duration
+    pybind11::scoped_interpreter interp{};
+    auto vipster_module = py::module::import("vipster");
+    // expose rest of API and pass state without having to declare it as global
+    Py::IO(vipster_module, state, false);
+    Py::config(vipster_module, state);
+#endif
 
     // main parser + data-targets
     CLI::App app{"Vipster v" VIPSTER_VERSION "b"};
@@ -97,10 +162,10 @@ int main(int argc, char *argv[])
                       "Display available formats");
     // K-points
     constexpr const char* kp_err = "KPoints should be one of:\n\n"
-        "gamma\t\t\tGamma-point only\n"
+        "gamma\t\t\t\tGamma-point only\n"
         "mpg x y z sx sy sz\t\tMonkhorst-pack grid of size x*y*z with offset (sx,sy,sz)\n"
         "disc N B C [x y z w](Nx)\tDiscrete grid with N points, each given with position (x,y,z) and weight w.\n"
-        "\t\t\tB: Toggle Band-mode (0,1); C: Toggle crystal-coordinates (0,1)"
+        "\t\t\t\tB: Toggle Band-mode (0,1); C: Toggle crystal-coordinates (0,1)"
         "";
     convert->add_option("-k,--kpoints", conv_data.kpoints,
         "Specify k-points (defaults to parsed mesh or gamma-point)");
@@ -300,7 +365,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, -1ul, param.get(), preset.get());
+        writeFile(conv_data.output[1], fmt_out, mol, std::nullopt, param.get(), preset.get());
         throw CLI::Success();
     });
 

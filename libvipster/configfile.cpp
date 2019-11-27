@@ -2,19 +2,15 @@
 #include "nlohmann/json.hpp"
 
 #include <fstream>
-#include <tuple>
-#include <filesystem>
 
 #include <cstdlib>
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #include <dlfcn.h>
-#endif
-#ifdef _WIN32
+#elseif _WIN32
 #define NOMINMAX
 #include <windows.h>
-#endif
-#ifdef __linux__
+#else
 #include <unistd.h>
 #include <libgen.h>
 #include <dlfcn.h>
@@ -23,6 +19,14 @@
 using json = nlohmann::json;
 using namespace Vipster;
 namespace fs = std::filesystem;
+
+#ifdef _WIN32
+#define LIBEXTENSION ".dll"
+#elseif __APPLE__
+#define LIBEXTENSION ".dylib"
+#else
+#define LIBEXTENSION ".so"
+#endif
 
 const IO::Plugin* openPlugin(fs::path name)
 {
@@ -45,7 +49,7 @@ const IO::Plugin* openPlugin(fs::path name)
 #endif
 }
 
-fs::path getConfigDir(){
+fs::path Vipster::getConfigDir(){
 #if defined(__linux__) || defined(__FreeBSD__)
     auto tmp = std::getenv("XDG_CONFIG_HOME");
     return fs::path{tmp == nullptr ? std::string{std::getenv("HOME")}+"/.config" : tmp}/"vipster";
@@ -74,16 +78,17 @@ ConfigState Vipster::readConfig()
     // make sure config dir is available
     auto dir = getConfigDir();
     if(!fs::exists(dir)){
-        std::cout << "Config directory at \"" << dir << "\" does not exist" << std::endl;
+        std::cerr << "Config directory at \"" << dir << "\" does not exist" << std::endl;
         return retVal;
     }
     // User-created plugins
     auto pluginDir = dir/"plugins";
     if(fs::exists(pluginDir)){
         for(const auto& file: fs::directory_iterator(pluginDir)){
+            if(file.path().extension() != LIBEXTENSION) continue;
             auto* plug = openPlugin(file);
             if(plug){
-                std::cout << "Loading plugin" << file << std::endl;
+                std::cerr << "Loading plugin " << file << std::endl;
                 plugins.push_back(plug);
             }
         }
@@ -97,7 +102,7 @@ ConfigState Vipster::readConfig()
             pte_file >> j;
             pte = j;
         } catch (const json::exception& e) {
-            std::cout << "Error when reading Periodic table: " << e.what() << std::endl;
+            std::cerr << "Error when reading Periodic table: " << e.what() << std::endl;
         }
     }
     // Settings
@@ -109,7 +114,7 @@ ConfigState Vipster::readConfig()
             settings_file >> j;
             settings = j;
         } catch (const json::exception& e) {
-            std::cout << "Error when reading settings: " << e.what() << std::endl;
+            std::cerr << "Error when reading settings: " << e.what() << std::endl;
         }
     }
     // Parameter sets
@@ -131,7 +136,7 @@ ConfigState Vipster::readConfig()
                 }
             }
         } catch (const json::exception& e) {
-            std::cout << "Error when reading parameters: " << e.what() << std::endl;
+            std::cerr << "Error when reading parameters: " << e.what() << std::endl;
         }
     }
     // IO-presets
@@ -153,7 +158,7 @@ ConfigState Vipster::readConfig()
                 }
             }
         } catch (const json::exception& e) {
-            std::cout << "Error when reading IO-presets: " << e.what() << std::endl;
+            std::cerr << "Error when reading IO-presets: " << e.what() << std::endl;
         }
     }
     return retVal;
@@ -175,7 +180,7 @@ void Vipster::saveConfig(const ConfigState& cs)
         std::error_code error;
         fs::create_directories(dir, error);
         if(error){
-            std::cout << "Couldn't create directory \"" << dir
+            std::cerr << "Couldn't create directory \"" << dir
                       << "\" to write configuration" << std::endl;
             return;
         }
@@ -184,7 +189,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path pte_path = dir/"periodictable.json";
     std::ofstream pte_file{pte_path};
     if(!pte_file){
-        std::cout << "Can not open file at \"" << pte_path << "\" for writing Periodic Table" << std::endl;
+        std::cerr << "Can not open file at \"" << pte_path << "\" for writing Periodic Table" << std::endl;
         success = false;
     }
     j = pte;
@@ -193,7 +198,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path settings_path = dir/"settings.json";
     std::ofstream settings_file{settings_path};
     if(!settings_file){
-        std::cout << "Can not open file at \"" << settings_path << "\" for writing settings";
+        std::cerr << "Can not open file at \"" << settings_path << "\" for writing settings";
         success = false;
     }
     j = settings;
@@ -202,7 +207,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path param_path = dir/"parameters.json";
     std::ofstream param_file{param_path};
     if(!param_file){
-        std::cout << "Can not open file at \"" << param_path << "\" for writing parameter sets";
+        std::cerr << "Can not open file at \"" << param_path << "\" for writing parameter sets";
         success = false;
     }
     j = json{};
@@ -221,7 +226,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     fs::path preset_path = dir/"iopresets.json";
     std::ofstream preset_file{preset_path};
     if(!preset_file){
-        std::cout << "Can not open file at \"" << preset_path << "\" for writing IO-presets";
+        std::cerr << "Can not open file at \"" << preset_path << "\" for writing IO-presets";
         success = false;
     }
     j = json{};

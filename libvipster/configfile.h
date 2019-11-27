@@ -2,6 +2,7 @@
 #define CONFIG
 
 #include <tuple>
+#include <filesystem>
 
 #include "periodictable.h"
 #include "settings.h"
@@ -18,6 +19,7 @@ using ConfigState = std::tuple<PeriodicTable,
                                >;
 ConfigState readConfig();
 void saveConfig(const ConfigState &);
+std::filesystem::path getConfigDir();
 
 }
 

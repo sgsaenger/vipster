@@ -84,6 +84,7 @@ endif()
 
 # find pybind11 if needed
 if(PYBIND OR PYSHELL)
+    find_package(PythonInterp 3.6 REQUIRED)
     find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
@@ -96,7 +97,6 @@ if(PYBIND)
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "_vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
     if(PYPI OR (UNIX AND NOT APPLE))
-        find_package(PythonInterp REQUIRED)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"

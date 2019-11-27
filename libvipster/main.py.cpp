@@ -18,7 +18,7 @@ void KPoints(py::module&);
 void Molecule(py::module&);
 void Data(py::module&);
 void IO(py::module&, const ConfigState&, bool);
-void config(py::module&, const ConfigState&);
+void config(py::module&, ConfigState&);
 }
 
 PYBIND11_MODULE(_vipster, m) {
@@ -41,7 +41,6 @@ PYBIND11_MODULE(_vipster, m) {
     /*
      * Initialize library
      */
-
 
     Py::Vec(m);
     Py::Atom(m);

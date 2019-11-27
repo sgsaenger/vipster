@@ -28,7 +28,7 @@ namespace Vipster{
     // read with explicit format
     IO::Data readFile(const std::string &fn, const IO::Plugin* plug);
     bool     writeFile(const std::string &fn, const IO::Plugin* plug, const Molecule &m,
-                       size_t idx=-1ul,
+                       std::optional<size_t> idx={},
                        const IO::BaseParam *p=nullptr,
                        const IO::BasePreset *c=nullptr);
     std::optional<const IO::Plugin*> guessFmt(std::string fn,
