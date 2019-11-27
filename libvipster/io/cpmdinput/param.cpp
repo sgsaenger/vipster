@@ -6,11 +6,12 @@ using namespace Vipster;
 IO::CPParam::CPParam(Section info, Section cpmd, Section system, Section pimd,
                      Section path, Section ptddft, Section atoms, Section dft,
                      Section prop, Section resp, Section linres, Section tddft,
-                     Section hardness, Section classic, Section vdw, Section qmmm,
-                     std::string PPPrefix, std::string PPSuffix, std::string PPNonlocality)
+                     Section hardness, Section classic, Section exte, Section vdw,
+                     Section qmmm, std::string PPPrefix, std::string PPSuffix,
+                     std::string PPNonlocality)
     : info{info}, cpmd{cpmd}, system{system}, pimd{pimd}, path{path},
       ptddft{ptddft}, atoms{atoms}, dft{dft}, prop{prop}, resp{resp}, linres{linres},
-      tddft{tddft}, hardness{hardness}, classic{classic}, vdw{vdw}, qmmm{qmmm},
+      tddft{tddft}, hardness{hardness}, classic{classic}, exte{exte}, vdw{vdw}, qmmm{qmmm},
       PPPrefix{PPPrefix}, PPSuffix{PPSuffix}, PPNonlocality{PPNonlocality}
 {}
 
