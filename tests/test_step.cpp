@@ -21,7 +21,7 @@ static ostream& operator<<(ostream& os, const Atom& at)
 
 }
 
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
     Mat cv = {{{{1,2,3}},{{0,1,0}},{{0,0,1.5}}}};

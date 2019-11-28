@@ -1,7 +1,9 @@
+#include <pybind11/functional.h>
 #include "pyvipster.h"
 #include "fileio.h"
 #include "configfile.h"
 #include <map>
+#include <pybind11/stl.h>
 
 namespace Vipster::IO {
 std::ostream& operator<<(std::ostream& os, const Plugin *p){
@@ -113,6 +115,11 @@ auto bind_map_own(py::handle scope, const std::string &name) {
 }
 
 
+PYBIND11_MAKE_OPAQUE(Vipster::IO::Parameters);
+PYBIND11_MAKE_OPAQUE(Vipster::IO::Parameters::mapped_type);
+PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets);
+PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets::mapped_type);
+
 namespace Vipster::Py{
 void PWInput(py::module&);
 void LmpInput(py::module&);
@@ -124,33 +131,46 @@ void POSCAR(py::module&);
 void IO(py::module& m, const ConfigState& state, bool enableRead){
     auto io = m.def_submodule("IO");
 
-    /*
-     * read a file
-     */
-    m.def("readFile",[&state](std::string fn){
-        auto data = readFile(fn, std::get<2>(state));
-        if(data.data.empty()){
-            return py::make_tuple(data.mol, std::move(data.param), py::none());
-        }else{
-            py::list l{};
-            for(auto& d: data.data){
-                l.append(d.release());
+    py::class_<IO::Data>(io, "Data")
+        .def(py::init<>())
+        .def_readwrite("mol", &IO::Data::mol)
+        .def_property("param",
+                      [](const IO::Data& d){return d.param.get();},
+                      [](IO::Data& d, const IO::BaseParam* p)
+                      {d.param = p->copy();},
+                      py::return_value_policy::reference_internal)
+//        .def_readwrite("data", &IO::Data::data)
+    ;
+
+    if(enableRead){
+        /*
+         * read a file
+         */
+        m.def("readFile",[&state](std::string fn){
+            auto data = readFile(fn, std::get<2>(state));
+            if(data.data.empty()){
+                return py::make_tuple(data.mol, std::move(data.param), py::none());
+            }else{
+                py::list l{};
+                for(auto& d: data.data){
+                    l.append(d.release());
+                }
+                return py::make_tuple(data.mol, std::move(data.param), l);
             }
-            return py::make_tuple(data.mol, std::move(data.param), l);
-        }
-    }, "filename"_a);
-    m.def("readFile",[](std::string fn, const IO::Plugin* plug){
-        auto data = readFile(fn, plug);
-        if(data.data.empty()){
-            return py::make_tuple(data.mol, std::move(data.param), py::none());
-        }else{
-            py::list l{};
-            for(auto& d: data.data){
-                l.append(d.release());
+        }, "filename"_a);
+        m.def("readFile",[](std::string fn, const IO::Plugin* plug){
+            auto data = readFile(fn, plug);
+            if(data.data.empty()){
+                return py::make_tuple(data.mol, std::move(data.param), py::none());
+            }else{
+                py::list l{};
+                for(auto& d: data.data){
+                    l.append(d.release());
+                }
+                return py::make_tuple(data.mol, std::move(data.param), l);
             }
-            return py::make_tuple(data.mol, std::move(data.param), l);
-        }
-    }, "filename"_a, "format"_a);
+        }, "filename"_a, "format"_a);
+    }
 
     /*
      * write a file
@@ -158,7 +178,7 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
      * falling back to default-preset/param
      */
     m.def("writeFile", [&state](const std::string &fn, const IO::Plugin* plug, const Molecule &m,
-                       size_t idx=-1ul, const IO::BaseParam *p=nullptr, const IO::BasePreset *c=nullptr){
+                       std::optional<size_t> idx={}, const IO::BaseParam *p=nullptr, const IO::BasePreset *c=nullptr){
         if(!p && plug->makeParam){
             p = std::get<3>(state).at(plug).at("default").get();
         }
@@ -168,7 +188,29 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
         return writeFile(fn, plug, m, idx, p, c);
         },
           "filename"_a, "format"_a, "molecule"_a,
-          "index"_a=-1ul, "param"_a=nullptr, "config"_a=nullptr);
+          "index"_a=std::nullopt, "param"_a=nullptr, "config"_a=nullptr);
+    m.def("writeString", [&state](const IO::Plugin* plug, const Molecule &m,
+          std::optional<size_t> idx={}, const IO::BaseParam *p=nullptr, const IO::BasePreset *c=nullptr){
+        if(!plug->writer){
+            throw IO::Error{"Read-only format"};
+        }
+        if(!p && plug->makeParam){
+            p = std::get<3>(state).at(plug).at("default").get();
+        }
+        if(!c && plug->makePreset){
+            c = std::get<4>(state).at(plug).at("default").get();
+        }
+        if(!idx){
+            idx = m.getNstep()-1;
+        }
+        std::stringstream ss{};
+        auto success = plug->writer(m, ss, p, c, *idx);
+        if(success){
+            return ss.str();
+        }else{
+            return std::string{};
+        }
+    },"format"_a, "molecule"_a, "index"_a=std::nullopt, "param"_a=nullptr, "config"_a=nullptr);
 
     // Expose plugins
     py::class_<IO::Plugin>(io, "__Plugin")
@@ -176,8 +218,14 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
         .def_readonly("name", &IO::Plugin::name)
         .def_readonly("extension", &IO::Plugin::extension)
         .def_readonly("command", &IO::Plugin::command)
-        //TODO: shall be removed on C++ side, how can it be replaced here?
-        .def_readonly("arguments", &IO::Plugin::arguments)
+        .def_property_readonly("hasParser", [](const IO::Plugin*const p){
+            return static_cast<bool>(p->parser);})
+        .def_property_readonly("hasWriter", [](const IO::Plugin*const p){
+            return static_cast<bool>(p->writer);})
+        .def_property_readonly("hasParameters", [](const IO::Plugin*const p){
+            return static_cast<bool>(p->makeParam);})
+        .def_property_readonly("hasPresets", [](const IO::Plugin*const p){
+            return static_cast<bool>(p->makePreset);})
     ;
 
     /*

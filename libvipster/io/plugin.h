@@ -2,9 +2,9 @@
 #define IOPLUGIN_H
 
 #include "../molecule.h"
+#include "../settings.h"
 #include "parameters.h"
 #include "presets.h"
-#include "settings.h"
 #include "data.h"
 
 #include <string>
@@ -22,13 +22,12 @@ struct Plugin{
     std::string extension;
     std::string command;
     uint8_t     arguments;
-    IO::Data    (*parser)(const std::string& name, std::istream &file);
-    bool        (*writer)(const Molecule& m, std::ostream &file,
-                          const BaseParam *const p,
-                          const BasePreset *const c,
-                          size_t idx) = nullptr;
-    std::unique_ptr<BaseParam> (*makeParam)() = nullptr;
-    std::unique_ptr<BasePreset> (*makePreset)() = nullptr;
+    std::function<IO::Data(const std::string& name, std::istream &file)> parser{};
+    std::function<bool(const Molecule& m, std::ostream &file,
+                       const BaseParam *const p, const BasePreset *const c,
+                       size_t idx)> writer{};
+    std::function<std::unique_ptr<BaseParam>()> makeParam{};
+    std::function<std::unique_ptr<BasePreset>()> makePreset{};
 };
 
 class Error: public std::runtime_error

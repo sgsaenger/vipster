@@ -1,13 +1,39 @@
 #include "pyvipster.h"
 #include "plugin.h"
 
-namespace std {
-
-}
-
 namespace Vipster::Py{
 void CPInput(py::module& m){
     auto p = py::class_<IO::CPParam, IO::BaseParam>(m, "CPParam")
+        .def(py::init<IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, IO::CPParam::Section,
+                      IO::CPParam::Section, std::string,
+                      std::string, std::string>(),
+             "info"_a=IO::CPParam::Section{},
+             "cpmd"_a=IO::CPParam::Section{},
+             "system"_a=IO::CPParam::Section{},
+             "pimd"_a=IO::CPParam::Section{},
+             "path"_a=IO::CPParam::Section{},
+             "ptddft"_a=IO::CPParam::Section{},
+             "atoms"_a=IO::CPParam::Section{},
+             "dft"_a=IO::CPParam::Section{},
+             "prop"_a=IO::CPParam::Section{},
+             "resp"_a=IO::CPParam::Section{},
+             "linres"_a=IO::CPParam::Section{},
+             "tddft"_a=IO::CPParam::Section{},
+             "hardness"_a=IO::CPParam::Section{},
+             "classic"_a=IO::CPParam::Section{},
+             "exte"_a=IO::CPParam::Section{},
+             "vdw"_a=IO::CPParam::Section{},
+             "qmmm"_a=IO::CPParam::Section{},
+             "PPPrefix"_a=std::string{},
+             "PPSuffix"_a=std::string{},
+             "PPNonlocality"_a=std::string{})
         .def_readwrite("info", &IO::CPParam::info)
         .def_readwrite("cpmd", &IO::CPParam::cpmd)
         .def_readwrite("system", &IO::CPParam::system)
@@ -25,18 +51,24 @@ void CPInput(py::module& m){
         .def_readwrite("exte", &IO::CPParam::exte)
         .def_readwrite("vdw", &IO::CPParam::vdw)
         .def_readwrite("qmmm", &IO::CPParam::qmmm)
+        .def_readwrite("PPPrefix", &IO::CPParam::PPPrefix)
+        .def_readwrite("PPSuffix", &IO::CPParam::PPSuffix)
+        .def_readwrite("PPNonlocality", &IO::CPParam::PPNonlocality)
     ;
 
-    auto c = py::class_<IO::CPPreset, IO::BasePreset>(m, "CPPreset")
-        .def_readwrite("fmt", &IO::CPPreset::fmt)
-    ;
+    auto c = py::class_<IO::CPPreset, IO::BasePreset>(m, "CPPreset");
 
     py::enum_<IO::CPPreset::AtomFmt>(c, "AtomFmt")
         .value("Bohr", IO::CPPreset::AtomFmt::Bohr)
         .value("Angstrom", IO::CPPreset::AtomFmt::Angstrom)
         .value("Crystal", IO::CPPreset::AtomFmt::Crystal)
         .value("Alat", IO::CPPreset::AtomFmt::Alat)
-//        .value("Current", IO::CPPreset::AtomFmt::Current) // TODO: makes sense to expose this?
+        .value("Active", IO::CPPreset::AtomFmt::Active)
+    ;
+
+    c.def(py::init<IO::CPPreset::AtomFmt>(),
+          "fmt"_a=IO::CPPreset::AtomFmt::Active)
+     .def_readwrite("fmt", &IO::CPPreset::fmt)
     ;
 }
 }

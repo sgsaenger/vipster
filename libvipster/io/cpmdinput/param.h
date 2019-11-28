@@ -32,7 +32,7 @@ struct CPParam final: BaseParam{
             Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={},
             Section={}, Section={}, Section={}, Section={},
-            std::string="", std::string="", std::string="");
+            Section={}, std::string="", std::string="", std::string="");
     const struct Plugin* getFmt() const override;
     std::unique_ptr<BaseParam> copy() const override;
     void parseJson(const nlohmann::json&) override;

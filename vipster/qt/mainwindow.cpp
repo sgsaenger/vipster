@@ -326,7 +326,8 @@ void MainWindow::loadMol()
     // Format dialog
     QStringList formats{};
     for(const auto plug: plugins){
-        formats << QString::fromStdString(plug->name);
+        if(plug->parser)
+            formats << QString::fromStdString(plug->name);
     }
     if(fileDiag.exec() != 0){
         auto files = fileDiag.selectedFiles();
@@ -347,8 +348,11 @@ void MainWindow::loadMol()
                                                        formats, 0, false, &got_fmt);
                     // if the user selected the format, read the file
                     if(got_fmt){
-                        auto fmt = plugins[formats.indexOf(fmt_s)];
-                        newData(readFile(file, fmt));
+                        auto fmt = std::find_if(plugins.begin(), plugins.end(),
+                            [&](const auto& plug){return plug->name.c_str() == fmt_s;});
+                        if(fmt == plugins.end())
+                            throw Error{"Invalid format in loadMol occured"};
+                        newData(readFile(file, *fmt));
                     }
                 }else{
                     throw;

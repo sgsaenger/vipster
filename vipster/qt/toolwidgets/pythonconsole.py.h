@@ -4,7 +4,7 @@
 #include <QPlainTextEdit>
 #pragma push_macro("slots")
 #undef slots
-#include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
 #pragma pop_macro("slots")
 
 class MainWindow;
@@ -27,7 +27,6 @@ private:
     std::string tmpCmd{};
     std::vector<std::string> cmdHistory{};
     QStringList commandbuf{};
-    pybind11::scoped_interpreter interp{};
     pybind11::dict locals{};
     int cmdBlock{-1};
     MainWindow* master{nullptr};

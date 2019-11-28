@@ -18,7 +18,7 @@ static ostream& operator<<(ostream& out, const Mat& m)
 }
 }
 
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 
 TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
     Vec v1{{1, 1, 1}};

@@ -57,16 +57,16 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 
 ## Dependencies:
 
-- [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (included)
-- [CLI11](https://github.com/CLIUtils/CLI11) (included)
-- [tinyexpr](https://github.com/codeplea/tinyexpr) (included)
-- [CMake >= 3.9](https://cmake.org)
+- [JSON for Modern C++](https://github.com/nlohmann/json) 
+- [CLI11](https://github.com/CLIUtils/CLI11) 
+- [tinyexpr](https://github.com/codeplea/tinyexpr) 
+- [CMake](https://cmake.org)
 - and a C++17-capable compiler (g++/mingw > 7 or clang > 4)
 - optional:
-    - [Qt5 >= 5.10](https://www.qt.io) (desktop application)
+    - [Qt5](https://www.qt.io) (desktop application)
     - [emscripten](http://kripken.github.io/emscripten-site) (web interface)
-    - [pybind11](https://github.com/pybind/pybind11) (script interface, included)
-    - [Catch2](https://github.com/catchorg/Catch2) (testing, included)
+    - [pybind11](https://github.com/pybind/pybind11) (script interface)
+    - [Catch2](https://github.com/catchorg/Catch2) (testing)
 
 ## Supported file types:
 

@@ -1,21 +1,61 @@
 #include "configfile.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 #include <fstream>
-#include <tuple>
-#include <filesystem>
+
+#include <cstdlib>
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#include <dlfcn.h>
+#elif defined(_WIN32)
+#define NOMINMAX
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <libgen.h>
+#include <dlfcn.h>
+#endif
 
 using json = nlohmann::json;
 using namespace Vipster;
 namespace fs = std::filesystem;
 
-fs::path getConfigDir(){
+#if defined(_WIN32)
+#define LIBEXTENSION ".dll"
+#elif defined(__APPLE__)
+#define LIBEXTENSION ".dylib"
+#else
+#define LIBEXTENSION ".so"
+#endif
+
+const IO::Plugin* openPlugin(fs::path name)
+{
+#if defined(_WIN32)
+    try{
+        auto file = LoadLibrary(std::string{name.string()}.c_str());
+        if(file == NULL) return nullptr;
+        return reinterpret_cast<const IO::Plugin*>(GetProcAddress(file, "plugin"));
+    }catch(...){
+        return nullptr;
+    }
+#else
+    try{
+        auto *file = dlopen(name.c_str(), RTLD_LAZY);
+        if(!file) return nullptr;
+        return static_cast<const IO::Plugin*>(dlsym(file, "plugin"));
+    }catch(...){
+        return nullptr;
+    }
+#endif
+}
+
+fs::path Vipster::getConfigDir(){
 #if defined(__linux__) || defined(__FreeBSD__)
     auto tmp = std::getenv("XDG_CONFIG_HOME");
     return fs::path{tmp == nullptr ? std::string{std::getenv("HOME")}+"/.config" : tmp}/"vipster";
-#elif _WIN32
+#elif defined(_WIN32)
     return fs::path{std::getenv("APPDATA")}/"vipster";
-#elif __APPLE__
+#elif defined(__APPLE__)
     return fs::path{std::getenv("HOME")}/"Library/Application Support/vipster";
 #endif
 }
@@ -41,6 +81,18 @@ ConfigState Vipster::readConfig()
         std::cout << "Config directory at " << dir << " does not exist" << std::endl;
         return retVal;
     }
+    // User-created plugins
+    auto pluginDir = dir/"plugins";
+    if(fs::exists(pluginDir)){
+        for(const auto& file: fs::directory_iterator(pluginDir)){
+            if(file.path().extension() != LIBEXTENSION) continue;
+            auto* plug = openPlugin(file);
+            if(plug){
+                std::cerr << "Loading plugin " << file << std::endl;
+                plugins.push_back(plug);
+            }
+        }
+    }
     // Periodic table
     fs::path pte_path = dir/"periodictable.json";
     std::ifstream pte_file{pte_path};
@@ -50,7 +102,7 @@ ConfigState Vipster::readConfig()
             pte_file >> j;
             pte = j;
         } catch (const json::exception& e) {
-            std::cout << "Error when reading Periodic table: " << e.what() << std::endl;
+            std::cerr << "Error when reading Periodic table: " << e.what() << std::endl;
         }
     }
     // Settings
@@ -62,7 +114,7 @@ ConfigState Vipster::readConfig()
             settings_file >> j;
             settings = j;
         } catch (const json::exception& e) {
-            std::cout << "Error when reading settings: " << e.what() << std::endl;
+            std::cerr << "Error when reading settings: " << e.what() << std::endl;
         }
     }
     // Parameter sets
@@ -73,7 +125,7 @@ ConfigState Vipster::readConfig()
             json j;
             param_file >> j;
             for(const auto& plugin: plugins){
-                if(!(plugin->arguments & IO::Plugin::Param)) continue;
+                if(!plugin->makeParam) continue;
                 auto pos = j.find(plugin->command);
                 if(pos != j.end()){
                     auto& tmp = params[plugin];
@@ -84,7 +136,7 @@ ConfigState Vipster::readConfig()
                 }
             }
         } catch (const json::exception& e) {
-            std::cout << "Error when reading parameters: " << e.what() << std::endl;
+            std::cerr << "Error when reading parameters: " << e.what() << std::endl;
         }
     }
     // IO-presets
@@ -95,7 +147,7 @@ ConfigState Vipster::readConfig()
             json j;
             presets_file >> j;
             for(const auto& plugin: plugins){
-                if(!(plugin->arguments & IO::Plugin::Preset)) continue;
+                if(!plugin->makePreset) continue;
                 auto pos = j.find(plugin->command);
                 if(pos != j.end()){
                     auto& tmp = presets[plugin];
@@ -106,7 +158,7 @@ ConfigState Vipster::readConfig()
                 }
             }
         } catch (const json::exception& e) {
-            std::cout << "Error when reading IO-presets: " << e.what() << std::endl;
+            std::cerr << "Error when reading IO-presets: " << e.what() << std::endl;
         }
     }
     return retVal;

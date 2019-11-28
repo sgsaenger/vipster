@@ -4,52 +4,12 @@
 #include "molecule.h"
 #include <QTextBlock>
 #include <QScrollBar>
+#pragma push_macro("slots")
+#undef slots
+#include <pybind11/embed.h>
+#pragma pop_macro("slots")
 
 using namespace Vipster;
-
-namespace Vipster::Py{
-void Vec(py::module&);
-void Atom(py::module&);
-void Bond(py::module&);
-void Table(py::module&);
-void Step(py::module&);
-void KPoints(py::module&);
-void Molecule(py::module&);
-void IO(py::module&);
-void Data(py::module&);
-}
-
-PYBIND11_EMBEDDED_MODULE(vipster, m)
-{
-    m.doc() = "Python bindings for loaded data\n"
-              "===============================\n\n"
-              "Use curMol() to access the currently loaded molecule, "
-              "or getMol(n) to acces the n-th loaded molecule. "
-              "Please inspect Molecule and Step as the main data containers "
-              "for more information.";
-    /*
-     * Basic containers
-     */
-
-    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap__");
-    py::bind_vector<std::vector<std::string>>(m, "__StrVector__");
-    bind_array<ColVec>(m, "ColVec");
-
-    /*
-     * Initialize library
-     */
-
-    Py::Vec(m);
-    Py::Atom(m);
-    Py::Bond(m);
-    Py::Table(m);
-    Py::Step(m);
-    Py::KPoints(m);
-    Py::Molecule(m);
-    // TODO: does this make sense? should probably be custom-wrapped, if even
-//    Py::IO(m);
-    Py::Data(m);
-}
 
 PythonConsole::PythonConsole(QWidget *parent) :
     QPlainTextEdit(parent)

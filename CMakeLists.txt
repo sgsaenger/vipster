@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(external)
+include_directories(external/tinyexpr)
 include_directories(libvipster)
 include_directories(python)
 include_directories(vipster/qt)
@@ -40,29 +40,51 @@ set_target_properties(libvipster
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-if(UNIX AND NOT APPLE AND NOT WEB)
-    install(TARGETS libvipster
-        LIBRARY
-        DESTINATION "lib"
-        )
-    install(DIRECTORY "libvipster/"
-        DESTINATION "include/vipster"
-        FILES_MATCHING PATTERN "*.h"
-        )
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+if(UNIX)
+    # allow dynamic plugin loading
+    target_link_libraries(libvipster dl)
+    # on traditional unix-like platforms,
+    # install files to appropriate locations
+    if(NOT APPLE AND NOT WEB)
+        install(TARGETS libvipster
+            LIBRARY
+            DESTINATION "lib"
+            )
+        install(DIRECTORY "libvipster/"
+            DESTINATION "include/vipster"
+            FILES_MATCHING PATTERN "*.h"
+            )
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+    endif()
 endif()
+# find suitable json-library
+find_package(nlohmann_json 3.3.0 CONFIG)
+if(NOT nlohmann_json_FOUND)
+    set(JSON_BuildTests OFF CACHE INTERNAL "")
+    add_subdirectory(external/nlohmann_json)
+endif()
+target_link_libraries(libvipster nlohmann_json::nlohmann_json)
 
 if(TESTS)
     # Tests, so far only for library
-    enable_testing()
     file(GLOB TEST_SOURCES "tests/*.cpp")
     add_executable(test_lib ${TEST_SOURCES})
-    target_link_libraries(test_lib libvipster)
+
+    # find suitable catch2-installation
+    find_package(Catch2 2.4.1 CONFIG)
+    if(NOT Catch2_FOUND)
+        add_subdirectory(external/Catch2)
+    endif()
+    target_link_libraries(test_lib libvipster Catch2::Catch2)
+
+    # enable testing via build system
+    enable_testing()
     add_test(NAME test_lib COMMAND $<TARGET_FILE:test_lib>)
 endif()
 
 # find pybind11 if needed
 if(PYBIND OR PYSHELL)
+    find_package(PythonInterp 3.6 REQUIRED)
     find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
@@ -75,7 +97,6 @@ if(PYBIND)
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "_vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
     if(PYPI OR (UNIX AND NOT APPLE))
-        find_package(PythonInterp REQUIRED)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
@@ -101,6 +122,12 @@ if(DESKTOP)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
+
+    # find suitable cli11 installation
+    find_package(CLI11 1.7.1 CONFIG)
+    if(NOT CLI11_FOUND)
+        add_subdirectory(external/CLI11)
+    endif()
 
     # executable
     file(GLOB_RECURSE QT_SOURCES
@@ -130,15 +157,17 @@ if(DESKTOP)
         set(ICON_SOURCES "util/win.rc")
     endif()
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
+    # fix name-clash on import lib, assuming gcc-conventions, needs changes for clang
     if(WIN32)
-        # fix name-clash on import lib, assuming gcc-conventions, needs changes for clang
         set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
     endif()
+    # set link targets
+    target_link_libraries(vipster Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
     if(PYSHELL)
-        target_link_libraries(vipster pybind11::embed Qt5::Gui Qt5::Widgets libvipster)
-    else()
-        target_link_libraries(vipster Qt5::Gui Qt5::Widgets libvipster)
+        target_link_libraries(vipster pybind11::embed)
     endif()
+    # on traditional unix-like platforms,
+    # install files to appropriate locations
     if(UNIX AND NOT APPLE)
         install(TARGETS vipster RUNTIME DESTINATION "bin")
         install(FILES "util/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")

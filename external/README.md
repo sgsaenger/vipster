@@ -1,7 +1,8 @@
 Included herein are:
 
-- [JSON for Modern C++ >= 3.0](https://github.com/nlohmann/json) (v3.3.0, MIT): config-file parsing
-- [CLI11](https://github.com/CLIUtils/CLI11) (v1.7.1, BSD): command-line parsing
-- [tinyexpr](https://github.com/codeplea/tinyexpr) (git:ffb0d41, Zlib): evaluate arithmetic expressions, e.g. in PWI-coordinates
-- [pybind11](https://github.com/pybind/pybind11) (git:a6355b0, BSD): optional, python-bindings for libvipster
-- [Catch2](https://github.com/catchorg/Catch2) (v2.4.1, Boost): optional, unit-tests
+[name] ([version]): [target], [included as]
+- [tinyexpr](https://github.com/codeplea/tinyexpr) (git:ffb0d41, Zlib): libvipster, always enabled
+- [JSON for Modern C++](https://github.com/nlohmann/json) (v3.3.0, MIT): libvipster, git submodule
+- [CLI11](https://github.com/CLIUtils/CLI11) (v1.7.1, BSD): vipster, git submodule
+- [pybind11](https://github.com/pybind/pybind11) (git:a6355b0, BSD): libvipster/vipster, git submodule, optional
+- [Catch2](https://github.com/catchorg/Catch2) (v2.4.1, Boost): unit-tests, git submodule
