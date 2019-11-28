@@ -19,6 +19,8 @@ private:
             return py::cast<IO::Data>(pyReader(n, filestring));
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
+        }catch(const py::cast_error&){
+            throw IO::Error{"Could not parse a Molecule"};
         }
     }
     bool writer_impl(const Molecule &m, std::ostream &file,
@@ -35,6 +37,8 @@ private:
             }
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
+        }catch(const py::cast_error&){
+            throw IO::Error{"Could not convert Molecule to file"};
         }
     }
     std::unique_ptr<IO::BaseParam> makeParam_impl(){
@@ -116,7 +120,9 @@ void config(py::module& m, ConfigState& state){
     m.attr("IOPresets") = py::cast(std::get<4>(state), py::return_value_policy::reference);
     auto& plugins = std::get<2>(state);
     // try to parse python-based plugins
-    for(const auto& file: fs::directory_iterator(getConfigDir()/"plugins")){
+    auto pluginDir = getConfigDir()/"plugins";
+    if(!fs::exists(pluginDir)) return;
+    for(const auto& file: fs::directory_iterator(pluginDir)){
         if(file.path().extension() != ".py") continue;
         auto plug = Plugin::create(file);
         if(plug){

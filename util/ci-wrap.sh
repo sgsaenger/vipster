@@ -15,7 +15,7 @@ case $1 in
                         ;;
                     desktop)
                         # select python version:
-                        pyenv shell 3.7
+                        pyenv global 3.8
                         pyenv versions
                         # make sure GCC8 is used:
                         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8

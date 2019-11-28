@@ -4,10 +4,10 @@
 #include <fstream>
 
 #include <cstdlib>
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
 #include <dlfcn.h>
-#elseif _WIN32
+#elif defined(_WIN32)
 #define NOMINMAX
 #include <windows.h>
 #else
@@ -20,9 +20,9 @@ using json = nlohmann::json;
 using namespace Vipster;
 namespace fs = std::filesystem;
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define LIBEXTENSION ".dll"
-#elseif __APPLE__
+#elif defined(__APPLE__)
 #define LIBEXTENSION ".dylib"
 #else
 #define LIBEXTENSION ".so"
@@ -30,11 +30,11 @@ namespace fs = std::filesystem;
 
 const IO::Plugin* openPlugin(fs::path name)
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     try{
-        auto file = LoadLibrary(TEXT(name.c_str()));
+        auto file = LoadLibrary(std::string{name.string()}.c_str());
         if(file == NULL) return nullptr;
-        return static_cast<const IO::Plugin*>(GetProcAddress(file, "plugin"));
+        return reinterpret_cast<const IO::Plugin*>(GetProcAddress(file, "plugin"));
     }catch(...){
         return nullptr;
     }
@@ -53,9 +53,9 @@ fs::path Vipster::getConfigDir(){
 #if defined(__linux__) || defined(__FreeBSD__)
     auto tmp = std::getenv("XDG_CONFIG_HOME");
     return fs::path{tmp == nullptr ? std::string{std::getenv("HOME")}+"/.config" : tmp}/"vipster";
-#elif _WIN32
+#elif defined(_WIN32)
     return fs::path{std::getenv("APPDATA")}/"vipster";
-#elif __APPLE__
+#elif defined(__APPLE__)
     return fs::path{std::getenv("HOME")}/"Library/Application Support/vipster";
 #endif
 }
