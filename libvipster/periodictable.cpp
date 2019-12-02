@@ -1,5 +1,4 @@
 #include "periodictable.h"
-#include "configfile.h"
 #include <cctype>
 #include <optional>
 

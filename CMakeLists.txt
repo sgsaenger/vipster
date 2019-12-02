@@ -179,6 +179,7 @@ endif()
 if(WEB)
     # Emscripten-based web application
 
+    add_compile_definitions("GL_DOUBLE=GL_FLOAT")
     set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0")
     file(GLOB WEB_RESOURCES "vipster/resources/*.frag" "vipster/resources/*.vert")
     foreach(file ${WEB_RESOURCES})

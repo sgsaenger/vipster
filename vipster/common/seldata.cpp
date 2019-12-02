@@ -129,9 +129,9 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
-                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<double>(off[0]),
-                                                          static_cast<double>(off[1]),
-                                                          static_cast<double>(off[2])}),
+                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
+                                                          static_cast<Vec::value_type>(off[1]),
+                                                          static_cast<Vec::value_type>(off[2])}),
                                       static_cast<float>(it->type->vdwr*1.3),
                                       {static_cast<int16_t>(off[0]),
                                        static_cast<int16_t>(off[1]),
@@ -144,9 +144,9 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
-                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<double>(off[0]),
-                                                          static_cast<double>(off[1]),
-                                                          static_cast<double>(off[2])}),
+                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
+                                                          static_cast<Vec::value_type>(off[1]),
+                                                          static_cast<Vec::value_type>(off[2])}),
                                       static_cast<float>(it->type->covr*1.3),
                                       {static_cast<int16_t>(off[0]),
                                        static_cast<int16_t>(off[1]),

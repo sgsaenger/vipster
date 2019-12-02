@@ -42,7 +42,7 @@ build_script:
     - mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
     - SET OLDPATH=%PATH%
     - "SET PATH=C:\\Python37%PYARCH%;C:\\Python37%PYARCH%\\Scripts;%OLDPATH%"
-    - cmake -DTESTS=ON -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="C:\msys64\mingw64\bin" -G"MSYS Makefiles" ..
+    - cmake -DTESTS=ON -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCLI11_TESTING=OFF -DCMAKE_PREFIX_PATH="C:\msys64\mingw64\bin" -G"MSYS Makefiles" ..
     - cmake --build .
 test_script:
     - test_lib.exe

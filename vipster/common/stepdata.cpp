@@ -482,8 +482,8 @@ void GUI::StepData::update(Step* step,
         const auto& col1 = bd.type ? bd.type->second : elements[bd.at1]->second.col;
         const auto& col2 = bd.type ? bd.type->second : elements[bd.at2]->second.col;
         // handle bonds parallel to x-axis
-        if(std::abs(bond_axis[1])<std::numeric_limits<double>::epsilon()&&
-           std::abs(bond_axis[2])<std::numeric_limits<double>::epsilon()){
+        if(std::abs(bond_axis[1])<std::numeric_limits<Vec::value_type>::epsilon()&&
+           std::abs(bond_axis[2])<std::numeric_limits<Vec::value_type>::epsilon()){
             c = std::copysign(1.f, static_cast<float>(bond_axis[0]));
             bond_buffer.push_back({
                 //mat3 with rotation and scaling

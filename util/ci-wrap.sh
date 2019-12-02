@@ -14,9 +14,6 @@ case $1 in
                         for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
                         ;;
                     desktop)
-                        # select python version:
-                        pyenv global 3.8
-                        pyenv versions
                         # make sure GCC8 is used:
                         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
                         sudo update-alternatives --set gcc /usr/bin/gcc-8
@@ -60,7 +57,7 @@ case $1 in
                     desktop)
                         mkdir build
                         cd build
-                        cmake -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DTESTS=ON -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DTESTS=ON -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=/opt/python/3.7.1/bin/python3 -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
                         make -j2
                         ./test_lib
                         ;;
@@ -95,7 +92,7 @@ case $1 in
                         # build release-version
                         mkdir -p $TRAVIS_BUILD_DIR/release
                         cd $TRAVIS_BUILD_DIR/release
-                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_EXECUTABLE=/opt/python/3.7.1/bin/python3 $TRAVIS_BUILD_DIR
                         make -j2
                         # build AppImage
                         bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
