@@ -24,7 +24,7 @@ public:
 private:
     std::vector<Face> faces;
     Mat cell;
-    std::array<Vec, 8> cell_buffer;
+    std::array<float, 24> cell_buffer;
     std::array<float, 9> cell_gpu;
     Texture texture;
     // GPU-State/Data:

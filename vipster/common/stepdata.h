@@ -6,12 +6,25 @@
 
 namespace Vipster{
 namespace GUI {
-// CPU-side buffers for render-data
+/* CPU-side buffers for render-data
+ *
+ * if we're on a GLES platform (WebGL) we need to include single-precision
+ * coordinates in render-buffer, CPU and GPU-side
+ */
+#ifdef GL_ES_VERSION_3_0
+struct AtomProp{ // 12 bytes + 9 bytes + 3 bytes padding
+    float   pos[3];  // 3*4 = 12 bytes
+    float   rad;  // 4 bytes
+    ColVec  col;  // 4 bytes
+    uint8_t hide; // 1 byte
+};
+#else
 struct AtomProp{ // 9 bytes + 3 bytes padding + 24 bytes directly from step
     float   rad;  // 4 bytes
     ColVec  col;  // 4 bytes
     uint8_t hide; // 1 byte
 };
+#endif
 struct BondProp{ // 64 bytes
     float mat[9];        // 9*4 = 36 bytes
     float pos[3];        // 3*4 = 12 bytes
@@ -23,7 +36,7 @@ struct StepData: public Data{
     // CPU-Data:
     std::vector<AtomProp> atom_buffer{};
     std::vector<BondProp> bond_buffer{};
-    std::array<Vec,8> cell_buffer{};
+    std::array<float, 24> cell_buffer{};
     std::array<float, 9>  cell_mat{};
     Step* curStep;
     // CPU-State:

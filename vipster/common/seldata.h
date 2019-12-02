@@ -6,8 +6,8 @@
 
 namespace Vipster {
 namespace GUI {
-    struct SelProp{ // 22 bytes
-        Vec pos;    // 3*4 = 12 bytes
+    struct SelProp{ // 34|22 bytes
+        Vec pos;    // 3*8|4 = 24|12 bytes
         float rad;  // 4 bytes
         int16_t mult[3]; // 3*2 = 6 bytes
     };

@@ -51,13 +51,22 @@ void GUI::SelData::initGL(void *context)
     }
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
+    // ATOM POSITIONS
+#ifdef GL_ES_VERSION_3_0
+    glVertexAttribPointer(shader.position, 3,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(SelProp),
+                          reinterpret_cast<const GLvoid*>(offsetof(SelProp, pos)));
+#else
     glVertexAttribPointer(shader.position, 3,
                           GL_DOUBLE, GL_FALSE,
                           sizeof(SelProp),
                           reinterpret_cast<const GLvoid*>(offsetof(SelProp, pos)));
+#endif
     glVertexAttribDivisor(shader.position, 1);
     glEnableVertexAttribArray(shader.position);
 
+    // ATOM PROPERTIES
     glVertexAttribPointer(shader.vert_scale, 1,
                           GL_FLOAT, GL_FALSE,
                           sizeof(SelProp),

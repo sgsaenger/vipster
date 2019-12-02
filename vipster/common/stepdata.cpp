@@ -72,10 +72,19 @@ void GUI::StepData::initSel(GLuint vao)
     glEnableVertexAttribArray(sel_shader.vertex);
 
     // atom positions
+#ifdef GL_ES_VERSION_3_0
+    // positions included with rest of properties
+    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    glVertexAttribPointer(sel_shader.position, 3,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(AtomProp), nullptr);
+#else
+    // seperate buffer for positions
     glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     glVertexAttribPointer(sel_shader.position, 3,
                           GL_DOUBLE, GL_FALSE,
-                          sizeof(Vec), nullptr);
+                          0, nullptr);
+#endif
     glVertexAttribDivisor(sel_shader.position, 1);
     glEnableVertexAttribArray(sel_shader.position);
 
@@ -118,10 +127,20 @@ void GUI::StepData::initAtom(GLuint vao)
     glEnableVertexAttribArray(atom_shader.vertex);
 
     // atom positions
+#ifdef GL_ES_VERSION_3_0
+    // positions included with rest of properties
+    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    glVertexAttribPointer(atom_shader.position, 3,
+                          GL_FLOAT, GL_FALSE,
+                          sizeof(AtomProp),
+                          reinterpret_cast<const GLvoid*>(offsetof(AtomProp, pos)));
+#else
+    // seperate buffer for positions
     glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     glVertexAttribPointer(atom_shader.position, 3,
                           GL_DOUBLE, GL_FALSE,
-                          sizeof(Vec), nullptr);
+                          0, nullptr);
+#endif
     glVertexAttribDivisor(atom_shader.position, 1);
     glEnableVertexAttribArray(atom_shader.position);
 
@@ -236,7 +255,7 @@ void GUI::StepData::initCell(GLuint vao)
     glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-    glVertexAttribPointer(cell_shader.vertex, 3, GL_DOUBLE, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(cell_shader.vertex);
 }
 
@@ -354,8 +373,9 @@ void GUI::StepData::updateGL()
 {
     //TODO: separate data-handling somehow
     // ATOMS
-    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     auto nat = atom_buffer.size();
+#ifndef GL_ES_VERSION_3_0
+    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
     if (nat != 0u) {
         glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
                      static_cast<const void*>(
@@ -364,6 +384,7 @@ void GUI::StepData::updateGL()
     } else {
         glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
+#endif
     glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
     if (nat != 0u) {
         glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(AtomProp)),
@@ -396,8 +417,15 @@ void GUI::StepData::update(Step* step,
 
 // CELL
     Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
-    cell_buffer = {{ Vec{}, cv[0], cv[1], cv[2], cv[0]+cv[1], cv[0]+cv[2],
-                     cv[1]+cv[2], cv[0]+cv[1]+cv[2] }};
+    cell_buffer = {0,0,0,
+                  static_cast<float>(cv[0][0]), static_cast<float>(cv[0][1]), static_cast<float>(cv[0][2]),
+                  static_cast<float>(cv[1][0]), static_cast<float>(cv[1][1]), static_cast<float>(cv[1][2]),
+                  static_cast<float>(cv[2][0]), static_cast<float>(cv[2][1]), static_cast<float>(cv[2][2]),
+                  static_cast<float>(cv[0][0]+cv[1][0]), static_cast<float>(cv[0][1]+cv[1][1]), static_cast<float>(cv[0][2]+cv[1][2]),
+                  static_cast<float>(cv[0][0]+cv[2][0]), static_cast<float>(cv[0][1]+cv[2][1]), static_cast<float>(cv[0][2]+cv[2][2]),
+                  static_cast<float>(cv[1][0]+cv[2][0]), static_cast<float>(cv[1][1]+cv[2][1]), static_cast<float>(cv[1][2]+cv[2][2]),
+                  static_cast<float>(cv[0][0]+cv[1][0]+cv[2][0]), static_cast<float>(cv[0][1]+cv[1][1]+cv[2][1]), static_cast<float>(cv[0][2]+cv[1][2]+cv[2][2]),
+                  };
     Mat tmp_mat;
     if(curStep->getFmt() == AtomFmt::Crystal){
         tmp_mat = curStep->getCellVec();
@@ -428,6 +456,25 @@ void GUI::StepData::update(Step* step,
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
+#ifdef GL_ES_VERSION_3_0
+    if(useVdW){
+        for (const auto& at: *curStep){
+            atom_buffer.push_back({{static_cast<float>(at.coord[0]),
+                                    static_cast<float>(at.coord[1]),
+                                    static_cast<float>(at.coord[2])},
+                                   static_cast<float>(at.type->vdwr), at.type->col,
+                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
+        }
+    }else{
+        for (const auto& at: *curStep){
+            atom_buffer.push_back({{static_cast<float>(at.coord[0]),
+                                    static_cast<float>(at.coord[1]),
+                                    static_cast<float>(at.coord[2])},
+                                   static_cast<float>(at.type->covr), at.type->col,
+                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
+        }
+    }
+#else
     if(useVdW){
         for (const auto& at: *curStep){
             atom_buffer.push_back({static_cast<float>(at.type->vdwr), at.type->col,
@@ -439,6 +486,7 @@ void GUI::StepData::update(Step* step,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }
+#endif
 
 // BONDS
     constexpr Vec x_axis{{1,0,0}};

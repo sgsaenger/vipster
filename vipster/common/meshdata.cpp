@@ -11,8 +11,15 @@ GUI::MeshData::MeshData(const GlobalData& glob, std::vector<Face>&& faces,
       faces{std::move(faces)},
       cell{cell}, texture{texture}
 {
-    cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],
-                   cell[0]+cell[2], cell[1]+cell[2], cell[0]+cell[1]+cell[2]}};
+    cell_buffer = {0,0,0,
+                  static_cast<float>(cell[0][0]), static_cast<float>(cell[0][1]), static_cast<float>(cell[0][2]),
+                  static_cast<float>(cell[1][0]), static_cast<float>(cell[1][1]), static_cast<float>(cell[1][2]),
+                  static_cast<float>(cell[2][0]), static_cast<float>(cell[2][1]), static_cast<float>(cell[2][2]),
+                  static_cast<float>(cell[0][0]+cell[1][0]), static_cast<float>(cell[0][1]+cell[1][1]), static_cast<float>(cell[0][2]+cell[1][2]),
+                  static_cast<float>(cell[0][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[2][2]),
+                  static_cast<float>(cell[1][0]+cell[2][0]), static_cast<float>(cell[1][1]+cell[2][1]), static_cast<float>(cell[1][2]+cell[2][2]),
+                  static_cast<float>(cell[0][0]+cell[1][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[1][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[1][2]+cell[2][2]),
+                  };
     cell_gpu = {{static_cast<float>(cell[0][0]),
                  static_cast<float>(cell[1][0]),
                  static_cast<float>(cell[2][0]),
@@ -94,7 +101,7 @@ void GUI::MeshData::initCell(GLuint vao)
     glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, global.cell_ibo);
     glBindBuffer(GL_ARRAY_BUFFER, cell_vbo);
-    glVertexAttribPointer(cell_shader.vertex, 3, GL_DOUBLE, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(cell_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(cell_shader.vertex);
 
 }
@@ -125,8 +132,15 @@ void GUI::MeshData::update(const Texture& tex)
 void GUI::MeshData::update(const Mat &c)
 {
     cell = c;
-    cell_buffer = {{ Vec{}, cell[0], cell[1], cell[2], cell[0]+cell[1],
-                   cell[0]+cell[2], cell[1]+cell[2], cell[0]+cell[1]+cell[2]}};
+    cell_buffer = {0,0,0,
+                  static_cast<float>(cell[0][0]), static_cast<float>(cell[0][1]), static_cast<float>(cell[0][2]),
+                  static_cast<float>(cell[1][0]), static_cast<float>(cell[1][1]), static_cast<float>(cell[1][2]),
+                  static_cast<float>(cell[2][0]), static_cast<float>(cell[2][1]), static_cast<float>(cell[2][2]),
+                  static_cast<float>(cell[0][0]+cell[1][0]), static_cast<float>(cell[0][1]+cell[1][1]), static_cast<float>(cell[0][2]+cell[1][2]),
+                  static_cast<float>(cell[0][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[2][2]),
+                  static_cast<float>(cell[1][0]+cell[2][0]), static_cast<float>(cell[1][1]+cell[2][1]), static_cast<float>(cell[1][2]+cell[2][2]),
+                  static_cast<float>(cell[0][0]+cell[1][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[1][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[1][2]+cell[2][2]),
+                  };
     cell_gpu = {{static_cast<float>(cell[0][0]),
                  static_cast<float>(cell[1][0]),
                  static_cast<float>(cell[2][0]),
