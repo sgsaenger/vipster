@@ -126,7 +126,7 @@ void config(py::module& m, ConfigState& state){
         if(file.path().extension() != ".py") continue;
         auto plug = Plugin::create(file);
         if(plug){
-            std::cerr << "Loading Python-plugin " << file << std::endl;
+            std::cerr << "Loading Python-plugin " << file.path() << std::endl;
             plugins.push_back(plug);
         }
     }
