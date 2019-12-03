@@ -8,7 +8,7 @@ jobs:
         strategy:
             matrix:
                 build_type: [Debug, Release]
-                os: [ubuntu-16.04, windows-latest, macOS-latest]
+                os: [ubuntu-16.04, windows-latest] #, macOS-latest]
 
         steps:
         - uses: actions/checkout@v1
@@ -54,14 +54,13 @@ jobs:
               echo ::add-path::$QTDIR/bin
               echo ::set-env name=CMAKE_PREFIX_PATH::$QTDIR:$CMAKE_PREFIX_PATH
 
-
-              #- name: Cache MinGW
-              #  if: runner.os == 'Windows'
-              #  id: cache-mingw
-              #  uses: actions/cache@v1
-              #  with:
-              #      path: MinGW
-              #      key: mingw
+        - name: Cache MinGW
+          if: runner.os == 'Windows'
+          id: cache-mingw
+          uses: actions/cache@v1
+          with:
+              path: MinGW
+              key: mingw
 
         - name: Install MinGW
           if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
