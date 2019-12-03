@@ -126,6 +126,7 @@ if(DESKTOP)
     # find suitable cli11 installation
     find_package(CLI11 1.7.1 CONFIG)
     if(NOT CLI11_FOUND)
+        set(CLI11_TESTING OFF CACHE INTERNAL "")
         add_subdirectory(external/CLI11)
     endif()
 

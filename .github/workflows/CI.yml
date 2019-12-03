@@ -1,0 +1,125 @@
+name: Desktop-CI
+on: [push, pull_request]
+
+jobs:
+    build:
+        name: '[${{ matrix.os }}@${{ matrix.build_type }}]'
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                build_type: [Debug, Release]
+                os: [ubuntu-16.04, windows-latest, macOS-latest]
+
+        steps:
+        - uses: actions/checkout@v1
+          with:
+              submodules: true
+
+        - uses: actions/setup-python@v1
+          with:
+              python-version: '3.8'
+
+        - name: Cache Qt
+          id: cache-qt
+          uses: actions/cache@v1
+          with:
+              path: Qt
+              key: ${{ runner.os }}-qt
+
+        - name: Install Qt
+          if: steps.cache-qt.outputs.cache-hit != 'true'
+          shell: bash
+          run: |
+              pip install setuptools aqtinstall
+              if [ "$RUNNER_OS" == "Linux" ]; then
+                  aqt install -O Qt 5.14.0 linux desktop gcc_64
+              elif [ "$RUNNER_OS" == "macOS" ]; then
+                  brew update
+                  brew install p7zip
+                  aqt install -O Qt 5.14.0 mac desktop clang_64
+              else
+                  aqt install -O Qt 5.14.0 windows desktop win64_mingw73
+              fi
+
+        - name: Configure Qt
+          shell: bash
+          run: |
+              if [ "$RUNNER_OS" == "Linux" ]; then
+                QTDIR=$GITHUB_WORKSPACE/Qt/5.14.0/gcc_64
+              elif [ "$RUNNER_OS" == "macOS" ]; then
+                QTDIR=$GITHUB_WORKSPACE/Qt/5.14.0/clang_64
+              else
+                QTDIR=$GITHUB_WORKSPACE/Qt/5.14.0/mingw73_64
+              fi
+              echo ::add-path::$QTDIR/bin
+              echo ::set-env name=CMAKE_PREFIX_PATH::$QTDIR:$CMAKE_PREFIX_PATH
+
+
+              #- name: Cache MinGW
+              #  if: runner.os == 'Windows'
+              #  id: cache-mingw
+              #  uses: actions/cache@v1
+              #  with:
+              #      path: MinGW
+              #      key: mingw
+
+        - name: Install MinGW
+          if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
+          shell: bash
+          run: |
+              choco install wget -y --no-progress
+              wget https://nuwen.net/files/mingw/mingw-17.0-without-git.exe
+              7z x mingw-17.0-without-git.exe
+              MinGW/set_distro_paths.bat
+
+        - name: Configure MinGW
+          if: runner.os == 'Windows'
+          shell: bash
+          run: |
+              echo ::add-path::$GITHUB_WORKSPACE/MinGW/bin
+              echo ::set-env name=CMAKE_PREFIX_PATH::$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH
+              echo ::set-env name=CMAKE_GENERATOR::"MinGW Makefiles"
+
+        - name: Dependencies
+          if: runner.os == 'Linux'
+          shell: bash
+          run: |
+              sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+              sudo apt-get update
+              sudo apt-get install g++-9 libgl1-mesa-dev
+              echo ::set-env name=CC::gcc-9
+              echo ::set-env name=CXX::g++-9
+
+        - name: Configure
+          shell: bash
+          run: |
+              mkdir -p build
+              cd build
+              cmake -DDESKTOP=ON -DPYSHELL=ON -DTESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
+
+        - name: Build
+          shell: bash
+          run: |
+              cd build
+              cmake --build . --config ${{ matrix.build_type }}
+
+        - name: Test
+          shell: bash
+          run: |
+              cd build
+              ctest --output-on-failure
+
+        - name: Collect coverage
+          if: (runner.os  == 'Linux') && ( matrix.build_type == 'Debug')
+          shell: bash
+          run: echo "Collecting coverage"
+
+        - name: Deploy
+          if: matrix.build_type  == 'Release'
+          shell: bash
+          run: |
+              echo "Deploying"
+              if [ "$RUNNER_OS" == "Linux" ]; then
+              elif [ "$RUNNER_OS" == "macOS" ]; then
+              else
+              fi

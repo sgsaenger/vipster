@@ -7,39 +7,43 @@ case $1 in
             linux)
                 case $3 in
                     web)
+                        cd $HOME
                         # setup emscripten
-                        git clone --depth 1 --branch incoming https://github.com/urho3d/emscripten-sdk.git ~/emscripten-sdk
-                        ~/emscripten-sdk/emsdk activate --build=Release sdk-incoming-64bit binaryen-master-64bit
-                        source ~/emscripten-sdk/emsdk_env.sh
-                        for compiler in $EMSCRIPTEN/{emcc,em++}; do touch -d "2017-01-01 00:00:00 +0800" $compiler; done
+                        git clone --depth 1 https://github.com/emscripten-core/emsdk.git
+                        $HOME/emsdk/emsdk install latest
+                        $HOME/emsdk/emsdk activate latest
+                        source $HOME/emsdk/emsdk_env.sh
                         ;;
                     desktop)
-                        # make sure GCC8 is used:
-                        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
-                        sudo update-alternatives --set gcc /usr/bin/gcc-8
-                        export PATH="/opt/qt512/bin":$PATH
+                        cd $HOME
+                        # install qt
+                        pip3 install aqtinstall
+                        aqt install -O $HOME/Qt 5.14.0 linux desktop gcc_64
+                        export QTDIR="$HOME/Qt/5.14.0/gcc_64"
+                        export PATH="$QTDIR/bin:$PATH"
                         ;;
                 esac
                 ;;
             osx)
+                cd $HOME
                 # install qt
-                brew update
-                brew install grep
-                brew install qt
-                export PATH=/usr/local/qt/bin:$PATH
+                pip3 install aqtinstall
+                aqt install -O $HOME/Qt 5.14.0 mac desktop clang_64
+                export QTDIR="$HOME/Qt/5.14.0/clang_64"
+                export PATH="$QTDIR/bin:$PATH"
                 ;;
             windows)
-                # make sure mingw is up to date
-                choco upgrade mingw -y
-                export MWDIR="/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64"
+                cd $HOME
+                # install nuwen-mingw
+                wget https://nuwen.net/files/mingw/mingw-17.0-without-git.exe
+                7z x mingw-17.0-without-git.exe
+                MinGW/set_distro_paths.bat
+                export MWDIR="$HOME/MinGW"
                 # install qt
-                wget "http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe" -O qt.exe
-                ./qt.exe --verbose --script util/qt-headless.qs
-                export QTDIR="/c/Users/travis/Qt/5.12.3/mingw73_64"
+                pip3 install aqtinstall
+                aqt install -O $HOME/Qt 5.14.0 windows desktop win64_mingw73
+                export QTDIR="$HOME/Qt/5.14.0/mingw73_64"
                 export PATH="$MWDIR/bin:$QTDIR/bin:$PATH"
-                # install Python 3.7
-                choco install python
-                export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
                 ;;
         esac
         ;;
@@ -49,30 +53,30 @@ case $1 in
             linux)
                 case $3 in
                     web)
-                        mkdir build
-                        cd build
-                        emcmake cmake -DWEB=ON -DCMAKE_BUILD_TYPE=Release $TRAVIS_BUILD_DIR
+                        mkdir -p $HOME/build/release
+                        cd $HOME/build/release
+                        emcmake cmake -DWEB=ON -DCMAKE_BUILD_TYPE=Release $SOURCE_DIR
                         make -j2
                         ;;
                     desktop)
-                        mkdir build
-                        cd build
-                        cmake -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DTESTS=ON -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=/opt/python/3.7.1/bin/python3 -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $TRAVIS_BUILD_DIR
+                        mkdir -p $HOME/build/debug
+                        cd $HOME/build/debug
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DTESTS=ON -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$PY_DIR/bin/python3 -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" $SOURCE_DIR
                         make -j2
                         ./test_lib
                         ;;
                 esac
                 ;;
             osx)
-                mkdir build
-                cd build
-                cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt -DTESTS=ON -DDESKTOP=ON -DCMAKE_BUILD_TYPE=Release $TRAVIS_BUILD_DIR
+                mkdir -p $HOME/build/release
+                cd $HOME/build/release
+                cmake -DCMAKE_PREFIX_PATH=$QTDIR -DTESTS=ON -DDESKTOP=ON -DCMAKE_BUILD_TYPE=Release $SOURCE_DIR
                 make -j2
                 ./test_lib
                 ;;
             windows)
-                mkdir build
-                cd build
+                mkdir -p $HOME/build/release
+                cd $HOME/build/release
                 mv "C:\Program Files\Git\usr\bin\sh.exe" "C:\Program Files\Git\usr\bin\sh2.exe"
                 cmake -DTESTS=ON -DDESKTOP=ON -DPYSHELL=ON -DPYBIND=ON -DCMAKE_PREFIX_PATH="$QTDIR;$MWDIR" -G"MinGW Makefiles" -DCMAKE_BUILD_TYPE=RELEASE ..
                 cmake --build . --
@@ -86,35 +90,39 @@ case $1 in
                 if [[ $3 = "desktop" ]]
                 then
                     echo Collecting coverage
-                    bash <(curl -s https://codecov.io/bash) -R $TRAVIS_BUILD_DIR -x gcov-7
-                    if [[ $TRAVIS_BRANCH == "testing" ]]
+                    bash <(curl -s https://codecov.io/bash) -R $SOURCE_DIR -x gcov-8
+                    cd $SOURCE_DIR
+                    BRANCH=$(git symbolic-ref --short -q HEAD)
+                    if [[ $BRANCH == "CI" ]]
                     then
                         # build release-version
-                        mkdir -p $TRAVIS_BUILD_DIR/release
-                        cd $TRAVIS_BUILD_DIR/release
-                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_EXECUTABLE=/opt/python/3.7.1/bin/python3 $TRAVIS_BUILD_DIR
+                        mkdir -p $HOME/build/release
+                        cd $HOME/build/release
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_EXECUTABLE=$PY_DIR/bin/python3 $SOURCE_DIR
                         make -j2
                         # build AppImage
-                        bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
+                        bash $SOURCE_DIR/util/make-appimage.sh
                         # upload continuous build
                         wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip
                         unzip ciuploadtool_linux.zip
                         chmod 755 ciuploadtool
-                        ./ciuploadtool $TRAVIS_BUILD_DIR/release/Vipster-Linux-x86_64.AppImage
+                        ./ciuploadtool $SOURCE_DIR/release/Vipster-Linux-x86_64.AppImage -suffix test
                     fi
                 fi
                 ;;
             osx)
-                if [[ $TRAVIS_BRANCH == "testing" ]]
+                cd $SOURCE_DIR
+                BRANCH=$(git symbolic-ref --short -q HEAD)
+                if [[ $BRANCH == "CI" ]]
                 then
                     # prepare .dmg file
-                    cd $TRAVIS_BUILD_DIR/build
-                    bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
+                    cd $SOURCE_DIR/build
+                    bash $SOURCE_DIR/util/make-osxapp.sh
                     # upload continuous build
                     wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip
                     unzip ciuploadtool_mac.zip
                     chmod 755 ciuploadtool
-                    ./ciuploadtool $TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
+                    ./ciuploadtool $SOURCE_DIR/build/Vipster-OSX.dmg -suffix test
                 fi
                 ;;
         esac
@@ -126,26 +134,26 @@ case $1 in
                 case $3 in
                     web)
                         # prepare website
-                        mv vipster.{js,wasm} $TRAVIS_BUILD_DIR/gh-pages/emscripten
+                        mv vipster.{js,wasm} $SOURCE_DIR/gh-pages/emscripten
                         ;;
                     desktop)
                         # build release-version
-                        mkdir -p $TRAVIS_BUILD_DIR/release
-                        cd $TRAVIS_BUILD_DIR/release
-                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $TRAVIS_BUILD_DIR
+                        mkdir -p $SOURCE_DIR/release
+                        cd $SOURCE_DIR/release
+                        cmake -DDESKTOP=ON -DPYSHELL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $SOURCE_DIR
                         make -j2
                         # build AppImage
-                        bash $TRAVIS_BUILD_DIR/util/make-appimage.sh
+                        bash $SOURCE_DIR/util/make-appimage.sh
                         # enable deployment
-                        export DEPLOY_FILE=$TRAVIS_BUILD_DIR/release/Vipster-Linux-x86_64.AppImage
+                        export DEPLOY_FILE=$SOURCE_DIR/release/Vipster-Linux-x86_64.AppImage
                         ;;
                 esac
                 ;;
             osx)
                 # prepare .dmg file
-                bash $TRAVIS_BUILD_DIR/util/make-osxapp.sh
+                bash $SOURCE_DIR/util/make-osxapp.sh
                 # enable deployment
-                export DEPLOY_FILE=$TRAVIS_BUILD_DIR/build/Vipster-OSX.dmg
+                export DEPLOY_FILE=$SOURCE_DIR/build/Vipster-OSX.dmg
                 ;;
         esac
         ;;
