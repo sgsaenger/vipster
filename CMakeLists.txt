@@ -85,6 +85,7 @@ endif()
 # find pybind11 if needed
 if(PYBIND OR PYSHELL)
     find_package(PythonInterp 3.6 REQUIRED)
+    find_package(PythonLibs 3.6 REQUIRED)
     find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
