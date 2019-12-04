@@ -52,17 +52,10 @@ void GUI::SelData::initGL(void *context)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     // ATOM POSITIONS
-#ifdef GL_ES_VERSION_3_0
     glVertexAttribPointer(shader.position, 3,
                           GL_FLOAT, GL_FALSE,
                           sizeof(SelProp),
                           reinterpret_cast<const GLvoid*>(offsetof(SelProp, pos)));
-#else
-    glVertexAttribPointer(shader.position, 3,
-                          GL_DOUBLE, GL_FALSE,
-                          sizeof(SelProp),
-                          reinterpret_cast<const GLvoid*>(offsetof(SelProp, pos)));
-#endif
     glVertexAttribDivisor(shader.position, 1);
     glEnableVertexAttribArray(shader.position);
 
@@ -138,9 +131,12 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
-                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
-                                                          static_cast<Vec::value_type>(off[1]),
-                                                          static_cast<Vec::value_type>(off[2])}),
+                auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
+                                               static_cast<Vec::value_type>(off[1]),
+                                               static_cast<Vec::value_type>(off[2])});
+                sel_buffer.push_back({{static_cast<float>(pos[0]),
+                                       static_cast<float>(pos[1]),
+                                       static_cast<float>(pos[2])},
                                       static_cast<float>(it->type->vdwr*1.3),
                                       {static_cast<int16_t>(off[0]),
                                        static_cast<int16_t>(off[1]),
@@ -153,9 +149,12 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
             for(const auto& off: it.getFilterPair().second){
-                sel_buffer.push_back({it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
-                                                          static_cast<Vec::value_type>(off[1]),
-                                                          static_cast<Vec::value_type>(off[2])}),
+                auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
+                                               static_cast<Vec::value_type>(off[1]),
+                                               static_cast<Vec::value_type>(off[2])});
+                sel_buffer.push_back({{static_cast<float>(pos[0]),
+                                       static_cast<float>(pos[1]),
+                                       static_cast<float>(pos[2])},
                                       static_cast<float>(it->type->covr*1.3),
                                       {static_cast<int16_t>(off[0]),
                                        static_cast<int16_t>(off[1]),

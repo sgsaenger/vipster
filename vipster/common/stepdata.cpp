@@ -26,7 +26,7 @@ GUI::StepData::StepData(StepData&& dat)
 GUI::StepData::~StepData()
 {
     if(vbo_initialized){
-        glDeleteBuffers(4, vbos);
+        glDeleteBuffers(3, vbos);
     }
     for(auto &vao: vaos){
         glDeleteVertexArrays(4, vao.second);
@@ -38,7 +38,7 @@ void GUI::StepData::initGL(void *context)
     auto &vao = vaos[context];
     glGenVertexArrays(4, vao);
     if(!vbo_initialized){
-        glGenBuffers(4, vbos);
+        glGenBuffers(3, vbos);
         vbo_initialized = true;
     }
 
@@ -72,24 +72,15 @@ void GUI::StepData::initSel(GLuint vao)
     glEnableVertexAttribArray(sel_shader.vertex);
 
     // atom positions
-#ifdef GL_ES_VERSION_3_0
-    // positions included with rest of properties
-    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
     glVertexAttribPointer(sel_shader.position, 3,
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp), nullptr);
-#else
-    // seperate buffer for positions
-    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
-    glVertexAttribPointer(sel_shader.position, 3,
-                          GL_DOUBLE, GL_FALSE,
-                          0, nullptr);
-#endif
     glVertexAttribDivisor(sel_shader.position, 1);
     glEnableVertexAttribArray(sel_shader.position);
 
     // atom properties
-    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
     glVertexAttribPointer(sel_shader.vert_scale, 1,
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp),
@@ -126,26 +117,16 @@ void GUI::StepData::initAtom(GLuint vao)
     glVertexAttribPointer(atom_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(atom_shader.vertex);
 
+    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
     // atom positions
-#ifdef GL_ES_VERSION_3_0
-    // positions included with rest of properties
-    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
     glVertexAttribPointer(atom_shader.position, 3,
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp),
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, pos)));
-#else
-    // seperate buffer for positions
-    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
-    glVertexAttribPointer(atom_shader.position, 3,
-                          GL_DOUBLE, GL_FALSE,
-                          0, nullptr);
-#endif
     glVertexAttribDivisor(atom_shader.position, 1);
     glEnableVertexAttribArray(atom_shader.position);
 
     // atom properties
-    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
     glVertexAttribPointer(atom_shader.vert_scale, 1,
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp),
@@ -374,18 +355,7 @@ void GUI::StepData::updateGL()
     //TODO: separate data-handling somehow
     // ATOMS
     auto nat = atom_buffer.size();
-#ifndef GL_ES_VERSION_3_0
-    glBindBuffer(GL_ARRAY_BUFFER, atom_pos_vbo);
-    if (nat != 0u) {
-        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(Vec)),
-                     static_cast<const void*>(
-                     curStep->getAtoms().coordinates[static_cast<size_t>(curStep->getFmt())].data()
-                     ), GL_STREAM_DRAW);
-    } else {
-        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
-    }
-#endif
-    glBindBuffer(GL_ARRAY_BUFFER, atom_prop_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
     if (nat != 0u) {
         glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(nat*sizeof(AtomProp)),
                      static_cast<void*>(atom_buffer.data()), GL_STREAM_DRAW);
@@ -456,7 +426,6 @@ void GUI::StepData::update(Step* step,
 // ATOMS
     atom_buffer.clear();
     atom_buffer.reserve(curStep->getNat());
-#ifdef GL_ES_VERSION_3_0
     if(useVdW){
         for (const auto& at: *curStep){
             atom_buffer.push_back({{static_cast<float>(at.coord[0]),
@@ -474,19 +443,6 @@ void GUI::StepData::update(Step* step,
                                    static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
         }
     }
-#else
-    if(useVdW){
-        for (const auto& at: *curStep){
-            atom_buffer.push_back({static_cast<float>(at.type->vdwr), at.type->col,
-                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
-        }
-    }else{
-        for (const auto& at: *curStep){
-            atom_buffer.push_back({static_cast<float>(at.type->covr), at.type->col,
-                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
-        }
-    }
-#endif
 
 // BONDS
     constexpr Vec x_axis{{1,0,0}};
