@@ -1,16 +1,29 @@
 name: Desktop-CI
-on: [push, pull_request]
+on:
+    push:
+    pull_request:
+    release:
+        types:
+            - created
 
 jobs:
     build:
-        name: '[${{ matrix.os }}@${{ matrix.build_type }}]'
+        name: 'Build@${{ matrix.os }}'
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                build_type: [Debug, Release]
                 os: [ubuntu-16.04, windows-latest, macOS-latest]
 
         steps:
+        - name: Set build type
+          shell: bash
+          run: |
+              if [ ${{ github.event_name == 'release' }} ]; then
+                echo ::set-env name=BUILD_TYPE::Release
+              else
+                echo ::set-env name=BUILD_TYPE::Debug
+              fi
+
         - uses: actions/checkout@v1
           with:
               submodules: true
@@ -52,7 +65,7 @@ jobs:
                 QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/mingw73_64
               fi
               echo ::add-path::$QTDIR/bin
-              echo ::set-env name=QTDIR:$QTDIR
+              echo ::set-env name=QTDIR::$QTDIR
               echo ::set-env name=CMAKE_PREFIX_PATH::$QTDIR:$CMAKE_PREFIX_PATH
 
         - name: Cache MinGW
@@ -91,8 +104,8 @@ jobs:
               echo ::set-env name=CC::gcc-9
               echo ::set-env name=CXX::g++-9
               # enable coverage on debug-build
-              if [ ${{ matrix.build_type }} == "Debug" ];then
-                echo ::set-env CMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+              if [ $BUILD_TYPE == "Debug" ];then
+                echo ::set-env name=CMAKE_CXX_FLAGS::"-g -O0 -fprofile-arcs -ftest-coverage"
               fi
 
         - name: Configure
@@ -100,7 +113,7 @@ jobs:
           run: |
               mkdir -p build
               cd build
-              cmake -DDESKTOP=ON -DPYSHELL=ON -DTESTS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
+              cmake -DDESKTOP=ON -DPYSHELL=ON -DTESTS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
               grep PYTHON_LIBRARY CMakeCache.txt
 
         - name: Build
@@ -115,23 +128,54 @@ jobs:
               ctest --output-on-failure
 
         - name: Collect coverage
-          if: (runner.os  == 'Linux') && ( matrix.build_type == 'Debug')
+          if: (github.event_name != 'release') && (runner.os  == 'Linux')
           shell: bash
           run: |
               echo "Collecting coverage"
               cd build
               bash <(curl -s https://codecov.io/bash) -x gcov-9
 
-        - name: Deploy
-          if: matrix.build_type  == 'Release'
+        - name: Bundle artifact
+          if: github.event_name == 'release'
           shell: bash
           run: |
               echo "Deploying"
               cd build
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
+                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-Linux-x86_64.AppImage
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 . ../util/make-osxapp.sh
+                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-OSX-x86_64.7z
               else
                 . ../util/make-winarchive.sh
+                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-Win-x86_64.7z
               fi
+
+        - name: Upload artifact
+          if: github.event_name == 'release'
+          uses: actions/upload-release-asset@v1.0.1
+          env:
+              GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PAT }}
+          with:
+              upload_url: ${{ github.event.release.upload_url }}
+              asset_path: $ARTIFACT_PATH
+
+    trigger:
+        name: 'Trigger continuous deployment'
+        needs: build
+        runs-on: ubuntu-16.04
+        if: (github.event_name == 'push') && (github.ref == 'refs/heads/CI')
+        steps:
+            - uses: sgsaenger/create-release@dor_tc
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PAT }}
+              with:
+                  tag_name: continuous
+                  release_name: Continuous build
+                  body: |
+                      Contains latest features, but may not be stable.
+                  target_commitish: ${{ github.sha }}
+                  replace_old_tag: true
+                  draft: false
+                  prerelease: true
