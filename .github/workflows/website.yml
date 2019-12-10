@@ -1,0 +1,39 @@
+name: Website
+on:
+    push:
+        branches:
+            - CI
+            #- master
+
+jobs:
+    build:
+        name: 'Build (Emscripten)'
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v1
+          with:
+              submodules: true
+
+        - uses: mymindstorm/setup-emsdk@v2
+          with:
+              version: latest
+
+        - name: Configure
+          shell: bash
+          run: |
+              mkdir -p build
+              cd build
+              emcmake cmake -DWEB=ON -DCMAKE_BUILD_TYPE=Release ..
+
+        - name: Build
+          run: |
+              cd build
+              cmake --build .
+              cp vipster.{js,wasm} ../gh-pages/emscripten
+
+        - uses: alex-page/blazing-fast-gh-pages-deploy@v1.1.0
+          with:
+              repo-token: ${{ secrets.GH_ACTIONS_PAT }}
+              deploy-branch: gh-pages
+              site-directory: gh-pages

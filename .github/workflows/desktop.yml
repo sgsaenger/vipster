@@ -1,6 +1,8 @@
 name: Desktop-CI
 on:
     push:
+        branches-ignore:
+            - gh-pages
     pull_request:
     release:
         types:
@@ -8,7 +10,7 @@ on:
 
 jobs:
     build:
-        name: 'Build@${{ matrix.os }}'
+        name: 'Build (Desktop) @ ${{ matrix.os }}'
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
@@ -114,7 +116,6 @@ jobs:
               mkdir -p build
               cd build
               cmake -DDESKTOP=ON -DPYSHELL=ON -DTESTS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
-              grep PYTHON_LIBRARY CMakeCache.txt
 
         - name: Build
           run: |
@@ -144,12 +145,15 @@ jobs:
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
                 echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-Linux-x86_64.AppImage
+                echo ::set-env name=ARTIFACT_NAME::Vipster-Linux-x86_64.AppImage
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 . ../util/make-osxapp.sh
-                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-OSX-x86_64.7z
+                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-OSX-x86_64.dmg
+                echo ::set-env name=ARTIFACT_NAME::Vipster-OSX-x86_64.dmg
               else
                 . ../util/make-winarchive.sh
                 echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-Win-x86_64.7z
+                echo ::set-env name=ARTIFACT_NAME::Vipster-Win-x86_64.7z
               fi
 
         - name: Upload artifact
@@ -160,6 +164,8 @@ jobs:
           with:
               upload_url: ${{ github.event.release.upload_url }}
               asset_path: $ARTIFACT_PATH
+              asset_name: $ARTIFACT_NAME
+              asset_content_type: application/octet-stream
 
     trigger:
         name: 'Trigger continuous deployment'
