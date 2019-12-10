@@ -15,8 +15,8 @@ import platform
 cmake_defines = "-DPYBIND=YES -DPYPI=YES"\
     " -DPYTHON_EXECUTABLE:FILEPATH=\""+sys.executable+'"'
 if os.name == 'nt':
-    # force mingw makefile generation
-    cmake_defines += " -G \"MinGW Makefiles\""
+    # force msys makefile generation
+    cmake_defines += " -G \"MSYS Makefiles\""
 else:
     # force static linking
     cmake_defines += " -DBUILD_SHARED_LIBS=NO"

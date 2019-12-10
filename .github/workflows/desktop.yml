@@ -1,4 +1,4 @@
-name: Desktop-CI
+name: Desktop-Client
 on:
     push:
         branches-ignore:
@@ -144,17 +144,18 @@ jobs:
               cd build
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
-                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-Linux-x86_64.AppImage
+                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage
                 echo ::set-env name=ARTIFACT_NAME::Vipster-Linux-x86_64.AppImage
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 . ../util/make-osxapp.sh
-                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-OSX-x86_64.dmg
+                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-OSX-x86_64.dmg
                 echo ::set-env name=ARTIFACT_NAME::Vipster-OSX-x86_64.dmg
               else
                 . ../util/make-winarchive.sh
-                echo ::set-env name=ARTIFACT_PATH::$(pwd)/Vipster-Win-x86_64.7z
+                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.7z
                 echo ::set-env name=ARTIFACT_NAME::Vipster-Win-x86_64.7z
               fi
+              ls Vipster*
 
         - name: Upload artifact
           if: github.event_name == 'release'
@@ -163,8 +164,8 @@ jobs:
               GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PAT }}
           with:
               upload_url: ${{ github.event.release.upload_url }}
-              asset_path: $ARTIFACT_PATH
-              asset_name: $ARTIFACT_NAME
+              asset_path: ${{ env.ARTIFACT_PATH }}
+              asset_name: ${{ env.ARTIFACT_NAME }}
               asset_content_type: application/octet-stream
 
     trigger:
