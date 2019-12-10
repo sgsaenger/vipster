@@ -1,4 +1,4 @@
-name: Desktop-Client
+name: Build
 on:
     push:
         branches-ignore:
@@ -172,7 +172,7 @@ jobs:
         name: 'Trigger continuous deployment'
         needs: build
         runs-on: ubuntu-16.04
-        if: (github.event_name == 'push') && (github.ref == 'refs/heads/CI')
+        if: (github.event_name == 'push') && (github.ref == 'refs/heads/testing')
         steps:
             - uses: sgsaenger/create-release@dor_tc
               env:

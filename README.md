@@ -1,19 +1,15 @@
-# [![vipster](util/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
+# [![logo](util/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
 Master:
-[![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=master)](https://travis-ci.com/sgsaenger/vipster)
-[![Build Status (Windows)](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/master?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/master)
-[![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
+![Build status (master)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=master)
 
 Testing:
-[![Build Status](https://travis-ci.com/sgsaenger/vipster.svg?branch=testing)](https://travis-ci.com/sgsaenger/vipster)
-[![Build Status (Windows)](https://ci.appveyor.com/api/projects/status/caoyp2efkyt6ly3x/branch/testing?svg=true)](https://ci.appveyor.com/project/sgsaenger/vipster/branch/testing)
-[![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
+![Build status (testing)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=testing)
 
-Cite me: 
+[![Build status (website)](https://github.com/sgsaenger/vipster/workflows/Website/badge.svg?branch=testing)](https://sgsaenger.github.io/vipster)
+[![Build status (PyPI)](https://github.com/sgsaenger/vipster/workflows/PyPI/badge.svg?branch=testing)](https://pypi.org/project/vipster)
 [![DOI](https://zenodo.org/badge/21859848.svg)](https://zenodo.org/badge/latestdoi/21859848)
-
-
+[![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a276a159c93f47768c59dc264750f9f5)](https://www.codacy.com/app/sgsaenger/vipster?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sgsaenger/vipster&amp;utm_campaign=Badge_Grade)
 

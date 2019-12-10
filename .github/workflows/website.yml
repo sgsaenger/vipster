@@ -2,8 +2,7 @@ name: Website
 on:
     push:
         branches:
-            - CI
-            #- master
+            - master
 
 jobs:
     build:
