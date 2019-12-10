@@ -4,7 +4,6 @@
 #include <emscripten/vr.h>
 
 #include "../common/guiwrapper.h"
-#include "configfile.h"
 #include "molecule.h"
 #include "fileio.h"
 

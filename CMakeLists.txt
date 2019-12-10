@@ -85,6 +85,7 @@ endif()
 # find pybind11 if needed
 if(PYBIND OR PYSHELL)
     find_package(PythonInterp 3.6 REQUIRED)
+    find_package(PythonLibs 3.6 REQUIRED)
     find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
@@ -126,6 +127,7 @@ if(DESKTOP)
     # find suitable cli11 installation
     find_package(CLI11 1.7.1 CONFIG)
     if(NOT CLI11_FOUND)
+        set(CLI11_TESTING OFF CACHE INTERNAL "")
         add_subdirectory(external/CLI11)
     endif()
 

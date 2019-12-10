@@ -1,0 +1,188 @@
+name: Build
+on:
+    push:
+        branches-ignore:
+            - gh-pages
+    pull_request:
+    release:
+        types:
+            - created
+
+jobs:
+    build:
+        name: 'Build (Desktop) @ ${{ matrix.os }}'
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-16.04, windows-latest, macOS-latest]
+
+        steps:
+        - name: Set build type
+          shell: bash
+          run: |
+              if [ ${{ github.event_name == 'release' }} ]; then
+                echo ::set-env name=BUILD_TYPE::Release
+              else
+                echo ::set-env name=BUILD_TYPE::Debug
+              fi
+
+        - uses: actions/checkout@v1
+          with:
+              submodules: true
+
+        - uses: actions/setup-python@v1
+          with:
+              python-version: '3.8'
+
+        - name: Cache Qt
+          id: cache-qt
+          uses: actions/cache@v1
+          with:
+              path: Qt
+              key: ${{ runner.os }}-5.13.2-qt
+
+        - name: Install Qt
+          if: steps.cache-qt.outputs.cache-hit != 'true'
+          shell: bash
+          run: |
+              pip install setuptools aqtinstall
+              if [ "$RUNNER_OS" == "Linux" ]; then
+                  aqt install -O Qt 5.13.2 linux desktop gcc_64
+              elif [ "$RUNNER_OS" == "macOS" ]; then
+                  brew update
+                  brew install p7zip
+                  aqt install -O Qt 5.13.2 mac desktop clang_64
+              else
+                  aqt install -O Qt 5.13.2 windows desktop win64_mingw73
+              fi
+
+        - name: Configure Qt
+          shell: bash
+          run: |
+              if [ "$RUNNER_OS" == "Linux" ]; then
+                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/gcc_64
+              elif [ "$RUNNER_OS" == "macOS" ]; then
+                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/clang_64
+              else
+                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/mingw73_64
+              fi
+              echo ::add-path::$QTDIR/bin
+              echo ::set-env name=QTDIR::$QTDIR
+              echo ::set-env name=CMAKE_PREFIX_PATH::$QTDIR:$CMAKE_PREFIX_PATH
+
+        - name: Cache MinGW
+          if: runner.os == 'Windows'
+          id: cache-mingw
+          uses: actions/cache@v1
+          with:
+              path: MinGW
+              key: mingw
+
+        - name: Install MinGW
+          if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
+          shell: bash
+          run: |
+              choco install wget -y --no-progress
+              wget https://nuwen.net/files/mingw/mingw-17.0-without-git.exe
+              7z x mingw-17.0-without-git.exe
+              MinGW/set_distro_paths.bat
+
+        - name: Configure MinGW
+          if: runner.os == 'Windows'
+          shell: bash
+          run: |
+              echo ::add-path::$GITHUB_WORKSPACE/MinGW/bin
+              echo ::set-env name=CMAKE_PREFIX_PATH::$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH
+              echo ::set-env name=CMAKE_GENERATOR::"MSYS Makefiles"
+
+        - name: Configure Linux
+          if: runner.os == 'Linux'
+          shell: bash
+          run: |
+              # install and enable GCC9
+              sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+              sudo apt-get update
+              sudo apt-get install g++-9 libgl1-mesa-dev libxkbcommon-x11-0
+              echo ::set-env name=CC::gcc-9
+              echo ::set-env name=CXX::g++-9
+              # enable coverage on debug-build
+              if [ $BUILD_TYPE == "Debug" ];then
+                echo ::set-env name=CMAKE_CXX_FLAGS::"-g -O0 -fprofile-arcs -ftest-coverage"
+              fi
+
+        - name: Configure
+          shell: bash
+          run: |
+              mkdir -p build
+              cd build
+              cmake -DDESKTOP=ON -DPYSHELL=ON -DTESTS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+
+        - name: Build
+          run: |
+              cd build
+              cmake --build .
+
+        - name: Test
+          shell: bash
+          run: |
+              cd build
+              ctest --output-on-failure
+
+        - name: Collect coverage
+          if: (github.event_name != 'release') && (runner.os  == 'Linux')
+          shell: bash
+          run: |
+              echo "Collecting coverage"
+              cd build
+              bash <(curl -s https://codecov.io/bash) -x gcov-9
+
+        - name: Bundle artifact
+          if: github.event_name == 'release'
+          shell: bash
+          run: |
+              echo "Deploying"
+              cd build
+              if [ "$RUNNER_OS" == "Linux" ]; then
+                . ../util/make-appimage.sh
+                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage
+                echo ::set-env name=ARTIFACT_NAME::Vipster-Linux-x86_64.AppImage
+              elif [ "$RUNNER_OS" == "macOS" ]; then
+                . ../util/make-osxapp.sh
+                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-OSX-x86_64.dmg
+                echo ::set-env name=ARTIFACT_NAME::Vipster-OSX-x86_64.dmg
+              else
+                . ../util/make-winarchive.sh
+                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.7z
+                echo ::set-env name=ARTIFACT_NAME::Vipster-Win-x86_64.7z
+              fi
+              ls Vipster*
+
+        - name: Upload artifact
+          if: github.event_name == 'release'
+          uses: actions/upload-release-asset@v1.0.1
+          env:
+              GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PAT }}
+          with:
+              upload_url: ${{ github.event.release.upload_url }}
+              asset_path: ${{ env.ARTIFACT_PATH }}
+              asset_name: ${{ env.ARTIFACT_NAME }}
+              asset_content_type: application/octet-stream
+
+    trigger:
+        name: 'Trigger continuous deployment'
+        needs: build
+        runs-on: ubuntu-16.04
+        if: (github.event_name == 'push') && (github.ref == 'refs/heads/testing')
+        steps:
+            - uses: sgsaenger/create-release@dor_tc
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_PAT }}
+              with:
+                  tag_name: continuous
+                  release_name: Continuous build
+                  body: |
+                      Contains latest features, but may not be stable.
+                  target_commitish: ${{ github.sha }}
+                  replace_old_tag: true
+                  draft: false
+                  prerelease: true

@@ -2,6 +2,8 @@
 #include "nlohmann/json.hpp"
 
 #include <fstream>
+#include <iostream>
+#include <string>
 
 #include <cstdlib>
 #if defined(__APPLE__)
@@ -88,7 +90,7 @@ ConfigState Vipster::readConfig()
             if(file.path().extension() != LIBEXTENSION) continue;
             auto* plug = openPlugin(file);
             if(plug){
-                std::cerr << "Loading plugin " << file << std::endl;
+                std::cerr << "Loading plugin " << file.path() << std::endl;
                 plugins.push_back(plug);
             }
         }

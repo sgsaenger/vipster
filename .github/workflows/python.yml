@@ -1,0 +1,76 @@
+name: PyPI
+on:
+    push:
+        tags:
+            - 'v[0-9]+.[0-9]+.[0-9]+[ab]?'
+            - 'v[0-9]+.[0-9]+[ab]?'
+
+jobs:
+    build:
+        name: 'Build python bindings'
+        runs-on: windows-latest
+
+        steps:
+            - uses: actions/checkout@v1
+              with:
+                  submodules: true
+
+            - name: Cache MinGW
+              id: cache-mingw
+              uses: actions/cache@v1
+              with:
+                  path: MinGW
+                  key: mingw
+
+            - name: Install MinGW
+              if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
+              shell: bash
+              run: |
+                  choco install wget -y --no-progress
+                  wget https://nuwen.net/files/mingw/mingw-17.0-without-git.exe
+                  7z x mingw-17.0-without-git.exe
+                  MinGW/set_distro_paths.bat
+
+            - name: Configure MinGW
+              shell: bash
+              run: |
+                  echo ::add-path::$GITHUB_WORKSPACE/MinGW/bin
+                  echo ::set-env name=CMAKE_PREFIX_PATH::$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH
+                  echo ::set-env name=CMAKE_GENERATOR::"MSYS Makefiles"
+
+            - name: create archive
+              shell: bash
+              run: |
+                  pip install setuptools_scm
+                  python setup.py sdist --formats=zip
+
+            - name: Setup Python (3.6)
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.6
+
+            - name: Build wheel (3.6)
+              shell: bash
+              run: |
+                  pip install setuptools wheel cmake
+                  python setup.py bdist_wheel
+
+            - name: Setup Python (3.7)
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.7
+
+            - name: Build wheel (3.7)
+              shell: bash
+              run: |
+                  pip install setuptools wheel cmake
+                  python setup.py bdist_wheel
+
+            - name: deploy
+              shell: bash
+              env:
+                  TWINE_USERNAME: sgsaenger
+                  TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+              run: |
+                  pip install twine
+                  twine upload --verbose --skip-existing dist/*
