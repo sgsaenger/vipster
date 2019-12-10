@@ -6,8 +6,8 @@ Master:
 Testing:
 ![Build status (testing)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=testing)
 
-[![Build status (website)](https://github.com/sgsaenger/vipster/workflows/Website/badge.svg?branch=testing)](https://sgsaenger.github.io/vipster)
-[![Build status (PyPI)](https://github.com/sgsaenger/vipster/workflows/PyPI/badge.svg?branch=testing)](https://pypi.org/project/vipster)
+[![Build status (website)](https://github.com/sgsaenger/vipster/workflows/Website/badge.svg?branch=master)](https://sgsaenger.github.io/vipster)
+[![Build status (PyPI)](https://github.com/sgsaenger/vipster/workflows/PyPI/badge.svg?branch=master)](https://pypi.org/project/vipster)
 [![DOI](https://zenodo.org/badge/21859848.svg)](https://zenodo.org/badge/latestdoi/21859848)
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)

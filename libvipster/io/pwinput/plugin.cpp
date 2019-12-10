@@ -395,9 +395,10 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     fixComp[AtomFlag::FixZ] = true;
     for (const auto& at: s) {
         file << std::left << std::setw(3) << at.name
-             << ' ' << std::right << std::setw(10) << at.coord[0]
-             << ' ' << std::right << std::setw(10) << at.coord[1]
-             << ' ' << std::right << std::setw(10) << at.coord[2];
+             << std::right << std::setprecision(8)
+             << ' ' << std::setw(12) << at.coord[0]
+             << ' ' << std::setw(12) << at.coord[1]
+             << ' ' << std::setw(12) << at.coord[2];
         if((at.properties->flags & fixComp).any()){
             file << ' ' << !at.properties->flags[AtomFlag::FixX]
                  << ' ' << !at.properties->flags[AtomFlag::FixY]
@@ -426,9 +427,11 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
                  << kd.pos[2] << ' ' << kd.weight << '\n';
         }
     }
-    file << "\nCELL_PARAMETERS alat\n" << std::fixed << std::setprecision(5);
+    file << "\nCELL_PARAMETERS alat\n" << std::fixed << std::setprecision(8);
     for(auto &v: s.getCellVec()){
-        file << v[0] << ' ' << v[1] << ' ' << v[2] << '\n';
+        file << std::setw(12) << v[0] << ' '
+             << std::setw(12) << v[1] << ' '
+             << std::setw(12) << v[2] << '\n';
     }
     return true;
 }
