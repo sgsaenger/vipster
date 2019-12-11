@@ -14,6 +14,7 @@
 #include <set>
 #include <functional>
 #include <algorithm>
+#include <optional>
 
 namespace Vipster {
 
@@ -585,41 +586,90 @@ private:
         // get bonds by iterating over boxes and their neighbors
         auto& bonds = this->bonds->bonds;
         // indices of neighbor boxes
-        size_t xl, xh, yl, yh, zl, zh;
-        // wrapping needed for specific neighbor
-        bool w_xl{}, w_xh{}, w_yl{}, w_yh{}, w_zl{}, w_zh;
+        std::optional<size_t> xl{}, xh{}, yl{}, yh{}, zl{}, zh{};
         for(size_t x=0; x<boxes.extent[0]; ++x){
-            if(x == boxes.extent[0]-1){
-                xh = 0; w_xh = true;
+            if(boxes.extent[0]>2){
+                // 3 or more: regular periodic handling in all directions
+                if(x == boxes.extent[0]-1){
+                    xh = 0;
+                }else{
+                    xh = x+1;
+                }
+                if(x == 0){
+                    xl = boxes.extent[0]-1;
+                }else{
+                    xl = x-1;
+                }
+            }else if(boxes.extent[0]==2){
+                // 2: non-periodic in this direction
+                if(x == boxes.extent[0]-1){
+                    xh = std::nullopt;
+                }else{
+                    xh = x+1;
+                }
+                if(x == 0){
+                    xl = std::nullopt;
+                }else{
+                    xl = x-1;
+                }
             }else{
-                xh = x+1; w_xh = false;
-            }
-            if(x == 0){
-                xl = boxes.extent[0]-1; w_xl = true;
-            }else{
-                xl = x-1; w_xl = false;
+                // 1: need self-interaction of box, comparable to setBondsCellTrivial
+                xh = std::nullopt;
+                xl = std::nullopt;
             }
             for(size_t y=0; y<boxes.extent[1]; ++y){
-                if(y == boxes.extent[1]-1){
-                    yh = 0; w_yh = true;
+                if(boxes.extent[1]>2){
+                    if(y == boxes.extent[1]-1){
+                        yh = 0;
+                    }else{
+                        yh = y+1;
+                    }
+                    if(y == 0){
+                        yl = boxes.extent[1]-1;
+                    }else{
+                        yl = y-1;
+                    }
+                }else if(boxes.extent[1]==2){
+                    if(y == boxes.extent[1]-1){
+                        yh = std::nullopt;
+                    }else{
+                        yh = y+1;
+                    }
+                    if(y == 0){
+                        yl = std::nullopt;
+                    }else{
+                        yl = y-1;
+                    }
                 }else{
-                    yh = y+1; w_yh = false;
-                }
-                if(y == 0){
-                    yl = boxes.extent[1]-1; w_yl = true;
-                }else{
-                    yl = y-1; w_yl = false;
+                    yh = std::nullopt;
+                    yl = std::nullopt;
                 }
                 for(size_t z=0; z<boxes.extent[2]; ++z){
-                    if(z == boxes.extent[2]-1){
-                        zh = 0; w_zh = true;
+                    if(boxes.extent[2]>2){
+                        if(z == boxes.extent[2]-1){
+                            zh = 0;
+                        }else{
+                            zh = z+1;
+                        }
+                        if(z == 0){
+                            zl = boxes.extent[2]-1;
+                        }else{
+                            zl = z-1;
+                        }
+                    }else if(boxes.extent[2]==2){
+                        if(z == boxes.extent[2]-1){
+                            zh = std::nullopt;
+                        }else{
+                            zh = z+1;
+                        }
+                        if(z == 0){
+                            zl = std::nullopt;
+                        }else{
+                            zl = z-1;
+                        }
                     }else{
-                        zh = z+1; w_zh = false;
-                    }
-                    if(z == 0){
-                        zl = boxes.extent[2]-1; w_zl = true;
-                    }else{
-                        zl = z-1; w_zl = false;
+                        zh = std::nullopt;
+                        zl = std::nullopt;
                     }
                     for(auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i){
                         auto i = *it_i;
@@ -717,32 +767,29 @@ private:
                                 }
                             }
                         };
-                        // x
-                        wrapcheck(xh, y, z);
-                        // xy
-                        wrapcheck(xh, yh, z);
-                        // xyz
-                        wrapcheck(xh, yh, zh);
-                        // xy-z
-                        wrapcheck(xh, yh, zl);
-                        // x-y
-                        wrapcheck(xh, yl, z);
-                        // x-yz
-                        wrapcheck(xh, yl, zh);
-                        // xz
-                        wrapcheck(xh, y, zh);
-                        // x-z
-                        wrapcheck(xh, y, zl);
-                        // y
-                        wrapcheck(x, yh, z);
-                        // yz
-                        wrapcheck(x, yh, zh);
-                        // -xyz
-                        wrapcheck(xl, yh, zh);
-                        // y-z
-                        wrapcheck(x, yh, zl);
-                        // z
-                        wrapcheck(x, y, zh);
+                        if(xh){
+                            wrapcheck(*xh, y, z); // x
+                            if(yh){
+                                wrapcheck(*xh, *yh, z); // xy
+                                if(zh) wrapcheck(*xh, *yh, *zh); // xyz
+                                if(zl) wrapcheck(*xh, *yh, *zl); // xy-z
+                            }
+                            if(yl){
+                                wrapcheck(*xh, *yl, z); // x-y
+                                if(zh) wrapcheck(*xh, *yl, *zh); // x-yz
+                            }
+                            if(zh) wrapcheck(*xh, y, *zh); // xz
+                            if(zl) wrapcheck(*xh, y, *zl); // x-z
+                        }
+                        if(yh){
+                            wrapcheck(x, *yh, z); // y
+                            if(zh){
+                                wrapcheck(x, *yh, *zh); // yz
+                                if(xl) wrapcheck(*xl, *yh, *zh); // -xyz
+                            }
+                            if(zl) wrapcheck(x, *yh, *zl); // y-z
+                        }
+                        if(zh) wrapcheck(x, y, *zh); // z
                     }
                 }
             }
@@ -810,79 +857,79 @@ private:
                 };
                 // 0-vector
                 checkBond(dist_v, diff_v);
+                // x, -x
                 if(crit_v[0] != 0){
-                    // x, -x
                     checkBond(dist_v-crit_v[0]*x,
                               {{static_cast<int16_t>(diff_v[0]+crit_v[0]),diff_v[1],diff_v[2]}});
                 }
+                // y, -y
                 if(crit_v[1] != 0){
-                    // y, -y
                     checkBond(dist_v-crit_v[1]*y,
                               {{diff_v[0],static_cast<int16_t>(diff_v[1]+crit_v[1]),diff_v[2]}});
+                    // x+y, -x-y
                     if(crit_v[0] == crit_v[1]){
-                        // x+y, -x-y
                         checkBond(dist_v-crit_v[0]*xy,
                                   {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                     static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                     diff_v[2]}});
+                    // x-y, -x+y
                     }else if(crit_v[0] == -crit_v[1]){
-                        // x-y, -x+y
                         checkBond(dist_v-crit_v[0]*xmy,
                                   {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                     static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                     diff_v[2]}});
                     }
                 }
+                // z, -z
                 if(crit_v[2] != 0){
-                    // z, -z
                     checkBond(dist_v-crit_v[2]*z,
                               {{diff_v[0],diff_v[1],static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                    // x+z, -x-z
                     if(crit_v[0] == crit_v[2]){
-                        // x+z, -x-z
                         checkBond(dist_v-crit_v[0]*xz,
                                   {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                     diff_v[1],
                                     static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                    // x-z, -x+z
                     }else if(crit_v[0] == -crit_v[2]){
-                        // x-z, -x+z
                         checkBond(dist_v-crit_v[0]*xmz,
                                   {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                     diff_v[1],
                                     static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                     }
+                    // y+z, -y-z
                     if(crit_v[1] == crit_v[2]){
-                        // y+z, -y-z
                         checkBond(dist_v-crit_v[1]*yz,
                                   {{diff_v[0],
                                     static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                     static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        // x+y+z, -x-y-z
                         if(crit_v[0] == crit_v[2]){
-                            // x+y+z, -x-y-z
                             checkBond(dist_v-crit_v[0]*xyz,
                                       {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        // x-y-z, -x+y+z
                         } else if(crit_v[0] == -crit_v[2]){
-                            // x-y-z, -x+y+z
                             checkBond(dist_v-crit_v[1]*mxyz,
                                       {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
                         }
+                    // y-z, -y+z
                     }else if(crit_v[1] == -crit_v[2]){
-                        // y-z, -y+z
                         checkBond(dist_v-crit_v[1]*ymz,
                                   {{diff_v[0],
                                     static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                     static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        // x-y+z, -x+y-z
                         if(crit_v[0] == crit_v[2]){
-                            // x-y+z, -x+y-z
                             checkBond(dist_v-crit_v[0]*xmyz,
                                       {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),
                                         static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        // x+y-z, -x-y+z
                         } else if(crit_v[0] == -crit_v[2]){
-                            // x+y-z, -x-y+z
                             checkBond(dist_v-crit_v[0]*xymz,
                                       {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
                                         static_cast<int16_t>(diff_v[1]+crit_v[1]),

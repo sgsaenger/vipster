@@ -22,6 +22,11 @@ void Bond(py::module &m){
     py::bind_vector<std::vector<Vipster::Bond>>(m,"__BondVector__");
 
     auto b = py::class_<Vipster::Bond>(m, "Bond")
+        .def("__repr__", [](const Vipster::Bond&b){
+            std::ostringstream s;
+            s << b;
+            return s.str();
+        })
         .def_readwrite("at1", &Bond::at1)
         .def_readwrite("at2", &Bond::at2)
         .def_readwrite("dist", &Bond::dist)
