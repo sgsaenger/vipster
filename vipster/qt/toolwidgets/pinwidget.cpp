@@ -90,11 +90,11 @@ void PinWidget::setOffset(double d)
     if (!curPin) return;
     auto &off = curPin->offset;
     if(sender() == ui->xOffset){
-        off[0] = static_cast<float>(d);
+        off[0] = d;
     }else if(sender() == ui->yOffset){
-        off[1] = static_cast<float>(d);
+        off[1] = d;
     }else if(sender() == ui->zOffset){
-        off[2] = static_cast<float>(d);
+        off[2] = d;
     }
     triggerUpdate(GUI::Change::extra);
 }

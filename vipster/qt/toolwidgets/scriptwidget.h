@@ -40,7 +40,7 @@ public:
         std::string line{};
         std::string target{"all"};
         Mode mode{Mode::None};
-        float f{1.f};
+        double f{1};
         std::string s1{}, s2{};
         OpVec v1{}, v2{}, v3{};
     };

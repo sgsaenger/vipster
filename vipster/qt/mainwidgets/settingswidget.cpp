@@ -70,14 +70,14 @@ QWidget* SettingsWidget::makeWidget(size_t& setting)
 }
 
 template<>
-QWidget* SettingsWidget::makeWidget(float& setting)
+QWidget* SettingsWidget::makeWidget(double& setting)
 {
     auto* widget = new QDoubleSpinBox(ui->settingsContainer);
-    widget->setValue(static_cast<double>(setting));
+    widget->setValue(setting);
     widget->setMinimum(0);
     connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [&setting, this](double newVal){
-                setting = static_cast<float>(newVal);
+                setting = newVal;
                 triggerUpdate(GUI::Change::settings);
             }
     );

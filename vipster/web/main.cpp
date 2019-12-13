@@ -76,8 +76,8 @@ Vec emGetItCoord(const Step::iterator& it){return it->coord;}
 void emSetItCoord(Step::iterator& it, Vec v){it->coord = v;}
 
 // Cell
-float emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCellDim((CdmFmt)fmt);}
-void emSetCellDim(int m, int s, float cdm, int fmt, bool scale){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt, scale);}
+double emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCellDim((CdmFmt)fmt);}
+void emSetCellDim(int m, int s, double cdm, int fmt, bool scale){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt, scale);}
 Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
 void emSetCellVec(int m, int s, Mat vec, bool scale){molecules[m].getStep(s).setCellVec(vec, scale);}
 void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
@@ -358,14 +358,14 @@ int main()
     Step* step;
     //example H2O-vibration (crude approximation)
     molecules.emplace_back("Example Molecule", 0);
-    float vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};
-    for(float f:vibdist){
+    double vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};
+    for(double f:vibdist){
         step = &molecules[0].newStep();
         step->enableCell(false);
         step->setFmt(AtomFmt::Angstrom);
-        step->newAtom("H",{{(float)(-0.756+f),(float)(-0.591+f),0}});
+        step->newAtom("H",{{-0.756+f,-0.591+f,0}});
         step->newAtom("O",{{0,0,0}});
-        step->newAtom("H",{{(float)(0.756-f),(float)(-0.591+f),0}});
+        step->newAtom("H",{{0.756-f,-0.591+f,0}});
     }
     molecules.emplace_back("Example Crystal");
     step = &molecules[1].getStep(0);

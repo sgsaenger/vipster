@@ -127,15 +127,15 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             case 1:
             case 2:
             case 3:
-                atom.coord[col-1] = value.toFloat();
+                atom.coord[col-1] = value.toDouble();
                 break;
             case 4:
-                atom.properties->charge = value.toFloat();
+                atom.properties->charge = value.toDouble();
                 break;
             case 5:
             case 6:
             case 7:
-                atom.properties->forces[col-5] = value.toFloat();
+                atom.properties->forces[col-5] = value.toDouble();
                 break;
             }
         }else if(role == Qt::CheckStateRole){

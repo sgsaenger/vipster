@@ -16,29 +16,29 @@ PickWidget::~PickWidget()
 }
 
 inline void printDist(QPlainTextEdit& text,
-                      QString idx1, QString idx2, float dist)
+                      QString idx1, QString idx2, double dist)
 {
     QString tmp = "Dist " + idx1 + '-' + idx2 + ": " +
-            QString::number(static_cast<double>(dist)) + " Å";
+            QString::number(dist) + " Å";
     text.appendPlainText(tmp);
 }
 
 inline void printAngle(QPlainTextEdit& text,
-                       QString idx1, QString idx2, QString idx3, float ang)
+                       QString idx1, QString idx2, QString idx3, double ang)
 {
     QString tmp = "Angle " + idx1 + '-' +
             idx2 + '-' + idx3 + ": " +
-            QString::number(static_cast<double>(ang)) + "°";
+            QString::number(ang) + "°";
     text.appendPlainText(tmp);
 }
 
 inline void printDihed(QPlainTextEdit& text,
-                       QString idx1, QString idx2, QString idx3, QString idx4, float dihed)
+                       QString idx1, QString idx2, QString idx3, QString idx4, double dihed)
 {
     QString tmp = "Dihed " +
             idx1 + '-' + idx2 + '-' +
             idx3 + '-' + idx4 + ": " +
-            QString::number(static_cast<double>(dihed)) + "°";
+            QString::number(dihed) + "°";
     text.appendPlainText(tmp);
 }
 
@@ -62,7 +62,9 @@ void PickWidget::updateWidget(GUI::change_t change)
             names.push_back(QString::number(pair.first)+QString{count,'\''});
             if(nat<4){
                 // save four coordinates in unwrapped form
-                coords.push_back(it->coord + fmt(Vec{(float)off[0],(float)off[1],(float)off[2]}));
+                coords.push_back(it->coord + fmt(Vec{static_cast<double>(off[0]),
+                                                     static_cast<double>(off[1]),
+                                                     static_cast<double>(off[2])}));
             }
             if(off != SizeVec{0,0,0}){
                 text.appendPlainText(names.back()+'('+

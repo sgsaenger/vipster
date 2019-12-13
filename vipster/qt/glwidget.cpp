@@ -203,7 +203,7 @@ void GLWidget::rotAtoms(QPoint delta)
     if(delta.isNull()){
         return;
     }
-    float angle = delta.manhattanLength();
+    double angle = delta.manhattanLength();
     auto axes = getAxes();
     Vec axis = delta.y() * axes[0] + -delta.x() * axes[1];
     if(curSel->getNat()){
@@ -219,9 +219,9 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
     if(curSel->getNat()){
-        curSel->asFmt(AtomFmt::Bohr).modShift(axis, 0.01f);
+        curSel->asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
     }else{
-        curStep->asFmt(AtomFmt::Bohr).modShift(axis, 0.01f);
+        curStep->asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
     }
     triggerUpdate(GUI::Change::atoms);
 }
@@ -229,7 +229,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
 void GLWidget::shiftAtomsZ(QPoint delta)
 {
     auto axes = Mat_trans(Mat_inv(getAxes()));
-    float fac = 0.01f * (delta.x() + delta.y());
+    double fac = 0.01 * (delta.x() + delta.y());
     if(curSel->getNat()){
         curSel->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
     }else{
@@ -436,7 +436,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
     }
 }
 
-void GLWidget::focusInEvent(QFocusEvent *e)
+void GLWidget::focusInEvent(QFocusEvent *)
 {
     // make sure our viewport is the active one
     auto vp = static_cast<ViewPort*>(parentWidget());

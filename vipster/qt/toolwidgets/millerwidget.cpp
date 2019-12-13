@@ -18,9 +18,9 @@ MillerWidget::~MillerWidget()
 
 MillerWidget::MillerPlane::MillerPlane(
         const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
-        Vipster::Vec offset, Vipster::Mat cell, Texture texture,
+        Vipster::Vec off, Vipster::Mat cell, Texture texture,
         const std::array<int8_t, 3> &hkl) :
-    GUI::MeshData{glob, std::move(faces), offset, cell, texture},
+    GUI::MeshData{glob, std::move(faces), off, cell, texture},
     hkl{hkl}
 {}
 
@@ -199,11 +199,11 @@ void MillerWidget::updateOffset(double off)
     if(curPlane){
         const auto* sender = QObject::sender();
         if(sender == ui->xOff){
-            curPlane->offset[0] = static_cast<float>(off);
+            curPlane->offset[0] = off;
         }else if(sender == ui->yOff){
-            curPlane->offset[1] = static_cast<float>(off);
+            curPlane->offset[1] = off;
         }else if(sender == ui->zOff){
-            curPlane->offset[2] = static_cast<float>(off);
+            curPlane->offset[2] = off;
         }else{
             throw Error("Unknown sender for HKL-plane offset");
         }
@@ -220,9 +220,9 @@ void MillerWidget::on_pushButton_toggled(bool checked)
             static_cast<int8_t>(ui->hSel->value()),
             static_cast<int8_t>(ui->kSel->value()),
             static_cast<int8_t>(ui->lSel->value())};
-        auto off = Vec{static_cast<float>(ui->xOff->value()),
-                       static_cast<float>(ui->yOff->value()),
-                       static_cast<float>(ui->zOff->value())};
+        auto off = Vec{ui->xOff->value(),
+                       ui->yOff->value(),
+                       ui->zOff->value()};
         auto& extras = master->curVP->stepdata[curStep].extras;
         extras.push_back(
         std::make_shared<MillerPlane>(

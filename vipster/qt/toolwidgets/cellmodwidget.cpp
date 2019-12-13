@@ -89,7 +89,7 @@ void CellModWidget::on_reshapeButton_clicked()
     Mat newMat;
     for(int i=0; i<3; ++i){
         for(int j=0; j<3; ++j){
-            newMat[i][j] = table->item(i,j)->text().toFloat();
+            newMat[i][j] = table->item(i,j)->text().toDouble();
         }
     }
     try{
@@ -98,7 +98,7 @@ void CellModWidget::on_reshapeButton_clicked()
         QMessageBox::critical(this, "Could not reshape cell", e.what());
         return;
     }
-    auto cdm = static_cast<float>(ui->cdmSel->value());
+    auto cdm = ui->cdmSel->value();
     auto fmt = static_cast<CdmFmt>(ui->cdmFmtSel->currentIndex());
     if(ui->trajecCheck->isChecked()){
         for(auto& step: master->curMol->getSteps()){

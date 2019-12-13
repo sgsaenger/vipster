@@ -197,7 +197,7 @@ std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool
     return is;
 };
 
-std::istream& operator>>(std::istream& is, std::tuple<float&, bool> dat){
+std::istream& operator>>(std::istream& is, std::tuple<double&, bool> dat){
     auto& val = std::get<0>(dat);
     const bool& opt = std::get<1>(dat);
     is >> val;

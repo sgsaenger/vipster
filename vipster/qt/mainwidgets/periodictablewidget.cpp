@@ -15,19 +15,19 @@ void PeriodicTableWidget::registerProperty(QWidget*, T Element::*)
 {}
 
 template<>
-void PeriodicTableWidget::registerProperty(QWidget* w, float Element::* prop)
+void PeriodicTableWidget::registerProperty(QWidget* w, double Element::* prop)
 {
     connect(static_cast<QDoubleSpinBox*>(w),
             qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [prop, this](double newVal){
-                currentElement->*prop = static_cast<float>(newVal);
+                currentElement->*prop = newVal;
                 if(isGlobal){
                     triggerUpdate(GUI::Change::settings);
                 }else{
                     /* WARNING: this may break when cache-validation is changed
                        reassign one atom-type to taint bond-caches
                        when changing bond cutoff radius
-                       (also triggered for other floats atm. unneeded but not harmful)
+                       (also triggered for other doubles atm. unneeded but not harmful)
                     */
                     for(auto& step: master->curMol->getSteps()){
                         if(step.getNat()){

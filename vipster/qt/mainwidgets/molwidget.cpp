@@ -2,6 +2,7 @@
 #include "ui_molwidget.h"
 #include "../mainwindow.h"
 #include "molwidget_aux/bonddelegate.h"
+#include "molwidget_aux/atomdelegate.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QMenu>
@@ -55,6 +56,7 @@ MolWidget::MolWidget(QWidget *parent) :
     }
     ui->atomTable->horizontalHeader()->setContextMenuPolicy(Qt::ActionsContextMenu);
     ui->atomTable->horizontalHeader()->addActions(headerActions);
+    ui->atomTable->setItemDelegate(new AtomDelegate{});
 
     // setup bond table
     ui->bondTable->setModel(&bondModel);
@@ -140,13 +142,13 @@ void MolWidget::on_cellTrajecButton_clicked()
 {
     if(ui->cellEnabledBox->isChecked()){
         auto scale = ui->cellScaleBox->isChecked();
-        auto dim = static_cast<float>(ui->cellDimBox->value());
+        auto dim = ui->cellDimBox->value();
         auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
         Mat vec{};
         for(int row=0; row<3; ++row){
             for(int col=0; col<3; ++col){
                 vec[static_cast<size_t>(row)][static_cast<size_t>(col)] =
-                    ui->cellVecTable->item(row,col)->text().toFloat();
+                    ui->cellVecTable->item(row,col)->text().toDouble();
             }
         }
         for(auto& step: master->curMol->getSteps()){
@@ -169,13 +171,13 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
         GUI::change_t change = GUI::Change::cell;
         auto scale = ui->cellScaleBox->isChecked();
         if (scale) change |= GUI::Change::atoms;
-        auto dim = static_cast<float>(ui->cellDimBox->value());
+        auto dim = ui->cellDimBox->value();
         auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
         Mat vec{};
         for(int row=0; row<3; ++row){
             for(int col=0; col<3; ++col){
                 vec[static_cast<size_t>(row)][static_cast<size_t>(col)] =
-                    ui->cellVecTable->item(row,col)->text().toFloat();
+                    ui->cellVecTable->item(row,col)->text().toDouble();
             }
         }
         try{
@@ -216,10 +218,9 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     if(ui->cellEnabledBox->checkState() == Qt::CheckState::Unchecked){
         return;
     }
-    auto dim = static_cast<float>(cdm);
     auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
     auto scale = ui->cellScaleBox->isChecked();
-    ownStep.setCellDim(dim, fmt, scale);
+    ownStep.setCellDim(cdm, fmt, scale);
     GUI::change_t change = GUI::Change::cell;
     // if needed, trigger atom update
     if(scale){
@@ -240,7 +241,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     }
     Mat vec = ownStep.getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
-            ui->cellVecTable->item(row,column)->text().toFloat();
+            ui->cellVecTable->item(row,column)->text().toDouble();
     auto scale = ui->cellScaleBox->isChecked();
     try{
         ownStep.setCellVec(vec, scale);
@@ -441,9 +442,9 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
     auto& kp = curMol->getKPoints().discrete.kpoints[row];
     QTableWidgetItem *cell = ui->discretetable->item(row, column);
     if(column == 3){
-        kp.weight = cell->text().toFloat();
+        kp.weight = cell->text().toDouble();
     }else{
-        kp.pos[column] = cell->text().toFloat();
+        kp.pos[column] = cell->text().toDouble();
     }
     triggerUpdate(GUI::Change::kpoints);
 }
