@@ -374,30 +374,38 @@ private:
             n_split[2] = static_cast<size_t>(std::round(diff[2] / cut));
             size_split[2] = diff[2] / n_split[2];
         }
-        // put atoms in boxes
-        DataGrid3D<std::vector<size_t>> boxes{n_split};
-        for(auto it=tgtFmt.begin(); it!=tgtFmt.end(); ++it){
-            auto findBox = [&](size_t dir){
-                return std::max(size_t{0},
-                                std::min(n_split[dir]-1,
-                                         static_cast<size_t>((it->coord[dir]-min[dir])/size_split[dir])));
-            };
-            boxes(findBox(0), findBox(1), findBox(2)).push_back(it.getIdx());
+        // assign atoms to bins
+        DataGrid3D<std::vector<size_t>> bins{n_split};
+        if(n_split == SizeVec{1,1,1}){
+            // only one bin
+            auto& bin = bins(0,0,0);
+            bin.resize(getNat());
+            std::iota(bin.begin(), bin.end(), 0);
+        }else{
+            // multiple bins
+            for(auto it = tgtFmt.begin(); it != tgtFmt.end(); ++it){
+                auto findBin = [&](size_t dir){
+                    return std::max(size_t{0},
+                                    std::min(n_split[dir]-1,
+                                             static_cast<size_t>((it->coord[dir]-min[dir])/size_split[dir])));
+                };
+                bins(findBin(0), findBin(1), findBin(2)).push_back(it.getIdx());
+            }
         }
-        // get bonds by iterating over boxes and their neighbors
+        // get bonds by iterating over bins and their neighbors
         auto& bonds = this->bonds->bonds;
-        for(size_t x=0; x<boxes.extent[0]; ++x){
-            for(size_t y=0; y<boxes.extent[1]; ++y){
-                for(size_t z=0; z<boxes.extent[2]; ++z){
-                    for (auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i) {
+        for(size_t x=0; x<bins.extent[0]; ++x){
+            for(size_t y=0; y<bins.extent[1]; ++y){
+                for(size_t z=0; z<bins.extent[2]; ++z){
+                    for (auto it_i=bins(x,y,z).begin(); it_i != bins(x,y,z).end(); ++it_i) {
                         auto i = *it_i;
                         const auto& at_i = tgtFmt[i];
                         auto cut_i = at_i.type->bondcut;
                         if (cut_i <= 0){
                             continue;
                         }
-                        // loop over rest of current box
-                        for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
+                        // loop over rest of current bin
+                        for (auto it_j = it_i+1; it_j!=bins(x,y,z).end(); ++it_j) {
                             auto j = *it_j;
                             const auto& at_j = tgtFmt[j];
                             auto cut_j = at_j.type->bondcut;
@@ -416,9 +424,9 @@ private:
                                 bonds.push_back({i, j, std::sqrt(dist_n), {}});
                             }
                         }
-                        // visit neighboring boxes
+                        // visit neighboring bins
                         auto bondcheck = [&](size_t xt, size_t yt, size_t zt){
-                            for (const auto& j: boxes(xt, yt, zt)) {
+                            for (const auto& j: bins(xt, yt, zt)) {
                                 const auto& at_j = tgtFmt[j];
                                 auto cut_j = at_j.type->bondcut;
                                 if (cut_j <= 0) {
@@ -438,13 +446,13 @@ private:
                             }
                         };
                         // +x (includes -x)
-                        if (x < boxes.extent[0]-1) {
+                        if (x < bins.extent[0]-1) {
                             bondcheck(x+1, y, z);
                             // +x+y (includes -x-y)
-                            if (y < boxes.extent[1]-1) {
+                            if (y < bins.extent[1]-1) {
                                 bondcheck(x+1, y+1, z);
                                 // +x+y+z (includes -x-y-z)
-                                if (z < boxes.extent[2]-1) {
+                                if (z < bins.extent[2]-1) {
                                     bondcheck(x+1, y+1, z+1);
                                 }
                                 // +x+y-z (includes -x-y+z)
@@ -456,7 +464,7 @@ private:
                             if (y > 0) {
                                 bondcheck(x+1, y-1, z);
                                 // +x-y+z (includes -x+y-z)
-                                if (z < boxes.extent[2]-1) {
+                                if (z < bins.extent[2]-1) {
                                     bondcheck(x+1, y-1, z+1);
                                 }
                                 // +x-y-z (includes -x+y+z)
@@ -465,7 +473,7 @@ private:
                                 }
                             }
                             // +x+z (includes -x-z)
-                            if (z < boxes.extent[2]-1) {
+                            if (z < bins.extent[2]-1) {
                                 bondcheck(x+1, y, z+1);
                             }
                             // +x-z (includex -x+z)
@@ -474,10 +482,10 @@ private:
                             }
                         }
                         // +y (includes -y)
-                        if (y < boxes.extent[1]-1) {
+                        if (y < bins.extent[1]-1) {
                             bondcheck(x, y+1, z);
                             // +y+z (includes -y-z)
-                            if (z < boxes.extent[2]-1) {
+                            if (z < bins.extent[2]-1) {
                                 bondcheck(x, y+1, z+1);
                             }
                             // +y-z (includes -y+z)
@@ -486,7 +494,7 @@ private:
                             }
                         }
                         // +z (includes -z)
-                        if (z < boxes.extent[2]-1) {
+                        if (z < bins.extent[2]-1) {
                             bondcheck(x, y, z+1);
                         }
                     }
