@@ -340,14 +340,6 @@ private:
     // Bonds
     void setBondsMolecule() const
     {
-        if(getNat() >= 1000){
-            setBondsMoleculeSplit();
-        }else{
-            setBondsMoleculeTrivial();
-        }
-    }
-    void setBondsMoleculeSplit() const
-    {
         // get suitable absolute representation
         const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
@@ -502,438 +494,322 @@ private:
             }
         }
     }
-    void setBondsMoleculeTrivial() const
-    {
-        const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
-        const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
-        auto tgtFmt = asFmt(fmt);
-        std::vector<Bond>& bonds = this->bonds->bonds;
-        auto at_i = tgtFmt.begin();
-        for (auto at_i=tgtFmt.begin(); at_i!=tgtFmt.end(); ++at_i)
-        {
-            double cut_i = at_i->type->bondcut;
-            if (cut_i<=0){
-                continue;
-            }
-            for (auto at_j=tgtFmt.begin()+at_i.getIdx()+1; at_j != tgtFmt.end(); ++at_j){
-                double cut_j = at_j->type->bondcut;
-                if (cut_j<=0) {
-                    continue;
-                }
-                double effcut = (cut_i + cut_j) * 1.1;
-                Vec dist_v = at_i->coord - at_j->coord;
-                if (((dist_v[0] *= fmtscale) > effcut) ||
-                    ((dist_v[1] *= fmtscale) > effcut) ||
-                    ((dist_v[2] *= fmtscale) > effcut)) {
-                    continue;
-                }
-                double dist_n = Vec_dot(dist_v, dist_v);
-                if((0.57 < dist_n) && (dist_n < effcut*effcut)) {
-                    bonds.push_back({at_i.getIdx(), at_j.getIdx(), std::sqrt(dist_n), {}});
-                }
-            }
-        }
-    }
 
     void setBondsCell() const
     {
-        if(getNat() >= 100){
-            setBondsCellSplit();
-        }else{
-            setBondsCellTrivial();
-        }
-    }
-    void setBondsCellSplit() const
-    {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
-        enum wrapDir{x, y, z, xy, xmy, xz, xmz, yz, ymz, xyz, xymz, xmyz, mxyz};
-        // get largest cutoff
+        auto& bonds = this->bonds->bonds;
+        const auto cell = getCellVec() * getCellDim(CdmFmt::Bohr);
+        // offset vectors for bin-bin interactions
+        const Vec x_v = cell[0];
+        const Vec y_v = cell[1];
+        const Vec z_v = cell[2];
+        const Vec xy_v   = x_v+y_v;
+        const Vec xmy_v  = x_v-y_v;
+        const Vec xz_v   = x_v+z_v;
+        const Vec xmz_v  = x_v-z_v;
+        const Vec yz_v   = y_v+z_v;
+        const Vec ymz_v  = y_v-z_v;
+        const Vec xyz_v  = xy_v + z_v;
+        const Vec xymz_v = xy_v - z_v;
+        const Vec xmyz_v = xz_v - y_v;
+        const Vec mxyz_v = yz_v - x_v;
+        // get largest cutoff times five, as criterion for partitioning the cell
         double cut{0};
-        for (const auto& at:asCrystal) {
+        for(const auto& at: asCrystal) {
             cut = std::max(at.type->bondcut, cut);
         }
         cut = 5*cut;
-        auto cell = this->cell->cellvec * this->cell->dimBohr;
         // get cell lengths
-        Vec size_split{};
-        size_split[0] = std::abs(cell[0][0])+std::abs(cell[1][0])+std::abs(cell[2][0]);
-        size_split[1] = std::abs(cell[0][1])+std::abs(cell[1][1])+std::abs(cell[2][1]);
-        size_split[2] = std::abs(cell[0][2])+std::abs(cell[1][2])+std::abs(cell[2][2]);
-        // fragment cell
-        SizeVec n_split{1,1,1};
-        if(size_split[0] >= cut){
-            n_split[0] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[0] / cut)));
-            size_split[0] = 1./n_split[0];
-        }
-        if(size_split[1] >= cut){
-            n_split[1] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[1] / cut)));
-            size_split[1] = 1./n_split[1];
-        }
-        if(size_split[2] >= cut){
-            n_split[2] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[2] / cut)));
-            size_split[2] = 1./n_split[2];
-        }
-        // put atoms in boxes
-        DataGrid3D<std::vector<size_t>> boxes{n_split};
-        for(auto it=asCrystal.begin(); it!=asCrystal.end(); ++it){
-            auto findBox = [&](size_t dir){
-                auto tmp = std::fmod(it->coord[dir], 1);
-                if (tmp<0) tmp+=1;
-                return static_cast<size_t>(tmp/size_split[dir]);
-            };
-            boxes(findBox(0), findBox(1), findBox(2)).push_back(it.getIdx());
-        }
-        // get bonds by iterating over boxes and their neighbors
-        auto& bonds = this->bonds->bonds;
-        // indices of neighbor boxes
-        std::optional<size_t> xl{}, xh{}, yl{}, yh{}, zl{}, zh{};
-        for(size_t x=0; x<boxes.extent[0]; ++x){
-            if(boxes.extent[0]>2){
-                // 3 or more: regular periodic handling in all directions
-                if(x == boxes.extent[0]-1){
-                    xh = 0;
-                }else{
-                    xh = x+1;
-                }
-                if(x == 0){
-                    xl = boxes.extent[0]-1;
-                }else{
-                    xl = x-1;
-                }
-            }else if(boxes.extent[0]==2){
-                // 2: non-periodic in this direction
-                if(x == boxes.extent[0]-1){
-                    xh = std::nullopt;
-                }else{
-                    xh = x+1;
-                }
-                if(x == 0){
-                    xl = std::nullopt;
-                }else{
-                    xl = x-1;
-                }
-            }else{
-                // 1: need self-interaction of box, comparable to setBondsCellTrivial
-                xh = std::nullopt;
-                xl = std::nullopt;
+        Vec size_split{
+            std::abs(cell[0][0]) + std::abs(cell[1][0]) + std::abs(cell[2][0]),
+            std::abs(cell[0][1]) + std::abs(cell[1][1]) + std::abs(cell[2][1]),
+            std::abs(cell[0][2]) + std::abs(cell[1][2]) + std::abs(cell[2][2])
+        };
+        // partition the cell
+        SizeVec n_split{1, 1, 1};
+        for(size_t i{0}; i<3; ++i){
+            if(size_split[i] >= cut){
+                n_split[i] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[i]/cut)));
+                size_split[i] = 1./n_split[i];
             }
-            for(size_t y=0; y<boxes.extent[1]; ++y){
-                if(boxes.extent[1]>2){
-                    if(y == boxes.extent[1]-1){
-                        yh = 0;
-                    }else{
-                        yh = y+1;
-                    }
-                    if(y == 0){
-                        yl = boxes.extent[1]-1;
-                    }else{
-                        yl = y-1;
-                    }
-                }else if(boxes.extent[1]==2){
-                    if(y == boxes.extent[1]-1){
-                        yh = std::nullopt;
-                    }else{
-                        yh = y+1;
-                    }
-                    if(y == 0){
-                        yl = std::nullopt;
-                    }else{
-                        yl = y-1;
-                    }
-                }else{
-                    yh = std::nullopt;
-                    yl = std::nullopt;
-                }
-                for(size_t z=0; z<boxes.extent[2]; ++z){
-                    if(boxes.extent[2]>2){
-                        if(z == boxes.extent[2]-1){
-                            zh = 0;
-                        }else{
-                            zh = z+1;
-                        }
-                        if(z == 0){
-                            zl = boxes.extent[2]-1;
-                        }else{
-                            zl = z-1;
-                        }
-                    }else if(boxes.extent[2]==2){
-                        if(z == boxes.extent[2]-1){
-                            zh = std::nullopt;
-                        }else{
-                            zh = z+1;
-                        }
-                        if(z == 0){
-                            zl = std::nullopt;
-                        }else{
-                            zl = z-1;
-                        }
-                    }else{
-                        zh = std::nullopt;
-                        zl = std::nullopt;
-                    }
-                    for(auto it_i=boxes(x,y,z).begin(); it_i != boxes(x,y,z).end(); ++it_i){
-                        auto i = *it_i;
-                        const auto& at_i = asCrystal[i];
-                        auto cut_i = at_i.type->bondcut;
-                        if (cut_i <= 0){
+        }
+        // assign atoms to bins
+        DataGrid3D<std::vector<size_t>> bins{n_split};
+        if(n_split == SizeVec{1,1,1}){
+            // only one bin
+            auto& bin = bins(0,0,0);
+            bin.resize(getNat());
+            std::iota(bin.begin(), bin.end(), 0);
+        }else{
+            // multiple bins
+            for(auto it = asCrystal.begin(); it != asCrystal.end(); ++it){
+                auto findBin = [&](size_t dir){
+                    auto tmp = std::fmod(it->coord[dir], 1);
+                    if (tmp<0) tmp+=1;
+                    return static_cast<size_t>(tmp/size_split[dir]);
+                };
+                bins(findBin(0), findBin(1), findBin(2)).push_back(it.getIdx());
+            }
+        }
+        /* we're going to loop over all neighboring bins,
+         * unless any direction has only two bins
+         */
+        bool dir_periodic[3] {n_split[0] > 2, n_split[1] > 2, n_split[2] > 2};
+        /* if any direction has only one bin,
+         * we need to calculate (some) periodic self-interactions of this bin
+         */
+        bool dir_with_self[3] {n_split[0] == 1, n_split[1] == 1, n_split[2] == 1};
+        /* if all directions have multiple bins,
+         * periodic bonds exist only between bins,
+         * which allows for some shortcuts
+         */
+        bool bin_with_self = dir_with_self[0] || dir_with_self[1] || dir_with_self[2];
+        // iterate over source-bins
+        for(size_t x=0; x<n_split[0]; ++x){
+            size_t xh = (x < (n_split[0]-1)) ? x+1 : 0;
+            size_t xl = (x > 0) ? x-1 : n_split[0]-1;
+            for(size_t y=0; y<n_split[1]; ++y){
+                size_t yh = (y < (n_split[1]-1)) ? y+1 : 0;
+                size_t yl = (y > 0) ? y-1 : n_split[1]-1;
+                for(size_t z=0; z<n_split[2]; ++z){
+                    size_t zh = (z < (n_split[2]-1)) ? z+1 : 0;
+                    size_t zl = (z > 0) ? z-1 : n_split[2]-1;
+                    const auto& bin_source = bins(x,y,z);
+                    for(auto it_source = bin_source.begin(); it_source != bin_source.end(); ++it_source){
+                        auto idx_source = *it_source;
+                        const auto& at_source = asCrystal[idx_source];
+                        auto cut_source = at_source.type->bondcut;
+                        if (cut_source <= 0){
+                            // non-bonding atom type
                             continue;
                         }
-                        // loop over rest of current box
-                        for (auto it_j = it_i+1; it_j!=boxes(x,y,z).end(); ++it_j) {
-                            auto j = *it_j;
-                            const auto& at_j = asCrystal[j];
-                            auto cut_j = at_j.type->bondcut;
-                            if (cut_j <= 0) {
-                                continue;
-                            }
-                            auto effcut = (cut_i + cut_j) * 1.1f;
-                            Vec dist_v = at_i.coord - at_j.coord;
-                            DiffVec diff_v, crit_v;
-                            // diff_v contains integer distance in cell-units
-                            std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
-                            // dist_v now contains distance inside of cell
-                            std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                                [](double f){return std::fmod(f,1);});
-                            // crit_v contains direction of distance-vector
-                            std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                                [](double f){
-                                    return (std::abs(f) < std::numeric_limits<double>::epsilon())?
-                                                0 : ((f<0) ? -1 : 1);
-                                });
-                            if(!(crit_v[0]|crit_v[1]|crit_v[2])){
-                                // TODO: fail here? set flag? overlapping atoms!
-                                continue;
-                            }
-                            // convert dist_v to bohr, wrap into cell if needed
-                            for(size_t d=0; d<3; ++d){
-                                if(std::abs(dist_v[d]) > 0.5){
-                                    dist_v[d] -= crit_v[d];
-                                    diff_v[d] += crit_v[d];
-                                }
-                            }
-                            dist_v = dist_v * cell;
-                            if ((dist_v[0] > effcut) ||
-                                (dist_v[1] > effcut) ||
-                                (dist_v[2] > effcut)) {
-                                continue;
-                            }
-                            auto dist_n = Vec_dot(dist_v, dist_v);
-                            if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                bonds.push_back({i, j, std::sqrt(dist_n), diff_v});
-                            }
-                        }
-                        // other boxes should be evaluated in total
-                        auto wrapcheck = [&](size_t xt, size_t yt, size_t zt){
-                            for (const auto& j: boxes(xt, yt, zt)) {
-                                const auto& at_j = asCrystal[j];
-                                auto cut_j = at_j.type->bondcut;
-                                if (cut_j <= 0) {
+                        // evaluate bonds between bin_source and bin(x_t,y_t,z_t)
+                        auto checkBin = [&](size_t x_t, size_t y_t, size_t z_t){
+                            const auto& bin_target = bins(x_t, y_t, z_t);
+                            /* if bin_target == bin_source,
+                             * we only need to visit atoms that have not been visited by the outer loop
+                             * else we need to loop over all atoms in bin_target
+                             */
+                            auto it_target = (x_t == x && y_t == y && z_t == z) ?
+                                        it_source+1 :
+                                        bin_target.begin();
+                            for(; it_target != bin_target.end(); ++it_target){
+                                auto idx_target = *it_target;
+                                const auto& at_target = asCrystal[idx_target];
+                                auto cut_target = at_target.type->bondcut;
+                                if (cut_target <= 0) {
+                                    // non-bonding atom type
                                     continue;
                                 }
-                                auto effcut = (cut_i + cut_j) * 1.1f;
-                                Vec dist_v = at_i.coord - at_j.coord;
-                                DiffVec diff_v, crit_v;
-                                // diff_v contains integer distance in cell-units
-                                std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
-                                // dist_v now contains distance inside of cell
-                                std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                                    [](double f){return std::fmod(f,1);});
+                                // effective cutoff, with a 10% stretching margin
+                                auto effcut = (cut_source + cut_target) * 1.1f;
+                                // distance in crystal-units
+                                Vec dist_v = at_source.coord - at_target.coord;
+                                // diff_v contains whole-cell distance (truncated by casting to int)
+                                DiffVec diff_v{
+                                    static_cast<DiffVec::value_type>(dist_v[0]),
+                                    static_cast<DiffVec::value_type>(dist_v[1]),
+                                    static_cast<DiffVec::value_type>(dist_v[2])};
+                                // wrap dist_v inside one cell
+                                dist_v[0] = std::fmod(dist_v[0], 1);
+                                dist_v[1] = std::fmod(dist_v[1], 1);
+                                dist_v[2] = std::fmod(dist_v[2], 1);
                                 // crit_v contains direction of distance-vector
-                                std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                                    [](double f){
-                                        return (std::abs(f) < std::numeric_limits<double>::epsilon())?
-                                                    0 : ((f<0) ? -1 : 1);
-                                    });
-                                if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
+                                auto getSignFuzzy = [](double f){
+                                    return (std::abs(f) < std::numeric_limits<double>::epsilon()) ?
+                                                0 : ((f<0) ? -1 : 1);
+                                };
+                                DiffVec crit_v{
+                                    getSignFuzzy(dist_v[0]),
+                                    getSignFuzzy(dist_v[1]),
+                                    getSignFuzzy(dist_v[2]),
+                                };
+                                if(!(crit_v[0]|crit_v[1]|crit_v[2])){
                                     // TODO: fail here? set flag? overlapping atoms!
                                     continue;
                                 }
-                                // convert dist_v to bohr, wrap into cell if needed
-                                for(size_t d=0; d<3; ++d){
-                                    if(std::abs(dist_v[d]) > 0.5){
-                                        dist_v[d] -= crit_v[d];
-                                        diff_v[d] += crit_v[d];
+                                // evaluation-lambda
+                                auto checkBond = [&](const Vec& dist, const DiffVec& offset)
+                                {
+                                    if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
+                                        return;
+                                    }
+                                    double dist_n = Vec_dot(dist, dist);
+                                    if ((0.57 < dist_n) && (dist_n < effcut*effcut)) {
+                                        bonds.push_back({idx_source, idx_target, std::sqrt(dist_n), offset});
+                                    }
+                                };
+                                /* if there are multiple bins in all directions
+                                 * we can perform a naive wrapping,
+                                 * as no bin-bin bonds with ourself are possible
+                                 */
+                                if (!bin_with_self) {
+                                    for (size_t i=0; i<3; ++i){
+                                        if(std::abs(dist_v[i]) > 0.5){
+                                            dist_v[i] -= crit_v[i];
+                                            diff_v[i] += crit_v[i];
+                                        }
                                     }
                                 }
+                                // convert to bohr
                                 dist_v = dist_v * cell;
-                                if ((dist_v[0] > effcut) ||
-                                    (dist_v[1] > effcut) ||
-                                    (dist_v[2] > effcut)) {
+                                // inside bin
+                                checkBond(dist_v, diff_v);
+                                // shortcut if no bin-bin interactions are possible
+                                if (!bin_with_self){
                                     continue;
                                 }
-                                auto dist_n = Vec_dot(dist_v, dist_v);
-                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    bonds.push_back({i, j, std::sqrt(dist_n), diff_v});
+                                // x, -x
+                                if (dir_with_self[0]) {
+                                    if (crit_v[0] != 0) {
+                                        checkBond(dist_v-crit_v[0]*x_v,
+                                                  {{diff_v[0]+crit_v[0],diff_v[1],diff_v[2]}});
+                                    }
+                                }
+                                // y, -y
+                                if (dir_with_self[1]) {
+                                    if (crit_v[1] != 0) {
+                                        checkBond(dist_v-crit_v[1]*y_v,
+                                                  {{diff_v[0],diff_v[1]+crit_v[1],diff_v[2]}});
+                                        if (dir_with_self[0]) {
+                                            // x+y, -x-y
+                                            if (crit_v[0] == crit_v[1]) {
+                                                checkBond(dist_v-crit_v[0]*xy_v,
+                                                          {{diff_v[0]+crit_v[0],
+                                                            diff_v[1]+crit_v[1],
+                                                            diff_v[2]}});
+                                            // x-y, -x+y
+                                            } else if (crit_v[0] == -crit_v[1]) {
+                                                checkBond(dist_v-crit_v[0]*xmy_v,
+                                                          {{diff_v[0]+crit_v[0],
+                                                            diff_v[1]+crit_v[1],
+                                                            diff_v[2]}});
+                                            }
+                                        }
+                                    }
+                                }
+                                // z, -z
+                                if (dir_with_self[2]) {
+                                    if (crit_v[2] != 0) {
+                                        checkBond(dist_v-crit_v[2]*z_v,
+                                                  {{diff_v[0],diff_v[1],diff_v[2]+crit_v[2]}});
+                                        if (dir_with_self[0]) {
+                                            // x+z, -x-z
+                                            if (crit_v[0] == crit_v[2]) {
+                                                checkBond(dist_v-crit_v[0]*xz_v,
+                                                          {{diff_v[0]+crit_v[0],
+                                                            diff_v[1],
+                                                            diff_v[2]+crit_v[2]}});
+                                            // x-z, -x+z
+                                            } else if (crit_v[0] == -crit_v[2]) {
+                                                checkBond(dist_v-crit_v[0]*xmz_v,
+                                                          {{diff_v[0]+crit_v[0],
+                                                            diff_v[1],
+                                                            diff_v[2]+crit_v[2]}});
+                                            }
+                                        }
+                                        if (dir_with_self[1]) {
+                                            // y+z, -y-z
+                                            if (crit_v[1] == crit_v[2]) {
+                                                checkBond(dist_v-crit_v[1]*yz_v,
+                                                          {{diff_v[0],
+                                                            diff_v[1]+crit_v[1],
+                                                            diff_v[2]+crit_v[2]}});
+                                                if (dir_with_self[0]) {
+                                                    // x+y+z, -x-y-z
+                                                    if (crit_v[0] == crit_v[2]) {
+                                                        checkBond(dist_v-crit_v[0]*xyz_v,
+                                                                  {{diff_v[0]+crit_v[0],
+                                                                    diff_v[1]+crit_v[1],
+                                                                    diff_v[2]+crit_v[2]}});
+                                                    // x-y-z, -x+y+z
+                                                    } else if (crit_v[0] == -crit_v[2]) {
+                                                        checkBond(dist_v-crit_v[1]*mxyz_v,
+                                                                  {{diff_v[0]+crit_v[0],
+                                                                    diff_v[1]+crit_v[1],
+                                                                    diff_v[2]+crit_v[2]}});
+                                                    }
+                                                }
+                                            // y-z, -y+z
+                                            } else if (crit_v[1] == -crit_v[2]) {
+                                                checkBond(dist_v-crit_v[1]*ymz_v,
+                                                          {{diff_v[0],
+                                                            diff_v[1]+crit_v[1],
+                                                            diff_v[2]+crit_v[2]}});
+                                                if (dir_with_self[0]) {
+                                                    // x-y+z, -x+y-z
+                                                    if (crit_v[0] == crit_v[2]) {
+                                                        checkBond(dist_v-crit_v[0]*xmyz_v,
+                                                                  {{diff_v[0]+crit_v[0],
+                                                                    diff_v[1]+crit_v[1],
+                                                                    diff_v[2]+crit_v[2]}});
+                                                    // x+y-z, -x-y+z
+                                                    } else if (crit_v[0] == -crit_v[2]) {
+                                                        checkBond(dist_v-crit_v[0]*xymz_v,
+                                                                  {{diff_v[0]+crit_v[0],
+                                                                    diff_v[1]+crit_v[1],
+                                                                    diff_v[2]+crit_v[2]}});
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         };
-                        if(xh){
-                            wrapcheck(*xh, y, z); // x
-                            if(yh){
-                                wrapcheck(*xh, *yh, z); // xy
-                                if(zh) wrapcheck(*xh, *yh, *zh); // xyz
-                                if(zl) wrapcheck(*xh, *yh, *zl); // xy-z
+                        // visit current bin
+                        checkBin(x,y,z);
+                        // x
+                        if (dir_periodic[0] || (x < (n_split[0]-1))) {
+                            checkBin(xh, y, z);
+                            // xy
+                            if (dir_periodic[1] || (y < (n_split[1]-1))) {
+                                checkBin(xh, yh, z);
+                                // xyz
+                                if (dir_periodic[2] || (z < (n_split[2]-1))) {
+                                    checkBin(xh, yh, zh);
+                                }
+                                // xy-z
+                                if (dir_periodic[2] || (z > 0)) {
+                                    checkBin(xh, yh, zl);
+                                }
                             }
-                            if(yl){
-                                wrapcheck(*xh, *yl, z); // x-y
-                                if(zh) wrapcheck(*xh, *yl, *zh); // x-yz
+                            // x-y
+                            if (dir_periodic[1] || (y > 0)) {
+                                checkBin(xh, yl, z);
+                                // x-yz
+                                if (dir_periodic[2] || (z < (n_split[2]-1))) {
+                                    checkBin(xh, yl, zh);
+                                }
                             }
-                            if(zh) wrapcheck(*xh, y, *zh); // xz
-                            if(zl) wrapcheck(*xh, y, *zl); // x-z
-                        }
-                        if(yh){
-                            wrapcheck(x, *yh, z); // y
-                            if(zh){
-                                wrapcheck(x, *yh, *zh); // yz
-                                if(xl) wrapcheck(*xl, *yh, *zh); // -xyz
+                            // xz
+                            if (dir_periodic[2] || (z < (n_split[2]-1))) {
+                                checkBin(xh, y, zh);
                             }
-                            if(zl) wrapcheck(x, *yh, *zl); // y-z
+                            // xy-z
+                            if (dir_periodic[2] || (z > 0)) {
+                                checkBin(xh, y, zl);
+                            }
                         }
-                        if(zh) wrapcheck(x, y, *zh); // z
-                    }
-                }
-            }
-        }
-    }
-    void setBondsCellTrivial() const
-    {
-        auto& bonds = this->bonds->bonds;
-        const auto asCrystal = asFmt(AtomFmt::Crystal);
-        const Vec x = getCellVec()[0] * getCellDim(CdmFmt::Bohr);
-        const Vec y = getCellVec()[1] * getCellDim(CdmFmt::Bohr);
-        const Vec z = getCellVec()[2] * getCellDim(CdmFmt::Bohr);
-        const Vec xy   = x+y;
-        const Vec xmy  = x-y;
-        const Vec xz   = x+z;
-        const Vec xmz  = x-z;
-        const Vec yz   = y+z;
-        const Vec ymz  = y-z;
-        const Vec xyz  = xy + z;
-        const Vec xymz = xy - z;
-        const Vec xmyz = xz - y;
-        const Vec mxyz = yz - x;
-        DiffVec diff_v, crit_v;
-        for(auto at_i = asCrystal.begin(); at_i != asCrystal.end(); ++at_i){
-            size_t i = at_i.getIdx();
-            double cut_i = at_i->type->bondcut;
-            if (cut_i<0) {
-                continue;
-            }
-            for(auto at_j = at_i+1; at_j != asCrystal.end(); ++at_j){
-                size_t j = at_j.getIdx();
-                double cut_j = at_j->type->bondcut;
-                if (cut_j<0) {
-                    continue;
-                }
-                double effcut = (cut_i + cut_j) * 1.1;
-                Vec dist_v = at_i->coord - at_j->coord;
-                // diff_v contains integer distance in cell-units
-                std::transform(dist_v.begin(), dist_v.end(), diff_v.begin(), truncf);
-                // dist_v now contains distance inside of cell
-                std::transform(dist_v.begin(), dist_v.end(), dist_v.begin(),
-                    [](double f){return std::fmod(f,1);});
-                // crit_v contains direction of distance-vector
-                std::transform(dist_v.begin(), dist_v.end(), crit_v.begin(),
-                    [](double f){
-                        return (std::abs(f) < std::numeric_limits<double>::epsilon())?
-                                    0 : ((f<0) ? -1 : 1);
-                    });
-                if(!((crit_v[0] != 0)||(crit_v[1] != 0)||(crit_v[2] != 0))){
-                    // TODO: fail here? set flag? overlapping atoms!
-                    continue;
-                }
-                // convert dist_v to bohr
-                dist_v = dist_v * cell->cellvec * cell->dimBohr;
-                // evaluation-lambda
-                auto checkBond = [&](const Vec& dist, const DiffVec& offset)
-                {
-                    if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
-                        return;
-                    }
-                    double dist_n = Vec_dot(dist, dist);
-                    if ((0.57 < dist_n) && (dist_n < effcut*effcut)) {
-                        bonds.push_back({i, j, std::sqrt(dist_n), offset});
-                    }
-                };
-                // 0-vector
-                checkBond(dist_v, diff_v);
-                // x, -x
-                if(crit_v[0] != 0){
-                    checkBond(dist_v-crit_v[0]*x,
-                              {{static_cast<int16_t>(diff_v[0]+crit_v[0]),diff_v[1],diff_v[2]}});
-                }
-                // y, -y
-                if(crit_v[1] != 0){
-                    checkBond(dist_v-crit_v[1]*y,
-                              {{diff_v[0],static_cast<int16_t>(diff_v[1]+crit_v[1]),diff_v[2]}});
-                    // x+y, -x-y
-                    if(crit_v[0] == crit_v[1]){
-                        checkBond(dist_v-crit_v[0]*xy,
-                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                    diff_v[2]}});
-                    // x-y, -x+y
-                    }else if(crit_v[0] == -crit_v[1]){
-                        checkBond(dist_v-crit_v[0]*xmy,
-                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                    diff_v[2]}});
-                    }
-                }
-                // z, -z
-                if(crit_v[2] != 0){
-                    checkBond(dist_v-crit_v[2]*z,
-                              {{diff_v[0],diff_v[1],static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                    // x+z, -x-z
-                    if(crit_v[0] == crit_v[2]){
-                        checkBond(dist_v-crit_v[0]*xz,
-                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                    diff_v[1],
-                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                    // x-z, -x+z
-                    }else if(crit_v[0] == -crit_v[2]){
-                        checkBond(dist_v-crit_v[0]*xmz,
-                                  {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                    diff_v[1],
-                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                    }
-                    // y+z, -y-z
-                    if(crit_v[1] == crit_v[2]){
-                        checkBond(dist_v-crit_v[1]*yz,
-                                  {{diff_v[0],
-                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        // x+y+z, -x-y-z
-                        if(crit_v[0] == crit_v[2]){
-                            checkBond(dist_v-crit_v[0]*xyz,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        // x-y-z, -x+y+z
-                        } else if(crit_v[0] == -crit_v[2]){
-                            checkBond(dist_v-crit_v[1]*mxyz,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        // y
+                        if (dir_periodic[1] || (y < (n_split[1]-1))) {
+                            checkBin(x, yh, z);
+                            // yz
+                            if (dir_periodic[2] || (z < (n_split[2]-1))) {
+                                checkBin(x, yh, zh);
+                                if (dir_periodic[0] || (x > 0)) {
+                                    checkBin(xl, yh, zh);
+                                }
+                            }
+                            // y-z
+                            if (dir_periodic[2] || (z > 0)) {
+                                checkBin(x, yh, zl);
+                            }
                         }
-                    // y-z, -y+z
-                    }else if(crit_v[1] == -crit_v[2]){
-                        checkBond(dist_v-crit_v[1]*ymz,
-                                  {{diff_v[0],
-                                    static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                    static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        // x-y+z, -x+y-z
-                        if(crit_v[0] == crit_v[2]){
-                            checkBond(dist_v-crit_v[0]*xmyz,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
-                        // x+y-z, -x-y+z
-                        } else if(crit_v[0] == -crit_v[2]){
-                            checkBond(dist_v-crit_v[0]*xymz,
-                                      {{static_cast<int16_t>(diff_v[0]+crit_v[0]),
-                                        static_cast<int16_t>(diff_v[1]+crit_v[1]),
-                                        static_cast<int16_t>(diff_v[2]+crit_v[2])}});
+                        // z
+                        if (dir_periodic[2] || (z < (n_split[2]-1))) {
+                            checkBin(x, y, zh);
                         }
                     }
                 }
