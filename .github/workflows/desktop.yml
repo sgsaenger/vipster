@@ -76,15 +76,15 @@ jobs:
           uses: actions/cache@v1
           with:
               path: MinGW
-              key: mingw
+              key: mingw-17.1
 
         - name: Install MinGW
           if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
           shell: bash
           run: |
               choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-17.0-without-git.exe
-              7z x mingw-17.0-without-git.exe
+              wget https://nuwen.net/files/mingw/mingw-17.1-without-git.exe
+              7z x mingw-17.1-without-git.exe
               MinGW/set_distro_paths.bat
 
         - name: Configure MinGW
