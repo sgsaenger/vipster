@@ -8,5 +8,5 @@ cp libvipster.dll Vipster
 cp $pythonLocation/python38.dll Vipster
 7z a -tzip Vipster/python38.zip $pythonLocation/Lib/*
 windeployqt --release --compiler-runtime --no-translations Vipster/vipster.exe
-cp $QTDIR/bin/lib{gcc*,stdc++*,winpthread*} Vipster
+cp $QTDIR/bin/lib{gcc_s_seh-1,stdc++-6,winpthread-1}.dll Vipster
 7z a Vipster-Win-x86_64.7z Vipster
