@@ -357,6 +357,11 @@ private:
             max[2] = std::max(at.coord[2], max[2]);
             cut = std::max(at.type->bondcut, cut);
         }
+        if(float_comp(cut, 0.)){
+            // if we have no bonding atom types,
+            // exit early as no bonds will be found
+            return;
+        }
         // fragment spanned space
         Vec diff = max - min;
         cut = 5*cut;
