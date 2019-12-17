@@ -560,7 +560,9 @@ private:
                 auto findBin = [&](size_t dir){
                     auto tmp = std::fmod(it->coord[dir], 1);
                     if (tmp<0) tmp+=1;
-                    return static_cast<size_t>(tmp/size_split[dir]);
+                    auto tgt = static_cast<size_t>(tmp/size_split[dir]);
+                    if (tgt==n_split[dir]) tgt-=1;
+                    return tgt;
                 };
                 bins(findBin(0), findBin(1), findBin(2)).push_back(it.getIdx());
             }
