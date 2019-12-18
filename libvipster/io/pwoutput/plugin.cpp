@@ -156,6 +156,5 @@ const IO::Plugin IO::PWOutput =
     "PWScf Output File",
     "pwo",
     "pwo",
-    IO::Plugin::Read,
     &PWOutParser
 };

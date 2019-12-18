@@ -4,6 +4,8 @@
 
 using namespace Vipster;
 
+enum class CPAtomFmt{Bohr, Angstrom, Crystal, Alat, Active};
+
 const std::map<std::string, int> str2ibrav{
     {"ISOLATED", 0},
     {"CUBIC", 1},
@@ -414,16 +416,18 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
 
 bool CPInpWriter(const Molecule& m, std::ostream &file,
                  const IO::BaseParam *const p,
-                 const IO::BasePreset *const c,
+                 const std::optional<IO::BasePreset>& c,
                  size_t index)
 {
     const auto *pp = dynamic_cast<const IO::CPParam*>(p);
     if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
-    const auto *cc = dynamic_cast<const IO::CPPreset*>(c);
-    if(!cc) throw IO::Error("CPI-Writer needs CPMD config preset");
-    const auto& s = (cc->fmt == IO::CPPreset::AtomFmt::Active) ?
+    if(!c || c->getFmt() != &IO::CPInput){
+        throw IO::Error("CPMD-Input-Writer needs suitable IO preset");
+    }
+    auto atfmt = static_cast<CPAtomFmt>(std::get<uint>(c->at("fmt")));
+    const auto& s = (atfmt == CPAtomFmt::Active) ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
-        m.getStep(index).asFmt(static_cast<AtomFmt>(cc->fmt)); // use explicit fmt
+        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt
     auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
     for(const auto& pair: IO::CPParam::str2section){
         if(pair.second == &IO::CPParam::atoms){
@@ -596,9 +600,10 @@ static std::unique_ptr<IO::BaseParam> makeParam()
     return std::make_unique<IO::CPParam>();
 }
 
-static std::unique_ptr<IO::BasePreset> makePreset()
+static IO::BasePreset makePreset()
 {
-    return std::make_unique<IO::CPPreset>();
+    return {&IO::CPInput,
+        {{"fmt", static_cast<uint>(CPAtomFmt::Active)}}};
 }
 
 const IO::Plugin IO::CPInput =
@@ -606,7 +611,6 @@ const IO::Plugin IO::CPInput =
     "CPMD Input File",
     "cpi",
     "cpi",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param|IO::Plugin::Preset,
     &CPInpParser,
     &CPInpWriter,
     &makeParam,

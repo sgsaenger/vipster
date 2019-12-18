@@ -56,19 +56,19 @@ void CPInput(py::module& m){
         .def_readwrite("PPNonlocality", &IO::CPParam::PPNonlocality)
     ;
 
-    auto c = py::class_<IO::CPPreset, IO::BasePreset>(m, "CPPreset");
+//    auto c = py::class_<IO::CPPreset, IO::BasePreset>(m, "CPPreset");
 
-    py::enum_<IO::CPPreset::AtomFmt>(c, "AtomFmt")
-        .value("Bohr", IO::CPPreset::AtomFmt::Bohr)
-        .value("Angstrom", IO::CPPreset::AtomFmt::Angstrom)
-        .value("Crystal", IO::CPPreset::AtomFmt::Crystal)
-        .value("Alat", IO::CPPreset::AtomFmt::Alat)
-        .value("Active", IO::CPPreset::AtomFmt::Active)
-    ;
+//    py::enum_<IO::CPPreset::AtomFmt>(c, "AtomFmt")
+//        .value("Bohr", IO::CPPreset::AtomFmt::Bohr)
+//        .value("Angstrom", IO::CPPreset::AtomFmt::Angstrom)
+//        .value("Crystal", IO::CPPreset::AtomFmt::Crystal)
+//        .value("Alat", IO::CPPreset::AtomFmt::Alat)
+//        .value("Active", IO::CPPreset::AtomFmt::Active)
+//    ;
 
-    c.def(py::init<IO::CPPreset::AtomFmt>(),
-          "fmt"_a=IO::CPPreset::AtomFmt::Active)
-     .def_readwrite("fmt", &IO::CPPreset::fmt)
-    ;
+//    c.def(py::init<IO::CPPreset::AtomFmt>(),
+//          "fmt"_a=IO::CPPreset::AtomFmt::Active)
+//     .def_readwrite("fmt", &IO::CPPreset::fmt)
+//    ;
 }
 }

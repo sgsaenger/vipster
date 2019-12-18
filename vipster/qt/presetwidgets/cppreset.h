@@ -23,7 +23,7 @@ private slots:
 
 private:
     Ui::CPPreset *ui;
-    Vipster::IO::CPPreset *curPreset{nullptr};
+    Vipster::IO::BasePreset *curPreset{nullptr};
 };
 
 #endif // CPCONFIG_H

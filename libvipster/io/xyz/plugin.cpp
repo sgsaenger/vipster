@@ -5,6 +5,9 @@
 
 using namespace Vipster;
 
+enum class XYZData{None, Charge, Forces};
+enum class XYZMode{Step, Trajec, Cell};
+
 IO::Data XYZParser(const std::string& name, std::istream &file)
 {
     IO::Data data{};
@@ -91,18 +94,21 @@ IO::Data XYZParser(const std::string& name, std::istream &file)
 }
 
 bool XYZWriter(const Molecule& m, std::ostream &file,
-               const IO::BaseParam*const, const IO::BasePreset*const c,
+               const IO::BaseParam*const,
+               const std::optional<IO::BasePreset>& c,
                size_t index)
 {
-    const auto *cc = dynamic_cast<const IO::XYZPreset*>(c);
-    if(!cc) throw IO::Error("XYZ-Writer needs IO preset");
+    if(!c || c->getFmt() != &IO::XYZ){
+        throw IO::Error("XYZ-Writer needs suitable IO preset");
+    }
+    auto cc = *c;
     const Step& s = m.getStep(index).asFmt(AtomFmt::Angstrom);
     auto stepWriter = [&file, cc](const Step& s){
         file << s.getNat() << '\n';
         file << s.getComment() << '\n';
         file << std::fixed << std::setprecision(5);
-        switch(cc->atomdata){
-        case IO::XYZPreset::Data::None:
+        switch(static_cast<XYZData>(std::get<uint>(cc.at("atomdata")))){
+        case XYZData::None:
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
                      << std::right << std::setw(10) << at.coord[0] << " "
@@ -110,7 +116,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
                      << std::right << std::setw(10) << at.coord[2] << '\n';
             }
             break;
-        case IO::XYZPreset::Data::Charge:
+        case XYZData::Charge:
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
                      << std::right << std::setw(10) << at.coord[0] << " "
@@ -119,7 +125,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
                      << std::right << std::setw(10) << at.properties->charge << '\n';
             }
             break;
-        case IO::XYZPreset::Data::Forces:
+        case XYZData::Forces:
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
                      << std::right << std::setw(10) << at.coord[0] << " "
@@ -132,18 +138,18 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
             break;
         }
     };
-    switch(cc->filemode){
-    case IO::XYZPreset::Mode::Step:
+    switch(static_cast<XYZMode>(std::get<uint>(cc.at("filemode")))){
+    case XYZMode::Step:
         stepWriter(s);
         break;
-    case IO::XYZPreset::Mode::Cell:
+    case XYZMode::Cell:
         stepWriter(s);
         file << '\n';
         for(const auto& vec: s.getCellVec()*s.getCellDim(CdmFmt::Angstrom)){
             file << vec[0] << ' ' << vec[1] << ' ' << vec[2] << '\n';
         }
         break;
-    case IO::XYZPreset::Mode::Trajec:
+    case XYZMode::Trajec:
         for(const auto& step: m.getSteps()){
             stepWriter(step.asFmt(AtomFmt::Angstrom));
         }
@@ -152,9 +158,11 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BasePreset> makePreset()
+static IO::BasePreset makePreset()
 {
-    return std::make_unique<IO::XYZPreset>();
+    return {&IO::XYZ,
+        {{"filemode", static_cast<uint>(XYZMode::Step)},
+         {"atomdata", static_cast<uint>(XYZData::None)}}};
 }
 
 const IO::Plugin IO::XYZ =
@@ -162,7 +170,6 @@ const IO::Plugin IO::XYZ =
     "xyz",
     "xyz",
     "xyz",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Preset,
     &XYZParser,
     &XYZWriter,
     nullptr,

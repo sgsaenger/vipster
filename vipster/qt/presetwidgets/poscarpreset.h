@@ -24,7 +24,7 @@ private slots:
 
 private:
     Ui::PoscarPreset *ui;
-    Vipster::IO::PoscarPreset *curPreset{nullptr};
+    Vipster::IO::BasePreset *curPreset{nullptr};
 };
 
 #endif // POSCARCONFIG_H

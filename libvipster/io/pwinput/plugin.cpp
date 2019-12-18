@@ -10,6 +10,9 @@
 
 using namespace Vipster;
 
+enum class PWAtomFmt {Bohr, Angstrom, Crystal, Alat, Active};
+enum class PWCellFmt {Bohr, Angstrom, Active};
+
 struct CellInp{
     enum CellFmt{None, Alat, Bohr, Angstrom};
     CellFmt fmt{CellFmt::None};
@@ -330,16 +333,19 @@ IO::Data PWInpParser(const std::string& name, std::istream &file)
 
 bool PWInpWriter(const Molecule& m, std::ostream &file,
                  const IO::BaseParam *const p,
-                 const IO::BasePreset *const c,
+                 const std::optional<IO::BasePreset>& c,
                  size_t index)
 {
     const auto *pp = dynamic_cast<const IO::PWParam*>(p);
     if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
-    const auto *cc = dynamic_cast<const IO::PWPreset*>(c);
-    if(!cc) throw IO::Error("PWI-Writer needs PWScf IO preset");
-    const auto& s = (cc->atoms == IO::PWPreset::AtomFmt::Active) ?
+    if(!c || c->getFmt() != &IO::PWInput){
+        throw IO::Error("PWI-Writer needs suitable IO preset");
+    }
+    auto atfmt = static_cast<PWAtomFmt>(std::get<uint>(c->at("atoms")));
+    auto cellfmt = static_cast<PWCellFmt>(std::get<uint>(c->at("atoms")));
+    const auto& s = (atfmt == PWAtomFmt::Active) ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
-        m.getStep(index).asFmt(static_cast<AtomFmt>(cc->atoms)); // use explicit fmt
+        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt
     std::vector<std::pair<std::string, const IO::PWParam::Namelist*>>
             outNL = {{"control", &pp->control},
                      {"system", &pp->system},
@@ -359,10 +365,10 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             file << " ibrav = 0\n";
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
-            auto cell_fmt = (cc->cell == IO::PWPreset::CellFmt::Active) ?
+            auto cell_fmt = (cellfmt == PWCellFmt::Active) ?
                         ((s.getFmt() == AtomFmt::Angstrom) ?
                              CdmFmt::Angstrom : CdmFmt::Bohr) : // match coordinates
-                        static_cast<CdmFmt>(cc->cell); // use explicit
+                        static_cast<CdmFmt>(cellfmt); // use explicit
             if(cell_fmt == CdmFmt::Bohr){
                 file << " celldm(1) = " << s.getCellDim(cell_fmt) << '\n';
             }else{
@@ -386,8 +392,8 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             file << e.PWPP << '\n';
         }
     }
-    const std::array<std::string, 4> atfmt = {{"bohr", "angstrom", "crystal", "alat"}};
-    file << "\nATOMIC_POSITIONS " << atfmt[static_cast<size_t>(s.getFmt())] << '\n'
+    const std::array<std::string, 4> fmt2str = {{"bohr", "angstrom", "crystal", "alat"}};
+    file << "\nATOMIC_POSITIONS " << fmt2str[static_cast<size_t>(s.getFmt())] << '\n'
          << std::fixed << std::setprecision(5);
     AtomFlags fixComp{};
     fixComp[AtomFlag::FixX] = true;
@@ -441,9 +447,11 @@ static std::unique_ptr<IO::BaseParam> makeParam()
     return std::make_unique<IO::PWParam>();
 }
 
-static std::unique_ptr<IO::BasePreset> makePreset()
+static IO::BasePreset makePreset()
 {
-    return std::make_unique<IO::PWPreset>();
+    return {&IO::PWInput,
+        {{"atoms", static_cast<uint>(PWAtomFmt::Active)},
+         {"cell", static_cast<uint>(PWCellFmt::Active)}}};
 }
 
 const IO::Plugin IO::PWInput =
@@ -451,7 +459,6 @@ const IO::Plugin IO::PWInput =
     "PWScf Input File",
     "pwi",
     "pwi",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param | IO::Plugin::Preset,
     &PWInpParser,
     &PWInpWriter,
     &makeParam,

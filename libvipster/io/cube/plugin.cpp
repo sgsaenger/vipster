@@ -133,6 +133,5 @@ const IO::Plugin IO::Cube =
     "Gaussian Cube file",
     "cube",
     "cube",
-    IO::Plugin::Read,
     &CubeParser
 };

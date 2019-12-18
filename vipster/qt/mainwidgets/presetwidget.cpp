@@ -29,11 +29,11 @@ void PresetWidget::clearPresets()
 }
 
 void PresetWidget::registerPreset(const std::string& name,
-                                  std::unique_ptr<Vipster::IO::BasePreset>&& data)
+                                  const IO::BasePreset &data)
 {
-    presets.emplace_back(name, std::move(data));
+    presets.emplace_back(name, data);
     ui->presetSel->addItem(QString::fromStdString(
-                               "(" + presets.back().second->getFmt()->command +
+                               "(" + presets.back().second.getFmt()->command +
                                ") " + presets.back().first
                                ));
     ui->presetSel->setCurrentIndex(ui->presetSel->count()-1);
@@ -49,13 +49,13 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
     if(static_cast<size_t>(index) >= presets.size()){
         throw Error("Invalid IO preset selected");
     }
-    const auto& pair = presets.at(static_cast<size_t>(index));
-    curFmt = pair.second->getFmt();
+    auto& pair = presets.at(static_cast<size_t>(index));
+    curFmt = pair.second.getFmt();
     auto pos = formats.find(curFmt);
     if(pos == formats.end()){
         throw Error("Invalid IO preset format");
     }
-    curPreset = pair.second.get();
+    curPreset = &pair.second;
     ui->presetStack->setCurrentWidget(pos->second);
     pos->second->setPreset(curPreset);
 }

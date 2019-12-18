@@ -3,7 +3,6 @@
 
 #include "../plugin.h"
 #include "param.h"
-#include "preset.h"
 
 namespace Vipster::IO{
 

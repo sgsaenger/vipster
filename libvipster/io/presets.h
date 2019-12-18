@@ -3,20 +3,28 @@
 
 #include "nlohmann/json.hpp"
 
+#include "custommap.h"
+
 #include <string>
-#include <map>
-#include <memory>
+#include <variant>
 
 namespace Vipster::IO{
 
-class BasePreset
+using PresetValue = std::variant<bool, uint>;
+class BasePreset: public CustomMap<std::string, PresetValue>
 {
 public:
-    virtual const struct Plugin* getFmt() const = 0;
-    virtual std::unique_ptr<BasePreset> copy() const = 0;
-    virtual void parseJson(const nlohmann::json&) = 0;
-    virtual nlohmann::json toJson() const = 0;
+    enum ValIdx { i_bool, i_uint };
+    const struct Plugin* getFmt() const;
+// constructors/destructor
+    BasePreset(const struct Plugin* fmt=nullptr, CustomMap<std::string, PresetValue> &&values={});
+    BasePreset(const BasePreset &) = default;
+    BasePreset(BasePreset &&) = default;
+    BasePreset& operator=(const BasePreset &) = default;
+    BasePreset& operator=(BasePreset &&) = default;
     virtual ~BasePreset() = default;
+private:
+    const struct Plugin* fmt;
 };
 
 void to_json(nlohmann::json& j, const BasePreset& p);

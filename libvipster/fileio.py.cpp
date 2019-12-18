@@ -12,11 +12,11 @@ std::ostream& operator<<(std::ostream& os, const Plugin *p){
 
 // TODO: nicer representation, json maybe misleading in a python context
 std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BaseParam> &p){
-    return os << p->toJson();
+    return os;// << p->toJson();
 }
 
 std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BasePreset> &p){
-    return os << p->toJson();
+    return os;// << p->toJson();
 }
 
 }
@@ -178,19 +178,23 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
      * falling back to default-preset/param
      */
     m.def("writeFile", [&state](const std::string &fn, const IO::Plugin* plug, const Molecule &m,
-                       std::optional<size_t> idx={}, const IO::BaseParam *p=nullptr, const IO::BasePreset *c=nullptr){
+            std::optional<size_t> idx={},
+            const IO::BaseParam *p=nullptr,
+            std::optional<IO::BasePreset> c={}){
         if(!p && plug->makeParam){
             p = std::get<3>(state).at(plug).at("default").get();
         }
         if(!c && plug->makePreset){
-            c = std::get<4>(state).at(plug).at("default").get();
+            c = plug->makePreset();
         }
         return writeFile(fn, plug, m, idx, p, c);
         },
           "filename"_a, "format"_a, "molecule"_a,
           "index"_a=std::nullopt, "param"_a=nullptr, "config"_a=nullptr);
     m.def("writeString", [&state](const IO::Plugin* plug, const Molecule &m,
-          std::optional<size_t> idx={}, const IO::BaseParam *p=nullptr, const IO::BasePreset *c=nullptr){
+            std::optional<size_t> idx={},
+            const IO::BaseParam *p=nullptr,
+            std::optional<IO::BasePreset> c={}){
         if(!plug->writer){
             throw IO::Error{"Read-only format"};
         }
@@ -198,7 +202,7 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
             p = std::get<3>(state).at(plug).at("default").get();
         }
         if(!c && plug->makePreset){
-            c = std::get<4>(state).at(plug).at("default").get();
+            c = plug->makePreset();
         }
         if(!idx){
             idx = m.getNstep()-1;
@@ -250,7 +254,8 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
         })
     ;
 
-    bind_map_own<IO::Presets::mapped_type>(io, "__StrPresMap__");
+//    bind_map_own<IO::Presets::mapped_type>(io, "__StrPresMap__");
+    py::bind_map<IO::Presets::mapped_type>(io, "__StrPresMap__");
     py::bind_map<IO::Presets>(io, "__IOPresets")
         .def("__repr__", [](IO::Presets& p){
             std::ostringstream s;
@@ -273,13 +278,13 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
     py::class_<IO::BaseParam>(io, "__BaseParam")
         .def("__repr__", [](const IO::BaseParam &p){
             std::ostringstream s;
-            s << p.getFmt()->command << "-Parameters" << p.toJson();
+//            s << p.getFmt()->command << "-Parameters" << p.toJson();
             return s.str();
         });
     py::class_<IO::BasePreset>(io, "__BasePreset")
         .def("__repr__", [](const IO::BasePreset &p){
             std::ostringstream s;
-            s << p.getFmt()->command << "-IOPreset" << p.toJson();
+//            s << p.getFmt()->command << "-IOPreset" << p.toJson();
             return s.str();
         });
     PWInput(io);

@@ -52,7 +52,6 @@ IO::Presets Vipster::IO::defaultPresets(const Plugins &p)
 }
 
 std::optional<const IO::Plugin*> Vipster::guessFmt(std::string fn,
-                                                   IO::Plugin::Args arg,
                                                    const IO::Plugins &p)
 {
     auto pos = fn.find_last_of('.');
@@ -65,8 +64,7 @@ std::optional<const IO::Plugin*> Vipster::guessFmt(std::string fn,
         }
     }
     auto plug = std::find_if(p.begin(), p.end(), [&](const IO::Plugin* p){
-        return (((p->arguments & arg) == arg) &&
-           (p->extension == fn));
+        return p->extension == fn;
     });
     if(plug != p.end()){
         return *plug;
@@ -79,7 +77,7 @@ std::optional<const IO::Plugin*> Vipster::guessFmt(std::string fn,
 IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
 {
     // get format
-    auto plugin = guessFmt(fn, IO::Plugin::Read, p);
+    auto plugin = guessFmt(fn, p);
     if(!plugin){
         throw IO::Error{"Could not deduce format of file "+fn+
                         "\nPlease specify format explicitely", false};
@@ -113,7 +111,7 @@ bool  Vipster::writeFile(const std::string &fn,
                          const Molecule &m,
                          std::optional<size_t> idx,
                          const IO::BaseParam *const p,
-                         const IO::BasePreset *const c)
+                         const std::optional<IO::BasePreset>& c)
 {
     std::ofstream file{fn};
     if(!idx){

@@ -17,20 +17,20 @@ PWPreset::~PWPreset()
 
 void PWPreset::setPreset(IO::BasePreset *c)
 {
-    curPreset = dynamic_cast<IO::PWPreset*>(c);
-    if(!curPreset){
+    curPreset = c;
+    if(curPreset->getFmt() != &IO::PWInput){
         throw Error("Invalid configuration preset");
     }
-    ui->atomSel->setCurrentIndex(static_cast<int>(curPreset->atoms));
-    ui->cellSel->setCurrentIndex(static_cast<int>(curPreset->cell));
+    ui->atomSel->setCurrentIndex(std::get<uint>(curPreset->at("atoms")));
+    ui->cellSel->setCurrentIndex(std::get<uint>(curPreset->at("cell")));
 }
 
 void PWPreset::on_atomSel_currentIndexChanged(int index)
 {
-    curPreset->atoms = static_cast<IO::PWPreset::AtomFmt>(index);
+    curPreset->at("atoms") = static_cast<uint>(index);
 }
 
 void PWPreset::on_cellSel_currentIndexChanged(int index)
 {
-    curPreset->cell = static_cast<IO::PWPreset::CellFmt>(index);
+    curPreset->at("cell") = static_cast<uint>(index);
 }

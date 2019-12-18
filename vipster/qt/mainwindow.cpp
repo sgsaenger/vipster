@@ -102,7 +102,7 @@ void MainWindow::setupUI()
     }
     // fill in menu-options
     for(const auto& plug: plugins){
-        if(plug->arguments & IO::Plugin::Param){
+        if(plug->makeParam){
             auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
                         QString::fromStdString(plug->name));
             paramMenus[plug] = param_menu;
@@ -114,7 +114,7 @@ void MainWindow::setupUI()
                 }
             }
         }
-        if(plug->arguments & IO::Plugin::Preset){
+        if(plug->makePreset){
             auto* conf_menu = ui->menuLoad_IO_Preset->addMenu(
                         QString::fromStdString(plug->name));
             presetMenus[plug] = conf_menu;
@@ -429,7 +429,7 @@ void MainWindow::loadPreset()
     auto name = s->text().toStdString();
     auto pos = presets[*fmt].find(name);
     if(pos != presets[*fmt].end()){
-        presetWidget->registerPreset(name, pos->second->copy());
+        presetWidget->registerPreset(name, pos->second);
     }else{
         throw Error("Invalid IO preset");
     }
@@ -473,7 +473,7 @@ void MainWindow::savePreset()
             fmtMenu->addAction(name.c_str(), this, &MainWindow::loadPreset);
         }
         // save preset
-        map[name] = curPreset->copy();
+        map[name] = *curPreset;
     }
 }
 

@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
         }
         // read input
         auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
-        std::unique_ptr<IO::BasePreset> preset{nullptr};
+        std::optional<IO::BasePreset> preset{};
         if(fmt_out->makeParam){
             std::string par_name;
             if(!conv_data.param.empty()){
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError("Invalid IO preset \""+pres_name+
                                       "\" for format "+conv_data.output[0], 1);
             }
-            preset = pos->second->copy();
+            preset = pos->second;
         }
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;
@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, std::nullopt, param.get(), preset.get());
+        writeFile(conv_data.output[1], fmt_out, mol, std::nullopt, param.get(), preset);
         throw CLI::Success();
     });
 

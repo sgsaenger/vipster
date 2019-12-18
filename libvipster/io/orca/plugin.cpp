@@ -192,7 +192,7 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
 
 bool OrcaWriter(const Molecule& m, std::ostream &file,
                 const IO::BaseParam *const p,
-                const IO::BasePreset *const,
+                const std::optional<IO::BasePreset>&,
                 size_t index)
 {
     const auto *pp = dynamic_cast<const IO::OrcaParam*>(p);
@@ -228,7 +228,6 @@ const IO::Plugin IO::OrcaInput =
     "ORCA Input File",
     "inp",
     "orca",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Param,
     &OrcaParser,
     &OrcaWriter,
     &makeParam,

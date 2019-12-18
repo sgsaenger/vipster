@@ -154,8 +154,13 @@ ConfigState Vipster::readConfig()
                 if(pos != j.end()){
                     auto& tmp = presets[plugin];
                     for(auto preset: pos->items()){
-                        tmp[preset.key()] = plugin->makePreset();
-                        tmp[preset.key()]->parseJson(preset.value());
+                        preset.value().get_to(tmp[preset.key()]);
+//                        std::cout << preset << std::endl;
+//                        tmp[preset.key()] = plugin->makePreset();
+//                        from_json(preset.value(), *tmp[preset.key()]);
+//                        *tmp[preset.key()] = preset.value();
+//                        preset.value().get_to(*tmp[preset.key()]);
+//                        tmp[preset.key()]->parseJson(preset.value());
                     }
                 }
             }
@@ -214,7 +219,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     j = json{};
     for(const auto& pair: params){
         const auto& plugin = pair.first;
-        if(!(plugin->arguments & IO::Plugin::Param)) continue;
+        if(!plugin->makeParam) continue;
         const auto& com = plugin->command;
         j[com] = json{};
         auto& tmp = j[com];
@@ -233,12 +238,12 @@ void Vipster::saveConfig(const ConfigState& cs)
     j = json{};
     for(const auto& pair: presets){
         const auto& plugin = pair.first;
-        if(!(plugin->arguments & IO::Plugin::Preset)) continue;
+        if(!plugin->makePreset) continue;
         const auto& com = plugin->command;
         j[com] = json{};
         auto& tmp = j[com];
         for(const auto& preset: pair.second){
-            tmp[preset.first] = *preset.second;
+            tmp[preset.first] = preset.second;
         }
     }
     preset_file << j.dump(2);

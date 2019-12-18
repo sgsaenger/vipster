@@ -24,9 +24,9 @@ private:
         }
     }
     bool writer_impl(const Molecule &m, std::ostream &file,
-                       const IO::BaseParam *const p,
-                       const IO::BasePreset *const c,
-                       size_t idx){
+                     const IO::BaseParam *const p,
+                     const std::optional<IO::BasePreset>& c,
+                     size_t idx){
         try{
             std::string filestring = py::cast<std::string>(pyWriter(m, p, c, idx));
             if(!filestring.empty()){
@@ -48,9 +48,9 @@ private:
             throw IO::Error{e.what()};
         }
     }
-    std::unique_ptr<IO::BasePreset> makePreset_impl(){
+    IO::BasePreset makePreset_impl(){
         try{
-            return py::cast<IO::BasePreset&>(pyMkPreset()).copy();
+            return py::cast<IO::BasePreset&>(pyMkPreset());
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
         }

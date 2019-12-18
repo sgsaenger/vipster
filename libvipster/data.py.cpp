@@ -63,7 +63,6 @@ py::class_<T> bind_datagrid(py::module &m, std::string const &name){
        })
        .def("__len__", [](const T &d){return d.extent[0];})
    ;
-   bind_array<typename T::Extent>(tmp, "Extent");
    return std::move(tmp);
 }
 
@@ -74,7 +73,9 @@ void Data(py::module& m){
    ;
 
    bind_datagrid<DataGrid2D_f>(m, "DataGrid2D_f");
+   bind_array<typename DataGrid2D_f::Extent>(b, "Extent2D");
    bind_datagrid<DataGrid3D_f>(m, "DataGrid3D_f");
+   bind_array<typename DataGrid3D_f::Extent>(b, "Extent3D");
    bind_datagrid<DataGrid3D_v>(m, "DataGrid3D_v");
 }
 }

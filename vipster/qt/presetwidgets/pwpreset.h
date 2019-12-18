@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::PWPreset *ui;
-    Vipster::IO::PWPreset *curPreset{nullptr};
+    Vipster::IO::BasePreset *curPreset{nullptr};
 };
 
 #endif // PWCONFIG_H

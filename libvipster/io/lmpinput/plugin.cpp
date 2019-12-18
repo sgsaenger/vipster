@@ -4,12 +4,23 @@
 
 using namespace Vipster;
 
+enum class LMPAtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
+
 enum class lmpTok{
     type,
     pos,
     charge,
     mol,
     ignore
+};
+
+const static std::map<LMPAtomStyle, std::string> fmt2str{
+    {LMPAtomStyle::Angle, "angle"},
+    {LMPAtomStyle::Atomic, "atomic"},
+    {LMPAtomStyle::Bond, "bond"},
+    {LMPAtomStyle::Charge, "charge"},
+    {LMPAtomStyle::Full, "full"},
+    {LMPAtomStyle::Molecular, "molecular"},
 };
 
 const static std::map<std::string, std::vector<lmpTok>> fmtmap{
@@ -433,13 +444,20 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
 
 bool LmpInpWriter(const Molecule& m, std::ostream &file,
                   const IO::BaseParam *const,
-                  const IO::BasePreset *const c,
+                  const std::optional<IO::BasePreset>& c,
                   size_t index)
 {
     const auto step = m.getStep(index).asFmt(AtomFmt::Angstrom);
-    const auto *cc = dynamic_cast<const IO::LmpPreset*>(c);
-    if(!cc) throw IO::Error("Lammps-Writer needs IO preset");
-    const auto tokens = fmtmap.at(IO::LmpPreset::fmt2str.at(cc->style));
+    // parse iopreset
+    if(!c || c->getFmt() != &IO::LmpInput){
+        throw IO::Error("Lammps-Writer needs suitable IO preset");
+    }
+    auto bonds = std::get<bool>(c->at("bonds"));
+    auto angles = std::get<bool>(c->at("angles"));
+    auto dihedrals = std::get<bool>(c->at("dihedrals"));
+    auto impropers = std::get<bool>(c->at("impropers"));
+    auto style = static_cast<LMPAtomStyle>(std::get<uint>(c->at("style")));
+    const auto tokens = fmtmap.at(fmt2str.at(style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
     file << std::setprecision(std::numeric_limits<Vec::value_type>::max_digits10);
@@ -447,7 +465,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     // prepare bonds
     std::vector<std::tuple<size_t, size_t, size_t>> bondlist;
     std::map<std::string, size_t> bondtypemap;
-    if(cc->bonds || cc->angles || cc->dihedrals || cc->impropers || needsMolID){
+    if(bonds || angles || dihedrals || impropers || needsMolID){
         for(auto& bond: step.getBonds()){
             if(bond.type){
                 bondlist.push_back({std::min(bond.at1, bond.at2),
@@ -476,7 +494,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     std::vector<std::tuple<size_t, size_t, size_t, size_t>> improplist;
     std::vector<std::string> improptypelist;
     std::map<std::string, size_t> improptypemap;
-    if(cc->angles || cc->dihedrals || cc->impropers){
+    if(angles || dihedrals || impropers){
         for(auto it=bondlist.begin(); it!=bondlist.end(); ++it){
             const auto& a0 = std::get<0>(*it);
             const auto& a1 = std::get<1>(*it);
@@ -508,7 +526,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
                     found = true;
                 }
                 // a0 == b1 impossible because of sorting
-                if(cc->impropers && found){
+                if(impropers && found){
                     for(auto it3=it2+1; it3!=bondlist.end(); ++it3){
                         const auto& c0 = std::get<0>(*it3);
                         const auto& c1 = std::get<1>(*it3);
@@ -548,7 +566,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     std::vector<std::tuple<size_t, size_t, size_t, size_t>> dihedlist;
     std::vector<std::string> dihedtypelist;
     std::map<std::string, size_t> dihedtypemap;
-    if(cc->dihedrals){
+    if(dihedrals){
         for(auto it=anglelist.begin(); it!=anglelist.end(); ++it){
             const auto& a0 = std::get<0>(*it);
             const auto& a1 = std::get<1>(*it);
@@ -618,28 +636,28 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     file << '\n'
          << step.getNat() << " atoms\n"
          << step.getNtyp() << " atom types\n";
-    if(cc->bonds && !bondlist.empty()){
+    if(bonds && !bondlist.empty()){
         file << bondlist.size() << " bonds\n"
              << bondtypemap.size() << " bond types\n";
         for(const auto& pair: bondtypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
-    if(cc->angles && !anglelist.empty()){
+    if(angles && !anglelist.empty()){
         file << anglelist.size() << " angles\n"
              << angletypemap.size() << " angle types\n";
         for(const auto& pair: angletypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
-    if(cc->dihedrals && !dihedlist.empty()){
+    if(dihedrals && !dihedlist.empty()){
         file << dihedlist.size() << " dihedrals\n"
              << dihedtypemap.size() << " dihedral types\n";
         for(const auto& pair: dihedtypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
-    if(cc->impropers && !improplist.empty()){
+    if(impropers && !improplist.empty()){
         file << improplist.size() << " impropers\n"
              << improptypemap.size() << " improper types\n";
         for(const auto& pair: improptypemap){
@@ -666,10 +684,10 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         file << atomtypemap.size() << ' ' << step.pte->at(t).m << " # " << t << '\n';
     }
 
-    file << "\nAtoms # " << IO::LmpPreset::fmt2str.at(cc->style) << "\n\n";
+    file << "\nAtoms # " << fmt2str.at(style) << "\n\n";
     makeWriter(tokens, molID, atomtypemap)(file, step);
 
-    if(cc->bonds && !bondlist.empty()){
+    if(bonds && !bondlist.empty()){
         file << "\nBonds\n\n";
         for(size_t i=0; i!=bondlist.size(); ++i){
             file << (i+1) << ' '
@@ -679,7 +697,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         }
     }
 
-    if(cc->angles && !anglelist.empty()){
+    if(angles && !anglelist.empty()){
         file << "\nAngles\n\n";
         for(size_t i=0; i!=anglelist.size(); ++i){
             file << (i+1) << ' '
@@ -690,7 +708,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         }
     }
 
-    if(cc->dihedrals && !dihedlist.empty()){
+    if(dihedrals && !dihedlist.empty()){
         file << "\nDihedrals\n\n";
         for(size_t i=0; i!=dihedlist.size(); ++i){
             file << (i+1) << ' '
@@ -702,7 +720,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         }
     }
 
-    if(cc->impropers && !improplist.empty()){
+    if(impropers && !improplist.empty()){
         file << "\nImpropers\n\n";
         for(size_t i=0; i!=improplist.size(); ++i){
             file << (i+1) << ' '
@@ -717,9 +735,15 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BasePreset> makePreset()
+static IO::BasePreset makePreset()
 {
-    return std::make_unique<IO::LmpPreset>();
+    return {&IO::LmpInput,
+        {{"style", static_cast<uint>(LMPAtomStyle::Atomic)},
+         {"bonds", false},
+         {"angles", false},
+         {"dihedrals", false},
+         {"impropers", false},
+    }};
 }
 
 const IO::Plugin IO::LmpInput =
@@ -727,7 +751,6 @@ const IO::Plugin IO::LmpInput =
     "Lammps Data File",
     "lmp",
     "lmp",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Preset,
     &LmpInpParser,
     &LmpInpWriter,
     nullptr,

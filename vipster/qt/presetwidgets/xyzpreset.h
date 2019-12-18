@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::XYZPreset *ui;
-    Vipster::IO::XYZPreset *curPreset{nullptr};
+    Vipster::IO::BasePreset *curPreset{nullptr};
 };
 
 #endif // XYZCONFIG_H

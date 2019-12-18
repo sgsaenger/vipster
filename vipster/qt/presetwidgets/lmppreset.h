@@ -31,7 +31,7 @@ private slots:
 
 private:
     Ui::LmpPreset *ui;
-    Vipster::IO::LmpPreset *curPreset{nullptr};
+    Vipster::IO::BasePreset *curPreset{nullptr};
 };
 
 #endif // LMPCONFIG_H

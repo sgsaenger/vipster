@@ -57,11 +57,11 @@ void SaveFmtDialog::enablePresetWidget(bool on)
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(const auto& p: mw.presets.at(plugin)){
-            widget->registerPreset(p.first, p.second->copy());
+            widget->registerPreset(p.first, p.second);
         }
         for(auto& p: mw.getPresets()){
-            if(p.second->getFmt() == plugin){
-                widget->registerPreset(p.first, p.second->copy());
+            if(p.second.getFmt() == plugin){
+                widget->registerPreset(p.first, p.second);
             }
         }
     }else{
@@ -69,9 +69,9 @@ void SaveFmtDialog::enablePresetWidget(bool on)
     }
 }
 
-IO::BasePreset* SaveFmtDialog::getPreset()
+const IO::BasePreset& SaveFmtDialog::getPreset()
 {
-    return ui->presetWidget->curPreset;
+    return *ui->presetWidget->curPreset;
 }
 
 IO::BaseParam* SaveFmtDialog::getParam()

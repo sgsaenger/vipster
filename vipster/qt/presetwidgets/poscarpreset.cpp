@@ -17,22 +17,21 @@ PoscarPreset::~PoscarPreset()
 
 void PoscarPreset::setPreset(IO::BasePreset *c)
 {
-    curPreset = dynamic_cast<IO::PoscarPreset*>(c);
-    if(!curPreset){
+    curPreset = c;
+    if(curPreset->getFmt() != &IO::Poscar){
         throw Error("Invalid configuration preset");
     }
     QSignalBlocker block{this};
-    ui->fmtCombo->setCurrentIndex(curPreset->cartesian ? 1 : 0);
-    ui->selCheck->setCheckState(curPreset->selective ?
-                                Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui->fmtCombo->setCurrentIndex(std::get<bool>(curPreset->at("cartesian")) ? 1 : 0);
+    ui->selCheck->setChecked(std::get<bool>(curPreset->at("selective")));
 }
 
 void PoscarPreset::on_fmtCombo_currentIndexChanged(int index)
 {
-    curPreset->cartesian = index;
+    curPreset->at("cartesian") = static_cast<uint>(index);
 }
 
 void PoscarPreset::on_selCheck_toggled(bool checked)
 {
-    curPreset->selective = checked;
+    curPreset->at("selective") = checked;
 }

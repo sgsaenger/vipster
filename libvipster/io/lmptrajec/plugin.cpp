@@ -172,6 +172,5 @@ const IO::Plugin IO::LmpTrajec =
     "Lammps Dump",
     "lammpstrj",
     "dmp",
-    IO::Plugin::Read,
     &LmpTrajecParser
 };

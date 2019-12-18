@@ -116,11 +116,17 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
 }
 
 bool PoscarWriter(const Molecule& m, std::ostream &file,
-                  const IO::BaseParam* const, const IO::BasePreset* const c,
+                  const IO::BaseParam* const,
+                  const std::optional<IO::BasePreset>& c,
                   size_t index)
 {
-    const auto * const cc = dynamic_cast<const IO::PoscarPreset*const>(c);
-    const Step& s = m.getStep(index).asFmt(cc->cartesian ?
+    if(!c || c->getFmt() != &IO::Poscar){
+        throw IO::Error("Poscar-Writer needs suitable IO preset");
+    }
+    auto cartesian = std::get<bool>(c->at("cartesian"));
+    auto selective = std::get<bool>(c->at("selective"));
+//    const auto * const cc = dynamic_cast<const IO::PoscarPreset*const>(c);
+    const Step& s = m.getStep(index).asFmt(cartesian ?
                                                  AtomFmt::Angstrom : AtomFmt::Crystal);
     file << s.getComment() << '\n';
     file << s.getCellDim(CdmFmt::Angstrom) << '\n';
@@ -145,17 +151,17 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     }
     file << '\n';
     // print config options
-    if(cc->selective){
+    if(selective){
         file << "Selective\n";
     }
-    if(cc->cartesian){
+    if(cartesian){
         file << "Cartesian\n";
     }else{
         file << "Direct\n";
     }
     // print atoms
     auto it = s.begin();
-    if(cc->selective){
+    if(selective){
         for(const auto& type: types){
             for(const auto& idx: type.second){
                 it += idx-it.getIdx();
@@ -181,9 +187,11 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static std::unique_ptr<IO::BasePreset> makePreset()
+static IO::BasePreset makePreset()
 {
-    return std::make_unique<IO::PoscarPreset>();
+    return {&IO::Poscar,
+        {{"selective", true},
+         {"cartesian", false}}};
 }
 
 const IO::Plugin IO::Poscar =
@@ -191,7 +199,6 @@ const IO::Plugin IO::Poscar =
     "VASP POSCAR",
     "POSCAR",
     "pos",
-    IO::Plugin::Read | IO::Plugin::Write | IO::Plugin::Preset,
     &PoscarParser,
     &PoscarWriter,
     nullptr,

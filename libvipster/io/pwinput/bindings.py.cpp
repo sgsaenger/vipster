@@ -25,24 +25,24 @@ void PWInput(py::module& m){
         .def_readwrite("PPSuffix", &IO::PWParam::PPSuffix)
     ;
 
-    auto c = py::class_<IO::PWPreset, IO::BasePreset>(m, "PWPreset");
-    py::enum_<IO::PWPreset::AtomFmt>(c, "AtomFmt")
-        .value("Bohr", IO::PWPreset::AtomFmt::Bohr)
-        .value("Angstrom", IO::PWPreset::AtomFmt::Angstrom)
-        .value("Crystal", IO::PWPreset::AtomFmt::Crystal)
-        .value("Alat", IO::PWPreset::AtomFmt::Alat)
-        .value("Active", IO::PWPreset::AtomFmt::Active)
-    ;
-    py::enum_<IO::PWPreset::CellFmt>(c, "CellFmt")
-        .value("Angstrom", IO::PWPreset::CellFmt::Angstrom)
-        .value("Bohr", IO::PWPreset::CellFmt::Bohr)
-        .value("Active", IO::PWPreset::CellFmt::Active)
-    ;
-    c.def(py::init<IO::PWPreset::AtomFmt, IO::PWPreset::CellFmt>(),
-          "atomfmt"_a=IO::PWPreset::AtomFmt::Active,
-          "cellfmt"_a=IO::PWPreset::CellFmt::Active)
-     .def_readwrite("atoms", &IO::PWPreset::atoms)
-     .def_readwrite("cell", &IO::PWPreset::cell)
-    ;
+//    auto c = py::class_<IO::PWPreset, IO::BasePreset>(m, "PWPreset");
+//    py::enum_<IO::PWPreset::AtomFmt>(c, "AtomFmt")
+//        .value("Bohr", IO::PWPreset::AtomFmt::Bohr)
+//        .value("Angstrom", IO::PWPreset::AtomFmt::Angstrom)
+//        .value("Crystal", IO::PWPreset::AtomFmt::Crystal)
+//        .value("Alat", IO::PWPreset::AtomFmt::Alat)
+//        .value("Active", IO::PWPreset::AtomFmt::Active)
+//    ;
+//    py::enum_<IO::PWPreset::CellFmt>(c, "CellFmt")
+//        .value("Angstrom", IO::PWPreset::CellFmt::Angstrom)
+//        .value("Bohr", IO::PWPreset::CellFmt::Bohr)
+//        .value("Active", IO::PWPreset::CellFmt::Active)
+//    ;
+//    c.def(py::init<IO::PWPreset::AtomFmt, IO::PWPreset::CellFmt>(),
+//          "atomfmt"_a=IO::PWPreset::AtomFmt::Active,
+//          "cellfmt"_a=IO::PWPreset::CellFmt::Active)
+//     .def_readwrite("atoms", &IO::PWPreset::atoms)
+//     .def_readwrite("cell", &IO::PWPreset::cell)
+//    ;
 }
 }
