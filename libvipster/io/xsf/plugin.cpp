@@ -18,7 +18,7 @@ auto mkparser(){
             f >> grid.cell[i][0] >> grid.cell[i][1] >> grid.cell[i][2];
         }
         grid.cell *= invbohr;
-        grid.origin += Vec{0.5f/extent[0], 0.5f/extent[1], 0.5f/extent[2]}*grid.cell;
+        grid.origin += Vec{0.5/extent[0], 0.5/extent[1], 0.5/extent[2]}*grid.cell;
         for(auto& val: grid){
             f >> val;
         }

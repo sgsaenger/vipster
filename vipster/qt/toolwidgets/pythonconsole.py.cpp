@@ -24,19 +24,29 @@ PythonConsole::PythonConsole(QWidget *parent) :
     textCursor().insertText("\nType \"help(vipster)\" for more information "
                             "about Vipster-specific functions."
                             "\n>>> ");
+    // expose GUI's data to python
     auto vip = py::module::import("vipster");
-    vip.def("curStep", [this](){return this->master->curStep;}, py::return_value_policy::reference);
-    vip.def("curSel", [this](){return this->master->curSel;}, py::return_value_policy::reference);
-    vip.def("curMol", [this](){return this->master->curMol;}, py::return_value_policy::reference);
+    vip.def("curStep", [this](){return master->curStep;}, py::return_value_policy::reference);
+    vip.def("curSel", [this](){return master->curSel;}, py::return_value_policy::reference);
+    vip.def("curMol", [this](){return master->curMol;}, py::return_value_policy::reference);
     vip.def("getMol", [this](size_t i){
         if(i>=master->molecules.size())
             throw std::range_error("Molecule-id out of range");
         return &*std::next(master->molecules.begin(), i);
     }, py::return_value_policy::reference);
+    vip.def("numMol", [this](){return master->molecules.size();});
+    vip.def("numData", [this](){return master->data.size();});
+    vip.def("getData", [this](size_t i){
+        if(i>=master->data.size())
+            throw std::range_error("Data-id out of range");
+        return std::next(master->data.begin(), i)->get();
+    }, py::return_value_policy::reference);
     py::exec("import vipster; from vipster import *");
+    // overwrite help() to hide interactive mode (breaks console)
     py::exec("def help(*args, **kwds):\n"
              "  if not args and not kwds:\n"
-             "    print('Call help(thing) to get information about the python object \"thing\".\\n Interactive help is disabled.')\n"
+             "    print('Call help(thing) to get information about the python object \"thing\".\\n"
+                 "Interactive help is disabled.')\n"
              "  else:\n"
              "    import pydoc\n"
              "    return pydoc.help(*args, **kwds)");

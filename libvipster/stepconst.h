@@ -380,7 +380,7 @@ private:
             size_split[2] = diff[2] / n_split[2];
         }
         // assign atoms to bins
-        DataGrid3D<std::vector<size_t>> bins{n_split};
+        DataGrid<3, std::vector<size_t>> bins{n_split};
         if(n_split == SizeVec{1,1,1}){
             // only one bin
             auto& bin = bins(0,0,0);
@@ -548,7 +548,7 @@ private:
             }
         }
         // assign atoms to bins
-        DataGrid3D<std::vector<size_t>> bins{n_split};
+        DataGrid<3, std::vector<size_t>> bins{n_split};
         if(n_split == SizeVec{1,1,1}){
             // only one bin
             auto& bin = bins(0,0,0);
