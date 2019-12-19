@@ -44,14 +44,14 @@ private:
     constexpr size_t index(Args... args) const
     {
         size_t idx{}, i{1};
-        ((idx += args * std::accumulate(extent.begin()+i++, extent.end(), 1)), ...);
+        ((idx += args * std::accumulate(extent.begin()+i++, extent.end(), 1, std::multiplies<size_t>())), ...);
         return idx;
     }
     constexpr size_t index(const Extent& arg) const
     {
         size_t idx{arg[Dim-1]};
-        for(size_t i=0; i<Dim-1; --i){
-            idx += arg[i] * std::accumulate(extent.begin()+i+1, extent.end(), 1);
+        for(size_t i=0; i<Dim-1; ++i){
+            idx += arg[i] * std::accumulate(extent.begin()+i+1, extent.end(), 1, std::multiplies<size_t>());
         }
         return idx;
     }
