@@ -11,7 +11,7 @@ class ParamBase: public QWidget
 public:
     explicit ParamBase(QWidget *parent = nullptr);
     virtual ~ParamBase() = default;
-    virtual void setParam(Vipster::IO::BaseParam *p)=0;
+    virtual void setParam(Vipster::IO::Parameter *p)=0;
 };
 
 #endif // PARAMBASE_H

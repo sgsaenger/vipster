@@ -2,7 +2,7 @@
 #define XYZCONFIG_H
 
 #include <QWidget>
-#include "io/xyz/plugin.h"
+#include "io/plugins/xyz.h"
 #include "../presetbase.h"
 
 namespace Ui {
@@ -16,7 +16,7 @@ class XYZPreset : public PresetBase
 public:
     explicit XYZPreset(QWidget *parent = nullptr);
     ~XYZPreset();
-    void setPreset(Vipster::IO::BasePreset *c) override;
+    void setPreset(Vipster::IO::Preset *c) override;
 
 private slots:
     void on_modeSel_currentIndexChanged(int index);
@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::XYZPreset *ui;
-    Vipster::IO::BasePreset *curPreset{nullptr};
+    Vipster::IO::Preset *curPreset{nullptr};
 };
 
 #endif // XYZCONFIG_H

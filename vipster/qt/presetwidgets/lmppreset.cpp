@@ -15,14 +15,14 @@ LmpPreset::~LmpPreset()
     delete ui;
 }
 
-void LmpPreset::setPreset(IO::BasePreset *c)
+void LmpPreset::setPreset(IO::Preset *c)
 {
     curPreset = c;
     if(curPreset->getFmt() != &IO::LmpInput){
         throw Error("Invalid configuration preset");
     }
     QSignalBlocker block{this};
-    ui->atomSel->setCurrentIndex(std::get<uint>(curPreset->at("style")));
+    ui->atomSel->setCurrentIndex(std::get<uint8_t>(curPreset->at("style")));
     ui->bondCheck->setChecked(std::get<bool>(curPreset->at("bonds")));
     ui->angleCheck->setChecked(std::get<bool>(curPreset->at("angles")));
     ui->dihedCheck->setChecked(std::get<bool>(curPreset->at("dihedrals")));
@@ -51,5 +51,5 @@ void LmpPreset::on_impropCheck_stateChanged(int arg1)
 
 void LmpPreset::on_atomSel_currentIndexChanged(int index)
 {
-    curPreset->at("style") = static_cast<uint>(index);
+    curPreset->at("style") = static_cast<uint8_t>(index);
 }

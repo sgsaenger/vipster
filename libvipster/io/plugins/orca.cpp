@@ -1,9 +1,9 @@
-#include "plugin.h"
+#include "orca.h"
 #include "../util.h"
 
 using namespace Vipster;
 
-static IO::BaseParam makeParam()
+static IO::Parameter makeParam()
 {
     return {&IO::OrcaInput, {
             {"header", std::vector<std::string>{}},
@@ -199,8 +199,8 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
 }
 
 bool OrcaWriter(const Molecule& m, std::ostream &file,
-                const std::optional<IO::BaseParam>& p,
-                const std::optional<IO::BasePreset>&,
+                const std::optional<IO::Parameter>& p,
+                const std::optional<IO::Preset>&,
                 size_t index)
 {
     if(!p || p->getFmt() != &IO::OrcaInput){

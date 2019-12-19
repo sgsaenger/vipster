@@ -2,7 +2,7 @@
 #define PWCONFIG_H
 
 #include <QWidget>
-#include "io/pwinput/plugin.h"
+#include "io/plugins/pwinput.h"
 #include "../presetbase.h"
 
 namespace Ui {
@@ -16,7 +16,7 @@ class PWPreset : public PresetBase
 public:
     explicit PWPreset(QWidget *parent = nullptr);
     ~PWPreset() override;
-    void setPreset(Vipster::IO::BasePreset *c) override;
+    void setPreset(Vipster::IO::Preset *c) override;
 
 private slots:
     void on_atomSel_currentIndexChanged(int index);
@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::PWPreset *ui;
-    Vipster::IO::BasePreset *curPreset{nullptr};
+    Vipster::IO::Preset *curPreset{nullptr};
 };
 
 #endif // PWCONFIG_H

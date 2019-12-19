@@ -3,25 +3,25 @@
 
 using namespace Vipster;
 
-IO::BasePreset::BasePreset(const struct Plugin* fmt,
+IO::Preset::Preset(const struct Plugin* fmt,
                            CustomMap<std::string, PresetValue> &&values)
     : CustomMap{values}, fmt{fmt}
 {}
 
-const IO::Plugin* IO::BasePreset::getFmt() const
+const IO::Plugin* IO::Preset::getFmt() const
 {
     return fmt;
 }
 
-void IO::to_json(nlohmann::json& j, const BasePreset& p)
+void IO::to_json(nlohmann::json& j, const Preset& p)
 {
     for(const auto &v: p){
         switch (v.second.index()) {
-        case BasePreset::i_bool:
-            j[v.first] = std::get<bool>(v.second);
+        case Preset::i_bool:
+            j[v.first] = std::get<Preset::i_bool>(v.second);
             break;
-        case BasePreset::i_uint:
-            j[v.first] = std::get<uint>(v.second);
+        case Preset::i_uint:
+            j[v.first] = std::get<Preset::i_uint>(v.second);
             break;
         default:
             break;
@@ -29,14 +29,16 @@ void IO::to_json(nlohmann::json& j, const BasePreset& p)
     }
 }
 
-void IO::from_json(const nlohmann::json& j, BasePreset& p)
+void IO::from_json(const nlohmann::json& j, Preset& p)
 {
     for(auto &v: p){
         switch(v.second.index()) {
-        case BasePreset::i_bool:
-//            v.second = j.value(v.first, std::get<bool>(v.second));
-        case BasePreset::i_uint:
-//            v.second = j.value(v.first, std::get<uint>(v.second));
+        case Preset::i_bool:
+            v.second = j.value(v.first, std::get<Preset::i_bool>(v.second));
+            break;
+        case Preset::i_uint:
+            v.second = j.value(v.first, std::get<Preset::i_uint>(v.second));
+            break;
         default:
             break;
         }

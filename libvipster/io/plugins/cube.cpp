@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "cube.h"
 
 using namespace Vipster;
 

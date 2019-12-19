@@ -10,26 +10,26 @@
 
 namespace Vipster::IO{
 
-using PresetValue = std::variant<bool, uint>;
-class BasePreset: public CustomMap<std::string, PresetValue>
+using PresetValue = std::variant<bool, uint8_t>;
+class Preset: public CustomMap<std::string, PresetValue>
 {
 public:
     enum ValIdx { i_bool, i_uint };
     const struct Plugin* getFmt() const;
 // constructors/destructor
-    BasePreset(const struct Plugin* fmt=nullptr,
+    Preset(const struct Plugin* fmt=nullptr,
                CustomMap<std::string, PresetValue> &&values={});
-    BasePreset(const BasePreset &) = default;
-    BasePreset(BasePreset &&) = default;
-    BasePreset& operator=(const BasePreset &) = default;
-    BasePreset& operator=(BasePreset &&) = default;
-    virtual ~BasePreset() = default;
+    Preset(const Preset &) = default;
+    Preset(Preset &&) = default;
+    Preset& operator=(const Preset &) = default;
+    Preset& operator=(Preset &&) = default;
+    virtual ~Preset() = default;
 private:
     const struct Plugin *fmt;
 };
 
-void to_json(nlohmann::json& j, const BasePreset& p);
-void from_json(const nlohmann::json& j, BasePreset& p);
+void to_json(nlohmann::json& j, const Preset& p);
+void from_json(const nlohmann::json& j, Preset& p);
 
 constexpr const char* PresetsAbout =
     "IO-presets are used to control HOW the data is "

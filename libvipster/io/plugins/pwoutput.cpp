@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "pwoutput.h"
 
 #include <sstream>
 

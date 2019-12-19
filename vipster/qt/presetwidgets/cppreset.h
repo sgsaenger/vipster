@@ -2,7 +2,7 @@
 #define CPCONFIG_H
 
 #include <QWidget>
-#include "io/cpmdinput/plugin.h"
+#include "io/plugins/cpmdinput.h"
 #include "../presetbase.h"
 
 namespace Ui {
@@ -16,14 +16,14 @@ class CPPreset : public PresetBase
 public:
     explicit CPPreset(QWidget *parent = nullptr);
     ~CPPreset() override;
-    void setPreset(Vipster::IO::BasePreset *c) override;
+    void setPreset(Vipster::IO::Preset *c) override;
 
 private slots:
     void on_fmtSel_currentIndexChanged(int index);
 
 private:
     Ui::CPPreset *ui;
-    Vipster::IO::BasePreset *curPreset{nullptr};
+    Vipster::IO::Preset *curPreset{nullptr};
 };
 
 #endif // CPCONFIG_H

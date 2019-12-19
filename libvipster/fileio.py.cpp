@@ -1,4 +1,5 @@
 #include <pybind11/functional.h>
+#include "nlohmann/json.hpp"
 #include "pyvipster.h"
 #include "fileio.h"
 #include "configfile.h"
@@ -11,12 +12,16 @@ std::ostream& operator<<(std::ostream& os, const Plugin *p){
 }
 
 // TODO: nicer representation, json maybe misleading in a python context
-std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BaseParam> &p){
-    return os;// << p->toJson();
+std::ostream& operator<<(std::ostream& os, const Parameter &p){
+    nlohmann::json j;
+    to_json(j, p);
+    return os << j;
 }
 
-std::ostream& operator<<(std::ostream& os, const std::unique_ptr<BasePreset> &p){
-    return os;// << p->toJson();
+std::ostream& operator<<(std::ostream& os, const Preset &p){
+    nlohmann::json j;
+    to_json(j, p);
+    return os << j;
 }
 
 }
@@ -27,12 +32,6 @@ PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets);
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets::mapped_type);
 
 namespace Vipster::Py{
-void PWInput(py::module&);
-void LmpInput(py::module&);
-void XYZ(py::module&);
-void CPInput(py::module&);
-void ORCA(py::module&);
-void POSCAR(py::module&);
 
 void IO(py::module& m, const ConfigState& state, bool enableRead){
     auto io = m.def_submodule("IO");
@@ -40,9 +39,7 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
     py::class_<IO::Data>(io, "Data")
         .def(py::init<>())
         .def_readwrite("mol", &IO::Data::mol)
-//        .def_property("param",
-//                      [](const IO::Data& d){return d.param;},
-//                      py::return_value_policy::reference_internal)
+        .def_readwrite("param", &IO::Data::param)
 //        .def_readwrite("data", &IO::Data::data)
     ;
 
@@ -83,8 +80,8 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
      */
     m.def("writeFile", [&state](const std::string &fn, const IO::Plugin* plug, const Molecule &m,
             std::optional<size_t> idx={},
-            std::optional<IO::BaseParam> p={},
-            std::optional<IO::BasePreset> c={}){
+            std::optional<IO::Parameter> p={},
+            std::optional<IO::Preset> c={}){
         if(!p && plug->makeParam){
             p = plug->makeParam();
         }
@@ -97,8 +94,8 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
           "index"_a=std::nullopt, "param"_a=nullptr, "config"_a=nullptr);
     m.def("writeString", [&state](const IO::Plugin* plug, const Molecule &m,
             std::optional<size_t> idx={},
-            std::optional<IO::BaseParam> p={},
-            std::optional<IO::BasePreset> c={}){
+            std::optional<IO::Parameter> p={},
+            std::optional<IO::Preset> c={}){
         if(!plug->writer){
             throw IO::Error{"Read-only format"};
         }
@@ -136,11 +133,7 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
             return static_cast<bool>(p->makePreset);})
     ;
 
-    /*
-     * Expose parameters and presets
-     *
-     * Circumvent bind_map for inner map
-     */
+    // Expose parameters and presets
     py::bind_map<IO::Parameters::mapped_type>(io, "__StrParMap__");
     py::bind_map<IO::Parameters>(io, "__Parameters")
         .def("__repr__", [](IO::Parameters& p){
@@ -178,24 +171,22 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
     /*
      * Initialize plugins' parameters and presets
      */
-    py::class_<IO::BaseParam>(io, "__BaseParam")
-        .def("__repr__", [](const IO::BaseParam &p){
+    py::class_<IO::Parameter>(io, "__BaseParam")
+        .def("__repr__", [](const IO::Parameter &p){
             std::ostringstream s;
-//            s << p.getFmt()->command << "-Parameters" << p.toJson();
+            nlohmann::json j;
+            to_json(j, p);
+            s << p.getFmt()->command << "-Parameters" << j;
             return s.str();
         });
-    py::class_<IO::BasePreset>(io, "__BasePreset")
-        .def("__repr__", [](const IO::BasePreset &p){
+    py::class_<IO::Preset>(io, "__BasePreset")
+        .def("__repr__", [](const IO::Preset &p){
             std::ostringstream s;
-//            s << p.getFmt()->command << "-IOPreset" << p.toJson();
+            nlohmann::json j;
+            to_json(j, p);
+            s << p.getFmt()->command << "-Parameters" << j;
             return s.str();
         });
-    PWInput(io);
-    LmpInput(io);
-    XYZ(io);
-    CPInput(io);
-    ORCA(io);
-    POSCAR(io);
 
 }
 }

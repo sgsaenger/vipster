@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "xsf.h"
 #include "../util.h"
 #include <sstream>
 

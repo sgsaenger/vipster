@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 #include <QAction>
-#include "io/pwinput/plugin.h"
+#include "io/plugins/pwinput.h"
 #include "../parambase.h"
 
 namespace Ui {
@@ -18,7 +18,7 @@ class PWParam : public ParamBase
 public:
     explicit PWParam(QWidget *parent = nullptr);
     ~PWParam() override;
-    void setParam(Vipster::IO::BaseParam *p) override;
+    void setParam(Vipster::IO::Parameter *p) override;
 
 private slots:
     void addElement();
@@ -35,7 +35,7 @@ private:
     QTreeWidgetItem *curItem{nullptr};
     std::string curKey{};
     std::map<std::string, std::string>* curNL{nullptr};
-    Vipster::IO::BaseParam *curParam{nullptr};
+    Vipster::IO::Parameter *curParam{nullptr};
 };
 
 #endif // PWIPARAM_H

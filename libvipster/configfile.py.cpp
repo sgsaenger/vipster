@@ -24,8 +24,8 @@ private:
         }
     }
     bool writer_impl(const Molecule &m, std::ostream &file,
-                     const std::optional<IO::BaseParam>& p,
-                     const std::optional<IO::BasePreset>& c,
+                     const std::optional<IO::Parameter>& p,
+                     const std::optional<IO::Preset>& c,
                      size_t idx){
         try{
             std::string filestring = py::cast<std::string>(pyWriter(m, p, c, idx));
@@ -41,16 +41,16 @@ private:
             throw IO::Error{"Could not convert Molecule to file"};
         }
     }
-    IO::BaseParam makeParam_impl(){
+    IO::Parameter makeParam_impl(){
         try{
-            return py::cast<IO::BaseParam&>(pyMkParam());
+            return py::cast<IO::Parameter&>(pyMkParam());
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
         }
     }
-    IO::BasePreset makePreset_impl(){
+    IO::Preset makePreset_impl(){
         try{
-            return py::cast<IO::BasePreset&>(pyMkPreset());
+            return py::cast<IO::Preset&>(pyMkPreset());
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
         }

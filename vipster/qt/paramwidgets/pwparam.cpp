@@ -33,7 +33,7 @@ PWParam::~PWParam()
     delete delAction;
 }
 
-void PWParam::setParam(IO::BaseParam *p)
+void PWParam::setParam(IO::Parameter *p)
 {
     auto treeBlocker = QSignalBlocker{ui->paramTree};
     curParam = p;

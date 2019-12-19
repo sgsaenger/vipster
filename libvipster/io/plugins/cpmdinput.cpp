@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "cpmdinput.h"
 #include "../util.h"
 #include <cctype>
 
@@ -14,7 +14,7 @@ static const std::string sections[]{
     "&QMMM",
 };
 
-static IO::BaseParam makeParam()
+static IO::Parameter makeParam()
 {
     return {&IO::CPInput, {
             {"&INFO", Section{}},
@@ -40,10 +40,10 @@ static IO::BaseParam makeParam()
         }};
 };
 
-static IO::BasePreset makePreset()
+static IO::Preset makePreset()
 {
     return {&IO::CPInput,
-        {{"fmt", static_cast<uint>(CPAtomFmt::Active)}}};
+        {{"fmt", static_cast<uint8_t>(CPAtomFmt::Active)}}};
 }
 
 const std::map<std::string, int> str2ibrav{
@@ -164,7 +164,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                 curSection = nullptr;
             }else{
                 auto pos = std::find_if(p.begin(), p.end(),
-                                        [&line](const IO::BaseParam::value_type &pair){
+                                        [&line](const IO::Parameter::value_type &pair){
                                             return pair.first == line;
                                         });
                 if(pos != p.end()){
@@ -458,8 +458,8 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
 }
 
 bool CPInpWriter(const Molecule& m, std::ostream &file,
-                 const std::optional<IO::BaseParam>& p,
-                 const std::optional<IO::BasePreset>& c,
+                 const std::optional<IO::Parameter>& p,
+                 const std::optional<IO::Preset>& c,
                  size_t index)
 {
     if(!p || p->getFmt() != &IO::CPInput){
@@ -468,7 +468,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::CPInput){
         throw IO::Error("CPMD-Input-Writer needs suitable IO preset");
     }
-    auto atfmt = static_cast<CPAtomFmt>(std::get<uint>(c->at("fmt")));
+    auto atfmt = static_cast<CPAtomFmt>(std::get<uint8_t>(c->at("fmt")));
     const auto& s = (atfmt == CPAtomFmt::Active) ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt

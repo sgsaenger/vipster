@@ -15,7 +15,7 @@ ORCAParam::~ORCAParam()
     delete ui;
 }
 
-void ORCAParam::setParam(IO::BaseParam *p)
+void ORCAParam::setParam(IO::Parameter *p)
 {
     saveText();
     curParam = p;

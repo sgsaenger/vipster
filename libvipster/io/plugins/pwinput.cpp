@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "pwinput.h"
 #include "crystal.h"
 #include "io/util.h"
 
@@ -14,7 +14,7 @@ enum class PWAtomFmt {Bohr, Angstrom, Crystal, Alat, Active};
 enum class PWCellFmt {Bohr, Angstrom, Active};
 using NameList = std::map<std::string, std::string>;
 
-static IO::BaseParam makeParam()
+static IO::Parameter makeParam()
 {
     return {&IO::PWInput, {
             {"&CONTROL", NameList{}},
@@ -27,11 +27,11 @@ static IO::BaseParam makeParam()
         }};
 }
 
-static IO::BasePreset makePreset()
+static IO::Preset makePreset()
 {
     return {&IO::PWInput,
-        {{"atoms", static_cast<uint>(PWAtomFmt::Active)},
-         {"cell", static_cast<uint>(PWCellFmt::Active)}}};
+        {{"atoms", static_cast<uint8_t>(PWAtomFmt::Active)},
+         {"cell", static_cast<uint8_t>(PWCellFmt::Active)}}};
 }
 
 struct CellInp{
@@ -40,7 +40,7 @@ struct CellInp{
     Mat cell;
 };
 
-void parseNamelist(std::string name, std::istream& file, IO::BaseParam& p)
+void parseNamelist(std::string name, std::istream& file, IO::Parameter& p)
 {
     auto pos = p.find(name);
     if (pos == p.end()) throw IO::Error{"Unknown namelist"};
@@ -72,7 +72,7 @@ void parseNamelist(std::string name, std::istream& file, IO::BaseParam& p)
     throw IO::Error("Error in Namelist-parsing");
 }
 
-void parseSpecies(std::istream& file, Molecule& m, IO::BaseParam& p)
+void parseSpecies(std::istream& file, Molecule& m, IO::Parameter& p)
 {
     auto& sys = std::get<NameList>(p.at("&SYSTEM"));
     auto dataentry = sys.find("ntyp");
@@ -99,7 +99,7 @@ void parseSpecies(std::istream& file, Molecule& m, IO::BaseParam& p)
 }
 
 void parseCoordinates(std::string name, std::istream& file,
-                      Molecule& m, IO::BaseParam& p)
+                      Molecule& m, IO::Parameter& p)
 {
     auto &sys = std::get<NameList>(p.at("&SYSTEM"));
     auto dataentry = sys.find("nat");
@@ -222,7 +222,7 @@ void parseCell(std::string name, std::istream& file, CellInp &cell)
     else cell.fmt = CellInp::Alat;
 }
 
-void createCell(Molecule &m, IO::BaseParam &p, CellInp &cell)
+void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
 {
     auto &s = m.getStep(0);
     auto &sys = std::get<NameList>(p.at("&SYSTEM"));
@@ -310,7 +310,7 @@ void createCell(Molecule &m, IO::BaseParam &p, CellInp &cell)
 }
 
 void parseCard(std::string name, std::istream& file,
-               Molecule& m, IO::BaseParam& p,
+               Molecule& m, IO::Parameter& p,
                CellInp &cell)
 {
     if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, m, p);
@@ -347,8 +347,8 @@ IO::Data PWInpParser(const std::string& name, std::istream &file)
 }
 
 bool PWInpWriter(const Molecule& m, std::ostream &file,
-                 const std::optional<IO::BaseParam>& p,
-                 const std::optional<IO::BasePreset>& c,
+                 const std::optional<IO::Parameter>& p,
+                 const std::optional<IO::Preset>& c,
                  size_t index)
 {
     if(!p || p->getFmt() != &IO::PWInput){
@@ -357,8 +357,8 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::PWInput){
         throw IO::Error("PWI-Writer needs suitable IO preset");
     }
-    auto atfmt = static_cast<PWAtomFmt>(std::get<uint>(c->at("atoms")));
-    auto cellfmt = static_cast<PWCellFmt>(std::get<uint>(c->at("atoms")));
+    auto atfmt = static_cast<PWAtomFmt>(std::get<uint8_t>(c->at("atoms")));
+    auto cellfmt = static_cast<PWCellFmt>(std::get<uint8_t>(c->at("atoms")));
     const auto& s = (atfmt == PWAtomFmt::Active) ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt

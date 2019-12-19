@@ -25,7 +25,7 @@ CPParam::~CPParam()
     delete ui;
 }
 
-void CPParam::setParam(IO::BaseParam *p)
+void CPParam::setParam(IO::Parameter *p)
 {
     saveText();
     curParam = p;
@@ -41,6 +41,9 @@ void CPParam::setParam(IO::BaseParam *p)
 void CPParam::on_comboBox_currentIndexChanged(const QString &arg)
 {
     saveText();
+    if(!curParam){
+        return;
+    }
     curSection = &std::get<std::vector<std::string>>(curParam->at(arg.toStdString()));
     fillText();
 }
@@ -79,18 +82,21 @@ void CPParam::saveText()
 
 void CPParam::on_prefixEdit_editingFinished()
 {
+    if(!curParam) return;
     std::get<std::string>(curParam->at("PPPrefix")) =
             ui->prefixEdit->text().toStdString();
 }
 
 void CPParam::on_suffixEdit_editingFinished()
 {
+    if(!curParam) return;
     std::get<std::string>(curParam->at("PPSuffix")) =
             ui->suffixEdit->text().toStdString();
 }
 
 void CPParam::on_nlEdit_editingFinished()
 {
+    if(!curParam) return;
     std::get<std::string>(curParam->at("PPNonlocality")) =
             ui->nlEdit->text().toStdString();
 }

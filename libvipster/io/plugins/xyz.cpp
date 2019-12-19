@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "xyz.h"
 
 #include <sstream>
 #include <iomanip>
@@ -94,8 +94,8 @@ IO::Data XYZParser(const std::string& name, std::istream &file)
 }
 
 bool XYZWriter(const Molecule& m, std::ostream &file,
-               const std::optional<IO::BaseParam>&,
-               const std::optional<IO::BasePreset>& c,
+               const std::optional<IO::Parameter>&,
+               const std::optional<IO::Preset>& c,
                size_t index)
 {
     if(!c || c->getFmt() != &IO::XYZ){
@@ -107,7 +107,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
         file << s.getNat() << '\n';
         file << s.getComment() << '\n';
         file << std::fixed << std::setprecision(5);
-        switch(static_cast<XYZData>(std::get<uint>(cc.at("atomdata")))){
+        switch(static_cast<XYZData>(std::get<uint8_t>(cc.at("atomdata")))){
         case XYZData::None:
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
@@ -138,7 +138,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
             break;
         }
     };
-    switch(static_cast<XYZMode>(std::get<uint>(cc.at("filemode")))){
+    switch(static_cast<XYZMode>(std::get<uint8_t>(cc.at("filemode")))){
     case XYZMode::Step:
         stepWriter(s);
         break;
@@ -158,11 +158,11 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static IO::BasePreset makePreset()
+static IO::Preset makePreset()
 {
     return {&IO::XYZ,
-        {{"filemode", static_cast<uint>(XYZMode::Step)},
-         {"atomdata", static_cast<uint>(XYZData::None)}}};
+        {{"filemode", static_cast<uint8_t>(XYZMode::Step)},
+         {"atomdata", static_cast<uint8_t>(XYZData::None)}}};
 }
 
 const IO::Plugin IO::XYZ =

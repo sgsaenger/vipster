@@ -21,11 +21,11 @@ struct Plugin{
     std::string command;
     std::function<IO::Data(const std::string& name, std::istream &file)> parser{};
     std::function<bool(const Molecule& m, std::ostream &file,
-                       const std::optional<BaseParam>& p,
-                       const std::optional<BasePreset>& c,
+                       const std::optional<Parameter>& p,
+                       const std::optional<Preset>& c,
                        size_t idx)> writer{};
-    std::function<BaseParam()> makeParam{};
-    std::function<BasePreset()> makePreset{};
+    std::function<Parameter()> makeParam{};
+    std::function<Preset()> makePreset{};
 };
 
 class Error: public std::runtime_error

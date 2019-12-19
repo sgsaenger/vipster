@@ -29,12 +29,12 @@ void PresetWidget::clearPresets()
 }
 
 void PresetWidget::registerPreset(const std::string& name,
-                                  const IO::BasePreset &data)
+                                  const IO::Preset &data)
 {
     presets.emplace_back(name, data);
     ui->presetSel->addItem(QString::fromStdString(
-                               "(" + presets.back().second.getFmt()->command +
-                               ") " + presets.back().first
+                               "(" + data.getFmt()->command +
+                               ") " + name
                                ));
     ui->presetSel->setCurrentIndex(ui->presetSel->count()-1);
 }

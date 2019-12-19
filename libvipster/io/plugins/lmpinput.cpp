@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "lmpinput.h"
 #include "../util.h"
 #include <sstream>
 
@@ -443,8 +443,8 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
 }
 
 bool LmpInpWriter(const Molecule& m, std::ostream &file,
-                  const std::optional<IO::BaseParam>&,
-                  const std::optional<IO::BasePreset>& c,
+                  const std::optional<IO::Parameter>&,
+                  const std::optional<IO::Preset>& c,
                   size_t index)
 {
     const auto step = m.getStep(index).asFmt(AtomFmt::Angstrom);
@@ -456,7 +456,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     auto angles = std::get<bool>(c->at("angles"));
     auto dihedrals = std::get<bool>(c->at("dihedrals"));
     auto impropers = std::get<bool>(c->at("impropers"));
-    auto style = static_cast<LMPAtomStyle>(std::get<uint>(c->at("style")));
+    auto style = static_cast<LMPAtomStyle>(std::get<uint8_t>(c->at("style")));
     const auto tokens = fmtmap.at(fmt2str.at(style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
@@ -735,10 +735,10 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static IO::BasePreset makePreset()
+static IO::Preset makePreset()
 {
     return {&IO::LmpInput,
-        {{"style", static_cast<uint>(LMPAtomStyle::Atomic)},
+        {{"style", static_cast<uint8_t>(LMPAtomStyle::Atomic)},
          {"bonds", false},
          {"angles", false},
          {"dihedrals", false},

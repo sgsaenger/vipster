@@ -15,7 +15,7 @@ PoscarPreset::~PoscarPreset()
     delete ui;
 }
 
-void PoscarPreset::setPreset(IO::BasePreset *c)
+void PoscarPreset::setPreset(IO::Preset *c)
 {
     curPreset = c;
     if(curPreset->getFmt() != &IO::Poscar){
@@ -28,7 +28,7 @@ void PoscarPreset::setPreset(IO::BasePreset *c)
 
 void PoscarPreset::on_fmtCombo_currentIndexChanged(int index)
 {
-    curPreset->at("cartesian") = static_cast<uint>(index);
+    curPreset->at("cartesian") = static_cast<bool>(index);
 }
 
 void PoscarPreset::on_selCheck_toggled(bool checked)

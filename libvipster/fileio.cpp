@@ -1,15 +1,15 @@
 #include <iostream>
 #include "fileio.h"
-#include "io/xyz/plugin.h"
-#include "io/pwinput/plugin.h"
-#include "io/pwoutput/plugin.h"
-#include "io/lmpinput/plugin.h"
-#include "io/lmptrajec/plugin.h"
-#include "io/cpmdinput/plugin.h"
-#include "io/cube/plugin.h"
-#include "io/xsf/plugin.h"
-#include "io/orca/plugin.h"
-#include "io/poscar/plugin.h"
+#include "io/plugins/xyz.h"
+#include "io/plugins/pwinput.h"
+#include "io/plugins/pwoutput.h"
+#include "io/plugins/lmpinput.h"
+#include "io/plugins/lmptrajec.h"
+#include "io/plugins/cpmdinput.h"
+#include "io/plugins/cube.h"
+#include "io/plugins/xsf.h"
+#include "io/plugins/orca.h"
+#include "io/plugins/poscar.h"
 
 using namespace Vipster;
 
@@ -110,8 +110,8 @@ bool  Vipster::writeFile(const std::string &fn,
                          const IO::Plugin *plug,
                          const Molecule &m,
                          std::optional<size_t> idx,
-                         const std::optional<IO::BaseParam>& p,
-                         const std::optional<IO::BasePreset>& c)
+                         const std::optional<IO::Parameter>& p,
+                         const std::optional<IO::Preset>& c)
 {
     std::ofstream file{fn};
     if(!idx){

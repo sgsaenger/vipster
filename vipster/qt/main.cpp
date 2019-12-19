@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
         }
         // read input
         auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
-        std::optional<IO::BasePreset> preset{};
+        std::optional<IO::Preset> preset{};
         if(fmt_out->makeParam){
             std::string par_name;
             if(!conv_data.param.empty()){

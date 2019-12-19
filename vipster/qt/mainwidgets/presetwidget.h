@@ -17,12 +17,12 @@ class PresetWidget : public BaseWidget
 public:
     explicit PresetWidget(QWidget *parent = nullptr);
     ~PresetWidget() override;
-    std::vector<std::pair<std::string, Vipster::IO::BasePreset>> presets;
+    std::vector<std::pair<std::string, Vipster::IO::Preset>> presets;
     void registerPreset(const std::string& name,
-                        const Vipster::IO::BasePreset& data);
+                        const Vipster::IO::Preset& data);
     void clearPresets();
     const Vipster::IO::Plugin* curFmt{nullptr};
-    Vipster::IO::BasePreset* curPreset{nullptr};
+    Vipster::IO::Preset* curPreset{nullptr};
 
 private slots:
     void on_presetSel_currentIndexChanged(int index);

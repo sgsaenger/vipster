@@ -28,12 +28,12 @@ void ParamWidget::clearParams()
 }
 
 void ParamWidget::registerParam(const std::string &name,
-                                const IO::BaseParam &data)
+                                const IO::Parameter &data)
 {
-    params.emplace_back(name, std::move(data));
+    params.emplace_back(name, data);
     ui->paramSel->addItem(QString::fromStdString(
-                          "(" +  params.back().second.getFmt()->command +
-                           ") " + params.back().first
+                          "(" +  data.getFmt()->command +
+                           ") " + name
                          ));
     ui->paramSel->setCurrentIndex(ui->paramSel->count()-1);
 }

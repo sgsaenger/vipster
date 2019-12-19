@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "../parambase.h"
-#include "io/cpmdinput/plugin.h"
+#include "io/plugins/cpmdinput.h"
 
 namespace Ui {
 class CPParam;
@@ -16,7 +16,7 @@ class CPParam : public ParamBase
 public:
     explicit CPParam(QWidget *parent = nullptr);
     ~CPParam() override;
-    void setParam(Vipster::IO::BaseParam *p) override;
+    void setParam(Vipster::IO::Parameter *p) override;
 
 private slots:
     void on_comboBox_currentIndexChanged(const QString &arg);
@@ -29,7 +29,7 @@ private:
     void fillText();
     void saveText();
     Ui::CPParam *ui;
-    Vipster::IO::BaseParam* curParam{nullptr};
+    Vipster::IO::Parameter* curParam{nullptr};
     std::vector<std::string>* curSection{nullptr};
 };
 

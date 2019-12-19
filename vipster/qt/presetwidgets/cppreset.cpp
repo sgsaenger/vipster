@@ -15,17 +15,17 @@ CPPreset::~CPPreset()
     delete ui;
 }
 
-void CPPreset::setPreset(IO::BasePreset *c)
+void CPPreset::setPreset(IO::Preset *c)
 {
     curPreset = c;
     if(curPreset->getFmt() != &IO::CPInput){
         throw Error("Invalid configuration preset");
     }
     QSignalBlocker block{this};
-    ui->fmtSel->setCurrentIndex(std::get<uint>(curPreset->at("fmt")));
+    ui->fmtSel->setCurrentIndex(std::get<uint8_t>(curPreset->at("fmt")));
 }
 
 void CPPreset::on_fmtSel_currentIndexChanged(int index)
 {
-    curPreset->at("fmt") = static_cast<uint>(index);
+    curPreset->at("fmt") = static_cast<uint8_t>(index);
 }

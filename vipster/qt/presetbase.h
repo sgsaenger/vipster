@@ -11,7 +11,7 @@ class PresetBase: public QWidget
 public:
     explicit PresetBase(QWidget *parent = nullptr);
     virtual ~PresetBase() = default;
-    virtual void setPreset(Vipster::IO::BasePreset *c)=0;
+    virtual void setPreset(Vipster::IO::Preset *c)=0;
 };
 
 #endif // CONFIGBASE_H

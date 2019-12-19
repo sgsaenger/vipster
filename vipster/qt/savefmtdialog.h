@@ -17,8 +17,8 @@ public:
     explicit SaveFmtDialog(const Vipster::IO::Plugins& plugins, QWidget *parent = nullptr);
     ~SaveFmtDialog();
     const Vipster::IO::Plugin* plugin{};
-    const Vipster::IO::BasePreset &getPreset();
-    const Vipster::IO::BaseParam &getParam();
+    const Vipster::IO::Preset &getPreset();
+    const Vipster::IO::Parameter &getParam();
 
 private slots:
     void selFmt(int);

@@ -132,6 +132,7 @@ ConfigState Vipster::readConfig()
                 if(pos != j.end()){
                     auto& tmp = params[plugin];
                     for(auto param: pos->items()){
+                        tmp.emplace(param.key(), plugin->makeParam());
                         param.value().get_to(tmp[param.key()]);
                     }
                 }
@@ -153,6 +154,7 @@ ConfigState Vipster::readConfig()
                 if(pos != j.end()){
                     auto& tmp = presets[plugin];
                     for(auto preset: pos->items()){
+                        tmp.emplace(preset.key(), plugin->makePreset());
                         preset.value().get_to(tmp[preset.key()]);
                     }
                 }

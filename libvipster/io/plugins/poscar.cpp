@@ -1,4 +1,4 @@
-#include "plugin.h"
+#include "poscar.h"
 
 #include <sstream>
 
@@ -116,8 +116,8 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
 }
 
 bool PoscarWriter(const Molecule& m, std::ostream &file,
-                  const std::optional<IO::BaseParam>& p,
-                  const std::optional<IO::BasePreset>& c,
+                  const std::optional<IO::Parameter>& p,
+                  const std::optional<IO::Preset>& c,
                   size_t index)
 {
     if(!c || c->getFmt() != &IO::Poscar){
@@ -187,7 +187,7 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     return true;
 }
 
-static IO::BasePreset makePreset()
+static IO::Preset makePreset()
 {
     return {&IO::Poscar,
         {{"selective", true},
