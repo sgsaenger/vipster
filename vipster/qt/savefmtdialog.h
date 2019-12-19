@@ -18,7 +18,7 @@ public:
     ~SaveFmtDialog();
     const Vipster::IO::Plugin* plugin{};
     const Vipster::IO::BasePreset &getPreset();
-    Vipster::IO::BaseParam* getParam();
+    const Vipster::IO::BaseParam &getParam();
 
 private slots:
     void selFmt(int);

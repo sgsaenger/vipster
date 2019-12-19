@@ -12,6 +12,27 @@ using namespace Vipster;
 
 enum class PWAtomFmt {Bohr, Angstrom, Crystal, Alat, Active};
 enum class PWCellFmt {Bohr, Angstrom, Active};
+using NameList = std::map<std::string, std::string>;
+
+static IO::BaseParam makeParam()
+{
+    return {&IO::PWInput, {
+            {"&CONTROL", NameList{}},
+            {"&SYSTEM", NameList{}},
+            {"&ELECTRONS", NameList{}},
+            {"&IONS", NameList{}},
+            {"&CELL", NameList{}},
+            {"PPPrefix", std::string{}},
+            {"PPSuffix", std::string{}},
+        }};
+}
+
+static IO::BasePreset makePreset()
+{
+    return {&IO::PWInput,
+        {{"atoms", static_cast<uint>(PWAtomFmt::Active)},
+         {"cell", static_cast<uint>(PWCellFmt::Active)}}};
+}
 
 struct CellInp{
     enum CellFmt{None, Alat, Bohr, Angstrom};
@@ -19,19 +40,11 @@ struct CellInp{
     Mat cell;
 };
 
-void parseNamelist(std::string name, std::istream& file, IO::PWParam& p)
+void parseNamelist(std::string name, std::istream& file, IO::BaseParam& p)
 {
-    const std::map<std::string, IO::PWParam::Namelist IO::PWParam::*> nlmap = {
-        {"&CONTROL", &IO::PWParam::control},
-        {"&SYSTEM", &IO::PWParam::system},
-        {"&ELECTRONS", &IO::PWParam::electrons},
-        {"&IONS", &IO::PWParam::ions},
-        {"&CELL", &IO::PWParam::cell},
-    };
-
-    auto nlp = nlmap.find(name);
-    if (nlp == nlmap.end()) throw IO::Error("Unknown namelist");
-    IO::PWParam::Namelist &nl = p.*(nlp->second);
+    auto pos = p.find(name);
+    if (pos == p.end()) throw IO::Error{"Unknown namelist"};
+    auto &nl = std::get<NameList>(pos->second);
 
     std::string line, key;
     size_t beg, end, quote_end;
@@ -59,12 +72,13 @@ void parseNamelist(std::string name, std::istream& file, IO::PWParam& p)
     throw IO::Error("Error in Namelist-parsing");
 }
 
-void parseSpecies(std::istream& file, Molecule& m, IO::PWParam& p)
+void parseSpecies(std::istream& file, Molecule& m, IO::BaseParam& p)
 {
-    auto dataentry = p.system.find("ntyp");
-    if (dataentry == p.system.end()) throw IO::Error("ntyp not specified");
+    auto& sys = std::get<NameList>(p.at("&SYSTEM"));
+    auto dataentry = sys.find("ntyp");
+    if (dataentry == sys.end()) throw IO::Error("ntyp not specified");
     int ntyp = std::stoi(dataentry->second);
-    p.system.erase(dataentry);
+    sys.erase(dataentry);
 
     std::string line;
     for(int i=0; i<ntyp; ++i) {
@@ -85,12 +99,13 @@ void parseSpecies(std::istream& file, Molecule& m, IO::PWParam& p)
 }
 
 void parseCoordinates(std::string name, std::istream& file,
-                      Molecule& m, IO::PWParam& p)
+                      Molecule& m, IO::BaseParam& p)
 {
-    auto dataentry = p.system.find("nat");
-    if (dataentry == p.system.end()) throw IO::Error("nat not specified");
+    auto &sys = std::get<NameList>(p.at("&SYSTEM"));
+    auto dataentry = sys.find("nat");
+    if (dataentry == sys.end()) throw IO::Error("nat not specified");
     size_t nat = std::stoul(dataentry->second);
-    p.system.erase(dataentry);
+    sys.erase(dataentry);
     Step &s = m.getStep(0);
 
     size_t pos = name.find_first_of(' ');
@@ -207,10 +222,10 @@ void parseCell(std::string name, std::istream& file, CellInp &cell)
     else cell.fmt = CellInp::Alat;
 }
 
-void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
+void createCell(Molecule &m, IO::BaseParam &p, CellInp &cell)
 {
-    Step &s = m.getStep(0);
-    IO::PWParam::Namelist& sys = p.system;
+    auto &s = m.getStep(0);
+    auto &sys = std::get<NameList>(p.at("&SYSTEM"));
     // make sure that relative coordinates are not changed by "scaling" when setting cdm
     auto ibr = sys.find("ibrav");
     if(ibr == sys.end()){
@@ -295,7 +310,7 @@ void createCell(Molecule &m, IO::PWParam &p, CellInp &cell)
 }
 
 void parseCard(std::string name, std::istream& file,
-               Molecule& m, IO::PWParam& p,
+               Molecule& m, IO::BaseParam& p,
                CellInp &cell)
 {
     if (name.find("ATOMIC_SPECIES") != name.npos) parseSpecies(file, m, p);
@@ -313,8 +328,8 @@ IO::Data PWInpParser(const std::string& name, std::istream &file)
     Molecule &m = d.mol;
     m.setName(name);
     m.newStep();
-    d.param = std::make_unique<IO::PWParam>();
-    IO::PWParam &p = *static_cast<IO::PWParam*>(d.param.get());
+    d.param = makeParam();
+    auto &p = *d.param;
     CellInp cell{};
 
     std::string buf, line;
@@ -332,12 +347,13 @@ IO::Data PWInpParser(const std::string& name, std::istream &file)
 }
 
 bool PWInpWriter(const Molecule& m, std::ostream &file,
-                 const IO::BaseParam *const p,
+                 const std::optional<IO::BaseParam>& p,
                  const std::optional<IO::BasePreset>& c,
                  size_t index)
 {
-    const auto *pp = dynamic_cast<const IO::PWParam*>(p);
-    if(!pp) throw IO::Error("PWI-Writer needs PWScf parameter set");
+    if(!p || p->getFmt() != &IO::PWInput){
+        throw IO::Error("PWI-Writer needs PWScf parameter set");
+    }
     if(!c || c->getFmt() != &IO::PWInput){
         throw IO::Error("PWI-Writer needs suitable IO preset");
     }
@@ -346,22 +362,23 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     const auto& s = (atfmt == PWAtomFmt::Active) ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt
-    std::vector<std::pair<std::string, const IO::PWParam::Namelist*>>
-            outNL = {{"control", &pp->control},
-                     {"system", &pp->system},
-                     {"electrons", &pp->electrons}};
-    auto calc = pp->control.find("calculation");
-    if(calc != pp->control.end()){
+    const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix"));
+    const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix"));
+    const auto& control = std::get<NameList>(p->at("&CONTROL"));
+    std::vector<std::string>
+            outNL = {"&CONTROL", "&SYSTEM", "&ELECTRONS"};
+    auto calc = control.find("calculation");
+    if(calc != control.end()){
         if(calc->second == "'vc-relax'"){
-            outNL.push_back({"ions", &pp->ions});
-            outNL.push_back({"cell", &pp->cell});
+            outNL.push_back("&IONS");
+            outNL.push_back("&CELL");
         }else if(calc->second == "'relax'"){
-            outNL.push_back({"ions", &pp->ions});
+            outNL.push_back("&IONS");
         }
     }
-    for(auto &nl: outNL){
-        file << '&' << nl.first << '\n';
-        if(nl.second == &pp->system){
+    for(auto &name: outNL){
+        file << name << '\n';
+        if(name == "&SYSTEM"){
             file << " ibrav = 0\n";
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
@@ -375,7 +392,7 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
                 file << " A = " << s.getCellDim(cell_fmt) << '\n';
             }
         }
-        for(auto& e: *nl.second){
+        for(auto& e: std::get<NameList>(p->at(name))){
             file << ' ' << e.first << " = " << e.second << '\n';
         }
         file << "/\n\n";
@@ -387,7 +404,7 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
         file << std::left << std::setw(3) << t << ' '
              << std::right << std::setw(9) << e.m << ' ';
         if(e.PWPP.empty()){
-            file << pp->PPPrefix << t << pp->PPSuffix << '\n';
+            file << PPPrefix << t << PPSuffix << '\n';
         }else{
             file << e.PWPP << '\n';
         }
@@ -440,18 +457,6 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
              << std::setw(12) << v[2] << '\n';
     }
     return true;
-}
-
-static std::unique_ptr<IO::BaseParam> makeParam()
-{
-    return std::make_unique<IO::PWParam>();
-}
-
-static IO::BasePreset makePreset()
-{
-    return {&IO::PWInput,
-        {{"atoms", static_cast<uint>(PWAtomFmt::Active)},
-         {"cell", static_cast<uint>(PWCellFmt::Active)}}};
 }
 
 const IO::Plugin IO::PWInput =

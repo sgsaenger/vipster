@@ -41,27 +41,27 @@
      </column>
      <item>
       <property name="text">
-       <string>Control</string>
+       <string>&amp;CONTROL</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>System</string>
+       <string>&amp;SYSTEM</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Electrons</string>
+       <string>&amp;ELECTRONS</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Ions</string>
+       <string>&amp;IONS</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Cell</string>
+       <string>&amp;CELL</string>
       </property>
      </item>
     </widget>

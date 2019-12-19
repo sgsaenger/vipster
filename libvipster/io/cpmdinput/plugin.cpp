@@ -5,6 +5,46 @@
 using namespace Vipster;
 
 enum class CPAtomFmt{Bohr, Angstrom, Crystal, Alat, Active};
+using Section = std::vector<std::string>;
+static const std::string sections[]{
+    "&INFO", "&CPMD", "&SYSTEM", "&PIMD",
+    "&PATH", "&PTDDFT", "&ATOMS", "&DFT",
+    "&PROP", "&RESP", "&LINRES", "&TDDFT",
+    "&HARDNESS", "&CLASSIC", "&EXTE", "&VDW",
+    "&QMMM",
+};
+
+static IO::BaseParam makeParam()
+{
+    return {&IO::CPInput, {
+            {"&INFO", Section{}},
+            {"&CPMD", Section{}},
+            {"&SYSTEM", Section{}},
+            {"&PIMD", Section{}},
+            {"&PATH", Section{}},
+            {"&PTDDFT", Section{}},
+            {"&ATOMS", Section{}},
+            {"&DFT", Section{}},
+            {"&PROP", Section{}},
+            {"&RESP", Section{}},
+            {"&LINRES", Section{}},
+            {"&TDDFT", Section{}},
+            {"&HARDNESS", Section{}},
+            {"&CLASSIC", Section{}},
+            {"&EXTE", Section{}},
+            {"&VDW", Section{}},
+            {"&QMMM", Section{}},
+            {"PPPrefix", std::string{}},
+            {"PPSuffix", std::string{}},
+            {"PPNonlocality", std::string{}},
+        }};
+};
+
+static IO::BasePreset makePreset()
+{
+    return {&IO::CPInput,
+        {{"fmt", static_cast<uint>(CPAtomFmt::Active)}}};
+}
 
 const std::map<std::string, int> str2ibrav{
     {"ISOLATED", 0},
@@ -99,9 +139,11 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
     Molecule &m = d.mol;
     m.setName(name);
     Step &s = m.newStep();
-    d.param = std::make_unique<IO::CPParam>();
-    IO::CPParam &p = *static_cast<IO::CPParam*>(d.param.get());
-    IO::CPParam::Section IO::CPParam::* curSection{nullptr};
+    d.param = makeParam();
+    auto &p = *d.param;
+    std::string curName{};
+    Section *curSection{nullptr};
+
 
     std::string buf, line;
     int ibrav{0};
@@ -118,15 +160,16 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
         for (auto &c: line) c = static_cast<char>(std::toupper(c));
         if(line[0] == '&'){
             if(line.find("&END") != line.npos){
+                curName = "";
                 curSection = nullptr;
             }else{
-                auto pos = std::find_if(IO::CPParam::str2section.begin(),
-                                        IO::CPParam::str2section.end(),
-                                        [&line](const decltype(IO::CPParam::str2section)::value_type& pair){
-                                              return pair.first == line;
+                auto pos = std::find_if(p.begin(), p.end(),
+                                        [&line](const IO::BaseParam::value_type &pair){
+                                            return pair.first == line;
                                         });
-                if(pos != IO::CPParam::str2section.end()){
-                    curSection = pos->second;
+                if(pos != p.end()){
+                    curName = line;
+                    curSection = &std::get<Section>(pos->second);
                 }else{
                     throw IO::Error("Unknown CPMD-Input section: "+line);
                 }
@@ -136,7 +179,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                 throw IO::Error("Data outside of section");
             }
             bool parsed{false};
-            if(curSection == &IO::CPParam::system){
+            if(curName == "&SYSTEM"){
                 if(line.find("ANGSTROM") != line.npos) {
                     parsed = true;
                     cf = CdmFmt::Angstrom;
@@ -255,7 +298,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                         }
                     }
                 }
-            }else if(curSection == &IO::CPParam::atoms){
+            }else if(curName == "&ATOMS"){
                 if(line[0] == '*'){
                     parsed = true;
                     line = IO::trim(buf); // reset to regain capitalization
@@ -375,11 +418,11 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                         std::getline(file, buf);
                     }
                     if(!other.empty()){
-                        (p.*curSection).push_back("CONSTRAINTS");
-                        (p.*curSection).insert((p.*curSection).end(),
-                                               other.begin(),
-                                               other.end());
-                        (p.*curSection).push_back("END CONSTRAINTS");
+                        curSection->push_back("CONSTRAINTS");
+                        curSection->insert(curSection->end(),
+                                           other.begin(),
+                                           other.end());
+                        curSection->push_back("END CONSTRAINTS");
                     }
                 }else if(line.find("ISOTOPE") != line.npos){
                     parsed = true;
@@ -390,7 +433,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                 }
             }
             if(!parsed){
-                (p.*curSection).push_back(buf);
+                curSection->push_back(buf);
             }
         }
     }
@@ -415,12 +458,13 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
 }
 
 bool CPInpWriter(const Molecule& m, std::ostream &file,
-                 const IO::BaseParam *const p,
+                 const std::optional<IO::BaseParam>& p,
                  const std::optional<IO::BasePreset>& c,
                  size_t index)
 {
-    const auto *pp = dynamic_cast<const IO::CPParam*>(p);
-    if(!pp) throw IO::Error("CPI-Writer needs CPMD parameter set");
+    if(!p || p->getFmt() != &IO::CPInput){
+        throw IO::Error("CPMD-Input-Writer needs CPMD parameter set");
+    }
     if(!c || c->getFmt() != &IO::CPInput){
         throw IO::Error("CPMD-Input-Writer needs suitable IO preset");
     }
@@ -429,9 +473,13 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt
     auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
-    for(const auto& pair: IO::CPParam::str2section){
-        if(pair.second == &IO::CPParam::atoms){
-            file << pair.first << '\n';
+    const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix"));
+    const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix"));
+    const auto& PPNonlocality = std::get<std::string>(p->at("PPNonlocality"));
+    for(const auto& name: sections){
+        file << name << '\n';
+        const auto& curSection = std::get<Section>(p->at(name));
+        if(name == "&ATOMS"){
             std::map<std::string, std::vector<size_t>> types;
             for(auto it=s.begin(); it!=s.end(); ++it){
                 types[it->name].push_back(it.getIdx());
@@ -450,12 +498,13 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                 if(!pE.CPPP.empty()){
                     file << '*' << pE.CPPP << '\n';
                 }else{
-                    file << '*' << IO::trim(pp->PPPrefix) << IO::trim(pair.first) << IO::trim(pp->PPSuffix) << '\n';
+                    file << '*' << IO::trim(PPPrefix) << IO::trim(pair.first)
+                         << IO::trim(PPSuffix) << '\n';
                 }
                 if(!pE.CPNL.empty()){
                     file << "  " << pE.CPNL << '\n';
                 }else{
-                    file << "  " << pp->PPNonlocality << '\n';
+                    file << "  " << PPNonlocality << '\n';
                 }
                 file << "  " << pair.second.size() << '\n'
                      << std::fixed << std::setprecision(5);
@@ -476,20 +525,20 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                 }
             }
             if(fixAtom.empty() && fixCoord.empty()){
-                for(const auto& line: pp->atoms){
+                for(const auto& line: curSection){
                     file << line << '\n';
                 }
             }else{
-                size_t otherConstraints{pp->atoms.size()};
-                for(size_t i=0; i<pp->atoms.size(); ++i){
-                    const auto& line = pp->atoms[i];
+                size_t otherConstraints{curSection.size()};
+                for(size_t i=0; i<curSection.size(); ++i){
+                    const auto& line = curSection[i];
                     file << line << '\n';
                     if(line.find("CONSTRAINTS") != line.npos){
                         otherConstraints = i;
                         break;
                     }
                 }
-                if(otherConstraints == pp->atoms.size()){
+                if(otherConstraints == curSection.size()){
                     file << "  CONSTRAINTS\n";
                 }
                 if(!fixAtom.empty()){
@@ -511,9 +560,9 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                     }
                     file << '\n';
                 }
-                if(otherConstraints != pp->atoms.size()){
-                    for(size_t i=otherConstraints+1; i<pp->atoms.size(); ++i){
-                        file << pp->atoms[i] << '\n';
+                if(otherConstraints != curSection.size()){
+                    for(size_t i=otherConstraints+1; i<curSection.size(); ++i){
+                        file << curSection[i] << '\n';
                     }
                 }else{
                     file << "  END CONSTRAINTS\n";
@@ -524,8 +573,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                 file << "  " << m << '\n';
             }
             file << "&END\n\n";
-        }else if(pair.second == &IO::CPParam::system){
-            file << pair.first << '\n';
+        }else if(name == "&SYSTEM"){
             switch(s.getFmt()){
             case AtomFmt::Angstrom:
                 file << "  ANGSTROM\n";
@@ -579,31 +627,19 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                     }
                 }
             }
-            for(const auto& line: pp->system){
+            for(const auto& line: curSection){
                 file << line << '\n';
             }
             file << "&END\n\n";
-        }else if(pair.second == &IO::CPParam::cpmd ||
-                 !(pp->*pair.second).empty()){
-            file << pair.first << '\n';
-            for(const auto& line: pp->*pair.second){
+        }else if(name == "&CPMD" ||
+                 !curSection.empty()){
+            for(const auto& line: curSection){
                 file << line << '\n';
             }
             file << "&END\n\n";
         }
     }
     return true;
-}
-
-static std::unique_ptr<IO::BaseParam> makeParam()
-{
-    return std::make_unique<IO::CPParam>();
-}
-
-static IO::BasePreset makePreset()
-{
-    return {&IO::CPInput,
-        {{"fmt", static_cast<uint>(CPAtomFmt::Active)}}};
 }
 
 const IO::Plugin IO::CPInput =

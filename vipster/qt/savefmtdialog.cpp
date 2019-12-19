@@ -37,11 +37,11 @@ void SaveFmtDialog::enableParamWidget(bool on)
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(const auto& p: mw.params.at(plugin)){
-            widget->registerParam(p.first, p.second->copy());
+            widget->registerParam(p.first, p.second);
         }
         for(auto& p: mw.getParams()){
-            if(p.second->getFmt() == plugin){
-                widget->registerParam(p.first, p.second->copy());
+            if(p.second.getFmt() == plugin){
+                widget->registerParam(p.first, p.second);
             }
         }
     }else{
@@ -74,7 +74,7 @@ const IO::BasePreset& SaveFmtDialog::getPreset()
     return *ui->presetWidget->curPreset;
 }
 
-IO::BaseParam* SaveFmtDialog::getParam()
+const IO::BaseParam &SaveFmtDialog::getParam()
 {
-    return ui->paramWidget->curParam;
+    return *ui->paramWidget->curParam;
 }

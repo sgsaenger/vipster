@@ -110,7 +110,7 @@ bool  Vipster::writeFile(const std::string &fn,
                          const IO::Plugin *plug,
                          const Molecule &m,
                          std::optional<size_t> idx,
-                         const IO::BaseParam *const p,
+                         const std::optional<IO::BaseParam>& p,
                          const std::optional<IO::BasePreset>& c)
 {
     std::ofstream file{fn};

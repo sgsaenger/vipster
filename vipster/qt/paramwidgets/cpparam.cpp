@@ -2,14 +2,21 @@
 #include "ui_cpparam.h"
 
 using namespace Vipster;
+static const QString sections[]{
+    "&INFO", "&CPMD", "&SYSTEM", "&PIMD",
+    "&PATH", "&PTDDFT", "&ATOMS", "&DFT",
+    "&PROP", "&RESP", "&LINRES", "&TDDFT",
+    "&HARDNESS", "&CLASSIC", "&EXTE", "&VDW",
+    "&QMMM",
+};
 
 CPParam::CPParam(QWidget *parent) :
     ParamBase(parent),
     ui(new Ui::CPParam)
 {
     ui->setupUi(this);
-    for(const auto& i: IO::CPParam::str2section){
-        ui->comboBox->addItem(QString::fromStdString(i.first));
+    for(const auto& s: sections){
+        ui->comboBox->addItem(s);
     }
 }
 
@@ -21,25 +28,20 @@ CPParam::~CPParam()
 void CPParam::setParam(IO::BaseParam *p)
 {
     saveText();
-    curParam = dynamic_cast<IO::CPParam*>(p);
-    if(!curParam){
+    curParam = p;
+    if(curParam->getFmt() != &IO::CPInput){
         throw Error("Invalid parameter set");
     }
     fillText();
-    ui->prefixEdit->setText(curParam->PPPrefix.c_str());
-    ui->suffixEdit->setText(curParam->PPSuffix.c_str());
-    ui->nlEdit->setText(curParam->PPNonlocality.c_str());
+    ui->prefixEdit->setText(std::get<std::string>(curParam->at("PPPrefix")).c_str());
+    ui->suffixEdit->setText(std::get<std::string>(curParam->at("PPSuffix")).c_str());
+    ui->nlEdit->setText(std::get<std::string>(curParam->at("PPNonlocality")).c_str());
 }
 
-void CPParam::on_comboBox_currentIndexChanged(const QString &arg1)
+void CPParam::on_comboBox_currentIndexChanged(const QString &arg)
 {
     saveText();
-    auto cmp = arg1.toStdString();
-    curSection = std::find_if(IO::CPParam::str2section.begin(),
-                              IO::CPParam::str2section.end(),
-                              [&cmp](const decltype(IO::CPParam::str2section)::value_type& pair){
-                                  return pair.first == cmp;
-                              })->second;
+    curSection = &std::get<std::vector<std::string>>(curParam->at(arg.toStdString()));
     fillText();
 }
 
@@ -55,7 +57,7 @@ void CPParam::fillText()
     }
     ui->plainTextEdit->clear();
     QStringList tmp{};
-    for(const auto& line: curParam->*curSection){
+    for(const auto& line: *curSection){
         tmp.append(QString::fromStdString(line));
     }
     ui->plainTextEdit->setPlainText(tmp.join('\n'));
@@ -68,25 +70,27 @@ void CPParam::saveText()
     }
     auto tmp = ui->plainTextEdit->toPlainText();
     if(tmp.size()){
-        auto& section = curParam->*curSection;
-        section.clear();
+        curSection->clear();
         for(const auto& line: tmp.split('\n')){
-            section.push_back(line.toStdString());
+            curSection->push_back(line.toStdString());
         }
     }
 }
 
 void CPParam::on_prefixEdit_editingFinished()
 {
-    curParam->PPPrefix = ui->prefixEdit->text().toStdString();
+    std::get<std::string>(curParam->at("PPPrefix")) =
+            ui->prefixEdit->text().toStdString();
 }
 
 void CPParam::on_suffixEdit_editingFinished()
 {
-    curParam->PPSuffix = ui->suffixEdit->text().toStdString();
+    std::get<std::string>(curParam->at("PPSuffix")) =
+            ui->suffixEdit->text().toStdString();
 }
 
 void CPParam::on_nlEdit_editingFinished()
 {
-    curParam->PPNonlocality = ui->nlEdit->text().toStdString();
+    std::get<std::string>(curParam->at("PPNonlocality")) =
+            ui->nlEdit->text().toStdString();
 }

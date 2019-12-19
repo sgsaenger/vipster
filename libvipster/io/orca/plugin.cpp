@@ -3,10 +3,17 @@
 
 using namespace Vipster;
 
+static IO::BaseParam makeParam()
+{
+    return {&IO::OrcaInput, {
+            {"header", std::vector<std::string>{}},
+        }};
+}
+
 IO::Data OrcaParser(const std::string& name, std::istream &file){
     IO::Data d{};
-    d.param = std::make_unique<IO::OrcaParam>();
-    auto& p = static_cast<IO::OrcaParam&>(*d.param.get());
+    d.param = makeParam();
+    auto& p = *d.param;
     Molecule &m = d.mol;
     m.setName(name);
     auto s = &m.newStep();
@@ -16,6 +23,7 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
     std::string line, c_fmt;
     int charge;
     unsigned int multiplicity;
+    auto& header = std::get<std::vector<std::string>>(p.at("header"));
     while(std::getline(file, line)){
         std::stringstream ls{line};
         std::string test;
@@ -171,7 +179,7 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
                     std::transform(test.begin(), test.end(), test.begin(), ::tolower);
                     if(test == "bohrs") at_fmt = AtomFmt::Bohr;
                 }
-                p.header.push_back(line);
+                header.push_back(line);
             }//else{
                 // TODO
                 /* $new_job: trigger new job
@@ -191,18 +199,20 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
 }
 
 bool OrcaWriter(const Molecule& m, std::ostream &file,
-                const IO::BaseParam *const p,
+                const std::optional<IO::BaseParam>& p,
                 const std::optional<IO::BasePreset>&,
                 size_t index)
 {
-    const auto *pp = dynamic_cast<const IO::OrcaParam*>(p);
-    if(!pp) throw IO::Error("OrcaWriter needs ORCA parameter set");
+    if(!p || p->getFmt() != &IO::OrcaInput){
+        throw IO::Error("OrcaWriter needs ORCA parameter set");
+    }
 
     auto af = AtomFmt::Angstrom; // TODO: deduce from parameter set
 
     const auto& s = m.getStep(index).asFmt(af);
+    const auto& header = std::get<std::vector<std::string>>(p->at("header"));
 
-    for(const auto& line: pp->header){
+    for(const auto& line: header){
         file << line << '\n';
     }
     // TODO: multiplicity + global charge
@@ -216,11 +226,6 @@ bool OrcaWriter(const Molecule& m, std::ostream &file,
     file << "*\n";
 
     return true;
-}
-
-static std::unique_ptr<IO::BaseParam> makeParam()
-{
-    return std::make_unique<IO::OrcaParam>();
 }
 
 const IO::Plugin IO::OrcaInput =

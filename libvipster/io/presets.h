@@ -17,14 +17,15 @@ public:
     enum ValIdx { i_bool, i_uint };
     const struct Plugin* getFmt() const;
 // constructors/destructor
-    BasePreset(const struct Plugin* fmt=nullptr, CustomMap<std::string, PresetValue> &&values={});
+    BasePreset(const struct Plugin* fmt=nullptr,
+               CustomMap<std::string, PresetValue> &&values={});
     BasePreset(const BasePreset &) = default;
     BasePreset(BasePreset &&) = default;
     BasePreset& operator=(const BasePreset &) = default;
     BasePreset& operator=(BasePreset &&) = default;
     virtual ~BasePreset() = default;
 private:
-    const struct Plugin* fmt;
+    const struct Plugin *fmt;
 };
 
 void to_json(nlohmann::json& j, const BasePreset& p);

@@ -116,7 +116,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
 }
 
 bool PoscarWriter(const Molecule& m, std::ostream &file,
-                  const IO::BaseParam* const,
+                  const std::optional<IO::BaseParam>& p,
                   const std::optional<IO::BasePreset>& c,
                   size_t index)
 {

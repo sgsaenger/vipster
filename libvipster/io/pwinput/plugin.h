@@ -2,7 +2,6 @@
 #define PWINPUT_H
 
 #include "../plugin.h"
-#include "param.h"
 
 namespace Vipster::IO{
 

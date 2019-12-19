@@ -24,7 +24,7 @@ private slots:
 private:
     void saveText();
     Ui::ORCAParam *ui;
-    Vipster::IO::OrcaParam* curParam{nullptr};
+    Vipster::IO::BaseParam* curParam{nullptr};
 };
 
 #endif // ORCAPARAM_H

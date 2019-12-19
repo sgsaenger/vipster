@@ -18,7 +18,7 @@ namespace Vipster{
         Plugins defaultPlugins();
         using Presets = std::map<const Plugin*, std::map<std::string, BasePreset>>;
         Presets defaultPresets(const Plugins& p);
-        using Parameters = std::map<const Plugin*, std::map<std::string, std::unique_ptr<BaseParam>>>;
+        using Parameters = std::map<const Plugin*, std::map<std::string, BaseParam>>;
         Parameters defaultParams(const Plugins& p);
     }
 
@@ -29,7 +29,7 @@ namespace Vipster{
     IO::Data readFile(const std::string &fn, const IO::Plugin* plug);
     bool     writeFile(const std::string &fn, const IO::Plugin* plug, const Molecule &m,
                        std::optional<size_t> idx={},
-                       const IO::BaseParam *p=nullptr,
+                       const std::optional<IO::BaseParam>& p=std::nullopt,
                        const std::optional<IO::BasePreset>& c=std::nullopt);
     std::optional<const IO::Plugin*> guessFmt(std::string fn,
                                    const IO::Plugins &p=IO::defaultPlugins());

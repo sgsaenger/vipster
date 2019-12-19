@@ -2,28 +2,28 @@
 #include "plugin.h"
 
 namespace Vipster::Py{
-void PWInput(py::module& m){
-    auto p = py::class_<IO::PWParam, IO::BaseParam>(m, "PWParam")
-        .def(py::init<IO::PWParam::Namelist,
-                      IO::PWParam::Namelist,
-                      IO::PWParam::Namelist,
-                      IO::PWParam::Namelist,
-                      IO::PWParam::Namelist,
-                      std::string, std::string>(),
-             "control"_a=IO::PWParam::Namelist{},
-             "system"_a=IO::PWParam::Namelist{},
-             "electrons"_a=IO::PWParam::Namelist{},
-             "ions"_a=IO::PWParam::Namelist{},
-             "cell"_a=IO::PWParam::Namelist{},
-             "PPPrefix"_a=std::string{}, "PPSuffix"_a=std::string{})
-        .def_readwrite("control", &IO::PWParam::control)
-        .def_readwrite("system", &IO::PWParam::system)
-        .def_readwrite("electrons", &IO::PWParam::electrons)
-        .def_readwrite("ions", &IO::PWParam::ions)
-        .def_readwrite("cell", &IO::PWParam::cell)
-        .def_readwrite("PPPrefix", &IO::PWParam::PPPrefix)
-        .def_readwrite("PPSuffix", &IO::PWParam::PPSuffix)
-    ;
+//void PWInput(py::module& m){
+//    auto p = py::class_<IO::PWParam, IO::BaseParam>(m, "PWParam")
+//        .def(py::init<IO::PWParam::Namelist,
+//                      IO::PWParam::Namelist,
+//                      IO::PWParam::Namelist,
+//                      IO::PWParam::Namelist,
+//                      IO::PWParam::Namelist,
+//                      std::string, std::string>(),
+//             "control"_a=IO::PWParam::Namelist{},
+//             "system"_a=IO::PWParam::Namelist{},
+//             "electrons"_a=IO::PWParam::Namelist{},
+//             "ions"_a=IO::PWParam::Namelist{},
+//             "cell"_a=IO::PWParam::Namelist{},
+//             "PPPrefix"_a=std::string{}, "PPSuffix"_a=std::string{})
+//        .def_readwrite("control", &IO::PWParam::control)
+//        .def_readwrite("system", &IO::PWParam::system)
+//        .def_readwrite("electrons", &IO::PWParam::electrons)
+//        .def_readwrite("ions", &IO::PWParam::ions)
+//        .def_readwrite("cell", &IO::PWParam::cell)
+//        .def_readwrite("PPPrefix", &IO::PWParam::PPPrefix)
+//        .def_readwrite("PPSuffix", &IO::PWParam::PPSuffix)
+//    ;
 
 //    auto c = py::class_<IO::PWPreset, IO::BasePreset>(m, "PWPreset");
 //    py::enum_<IO::PWPreset::AtomFmt>(c, "AtomFmt")
@@ -44,5 +44,5 @@ void PWInput(py::module& m){
 //     .def_readwrite("atoms", &IO::PWPreset::atoms)
 //     .def_readwrite("cell", &IO::PWPreset::cell)
 //    ;
-}
+//}
 }

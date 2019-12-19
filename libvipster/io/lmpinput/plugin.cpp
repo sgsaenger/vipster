@@ -443,7 +443,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
 }
 
 bool LmpInpWriter(const Molecule& m, std::ostream &file,
-                  const IO::BaseParam *const,
+                  const std::optional<IO::BaseParam>&,
                   const std::optional<IO::BasePreset>& c,
                   size_t index)
 {

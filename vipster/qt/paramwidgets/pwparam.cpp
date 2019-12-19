@@ -4,6 +4,15 @@
 
 using namespace Vipster;
 
+using NameList = std::map<std::string, std::string>;
+static const std::string namelists[]{
+    "&CONTROL",
+    "&SYSTEM",
+    "&ELECTRONS",
+    "&IONS",
+    "&CELL"
+};
+
 PWParam::PWParam(QWidget *parent) :
     ParamBase(parent),
     ui(new Ui::PWParam)
@@ -27,17 +36,13 @@ PWParam::~PWParam()
 void PWParam::setParam(IO::BaseParam *p)
 {
     auto treeBlocker = QSignalBlocker{ui->paramTree};
-    curParam = dynamic_cast<IO::PWParam*>(p);
-    if(!curParam){
+    curParam = p;
+    if(curParam->getFmt() != &IO::PWInput){
         throw Error("Invalid parameter set");
     }
-    IO::PWParam::Namelist IO::PWParam::* namelists[] = {
-        &IO::PWParam::control, &IO::PWParam::system,
-        &IO::PWParam::electrons, &IO::PWParam::ions,
-        &IO::PWParam::cell};
     for (int i=0; i<5; ++i) {
         auto* treeTop = ui->paramTree->topLevelItem(i);
-        auto& nl = curParam->*namelists[i];
+        auto& nl = std::get<NameList>(curParam->at(namelists[i]));
         // clear tree
         for (auto child: treeTop->takeChildren()) {
             delete child;
@@ -49,23 +54,22 @@ void PWParam::setParam(IO::BaseParam *p)
             treeTop->addChild(child);
         }
     }
-    ui->prefixEdit->setText(curParam->PPPrefix.c_str());
-    ui->suffixEdit->setText(curParam->PPSuffix.c_str());
+    ui->prefixEdit->setText(std::get<std::string>(curParam->at("PPPrefix")).c_str());
+    ui->suffixEdit->setText(std::get<std::string>(curParam->at("PPSuffix")).c_str());
 }
 
 void PWParam::addElement()
 {
-    auto& nl = curParam->*curNL;
     std::string key = "newKey";
-    if(nl.find(key) != nl.end()){
+    if(curNL->find(key) != curNL->end()){
         uint8_t idx{0};
         std::string key2 = key + "0";
-        while(nl.find(key2) != nl.end()){
+        while(curNL->find(key2) != curNL->end()){
             key2 = key + std::to_string(++idx);
         }
         key = key2;
     }
-    auto *child = new QTreeWidgetItem{{key.c_str(), nl[key].c_str()}};
+    auto *child = new QTreeWidgetItem{{key.c_str(), (*curNL)[key].c_str()}};
     child->setFlags(child->flags() | Qt::ItemIsEditable);
     if(!curItem->parent()){
         curItem->addChild(child);
@@ -76,38 +80,30 @@ void PWParam::addElement()
 
 void PWParam::delElement()
 {
-    auto& nl = curParam->*curNL;
-    nl.erase(nl.find(curKey));
+    curNL->erase(curNL->find(curKey));
     delete curItem;
 }
 
 void PWParam::on_paramTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *)
 {
     curItem = current;
-    const std::map<QString, IO::PWParam::Namelist IO::PWParam::*> stringToNL =
-    {
-        {"control", &IO::PWParam::control},
-        {"system", &IO::PWParam::system},
-        {"electrons", &IO::PWParam::electrons},
-        {"ions", &IO::PWParam::ions},
-        {"cell", &IO::PWParam::cell},
-    };
     if(!curItem->parent()){
         delAction->setDisabled(true);
-        curNL = stringToNL.at(curItem->data(0, 0).toString().toLower());
+        curNL = &std::get<NameList>(curParam->at(curItem
+                     ->data(0,0).toString().toStdString()));
     }else{
         delAction->setEnabled(true);
-        curNL = stringToNL.at(curItem->parent()->data(0, 0).toString().toLower());
+        curNL = &std::get<NameList>(curParam->at(curItem->parent()
+                     ->data(0,0).toString().toStdString()));
         curKey = curItem->data(0, 0).toString().toStdString();
     }
 }
 
 void PWParam::on_paramTree_itemChanged(QTreeWidgetItem *item, int column)
 {
-    auto& nl = curParam->*curNL;
     if(column == 0){
         auto newKey = item->data(0, 0).toString().toStdString();
-        if(nl.find(newKey) != nl.end()){
+        if(curNL->find(newKey) != curNL->end()){
             QMessageBox::warning(this, "Key already present",
                                  QString{"Cannot rename key \""}+curKey.c_str()+"\" to \""+
                                  newKey.c_str()+"\" because the latter is already present.");
@@ -115,20 +111,22 @@ void PWParam::on_paramTree_itemChanged(QTreeWidgetItem *item, int column)
             item->setData(0, 0, QString::fromStdString(curKey));
             return;
         }
-        nl[newKey] = nl.at(curKey);
-        nl.erase(nl.find(curKey));
+        (*curNL)[newKey] = curNL->at(curKey);
+        curNL->erase(curNL->find(curKey));
         curKey = std::move(newKey);
     }else{
-        nl.at(curKey) = item->data(1, 0).toString().toStdString();
+        curNL->at(curKey) = item->data(1, 0).toString().toStdString();
     }
 }
 
 void PWParam::on_prefixEdit_editingFinished()
 {
-    curParam->PPPrefix = ui->prefixEdit->text().toStdString();
+    std::get<std::string>(curParam->at("PPPrefix")) =
+            ui->prefixEdit->text().toStdString();
 }
 
 void PWParam::on_suffixEdit_editingFinished()
 {
-    curParam->PPSuffix = ui->suffixEdit->text().toStdString();
+    std::get<std::string>(curParam->at("PPSuffix")) =
+            ui->suffixEdit->text().toStdString();
 }

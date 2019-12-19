@@ -18,13 +18,13 @@ ORCAParam::~ORCAParam()
 void ORCAParam::setParam(IO::BaseParam *p)
 {
     saveText();
-    curParam = dynamic_cast<IO::OrcaParam*>(p);
-    if(!curParam){
+    curParam = p;
+    if(curParam->getFmt() != &IO::OrcaInput){
         throw Error("Invalid parameter set");
     }
     ui->plainTextEdit->clear();
     QStringList tmp{};
-    for(const auto& line: curParam->header){
+    for(const auto& line: std::get<std::vector<std::string>>(curParam->at("header"))){
         tmp.append(QString::fromStdString(line));
     }
     ui->plainTextEdit->setPlainText(tmp.join('\n'));
@@ -42,7 +42,7 @@ void ORCAParam::saveText()
     }
     auto tmp = ui->plainTextEdit->toPlainText();
     if(tmp.size()){
-        auto& header = curParam->header;
+        auto& header = std::get<std::vector<std::string>>(curParam->at("header"));
         header.clear();
         for(const auto& line: tmp.split('\n')){
             header.push_back(line.toStdString());

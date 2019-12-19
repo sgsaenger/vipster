@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
                     throw CLI::ParseError("Invalid parameter \""+par_name+
                                           "\" for format "+conv_data.output[0], 1);
                 }
-                param = pos->second->copy();
+                param = pos->second;
             }
         }
         if(fmt_out->makePreset){
@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, std::nullopt, param.get(), preset);
+        writeFile(conv_data.output[1], fmt_out, mol, std::nullopt, param, preset);
         throw CLI::Success();
     });
 

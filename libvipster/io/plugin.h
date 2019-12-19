@@ -21,10 +21,10 @@ struct Plugin{
     std::string command;
     std::function<IO::Data(const std::string& name, std::istream &file)> parser{};
     std::function<bool(const Molecule& m, std::ostream &file,
-                       const BaseParam *const p,
+                       const std::optional<BaseParam>& p,
                        const std::optional<BasePreset>& c,
                        size_t idx)> writer{};
-    std::function<std::unique_ptr<BaseParam>()> makeParam{};
+    std::function<BaseParam()> makeParam{};
     std::function<BasePreset()> makePreset{};
 };
 

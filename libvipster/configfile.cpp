@@ -132,8 +132,7 @@ ConfigState Vipster::readConfig()
                 if(pos != j.end()){
                     auto& tmp = params[plugin];
                     for(auto param: pos->items()){
-                        tmp[param.key()] = plugin->makeParam();
-                        tmp[param.key()]->parseJson(param.value());
+                        param.value().get_to(tmp[param.key()]);
                     }
                 }
             }
@@ -155,12 +154,6 @@ ConfigState Vipster::readConfig()
                     auto& tmp = presets[plugin];
                     for(auto preset: pos->items()){
                         preset.value().get_to(tmp[preset.key()]);
-//                        std::cout << preset << std::endl;
-//                        tmp[preset.key()] = plugin->makePreset();
-//                        from_json(preset.value(), *tmp[preset.key()]);
-//                        *tmp[preset.key()] = preset.value();
-//                        preset.value().get_to(*tmp[preset.key()]);
-//                        tmp[preset.key()]->parseJson(preset.value());
                     }
                 }
             }
@@ -224,7 +217,7 @@ void Vipster::saveConfig(const ConfigState& cs)
         j[com] = json{};
         auto& tmp = j[com];
         for(const auto& param: pair.second){
-            tmp[param.first] = *param.second;
+            tmp[param.first] = param.second;
         }
     }
     param_file << j.dump(2);

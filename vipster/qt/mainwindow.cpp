@@ -308,7 +308,7 @@ void MainWindow::newData(IO::Data &&d)
     const auto& name = molecules.back().getName();
     registerMol(name);
     if(d.param){
-        paramWidget->registerParam(name, std::move(d.param));
+        paramWidget->registerParam(name, std::move(*d.param));
     }
     for(auto& dat: d.data){
         data.push_back(std::move(dat));
@@ -411,7 +411,7 @@ void MainWindow::loadParam()
     auto name = s->text().toStdString();
     auto pos = params[*fmt].find(name);
     if(pos != params[*fmt].end()){
-        paramWidget->registerParam(name, pos->second->copy());
+        paramWidget->registerParam(name, pos->second);
     }else{
         throw Error("Invalid parameter set");
     }
@@ -452,7 +452,7 @@ void MainWindow::saveParam()
             fmtMenu->addAction(name.c_str(), this, &MainWindow::loadParam);
         }
         // save parameter
-        map[name] = curParam->copy();
+        map[name] = *curParam;
     }
 }
 
