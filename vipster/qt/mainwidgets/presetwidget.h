@@ -2,8 +2,9 @@
 #define CONFIGWIDGET_H
 
 #include <QWidget>
+#include <QHBoxLayout>
 #include "../basewidget.h"
-#include "../presetwidgets.h"
+//#include "../presetwidgets.h"
 #include "fileio.h"
 
 namespace Ui {
@@ -21,7 +22,7 @@ public:
     void registerPreset(const std::string& name,
                         const Vipster::IO::Preset& data);
     void clearPresets();
-    const Vipster::IO::Plugin* curFmt{nullptr};
+//    const Vipster::IO::Plugin* curFmt{nullptr};
     Vipster::IO::Preset* curPreset{nullptr};
 
 private slots:
@@ -31,7 +32,6 @@ private slots:
 
 private:
     Ui::PresetWidget *ui;
-    std::map<const Vipster::IO::Plugin*, PresetBase*> formats;
 };
 
 #endif // CONFIGWIDGET_H

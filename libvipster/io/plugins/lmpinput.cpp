@@ -4,7 +4,17 @@
 
 using namespace Vipster;
 
-enum class LMPAtomStyle{Angle, Atomic, Bond, Charge, Full, Molecular};
+static IO::Preset makePreset()
+{
+    return {&IO::LmpInput,
+        {{"style", IO::CustomEnum{0, {"angle", "atomic", "bond",
+                        "charge", "full", "molecular"}}},
+         {"bonds", false},
+         {"angles", false},
+         {"dihedrals", false},
+         {"impropers", false},
+    }};
+}
 
 enum class lmpTok{
     type,
@@ -12,15 +22,6 @@ enum class lmpTok{
     charge,
     mol,
     ignore
-};
-
-const static std::map<LMPAtomStyle, std::string> fmt2str{
-    {LMPAtomStyle::Angle, "angle"},
-    {LMPAtomStyle::Atomic, "atomic"},
-    {LMPAtomStyle::Bond, "bond"},
-    {LMPAtomStyle::Charge, "charge"},
-    {LMPAtomStyle::Full, "full"},
-    {LMPAtomStyle::Molecular, "molecular"},
 };
 
 const static std::map<std::string, std::vector<lmpTok>> fmtmap{
@@ -456,8 +457,8 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     auto angles = std::get<bool>(c->at("angles"));
     auto dihedrals = std::get<bool>(c->at("dihedrals"));
     auto impropers = std::get<bool>(c->at("impropers"));
-    auto style = static_cast<LMPAtomStyle>(std::get<uint8_t>(c->at("style")));
-    const auto tokens = fmtmap.at(fmt2str.at(style));
+    auto style = std::get<IO::CustomEnum>(c->at("style"));
+    const auto tokens = fmtmap.at(style.at(style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
     file << std::setprecision(std::numeric_limits<Vec::value_type>::max_digits10);
@@ -684,7 +685,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         file << atomtypemap.size() << ' ' << step.pte->at(t).m << " # " << t << '\n';
     }
 
-    file << "\nAtoms # " << fmt2str.at(style) << "\n\n";
+    file << "\nAtoms # " << style.at(style) << "\n\n";
     makeWriter(tokens, molID, atomtypemap)(file, step);
 
     if(bonds && !bondlist.empty()){
@@ -733,17 +734,6 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     }
     file << '\n';
     return true;
-}
-
-static IO::Preset makePreset()
-{
-    return {&IO::LmpInput,
-        {{"style", static_cast<uint8_t>(LMPAtomStyle::Atomic)},
-         {"bonds", false},
-         {"angles", false},
-         {"dihedrals", false},
-         {"impropers", false},
-    }};
 }
 
 const IO::Plugin IO::LmpInput =

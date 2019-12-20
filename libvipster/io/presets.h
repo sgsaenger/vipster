@@ -10,11 +10,23 @@
 
 namespace Vipster::IO{
 
-using PresetValue = std::variant<bool, uint8_t>;
+class CustomEnum: public CustomMap<int, std::string>
+{
+public:
+    int value;
+    CustomEnum(int value, const std::vector<std::string> &names);
+    operator int() const;
+    operator const std::string&() const;
+    CustomEnum& operator=(int);
+    CustomEnum& operator=(const std::string&);
+};
+
+using PresetValue = std::variant<bool, uint8_t, CustomEnum>;
+
 class Preset: public CustomMap<std::string, PresetValue>
 {
 public:
-    enum ValIdx { i_bool, i_uint };
+    enum ValIdx { i_bool, i_uint, i_enum };
     const struct Plugin* getFmt() const;
 // constructors/destructor
     Preset(const struct Plugin* fmt=nullptr,

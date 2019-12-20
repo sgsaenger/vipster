@@ -3,6 +3,8 @@
 #include "fileio.h"
 
 #include <QMessageBox>
+#include <QCheckBox>
+#include <QComboBox>
 
 using namespace Vipster;
 
@@ -11,10 +13,7 @@ PresetWidget::PresetWidget(QWidget *parent) :
     ui(new Ui::PresetWidget)
 {
     ui->setupUi(this);
-    formats = makePresetWidgets();
-    for(auto& p: formats){
-        ui->presetStack->addWidget(p.second);
-    }
+    ui->valueArea->hide();
 }
 
 PresetWidget::~PresetWidget()
@@ -41,23 +40,64 @@ void PresetWidget::registerPreset(const std::string& name,
 
 void PresetWidget::on_presetSel_currentIndexChanged(int index)
 {
+    auto* layout = static_cast<QVBoxLayout*>(ui->valueArea->layout());
+    // destroy old value-widgets
+    while(auto *child = layout->takeAt(0)){
+        while(auto *child_2 = child->layout()->takeAt(0)){
+            layout->removeItem(child_2);
+            child_2->widget()->deleteLater();
+        }
+        child->layout()->deleteLater();
+    }
+    // disable frame, show that nothing is loaded
     if(index<0){
-        ui->presetStack->setCurrentWidget(ui->NoCWidget);
+        ui->noPreset->show();
+        ui->valueArea->hide();
         curPreset = nullptr;
         return;
     }
     if(static_cast<size_t>(index) >= presets.size()){
         throw Error("Invalid IO preset selected");
     }
+    // load values of new preset
+    ui->noPreset->hide();
+    ui->valueArea->show();
     auto& pair = presets.at(static_cast<size_t>(index));
-    curFmt = pair.second.getFmt();
-    auto pos = formats.find(curFmt);
-    if(pos == formats.end()){
-        throw Error("Invalid IO preset format");
-    }
     curPreset = &pair.second;
-    ui->presetStack->setCurrentWidget(pos->second);
-    pos->second->setPreset(curPreset);
+    for(auto& v: *curPreset){
+        layout->insertLayout(0, new QHBoxLayout());
+        auto *row = static_cast<QHBoxLayout*>(layout->children().back());
+        row->addWidget(new QLabel{QString::fromStdString(v.first)+':'});
+        switch(v.second.index()){
+        case IO::Preset::i_bool:
+        {
+            auto box = new QCheckBox{};
+            row->addWidget(box);
+            box->setChecked(std::get<bool>(v.second));
+            connect(box, &QCheckBox::stateChanged, [&v](int state){
+                v.second = static_cast<bool>(state);
+            });
+            break;
+        }
+        case IO::Preset::i_enum:
+        {
+            auto box = new QComboBox{};
+            auto &val = std::get<IO::Preset::i_enum>(v.second);
+            row->addWidget(box);
+            for(const auto& pair: val){
+                box->addItem(QString::fromStdString(pair.second));
+            }
+            box->setCurrentIndex(val);
+            connect(box, QOverload<int>::of(&QComboBox::currentIndexChanged), [&v](int i){
+                std::get<IO::Preset::i_enum>(v.second) = i;
+            });
+            break;
+        }
+        default:
+            row->addWidget(new QLabel{"(unsupported setting)"});
+            break;
+        }
+    }
 }
 
 void PresetWidget::on_helpButton_clicked()
