@@ -15,13 +15,27 @@ using NameList = std::map<std::string, std::string>;
 static IO::Parameter makeParam()
 {
     return {&IO::PWInput, {
-            {"&CONTROL", NameList{}},
-            {"&SYSTEM", NameList{}},
-            {"&ELECTRONS", NameList{}},
-            {"&IONS", NameList{}},
-            {"&CELL", NameList{}},
-            {"PPPrefix", std::string{}},
-            {"PPSuffix", std::string{}},
+            {"&CONTROL", {NameList{},
+                    "&CONTROL namelist specifies the type of calculation and general runtime settings."}},
+            {"&SYSTEM", {NameList{},
+                    "&SYSTEM namelist contains details about the unit-cell.\n"
+                    "Necessary details will be provided by Vipster (ibrav, nat, ntyp, celldm/A)."}},
+            {"&ELECTRONS", {NameList{},
+                    "&ELECTRONS namelist controls how the SCF calculations are performed."}},
+            {"&IONS", {NameList{},
+                    "&IONS namelist controls how atoms are propagated.\n"
+                    "Only needed in relax and MD calculations."}},
+            {"&CELL", {NameList{},
+                    "&CELL namelist controls how the cell will react to pressure.\n"
+                    "Only needed in variable-cell calculations."}},
+            {"PPPrefix", {std::string{},
+                    "The default prefix for pseudo-potentials.\n"
+                    "Will be prepended to the type name if the periodic table entry for this type "
+                    "does not contain an explicit pseudo-potential name."}},
+            {"PPSuffix", {std::string{},
+                    "The default suffix for pseudo-potentials.\n"
+                    "Will be appended to the type name if the periodic table entry for this type "
+                    "does not contain an explicit pseudo-potential name."}},
         }};
 }
 
@@ -46,7 +60,7 @@ void parseNamelist(std::string name, std::istream& file, IO::Parameter& p)
 {
     auto pos = p.find(name);
     if (pos == p.end()) throw IO::Error{"Unknown namelist"};
-    auto &nl = std::get<NameList>(pos->second);
+    auto &nl = std::get<NameList>(pos->second.first);
 
     std::string line, key;
     size_t beg, end, quote_end;
@@ -76,7 +90,7 @@ void parseNamelist(std::string name, std::istream& file, IO::Parameter& p)
 
 void parseSpecies(std::istream& file, Molecule& m, IO::Parameter& p)
 {
-    auto& sys = std::get<NameList>(p.at("&SYSTEM"));
+    auto& sys = std::get<NameList>(p.at("&SYSTEM").first);
     auto dataentry = sys.find("ntyp");
     if (dataentry == sys.end()) throw IO::Error("ntyp not specified");
     int ntyp = std::stoi(dataentry->second);
@@ -103,7 +117,7 @@ void parseSpecies(std::istream& file, Molecule& m, IO::Parameter& p)
 void parseCoordinates(std::string name, std::istream& file,
                       Molecule& m, IO::Parameter& p)
 {
-    auto &sys = std::get<NameList>(p.at("&SYSTEM"));
+    auto &sys = std::get<NameList>(p.at("&SYSTEM").first);
     auto dataentry = sys.find("nat");
     if (dataentry == sys.end()) throw IO::Error("nat not specified");
     size_t nat = std::stoul(dataentry->second);
@@ -227,7 +241,7 @@ void parseCell(std::string name, std::istream& file, CellInp &cell)
 void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
 {
     auto &s = m.getStep(0);
-    auto &sys = std::get<NameList>(p.at("&SYSTEM"));
+    auto &sys = std::get<NameList>(p.at("&SYSTEM").first);
     // make sure that relative coordinates are not changed by "scaling" when setting cdm
     auto ibr = sys.find("ibrav");
     if(ibr == sys.end()){
@@ -364,9 +378,9 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     const auto& s = (atfmt.name() == "Active") ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt.value())); // use explicit fmt
-    const auto& PPPrefix = std::get<std::string>(p->at(""));
-    const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix"));
-    const auto& control = std::get<NameList>(p->at("&CONTROL"));
+    const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix").first);
+    const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix").first);
+    const auto& control = std::get<NameList>(p->at("&CONTROL").first);
     std::vector<std::string>
             outNL = {"&CONTROL", "&SYSTEM", "&ELECTRONS"};
     auto calc = control.find("calculation");
@@ -394,7 +408,7 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
                 file << " A = " << s.getCellDim(cell_fmt) << '\n';
             }
         }
-        for(auto& e: std::get<NameList>(p->at(name))){
+        for(auto& e: std::get<NameList>(p->at(name).first)){
             file << ' ' << e.first << " = " << e.second << '\n';
         }
         file << "/\n\n";

@@ -6,8 +6,10 @@ using namespace Vipster;
 static IO::Parameter makeParam()
 {
     return {&IO::OrcaInput, {
-            {"header", std::vector<std::string>{}},
-        }};
+            {"header", {std::vector<std::string>{},
+                    "Raw text header to be printed above coordinates.\n"
+                    "See ORCA documentation for details."},
+        }}};
 }
 
 IO::Data OrcaParser(const std::string& name, std::istream &file){
@@ -23,7 +25,7 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
     std::string line, c_fmt;
     int charge;
     unsigned int multiplicity;
-    auto& header = std::get<std::vector<std::string>>(p.at("header"));
+    auto& header = std::get<std::vector<std::string>>(p.at("header").first);
     while(std::getline(file, line)){
         std::stringstream ls{line};
         std::string test;
@@ -210,7 +212,7 @@ bool OrcaWriter(const Molecule& m, std::ostream &file,
     auto af = AtomFmt::Angstrom; // TODO: deduce from parameter set
 
     const auto& s = m.getStep(index).asFmt(af);
-    const auto& header = std::get<std::vector<std::string>>(p->at("header"));
+    const auto& header = std::get<std::vector<std::string>>(p->at("header").first);
 
     for(const auto& line: header){
         file << line << '\n';

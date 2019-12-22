@@ -24,7 +24,7 @@ void ORCAParam::setParam(IO::Parameter *p)
     }
     ui->plainTextEdit->clear();
     QStringList tmp{};
-    for(const auto& line: std::get<std::vector<std::string>>(curParam->at("header"))){
+    for(const auto& line: std::get<std::vector<std::string>>(curParam->at("header").first)){
         tmp.append(QString::fromStdString(line));
     }
     ui->plainTextEdit->setPlainText(tmp.join('\n'));
@@ -42,7 +42,7 @@ void ORCAParam::saveText()
     }
     auto tmp = ui->plainTextEdit->toPlainText();
     if(tmp.size()){
-        auto& header = std::get<std::vector<std::string>>(curParam->at("header"));
+        auto& header = std::get<std::vector<std::string>>(curParam->at("header").first);
         header.clear();
         for(const auto& line: tmp.split('\n')){
             header.push_back(line.toStdString());

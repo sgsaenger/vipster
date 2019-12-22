@@ -42,7 +42,7 @@ void PWParam::setParam(IO::Parameter *p)
     }
     for (int i=0; i<5; ++i) {
         auto* treeTop = ui->paramTree->topLevelItem(i);
-        auto& nl = std::get<NameList>(curParam->at(namelists[i]));
+        auto& nl = std::get<NameList>(curParam->at(namelists[i]).first);
         // clear tree
         for (auto child: treeTop->takeChildren()) {
             delete child;
@@ -54,8 +54,8 @@ void PWParam::setParam(IO::Parameter *p)
             treeTop->addChild(child);
         }
     }
-    ui->prefixEdit->setText(std::get<std::string>(curParam->at("PPPrefix")).c_str());
-    ui->suffixEdit->setText(std::get<std::string>(curParam->at("PPSuffix")).c_str());
+    ui->prefixEdit->setText(std::get<std::string>(curParam->at("PPPrefix").first).c_str());
+    ui->suffixEdit->setText(std::get<std::string>(curParam->at("PPSuffix").first).c_str());
 }
 
 void PWParam::addElement()
@@ -90,11 +90,11 @@ void PWParam::on_paramTree_currentItemChanged(QTreeWidgetItem *current, QTreeWid
     if(!curItem->parent()){
         delAction->setDisabled(true);
         curNL = &std::get<NameList>(curParam->at(curItem
-                     ->data(0,0).toString().toStdString()));
+                     ->data(0,0).toString().toStdString()).first);
     }else{
         delAction->setEnabled(true);
         curNL = &std::get<NameList>(curParam->at(curItem->parent()
-                     ->data(0,0).toString().toStdString()));
+                     ->data(0,0).toString().toStdString()).first);
         curKey = curItem->data(0, 0).toString().toStdString();
     }
 }
@@ -121,12 +121,12 @@ void PWParam::on_paramTree_itemChanged(QTreeWidgetItem *item, int column)
 
 void PWParam::on_prefixEdit_editingFinished()
 {
-    std::get<std::string>(curParam->at("PPPrefix")) =
+    std::get<std::string>(curParam->at("PPPrefix").first) =
             ui->prefixEdit->text().toStdString();
 }
 
 void PWParam::on_suffixEdit_editingFinished()
 {
-    std::get<std::string>(curParam->at("PPSuffix")) =
+    std::get<std::string>(curParam->at("PPSuffix").first) =
             ui->suffixEdit->text().toStdString();
 }

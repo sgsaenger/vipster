@@ -3,8 +3,7 @@
 
 using namespace Vipster;
 
-IO::Parameter::Parameter(const struct Plugin* fmt,
-                         StaticMap<std::string, ParamValue> &&values)
+IO::Parameter::Parameter(const struct Plugin* fmt, BaseMap &&values)
     : StaticMap{values}, fmt{fmt}
 {}
 
@@ -16,15 +15,15 @@ const IO::Plugin* IO::Parameter::getFmt() const
 void IO::to_json(nlohmann::json& j, const Parameter& p)
 {
     for(const auto &v: p){
-        switch (v.second.index()) {
+        switch (v.second.first.index()) {
         case Parameter::i_str:
-            j[v.first] = std::get<Parameter::i_str>(v.second);
+            j[v.first] = std::get<Parameter::i_str>(v.second.first);
             break;
         case Parameter::i_strvec:
-            j[v.first] = std::get<Parameter::i_strvec>(v.second);
+            j[v.first] = std::get<Parameter::i_strvec>(v.second.first);
             break;
         case Parameter::i_strmap:
-            j[v.first] = std::get<Parameter::i_strmap>(v.second);
+            j[v.first] = std::get<Parameter::i_strmap>(v.second.first);
             break;
         default:
             break;
@@ -35,15 +34,18 @@ void IO::to_json(nlohmann::json& j, const Parameter& p)
 void IO::from_json(const nlohmann::json& j, Parameter& p)
 {
     for(auto &v: p){
-        switch (v.second.index()) {
+        switch (v.second.first.index()) {
         case Parameter::i_str:
-            v.second = j.value(v.first, std::get<Parameter::i_str>(v.second));
+            v.second.first = j.value(v.first,
+                 std::get<Parameter::i_str>(v.second.first));
             break;
         case Parameter::i_strvec:
-            v.second = j.value(v.first, std::get<Parameter::i_strvec>(v.second));
+            v.second.first = j.value(v.first,
+                 std::get<Parameter::i_strvec>(v.second.first));
             break;
         case Parameter::i_strmap:
-            v.second = j.value(v.first, std::get<Parameter::i_strmap>(v.second));
+            v.second.first = j.value(v.first,
+                 std::get<Parameter::i_strmap>(v.second.first));
             break;
         default:
             break;

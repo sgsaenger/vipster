@@ -33,9 +33,9 @@ void CPParam::setParam(IO::Parameter *p)
         throw Error("Invalid parameter set");
     }
     fillText();
-    ui->prefixEdit->setText(std::get<std::string>(curParam->at("PPPrefix")).c_str());
-    ui->suffixEdit->setText(std::get<std::string>(curParam->at("PPSuffix")).c_str());
-    ui->nlEdit->setText(std::get<std::string>(curParam->at("PPNonlocality")).c_str());
+    ui->prefixEdit->setText(std::get<std::string>(curParam->at("PPPrefix").first).c_str());
+    ui->suffixEdit->setText(std::get<std::string>(curParam->at("PPSuffix").first).c_str());
+    ui->nlEdit->setText(std::get<std::string>(curParam->at("PPNonlocality").first).c_str());
 }
 
 void CPParam::on_comboBox_currentIndexChanged(const QString &arg)
@@ -44,7 +44,7 @@ void CPParam::on_comboBox_currentIndexChanged(const QString &arg)
     if(!curParam){
         return;
     }
-    curSection = &std::get<std::vector<std::string>>(curParam->at(arg.toStdString()));
+    curSection = &std::get<std::vector<std::string>>(curParam->at(arg.toStdString()).first);
     fillText();
 }
 
@@ -83,20 +83,20 @@ void CPParam::saveText()
 void CPParam::on_prefixEdit_editingFinished()
 {
     if(!curParam) return;
-    std::get<std::string>(curParam->at("PPPrefix")) =
+    std::get<std::string>(curParam->at("PPPrefix").first) =
             ui->prefixEdit->text().toStdString();
 }
 
 void CPParam::on_suffixEdit_editingFinished()
 {
     if(!curParam) return;
-    std::get<std::string>(curParam->at("PPSuffix")) =
+    std::get<std::string>(curParam->at("PPSuffix").first) =
             ui->suffixEdit->text().toStdString();
 }
 
 void CPParam::on_nlEdit_editingFinished()
 {
     if(!curParam) return;
-    std::get<std::string>(curParam->at("PPNonlocality")) =
+    std::get<std::string>(curParam->at("PPNonlocality").first) =
             ui->nlEdit->text().toStdString();
 }

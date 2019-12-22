@@ -13,14 +13,14 @@ namespace Vipster::IO{
 using ParamValue = std::variant<std::string,
                                 std::vector<std::string>,
                                 std::map<std::string, std::string>>;
-class Parameter : public StaticMap<std::string, ParamValue>
+class Parameter : public StaticMap<std::string, std::pair<ParamValue, std::string>>
 {
+    using BaseMap = StaticMap<std::string, std::pair<ParamValue, std::string>>;
 public:
     enum ValIdx { i_str, i_strvec, i_strmap };
     const struct Plugin* getFmt() const;
 // constructors/destructor
-    Parameter(const struct Plugin* fmt=nullptr,
-              StaticMap<std::string, ParamValue> &&values={});
+    Parameter(const struct Plugin* fmt=nullptr, BaseMap &&values={});
     Parameter(const Parameter &) = default;
     Parameter(Parameter &&) = default;
     Parameter& operator=(const Parameter &) = default;

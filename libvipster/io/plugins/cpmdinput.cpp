@@ -13,29 +13,43 @@ static const std::string sections[]{
     "&QMMM",
 };
 
+static const std::string SectionDoc{
+    "Raw-text section that will be written to input file."
+    "See CPMD documentation for valid contents."
+};
+
 static IO::Parameter makeParam()
 {
     return {&IO::CPInput, {
-            {"&INFO", Section{}},
-            {"&CPMD", Section{}},
-            {"&SYSTEM", Section{}},
-            {"&PIMD", Section{}},
-            {"&PATH", Section{}},
-            {"&PTDDFT", Section{}},
-            {"&ATOMS", Section{}},
-            {"&DFT", Section{}},
-            {"&PROP", Section{}},
-            {"&RESP", Section{}},
-            {"&LINRES", Section{}},
-            {"&TDDFT", Section{}},
-            {"&HARDNESS", Section{}},
-            {"&CLASSIC", Section{}},
-            {"&EXTE", Section{}},
-            {"&VDW", Section{}},
-            {"&QMMM", Section{}},
-            {"PPPrefix", std::string{}},
-            {"PPSuffix", std::string{}},
-            {"PPNonlocality", std::string{}},
+            {"&INFO", {Section{}, SectionDoc}},
+            {"&CPMD", {Section{}, SectionDoc}},
+            {"&SYSTEM", {Section{}, SectionDoc}},
+            {"&PIMD", {Section{}, SectionDoc}},
+            {"&PATH", {Section{}, SectionDoc}},
+            {"&PTDDFT", {Section{}, SectionDoc}},
+            {"&ATOMS", {Section{}, SectionDoc}},
+            {"&DFT", {Section{}, SectionDoc}},
+            {"&PROP", {Section{}, SectionDoc}},
+            {"&RESP", {Section{}, SectionDoc}},
+            {"&LINRES", {Section{}, SectionDoc}},
+            {"&TDDFT", {Section{}, SectionDoc}},
+            {"&HARDNESS", {Section{}, SectionDoc}},
+            {"&CLASSIC", {Section{}, SectionDoc}},
+            {"&EXTE", {Section{}, SectionDoc}},
+            {"&VDW", {Section{}, SectionDoc}},
+            {"&QMMM", {Section{}, SectionDoc}},
+            {"PPPrefix", {std::string{},
+                    "The default prefix for pseudo-potentials.\n"
+                    "Will be prepended to the type name if the periodic table entry for this type "
+                    "does not contain an explicit pseudo-potential name."}},
+            {"PPSuffix", {std::string{},
+                    "The default suffix for pseudo-potentials.\n"
+                    "Will be appended to the type name if the periodic table entry for this type "
+                    "does not contain an explicit pseudo-potential name."}},
+            {"PPNonlocality", {std::string{},
+                    "The default non-locality for pseudo-potentials.\n"
+                    "Will be printed as-is if the periodic table entry for the current type "
+                    "does not contain an explicit non-locality string."}},
         }};
 };
 
@@ -170,7 +184,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                                         });
                 if(pos != p.end()){
                     curName = line;
-                    curSection = &std::get<Section>(pos->second);
+                    curSection = &std::get<Section>(pos->second.first);
                 }else{
                     throw IO::Error("Unknown CPMD-Input section: "+line);
                 }
@@ -474,12 +488,12 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
         m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt.value())); // use explicit fmt
     auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
-    const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix"));
-    const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix"));
-    const auto& PPNonlocality = std::get<std::string>(p->at("PPNonlocality"));
+    const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix").first);
+    const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix").first);
+    const auto& PPNonlocality = std::get<std::string>(p->at("PPNonlocality").first);
     for(const auto& name: sections){
         file << name << '\n';
-        const auto& curSection = std::get<Section>(p->at(name));
+        const auto& curSection = std::get<Section>(p->at(name).first);
         if(name == "&ATOMS"){
             std::map<std::string, std::vector<size_t>> types;
             for(auto it=s.begin(); it!=s.end(); ++it){
