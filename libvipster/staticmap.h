@@ -6,7 +6,7 @@
 namespace Vipster {
 
 template <typename Key, typename Value>
-class CustomMap: private std::map<Key, Value>
+class StaticMap: private std::map<Key, Value>
 {
 protected:
     using map_t = std::map<Key, Value>;

@@ -4,8 +4,8 @@
 using namespace Vipster;
 
 IO::Parameter::Parameter(const struct Plugin* fmt,
-                         CustomMap<std::string, ParamValue> &&values)
-    : CustomMap{values}, fmt{fmt}
+                         StaticMap<std::string, ParamValue> &&values)
+    : StaticMap{values}, fmt{fmt}
 {}
 
 const IO::Plugin* IO::Parameter::getFmt() const

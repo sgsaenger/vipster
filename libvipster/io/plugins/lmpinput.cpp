@@ -7,12 +7,14 @@ using namespace Vipster;
 static IO::Preset makePreset()
 {
     return {&IO::LmpInput,
-        {{"style", IO::CustomEnum{0, {"angle", "atomic", "bond",
-                        "charge", "full", "molecular"}}},
-         {"bonds", false},
-         {"angles", false},
-         {"dihedrals", false},
-         {"impropers", false},
+        {{"style", {NamedEnum{0, {"angle", "atomic", "bond",
+                                  "charge", "full", "molecular"}},
+                    "The atom_style to be used by Lammps.\n"
+                    "See https://lammps.sandia.gov/doc/atom_style.html for details."}},
+         {"bonds", {false, "Toggle printing bonds (taken directly from Step)"}},
+         {"angles", {false, "Toggle printing angles (extrapolated from bond network)"}},
+         {"dihedrals", {false, "Toggle printing dihedrals (extrapolated from bond network)"}},
+         {"impropers", {false, "Toggle printing impropers (extrapolated from bond network)"}},
     }};
 }
 
@@ -453,11 +455,11 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::LmpInput){
         throw IO::Error("Lammps-Writer needs suitable IO preset");
     }
-    auto bonds = std::get<bool>(c->at("bonds"));
-    auto angles = std::get<bool>(c->at("angles"));
-    auto dihedrals = std::get<bool>(c->at("dihedrals"));
-    auto impropers = std::get<bool>(c->at("impropers"));
-    auto style = std::get<IO::CustomEnum>(c->at("style"));
+    auto bonds = std::get<bool>(c->at("bonds").first);
+    auto angles = std::get<bool>(c->at("angles").first);
+    auto dihedrals = std::get<bool>(c->at("dihedrals").first);
+    auto impropers = std::get<bool>(c->at("impropers").first);
+    const auto &style = std::get<NamedEnum>(c->at("style").first);
     const auto tokens = fmtmap.at(style.at(style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 

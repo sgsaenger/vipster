@@ -4,6 +4,14 @@
 
 using namespace Vipster;
 
+static IO::Preset makePreset()
+{
+    return {&IO::Poscar,
+        {{"selective", {true, "Toggles selective dynamics.\n\nIf 'true', "
+                    "atom-coordinates can be kept fixed during simulation."}},
+         {"cartesian", {false, "Toggle between cartesian (Å) and direct (crystal) coordinates."}}}};
+}
+
 IO::Data PoscarParser(const std::string& name, std::istream &file){
     IO::Data d{};
     Molecule &m = d.mol;
@@ -123,9 +131,8 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::Poscar){
         throw IO::Error("Poscar-Writer needs suitable IO preset");
     }
-    auto cartesian = std::get<bool>(c->at("cartesian"));
-    auto selective = std::get<bool>(c->at("selective"));
-//    const auto * const cc = dynamic_cast<const IO::PoscarPreset*const>(c);
+    auto cartesian = std::get<bool>(c->at("cartesian").first);
+    auto selective = std::get<bool>(c->at("selective").first);
     const Step& s = m.getStep(index).asFmt(cartesian ?
                                                  AtomFmt::Angstrom : AtomFmt::Crystal);
     file << s.getComment() << '\n';
@@ -185,13 +192,6 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
         }
     }
     return true;
-}
-
-static IO::Preset makePreset()
-{
-    return {&IO::Poscar,
-        {{"selective", true},
-         {"cartesian", false}}};
 }
 
 const IO::Plugin IO::Poscar =

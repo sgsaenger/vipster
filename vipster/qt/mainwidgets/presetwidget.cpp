@@ -65,37 +65,51 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
     auto& pair = presets.at(static_cast<size_t>(index));
     curPreset = &pair.second;
     for(auto& v: *curPreset){
-        layout->insertLayout(0, new QHBoxLayout());
-        auto *row = static_cast<QHBoxLayout*>(layout->children().back());
-        row->addWidget(new QLabel{QString::fromStdString(v.first)+':'});
-        switch(v.second.index()){
+        auto *row = new QHBoxLayout{};
+        layout->addLayout(row);
+        // setup label
+        auto label = new QLabel{QString::fromStdString(v.first)+':'};
+        row->addWidget(label);
+        QWidget* widget{};
+        // setup specific widget
+        switch(v.second.first.index()){
         case IO::Preset::i_bool:
         {
             auto box = new QCheckBox{};
+            widget = box;
             row->addWidget(box);
-            box->setChecked(std::get<bool>(v.second));
+            box->setLayoutDirection(Qt::RightToLeft);
+            box->setChecked(std::get<bool>(v.second.first));
             connect(box, &QCheckBox::stateChanged, [&v](int state){
-                v.second = static_cast<bool>(state);
+                v.second.first = static_cast<bool>(state);
             });
             break;
         }
         case IO::Preset::i_enum:
         {
             auto box = new QComboBox{};
-            auto &val = std::get<IO::Preset::i_enum>(v.second);
+            widget = box;
+            auto &val = std::get<NamedEnum>(v.second.first);
             row->addWidget(box);
             for(const auto& pair: val){
                 box->addItem(QString::fromStdString(pair.second));
             }
             box->setCurrentIndex(val);
             connect(box, QOverload<int>::of(&QComboBox::currentIndexChanged), [&v](int i){
-                std::get<IO::Preset::i_enum>(v.second) = i;
+                std::get<NamedEnum>(v.second.first) = i;
             });
             break;
         }
         default:
-            row->addWidget(new QLabel{"(unsupported setting)"});
+            widget = new QLabel{"(unsupported setting)"};
+            row->addWidget(widget);
             break;
+        }
+        // connect widget and setup tooltip
+        label->setBuddy(widget);
+        if(!v.second.second.empty()){
+            label->setToolTip(v.second.second.c_str());
+            widget->setToolTip(v.second.second.c_str());
         }
     }
 }

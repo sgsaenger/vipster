@@ -4,7 +4,6 @@
 
 using namespace Vipster;
 
-enum class CPAtomFmt{Bohr, Angstrom, Crystal, Alat, Active};
 using Section = std::vector<std::string>;
 static const std::string sections[]{
     "&INFO", "&CPMD", "&SYSTEM", "&PIMD",
@@ -43,7 +42,9 @@ static IO::Parameter makeParam()
 static IO::Preset makePreset()
 {
     return {&IO::CPInput,
-        {{"fmt", static_cast<uint8_t>(CPAtomFmt::Active)}}};
+        {{"fmt", {NamedEnum{4, {"Bohr", "Angstrom", "Crystal", "Alat", "Active"}},
+                    "Active: Use the current Step's active atom format\n"
+                    "Else: Enforce the selected atom format"}}}};
 }
 
 const std::map<std::string, int> str2ibrav{
@@ -468,10 +469,10 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::CPInput){
         throw IO::Error("CPMD-Input-Writer needs suitable IO preset");
     }
-    auto atfmt = static_cast<CPAtomFmt>(std::get<uint8_t>(c->at("fmt")));
-    const auto& s = (atfmt == CPAtomFmt::Active) ?
+    const auto &atfmt = std::get<NamedEnum>(c->at("fmt").first);
+    const auto& s = (atfmt.name() == "Active") ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
-        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt
+        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt.value())); // use explicit fmt
     auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
     const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix"));
     const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix"));

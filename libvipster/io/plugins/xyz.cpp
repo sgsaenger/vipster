@@ -5,8 +5,19 @@
 
 using namespace Vipster;
 
-enum class XYZData{None, Charge, Forces};
-enum class XYZMode{Step, Trajec, Cell};
+static IO::Preset makePreset()
+{
+    return {&IO::XYZ,
+        {{"filemode", {NamedEnum{0, {"Step", "Trajec", "Cell"}},
+                    "Step: Write currently active Step\n"
+                    "Trajec: Write complete trajectory of active Molecule\n"
+                    "Cell: Write currently active Step and append the unit cell"}},
+         {"atomdata", {NamedEnum{0, {"None", "Charge", "Forces"}},
+                    "None: Write only coordinates (standard xyz)\n"
+                    "Charge: Append a column containing the atomic charges\n"
+                    "Forces: Append three columns containing the atomic forces"}}}};
+}
+
 
 IO::Data XYZParser(const std::string& name, std::istream &file)
 {
@@ -107,8 +118,8 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
         file << s.getNat() << '\n';
         file << s.getComment() << '\n';
         file << std::fixed << std::setprecision(5);
-        switch(static_cast<XYZData>(std::get<uint8_t>(cc.at("atomdata")))){
-        case XYZData::None:
+        switch(std::get<NamedEnum>(cc.at("atomdata").first)){
+        case 0: // None
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
                      << std::right << std::setw(10) << at.coord[0] << " "
@@ -116,7 +127,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
                      << std::right << std::setw(10) << at.coord[2] << '\n';
             }
             break;
-        case XYZData::Charge:
+        case 1: // charge
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
                      << std::right << std::setw(10) << at.coord[0] << " "
@@ -125,7 +136,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
                      << std::right << std::setw(10) << at.properties->charge << '\n';
             }
             break;
-        case XYZData::Forces:
+        case 2: // forces
             for(const auto& at: s){
                 file << std::left << std::setw(3) << at.name << " "
                      << std::right << std::setw(10) << at.coord[0] << " "
@@ -138,31 +149,24 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
             break;
         }
     };
-    switch(static_cast<XYZMode>(std::get<uint8_t>(cc.at("filemode")))){
-    case XYZMode::Step:
+    switch(std::get<NamedEnum>(cc.at("filemode").first)){
+    case 0: // Step
         stepWriter(s);
         break;
-    case XYZMode::Cell:
+    case 1: // with Cell
         stepWriter(s);
         file << '\n';
         for(const auto& vec: s.getCellVec()*s.getCellDim(CdmFmt::Angstrom)){
             file << vec[0] << ' ' << vec[1] << ' ' << vec[2] << '\n';
         }
         break;
-    case XYZMode::Trajec:
+    case 2: // Trajec
         for(const auto& step: m.getSteps()){
             stepWriter(step.asFmt(AtomFmt::Angstrom));
         }
         break;
     }
     return true;
-}
-
-static IO::Preset makePreset()
-{
-    return {&IO::XYZ,
-        {{"filemode", static_cast<uint8_t>(XYZMode::Step)},
-         {"atomdata", static_cast<uint8_t>(XYZData::None)}}};
 }
 
 const IO::Plugin IO::XYZ =

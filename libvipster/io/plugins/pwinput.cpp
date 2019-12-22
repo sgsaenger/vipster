@@ -10,8 +10,6 @@
 
 using namespace Vipster;
 
-enum class PWAtomFmt {Bohr, Angstrom, Crystal, Alat, Active};
-enum class PWCellFmt {Bohr, Angstrom, Active};
 using NameList = std::map<std::string, std::string>;
 
 static IO::Parameter makeParam()
@@ -30,8 +28,12 @@ static IO::Parameter makeParam()
 static IO::Preset makePreset()
 {
     return {&IO::PWInput,
-        {{"atoms", static_cast<uint8_t>(PWAtomFmt::Active)},
-         {"cell", static_cast<uint8_t>(PWCellFmt::Active)}}};
+        {{"atoms", {NamedEnum{4, {"Bohr", "Angstrom", "Crystal", "Alat", "Active"}},
+                    "Active: Use the current Step's active atom format\n"
+                    "Else: Enforce the selected format"}},
+         {"cell", {NamedEnum{2, {"Bohr", "Angstrom", "Active"}},
+                    "Active: Match current Step's active atom format (Å if Å, Bohr otherwise)\n"
+                    "Else: Enforce the selected format"}}}};
 }
 
 struct CellInp{
@@ -357,12 +359,12 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::PWInput){
         throw IO::Error("PWI-Writer needs suitable IO preset");
     }
-    auto atfmt = static_cast<PWAtomFmt>(std::get<uint8_t>(c->at("atoms")));
-    auto cellfmt = static_cast<PWCellFmt>(std::get<uint8_t>(c->at("atoms")));
-    const auto& s = (atfmt == PWAtomFmt::Active) ?
+    const auto &atfmt = std::get<NamedEnum>(c->at("atoms").first);
+    const auto &cellfmt = std::get<NamedEnum>(c->at("atoms").first);
+    const auto& s = (atfmt.name() == "Active") ?
         static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
-        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt)); // use explicit fmt
-    const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix"));
+        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt.value())); // use explicit fmt
+    const auto& PPPrefix = std::get<std::string>(p->at(""));
     const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix"));
     const auto& control = std::get<NameList>(p->at("&CONTROL"));
     std::vector<std::string>
@@ -382,10 +384,10 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             file << " ibrav = 0\n";
             file << " nat = " << s.getNat() << '\n';
             file << " ntyp = " << s.getNtyp() << '\n';
-            auto cell_fmt = (cellfmt == PWCellFmt::Active) ?
+            auto cell_fmt = (cellfmt.name() == "Active") ?
                         ((s.getFmt() == AtomFmt::Angstrom) ?
                              CdmFmt::Angstrom : CdmFmt::Bohr) : // match coordinates
-                        static_cast<CdmFmt>(cellfmt); // use explicit
+                        static_cast<CdmFmt>(cellfmt.value()); // use explicit
             if(cell_fmt == CdmFmt::Bohr){
                 file << " celldm(1) = " << s.getCellDim(cell_fmt) << '\n';
             }else{

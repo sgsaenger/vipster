@@ -3,34 +3,24 @@
 
 #include "nlohmann/json.hpp"
 
-#include "custommap.h"
+#include "staticmap.h"
+#include "namedenum.h"
 
 #include <string>
 #include <variant>
 
 namespace Vipster::IO{
 
-class CustomEnum: public CustomMap<int, std::string>
-{
-public:
-    int value;
-    CustomEnum(int value, const std::vector<std::string> &names);
-    operator int() const;
-    operator const std::string&() const;
-    CustomEnum& operator=(int);
-    CustomEnum& operator=(const std::string&);
-};
+using PresetValue = std::variant<bool, NamedEnum>;
 
-using PresetValue = std::variant<bool, uint8_t, CustomEnum>;
-
-class Preset: public CustomMap<std::string, PresetValue>
+class Preset: public StaticMap<std::string, std::pair<PresetValue, std::string>>
 {
+    using BaseMap = StaticMap<std::string, std::pair<PresetValue, std::string>>;
 public:
-    enum ValIdx { i_bool, i_uint, i_enum };
+    enum ValIdx { i_bool, i_enum };
     const struct Plugin* getFmt() const;
 // constructors/destructor
-    Preset(const struct Plugin* fmt=nullptr,
-               CustomMap<std::string, PresetValue> &&values={});
+    Preset(const struct Plugin* fmt=nullptr, BaseMap &&values={});
     Preset(const Preset &) = default;
     Preset(Preset &&) = default;
     Preset& operator=(const Preset &) = default;

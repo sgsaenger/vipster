@@ -3,51 +3,8 @@
 
 using namespace Vipster;
 
-IO::CustomEnum::CustomEnum(int value, const std::vector<std::string> &names)
-    : value{value}
-{
-    if(value > names.size()){
-        throw Error{"CustomEnum value out of range"};
-    }
-    std::vector<std::pair<int, std::string>> tmp;
-    for(size_t i=0; i<names.size(); ++i){
-        tmp.emplace_back(i, names[i]);
-    }
-    CustomMap::operator=(CustomMap(tmp.begin(), tmp.end()));
-}
-
-IO::CustomEnum::operator int() const
-{
-    return value;
-}
-
-IO::CustomEnum::operator const std::string&() const
-{
-    return at(value);
-}
-
-IO::CustomEnum& IO::CustomEnum::operator=(int v)
-{
-    if(v > size()){
-        throw IO::Error{"CustomEnum value out of range"};
-    }
-    value = v;
-    return *this;
-}
-
-IO::CustomEnum& IO::CustomEnum::operator=(const std::string& s)
-{
-    if(auto pos = find_if(begin(), end(), [&](auto &p){return p.second == s;}); pos != end()){
-        value = pos->first;
-        return *this;
-    }else{
-        throw Error{"CustomEnum name unknown"};
-    }
-}
-
-IO::Preset::Preset(const struct Plugin* fmt,
-                           CustomMap<std::string, PresetValue> &&values)
-    : CustomMap{values}, fmt{fmt}
+IO::Preset::Preset(const struct Plugin* fmt, BaseMap &&values)
+    : StaticMap{values}, fmt{fmt}
 {}
 
 const IO::Plugin* IO::Preset::getFmt() const
@@ -58,15 +15,12 @@ const IO::Plugin* IO::Preset::getFmt() const
 void IO::to_json(nlohmann::json& j, const Preset& p)
 {
     for(const auto &v: p){
-        switch (v.second.index()) {
+        switch (v.second.first.index()) {
         case Preset::i_bool:
-            j[v.first] = std::get<Preset::i_bool>(v.second);
-            break;
-        case Preset::i_uint:
-            j[v.first] = std::get<Preset::i_uint>(v.second);
+            j[v.first] = std::get<bool>(v.second.first);
             break;
         case Preset::i_enum:
-            j[v.first] = static_cast<const std::string&>(std::get<Preset::i_enum>(v.second));
+            j[v.first] = static_cast<const std::string&>(std::get<NamedEnum>(v.second.first));
             break;
         default:
             break;
@@ -77,16 +31,13 @@ void IO::to_json(nlohmann::json& j, const Preset& p)
 void IO::from_json(const nlohmann::json& j, Preset& p)
 {
     for(auto &v: p){
-        switch(v.second.index()) {
+        switch(v.second.first.index()) {
         case Preset::i_bool:
-            v.second = j.value(v.first, std::get<Preset::i_bool>(v.second));
-            break;
-        case Preset::i_uint:
-            v.second = j.value(v.first, std::get<Preset::i_uint>(v.second));
+            v.second.first = j.value(v.first, std::get<bool>(v.second.first));
             break;
         case Preset::i_enum:
         {
-            auto &val = std::get<Preset::i_enum>(v.second);
+            auto &val = std::get<NamedEnum>(v.second.first);
             if(auto pos = j.find(v.first); pos != j.end()){
                 try{
                     val = pos->get<std::string>();

@@ -3,7 +3,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "custommap.h"
+#include "staticmap.h"
 
 #include <string>
 #include <variant>
@@ -13,14 +13,14 @@ namespace Vipster::IO{
 using ParamValue = std::variant<std::string,
                                 std::vector<std::string>,
                                 std::map<std::string, std::string>>;
-class Parameter : public CustomMap<std::string, ParamValue>
+class Parameter : public StaticMap<std::string, ParamValue>
 {
 public:
     enum ValIdx { i_str, i_strvec, i_strmap };
     const struct Plugin* getFmt() const;
 // constructors/destructor
     Parameter(const struct Plugin* fmt=nullptr,
-              CustomMap<std::string, ParamValue> &&values={});
+              StaticMap<std::string, ParamValue> &&values={});
     Parameter(const Parameter &) = default;
     Parameter(Parameter &&) = default;
     Parameter& operator=(const Parameter &) = default;
