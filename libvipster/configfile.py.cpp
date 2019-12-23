@@ -43,22 +43,22 @@ private:
     }
     IO::Parameter makeParam_impl(){
         try{
-            return py::cast<IO::Parameter&>(pyMkParam());
+            return {this, param};
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
         }
     }
     IO::Preset makePreset_impl(){
         try{
-            return py::cast<IO::Preset&>(pyMkPreset());
+            return {this, preset};
         }catch(const py::error_already_set& e){
             throw IO::Error{e.what()};
         }
     }
     py::object pyReader;
     py::object pyWriter;
-    py::object pyMkParam;
-    py::object pyMkPreset;
+    IO::Parameter::BaseMap param;
+    IO::Preset::BaseMap preset;
 public:
     static Plugin* create(fs::path file){
         using namespace std::placeholders;
@@ -79,32 +79,104 @@ public:
             delete plug;
             return nullptr;
         }
-        if(py::hasattr(pyplug, "name")){
-            plug->name = py::cast<std::string>(pyplug.attr("name"));
+        if(py::hasattr(pyplug, "name") &&
+                py::isinstance<py::str>(pyplug.attr("name"))){
+            plug->name = py::str(pyplug.attr("name"));
         }
-        if(py::hasattr(pyplug, "extension")){
-            plug->extension = py::cast<std::string>(pyplug.attr("extension"));
+        if(py::hasattr(pyplug, "extension") &&
+                py::isinstance<py::str>(pyplug.attr("extension"))){
+            plug->extension = py::str(pyplug.attr("extension"));
         }
-        if(py::hasattr(pyplug, "command")){
-            plug->command = py::cast<std::string>(pyplug.attr("command"));
+        if(py::hasattr(pyplug, "command") &&
+                py::isinstance<py::str>(pyplug.attr("command"))){
+            plug->command = py::str(pyplug.attr("command"));
         }
-        if(py::hasattr(pyplug, "parser")){
+        if(py::hasattr(pyplug, "parser") &&
+                py::isinstance<py::function>(pyplug.attr("parser"))){
             plug->pyReader = pyplug.attr("parser");
             plug->parser = std::bind(&Plugin::parser_impl, plug, _1, _2);
         }
-        if(py::hasattr(pyplug, "writer")){
+        if(py::hasattr(pyplug, "writer") &&
+                py::isinstance<py::function>(pyplug.attr("writer"))){
             plug->pyWriter = pyplug.attr("writer");
             plug->writer = std::bind(&Plugin::writer_impl, plug, _1, _2, _3, _4, _5);
         }
-        // TODO: enable when sufficient implementation is available
-//        if(py::hasattr(pyplug, "makeParam")){
-//            plug->pyMkParam = pyplug.attr("makeParam");
-//            plug->makeParam = std::bind(&Plugin::makeParam_impl, plug);
-//        }
-//        if(py::hasattr(pyplug, "makePreset")){
-//            plug->pyMkPreset = pyplug.attr("makePreset");
-//            plug->makePreset = std::bind(&Plugin::makePreset_impl, plug);
-//        }
+        if(py::hasattr(pyplug, "parameters") &&
+                py::isinstance<py::dict>(pyplug.attr("parameters"))){
+            auto dict = py::cast<py::dict>(pyplug.attr("parameters"));
+            IO::Parameter::BaseMap::map_t tmp{};
+            for(const auto& [key, value]: dict){
+                if(py::isinstance<py::tuple>(value) &&
+                        (py::cast<py::tuple>(value).size() == 2)){
+                    // expect (value, doc) tuple
+                    auto tuple = py::cast<py::tuple>(value);
+                    if(py::isinstance<py::str>(tuple[0])){
+                        // string
+                        tmp[py::str(key)] = {py::str(tuple[0]),
+                                             py::str(tuple[1])};
+                    }else if(py::isinstance<py::tuple>(tuple[0])){
+                        // list of strings
+                        auto list = py::cast<py::tuple>(tuple[0]);
+                        std::vector<std::string> vec{};
+                        for(const auto& val: list){
+                            vec.push_back(py::str(val));
+                        }
+                        tmp[py::str(key)] = {std::move(vec),
+                                             py::str(tuple[1])};
+                    }else if(py::isinstance<py::dict>(tuple[0])){
+                        // dict of strings
+                        auto dict = py::cast<py::dict>(tuple[0]);
+                        std::map<std::string, std::string> map{};
+                        for(const auto& [k, v]: dict){
+                            map[py::str(k)] = py::str(v);
+                        }
+                        tmp[py::str(key)] = {std::move(map),
+                                             py::str(tuple[1])};
+                    }
+                }
+            }
+            if(!tmp.empty()){
+                plug->param = {tmp.begin(), tmp.end()};
+                plug->makeParam = std::bind(&Plugin::makeParam_impl, plug);
+            }
+        }
+        if(py::hasattr(pyplug, "preset") &&
+                py::isinstance<py::dict>(pyplug.attr("preset"))){
+            auto dict = py::cast<py::dict>(pyplug.attr("preset"));
+            IO::Preset::BaseMap::map_t tmp{};
+            for(const auto& [key, value]: dict){
+                if(py::isinstance<py::tuple>(value) &&
+                        (py::cast<py::tuple>(value).size() == 2)){
+                    // expect (value, doc) tuple
+                    auto tuple = py::cast<py::tuple>(value);
+                    if(py::isinstance<py::bool_>(tuple[0])){
+                        // boolean flag
+                        tmp[py::str(key)] = {py::cast<bool>(tuple[0]),
+                                             py::str(tuple[1])};
+                    }else if(py::isinstance<py::tuple>(tuple[0]) &&
+                             py::cast<py::tuple>(tuple[0]).size() == 2){
+                        // NamedEnum -> (idx, (list-of-names))
+                        auto tup2 = py::cast<py::tuple>(tuple[0]);
+                        if(!py::isinstance<py::int_>(tup2[0]) ||
+                           !py::isinstance<py::tuple>(tup2[1])){
+                            continue;
+                        }
+                        auto idx = py::cast<int>(tup2[0]);
+                        std::vector<std::string> names{};
+                        for(const auto& n: py::cast<py::tuple>(tup2[1])){
+                            names.push_back(py::str(n));
+                        }
+                        if(idx < 0 || idx >= names.size()) continue;
+                        tmp[py::str(key)] = {NamedEnum{idx, names},
+                                             py::str(tuple[1])};
+                    }
+                }
+            }
+            if(!tmp.empty()){
+                plug->preset = {tmp.begin(), tmp.end()};
+                plug->makePreset = std::bind(&Plugin::makePreset_impl, plug);
+            }
+        }
         if(!plug->name.empty() && !plug->extension.empty() && !plug->command.empty()){
             return plug;
         }
@@ -119,6 +191,8 @@ void config(py::module& m, ConfigState& state){
     m.attr("Parameters") = py::cast(std::get<3>(state), py::return_value_policy::reference);
     m.attr("IOPresets") = py::cast(std::get<4>(state), py::return_value_policy::reference);
     auto& plugins = std::get<2>(state);
+    auto& params = std::get<3>(state);
+    auto& presets = std::get<4>(state);
     // try to parse python-based plugins
     auto pluginDir = getConfigDir()/"plugins";
     if(!fs::exists(pluginDir)) return;
@@ -128,6 +202,12 @@ void config(py::module& m, ConfigState& state){
         if(plug){
             std::cerr << "Loading Python-plugin " << file.path() << std::endl;
             plugins.push_back(plug);
+            if(plug->makeParam){
+                params[plug]["default"] = plug->makeParam();
+            }
+            if(plug->makePreset){
+                presets[plug]["default"] = plug->makePreset();
+            }
         }
     }
     // expose plugins

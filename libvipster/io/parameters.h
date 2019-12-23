@@ -15,12 +15,12 @@ using ParamValue = std::variant<std::string,
                                 std::map<std::string, std::string>>;
 class Parameter : public StaticMap<std::string, std::pair<ParamValue, std::string>>
 {
-    using BaseMap = StaticMap<std::string, std::pair<ParamValue, std::string>>;
 public:
+    using BaseMap = StaticMap<std::string, std::pair<ParamValue, std::string>>;
     enum ValIdx { i_str, i_strvec, i_strmap };
     const struct Plugin* getFmt() const;
 // constructors/destructor
-    Parameter(const struct Plugin* fmt=nullptr, BaseMap &&values={});
+    Parameter(const struct Plugin* fmt=nullptr, const BaseMap &values={});
     Parameter(const Parameter &) = default;
     Parameter(Parameter &&) = default;
     Parameter& operator=(const Parameter &) = default;

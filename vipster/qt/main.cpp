@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
     std::map<CLI::Option*, const IO::Plugin*> fmt_opts{};
     for(auto& fmt: plugins){
         // parser
+        if(!fmt->parser) continue;
         auto opt = app.add_option("--" + fmt->command,
                                   fmt_files[fmt],
                                   fmt->name);

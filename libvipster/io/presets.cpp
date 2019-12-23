@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-IO::Preset::Preset(const struct Plugin* fmt, BaseMap &&values)
+IO::Preset::Preset(const struct Plugin* fmt, const BaseMap &values)
     : StaticMap{values}, fmt{fmt}
 {}
 

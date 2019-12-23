@@ -15,12 +15,12 @@ using PresetValue = std::variant<bool, NamedEnum>;
 
 class Preset: public StaticMap<std::string, std::pair<PresetValue, std::string>>
 {
-    using BaseMap = StaticMap<std::string, std::pair<PresetValue, std::string>>;
 public:
+    using BaseMap = StaticMap<std::string, std::pair<PresetValue, std::string>>;
     enum ValIdx { i_bool, i_enum };
     const struct Plugin* getFmt() const;
 // constructors/destructor
-    Preset(const struct Plugin* fmt=nullptr, BaseMap &&values={});
+    Preset(const struct Plugin* fmt=nullptr, const BaseMap &values={});
     Preset(const Preset &) = default;
     Preset(Preset &&) = default;
     Preset& operator=(const Preset &) = default;

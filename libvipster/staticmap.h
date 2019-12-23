@@ -8,9 +8,8 @@ namespace Vipster {
 template <typename Key, typename Value>
 class StaticMap: private std::map<Key, Value>
 {
-protected:
-    using map_t = std::map<Key, Value>;
 public:
+    using map_t = std::map<Key, Value>;
     // access functions
     using map_t::begin;
     using map_t::end;

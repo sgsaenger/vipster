@@ -3,7 +3,7 @@
 
 using namespace Vipster;
 
-IO::Parameter::Parameter(const struct Plugin* fmt, BaseMap &&values)
+IO::Parameter::Parameter(const struct Plugin* fmt, const BaseMap &values)
     : StaticMap{values}, fmt{fmt}
 {}
 
