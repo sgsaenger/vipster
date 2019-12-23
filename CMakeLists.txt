@@ -22,7 +22,7 @@ include_directories(python)
 include_directories(vipster/qt)
 
 # Library, needed for everything else
-file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.cpp")
+file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.h" "libvipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "libvipster/*.h" "libvipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 list(REMOVE_ITEM PY_SOURCES "libvipster/main.py.cpp")

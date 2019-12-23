@@ -30,6 +30,8 @@ private:
     const struct Plugin *fmt;
 };
 
+using Parameters = std::map<const Plugin*, std::map<std::string, Parameter>>;
+
 void to_json(nlohmann::json& j, const Parameter& p);
 void from_json(const nlohmann::json& j, Parameter& p);
 

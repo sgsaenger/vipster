@@ -28,6 +28,9 @@ struct Plugin{
     std::function<Preset()> makePreset{};
 };
 
+using Plugins = std::vector<const Plugin*>;
+Plugins defaultPlugins();
+
 class Error: public std::runtime_error
 {
     public:

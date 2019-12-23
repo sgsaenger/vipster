@@ -1,3 +1,6 @@
+#ifndef PYVIPSTER_H
+#define PYVIPSTER_H
+
 #include "pybind11/pybind11.h"
 #include "pybind11/operators.h"
 #include "pybind11/stl_bind.h"
@@ -46,3 +49,5 @@ py::class_<Array, holder_type> bind_array(py::handle &m, std::string const &name
     });
     return cl;
 }
+
+#endif // PYVIPSTER"H

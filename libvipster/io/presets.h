@@ -30,6 +30,8 @@ private:
     const struct Plugin *fmt;
 };
 
+using Presets = std::map<const Plugin*, std::map<std::string, Preset>>;
+
 void to_json(nlohmann::json& j, const Preset& p);
 void from_json(const nlohmann::json& j, Preset& p);
 

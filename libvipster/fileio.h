@@ -12,16 +12,6 @@
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
-    // convenience containers and defaults
-    namespace IO{
-        using Plugins = std::vector<const Plugin*>;
-        Plugins defaultPlugins();
-        using Presets = std::map<const Plugin*, std::map<std::string, Preset>>;
-        Presets defaultPresets(const Plugins& p);
-        using Parameters = std::map<const Plugin*, std::map<std::string, Parameter>>;
-        Parameters defaultParams(const Plugins& p);
-    }
-
     // read with format guess
     IO::Data readFile(const std::string &fn,
                       const IO::Plugins &p=IO::defaultPlugins());
@@ -31,8 +21,8 @@ namespace Vipster{
                        std::optional<size_t> idx={},
                        const std::optional<IO::Parameter>& p=std::nullopt,
                        const std::optional<IO::Preset>& c=std::nullopt);
-    std::optional<const IO::Plugin*> guessFmt(std::string fn,
-                                   const IO::Plugins &p=IO::defaultPlugins());
+    const IO::Plugin* guessFmt(std::string fn,
+                               const IO::Plugins &p=IO::defaultPlugins());
 }
 
 #endif // IOWRAPPER

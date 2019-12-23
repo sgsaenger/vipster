@@ -75,8 +75,14 @@ ConfigState Vipster::readConfig()
     pte = Vipster::pte;
     settings = Vipster::settings;
     plugins = IO::defaultPlugins();
-    params = IO::defaultParams(plugins);
-    presets = IO::defaultPresets(plugins);
+    for(const auto& plug: plugins){
+        if(plug->makeParam){
+            params[plug]["default"] = plug->makeParam();
+        }
+        if(plug->makePreset){
+            presets[plug]["default"] = plug->makePreset();
+        }
+    }
     // make sure config dir is available
     auto dir = getConfigDir();
     if(!fs::exists(dir)){

@@ -1,58 +1,9 @@
 #include <iostream>
 #include "fileio.h"
-#include "io/plugins/xyz.h"
-#include "io/plugins/pwinput.h"
-#include "io/plugins/pwoutput.h"
-#include "io/plugins/lmpinput.h"
-#include "io/plugins/lmptrajec.h"
-#include "io/plugins/cpmdinput.h"
-#include "io/plugins/cube.h"
-#include "io/plugins/xsf.h"
-#include "io/plugins/orca.h"
-#include "io/plugins/poscar.h"
 
 using namespace Vipster;
 
-IO::Plugins IO::defaultPlugins()
-{
-    return {
-            &IO::XYZ,
-            &IO::PWInput,
-            &IO::PWOutput,
-            &IO::LmpInput,
-            &IO::LmpTrajec,
-            &IO::CPInput,
-            &IO::Cube,
-            &IO::XSF,
-            &IO::OrcaInput,
-            &IO::Poscar
-    };
-}
-
-IO::Parameters Vipster::IO::defaultParams(const Plugins &p)
-{
-    IO::Parameters tmp;
-    for(const auto& plug: p){
-        if(plug->makeParam){
-            tmp[plug]["default"] = plug->makeParam();
-        }
-    }
-    return tmp;
-}
-
-IO::Presets Vipster::IO::defaultPresets(const Plugins &p)
-{
-    IO::Presets tmp;
-    for(const auto& plug: p){
-        if(plug->makePreset){
-            tmp[plug]["default"] = plug->makePreset();
-        }
-    }
-    return tmp;
-}
-
-std::optional<const IO::Plugin*> Vipster::guessFmt(std::string fn,
-                                                   const IO::Plugins &p)
+const IO::Plugin *Vipster::guessFmt(std::string fn, const IO::Plugins &p)
 {
     auto pos = fn.find_last_of('.');
     if(pos != fn.npos){
@@ -83,7 +34,7 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
                         "\nPlease specify format explicitely", false};
     }
     // read file
-    return readFile(fn, plugin.value());
+    return readFile(fn, plugin);
 }
 
 // read with explicit format
