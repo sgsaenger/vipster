@@ -2,8 +2,9 @@
 #define PARAMWIDGET_H
 
 #include "../basewidget.h"
-#include "../paramwidgets.h"
 #include "fileio.h"
+
+#include <QTreeWidget>
 
 namespace Ui {
 class ParamWidget;
@@ -20,7 +21,6 @@ public:
     void registerParam(const std::string& name,
                        const Vipster::IO::Parameter& data);
     void clearParams();
-    const Vipster::IO::Plugin *curFmt{nullptr};
     Vipster::IO::Parameter *curParam{nullptr};
 
 private slots:
@@ -30,7 +30,14 @@ private slots:
 
 private:
     Ui::ParamWidget *ui;
-    std::map<const Vipster::IO::Plugin*, ParamBase*> formats;
+    // save state for text edit stack
+    std::string curVec{};
+    // save state for treeview
+    std::string curKey{};
+    QTreeWidgetItem *curItem{nullptr};
+    std::map<std::string, std::string>* curNL{nullptr};
+    void setupText(const QVector<QString> &vectors);
+    QTreeWidget* setupTree();
 };
 
 #endif // PARAMWIDGET_H

@@ -22,7 +22,6 @@ public:
     void registerPreset(const std::string& name,
                         const Vipster::IO::Preset& data);
     void clearPresets();
-//    const Vipster::IO::Plugin* curFmt{nullptr};
     Vipster::IO::Preset* curPreset{nullptr};
 
 private slots:

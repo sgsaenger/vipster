@@ -14,7 +14,7 @@ static const std::string sections[]{
 };
 
 static const std::string SectionDoc{
-    "Raw-text section that will be written to input file."
+    "Raw-text section that will be written to input file. "
     "See CPMD documentation for valid contents."
 };
 
@@ -23,11 +23,16 @@ static IO::Parameter makeParam()
     return {&IO::CPInput, {
             {"&INFO", {Section{}, SectionDoc}},
             {"&CPMD", {Section{}, SectionDoc}},
-            {"&SYSTEM", {Section{}, SectionDoc}},
+            {"&SYSTEM", {Section{}, SectionDoc+
+                "\nVipster automatically fills in supported information:\n"
+                "CELL VECTORS, KPOINTS and ANGSTROM/SCALE keywords according to I/O preset."}},
             {"&PIMD", {Section{}, SectionDoc}},
             {"&PATH", {Section{}, SectionDoc}},
             {"&PTDDFT", {Section{}, SectionDoc}},
-            {"&ATOMS", {Section{}, SectionDoc}},
+            {"&ATOMS", {Section{}, SectionDoc+
+                "\nVipster automatically fills in supported information:\n"
+                "Atomic positions, ISOTOPE and pseudo-potential information and "
+                "'FIX ATOMS' or 'FIX COORDINATES' constraints."}},
             {"&DFT", {Section{}, SectionDoc}},
             {"&PROP", {Section{}, SectionDoc}},
             {"&RESP", {Section{}, SectionDoc}},

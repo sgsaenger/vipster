@@ -62,8 +62,7 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
     // load values of new preset
     ui->noPreset->hide();
     ui->valueArea->show();
-    auto& pair = presets.at(static_cast<size_t>(index));
-    curPreset = &pair.second;
+    curPreset = &presets.at(static_cast<size_t>(index)).second;
     for(auto& v: *curPreset){
         auto *row = new QHBoxLayout{};
         layout->addLayout(row);
@@ -77,7 +76,6 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
         {
             auto box = new QCheckBox{};
             widget = box;
-            row->addWidget(box);
             box->setLayoutDirection(Qt::RightToLeft);
             box->setChecked(std::get<bool>(v.second.first));
             connect(box, &QCheckBox::stateChanged, [&v](int state){
@@ -90,7 +88,6 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
             auto box = new QComboBox{};
             widget = box;
             auto &val = std::get<NamedEnum>(v.second.first);
-            row->addWidget(box);
             for(const auto& pair: val){
                 box->addItem(QString::fromStdString(pair.second));
             }
@@ -102,10 +99,10 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
         }
         default:
             widget = new QLabel{"(unsupported setting)"};
-            row->addWidget(widget);
             break;
         }
         // connect widget and setup tooltip
+        row->addWidget(widget);
         label->setBuddy(widget);
         if(!v.second.second.empty()){
             label->setToolTip(v.second.second.c_str());
@@ -116,5 +113,6 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
 
 void PresetWidget::on_helpButton_clicked()
 {
-    QMessageBox::information(this, QString("About IO presets"), Vipster::IO::PresetsAbout);
+    QMessageBox::information(this, QString("About IO presets"),
+                             Vipster::IO::PresetsAbout);
 }
