@@ -132,7 +132,7 @@ const Vipster::PeriodicTable Vipster::pte = {
 
 PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il,
                              const PeriodicTable *r)
-    : std::map<std::string, Element>{il}, root{r}
+    : StaticMap{il}, root{r}
 {}
 
 PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)

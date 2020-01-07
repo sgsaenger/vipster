@@ -2,10 +2,10 @@
 #define PSE_H
 
 #include "global.h"
+#include "staticmap.h"
 #include "nlohmann/json.hpp"
 
 #include <string>
-#include <map>
 
 namespace Vipster{
 
@@ -24,22 +24,10 @@ struct Element{
 void to_json(nlohmann::json& j,const Element& p);
 void from_json(const nlohmann::json& j, Element& p);
 
-class PeriodicTable:private std::map<std::string,Element>
+class PeriodicTable: public StaticMap<std::string, Element>
 {
-    using map_t = std::map<std::string, Element>;
 public:
-    using map_t::begin;
-    using map_t::end;
-    using map_t::at;
     using map_t::emplace;
-    using map_t::find;
-    using map_t::erase;
-    using map_t::iterator;
-    using map_t::const_iterator;
-    using map_t::size;
-    using map_t::key_type;
-    using map_t::mapped_type;
-    using map_t::value_type;
     using map_t::insert_or_assign;
     PeriodicTable(std::initializer_list<PeriodicTable::value_type> il={},
                   const PeriodicTable *r=nullptr);

@@ -6,7 +6,7 @@
 namespace Vipster {
 
 template <typename Key, typename Value>
-class StaticMap: private std::map<Key, Value>
+class StaticMap: protected std::map<Key, Value>
 {
 public:
     using map_t = std::map<Key, Value>;
@@ -23,6 +23,7 @@ public:
     using typename map_t::key_type;
     using typename map_t::mapped_type;
     using typename map_t::value_type;
+    using typename map_t::reference;
     // inherit constructors
     using map_t::map_t;
 };
