@@ -30,13 +30,17 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
             if (gamma) {
                 continue;
             }
-            auto& kpts = m.getKPoints();
-            kpts.active = KPoints::Fmt::Discrete;
             size_t nk = static_cast<size_t>(std::stoi(line.substr(line.find('=')+1)));
             // skip header
-            while(line.find("k(") == std::string::npos){
-                std::getline(file, line);
+            std::getline(file, line);
+            // if nk >= 100 and verbosity is not high, k-points are not printed
+            std::getline(file, line);
+            if(line.find("'high'") != std::string::npos){
+                continue;
             }
+            // found discrete k-points, parse them
+            auto& kpts = m.getKPoints();
+            kpts.active = KPoints::Fmt::Discrete;
             kpts.discrete.kpoints.resize(nk);
             for (auto& k: kpts.discrete.kpoints) {
                 std::stringstream ss{line};
