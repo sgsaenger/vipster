@@ -69,12 +69,22 @@ void SaveFmtDialog::enablePresetWidget(bool on)
     }
 }
 
-const IO::Preset& SaveFmtDialog::getPreset()
+std::optional<IO::Preset> SaveFmtDialog::getPreset()
 {
-    return *ui->presetWidget->curPreset;
+    const auto& p = ui->presetWidget->curPreset;
+    if(p){
+        return *p;
+    }else{
+        return std::nullopt;
+    }
 }
 
-const IO::Parameter &SaveFmtDialog::getParam()
+std::optional<IO::Parameter> SaveFmtDialog::getParam()
 {
-    return *ui->paramWidget->curParam;
+    const auto& p = ui->paramWidget->curParam;
+    if(p){
+        return *p;
+    }else{
+        return std::nullopt;
+    }
 }
