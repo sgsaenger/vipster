@@ -45,7 +45,7 @@ jobs:
           if: steps.cache-qt.outputs.cache-hit != 'true'
           shell: bash
           run: |
-              pip install setuptools aqtinstall
+              pip install -I setuptools aqtinstall==0.6.0
               if [ "$RUNNER_OS" == "Linux" ]; then
                   aqt install -O Qt 5.13.2 linux desktop gcc_64
               elif [ "$RUNNER_OS" == "macOS" ]; then
