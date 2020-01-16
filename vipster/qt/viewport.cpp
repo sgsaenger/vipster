@@ -209,9 +209,13 @@ void ViewPort::setBondMode(bool b)
         if(ui->mouseMode->currentIndex() == 3){
             ui->mouseMode->setCurrentIndex(0);
         }
-        ui->mouseMode->removeItem(3);
+        if(ui->mouseMode->count() == 4){
+            ui->mouseMode->removeItem(3);
+        }
     }else{
-        ui->mouseMode->addItem("Modify Bonds");
+        if(ui->mouseMode->count() != 4){
+            ui->mouseMode->addItem("Modify Bonds");
+        }
     }
 }
 
