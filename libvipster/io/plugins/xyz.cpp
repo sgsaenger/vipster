@@ -147,24 +147,28 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
                      << std::right << std::setw(10) << at.properties->forces[2] << '\n';
             }
             break;
+        default:
+            throw IO::Error{"XYZ: invalid atomdata setting"};
         }
     };
     switch(std::get<NamedEnum>(cc.at("filemode").first)){
     case 0: // Step
         stepWriter(s);
         break;
-    case 1: // with Cell
+    case 1: // Trajec
+        for(const auto& step: m.getSteps()){
+            stepWriter(step.asFmt(AtomFmt::Angstrom));
+        }
+        break;
+    case 2: // with Cell
         stepWriter(s);
         file << '\n';
         for(const auto& vec: s.getCellVec()*s.getCellDim(CdmFmt::Angstrom)){
             file << vec[0] << ' ' << vec[1] << ' ' << vec[2] << '\n';
         }
         break;
-    case 2: // Trajec
-        for(const auto& step: m.getSteps()){
-            stepWriter(step.asFmt(AtomFmt::Angstrom));
-        }
-        break;
+    default:
+        throw IO::Error{"XYZ: invalid filemode setting"};
     }
     return true;
 }

@@ -83,8 +83,12 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
             throw IO::Error{"Mismatching number of atom types in POSCAR file"};
         }
     }else{
-        types.resize(n_per_type.size());
-        std::iota(types.begin(), types.end(), 1);
+        types.reserve(n_per_type.size());
+        std::vector<int> tmp(n_per_type.size());
+        std::iota(tmp.begin(), tmp.end(), 1);
+        for(const auto& i: tmp){
+            types.push_back(std::to_string(i));
+        }
     }
     // optional: selective-keyword
     // mandatory: selecting between cartesian or 'direct' aka crystal coordinates
