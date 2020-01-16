@@ -62,9 +62,10 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     if(!std::isdigit(tmp[0])){
         // atom types
         types.push_back(tmp);
-        while(!ss.eof()){
-            ss >> tmp;
+        ss >> tmp;
+        while(!ss.fail()){
             types.push_back(tmp);
+            ss >> tmp;
         }
         readline();
         ss >> tmp;
