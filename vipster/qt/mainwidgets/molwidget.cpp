@@ -321,6 +321,8 @@ void MolWidget::setSelection()
 
 void MolWidget::fillKPoints()
 {
+    QSignalBlocker blockCrystal(ui->crystal);
+    QSignalBlocker blockBands(ui->bands);
     const auto& kpoints = curMol->getKPoints();
     for(int i=0; i<3; ++i){
         if(i == static_cast<int>(kpoints.active)){
