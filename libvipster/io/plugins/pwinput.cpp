@@ -124,27 +124,19 @@ void parseCoordinates(std::string name, std::istream& file,
     sys.erase(dataentry);
     Step &s = m.getStep(0);
 
-    size_t pos = name.find_first_of(' ');
-    pos = name.find_first_not_of(' ', pos);
-    size_t pos2 = name.find_last_not_of(' ');
-    if (pos2 != (pos-1)) {
-        auto fmt = std::string{name, pos, pos2};
-        if(fmt.find("ALAT") != fmt.npos) {
-            s.setFmt(AtomFmt::Alat);
-        }else if(fmt.find("BOHR") != fmt.npos) {
-            s.setFmt(AtomFmt::Bohr);
-        }else if(fmt.find("ANGSTROM") != fmt.npos) {
-            s.setFmt(AtomFmt::Angstrom);
-        }else if(fmt.find("CRYSTAL") != fmt.npos) {
-            s.setFmt(AtomFmt::Crystal);
-        }else if(fmt.find("CRYSTAL_SG") != fmt.npos) {
-            //TODO
-            throw IO::Error("CRYSTAL_SG format not yet implemented");
+    if(name.find("ALAT") != name.npos) {
+        s.setFmt(AtomFmt::Alat);
+    }else if(name.find("BOHR") != name.npos) {
+        s.setFmt(AtomFmt::Bohr);
+    }else if(name.find("ANGSTROM") != name.npos) {
+        s.setFmt(AtomFmt::Angstrom);
+    }else if(name.find("CRYSTAL") != name.npos) {
+        s.setFmt(AtomFmt::Crystal);
+    }else if(name.find("CRYSTAL_SG") != name.npos) {
+        //TODO
+        throw IO::Error("CRYSTAL_SG format not yet implemented");
 //            s.setFmt(AtomFmt::Crystal);
-        }else{
-            throw IO::Error("Unknown atom format: "+fmt);
-        }
-    } else {
+    }else{
         s.setFmt(AtomFmt::Alat);
     }
 
