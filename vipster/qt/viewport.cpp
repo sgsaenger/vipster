@@ -138,11 +138,11 @@ void ViewPort::setStep(int i, bool setMol)
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
     // if no previous selection exists, create one, afterwards assign it
-    auto& tmpSel = stepdata[curStep].sel;
-    if(!tmpSel && curStep){
-        tmpSel = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
+    auto& selRef = stepdata[curStep].sel;
+    if(!selRef && curStep){
+        selRef = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
     }
-    curSel = tmpSel.get();
+    curSel = selRef.get();
     //Handle control-elements
     if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
         playTimer.stop();

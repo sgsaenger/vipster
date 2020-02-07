@@ -260,8 +260,11 @@ void MainWindow::editAtoms(QAction* sender)
         curStep->delAtoms(*curSel);
         change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionPaste_Atom_s){
+        auto oldNat = curStep->getNat();
         curStep->newAtoms(copyBuf);
-        change = GUI::Change::atoms;
+        curVP->stepdata[curStep].sel->setFilter(
+            "index "+std::to_string(oldNat)+'-'+std::to_string(curStep->getNat()-1));
+        change = GUI::Change::atoms | GUI::Change::selection;
     }
     if(change){
         updateWidgets(change);

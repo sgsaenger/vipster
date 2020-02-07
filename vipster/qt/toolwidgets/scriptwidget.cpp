@@ -61,7 +61,7 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Select:
-            *data.sel = s.select(op.s1);
+            data.sel->setFilter(op.s1);
             change |= GUI::Change::selection;
             break;
         case ScriptOp::Mode::Define:
