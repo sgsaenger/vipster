@@ -28,39 +28,14 @@ void Vipster::guiMatRot(GUI::Mat_16f &m, float a, float x, float y, float z)
     float tmp = a * static_cast<float>(deg2rad);
     float s = std::sin(tmp);
     float c = std::cos(tmp);
-    if(float_comp(x,0.f)){
-        if(float_comp(y,0.f)){
-            if(!float_comp(z,0.f)){
-                // z-axis
-                if (z<0){
-                    s = -s;
-                }
-                m[0] = c * (tmp = m[0]) - s * m[4];
-                m[4] = s * tmp + c * m[4];
-                m[1] = c * (tmp = m[1]) - s * m[5];
-                m[5] = s * tmp + c * m[5];
-                m[2] = c * (tmp = m[2]) - s * m[6];
-                m[6] = s * tmp + c * m[6];
-                m[3] = c * (tmp = m[3]) - s * m[7];
-                m[7] = s * tmp + c * m[7];
-            }else{
-                throw Error("guiMatRot: rotation axis-vector is zero");
-            }
-        }else if(float_comp(z,0.f)){
-            // y-axis
-            if (y<0) {
-                s = -s;
-            }
-            m[0] = c * (tmp = m[0]) + s * m[8];
-            m[8] = -s * tmp + c * m[8];
-            m[1] = c * (tmp = m[1]) + s * m[9];
-            m[9] = -s * tmp + c * m[9];
-            m[2] = c * (tmp = m[2]) + s * m[10];
-            m[10] = -s * tmp + c * m[10];
-            m[3] = c * (tmp = m[3]) + s * m[11];
-            m[11] = -s * tmp + c * m[11];
-        }
-    }else if(float_comp(y,0.f) && float_comp(z,0.f)){
+    int direction{0};
+    direction |= float_comp(x, 0.f) ? 1 : 0;
+    direction |= float_comp(y, 0.f) ? 2 : 0;
+    direction |= float_comp(z, 0.f) ? 4 : 0;
+    switch(direction){
+    case 0:
+        throw Error("guiMatRot: rotation axis-vector is zero");
+    case 1:
         // x-axis
         if (x<0) {
             s = -s;
@@ -73,7 +48,36 @@ void Vipster::guiMatRot(GUI::Mat_16f &m, float a, float x, float y, float z)
         m[10] = s * tmp + c * m[10];
         m[7] = c * (tmp = m[7]) - s * m[11];
         m[11] = s * tmp + c * m[11];
-    }else{
+        break;
+    case 2:
+        // y-axis
+        if (y<0) {
+            s = -s;
+        }
+        m[0] = c * (tmp = m[0]) + s * m[8];
+        m[8] = -s * tmp + c * m[8];
+        m[1] = c * (tmp = m[1]) + s * m[9];
+        m[9] = -s * tmp + c * m[9];
+        m[2] = c * (tmp = m[2]) + s * m[10];
+        m[10] = -s * tmp + c * m[10];
+        m[3] = c * (tmp = m[3]) + s * m[11];
+        m[11] = -s * tmp + c * m[11];
+        break;
+    case 4:
+        // z-axis
+        if (z<0){
+            s = -s;
+        }
+        m[0] = c * (tmp = m[0]) - s * m[4];
+        m[4] = s * tmp + c * m[4];
+        m[1] = c * (tmp = m[1]) - s * m[5];
+        m[5] = s * tmp + c * m[5];
+        m[2] = c * (tmp = m[2]) - s * m[6];
+        m[6] = s * tmp + c * m[6];
+        m[3] = c * (tmp = m[3]) - s * m[7];
+        m[7] = s * tmp + c * m[7];
+        break;
+    default:
         // general rotation
         Vec axis{{x,y,z}};
         axis /= Vec_length(axis);
@@ -89,6 +93,7 @@ void Vipster::guiMatRot(GUI::Mat_16f &m, float a, float x, float y, float z)
                              mc[0]*ax[2]-s*ax[1], mc[1]*ax[2]+s*ax[0], c+mc[2]*ax[2], 0,
                              0,0,0,1}};
         m = rotate * m;
+        break;
     }
 }
 

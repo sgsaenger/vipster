@@ -63,8 +63,23 @@ private:
     // gpu-side global data
     GLuint view_ubo;
     // cpu-side global data
-    GUI::Mat_16f vMat, oMat, pMat, rMat;
-    bool vMatChanged, pMatChanged, rMatChanged;
+    /* rotation matrix
+     * converts from model space to world space
+     * rotation only as shifting is done by the data itself
+     */
+    GUI::Mat_16f rMat;
+    bool rMatChanged;
+    /* view matrix
+     * converts world space to view space
+     */
+    GUI::Mat_16f vMat;
+    bool vMatChanged;
+    /* projection matrices
+     * converts view space to clip space
+     * precomputed for orthogonal and perspective projection
+     */
+    GUI::Mat_16f oMat, pMat;
+    bool pMatChanged;
     // state
     bool drawPerspective{false};
 };

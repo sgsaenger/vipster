@@ -4,7 +4,9 @@ layout(location = 2) in float vert_scale;
 layout(location = 4) in uint hide;
 
 layout(std140, row_major) uniform viewMat{
-    mat4 vpMatrix;
+    mat4 rvpMatrix;
+    mat4 pMatrix;
+    mat4 vMatrix;
     mat4 rMatrix;
 };
 uniform mat3 pos_scale;
@@ -19,7 +21,7 @@ void main(void)
 {
     frag_discard = hide;
     if(hide==uint(0)){
-        gl_Position = vpMatrix * vec4(vertex * vert_scale * scale_fac +
+        gl_Position = rvpMatrix * vec4(vertex * vert_scale * scale_fac +
                                       position * pos_scale +
                                       offset, 1);
         float red=float(gl_InstanceID&0xFFFF)/65535.f;

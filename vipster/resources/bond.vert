@@ -6,7 +6,9 @@ layout(location = 6) in vec4 color1;
 layout(location = 7) in vec4 color2;
 
 layout(std140, row_major) uniform viewMat{
-    mat4 vpMatrix;
+    mat4 rvpMatrix;
+    mat4 pMatrix;
+    mat4 vMatrix;
     mat4 rMatrix;
 };
 uniform mat3 pos_scale;
@@ -32,7 +34,7 @@ void main(void)
     }
     if(render!=uint(0)){
         //standard vertex positioning:
-        gl_Position = vpMatrix * vec4(mMatrix * vertex + position * pos_scale + offset, 1);
+        gl_Position = rvpMatrix * vec4(mMatrix * vertex + position * pos_scale + offset, 1);
         //pass coordinate and colors to fragment shader
         vertex_side = vertex.x;
         s1Cpass = color1;

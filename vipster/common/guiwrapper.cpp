@@ -21,7 +21,7 @@ void GuiWrapper::initGL(const std::string& header, const std::string& folder)
     // init ViewUBO
     glGenBuffers(1, &view_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(GUI::Mat_16f), nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 4*sizeof(GUI::Mat_16f), nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, view_ubo);
 
     // init view matrices
@@ -46,6 +46,8 @@ void GuiWrapper::drawPre(void *context)
         glDisable(GL_MULTISAMPLE);
     }
 #endif
+    glEnable(GL_POINT_SPRITE);
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -185,28 +187,35 @@ void GuiWrapper::updateViewUBOVR(const float* proj, const float* view)
 
 void GuiWrapper::updateViewUBO(void)
 {
-    if(rMatChanged){
-        glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-        if(settings.perspective.val){
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
-                            (pMat*vMat*rMat).data());
-        }else{
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
-                            (oMat*vMat*rMat).data());
-        }
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat_16f), sizeof(GUI::Mat_16f), rMat.data());
-        rMatChanged = vMatChanged = pMatChanged = false;
-    }else if (pMatChanged || vMatChanged){
-        glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
-        if(settings.perspective.val){
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
-                            (pMat*vMat*rMat).data());
-        }else{
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GUI::Mat_16f),
-                            (oMat*vMat*rMat).data());
-        }
-        vMatChanged = pMatChanged = false;
+    if(!(rMatChanged || pMatChanged || vMatChanged)){
+        return;
     }
+    glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);
+    if(settings.perspective.val){
+        glBufferSubData(GL_UNIFORM_BUFFER, 0,
+                        sizeof(GUI::Mat_16f), (pMat*vMat*rMat).data());
+    }else{
+        glBufferSubData(GL_UNIFORM_BUFFER, 0,
+                        sizeof(GUI::Mat_16f), (oMat*vMat*rMat).data());
+    }
+    if(pMatChanged){
+        if(settings.perspective.val){
+            glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat_16f),
+                            sizeof(GUI::Mat_16f), pMat.data());
+        }else{
+            glBufferSubData(GL_UNIFORM_BUFFER, sizeof(GUI::Mat_16f),
+                            sizeof(GUI::Mat_16f), oMat.data());
+        }
+    }
+    if(vMatChanged){
+        glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(GUI::Mat_16f),
+                        sizeof(GUI::Mat_16f), vMat.data());
+    }
+    if(rMatChanged){
+        glBufferSubData(GL_UNIFORM_BUFFER, 3*sizeof(GUI::Mat_16f),
+                        sizeof(GUI::Mat_16f), rMat.data());
+    }
+    rMatChanged = vMatChanged = pMatChanged = false;
 }
 
 void GuiWrapper::resizeViewMat(long w, long h)

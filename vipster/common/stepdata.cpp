@@ -99,7 +99,6 @@ void GUI::StepData::initAtom(GLuint vao)
 {
     if(!atom_shader.initialized){
         atom_shader.program = loadShader("/atom.vert", "/atom.frag");
-        READATTRIB(atom_shader, vertex)
         READATTRIB(atom_shader, position)
         READATTRIB(atom_shader, vert_scale)
         READATTRIB(atom_shader, color)
@@ -107,15 +106,11 @@ void GUI::StepData::initAtom(GLuint vao)
         READUNIFORM(atom_shader, offset)
         READUNIFORM(atom_shader, pos_scale)
         READUNIFORM(atom_shader, scale_fac)
+        READUNIFORM(atom_shader, viewport)
         atom_shader.initialized = true;
     }
 
     glBindVertexArray(vao);
-
-    // sphere vertices
-    glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
-    glVertexAttribPointer(atom_shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(atom_shader.vertex);
 
     glBindBuffer(GL_ARRAY_BUFFER, atom_vbo);
     // atom positions
@@ -123,7 +118,6 @@ void GUI::StepData::initAtom(GLuint vao)
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp),
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, pos)));
-    glVertexAttribDivisor(atom_shader.position, 1);
     glEnableVertexAttribArray(atom_shader.position);
 
     // atom properties
@@ -131,19 +125,16 @@ void GUI::StepData::initAtom(GLuint vao)
                           GL_FLOAT, GL_FALSE,
                           sizeof(AtomProp),
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, rad)));
-    glVertexAttribDivisor(atom_shader.vert_scale, 1);
     glEnableVertexAttribArray(atom_shader.vert_scale);
     glVertexAttribPointer(atom_shader.color, 4,
                           GL_UNSIGNED_BYTE, GL_TRUE,
                           sizeof(AtomProp),
                           reinterpret_cast<const GLvoid*>(offsetof(AtomProp, col)));
-    glVertexAttribDivisor(atom_shader.color, 1);
     glEnableVertexAttribArray(atom_shader.color);
     glVertexAttribIPointer(atom_shader.hide, 1,
                            GL_UNSIGNED_BYTE,
                            sizeof(AtomProp),
                            reinterpret_cast<const GLvoid*>(offsetof(AtomProp, hide)));
-    glVertexAttribDivisor(atom_shader.hide, 1);
     glEnableVertexAttribArray(atom_shader.hide);
 }
 
@@ -245,11 +236,14 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
 {
     Vec tmp;
     const auto& vao = vaos[context];
+    GLfloat viewport[4];
+    glGetFloatv(GL_VIEWPORT, viewport);
     // atoms
     glBindVertexArray(vao[0]);
     glUseProgram(atom_shader.program);
     glUniform1f(atom_shader.scale_fac, atRadFac);
     glUniformMatrix3fv(atom_shader.pos_scale, 1, 0, cell_mat.data());
+    glUniform4fv(atom_shader.viewport, 1, viewport);
     for(int x=0;x<mult[0];++x){
         for(int y=0;y<mult[1];++y){
             for(int z=0;z<mult[2];++z){
@@ -258,9 +252,7 @@ void GUI::StepData::draw(const Vec &off, const PBCVec &mult,
                             static_cast<float>(tmp[0]),
                             static_cast<float>(tmp[1]),
                             static_cast<float>(tmp[2]));
-                glDrawArraysInstanced(GL_TRIANGLES, 0,
-                                      atom_model_npoly,
-                                      static_cast<GLsizei>(atom_buffer.size()));
+                glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(atom_buffer.size()));
             }
         }
     }

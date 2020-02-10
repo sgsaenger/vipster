@@ -39,8 +39,8 @@ struct StepData: public Data{
     // Shader:
     static struct{
         GLuint program;
-        GLuint vertex, position, vert_scale, color, hide;
-        GLint offset, pos_scale, scale_fac;
+        GLuint position, vert_scale, color, hide;
+        GLint offset, pos_scale, scale_fac, viewport;
         bool initialized{false};
     } atom_shader;
     static struct{

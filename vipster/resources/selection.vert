@@ -4,7 +4,9 @@ layout(location = 2) in float vert_scale;
 layout(location = 3) in ivec3 pbc_crit;
 
 layout(std140, row_major) uniform viewMat{
-    mat4 vpMatrix;
+    mat4 rvpMatrix;
+    mat4 pMatrix;
+    mat4 vMatrix;
     mat4 rMatrix;
 };
 uniform mat3 pos_scale;
@@ -23,7 +25,7 @@ void main(void)
 {
     render = uint((pbc_crit.x < mult.x) && (pbc_crit.y < mult.y) && (pbc_crit.z < mult.z));
     if(render != 0u){
-        gl_Position = vpMatrix * vec4(vertex * vert_scale * scale_fac +
+        gl_Position = rvpMatrix * vec4(vertex * vert_scale * scale_fac +
                                       position * pos_scale +
                                       offset, 1);
         vec3 vertex_cameraspace = (rMatrix * vec4(vertex, 1)).xyz;
