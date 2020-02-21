@@ -206,7 +206,7 @@ bool OrcaWriter(const Molecule& m, std::ostream &file,
                 size_t index)
 {
     if(!p || p->getFmt() != &IO::OrcaInput){
-        throw IO::Error("OrcaWriter needs ORCA parameter set");
+        throw IO::Error("ORCA: writer needs ORCA parameter set");
     }
 
     auto af = AtomFmt::Angstrom; // TODO: deduce from parameter set

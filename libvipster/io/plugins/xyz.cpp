@@ -110,7 +110,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
                size_t index)
 {
     if(!c || c->getFmt() != &IO::XYZ){
-        throw IO::Error("XYZ-Writer needs suitable IO preset");
+        throw IO::Error("XYZ: writer needs suitable IO preset");
     }
     auto cc = *c;
     const Step& s = m.getStep(index).asFmt(AtomFmt::Angstrom);

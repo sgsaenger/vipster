@@ -151,7 +151,7 @@ static Mat makeCell(int ibrav, double b, double c,
     default:
         break;
     }
-    throw IO::Error("Invalid ibrav");
+    throw IO::Error("CPMD Input: Invalid ibrav");
 }
 
 IO::Data CPInpParser(const std::string& name, std::istream &file){
@@ -191,12 +191,12 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                     curName = line;
                     curSection = &std::get<Section>(pos->second.first);
                 }else{
-                    throw IO::Error("Unknown CPMD-Input section: "+line);
+                    throw IO::Error("CPMD Input: Unknown section: "+line);
                 }
             }
         }else{
             if(!curSection){
-                throw IO::Error("Data outside of section");
+                throw IO::Error("CPMD Input: Data outside of section");
             }
             bool parsed{false};
             if(curName == "&SYSTEM"){
@@ -348,7 +348,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                         at->name = name;
                         linestream >> at->coord[0] >> at->coord[1] >> at->coord[2];
                         if (linestream.fail()) {
-                            throw IO::Error{"Failed to parse atom"};
+                            throw IO::Error{"CPMD Input: Failed to parse atom"};
                         }
                     }
                 }else if(line.find("CONSTRAINTS") != line.npos){
@@ -483,10 +483,10 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                  size_t index)
 {
     if(!p || p->getFmt() != &IO::CPInput){
-        throw IO::Error("CPMD-Input-Writer needs CPMD parameter set");
+        throw IO::Error("CPMD Input: writer needs CPMD parameter set");
     }
     if(!c || c->getFmt() != &IO::CPInput){
-        throw IO::Error("CPMD-Input-Writer needs suitable IO preset");
+        throw IO::Error("CPMD Input: writer needs suitable IO preset");
     }
     const auto &atfmt = std::get<NamedEnum>(c->at("fmt").first);
     const auto& s = (atfmt.name() == "Active") ?
@@ -629,7 +629,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                 if(disc.properties & KPoints::Discrete::band){
                     file << " BANDS\n";
                     if(disc.kpoints.size()%2){
-                        throw IO::Error("For BANDS, number of K-Points needs to be even");
+                        throw IO::Error("CPMD Input: for BANDS, number of K-Points needs to be even");
                     }
                     for(auto it=disc.kpoints.begin(); it<disc.kpoints.end(); it+=2){
                         const auto& k1 = *it;

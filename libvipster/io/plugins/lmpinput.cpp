@@ -400,7 +400,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                 auto f1 = indices.find(at1);
                 auto f2 = indices.find(at2);
                 if ((f1 == indices.end()) || (f2 == indices.end())) {
-                    throw IO::Error{"Invalid atom IDs in bond: "+line};
+                    throw IO::Error{"Lammps Input: invalid atom IDs in bond: "+line};
                 }
                 at1 = f1->second;
                 at2 = f2->second;
@@ -453,7 +453,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     const auto step = m.getStep(index).asFmt(AtomFmt::Angstrom);
     // parse iopreset
     if(!c || c->getFmt() != &IO::LmpInput){
-        throw IO::Error("Lammps-Writer needs suitable IO preset");
+        throw IO::Error("Lammps Input: writer needs suitable IO preset");
     }
     auto bonds = std::get<bool>(c->at("bonds").first);
     auto angles = std::get<bool>(c->at("angles").first);
@@ -670,7 +670,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
 
     auto vec = step.getCellVec() * step.getCellDim(CdmFmt::Angstrom);
     if(!float_comp(vec[0][1], 0.) || !float_comp(vec[0][2], 0.) || !float_comp(vec[1][2], 0.)){
-        throw IO::Error("Cell vectors must form diagonal or lower triangular matrix for Lammps");
+        throw IO::Error("Lammps Input: cell vectors must form diagonal or lower triangular matrix");
     }
     file << "\n0.0 "
          << vec[0][0] << " xlo xhi\n0.0 "

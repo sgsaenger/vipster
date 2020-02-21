@@ -28,7 +28,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     double alat;
     auto readline = [&](){
         if(!std::getline(file, line)){
-            throw IO::Error{"POSCAR file is missing necessary lines."};
+            throw IO::Error{"POSCAR: file is missing necessary lines."};
         }
         ss = std::stringstream{line};
     };
@@ -48,7 +48,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
         readline();
         ss >> cell[i][0] >> cell[i][1] >> cell[i][2];
         if(ss.fail()){
-            throw IO::Error{"Invalid cell vectors in POSCAR file"};
+            throw IO::Error{"POSCAR: invalid cell vectors"};
         }
     }
     s.setCellDim(1, CdmFmt::Angstrom);
@@ -57,7 +57,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     readline();
     ss >> tmp;
     if(ss.fail()){
-        throw IO::Error{"POSCAR file is missing type information"};
+        throw IO::Error{"POSCAR: file is missing type information"};
     }
     if(!std::isdigit(tmp[0])){
         // atom types
@@ -80,7 +80,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
     // make sure number of types add up
     if(!types.empty()){
         if(types.size() != n_per_type.size()){
-            throw IO::Error{"Mismatching number of atom types in POSCAR file"};
+            throw IO::Error{"POSCAR: mismatching number of atom types"};
         }
     }else{
         types.reserve(n_per_type.size());
@@ -134,7 +134,7 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
                   size_t index)
 {
     if(!c || c->getFmt() != &IO::Poscar){
-        throw IO::Error("Poscar-Writer needs suitable IO preset");
+        throw IO::Error("POSCAR: writer needs suitable IO preset");
     }
     auto cartesian = std::get<bool>(c->at("cartesian").first);
     auto selective = std::get<bool>(c->at("selective").first);

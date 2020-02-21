@@ -59,7 +59,7 @@ struct CellInp{
 void parseNamelist(std::string name, std::istream& file, IO::Parameter& p)
 {
     auto pos = p.find(name);
-    if (pos == p.end()) throw IO::Error{"Unknown namelist"};
+    if (pos == p.end()) throw IO::Error{"PWScf Input: unknown namelist"};
     auto &nl = std::get<NameList>(pos->second.first);
 
     std::string line, key;
@@ -85,14 +85,14 @@ void parseNamelist(std::string name, std::istream& file, IO::Parameter& p)
             nl[key] = std::string{line, beg, end-beg};
         }
     }
-    throw IO::Error("Error in Namelist-parsing");
+    throw IO::Error("PWScf Input: error in namelist parsing");
 }
 
 void parseSpecies(std::istream& file, Molecule& m, IO::Parameter& p)
 {
     auto& sys = std::get<NameList>(p.at("&SYSTEM").first);
     auto dataentry = sys.find("ntyp");
-    if (dataentry == sys.end()) throw IO::Error("ntyp not specified");
+    if (dataentry == sys.end()) throw IO::Error("PWScf Input: ntyp not specified");
     int ntyp = std::stoi(dataentry->second);
     sys.erase(dataentry);
 
@@ -107,7 +107,7 @@ void parseSpecies(std::istream& file, Molecule& m, IO::Parameter& p)
         std::string name, mass, pwpp;
         std::stringstream linestream{line};
         linestream >> name >> mass >> pwpp;
-        if(linestream.fail()) throw IO::Error("Failed to parse species");
+        if(linestream.fail()) throw IO::Error("PWScf Input: Failed to parse species");
         Element &type = (*m.pte)[name];
         type.m = std::stod(mass);
         type.PWPP = pwpp;
@@ -119,7 +119,7 @@ void parseCoordinates(std::string name, std::istream& file,
 {
     auto &sys = std::get<NameList>(p.at("&SYSTEM").first);
     auto dataentry = sys.find("nat");
-    if (dataentry == sys.end()) throw IO::Error("nat not specified");
+    if (dataentry == sys.end()) throw IO::Error("PWScf Input: nat not specified");
     size_t nat = std::stoul(dataentry->second);
     sys.erase(dataentry);
     Step &s = m.getStep(0);
@@ -134,7 +134,7 @@ void parseCoordinates(std::string name, std::istream& file,
         s.setFmt(AtomFmt::Crystal);
     }else if(name.find("CRYSTAL_SG") != name.npos) {
         //TODO
-        throw IO::Error("CRYSTAL_SG format not yet implemented");
+        throw IO::Error("PWScf Input: CRYSTAL_SG format not yet implemented");
 //            s.setFmt(AtomFmt::Crystal);
     }else{
         s.setFmt(AtomFmt::Alat);
@@ -156,11 +156,11 @@ void parseCoordinates(std::string name, std::istream& file,
             linestream >> coord_expr;
             at.coord[i] = te_interp(coord_expr.c_str(), &err_pos);
             if(err_pos){
-                throw IO::Error("Error parsing atom: "+coord_expr);
+                throw IO::Error("PWScf Input: error parsing atom: "+coord_expr);
             }
         }
         if (linestream.fail()) {
-            throw IO::Error{"Failed to parse atom"};
+            throw IO::Error{"PWScf Input: failed to parse atom"};
         }
         bool x{true},y{true},z{true};
         linestream >> x >> y >> z;
@@ -186,7 +186,7 @@ void parseKPoints(std::string name, std::istream& file, Molecule& m)
         KPoints::MPG &mpg = m.getKPoints().mpg;
         std::stringstream linestream{line};
         linestream >> mpg.x >> mpg.y >> mpg.z >> mpg.sx >> mpg.sy >> mpg.sz;
-        if (linestream.fail()) throw IO::Error("Failed to parse automatic K-Points");
+        if (linestream.fail()) throw IO::Error("PWScf Input: failed to parse automatic K-Points");
     } else {
         m.getKPoints().active = KPoints::Fmt::Discrete;
         if(name.find("CRYSTAL") != name.npos) {
@@ -223,7 +223,7 @@ void parseCell(std::string name, std::istream& file, CellInp &cell)
         }
         std::stringstream linestream{line};
         linestream >> cell.cell[i][0] >> cell.cell[i][1] >> cell.cell[i][2];
-        if (linestream.fail()) throw IO::Error("Failed to parse CELL_PARAMETERS");
+        if (linestream.fail()) throw IO::Error("PWScf Input: failed to parse CELL_PARAMETERS");
     }
     if (name.find("BOHR") != name.npos) cell.fmt = CellInp::Bohr;
     else if (name.find("ANGSTROM") != name.npos) cell.fmt = CellInp::Angstrom;
@@ -237,7 +237,7 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
     // make sure that relative coordinates are not changed by "scaling" when setting cdm
     auto ibr = sys.find("ibrav");
     if(ibr == sys.end()){
-        throw IO::Error("ibrav needs to be specified");
+        throw IO::Error("PWScf Input: ibrav needs to be specified");
     }
     sys.erase(ibr);
     auto ibrav = std::stoi(ibr->second);
@@ -264,12 +264,12 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
                     s.setCellDim(1, CdmFmt::Bohr, scale);
                     break;
                 } else {
-                    throw IO::Error("Specify either celldm or A,B,C, but not both!");
+                    throw IO::Error("PWScf Input: specify either celldm or A,B,C, but not both!");
                 }
             }
             break;
         case CellInp::None:
-            throw IO::Error("ibrav=0, but no CELL_PARAMETERS were given");
+            throw IO::Error("PWScf Input: ibrav=0, but no CELL_PARAMETERS were given");
         }
         s.setCellVec(cell.cell, s.getFmt() == AtomFmt::Crystal);
     }else{
@@ -283,7 +283,7 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
             cdmFmt = CdmFmt::Angstrom;
             sys.erase(cellA);
         } else {
-            throw IO::Error("Specify either celldm or A,B,C, but not both!");
+            throw IO::Error("PWScf Input: Specify either celldm or A,B,C, but not both!");
         }
         Vec axes{}, angles{};
         if(cdmFmt == CdmFmt::Bohr){
@@ -325,9 +325,9 @@ void parseCard(std::string name, std::istream& file,
     else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, m, p);
     else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, m);
     else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, cell);
-    else if (name.find("OCCUPATIONS") != name.npos) throw IO::Error("OCCUPATIONS not implemented");
-    else if (name.find("CONSTRAINTS") != name.npos) throw IO::Error("CONSTRAINTS not implemented");
-    else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("ATOMIC_FORCES not implemented");
+    else if (name.find("OCCUPATIONS") != name.npos) throw IO::Error("PWScf Input: OCCUPATIONS not implemented");
+    else if (name.find("CONSTRAINTS") != name.npos) throw IO::Error("PWScf Input: CONSTRAINTS not implemented");
+    else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("PWScf Input: ATOMIC_FORCES not implemented");
 }
 
 IO::Data PWInpParser(const std::string& name, std::istream &file)
@@ -360,10 +360,10 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
                  size_t index)
 {
     if(!p || p->getFmt() != &IO::PWInput){
-        throw IO::Error("PWI-Writer needs PWScf parameter set");
+        throw IO::Error("PWScf Input: writer needs PWScf parameter set");
     }
     if(!c || c->getFmt() != &IO::PWInput){
-        throw IO::Error("PWI-Writer needs suitable IO preset");
+        throw IO::Error("PWScf Input: writer needs suitable IO preset");
     }
     const auto &atfmt = std::get<NamedEnum>(c->at("atoms").first);
     const auto &cellfmt = std::get<NamedEnum>(c->at("atoms").first);

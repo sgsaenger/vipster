@@ -30,8 +30,8 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
     // get format
     auto plugin = guessFmt(fn, p);
     if(!plugin){
-        throw IO::Error{"Could not deduce format of file "+fn+
-                        "\nPlease specify format explicitely", false};
+        throw IO::Error{"Could not deduce format of file \""+fn+
+                        "\"\nPlease specify format explicitely", false};
     }
     // read file
     return readFile(fn, plugin);
@@ -43,7 +43,7 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
     // check if file can be read
     std::ifstream file{fn};
     if(!file){
-        throw IO::Error("Could not open "+fn);
+        throw IO::Error("Could not open \""+fn+'"');
     }
     // try to parse
     if(!plug->parser){

@@ -125,13 +125,23 @@ int main(int argc, char *argv[])
         std::vector<IO::Data> data{};
         if(app.remaining_size()!=0){
             for(const auto& file: app.remaining()){
-                data.push_back(readFile(file));
+                try{
+                    data.push_back(readFile(file));
+                }catch(const Vipster::IO::Error &e){
+                    std::cout << e.what() << std::endl;
+                    throw CLI::RuntimeError{1};
+                }
             }
         }
         // parse files
         for(auto& op_fmt: fmt_opts){
             for(const auto& fn: op_fmt.first->results()){
-                data.push_back(readFile(fn, op_fmt.second));
+                try{
+                    data.push_back(readFile(fn, op_fmt.second));
+                }catch(const Vipster::IO::Error &e){
+                    std::cout << e.what() << std::endl;
+                    throw CLI::RuntimeError{1};
+                }
             }
         }
         // launch GUI

@@ -99,7 +99,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
                 std::getline(ss, dummy_s, '(');
                 ss >> at.coord[0] >> at.coord[1] >> at.coord[2];
                 if (ss.fail()) {
-                    throw IO::Error{"Failed to parse atom"};
+                    throw IO::Error{"PWScf Output: failed to parse atom"};
                 }
             }
             readInitial = true;
