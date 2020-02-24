@@ -7,7 +7,7 @@
 #include <vector>
 #include <map>
 #else
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLExtraFunctions>
 #endif
 
 #include "vec.h"
@@ -24,10 +24,10 @@ namespace GUI {
 #ifdef __EMSCRIPTEN__
 struct GlobalData{
 #else
-struct GlobalData: protected QOpenGLFunctions_3_3_Core{
+struct GlobalData: protected QOpenGLExtraFunctions{
 #endif
     GlobalData();
-    void initGL(const std::string& header, const std::string& folder);
+    void initGL();
     GLuint sphere_vbo, cylinder_vbo;
     GLuint cell_ibo;
     std::string header, folder;
@@ -42,7 +42,7 @@ struct GlobalData: protected QOpenGLFunctions_3_3_Core{
 #ifdef __EMSCRIPTEN__
 class Data
 #else
-class Data: protected QOpenGLFunctions_3_3_Core
+class Data: protected QOpenGLExtraFunctions
 #endif
 {
 public:

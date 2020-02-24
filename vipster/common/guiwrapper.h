@@ -5,7 +5,7 @@
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
 #else
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLExtraFunctions>
 #endif
 #include <vector>
 #include <array>
@@ -21,13 +21,13 @@ namespace Vipster {
 #ifdef __EMSCRIPTEN__
 class GuiWrapper{
 #else
-class GuiWrapper: protected QOpenGLFunctions_3_3_Core{
+class GuiWrapper: protected QOpenGLExtraFunctions{
 public:
     virtual ~GuiWrapper() = default;
 #endif
 public:
     GuiWrapper(GUI::GlobalData &g, const Settings &s);
-    void initGL(const std::string& header, const std::string& folder);
+    void initGL();
     void draw(void *context=nullptr);
     void drawSel(void *context=nullptr);
     void drawVR(const float* leftProj, const float* leftView,

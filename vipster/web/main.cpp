@@ -352,7 +352,7 @@ int main()
 
     // init GL
     emscripten_webgl_make_context_current(context);
-    gui.initGL("# version 300 es\nprecision highp float;\n", "");
+    gui.initGL();
 
     // init examples (something needs to be displayed for the renderer to not fail
     Step* step;

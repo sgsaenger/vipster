@@ -3,6 +3,9 @@
 #include "bond_model.h"
 #include <iostream>
 #include <vector>
+#ifndef __EMSCRIPTEN__
+#include <QOpenGLContext>
+#endif
 
 using namespace Vipster;
 
@@ -34,14 +37,43 @@ std::string readShader(const std::string &filePath)
 GUI::GlobalData::GlobalData()
 {}
 
-void GUI::GlobalData::initGL(const std::string& h, const std::string& f)
+void GUI::GlobalData::initGL()
 {
     if (initialized) return;
-    header = h;
-    folder = f;
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
+    const auto fmt = QOpenGLContext::currentContext()->format();
+    if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
+        if(fmt.version() >= qMakePair(3,3)){
+            header = "# version 330\n";
+        }else{
+            header = "# version 140\n";
+        }
+    }else{
+        if(fmt.version() >= qMakePair(3,0)){
+            header = "# version 300 es\nprecision highp float;\n";
+        }else{
+            header = "# version 100 es\nprecision highp float;\n";
+        }
+    }
+    folder = ":/shaders";
+#else
+    header = "# version 300 es\nprecision highp float;\n";
+    folder = "";
 #endif
+    std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
+    std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
+    auto glVersionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    std::cout << "OpenGL Version: " << glVersionStr << std::endl;
+    std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    // skip ES information
+    bool isES = strstr(glVersionStr, "OpenGL ES");
+    if(isES){
+        glVersionStr = glVersionStr+11;
+    }
+    char *glVersionEnd;
+    int majorVersion = std::strtol(glVersionStr, &glVersionEnd, 10);
+    int minorVersion = std::strtol(glVersionEnd+1, &glVersionEnd, 10);
     // generate buffers and upload data
     glGenBuffers(1, &sphere_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);

@@ -53,7 +53,7 @@ void GLWidget::updateWidget(GUI::change_t change)
 void GLWidget::initializeGL()
 {
     makeCurrent();
-    initGL("# version 330\n", ":/shaders");
+    initGL();
 }
 
 void GLWidget::paintGL()

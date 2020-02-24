@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
+#include <QOpenGLContext>
 
 #ifdef USE_PYTHON
 #pragma push_macro("slots")
@@ -18,12 +19,19 @@
 using namespace Vipster;
 
 // setup and launch GUI
-[[noreturn]] void launchVipster(int argc, char *argv[], std::vector<IO::Data>&& data,
+[[noreturn]] void launchVipster(int argc, char *argv[],
+                                std::vector<IO::Data>&& data,
                                 ConfigState&& state){
     QSurfaceFormat format;
-    format.setVersion(3,3);
+    if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
+        // try to get a 3.3core context on desktop
+        format.setVersion(3,3);
+        format.setProfile(QSurfaceFormat::CoreProfile);
+    }else{
+        // or an es3.0 context on mobile
+        format.setVersion(3,0);
+    }
     format.setSamples(8);
-    format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
