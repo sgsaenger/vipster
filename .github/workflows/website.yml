@@ -16,7 +16,7 @@ jobs:
 
         - uses: mymindstorm/setup-emsdk@v2
           with:
-              version: latest
+              version: latest-fastcomp
 
         - name: Configure
           shell: bash

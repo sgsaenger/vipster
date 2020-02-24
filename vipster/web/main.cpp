@@ -34,16 +34,16 @@ std::string emReadFile(std::string fn, int fmt){
 std::string emWriteFile(int m, int s, int f){
     try{
         const auto& plug = plugins[f];
-        std::unique_ptr<IO::BaseParam> param{nullptr};
-        if(plug->arguments & IO::Plugin::Param){
+        IO::Parameter param{nullptr};
+        if(plug->makeParam){
             param = plug->makeParam();
         }
-        std::unique_ptr<IO::BasePreset> preset{nullptr};
-        if(plug->arguments & IO::Plugin::Preset){
+        IO::Preset preset{nullptr};
+        if(plug->makePreset){
             preset = plug->makePreset();
         }
         writeFile("/tmp/output.file", plug, molecules[m],
-                  (size_t)s, param.get(), preset.get());
+                  (size_t)s, param, preset);
         return "";
     } catch(std::exception &e) {
         return e.what();
@@ -197,20 +197,20 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
         switch(currentOp){
         case OpMode::Rotation:
-            gui.rotateViewMat(mouseEvent->canvasX-localX,
-                              mouseEvent->canvasY-localY, 0);
+            gui.rotateViewMat(mouseEvent->clientX-localX,
+                              mouseEvent->clientY-localY, 0);
             break;
         case OpMode::Translation:
-            gui.translateViewMat(mouseEvent->canvasX-localX,
-                                 -(mouseEvent->canvasY-localY), 0);
+            gui.translateViewMat(mouseEvent->clientX-localX,
+                                 -(mouseEvent->clientY-localY), 0);
             break;
         default:
             break;
         }
         break;
     }
-    localX = mouseEvent->canvasX;
-    localY = mouseEvent->canvasY;
+    localX = mouseEvent->clientX;
+    localY = mouseEvent->clientY;
     return 1;
 }
 
@@ -341,7 +341,7 @@ int main()
     attrs.enableExtensionsByDefault = 1;
     attrs.majorVersion = 2;
     attrs.minorVersion = 0;
-    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context( 0, &attrs );
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context( "#canvas", &attrs );
     if (!context)
     {
         printf("WebGL 2 is not supported!\n");
