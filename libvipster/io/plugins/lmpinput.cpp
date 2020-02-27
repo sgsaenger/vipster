@@ -203,8 +203,8 @@ void groupSets(std::list<std::set<size_t>>& molecules){
 auto makeWriter(const std::vector<lmpTok>& fmt,
                 const std::vector<size_t>& molID,
                 const std::map<std::string, size_t>& atomtypemap){
-    return [&](std::ostream& file, const Step& s){
-        for(auto it=s.begin(); it!=s.end(); ++it){
+    return [&](std::ostream& file, const auto& step){
+        for(auto it=step.begin(); it!=step.end(); ++it){
             file << std::left << std::setw(3) << (it.getIdx()+1);
             for(const auto& tok: fmt){
                 file << ' ';
@@ -278,7 +278,6 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                 throw IO::Error("Lammps Input: failed to "
                                 "parse number of bonds");
             }
-            s.setBondMode(BondMode::Manual);
         } else if (line.find("bond types") != std::string::npos){
             // try comment-only lines to find out named bond types
             bool seekType{true};
@@ -435,9 +434,9 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                 // if bond type has been annotated, use name
                 auto pos = bondtypes.find(id);
                 if(pos != bondtypes.end()){
-                    sc.newBond(at1, at2, diff, pos->second);
+                    sc.addBond(at1, at2, diff, pos->second);
                 }else{
-                    sc.newBond(at1, at2, diff, std::to_string(id));
+                    sc.addBond(at1, at2, diff, std::to_string(id));
                 }
             }
         }

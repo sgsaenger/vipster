@@ -61,7 +61,7 @@ static IO::Parameter makeParam()
 static IO::Preset makePreset()
 {
     return {&IO::CPInput,
-        {{"fmt", {NamedEnum{4, {"Bohr", "Angstrom", "Crystal", "Alat", "Active"}},
+        {{"fmt", {NamedEnum{4, {"Crystal", "Alat", "Angstrom", "Bohr", "Active"}},
                     "Active: Use the current Step's active atom format\n"
                     "Else: Enforce the selected atom format"}}}};
 }
@@ -489,9 +489,9 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
         throw IO::Error("CPMD Input: writer needs suitable IO preset");
     }
     const auto &atfmt = std::get<NamedEnum>(c->at("fmt").first);
-    const auto& s = (atfmt.name() == "Active") ?
-        static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
-        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt.value())); // use explicit fmt
+    const auto& s =  m.getStep(index).asFmt((atfmt.name() == "Active") ?
+                                            m.getStep(index).getFmt() : // use active format
+                                            static_cast<AtomFmt>(atfmt.value())); // use explicit format
     auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
     const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix").first);
     const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix").first);

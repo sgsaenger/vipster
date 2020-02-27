@@ -1,5 +1,5 @@
-#ifndef STEPCONST_H
-#define STEPCONST_H
+#ifndef STEPBASE_H
+#define STEPBASE_H
 
 #include "atom.h"
 #include "bond.h"
@@ -7,7 +7,8 @@
 #include "vec.h"
 #include "data.h"
 #include "settings.h"
-#include "stepsel.h"
+#include "stepformatter.h"
+#include "stepselection.h"
 
 #include <memory>
 #include <vector>
@@ -19,7 +20,7 @@
 namespace Vipster {
 
 /*
- * Base for all Step-like containers
+ * Const-Base for all Step-like containers
  *
  * Implements const-interface for common state:
  * - Atoms (atomcontainer must be provided as template argument)
@@ -31,46 +32,25 @@ namespace Vipster {
 template<typename T>
 class StepConst
 {
-    friend T;
+    template<typename U> friend class StepConst;
 public:
     virtual ~StepConst() = default;
 
-    using source = T;
-    // 'mutable' iterator must be defined for Selection-template
-    using iterator = typename T::const_iterator;
-    using const_iterator = typename T::const_iterator;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using constSelection = SelectionBase<StepConst, T>;
-
-    void evaluateCache() const
-    {
-        atoms->evaluateCache(*this);
-    }
-
-    // Don't know how to mask this yet
+    // NOTE: Don't know how to mask this yet
     std::shared_ptr<PeriodicTable> pte;
 
-    // Selection
-    constSelection select(std::string filter) const
-    {
-        return {pte, at_fmt, this, filter, cell, comment};
-    }
-    constSelection select(SelectionFilter filter) const
-    {
-        return {pte, at_fmt, this, filter, cell, comment};
-    }
-
     // Atoms
-    size_t          getNat() const noexcept
+    using atom_source = T;
+    using const_atom = typename T::const_atom;
+    size_t              getNat() const noexcept
     {
         return atoms->getNat();
     }
-    constAtom       operator[](size_t i) const noexcept
+    const_atom          operator[](size_t i) const noexcept
     {
-        return *const_iterator{atoms, pte, at_fmt, i};
+        return {*atoms, *pte, i};
     }
-    constAtom       at(size_t i) const
+    const_atom          at(size_t i) const
     {
         if(i>=getNat()){
             throw Error("Atom-index out of bounds");
@@ -78,41 +58,53 @@ public:
             return operator[](i);
         }
     }
-    const source&   getAtoms() const noexcept
+    const atom_source&  getAtoms() const noexcept
     {
         return *atoms;
     }
-    const_iterator   begin() const noexcept
+    // Atom-iterators
+    using const_iterator = typename T::const_iterator;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    const_iterator          begin() const noexcept
     {
-        return const_iterator{atoms, pte, at_fmt, 0};
+        return const_iterator{*atoms, *pte, 0};
     }
-    const_iterator   cbegin() const noexcept
+    const_iterator          cbegin() const noexcept
     {
-        return const_iterator{atoms, pte, at_fmt, 0};
+        return const_iterator{*atoms, *pte, 0};
     }
-    const_iterator   end() const noexcept
+    const_iterator          end() const noexcept
     {
-        return const_iterator{atoms, pte, at_fmt, getNat()};
+        return const_iterator{*atoms, *pte, getNat()};
     }
-    const_iterator   cend() const noexcept
+    const_iterator          cend() const noexcept
     {
-        return const_iterator{atoms, pte, at_fmt, getNat()};
+        return const_iterator{*atoms, *pte, getNat()};
     }
-    const_reverse_iterator rbegin() const noexcept
+    const_reverse_iterator  rbegin() const noexcept
     {
         return std::make_reverse_iterator(end());
     }
-    const_reverse_iterator crbegin() const noexcept
+    const_reverse_iterator  crbegin() const noexcept
     {
         return std::make_reverse_iterator(cend());
     }
-    const_reverse_iterator rend() const noexcept
+    const_reverse_iterator  rend() const noexcept
     {
         return std::make_reverse_iterator(begin());
     }
-    const_reverse_iterator crend() const noexcept
+    const_reverse_iterator  crend() const noexcept
     {
         return std::make_reverse_iterator(cbegin());
+    }
+
+    // Selection
+    using const_selection = StepConst<Selection<T>>;
+    const_selection select(SelectionFilter filter) const
+    {
+        return {this->pte,
+                std::make_shared<Selection<T>>(this->atoms, evalFilter(*this, filter)),
+                this->bonds, this->cell, this->comment};
     }
 
     // Comment
@@ -136,39 +128,34 @@ public:
     }
 
     // Format
+    // TODO: rename getFormatter?
+    using const_formatter = StepConst<Formatter<T>>;
+    const_formatter     asFmt(AtomFmt tgt) const
+    {
+        return {this->pte,
+                std::make_shared<Formatter<T>>(this->atoms, tgt, getFormatter(getFmt(), tgt), getFormatter(tgt, getFmt())),
+                this->bonds, this->cell, this->comment};
+    }
     AtomFmt             getFmt() const noexcept
     {
-        return at_fmt;
+        return atoms->fmt;
     }
     void                setFmt(AtomFmt tgt) const
     {
-        if(tgt == at_fmt){ return; }
-        // evaluate tgt-cache via side-effect
-        asFmt(tgt);
-        at_fmt = tgt;
-    }
-    StepConst           asFmt(AtomFmt tgt) const
-    {
-        auto tmp = StepConst{pte, tgt, atoms, bonds, cell, comment};
-        tmp.evaluateCache();
-        return tmp;
+        atoms->fmt = tgt;
     }
     std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
                                                  AtomFmt target) const
     {
-        double fac{};
-        Mat fmat{};
         switch(source) {
         case AtomFmt::Bohr:
             switch(target){
             case AtomFmt::Angstrom:
                 return [](const Vec& v){return v*Vipster::bohrrad;};
             case AtomFmt::Alat:
-                fac = 1/getCellDim(CdmFmt::Bohr);
-                return [fac](const Vec& v){return v*fac;};
+                return [this](const Vec& v){return v*bohrrad/cell->celldim;};
             case AtomFmt::Crystal:
-                fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Bohr);
-                return [fmat](const Vec& v){return v*fmat;};
+                return [this](const Vec& v){return v*cell->invvec*bohrrad/cell->celldim;};
             default:
                 break;
             }
@@ -178,11 +165,9 @@ public:
             case AtomFmt::Bohr:
                 return [](const Vec& v){return v*Vipster::invbohr;};
             case AtomFmt::Alat:
-                fac = 1/getCellDim(CdmFmt::Angstrom);
-                return [fac](const Vec& v){return v*fac;};
+                return [this](const Vec& v){return v*cell->celldim;};
             case AtomFmt::Crystal:
-                fmat = Mat_inv(getCellVec())/getCellDim(CdmFmt::Angstrom);
-                return [fmat](const Vec& v){return v*fmat;};
+                return [this](const Vec& v){return v*cell->invvec/cell->celldim;};
             default:
                 break;
             }
@@ -190,14 +175,11 @@ public:
         case AtomFmt::Alat:
             switch(target){
             case AtomFmt::Angstrom:
-                fac = getCellDim(CdmFmt::Angstrom);
-                return [fac](const Vec& v){return v*fac;};
+                return [this](const Vec& v){return v*cell->celldim;};
             case AtomFmt::Bohr:
-                fac = getCellDim(CdmFmt::Bohr);
-                return [fac](const Vec& v){return v*fac;};
+                return [this](const Vec& v){return v*cell->celldim*invbohr;};
             case AtomFmt::Crystal:
-                fmat = Mat_inv(getCellVec());
-                return [fmat](const Vec& v){return v*fmat;};
+                return [this](const Vec& v){return v*cell->invvec;};
             default:
                 break;
             }
@@ -205,14 +187,11 @@ public:
         case AtomFmt::Crystal:
             switch(target){
             case AtomFmt::Angstrom:
-                fmat = getCellVec()*getCellDim(CdmFmt::Angstrom);
-                return [fmat](const Vec& v){return v*fmat;};
+                return [this](const Vec& v){return v*cell->cellvec*cell->celldim;};
             case AtomFmt::Alat:
-                fmat = getCellVec();
-                return [fmat](const Vec& v){return v*fmat;};
+                return [this](const Vec& v){return v*cell->cellvec;};
             case AtomFmt::Bohr:
-                fmat = getCellVec()*getCellDim(CdmFmt::Bohr);
-                return [fmat](const Vec& v){return v*fmat;};
+                return [this](const Vec& v){return v*cell->cellvec*cell->celldim*invbohr;};
             default:
                 break;
             }
@@ -237,35 +216,7 @@ public:
     // Bonds
     const std::vector<Bond>&    getBonds() const
     {
-        // TODO: was passiert wenn bindungen manuell sind, aber atome gelöscht werden?
-        if((bonds->mode == BondMode::Automatic) &&
-            bonds->outdated)
-        {
-            setBonds();
-        }
         return bonds->bonds;
-    }
-    void                        setBonds() const
-    {
-        bonds->bonds.clear();
-        if(!getNat()){
-            bonds->outdated = false;
-            return;
-        }
-        if(cell->enabled){
-            setBondsCell();
-        }else{
-            setBondsMolecule();
-        }
-        bonds->outdated = false;
-    }
-    void                        setBondMode(BondMode mode) const
-    {
-        bonds->mode = mode;
-    }
-    BondMode                    getBondMode() const
-    {
-        return bonds->mode;
     }
 
     // Cell
@@ -273,16 +224,12 @@ public:
     {
         return cell->enabled;
     }
-    double   getCellDim(CdmFmt fmt) const noexcept
+    double  getCellDim(CdmFmt fmt) const noexcept
     {
         if (fmt == CdmFmt::Bohr) {
-            return cell->dimBohr;
+            return cell->celldim * invbohr;
         }
-        return cell->dimAngstrom;
-    }
-    void    enableCell(bool val) const noexcept
-    {
-        cell->enabled = val;
+        return cell->celldim;
     }
     Mat     getCellVec() const noexcept
     {
@@ -290,7 +237,7 @@ public:
     }
     Vec     getCom() const noexcept
     {
-        return getCom(at_fmt);
+        return getCom(atoms->fmt);
     }
     Vec     getCom(AtomFmt fmt) const noexcept
     {
@@ -311,7 +258,7 @@ public:
             max[1]=std::max(max[1],at.coord[1]);
             max[2]=std::max(max[2],at.coord[2]);
         }
-        return formatVec((min+max)/2, at_fmt, fmt);
+        return formatVec((min+max)/2, atoms->fmt, fmt);
     }
     Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
     {
@@ -323,25 +270,255 @@ public:
     }
 
 protected:
-    StepConst(std::shared_ptr<PeriodicTable> pte, AtomFmt fmt,
-             std::shared_ptr<source> atoms, std::shared_ptr<BondList> bonds,
-             std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
-        : pte{pte}, at_fmt{fmt}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}
+    StepConst(std::shared_ptr<PeriodicTable> pte,
+              std::shared_ptr<atom_source> atoms, std::shared_ptr<BondList> bonds,
+              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
+        : pte{pte}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}
     {}
     // Data
-    mutable AtomFmt                 at_fmt; // mutable, only controls visibility
-    std::shared_ptr<source>         atoms;  // immutable
-    std::shared_ptr<BondList>       bonds;  // mutable, is only cache
-    std::shared_ptr<CellData>       cell;   // immutable except enabled/disable-state
-    std::shared_ptr<std::string>    comment; // immutable
+    std::shared_ptr<atom_source>    atoms;
+    std::shared_ptr<BondList>       bonds;
+    std::shared_ptr<CellData>       cell;
+    std::shared_ptr<std::string>    comment;
+};
+
+/*
+ * Base for mutable Step-like containers
+ *
+ * Implements non-const interface and common utility functions
+ *
+ * Template-argument shall be atomcontainer
+ */
+template<typename T>
+class StepMutable: public StepConst<T>
+{
+    template<typename U> friend class StepMutable;
+public:
+    virtual ~StepMutable() = default;
+
+    // Atoms
+    using atom = typename T::atom;
+    using StepConst<T>::operator[];
+    atom        operator[](size_t i) noexcept
+    {
+        return {*this->atoms, *this->pte, i};
+    }
+    using StepConst<T>::at;
+    atom        at(size_t i)
+    {
+        if(i >= this->getNat()){
+            throw Error("Atom-index out of bounds");
+        }else{
+            return operator[](i);
+        }
+    }
+    using StepConst<T>::begin;
+    // Atom-iterators
+    using iterator = typename T::iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    iterator    begin() noexcept
+    {
+        return iterator{*this->atoms, *this->pte, 0};
+    }
+    using StepConst<T>::end;
+    iterator    end() noexcept
+    {
+        return iterator{*this->atoms, *this->pte, this->getNat()};
+    }
+    using StepConst<T>::rbegin;
+    reverse_iterator rbegin() noexcept
+    {
+        return std::make_reverse_iterator(end());
+    }
+    using StepConst<T>::rend;
+    reverse_iterator rend() noexcept
+    {
+        return std::make_reverse_iterator(begin());
+    }
+
+    // Selection
+    using selection = StepMutable<Selection<T>>;
+    selection select(SelectionFilter filter)
+    {
+        return {this->pte,
+                std::make_shared<Selection<T>>(this->atoms, evalFilter(*this, filter)),
+                this->bonds, this->cell, this->comment};
+    }
+
+    // Comment
+    void                setComment(const std::string& s)
+    {
+        *this->comment = s;
+    }
+
+    // Format
+    using StepConst<T>::asFmt;
+    using formatter = StepMutable<Formatter<T>>;
+    formatter asFmt(AtomFmt tgt)
+    {
+        return {this->pte,
+                std::make_shared<Formatter<T>>(this->atoms, tgt, this->getFormatter(this->getFmt(), tgt), this->getFormatter(tgt, this->getFmt())),
+                this->bonds, this->cell, this->comment};
+    }
+
+    // Bonds
+    void setBonds() const
+    {
+        if(this->cell->enabled){
+            setBondsCell();
+        }else{
+            setBondsMolecule();
+        }
+    }
+    void addBond(size_t at1, size_t at2, DiffVec diff={}, const std::string& type="")
+    {
+        // calc distance in bohr
+        auto getDistance = [&](size_t at1, size_t at2, DiffVec diff)
+        {
+            if(std::any_of(diff.begin(), diff.end(), [](auto i)->bool{return i;})){
+                // have to calculate periodic bond
+                auto cv = [&](){
+                    switch(this->atoms->fmt){
+                    case AtomFmt::Crystal:
+                        return Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
+                    case AtomFmt::Alat:
+                        return this->getCellVec();
+                    case AtomFmt::Angstrom:
+                        return this->getCellVec() * this->getCellDim(CdmFmt::Angstrom);
+                    case AtomFmt::Bohr:
+                        return this->getCellVec() * this->getCellDim(CdmFmt::Bohr);
+                    }
+                    throw Error("Invalid AtomFmt");
+                }();
+                return Vec_length(this->formatVec(
+                        operator[](at1).coord - operator[](at2).coord
+                        - diff[0]*cv[0] - diff[1]*cv[1] - diff[2]*cv[2],
+                        this->atoms->fmt, AtomFmt::Bohr));
+            }else{
+                // just use immediate distance
+                return Vec_length(this->formatVec(
+                        operator[](at1).coord - operator[](at2).coord,
+                        this->atoms->fmt, AtomFmt::Bohr));
+            }
+        };
+        if(!type.empty()){
+            // register/look-up type, then create bond
+            this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
+                                            &*this->bonds->types.emplace(type,
+                                             defaultColors[this->bonds->types.size()%5]).first});
+        }else{
+            // create untyped bond
+            this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
+                                            nullptr});
+        }
+    }
+    void delBond(size_t idx)
+    {
+        auto& bonds = this->bonds->bonds;
+        bonds.erase(bonds.begin()+idx);
+    }
+    void setBondType(size_t idx, std::string type)
+    {
+        auto& bond = this->bonds->bonds[idx];
+        if(type.empty()){
+            bond.type = nullptr;
+        }else{
+            bond.type = &*this->bonds->types.emplace(
+                        type,
+                        defaultColors[this->bonds->types.size()%5]
+                        ).first;
+        }
+    }
+
+    // Modifier functions
+    void modScale(AtomFmt tgt){
+        if(tgt == this->atoms->fmt){ return; }
+        auto tmp = asFmt(tgt);
+        auto source = tmp.cbegin();
+        auto target = this->begin();
+        while(source != tmp.cend()){
+            target->coord = source->coord;
+            ++target;
+            ++source;
+        }
+        this->atoms->fmt = tgt;
+    }
+    void modShift(Vec shift, double fac=1.0){
+        shift *= fac;
+        for(auto& at:*this){
+            at.coord += shift;
+        }
+    }
+    void modRotate(double angle, Vec axis, Vec shift={0,0,0}){
+        angle *= deg2rad;
+        double c = std::cos(angle);
+        double s = -std::sin(angle);
+        double ic = 1.-c;
+        auto relative = atomFmtRelative(this->atoms->fmt);
+        if(relative) axis = this->formatVec(axis, this->atoms->fmt, AtomFmt::Bohr);
+        double len = Vec_length(axis);
+        if(float_comp(len, 0.)){
+            throw Error("0-Vector cannot be rotation axis");
+        }
+        axis /= len;
+        Mat rotMat = {Vec{ic * axis[0] * axis[0] + c,
+                          ic * axis[0] * axis[1] - s * axis[2],
+                          ic * axis[0] * axis[2] + s * axis[1]},
+                      Vec{ic * axis[1] * axis[0] + s * axis[2],
+                          ic * axis[1] * axis[1] + c,
+                          ic * axis[1] * axis[2] - s * axis[0]},
+                      Vec{ic * axis[2] * axis[0] - s * axis[1],
+                          ic * axis[2] * axis[1] + s * axis[0],
+                          ic * axis[2] * axis[2] + c}};
+        if(!relative){
+            for(auto& at:*this){
+                at.coord = (at.coord - shift) * rotMat + shift;
+            }
+        }else{
+            const auto fwd = this->getFormatter(this->atoms->fmt, AtomFmt::Bohr);
+            const auto bwd = this->getFormatter(AtomFmt::Bohr, this->atoms->fmt);
+            shift = fwd(shift);
+            for(auto& at:*this){
+                at.coord = bwd((fwd(at.coord) - shift) * rotMat + shift);
+            }
+        }
+    }
+    void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0}){
+        auto relative = atomFmtRelative(this->atoms->fmt);
+        if(relative){
+            ax1 = this->formatVec(ax1, this->atoms->fmt, AtomFmt::Bohr);
+            ax2 = this->formatVec(ax2, this->atoms->fmt, AtomFmt::Bohr);
+            shift = this->formatVec(shift, this->atoms->fmt, AtomFmt::Bohr);
+        }
+        Vec normal = Vec_cross(ax1, ax2);
+        normal /= Vec_length(normal);
+        if(!relative){
+            for(auto& at:*this){
+                at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
+            }
+        }else{
+            auto fwd = this->getFormatter(this->atoms->fmt, AtomFmt::Bohr);
+            auto bwd = this->getFormatter(AtomFmt::Bohr, this->atoms->fmt);
+            for(auto& at:*this){
+                at.coord -= bwd(2*Vec_dot(fwd(at.coord)-shift, normal)*normal);
+            }
+        }
+    }
+
+protected:
+    StepMutable(std::shared_ptr<PeriodicTable> pte,
+             std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
+             std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
+        : StepConst<T>{pte, atoms, bonds, cell, comment}
+    {}
 
 private:
 
-    // Bonds
+    // generate non-periodic bonds
     void setBondsMolecule() const
     {
         // get suitable absolute representation
-        const AtomFmt fmt = (this->at_fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
+        const AtomFmt fmt = (this->atoms->fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
         // get bounds of system and largest cutoff
@@ -384,7 +561,7 @@ private:
         if(n_split == SizeVec{1,1,1}){
             // only one bin
             auto& bin = bins(0,0,0);
-            bin.resize(getNat());
+            bin.resize(this->getNat());
             std::iota(bin.begin(), bin.end(), 0);
         }else{
             // multiple bins
@@ -508,11 +685,12 @@ private:
         }
     }
 
+    // generate periodic bonds
     void setBondsCell() const
     {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         auto& bonds = this->bonds->bonds;
-        const auto cell = getCellVec() * getCellDim(CdmFmt::Bohr);
+        const auto cell = this->getCellVec() * this->getCellDim(CdmFmt::Bohr);
         // offset vectors for bin-bin interactions
         const Vec x_v = cell[0];
         const Vec y_v = cell[1];
@@ -552,7 +730,7 @@ private:
         if(n_split == SizeVec{1,1,1}){
             // only one bin
             auto& bin = bins(0,0,0);
-            bin.resize(getNat());
+            bin.resize(this->getNat());
             std::iota(bin.begin(), bin.end(), 0);
         }else{
             // multiple bins
@@ -835,4 +1013,4 @@ private:
 
 }
 
-#endif // STEPCONST_H
+#endif // STEPBASE_H

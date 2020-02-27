@@ -138,7 +138,7 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     }
     auto cartesian = std::get<bool>(c->at("cartesian").first);
     auto selective = std::get<bool>(c->at("selective").first);
-    const Step& s = m.getStep(index).asFmt(cartesian ?
+    const auto& s = m.getStep(index).asFmt(cartesian ?
                                                  AtomFmt::Angstrom : AtomFmt::Crystal);
     file << s.getComment() << '\n';
     file << s.getCellDim(CdmFmt::Angstrom) << '\n';

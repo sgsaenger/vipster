@@ -10,8 +10,7 @@ namespace Vipster {
 
     struct CellData {
         bool    enabled{false};
-        double  dimBohr{1};
-        double  dimAngstrom{bohrrad};
+        double  celldim{1};
         Mat     cellvec{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}};
         Mat     invvec{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}};
     };

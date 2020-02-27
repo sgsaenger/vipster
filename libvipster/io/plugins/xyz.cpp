@@ -113,8 +113,8 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
         throw IO::Error("XYZ: writer needs suitable IO preset");
     }
     auto cc = *c;
-    const Step& s = m.getStep(index).asFmt(AtomFmt::Angstrom);
-    auto stepWriter = [&file, cc](const Step& s){
+    const auto& s = m.getStep(index).asFmt(AtomFmt::Angstrom);
+    auto stepWriter = [&file, cc](const auto& s){
         file << s.getNat() << '\n';
         file << s.getComment() << '\n';
         file << std::fixed << std::setprecision(5);

@@ -42,7 +42,7 @@ static IO::Parameter makeParam()
 static IO::Preset makePreset()
 {
     return {&IO::PWInput,
-        {{"atoms", {NamedEnum{4, {"Bohr", "Angstrom", "Crystal", "Alat", "Active"}},
+        {{"atoms", {NamedEnum{4, {"Crystal", "Alat", "Angstrom", "Bohr", "Active"}},
                     "Active: Use the current Step's active atom format\n"
                     "Else: Enforce the selected format"}},
          {"cell", {NamedEnum{2, {"Bohr", "Angstrom", "Active"}},
@@ -242,7 +242,7 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
     sys.erase(ibr);
     auto ibrav = std::stoi(ibr->second);
     if(ibrav == 0){
-        bool scale = (s.getFmt() >= AtomFmt::Crystal);
+        bool scale = atomFmtRelative(s.getFmt());
         switch (cell.fmt) {
         case CellInp::Bohr:
             s.setCellDim(1, CdmFmt::Bohr, scale);
@@ -311,7 +311,7 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
             auto cosBC = sys.find("cosBC");
             if(cosBC != sys.end()) angles[2] = stod(cosBC->second);
         }
-        s.setCellDim(axes[0], cdmFmt, s.getFmt() >= AtomFmt::Crystal);
+        s.setCellDim(axes[0], cdmFmt, atomFmtRelative(s.getFmt()));
         auto cell = makeBravais(ibrav, axes, angles);
         s.setCellVec(cell, s.getFmt() == AtomFmt::Crystal);
     }
@@ -367,9 +367,9 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     }
     const auto &atfmt = std::get<NamedEnum>(c->at("atoms").first);
     const auto &cellfmt = std::get<NamedEnum>(c->at("atoms").first);
-    const auto& s = (atfmt.name() == "Active") ?
-        static_cast<const StepConst<Step::source>&>(m.getStep(index)) : // use active fmt
-        m.getStep(index).asFmt(static_cast<AtomFmt>(atfmt.value())); // use explicit fmt
+    const auto& s = m.getStep(index).asFmt((atfmt.name() == "Active") ?
+                                           m.getStep(index).getFmt() : // use active format
+                                           static_cast<AtomFmt>(atfmt.value()-2));// use explicit format
     const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix").first);
     const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix").first);
     const auto& control = std::get<NameList>(p->at("&CONTROL").first);

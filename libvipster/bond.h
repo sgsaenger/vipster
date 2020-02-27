@@ -10,8 +10,6 @@
 #include "global.h"
 
 namespace Vipster {
-    enum class BondMode {Manual, Automatic};
-
     struct Bond{
         std::size_t at1;
         std::size_t at2;
@@ -26,8 +24,6 @@ namespace Vipster {
     }
 
     struct BondList{
-        bool                            outdated{true};
-        BondMode                        mode{BondMode::Automatic};
         std::vector<Bond>               bonds;
         std::map<std::string, ColVec>   types;
     };

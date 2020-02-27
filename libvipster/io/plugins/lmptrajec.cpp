@@ -12,13 +12,13 @@ auto IdentifyColumns(std::string& line)
     ss >> tok >> tok;
     enum coordstate{none=0, unscaled=1, scaled=2};
     coordstate cs{};
-    auto xparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[0];};
-    auto yparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[1];};
-    auto zparser = [](std::stringstream& ss, Atom& at) {ss >> at.coord[2];};
-    auto nparser = [](std::stringstream& ss, Atom& at) {ss >> at.name;};
-    auto qparser = [](std::stringstream& ss, Atom& at) {ss >> at.properties->charge;};
-    auto dparser = [](std::stringstream& ss, Atom&) {static std::string dummy{}; ss >> dummy;};
-    std::vector<void(*)(std::stringstream&, Atom&)> funvec{};
+    auto xparser = [](std::stringstream& ss, Step::atom& at) {ss >> at.coord[0];};
+    auto yparser = [](std::stringstream& ss, Step::atom& at) {ss >> at.coord[1];};
+    auto zparser = [](std::stringstream& ss, Step::atom& at) {ss >> at.coord[2];};
+    auto nparser = [](std::stringstream& ss, Step::atom& at) {ss >> at.name;};
+    auto qparser = [](std::stringstream& ss, Step::atom& at) {ss >> at.properties->charge;};
+    auto dparser = [](std::stringstream& ss, Step::atom&) {static std::string dummy{}; ss >> dummy;};
+    std::vector<void(*)(std::stringstream&, Step::atom&)> funvec{};
     while ( !(ss >> tok).fail() ) {
         if (tok[0] == 'x' || tok[0] == 'y' || tok[0] == 'z') {
             if ((tok.length() == 1) || (tok[1] != 's')) {

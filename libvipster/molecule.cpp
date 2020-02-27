@@ -15,14 +15,14 @@ Molecule::Molecule(const std::string &name, size_t s):
     }
 }
 
-Step& Molecule::newStep(const Step&step)
+Step& Molecule::newStep(const Step &step)
 {
     steps.push_back(step);
     steps.back().pte = pte;
     return steps.back();
 }
 
-Step& Molecule::newStep(Step&&step)
+Step& Molecule::newStep(Step &&step)
 {
     steps.push_back(std::move(step));
     steps.back().pte = pte;
