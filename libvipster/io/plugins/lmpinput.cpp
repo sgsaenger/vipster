@@ -60,7 +60,7 @@ const static std::map<std::string, std::vector<lmpTok>> fmtmap{
 };
 
 std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
-    // TODO: WILL fail if fmt == tdpd, hybrid, template
+    // BUG: WILL fail if fmt == tdpd, hybrid, template
     // probably also for dipole and ellipsoid
     auto rewindpos = file.tellg();
     std::vector<std::vector<std::string>> atoms;

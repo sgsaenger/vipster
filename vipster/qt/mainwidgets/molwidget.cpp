@@ -80,13 +80,13 @@ void MolWidget::updateWidget(GUI::change_t change)
     }
     if ((change & GUI::stepChanged) == GUI::stepChanged) {
         // reset old fmt-string
-        auto oldFmt = static_cast<int>(ownStep.getFmt());
+        auto oldFmt = static_cast<int>(ownStep->getFmt());
         ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
         // assign StepFormatter to curStep, mark fmt as active
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep;
-        ownStep = curStep->asFmt(fmt);
-        molModel.setStep(&ownStep);
+        ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+        molModel.setStep(&*ownStep);
         setSelection();
         auto ifmt = static_cast<int>(fmt);
         QSignalBlocker blockAtFmt(ui->atomFmtBox);
@@ -94,22 +94,22 @@ void MolWidget::updateWidget(GUI::change_t change)
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
         // expose BondMode
         QSignalBlocker blockBondMode(ui->bondModeBox);
-        int imode = static_cast<int>(ownStep.getBondMode());
-        ui->bondModeBox->setCurrentIndex(imode);
-        if(imode){
+        bool autobonds = master->stepdata[curStep].automatic_bonds;
+        ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
+        if(autobonds){
             ui->bondSetButton->setDisabled(true);
         }else{
             ui->bondButton->setChecked(true);
             ui->bondSetButton->setEnabled(true);
         }
     }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
-        molModel.setStep(&ownStep);
+        molModel.setStep(&*ownStep);
         setSelection();
     }else if (change & (GUI::Change::selection)){
         setSelection();
     }
     if (change & GUI::Change::atoms) {
-        bondModel.setStep(&ownStep);
+        bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     }
     if (change & GUI::Change::cell) {
         fillCell();
@@ -126,11 +126,11 @@ void MolWidget::fillCell()
     QSignalBlocker blockCell(ui->cellVecTable);
     QSignalBlocker blockDim(ui->cellDimBox);
     QSignalBlocker blockEnabled(ui->cellEnabledBox);
-    ui->cellEnabledBox->setChecked(ownStep.hasCell());
+    ui->cellEnabledBox->setChecked(ownStep->hasCell());
     ui->cellDimBox->setValue(static_cast<double>(
-                                 ownStep.getCellDim(
+                                 ownStep->getCellDim(
             static_cast<CdmFmt>(ui->cellFmt->currentIndex()))));
-    Mat vec = ownStep.getCellVec();
+    Mat vec = ownStep->getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
             ui->cellVecTable->item(j,k)->setText(QString::number(vec[j][k]));
@@ -181,7 +181,7 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
             }
         }
         try{
-            ownStep.setCellVec(vec, scale);
+            curStep->setCellVec(vec, scale);
         } catch(const Error& e){
             QMessageBox msg{this};
             msg.setText(QString{"Error setting cell vectors:\n"}+e.what());
@@ -190,18 +190,10 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
             ui->cellEnabledBox->setCheckState(Qt::CheckState::Unchecked);
             return;
         }
-        ownStep.setCellDim(dim, fmt, scale);
-        for(auto& vp: master->viewports){
-            if(vp->curStep == curStep)
-                vp->setMultEnabled(true);
-        }
+        curStep->setCellDim(dim, fmt, scale);
         triggerUpdate(change);
     }else{
-        ownStep.enableCell(false);
-        for(auto& vp: master->viewports){
-            if(vp->curStep == curStep)
-                vp->setMultEnabled(false);
-        }
+        curStep->enableCell(false);
         triggerUpdate(GUI::Change::cell);
     }
 }
@@ -209,7 +201,7 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
 void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 {
     QSignalBlocker blockCDB(ui->cellDimBox);
-    ui->cellDimBox->setValue(static_cast<double>(ownStep.getCellDim(static_cast<CdmFmt>(idx))));
+    ui->cellDimBox->setValue(static_cast<double>(ownStep->getCellDim(static_cast<CdmFmt>(idx))));
 }
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
@@ -220,14 +212,14 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     }
     auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
     auto scale = ui->cellScaleBox->isChecked();
-    ownStep.setCellDim(cdm, fmt, scale);
+    curStep->setCellDim(cdm, fmt, scale);
     GUI::change_t change = GUI::Change::cell;
     // if needed, trigger atom update
     if(scale){
         change |= GUI::Change::atoms;
     }
-    if(scale != (ownStep.getFmt()>=AtomFmt::Crystal)){
-        molModel.setStep(&ownStep);
+    if(scale != atomFmtRelative(ownStep->getFmt())){
+        molModel.setStep(&*ownStep);
         setSelection();
     }
     triggerUpdate(change);
@@ -239,12 +231,12 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     if(ui->cellEnabledBox->checkState() == Qt::CheckState::Unchecked){
         return;
     }
-    Mat vec = ownStep.getCellVec();
+    Mat vec = ownStep->getCellVec();
     vec[static_cast<size_t>(row)][static_cast<size_t>(column)] =
             ui->cellVecTable->item(row,column)->text().toDouble();
     auto scale = ui->cellScaleBox->isChecked();
     try{
-        ownStep.setCellVec(vec, scale);
+        curStep->setCellVec(vec, scale);
     } catch(const Error& e){
         QMessageBox msg{this};
         msg.setText(QString{"Error setting cell vectors:\n"}+e.what());
@@ -257,8 +249,8 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     if(scale){
         change |= GUI::Change::atoms;
     }
-    if(scale != (ownStep.getFmt()==AtomFmt::Crystal)){
-        molModel.setStep(&ownStep);
+    if(scale != (ownStep->getFmt()==AtomFmt::Crystal)){
+        molModel.setStep(&*ownStep);
         setSelection();
     }
     triggerUpdate(change);
@@ -266,8 +258,8 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
-    ownStep = ownStep.asFmt(static_cast<AtomFmt>(index));
-    molModel.setStep(&ownStep);
+    ownStep = std::make_unique<Step::formatter>(curStep->asFmt(static_cast<AtomFmt>(index)));
+    molModel.setStep(&*ownStep);
     setSelection();
 }
 
@@ -280,7 +272,7 @@ void MolWidget::on_atomFmtButton_clicked()
     ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     curStep->setFmt(fmt);
     master->curSel->setFmt(fmt);
-    if((fmt >= AtomFmt::Crystal) && !ownStep.hasCell()){
+    if((fmt >= AtomFmt::Crystal) && !ownStep->hasCell()){
         ui->cellEnabledBox->setChecked(true);
     }
     triggerUpdate(GUI::Change::fmt);
@@ -299,7 +291,7 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
     for(const auto& i: idx){
         filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
     }
-    master->curSel->setFilter(filter);
+    *master->curSel = curStep->select(filter);
     triggerUpdate(GUI::Change::selection);
 }
 
@@ -310,7 +302,7 @@ void MolWidget::setSelection()
             this, &MolWidget::atomSelectionChanged);
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
-    for(const auto& i:master->curSel->getIndices()){
+    for(const auto& i:master->curSel->getAtoms().indices){
         table->selectRow(static_cast<int>(i.first));
     }
     connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -453,8 +445,8 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
 
 void MolWidget::on_bondSetButton_clicked()
 {
-    ownStep.setBonds();
-    bondModel.setStep(&ownStep);
+    ownStep->setBonds();
+    bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     triggerUpdate(GUI::Change::atoms);
 }
 
@@ -465,8 +457,7 @@ void MolWidget::on_bondHelpButton_clicked()
 
 void MolWidget::on_bondModeBox_currentIndexChanged(int index)
 {
-    ownStep.setBondMode(static_cast<BondMode>(index));
-    auto automatic = static_cast<bool>(index);
+    auto automatic = master->stepdata[curStep].automatic_bonds = static_cast<bool>(index);
     if(automatic){
         ui->bondSetButton->setDisabled(true);
     }else{
@@ -476,6 +467,6 @@ void MolWidget::on_bondModeBox_currentIndexChanged(int index)
         if(vp->curStep == curStep)
             vp->setBondMode(automatic);
     }
-    bondModel.setStep(&ownStep);
+    bondModel.setStep(&*ownStep, automatic);
     triggerUpdate(GUI::Change::atoms);
 }

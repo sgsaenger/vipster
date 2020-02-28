@@ -52,8 +52,8 @@ public:
     GUI::GlobalData& globals;
     GUI::StepData mainStep{globals, nullptr};
     GUI::SelData selection{globals, nullptr};
-    std::vector<std::shared_ptr<GUI::Data>> *stepExtras{nullptr};
-    std::vector<std::shared_ptr<GUI::Data>> *vpExtras{nullptr};
+    std::vector<std::weak_ptr<GUI::Data>> *stepExtras{nullptr};
+    std::vector<std::weak_ptr<GUI::Data>> *vpExtras{nullptr};
 private:
     const Settings &settings;
     void drawPre(void *context=nullptr);

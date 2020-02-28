@@ -115,14 +115,6 @@ void PinWidget::on_repeatStep_toggled(bool checked)
 
 void PinWidget::on_delStep_clicked()
 {
-    // remove from viewports
-    for(auto& vp: master->viewports){
-        auto& vpdata = vp->vpdata.extras;
-        auto pos = std::find(vpdata.begin(), vpdata.end(), curPin);
-        if(pos != vpdata.end()){
-            vpdata.erase(pos);
-        }
-    }
     // remove local infos
     ui->insertStep->setDisabled(true);
     if(curPin->curStep == master->curStep){
@@ -139,14 +131,15 @@ void PinWidget::on_addStep_clicked()
     ui->addStep->setDisabled(true);
     // add to list of steps
     pinnedSteps.push_back(std::make_shared<PinnedStep>(master->globals, master->curStep,
-        master->curMol->getName() + " (Step " + std::to_string(master->curVP->moldata[master->curMol].curStep) + ')',
+        master->curMol->getName() + " (Step "
+            + std::to_string(master->curVP->moldata[master->curMol].curStep) + ')',
         GUI::PBCVec{1,1,1}));
     pinnedSteps.back()->update(pinnedSteps.back()->curStep,
                                master->settings.atRadVdW.val, master->settings.atRadFac.val,
                                master->settings.bondRad.val);
     ui->stepList->addItem(QString::fromStdString(pinnedSteps.back()->name));
     // enable in current viewport
-    master->curVP->vpdata.extras.push_back(pinnedSteps.back());
+    master->curVP->addExtraData(pinnedSteps.back(), true);
     triggerUpdate(GUI::Change::extra);
 }
 
@@ -171,9 +164,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
     ui->zFit->setEnabled(hasCell);
     if(hasPin){
         QSignalBlocker block{ui->showStep};
-        auto &e = master->curVP->vpdata.extras;
-        auto pos = std::find(e.begin(), e.end(), curPin);
-        ui->showStep->setChecked(pos != e.end());
+        ui->showStep->setChecked(master->curVP->hasExtraData(curPin, true));
         QSignalBlocker block1{ui->showCell};
         ui->showCell->setChecked(curPin->cell);
         QSignalBlocker block2{ui->repeatStep};
@@ -217,11 +208,7 @@ void PinWidget::on_insertStep_clicked()
     }
     master->curStep->newAtoms(s);
     // immediately hide pinned step
-    auto &e = master->curVP->vpdata.extras;
-    auto pos = std::find(e.begin(), e.end(), curPin);
-    if(pos != e.end()){
-        e.erase(pos);
-    }
+    master->curVP->delExtraData(curPin, true);
     triggerUpdate(GUI::Change::atoms);
 }
 
@@ -230,14 +217,10 @@ void PinWidget::on_showStep_toggled(bool checked)
     if (!curPin) return;
     if (checked) {
         // insert into viewports extras
-        master->curVP->vpdata.extras.push_back(curPin);
+        master->curVP->addExtraData(curPin, true);
     }else{
         // remove from viewports extras
-        auto &e = master->curVP->vpdata.extras;
-        auto pos = std::find(e.begin(), e.end(), curPin);
-        if(pos != e.end()){
-            e.erase(pos);
-        }
+        master->curVP->delExtraData(curPin, true);
     }
     triggerUpdate(GUI::Change::extra);
 }

@@ -21,9 +21,7 @@ void Data2DWidget::updateWidget(GUI::change_t change)
     if(curPlane &&
        ((change & GUI::stepChanged) == GUI::stepChanged)){
         QSignalBlocker block{ui->sliceBut};
-        const auto& extradat = master->curVP->stepdata[master->curStep].extras;
-        auto pos2 = std::find(extradat.begin(), extradat.end(), curPlane);
-        ui->sliceBut->setChecked(pos2 != extradat.end());
+        ui->sliceBut->setChecked(master->curVP->hasExtraData(curPlane, false));
     }
 }
 
@@ -37,9 +35,7 @@ void Data2DWidget::setData(const BaseData* data)
     auto pos = planes.find(curData);
     if(pos != planes.end()){
         curPlane = pos->second;
-        const auto& extradat = master->curVP->stepdata[master->curStep].extras;
-        auto pos2 = std::find(extradat.begin(), extradat.end(), curPlane);
-        ui->sliceBut->setChecked(pos2 != extradat.end());
+        ui->sliceBut->setChecked(master->curVP->hasExtraData(curPlane, false));
     }else{
         curPlane = nullptr;
         ui->sliceBut->setChecked(false);
@@ -50,13 +46,9 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
 {
     if(curPlane){
         if(checked){
-            master->curVP->stepdata[master->curStep].extras.push_back(curPlane);
+            master->curVP->addExtraData(curPlane, false);
         }else{
-            auto& extradat = master->curVP->stepdata[master->curStep].extras;
-            auto pos = std::find(extradat.begin(), extradat.end(), curPlane);
-            if(pos != extradat.end()){
-                extradat.erase(pos);
-            }
+            master->curVP->delExtraData(curPlane, false);
         }
         triggerUpdate(GUI::Change::extra);
     }else if(curData && checked){
@@ -83,7 +75,7 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
                         {{0,0,0},{},{0,0}},{{1,0,0},{},{1,0}},{{1,1,0},{},{1,1}}
                     }, curData->origin, curData->cell, texture);
         planes.emplace(curData, curPlane);
-        master->curVP->stepdata[master->curStep].extras.push_back(curPlane);
+        master->curVP->addExtraData(curPlane, false);
         triggerUpdate(GUI::Change::extra);
     }
 }

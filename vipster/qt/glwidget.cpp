@@ -261,7 +261,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            curSel->setFilter(SelectionFilter{});
+            *curSel = curStep->select(SelectionFilter{});
             triggerUpdate(GUI::Change::selection);
         }
         break;
@@ -356,7 +356,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             SelectionFilter filter{};
             filter.mode = SelectionFilter::Mode::Index;
             if(add){
-                const auto& origIndices = curSel->getIndices();
+                const auto& origIndices = curSel->getAtoms().indices;
                 filter.indices.insert(origIndices.begin(), origIndices.end());
             }
             auto idx = pickAtoms(mousePos, rectPos);
@@ -390,7 +390,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                     }
                 }
             }
-            curSel->setFilter(filter);
+            *curSel = curStep->select(filter);
             rectPos = mousePos;
             triggerUpdate(GUI::Change::selection);
         }
@@ -400,7 +400,6 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
         break;
     case MouseMode::Bond:
         // if we have manual bonds and picked exactly two atoms, toggle bond
-        if(curStep->getBondMode() != BondMode::Manual) break;
         auto idx1 = pickAtoms(rectPos, rectPos);
         if(idx1.size() != 1 && idx1.begin()->second.size() != 1) break;
         auto idx2 = pickAtoms(e->pos(), e->pos());
@@ -430,7 +429,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             }
         }
         // create new bond
-        curStep->newBond(at1.first, at2.first, off_r);
+        curStep->addBond(at1.first, at2.first, off_r);
         triggerUpdate(GUI::Change::atoms);
         break;
     }

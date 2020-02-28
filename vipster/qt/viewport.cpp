@@ -63,13 +63,15 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
         // trigger global update
         master->updateWidgets(change);
     }else{
-        // short-circuit
+        // short-circuit if rest of GUI does not need to be updated
         // if necessary, make sure that data is up to date
         if(change & (GUI::Change::atoms | GUI::Change::fmt)){
-            curStep->evaluateCache();
+            // TODO: what to do here?
+//            curStep->evaluateCache();
         }
         if(change & GUI::Change::selection){
-            curSel->evaluateCache();
+            // TODO: what to do here?
+//            curSel->evaluateCache();
         }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){
@@ -82,7 +84,40 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
 
 void ViewPort::updateWidget(GUI::change_t change)
 {
+    if(change & GUI::Change::cell){
+        setMultEnabled(curStep->hasCell());
+    }
+    if(change & GUI::Change::extra){
+        // remove extra-data that has been erase
+        std::remove_if(vpdata.extras.begin(), vpdata.extras.end(),
+                       [](const auto &wp){return wp.expired();});
+        for(auto &sd: stepdata){
+            std::remove_if(sd.second.extras.begin(),
+                           sd.second.extras.begin(),
+                           [](const auto &wp){return wp.expired();});
+        }
+    }
     openGLWidget->updateWidget(change);
+}
+
+void ViewPort::addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global)
+{
+    auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
+    extras.push_back(dat);
+}
+
+void ViewPort::delExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global)
+{
+    auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
+    std::remove_if(extras.begin(), extras.end(),
+                   [&](const auto &wp){return !(wp.owner_before(dat)) && !(dat.owner_before(wp));});
+}
+
+bool ViewPort::hasExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global)
+{
+    auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
+    return extras.end() != std::find_if(extras.begin(), extras.end(),
+        [&](const auto &wp){return !(wp.owner_before(dat)) && !(dat.owner_before(wp));});
 }
 
 void ViewPort::registerMol(const std::string &name)
@@ -134,7 +169,7 @@ void ViewPort::setStep(int i, bool setMol)
     // ensure this step will be reused when mol is selected again
     moldata[curMol].curStep = i;
     // handle bond Mode
-    setBondMode(static_cast<bool>(curStep->getBondMode()));
+    setBondMode(master->stepdata[curStep].automatic_bonds);
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
     // if no previous selection exists, create one, afterwards assign it

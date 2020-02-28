@@ -36,17 +36,16 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
         curStep = master->curStep;
-        curState = &master->curVP->stepdata[curStep];
-        defMap = &master->definitions[curStep];
-        curSel = defMap->end();
+        defMap = &master->stepdata[curStep].definitions;
+        curIt = defMap->end();
         fillTable();
-    }else if(change & GUI::Change::definitions){
+    }else if(change & (GUI::Change::definitions)){
         fillTable();
-    }else if(change & (GUI::Change::atoms|GUI::Change::settings)){
+    }else if(change & (GUI::Change::atoms | GUI::Change::settings)){
         for(auto& def: *defMap){
-            def.second.second->update(&def.second.first,
-                                      master->settings.atRadVdW.val,
-                                      master->settings.atRadFac.val);
+            std::get<2>(def.second)->update(&std::get<0>(def.second),
+                                            master->settings.atRadVdW.val,
+                                            master->settings.atRadFac.val);
         }
     }
 }
@@ -66,16 +65,15 @@ void DefineWidget::fillTable()
         table.item(i, 0)->setFlags(Qt::ItemIsSelectable|
                                    Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
         table.item(i, 0)->setCheckState(Qt::CheckState(
-            (std::find(curState->extras.begin(), curState->extras.end(), def.second.second)
-             != curState->extras.end())*2));
+                        master->curVP->hasExtraData(std::get<2>(def.second), false)*2));
         // name
         table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(def.first)));
         // filter-str
         table.setItem(i, 2, new QTableWidgetItem(QString::fromStdString(
-            def.second.first.getFilter().toStr())));
+            std::get<1>(def.second))));
         // color button
         auto* but = new QPushButton("Select");
-        const auto& color = def.second.second->color;
+        const auto& color = std::get<2>(def.second)->color;
         but->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
                            .arg(color[0]).arg(color[1]).arg(color[2]));
         connect(but, &QPushButton::clicked, this, &DefineWidget::colButton_clicked);
@@ -99,12 +97,15 @@ void DefineWidget::on_newButton_clicked()
                                           QLineEdit::Normal, QString(), &ok
                                          ).toStdString();
         if(!ok) return;
-        auto [it, _] = defMap->insert_or_assign(name, std::pair{std::move(sel),
-            std::make_shared<GUI::SelData>(master->globals)});
-        it->second.second->update(&it->second.first,
+        auto [it, _] = defMap->insert_or_assign(name,
+            std::tuple{std::move(sel),
+                filter,
+                std::make_shared<GUI::SelData>(master->globals)});
+        auto& seldata = std::get<2>(it->second);
+        seldata->update(&std::get<0>(it->second),
             master->settings.atRadVdW.val, master->settings.atRadFac.val);
-        it->second.second->color = defaultColors[defMap->size()%5];
-        master->curVP->stepdata[curStep].extras.push_back(it->second.second);
+        seldata->color = defaultColors[defMap->size()%5];
+        master->curVP->addExtraData(curSelData, false);
         triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
     }catch(const Error &e){
         QMessageBox msg{this};
@@ -119,13 +120,11 @@ void DefineWidget::on_newButton_clicked()
 
 void DefineWidget::deleteAction()
 {
-    if(curSel == defMap->end()){
+    if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"delete group\" triggered with invalid selection"};
     }
-    auto posExtra = std::find(curState->extras.begin(), curState->extras.end(),
-                              curSel->second.second);
-    if(posExtra != curState->extras.end()) curState->extras.erase(posExtra);
-    defMap->erase(curSel);
+    master->curVP->delExtraData(curSelData, false);
+    defMap->erase(curIt);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
@@ -137,33 +136,45 @@ void DefineWidget::on_fromSelButton_clicked()
                                      QLineEdit::Normal, QString(), &ok
                                     ).toStdString();
     if(!ok) return;
-    auto [it, _] = defMap->insert_or_assign(tmp, std::pair{*master->curSel,
-        std::make_shared<GUI::SelData>(master->globals)});
-    it->second.second->update(&it->second.first,
+    // convert selection to index filter
+    const auto& idx = master->curSel->getAtoms().indices;
+    std::string filter;
+    std::stringstream ss{filter};
+    ss << "[ ";
+    for(const auto& p: idx){
+        ss << p.first << " ";
+    }
+    ss << ']';
+    // create new group
+    auto [it, _] = defMap->insert_or_assign(tmp,
+        std::tuple{*master->curSel,
+                   filter,
+                   std::make_shared<GUI::SelData>(master->globals)});
+    auto& seldata = std::get<2>(it->second);
+    seldata->update(&std::get<0>(it->second),
         master->settings.atRadVdW.val, master->settings.atRadFac.val);
-    it->second.second->color = defaultColors[defMap->size()%5];
-    master->curVP->stepdata[curStep].extras.push_back(it->second.second);
+    seldata->color = defaultColors[defMap->size()%5];
+    master->curVP->addExtraData(seldata, false);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
 void DefineWidget::toSelAction()
 {
-    if(curSel == defMap->end()){
+    if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
-    *master->curSel = curSel->second.first;
-    triggerUpdate(GUI::Change::selection);
+    *master->curSel = curSel;
+    master->curVP->delExtraData(curSelData, false);
+    triggerUpdate(GUI::Change::selection | GUI::Change::extra);
 }
 
 void DefineWidget::updateAction()
 {
-    if(curSel == defMap->end()){
+    if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"update group\" triggered with invalid selection"};
     }
-    auto& step = curSel->second.first;
-    step.setFilter(step.getFilter());
-    step.evaluateCache();
-    curSel->second.second->update(&curSel->second.first,
+    curSel = curStep->select(curFilter);
+    curSelData->update(&curSel,
         master->settings.atRadVdW.val, master->settings.atRadFac.val);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
@@ -174,7 +185,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
         // checkbox consumes mouse event, need to select row manually
         ui->defTable->selectRow(row);
     }
-    if(curSel == defMap->end()){
+    if(curIt == defMap->end()){
         throw Error{"DefineWidget: selection is invalid."};
     }
     QTableWidgetItem *cell = ui->defTable->item(row, column);
@@ -182,14 +193,11 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
     case 0:
         // toggle visibility
         if(cell->checkState()){
-            curState->extras.push_back(curSel->second.second);
+            master->curVP->addExtraData(curSelData, false);
         }else{
-            auto pos = std::find(curState->extras.begin(),
-                                 curState->extras.end(),
-                                 curSel->second.second);
-            curState->extras.erase(pos);
+            master->curVP->delExtraData(curSelData, false);
         }
-        triggerUpdate(GUI::Change::extra);
+        triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         break;
     case 1:
         // change name
@@ -198,10 +206,10 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
             msg.setText("Name \""+cell->text()+"\" is already in use.");
             msg.exec();
             QSignalBlocker block{ui->defTable};
-            cell->setText(curSel->first.c_str());
+            cell->setText(curIt->first.c_str());
             return;
         }else{
-            auto node = defMap->extract(curSel);
+            auto node = defMap->extract(curIt);
             node.key() = cell->text().toStdString();
             defMap->insert(std::move(node));
         }
@@ -210,9 +218,8 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
         // change filter
         try{
             auto filter = cell->text().toStdString();
-            curSel->second.first.setFilter(filter);
-            curSel->second.first.evaluateCache();
-            curSel->second.second->update(&curSel->second.first,
+            curSel = curStep->select(filter);
+            curSelData->update(&curSel,
                 master->settings.atRadVdW.val, master->settings.atRadFac.val);
             triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         }catch(const Error &e){
@@ -232,13 +239,13 @@ void DefineWidget::on_defTable_itemSelectionChanged()
 {
     auto sel = ui->defTable->selectedItems();
     if(sel.empty()){
-        curSel = defMap->end();
+        curIt = defMap->end();
         for(auto* a: contextActions){
             a->setDisabled(true);
         }
     }else{
         const auto& curName = ui->defTable->item(sel[0]->row(), 1)->text();
-        curSel = defMap->find(curName.toStdString());
+        curIt = defMap->find(curName.toStdString());
         for(auto* a: contextActions){
             a->setEnabled(true);
         }
@@ -247,7 +254,7 @@ void DefineWidget::on_defTable_itemSelectionChanged()
 
 void DefineWidget::colButton_clicked()
 {
-    auto& col = curSel->second.second->color;
+    auto& col = curSelData->color;
     auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
     auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                          QColorDialog::ShowAlphaChannel);

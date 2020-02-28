@@ -1,7 +1,6 @@
 #include "scriptwidget.h"
 #include "ui_scriptwidget.h"
 #include "ui_scripthelp.h"
-#include "stepsel.h"
 #include "../mainwindow.h"
 #include <QPlainTextEdit>
 #include <QMessageBox>
@@ -61,17 +60,19 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Select:
-            data.sel->setFilter(op.s1);
+            *data.sel = s.select(op.s1);
             change |= GUI::Change::selection;
             break;
         case ScriptOp::Mode::Define:
         {
-            auto &defMap = master->definitions[&step];
+            auto &defMap = master->stepdata[&step].definitions;
             auto [it, _] = defMap.insert_or_assign(op.s1,
-                std::pair{s.select(op.s2), std::make_shared<GUI::SelData>(master->globals)});
-            it->second.second->update(&it->second.first, master->settings.atRadVdW.val,
-                                 master->settings.atRadFac.val);
-            it->second.second->color = defaultColors[defMap.size()%5];
+                std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>(master->globals)});
+            auto& seldata = std::get<2>(it->second);
+            seldata->update(&std::get<0>(it->second),
+                            master->settings.atRadVdW.val,
+                            master->settings.atRadFac.val);
+            seldata->color = defaultColors[defMap.size()%5];
             change |= GUI::Change::definitions;
         }
             break;
@@ -86,14 +87,13 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             }else if(op.target == "sel"){
                 execOp(*data.sel, op);
             }else{
-                auto &defMap = master->definitions[&step];
+                auto &defMap = master->stepdata[&step].definitions;
                 auto def = defMap.find(op.target);
                 if(def == defMap.end()){
                     throw Error("Unknown target: "+op.target);
                 }
                 // make sure that formats match
-                def->second.first.setFmt(step.getFmt());
-                execOp(def->second.first, op);
+                execOp(std::get<0>(def->second), op);
             }
         } catch (const Error &e) {
             QMessageBox msg{};

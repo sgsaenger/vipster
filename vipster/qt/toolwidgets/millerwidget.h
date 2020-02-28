@@ -33,8 +33,9 @@ private:
                     const std::array<int8_t, 3> &hkl);
         std::array<int8_t, 3> hkl;
     };
+    std::map<Vipster::Step*, std::shared_ptr<MillerPlane>> planes;
     Vipster::Step* curStep{nullptr};
-    MillerPlane* curPlane{nullptr};
+    std::shared_ptr<MillerPlane> curPlane{nullptr};
 };
 
 #endif // MILLERWIDGET_H

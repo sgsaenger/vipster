@@ -11,7 +11,7 @@ class AtomModel : public QAbstractTableModel
 
 public:
     explicit AtomModel(MolWidget *parent = nullptr);
-    void setStep(Vipster::Step* curStep);
+    void setStep(Vipster::Step::formatter* curStep);
     void setColumns(int cols);
 
     // Header:
@@ -32,7 +32,7 @@ public:
 
 private:
     MolWidget *parent;
-    Vipster::Step* curStep{nullptr};
+    Vipster::Step::formatter* curStep{nullptr};
     QStringList colNames = {"Type" , "x", "y", "z", "Charge", "fx", "fy", "fz",
                             "Hide", "fix x", "fix y", "fix z"};
     std::vector<int> colMap = {0,1,2,3};

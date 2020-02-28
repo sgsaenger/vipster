@@ -43,9 +43,12 @@ private:
 
     Ui::DefineWidget *ui;
     Vipster::Step* curStep{nullptr};
-    ViewPort::StepState *curState{nullptr};
-    decltype(MainWindow::definitions)::mapped_type *defMap{nullptr};
-    std::remove_pointer_t<decltype(defMap)>::iterator curSel;
+    decltype(MainWindow::StepState::definitions) *defMap{nullptr};
+    std::remove_pointer_t<decltype(defMap)>::iterator curIt;
+    // TODO: check if this aliasing works at all
+    Vipster::Step::selection &curSel{std::get<0>(curIt->second)};
+    Vipster::SelectionFilter &curFilter{std::get<1>(curIt->second)};
+    std::shared_ptr<Vipster::GUI::SelData> &curSelData{std::get<2>(curIt->second)};
     QList<QAction*> contextActions;
 };
 

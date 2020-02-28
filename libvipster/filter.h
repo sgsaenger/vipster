@@ -50,6 +50,10 @@ struct SelectionFilter{
     SelectionFilter(const SelectionFilter& f) {
         *this = f;
     }
+    SelectionFilter(const std::string &s){
+        std::stringstream ss{s};
+        ss >> *this;
+    }
     SelectionFilter& operator=(const SelectionFilter& f){
         mode = f.mode; op = f.op | Op::UPDATE;
         pos = f.pos; posVal = f.posVal;
@@ -76,7 +80,7 @@ struct SelectionFilter{
         groupfilter = std::move(f.groupfilter);
         return *this;
     }
-    std::string toStr() const
+    operator std::string () const
     {
         std::stringstream ss{};
         ss << *this;

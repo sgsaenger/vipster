@@ -141,10 +141,12 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
     // if necessary, make sure that data is up to date
     if(change & (GUI::Change::atoms | GUI::Change::fmt)){
-        curStep->evaluateCache();
+        // TODO: what to do here?
+//        curStep->evaluateCache();
     }
     if(change & GUI::Change::selection){
-        curSel->evaluateCache();
+        // TODO: what to do here?
+//        curSel->evaluateCache();
     }
     // notify widgets
     for(auto& w: viewports){
@@ -254,15 +256,16 @@ void MainWindow::editAtoms(QAction* sender)
         }
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionCopy_Atom_s){
-        copyBuf = *curSel;
+        copyBuf = std::make_unique<Step::selection>(*curSel);
     }else if ( sender == ui->actionCut_Atom_s){
-        copyBuf = *curSel;
+        copyBuf = std::make_unique<Step::selection>(*curSel);
         curStep->delAtoms(*curSel);
         change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionPaste_Atom_s){
+        if(!copyBuf) return;
         auto oldNat = curStep->getNat();
-        curStep->newAtoms(copyBuf);
-        curVP->stepdata[curStep].sel->setFilter(
+        curStep->newAtoms(*copyBuf);
+        *curVP->stepdata[curStep].sel = curStep->select(
             "index "+std::to_string(oldNat)+'-'+std::to_string(curStep->getNat()-1));
         change = GUI::Change::atoms | GUI::Change::selection;
     }

@@ -57,7 +57,7 @@ void PickWidget::updateWidget(GUI::change_t change)
     auto fmt = curSel.getFormatter(AtomFmt::Crystal, AtomFmt::Angstrom);
     while(it != curSel.cend()){
         int count = 0;
-        const auto& pair = it.getFilterPair();
+        const auto& pair = it.getSel();
         for(const auto& off: pair.second){
             names.push_back(QString::number(pair.first)+QString{count,'\''});
             if(nat<4){

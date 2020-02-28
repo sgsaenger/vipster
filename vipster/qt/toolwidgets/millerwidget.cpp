@@ -135,14 +135,10 @@ void MillerWidget::updateWidget(GUI::change_t change)
     if((change & GUI::stepChanged) == GUI::stepChanged){
         // set new pointers
         curStep = master->curStep;
-        curPlane = nullptr;
-        // find out if a plane had previously been created in this viewport for this step
-        for(auto& dat: master->curVP->stepdata[curStep].extras){
-            auto* test = dynamic_cast<MillerPlane*>(dat.get());
-            if(test){
-                curPlane = test;
-                break;
-            }
+        if(auto pos=planes.find(curStep); pos !=planes.end()){
+            curPlane = pos->second;
+        }else{
+            curPlane = nullptr;
         }
         // set GUI state as needed
         if(curPlane){
@@ -223,25 +219,17 @@ void MillerWidget::on_pushButton_toggled(bool checked)
         auto off = Vec{ui->xOff->value(),
                        ui->yOff->value(),
                        ui->zOff->value()};
-        auto& extras = master->curVP->stepdata[curStep].extras;
-        extras.push_back(
-        std::make_shared<MillerPlane>(
-            master->globals, mkFaces(hkl), off,
-            curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
-            MillerPlane::Texture{{master->settings.milCol.val}, 1, 1}, hkl
-        ));
-        curPlane = static_cast<MillerPlane*>(extras.back().get());
+        planes.insert_or_assign(curStep,
+            std::make_shared<MillerPlane>(
+                master->globals, mkFaces(hkl), off,
+                curStep->getCellVec()*curStep->getCellDim(CdmFmt::Bohr),
+                MillerPlane::Texture{{master->settings.milCol.val}, 1, 1}, hkl
+            ));
+        curPlane = planes.at(curStep);
+        master->curVP->addExtraData(curPlane, false);
     }else{
         // delete Plane
-        auto& extras = master->curVP->stepdata[curStep].extras;
-        auto pos = std::find_if(extras.begin(), extras.end(), [&](const auto& up){
-            return up.get() == curPlane;
-        });
-        if(pos != extras.end()){
-            extras.erase(pos);
-        }else{
-            throw Error{"Invalid hkl plane"};
-        }
+        master->curVP->delExtraData(curPlane, false);
     }
     triggerUpdate(GUI::Change::extra);
 }

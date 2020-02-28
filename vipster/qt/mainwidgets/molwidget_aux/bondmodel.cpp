@@ -8,10 +8,11 @@ BondModel::BondModel(MolWidget *parent)
     :parent{parent}
 {}
 
-void BondModel::setStep(Vipster::Step *curStep)
+void BondModel::setStep(Step::formatter *curStep, bool automatic_bonds)
 {
     beginResetModel();
     this->curStep = curStep;
+    this->automatic_bonds = automatic_bonds;
     curBonds =  &curStep->getBonds();
     endResetModel();
 }
@@ -38,7 +39,7 @@ int BondModel::columnCount(const QModelIndex &parent) const
     if (parent.isValid() || !curStep)
         return 0;
 
-    if(curStep->getBondMode() == BondMode::Automatic){
+    if(automatic_bonds){
         return 3;
     }else{
         return 4;
@@ -134,7 +135,7 @@ Qt::ItemFlags BondModel::flags(const QModelIndex& index) const
         return Qt::NoItemFlags;
 
     if(index.column() == 2){
-        if (curStep->getBondMode() == BondMode::Manual) {
+        if (!automatic_bonds) {
             return Qt::ItemIsEnabled | Qt::ItemIsEditable;
         } else {
             return Qt::ItemIsEnabled;

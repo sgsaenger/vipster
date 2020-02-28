@@ -1,6 +1,6 @@
 #include "scripthelp.h"
 #include "ui_scripthelp.h"
-#include "stepsel.h"
+#include "filter.h"
 
 ScriptHelp::ScriptHelp(QWidget *parent) :
     QDialog(parent),

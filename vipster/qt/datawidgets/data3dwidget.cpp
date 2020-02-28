@@ -34,16 +34,13 @@ void Data3DWidget::updateWidget(GUI::change_t change)
 {
     // update display state
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        const auto& extradat = master->curVP->stepdata[master->curStep].extras;
         if(curSlice){
             QSignalBlocker block{ui->sliceBut};
-            auto pos = std::find(extradat.begin(), extradat.end(), curSlice);
-            ui->sliceBut->setChecked(pos != extradat.end());
+            ui->sliceBut->setChecked(master->curVP->hasExtraData(curSlice, false));
         }
         if(curSurf){
             QSignalBlocker block{ui->surfBut};
-            auto pos = std::find(extradat.begin(), extradat.end(), curSurf);
-            ui->surfBut->setChecked(pos != extradat.end());
+            ui->surfBut->setChecked(master->curVP->hasExtraData(curSurf, false));
         }
     }
     // change isosurface colors
@@ -63,14 +60,12 @@ void Data3DWidget::setData(const BaseData* data)
     }
     // TODO: this is wrong, isn't it?
     QSignalBlocker block{this};
-    const auto& extradat = master->curVP->stepdata[master->curStep].extras;
 
     // init plane-state
     auto slicePos = slices.find(curData);
     if(slicePos != slices.end()){
         curSlice = slicePos->second;
-        auto pos = std::find(extradat.begin(), extradat.end(), curSlice);
-        ui->sliceBut->setChecked(pos != extradat.end());
+        ui->sliceBut->setChecked(master->curVP->hasExtraData(curSlice, false));
         ui->sliceDir->setCurrentIndex(static_cast<int>(curSlice->dir));
         ui->sliceVal->setMaximum(static_cast<int>(curData->extent[curSlice->dir]));
         ui->sliceVal->setValue(static_cast<int>(curSlice->pos));
@@ -94,8 +89,7 @@ void Data3DWidget::setData(const BaseData* data)
     auto surfPos = surfaces.find(curData);
     if(surfPos != surfaces.end()){
         curSurf = surfPos->second;
-        auto pos = std::find(extradat.begin(), extradat.end(), curSurf);
-        ui->surfBut->setChecked(pos != extradat.end());
+        ui->surfBut->setChecked(master->curVP->hasExtraData(curSurf, false));
         ui->surfToggle->setCheckState(Qt::CheckState(curSurf->plusmin*2));
         auto isoval = static_cast<double>(curSurf->isoval);
         ui->surfVal->setText(QString::number(isoval));
@@ -207,13 +201,9 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
 {
     if(curSlice){
         if(checked){
-            master->curVP->stepdata[master->curStep].extras.push_back(curSlice);
+            master->curVP->addExtraData(curSlice, false);
         }else{
-            auto& extradat = master->curVP->stepdata[master->curStep].extras;
-            auto pos = std::find(extradat.begin(), extradat.end(), curSlice);
-            if(pos != extradat.end()){
-                extradat.erase(pos);
-            }
+            master->curVP->delExtraData(curSlice, false);
         }
         triggerUpdate(GUI::Change::extra);
     }else if(checked){
@@ -229,7 +219,7 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
             dir, pos
             );
         slices.emplace(curData, curSlice);
-        master->curVP->stepdata[master->curStep].extras.push_back(curSlice);
+        master->curVP->addExtraData(curSlice, false);
         triggerUpdate(GUI::Change::extra);
     }
 }
@@ -740,13 +730,9 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
 {
     if(curSurf){
         if(checked){
-            master->curVP->stepdata[master->curStep].extras.push_back(curSurf);
+            master->curVP->addExtraData(curSurf, false);
         }else{
-            auto& extradat = master->curVP->stepdata[master->curStep].extras;
-            auto pos = std::find(extradat.begin(), extradat.end(), curSurf);
-            if(pos != extradat.end()){
-                extradat.erase(pos);
-            }
+            master->curVP->delExtraData(curSurf, false);
         }
         triggerUpdate(GUI::Change::extra);
     }else if(checked){
@@ -762,7 +748,7 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                     pm, isoval
                     );
         surfaces.emplace(curData, curSurf);
-        master->curVP->stepdata[master->curStep].extras.push_back(curSurf);
+        master->curVP->addExtraData(curSurf, false);
         triggerUpdate(GUI::Change::extra);
     }
 }

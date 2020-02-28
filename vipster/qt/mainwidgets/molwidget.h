@@ -58,7 +58,7 @@ private:
     void setSelection(void);
     Ui::MolWidget *ui;
     Vipster::Step *curStep;
-    Vipster::Step ownStep;
+    std::unique_ptr<Vipster::Step::formatter> ownStep; //TODO: make sure this is not null before the widget is used
     Vipster::Molecule* curMol;
     AtomModel molModel{this};
     BondModel bondModel{this};
@@ -68,11 +68,11 @@ private:
     static constexpr const char* activeKpoints[] = {"Gamma (active)",
                                                     "Monkhorst-Pack grid (active)",
                                                     "Discrete (active)"};
-    static constexpr const char* inactiveFmt[] = {"Bohr", "Angstrom", "Crystal", "Alat"};
-    static constexpr const char* activeFmt[] = {"Bohr (active)",
+    static constexpr const char* inactiveFmt[] = { "Crystal", "Alat", "Angstrom", "Bohr" };
+    static constexpr const char* activeFmt[] = {"Crystal (active)",
+                                                "Alat (active)",
                                                 "Angstrom (active)",
-                                                "Crystal (active)",
-                                                "Alat (active)"};
+                                                "Bohr (active)"};
 };
 
 #endif // MOLWIDGET_H

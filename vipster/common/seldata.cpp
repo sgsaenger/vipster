@@ -130,7 +130,7 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
     if(useVdW){
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
-            for(const auto& off: it.getFilterPair().second){
+            for(const auto& off: it.getSel().second){
                 auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
                                                static_cast<Vec::value_type>(off[1]),
                                                static_cast<Vec::value_type>(off[2])});
@@ -148,7 +148,7 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
     }else{
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
-            for(const auto& off: it.getFilterPair().second){
+            for(const auto& off: it.getSel().second){
                 auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
                                                static_cast<Vec::value_type>(off[1]),
                                                static_cast<Vec::value_type>(off[2])});

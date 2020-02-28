@@ -23,6 +23,7 @@ class ViewPort : public QFrame
     Q_OBJECT
 
     friend class MainWindow;
+    friend class GLWidget;
 public:
     explicit ViewPort(MainWindow *parent, bool active=false);
     explicit ViewPort(const ViewPort &vp);
@@ -31,18 +32,21 @@ public:
     void updateWidget(Vipster::GUI::change_t change);
     void registerMol(const std::string& name);
     void makeActive(bool active);
+    void addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
+    void delExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
+    bool hasExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     struct {
-        std::vector<std::shared_ptr<Vipster::GUI::Data>> extras{};
+        std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};
     } vpdata{};
     struct MolState{
         size_t curStep{0};
         Vipster::GUI::PBCVec mult{1,1,1};
     };
+    std::map<Vipster::Molecule*, MolState> moldata{};
     struct StepState{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
-        std::vector<std::shared_ptr<Vipster::GUI::Data>> extras{};
+        std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};
     };
-    std::map<Vipster::Molecule*, MolState> moldata{};
     std::map<Vipster::Step*, StepState> stepdata{};
 
 public slots:

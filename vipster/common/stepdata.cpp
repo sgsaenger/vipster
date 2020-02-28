@@ -448,8 +448,7 @@ void GUI::StepData::update(Step* step,
     constexpr Vec x_axis{{1,0,0}};
     const auto& bonds = curStep->getBonds();
     const auto& elements = curStep->getAtoms().elements;
-    const auto& at_coord = curStep->getAtoms().coordinates[
-            static_cast<size_t>(curStep->getFmt())];
+    const auto& at_coord = curStep->getAtoms().coordinates;
     const auto& at_prop = curStep->getAtoms().properties;
     auto fmt = curStep->getFmt();
     auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);

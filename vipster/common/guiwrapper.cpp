@@ -57,12 +57,16 @@ void GuiWrapper::drawPre(void *context)
     selection.syncToGPU(context);
     if(stepExtras){
         for(const auto& i: *stepExtras){
-            i->syncToGPU(context);
+            if(auto j=i.lock()){
+                j->syncToGPU(context);
+            }
         }
     }
     if(vpExtras){
         for(const auto& i: *vpExtras){
-            i->syncToGPU(context);
+            if(auto j=i.lock()){
+                j->syncToGPU(context);
+            }
         }
     }
 }
@@ -82,12 +86,16 @@ void GuiWrapper::drawImpl(const Vec &pos, void *context)
     selection.draw(off, m, cv, settings.showCell.val, context);
     if(stepExtras){
         for(const auto& i: *stepExtras){
-            i->draw(off, m, cv, settings.showCell.val, context);
+            if(auto j=i.lock()){
+                j->draw(off, m, cv, settings.showCell.val, context);
+            }
         }
     }
     if(vpExtras){
         for(const auto& i: *vpExtras){
-            i->draw(off, m, cv, settings.showCell.val, context);
+            if(auto j=i.lock()){
+                j->draw(off, m, cv, settings.showCell.val, context);
+            }
         }
     }
 }

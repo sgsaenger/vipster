@@ -13,11 +13,59 @@
 #include <memory>
 #include <vector>
 #include <set>
-#include <functional>
-#include <algorithm>
-#include <optional>
 
 namespace Vipster {
+
+/*
+ * Helper functions to ensure step Formatters or Selections aren't nested in itself, e.g.:
+ *
+ * make_formatter_t<Formatter<T>> will return Formatter<T> instead of Formatter<Formatter<T>>
+ *
+ * elso enforce that Selection has priority over Formatter, i.e. Selection<Formatter<T>>
+ */
+
+template<typename, template<typename...> typename>
+static constexpr bool is_instance{false};
+
+template<typename A, template<typename...> typename B>
+static constexpr bool is_instance<B<A>, B>{true};
+
+template<typename T>
+static constexpr bool is_selection = is_instance<T, Selection>;
+
+template<typename T>
+static constexpr bool is_formatter = is_instance<T, Formatter>;
+
+template<typename T>
+struct make_selection {
+    using type = Selection<T>;
+};
+
+template<typename T>
+struct make_selection<Selection<T>> {
+    using type = typename make_selection<T>::type;
+};
+
+template<typename T>
+using make_selection_t = typename make_selection<T>::type;
+
+template<typename T>
+struct make_formatter {
+    using type = Formatter<T>;
+};
+
+template<typename T>
+struct make_formatter<Formatter<T>>{
+    using type = typename make_formatter<T>::type;
+};
+
+template<typename T>
+struct make_formatter<Selection<T>>{
+    using type = make_selection_t<typename make_formatter<T>::type>;
+};
+
+template<typename T>
+using make_formatter_t = typename make_formatter<T>::type;
 
 /*
  * Const-Base for all Step-like containers
@@ -35,6 +83,10 @@ class StepConst
     template<typename U> friend class StepConst;
 public:
     virtual ~StepConst() = default;
+    StepConst(const StepConst&) = default;
+    StepConst(StepConst &&) = default;
+    StepConst& operator=(StepConst&&) = default;
+    StepConst& operator=(const StepConst&) = default;
 
     // NOTE: Don't know how to mask this yet
     std::shared_ptr<PeriodicTable> pte;
@@ -99,12 +151,20 @@ public:
     }
 
     // Selection
-    using const_selection = StepConst<Selection<T>>;
+    using const_selection = StepConst<make_selection<T>>;
     const_selection select(SelectionFilter filter) const
     {
-        return {this->pte,
-                std::make_shared<Selection<T>>(this->atoms, evalFilter(*this, filter)),
-                this->bonds, this->cell, this->comment};
+        if constexpr(is_selection<T>){
+            return {this->pte,
+                    std::make_shared<typename const_selection::atom_source>(
+                            this->atoms->atoms, this->atoms->indices),
+                    this->bonds, this->cell, this->comment};
+        }else{
+            return {this->pte,
+                    std::make_shared<typename const_selection::atom_source>(
+                            this->atoms, evalFilter(*this, filter)),
+                    this->bonds, this->cell, this->comment};
+        }
     }
 
     // Comment
@@ -128,15 +188,49 @@ public:
     }
 
     // Format
-    // TODO: rename getFormatter?
-    using const_formatter = StepConst<Formatter<T>>;
+    using const_formatter = StepConst<make_formatter_t<T>>;
     const_formatter     asFmt(AtomFmt tgt) const
     {
-        return {this->pte,
-                std::make_shared<Formatter<T>>(this->atoms, tgt, getFormatter(getFmt(), tgt), getFormatter(tgt, getFmt())),
-                this->bonds, this->cell, this->comment};
+        // create Formatter<T> from Formatter<T>
+        if constexpr(is_formatter<T>){
+            return {this->pte,
+                    std::make_shared<typename const_formatter::atom_source>(
+                            this->atoms->atoms, tgt,
+                            this->getFormatter(this->atoms->atoms->fmt, tgt),
+                            this->getFormatter(tgt, this->atoms->atoms->fmt)),
+                    this->bonds, this->cell, this->comment};
+        }else if constexpr(is_selection<T>){
+            using base_source = std::remove_reference_t<decltype(*this->atoms->atoms)>;
+            if constexpr(is_formatter<base_source>){
+                // create Selection<Formatter<T>> from Formatter<T>
+                return {this->pte,
+                        std::make_shared<typename const_formatter::atom_source>(
+                            std::make_shared<base_source>(
+                                this->atoms->atoms->atoms, tgt,
+                                this->getFormatter(this->atoms->atoms->atoms->fmt, tgt),
+                                this->getFormatter(tgt, this->atoms->atoms->atoms->fmt)),
+                            this->atoms->indices),
+                        this->bonds, this->cell, this->comment};
+            }else{ // create Selection<Formatter<T>> from T
+                return {this->pte,
+                        std::make_shared<typename const_formatter::atom_source>(
+                            std::make_shared<Formatter<base_source>>(
+                                this->atoms->atoms, tgt,
+                                this->getFormatter(this->atoms->atoms->fmt, tgt),
+                                this->getFormatter(tgt, this->atoms->atoms->fmt)),
+                            this->atoms->indices),
+                        this->bonds, this->cell, this->comment};
+            }
+        }else{ // create Formatter<T> from T
+            return {this->pte,
+                    std::make_shared<typename const_formatter::atom_source>(
+                            this->atoms, tgt,
+                            this->getFormatter(this->atoms->fmt, tgt),
+                            this->getFormatter(tgt, this->atoms->fmt)),
+                    this->bonds, this->cell, this->comment};
+        }
     }
-    AtomFmt             getFmt() const noexcept
+    AtomFmt             getFmt() const
     {
         return atoms->fmt;
     }
@@ -144,6 +238,7 @@ public:
     {
         atoms->fmt = tgt;
     }
+    // TODO: rename/rework getFormatter and friends?
     std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
                                                  AtomFmt target) const
     {
@@ -295,8 +390,13 @@ class StepMutable: public StepConst<T>
     template<typename U> friend class StepMutable;
 public:
     virtual ~StepMutable() = default;
+    StepMutable(const StepMutable &) = default;
+    StepMutable(StepMutable &&) = default;
+    StepMutable& operator=(const StepMutable&) = default;
+    StepMutable& operator=(StepMutable&&) = default;
 
     // Atoms
+    using typename StepConst<T>::atom_source;
     using atom = typename T::atom;
     using StepConst<T>::operator[];
     atom        operator[](size_t i) noexcept
@@ -337,12 +437,19 @@ public:
     }
 
     // Selection
-    using selection = StepMutable<Selection<T>>;
+    using StepConst<T>::select;
+    using selection = StepMutable<make_selection_t<T>>;
     selection select(SelectionFilter filter)
     {
-        return {this->pte,
-                std::make_shared<Selection<T>>(this->atoms, evalFilter(*this, filter)),
-                this->bonds, this->cell, this->comment};
+        if constexpr(is_selection<T>){
+            return {this->pte,
+                    std::make_shared<typename selection::atom_source>(this->atoms->atoms, this->atoms->indices),
+                    this->bonds, this->cell, this->comment};
+        }else{
+            return {this->pte,
+                    std::make_shared<typename selection::atom_source>(this->atoms, evalFilter(*this, filter)),
+                    this->bonds, this->cell, this->comment};
+        }
     }
 
     // Comment
@@ -353,12 +460,47 @@ public:
 
     // Format
     using StepConst<T>::asFmt;
-    using formatter = StepMutable<Formatter<T>>;
-    formatter asFmt(AtomFmt tgt)
+    using formatter = StepMutable<make_formatter_t<T>>;
+    formatter     asFmt(AtomFmt tgt)
     {
-        return {this->pte,
-                std::make_shared<Formatter<T>>(this->atoms, tgt, this->getFormatter(this->getFmt(), tgt), this->getFormatter(tgt, this->getFmt())),
-                this->bonds, this->cell, this->comment};
+        // create Formatter<T> from Formatter<T>
+        if constexpr(is_formatter<T>){
+            return {this->pte,
+                    std::make_shared<typename formatter::atom_source>(
+                            this->atoms->atoms, tgt,
+                            this->getFormatter(this->atoms->atoms->fmt, tgt),
+                            this->getFormatter(tgt, this->atoms->atoms->fmt)),
+                    this->bonds, this->cell, this->comment};
+        }else if constexpr(is_selection<T>){
+            using base_source = std::remove_reference_t<decltype(*this->atoms->atoms)>;
+            if constexpr(is_formatter<base_source>){
+                // create Selection<Formatter<T>> from Formatter<T>
+                return {this->pte,
+                        std::make_shared<typename formatter::atom_source>(
+                            std::make_shared<base_source>(
+                                this->atoms->atoms->atoms, tgt,
+                                this->getFormatter(this->atoms->atoms->atoms->fmt, tgt),
+                                this->getFormatter(tgt, this->atoms->atoms->atoms->fmt)),
+                            this->atoms->indices),
+                        this->bonds, this->cell, this->comment};
+            }else{ // create Selection<Formatter<T>> from T
+                return {this->pte,
+                        std::make_shared<typename formatter::atom_source>(
+                            std::make_shared<Formatter<base_source>>(
+                                this->atoms->atoms, tgt,
+                                this->getFormatter(this->atoms->atoms->fmt, tgt),
+                                this->getFormatter(tgt, this->atoms->atoms->fmt)),
+                            this->atoms->indices),
+                        this->bonds, this->cell, this->comment};
+            }
+        }else{ // create Formatter<T> from T
+            return {this->pte,
+                    std::make_shared<typename formatter::atom_source>(
+                            this->atoms, tgt,
+                            this->getFormatter(this->atoms->fmt, tgt),
+                            this->getFormatter(tgt, this->atoms->fmt)),
+                    this->bonds, this->cell, this->comment};
+        }
     }
 
     // Bonds

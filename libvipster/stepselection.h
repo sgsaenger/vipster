@@ -35,7 +35,7 @@ struct Selection{
     std::shared_ptr<T> atoms;
     // complete Step-interface
     AtomFmt fmt;
-    size_t getNat();
+    size_t getNat() const noexcept {return indices.size();}
     // store selection
     SelectionIndices indices;
 
@@ -64,7 +64,7 @@ struct Selection{
         using iterator_category = std::random_access_iterator_tag;
         // TODO: default constructibility
         AtomIterator(Selection &s, PeriodicTable &pte, size_t i)
-            : value_type{s, pte, s.indices[i].first},
+            : value_type{s, pte, s.indices[i].first}, // BUG: doesn't work if indices are empty
               idx{i}, sel{&s.indices}
         {}
         // copying is templated to allow conversion to const

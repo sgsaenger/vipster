@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "fileio.h"
-#include "stepsel.h"
+#include "step.h"
 #include "configfile.h"
 
 #include "viewport.h"
@@ -38,14 +38,18 @@ public:
     // Molecule and Step data
     std::list<Vipster::Molecule> molecules;
     // TODO: store StepData with weak_ptr
-    std::map<Vipster::Step*,
-        std::map<std::string, std::pair<
-            Vipster::Step::selection,
-            std::shared_ptr<Vipster::GUI::SelData>>>> definitions;
+    struct StepState{
+        std::map<std::string,
+                 std::tuple<Vipster::Step::selection,
+                            Vipster::SelectionFilter,
+                            std::shared_ptr<Vipster::GUI::SelData>>> definitions;
+        bool automatic_bonds{true};
+    };
+    std::map<Vipster::Step*, StepState> stepdata{};
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
-    Vipster::Step copyBuf{};
+    std::unique_ptr<Vipster::Step::selection> copyBuf{};
     void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IO::Data&& d);
     // Parameter data

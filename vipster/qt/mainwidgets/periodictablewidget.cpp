@@ -24,16 +24,6 @@ void PeriodicTableWidget::registerProperty(QWidget* w, double Element::* prop)
                 if(isGlobal){
                     triggerUpdate(GUI::Change::settings);
                 }else{
-                    /* WARNING: this may break when cache-validation is changed
-                       reassign one atom-type to taint bond-caches
-                       when changing bond cutoff radius
-                       (also triggered for other doubles atm. unneeded but not harmful)
-                    */
-                    for(auto& step: master->curMol->getSteps()){
-                        if(step.getNat()){
-                            step[0].name = step[0].name;
-                        }
-                    }
                     triggerUpdate(GUI::Change::settings | GUI::Change::atoms);
                 }
             }

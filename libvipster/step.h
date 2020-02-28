@@ -323,8 +323,8 @@ public:
     Step& operator=(Step&& s);
     template<typename T>
     Step(const StepConst<T>& s)
-        : StepMutable<AtomList>{s.pte, s.getFmt(),
-                            std::make_shared<AtomList>(),
+        : StepMutable<AtomList>{s.pte,
+                            std::make_shared<AtomList>(s.getFmt()),
                             std::make_shared<BondList>(),
                             std::make_shared<CellData>(),
                             std::make_shared<std::string>(s.getComment())}
@@ -388,16 +388,16 @@ public:
         }
     }
     void    delAtom(size_t i);
-//    template<template<typename> class T>
-//    void    delAtoms(SelectionBase<T, AtomList>& s)
-//    {
-//        const auto& idx = s.getIndices();
-//        for(auto it = idx.rbegin(); it != idx.rend(); ++it)
-//        {
-//            delAtom(it->first);
-//        }
-//        s.setFilter(SelectionFilter{});
-//    }
+    template<typename T>
+    void delAtoms(StepConst<Selection<T>>& s)
+    {
+        const auto& idx = s.getAtoms().indices;
+        for(auto it = idx.rbegin(); it != idx.rend(); ++it)
+        {
+            delAtom(it->first);
+        }
+        s = select({});
+    }
 
     // Cell
     void enableCell(bool val) noexcept;

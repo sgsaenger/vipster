@@ -8,7 +8,7 @@ AtomModel::AtomModel(MolWidget *parent)
 {
 }
 
-void AtomModel::setStep(Vipster::Step *step)
+void AtomModel::setStep(Step::formatter *step)
 {
     beginResetModel();
     curStep = step;
