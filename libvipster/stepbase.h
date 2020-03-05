@@ -3,10 +3,8 @@
 
 #include "atom.h"
 #include "bond.h"
-#include "cell.h"
 #include "vec.h"
 #include "data.h"
-#include "settings.h"
 #include "stepformatter.h"
 #include "stepselection.h"
 
@@ -16,6 +14,7 @@
 
 namespace Vipster {
 
+namespace detail{
 /*
  * Helper functions to ensure step Formatters or Selections aren't nested in itself, e.g.:
  *
@@ -67,15 +66,15 @@ struct make_formatter<Selection<T>>{
 template<typename T>
 using make_formatter_t = typename make_formatter<T>::type;
 
+}
+
 /*
  * Const-Base for all Step-like containers
  *
  * Implements const-interface for common state:
  * - Atoms (atomcontainer must be provided as template argument)
  * - Bonds
- * - Cell
  * - Comment
- * and provides the storage
  */
 template<typename T>
 class StepConst
@@ -88,8 +87,11 @@ public:
     StepConst& operator=(StepConst&&) = default;
     StepConst& operator=(const StepConst&) = default;
 
-    // NOTE: Don't know how to mask this yet
-    std::shared_ptr<PeriodicTable> pte;
+    // Periodic table
+    const PeriodicTable& getPTE() const
+    {
+        return *atoms->ctxt.pte;
+    }
 
     // Atoms
     using atom_source = T;
@@ -98,9 +100,9 @@ public:
     {
         return atoms->getNat();
     }
-    const_atom          operator[](size_t i) const noexcept
+    const_atom          operator[](size_t i) const
     {
-        return {*atoms, *pte, i};
+        return {*atoms, i};
     }
     const_atom          at(size_t i) const
     {
@@ -110,6 +112,14 @@ public:
             return operator[](i);
         }
     }
+    const_atom          front() const
+    {
+        return {*atoms, 0};
+    }
+    const_atom          back() const
+    {
+        return {*atoms, getNat()-1};
+    }
     const atom_source&  getAtoms() const noexcept
     {
         return *atoms;
@@ -117,53 +127,51 @@ public:
     // Atom-iterators
     using const_iterator = typename T::const_iterator;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    const_iterator          begin() const noexcept
+    const_iterator          begin() const
     {
-        return const_iterator{*atoms, *pte, 0};
+        return const_iterator{*atoms, 0};
     }
-    const_iterator          cbegin() const noexcept
+    const_iterator          cbegin() const
     {
-        return const_iterator{*atoms, *pte, 0};
+        return const_iterator{*atoms, 0};
     }
-    const_iterator          end() const noexcept
+    const_iterator          end() const
     {
-        return const_iterator{*atoms, *pte, getNat()};
+        return const_iterator{*atoms, getNat()};
     }
-    const_iterator          cend() const noexcept
+    const_iterator          cend() const
     {
-        return const_iterator{*atoms, *pte, getNat()};
+        return const_iterator{*atoms, getNat()};
     }
-    const_reverse_iterator  rbegin() const noexcept
+    const_reverse_iterator  rbegin() const
     {
         return std::make_reverse_iterator(end());
     }
-    const_reverse_iterator  crbegin() const noexcept
+    const_reverse_iterator  crbegin() const
     {
         return std::make_reverse_iterator(cend());
     }
-    const_reverse_iterator  rend() const noexcept
+    const_reverse_iterator  rend() const
     {
         return std::make_reverse_iterator(begin());
     }
-    const_reverse_iterator  crend() const noexcept
+    const_reverse_iterator  crend() const
     {
         return std::make_reverse_iterator(cbegin());
     }
 
     // Selection
-    using const_selection = StepConst<make_selection<T>>;
+    using const_selection = StepConst<detail::make_selection<T>>;
     const_selection select(SelectionFilter filter) const
     {
-        if constexpr(is_selection<T>){
-            return {this->pte,
-                    std::make_shared<typename const_selection::atom_source>(
+        if constexpr(detail::is_selection<T>){
+            return {std::make_shared<typename const_selection::atom_source>(
                             this->atoms->atoms, this->atoms->indices),
-                    this->bonds, this->cell, this->comment};
+                    this->bonds, this->comment};
         }else{
-            return {this->pte,
-                    std::make_shared<typename const_selection::atom_source>(
+            return {std::make_shared<typename const_selection::atom_source>(
                             this->atoms, evalFilter(*this, filter)),
-                    this->bonds, this->cell, this->comment};
+                    this->bonds, this->comment};
         }
     }
 
@@ -188,124 +196,46 @@ public:
     }
 
     // Format
-    using const_formatter = StepConst<make_formatter_t<T>>;
+    using const_formatter = StepConst<detail::make_formatter_t<T>>;
     const_formatter     asFmt(AtomFmt tgt) const
     {
         // create Formatter<T> from Formatter<T>
-        if constexpr(is_formatter<T>){
-            return {this->pte,
-                    std::make_shared<typename const_formatter::atom_source>(
-                            this->atoms->atoms, tgt,
-                            this->getFormatter(this->atoms->atoms->fmt, tgt),
-                            this->getFormatter(tgt, this->atoms->atoms->fmt)),
-                    this->bonds, this->cell, this->comment};
-        }else if constexpr(is_selection<T>){
+        if constexpr(detail::is_formatter<T>){
+            return {std::make_shared<typename const_formatter::atom_source>(
+                            this->atoms->atoms, tgt),
+                    this->bonds, this->comment};
+        }else if constexpr(detail::is_selection<T>){
             using base_source = std::remove_reference_t<decltype(*this->atoms->atoms)>;
-            if constexpr(is_formatter<base_source>){
+            if constexpr(detail::is_formatter<base_source>){
                 // create Selection<Formatter<T>> from Formatter<T>
-                return {this->pte,
-                        std::make_shared<typename const_formatter::atom_source>(
+                return {std::make_shared<typename const_formatter::atom_source>(
                             std::make_shared<base_source>(
-                                this->atoms->atoms->atoms, tgt,
-                                this->getFormatter(this->atoms->atoms->atoms->fmt, tgt),
-                                this->getFormatter(tgt, this->atoms->atoms->atoms->fmt)),
+                                this->atoms->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->cell, this->comment};
+                        this->bonds, this->comment};
             }else{ // create Selection<Formatter<T>> from T
-                return {this->pte,
-                        std::make_shared<typename const_formatter::atom_source>(
-                            std::make_shared<Formatter<base_source>>(
-                                this->atoms->atoms, tgt,
-                                this->getFormatter(this->atoms->atoms->fmt, tgt),
-                                this->getFormatter(tgt, this->atoms->atoms->fmt)),
+                return {std::make_shared<typename const_formatter::atom_source>(
+                            std::make_shared<detail::Formatter<base_source>>(
+                                this->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->cell, this->comment};
+                        this->bonds, this->comment};
             }
         }else{ // create Formatter<T> from T
-            return {this->pte,
-                    std::make_shared<typename const_formatter::atom_source>(
-                            this->atoms, tgt,
-                            this->getFormatter(this->atoms->fmt, tgt),
-                            this->getFormatter(tgt, this->atoms->fmt)),
-                    this->bonds, this->cell, this->comment};
+            return {std::make_shared<typename const_formatter::atom_source>(
+                            this->atoms, tgt),
+                    this->bonds, this->comment};
         }
     }
     AtomFmt             getFmt() const
     {
-        return atoms->fmt;
+        return atoms->ctxt.fmt;
     }
     void                setFmt(AtomFmt tgt) const
     {
-        atoms->fmt = tgt;
-    }
-    // TODO: rename/rework getFormatter and friends?
-    std::function<Vec(const Vec&)>  getFormatter(AtomFmt source,
-                                                 AtomFmt target) const
-    {
-        switch(source) {
-        case AtomFmt::Bohr:
-            switch(target){
-            case AtomFmt::Angstrom:
-                return [](const Vec& v){return v*Vipster::bohrrad;};
-            case AtomFmt::Alat:
-                return [this](const Vec& v){return v*bohrrad/cell->celldim;};
-            case AtomFmt::Crystal:
-                return [this](const Vec& v){return v*cell->invvec*bohrrad/cell->celldim;};
-            default:
-                break;
-            }
-            break;
-        case AtomFmt::Angstrom:
-            switch(target){
-            case AtomFmt::Bohr:
-                return [](const Vec& v){return v*Vipster::invbohr;};
-            case AtomFmt::Alat:
-                return [this](const Vec& v){return v*cell->celldim;};
-            case AtomFmt::Crystal:
-                return [this](const Vec& v){return v*cell->invvec/cell->celldim;};
-            default:
-                break;
-            }
-            break;
-        case AtomFmt::Alat:
-            switch(target){
-            case AtomFmt::Angstrom:
-                return [this](const Vec& v){return v*cell->celldim;};
-            case AtomFmt::Bohr:
-                return [this](const Vec& v){return v*cell->celldim*invbohr;};
-            case AtomFmt::Crystal:
-                return [this](const Vec& v){return v*cell->invvec;};
-            default:
-                break;
-            }
-            break;
-        case AtomFmt::Crystal:
-            switch(target){
-            case AtomFmt::Angstrom:
-                return [this](const Vec& v){return v*cell->cellvec*cell->celldim;};
-            case AtomFmt::Alat:
-                return [this](const Vec& v){return v*cell->cellvec;};
-            case AtomFmt::Bohr:
-                return [this](const Vec& v){return v*cell->cellvec*cell->celldim*invbohr;};
-            default:
-                break;
-            }
+        if(atomFmtRelative(tgt)){
+            atoms->ctxt.cell->enabled = true;
         }
-        return [](const Vec& v){return v;};
-    }
-    Vec                 formatVec(Vec in, AtomFmt source, AtomFmt target) const
-    {
-        return getFormatter(source, target)(in);
-    }
-    std::vector<Vec>    formatAll(std::vector<Vec> in, AtomFmt source,
-                                  AtomFmt target) const
-    {
-        if ((source == target) || in.empty()){
-            return in;
-        }
-        auto op = getFormatter(source, target);
-        std::transform(in.begin(), in.end(), in.begin(), op);
-        return in;
+        atoms->ctxt.fmt = tgt;
     }
 
     // Bonds
@@ -315,26 +245,26 @@ public:
     }
 
     // Cell
-    bool    hasCell() const noexcept
+    bool    hasCell() const
     {
-        return cell->enabled;
+        return atoms->ctxt.cell->enabled;
     }
-    double  getCellDim(CdmFmt fmt) const noexcept
+    double  getCellDim(AtomFmt fmt) const
     {
-        if (fmt == CdmFmt::Bohr) {
-            return cell->celldim * invbohr;
+        if(atomFmtRelative(fmt) || fmt > detail::AtomContext::toAngstrom.size()){
+            throw Error{"StepConst::getCellDim: Invalid AtomFmt, needs to be absolute"};
         }
-        return cell->celldim;
+        return atoms->ctxt.cell->dimension * detail::AtomContext::fromAngstrom[fmt];
     }
-    Mat     getCellVec() const noexcept
+    Mat     getCellVec() const
     {
-        return cell->cellvec;
+        return atoms->ctxt.cell->matrix;
     }
-    Vec     getCom() const noexcept
+    Vec     getCom() const
     {
-        return getCom(atoms->fmt);
+        return getCom(atoms->ctxt.fmt);
     }
-    Vec     getCom(AtomFmt fmt) const noexcept
+    Vec     getCom(AtomFmt fmt) const
     {
         if(!getNat()){
             return Vec{{0,0,0}};
@@ -345,7 +275,7 @@ public:
         Vec max{{std::numeric_limits<double>::lowest(),
                  std::numeric_limits<double>::lowest(),
                  std::numeric_limits<double>::lowest()}};
-        for(const auto& at: *this){
+        for(const auto& at: asFmt(fmt)){
             min[0]=std::min(min[0],at.coord[0]);
             min[1]=std::min(min[1],at.coord[1]);
             min[2]=std::min(min[2],at.coord[2]);
@@ -353,27 +283,25 @@ public:
             max[1]=std::max(max[1],at.coord[1]);
             max[2]=std::max(max[2],at.coord[2]);
         }
-        return formatVec((min+max)/2, atoms->fmt, fmt);
+        return (min+max)/2;
     }
-    Vec     getCenter(CdmFmt fmt, bool com=false) const noexcept
+    Vec     getCenter(AtomFmt fmt, bool com=false) const
     {
-        if(com || !cell->enabled){
-            return getCom(static_cast<AtomFmt>(fmt));
+        if(com || !atoms->ctxt.cell->enabled){
+            return getCom(fmt);
         }
-        const Mat& cv = cell->cellvec;
+        const Mat& cv = atoms->ctxt.cell->matrix;
         return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
     }
 
 protected:
-    StepConst(std::shared_ptr<PeriodicTable> pte,
-              std::shared_ptr<atom_source> atoms, std::shared_ptr<BondList> bonds,
-              std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
-        : pte{pte}, atoms{atoms}, bonds{bonds}, cell{cell}, comment{comment}
+    StepConst(std::shared_ptr<atom_source> atoms, std::shared_ptr<BondList> bonds,
+              std::shared_ptr<std::string> comment)
+        : atoms{atoms}, bonds{bonds}, comment{comment}
     {}
     // Data
     std::shared_ptr<atom_source>    atoms;
     std::shared_ptr<BondList>       bonds;
-    std::shared_ptr<CellData>       cell;
     std::shared_ptr<std::string>    comment;
 };
 
@@ -395,13 +323,19 @@ public:
     StepMutable& operator=(const StepMutable&) = default;
     StepMutable& operator=(StepMutable&&) = default;
 
+    // Periodic table
+    PeriodicTable& getPTE()
+    {
+        return *this->atoms->ctxt.pte;
+    }
+
     // Atoms
     using typename StepConst<T>::atom_source;
     using atom = typename T::atom;
     using StepConst<T>::operator[];
-    atom        operator[](size_t i) noexcept
+    atom        operator[](size_t i)
     {
-        return {*this->atoms, *this->pte, i};
+        return {*this->atoms, i};
     }
     using StepConst<T>::at;
     atom        at(size_t i)
@@ -412,43 +346,49 @@ public:
             return operator[](i);
         }
     }
+    atom        front()
+    {
+        return {*this->atoms, 0};
+    }
+    atom        back()
+    {
+        return {*this->atoms, this->getNat()-1};
+    }
     using StepConst<T>::begin;
     // Atom-iterators
     using iterator = typename T::iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
-    iterator    begin() noexcept
+    iterator    begin()
     {
-        return iterator{*this->atoms, *this->pte, 0};
+        return iterator{*this->atoms, 0};
     }
     using StepConst<T>::end;
-    iterator    end() noexcept
+    iterator    end()
     {
-        return iterator{*this->atoms, *this->pte, this->getNat()};
+        return iterator{*this->atoms, this->getNat()};
     }
     using StepConst<T>::rbegin;
-    reverse_iterator rbegin() noexcept
+    reverse_iterator rbegin()
     {
         return std::make_reverse_iterator(end());
     }
     using StepConst<T>::rend;
-    reverse_iterator rend() noexcept
+    reverse_iterator rend()
     {
         return std::make_reverse_iterator(begin());
     }
 
     // Selection
     using StepConst<T>::select;
-    using selection = StepMutable<make_selection_t<T>>;
+    using selection = StepMutable<detail::make_selection_t<T>>;
     selection select(SelectionFilter filter)
     {
-        if constexpr(is_selection<T>){
-            return {this->pte,
-                    std::make_shared<typename selection::atom_source>(this->atoms->atoms, this->atoms->indices),
-                    this->bonds, this->cell, this->comment};
+        if constexpr(detail::is_selection<T>){
+            return {std::make_shared<typename selection::atom_source>(this->atoms->atoms, this->atoms->indices),
+                    this->bonds, this->comment};
         }else{
-            return {this->pte,
-                    std::make_shared<typename selection::atom_source>(this->atoms, evalFilter(*this, filter)),
-                    this->bonds, this->cell, this->comment};
+            return {std::make_shared<typename selection::atom_source>(this->atoms, evalFilter(*this, filter)),
+                    this->bonds, this->comment};
         }
     }
 
@@ -460,53 +400,41 @@ public:
 
     // Format
     using StepConst<T>::asFmt;
-    using formatter = StepMutable<make_formatter_t<T>>;
+    using formatter = StepMutable<detail::make_formatter_t<T>>;
     formatter     asFmt(AtomFmt tgt)
     {
         // create Formatter<T> from Formatter<T>
-        if constexpr(is_formatter<T>){
-            return {this->pte,
-                    std::make_shared<typename formatter::atom_source>(
-                            this->atoms->atoms, tgt,
-                            this->getFormatter(this->atoms->atoms->fmt, tgt),
-                            this->getFormatter(tgt, this->atoms->atoms->fmt)),
-                    this->bonds, this->cell, this->comment};
-        }else if constexpr(is_selection<T>){
+        if constexpr(detail::is_formatter<T>){
+            return {std::make_shared<typename formatter::atom_source>(
+                            this->atoms->atoms, tgt),
+                    this->bonds, this->comment};
+        }else if constexpr(detail::is_selection<T>){
             using base_source = std::remove_reference_t<decltype(*this->atoms->atoms)>;
-            if constexpr(is_formatter<base_source>){
+            if constexpr(detail::is_formatter<base_source>){
                 // create Selection<Formatter<T>> from Formatter<T>
-                return {this->pte,
-                        std::make_shared<typename formatter::atom_source>(
+                return {std::make_shared<typename formatter::atom_source>(
                             std::make_shared<base_source>(
-                                this->atoms->atoms->atoms, tgt,
-                                this->getFormatter(this->atoms->atoms->atoms->fmt, tgt),
-                                this->getFormatter(tgt, this->atoms->atoms->atoms->fmt)),
+                                this->atoms->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->cell, this->comment};
+                        this->bonds, this->comment};
             }else{ // create Selection<Formatter<T>> from T
-                return {this->pte,
-                        std::make_shared<typename formatter::atom_source>(
-                            std::make_shared<Formatter<base_source>>(
-                                this->atoms->atoms, tgt,
-                                this->getFormatter(this->atoms->atoms->fmt, tgt),
-                                this->getFormatter(tgt, this->atoms->atoms->fmt)),
+                return {std::make_shared<typename formatter::atom_source>(
+                            std::make_shared<detail::Formatter<base_source>>(
+                                this->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->cell, this->comment};
+                        this->bonds, this->comment};
             }
         }else{ // create Formatter<T> from T
-            return {this->pte,
-                    std::make_shared<typename formatter::atom_source>(
-                            this->atoms, tgt,
-                            this->getFormatter(this->atoms->fmt, tgt),
-                            this->getFormatter(tgt, this->atoms->fmt)),
-                    this->bonds, this->cell, this->comment};
+            return {std::make_shared<typename formatter::atom_source>(
+                            this->atoms, tgt),
+                    this->bonds, this->comment};
         }
     }
 
     // Bonds
     void setBonds() const
     {
-        if(this->cell->enabled){
+        if(this->atoms->ctxt.cell->enabled){
             setBondsCell();
         }else{
             setBondsMolecule();
@@ -517,30 +445,16 @@ public:
         // calc distance in bohr
         auto getDistance = [&](size_t at1, size_t at2, DiffVec diff)
         {
+            auto fmt = asFmt(AtomFmt::Bohr);
             if(std::any_of(diff.begin(), diff.end(), [](auto i)->bool{return i;})){
                 // have to calculate periodic bond
-                auto cv = [&](){
-                    switch(this->atoms->fmt){
-                    case AtomFmt::Crystal:
-                        return Mat{{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
-                    case AtomFmt::Alat:
-                        return this->getCellVec();
-                    case AtomFmt::Angstrom:
-                        return this->getCellVec() * this->getCellDim(CdmFmt::Angstrom);
-                    case AtomFmt::Bohr:
-                        return this->getCellVec() * this->getCellDim(CdmFmt::Bohr);
-                    }
-                    throw Error("Invalid AtomFmt");
-                }();
-                return Vec_length(this->formatVec(
-                        operator[](at1).coord - operator[](at2).coord
-                        - diff[0]*cv[0] - diff[1]*cv[1] - diff[2]*cv[2],
-                        this->atoms->fmt, AtomFmt::Bohr));
+                auto cv = this->getCellVec() * this->getCellDim(AtomFmt::Bohr);
+                return Vec_length(fmt[at1].coord - fmt[at2].coord
+                                  - diff[0] * cv[0] - diff[1] * cv[1]
+                                  - diff[2] * cv[2]);
             }else{
                 // just use immediate distance
-                return Vec_length(this->formatVec(
-                        operator[](at1).coord - operator[](at2).coord,
-                        this->atoms->fmt, AtomFmt::Bohr));
+                return Vec_length(fmt[at1].coord - fmt[at2].coord);
             }
         };
         if(!type.empty()){
@@ -574,7 +488,7 @@ public:
 
     // Modifier functions
     void modScale(AtomFmt tgt){
-        if(tgt == this->atoms->fmt){ return; }
+        if(tgt == this->atoms->ctxt.fmt){ return; }
         auto tmp = asFmt(tgt);
         auto source = tmp.cbegin();
         auto target = this->begin();
@@ -583,7 +497,7 @@ public:
             ++target;
             ++source;
         }
-        this->atoms->fmt = tgt;
+        this->atoms->ctxt.fmt = tgt;
     }
     void modShift(Vec shift, double fac=1.0){
         shift *= fac;
@@ -596,8 +510,11 @@ public:
         double c = std::cos(angle);
         double s = -std::sin(angle);
         double ic = 1.-c;
-        auto relative = atomFmtRelative(this->atoms->fmt);
-        if(relative) axis = this->formatVec(axis, this->atoms->fmt, AtomFmt::Bohr);
+        auto crystal = this->atoms->ctxt.fmt == AtomFmt::Crystal;
+        auto copy = this->atoms->ctxt;
+        copy.fmt = AtomFmt::Bohr;
+        auto toBohr = detail::makeConverter(this->atoms->ctxt, copy);
+        if(crystal) axis = toBohr(axis);
         double len = Vec_length(axis);
         if(float_comp(len, 0.)){
             throw Error("0-Vector cannot be rotation axis");
@@ -612,46 +529,46 @@ public:
                       Vec{ic * axis[2] * axis[0] - s * axis[1],
                           ic * axis[2] * axis[1] + s * axis[0],
                           ic * axis[2] * axis[2] + c}};
-        if(!relative){
+        if(!crystal){
             for(auto& at:*this){
                 at.coord = (at.coord - shift) * rotMat + shift;
             }
         }else{
-            const auto fwd = this->getFormatter(this->atoms->fmt, AtomFmt::Bohr);
-            const auto bwd = this->getFormatter(AtomFmt::Bohr, this->atoms->fmt);
-            shift = fwd(shift);
-            for(auto& at:*this){
-                at.coord = bwd((fwd(at.coord) - shift) * rotMat + shift);
+            const auto fromBohr = detail::makeConverter(copy, this->atoms->ctxt);
+            shift = toBohr(shift);
+            for(auto &at: *this){
+                at.coord = fromBohr((toBohr(at.coord) - shift) * rotMat + shift);
             }
         }
     }
     void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0}){
-        auto relative = atomFmtRelative(this->atoms->fmt);
-        if(relative){
-            ax1 = this->formatVec(ax1, this->atoms->fmt, AtomFmt::Bohr);
-            ax2 = this->formatVec(ax2, this->atoms->fmt, AtomFmt::Bohr);
-            shift = this->formatVec(shift, this->atoms->fmt, AtomFmt::Bohr);
+        auto crystal = this->atoms->ctxt.fmt == AtomFmt::Crystal;
+        auto copy = this->atoms->ctxt;
+        copy.fmt = AtomFmt::Bohr;
+        auto toBohr = detail::makeConverter(this->atoms->ctxt, copy);
+        if(crystal){
+            ax1 = toBohr(ax1);
+            ax2 = toBohr(ax2);
+            shift = toBohr(shift);
         }
         Vec normal = Vec_cross(ax1, ax2);
         normal /= Vec_length(normal);
-        if(!relative){
+        if(!crystal){
             for(auto& at:*this){
                 at.coord -= 2*Vec_dot(at.coord-shift, normal)*normal;
             }
         }else{
-            auto fwd = this->getFormatter(this->atoms->fmt, AtomFmt::Bohr);
-            auto bwd = this->getFormatter(AtomFmt::Bohr, this->atoms->fmt);
-            for(auto& at:*this){
-                at.coord -= bwd(2*Vec_dot(fwd(at.coord)-shift, normal)*normal);
+            auto fromBohr = detail::makeConverter(copy, this->atoms->ctxt);
+            for(auto &at: *this){
+                at.coord -= fromBohr(2*Vec_dot(toBohr(at.coord) - shift, normal) * normal);
             }
         }
     }
 
 protected:
-    StepMutable(std::shared_ptr<PeriodicTable> pte,
-             std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
-             std::shared_ptr<CellData> cell, std::shared_ptr<std::string> comment)
-        : StepConst<T>{pte, atoms, bonds, cell, comment}
+    StepMutable(std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
+                std::shared_ptr<std::string> comment)
+        : StepConst<T>{atoms, bonds, comment}
     {}
 
 private:
@@ -660,7 +577,7 @@ private:
     void setBondsMolecule() const
     {
         // get suitable absolute representation
-        const AtomFmt fmt = (this->atoms->fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
+        const AtomFmt fmt = (this->atoms->ctxt.fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
         // get bounds of system and largest cutoff
@@ -832,7 +749,7 @@ private:
     {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
         auto& bonds = this->bonds->bonds;
-        const auto cell = this->getCellVec() * this->getCellDim(CdmFmt::Bohr);
+        const auto cell = this->getCellVec() * this->getCellDim(AtomFmt::Bohr);
         // offset vectors for bin-bin interactions
         const Vec x_v = cell[0];
         const Vec y_v = cell[1];

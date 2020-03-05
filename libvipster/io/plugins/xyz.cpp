@@ -23,7 +23,7 @@ IO::Data XYZParser(const std::string& name, std::istream &file)
 {
     IO::Data data{};
     Molecule &m = data.mol;
-    m.setName(name);
+    m.name = name;
 
     std::string line;
     while (std::getline(file, line)) {
@@ -54,7 +54,7 @@ IO::Data XYZParser(const std::string& name, std::istream &file)
                             throw IO::Error("XYZ: Non-standard data after XYZ-file");
                         }
                         m.getStep(0).setCellVec(tmp);
-                        m.getStep(0).setCellDim(1, CdmFmt::Angstrom);
+                        m.getStep(0).setCellDim(1, AtomFmt::Angstrom);
                         break;
                     }else if((floor(f1) == f1) && (f1>0)){
                         // found nat, continue parsing trajectory
@@ -163,7 +163,7 @@ bool XYZWriter(const Molecule& m, std::ostream &file,
     case 2: // with Cell
         stepWriter(s);
         file << '\n';
-        for(const auto& vec: s.getCellVec()*s.getCellDim(CdmFmt::Angstrom)){
+        for(const auto& vec: s.getCellVec()*s.getCellDim(AtomFmt::Angstrom)){
             file << vec[0] << ' ' << vec[1] << ' ' << vec[2] << '\n';
         }
         break;

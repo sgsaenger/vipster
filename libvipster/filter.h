@@ -8,11 +8,10 @@
 #include <set>
 #include "atom.h"
 #include "bond.h"
-#include "cell.h"
 
 namespace Vipster {
 
-using SelectionPair = std::pair<size_t, std::vector<SizeVec>>;
+using SelectionPair = std::pair<size_t, SizeVec>;
 using SelectionIndices = std::vector<SelectionPair>;
 
 /*
@@ -49,6 +48,10 @@ struct SelectionFilter{
     SelectionFilter() = default;
     SelectionFilter(const SelectionFilter& f) {
         *this = f;
+    }
+    SelectionFilter(const char *s){
+        std::stringstream ss{s};
+        ss >> *this;
     }
     SelectionFilter(const std::string &s){
         std::stringstream ss{s};
@@ -94,7 +97,7 @@ struct SelectionFilter{
             XOR=0x12, XNOR=0x16,
             PAIR_MASK=0x1E,
             UPDATE=0x80};
-    enum Pos{BOHR=0x0, ANG=0x1, CRYS=0x2, CDM=0x3, FMT_MASK=0x3,// 2 bits for format
+    enum Pos{CRYS=0x0, CDM=0x1, ANG=0x2, BOHR=0x3, FMT_MASK=0x3,// 2 bits for format
              X=0x0, Y=0x4, Z=0x8, DIR_MASK=0xC, // 2  bits for space direction
              P_GT=0x0, P_LT=0x10, P_CMP_MASK=0x10,  // 1 bit for comp direction
             };
@@ -105,7 +108,8 @@ struct SelectionFilter{
     uint8_t coord;
     double posVal;
     size_t coordVal;
-    std::map<size_t, std::vector<SizeVec>> indices;
+//    std::map<size_t, SizeVec> indices;
+    SelectionIndices indices;
     std::set<std::string> types;
     std::unique_ptr<SelectionFilter> groupfilter{nullptr};
     std::unique_ptr<SelectionFilter> subfilter{nullptr};
@@ -115,13 +119,13 @@ struct SelectionFilter{
  * recursively evaluate the filters
  */
 template<typename T>
-static std::vector<SelectionPair> evalType(const T& step, const SelectionFilter& filter){
-    std::vector<SelectionPair> tmp;
+static SelectionIndices evalType(const T& step, const SelectionFilter& filter){
+    SelectionIndices tmp;
     size_t idx{0};
     for(const auto& at: step){
         for(const auto& type: filter.types){
             if(at.name == type){
-                tmp.emplace_back(idx, std::vector{SizeVec{}});
+                tmp.emplace_back(idx, SizeVec{});
                 break;
             }
         }
@@ -131,10 +135,10 @@ static std::vector<SelectionPair> evalType(const T& step, const SelectionFilter&
 }
 
 template<typename T>
-static std::vector<SelectionPair> evalIdx(const T& step, const SelectionFilter& filter){
-    std::vector<SelectionPair> tmp;
+static SelectionIndices evalIdx(const T& step, const SelectionFilter& filter){
+    SelectionIndices tmp;
     auto nat = step.getNat();
-    for(const auto& p:filter.indices){
+    for(const auto& p: filter.indices){
         if(p.first<nat){
             tmp.push_back(p);
         }
@@ -143,8 +147,8 @@ static std::vector<SelectionPair> evalIdx(const T& step, const SelectionFilter& 
 }
 
 template<typename T>
-static std::vector<SelectionPair> evalPos(const T& step, const SelectionFilter& filter){
-    std::vector<SelectionPair> tmp;
+static SelectionIndices evalPos(const T& step, const SelectionFilter& filter){
+    SelectionIndices tmp;
     std::size_t idx{0};
     auto cmp = [&filter](const Vec& at){
         size_t dir = (filter.pos & filter.DIR_MASK) >> 2;
@@ -153,9 +157,9 @@ static std::vector<SelectionPair> evalPos(const T& step, const SelectionFilter& 
         }
         return at[dir] > filter.posVal;
     };
-    for(const auto& at: step.asFmt(static_cast<AtomFmt>(filter.pos & filter.FMT_MASK))){
+    for(const auto& at: step.asFmt(static_cast<AtomFmt>((filter.pos & filter.FMT_MASK)-2))){
         if(cmp(at.coord)){
-            tmp.emplace_back(idx, std::vector{SizeVec{}});
+            tmp.emplace_back(idx, SizeVec{});
         }
         ++idx;
     }
@@ -163,8 +167,8 @@ static std::vector<SelectionPair> evalPos(const T& step, const SelectionFilter& 
 }
 
 template<typename T>
-static std::vector<SelectionPair> evalCoord(const T& step, const SelectionFilter& filter){
-    std::vector<SelectionPair> tmp;
+static SelectionIndices evalCoord(const T& step, const SelectionFilter& filter){
+    SelectionIndices tmp;
     // TODO: move functionality to step?
     std::vector<size_t> coord_numbers(step.getNat());
     for(const Bond& b: step.getBonds()){
@@ -183,15 +187,15 @@ static std::vector<SelectionPair> evalCoord(const T& step, const SelectionFilter
     };
     for(size_t i=0; i<step.getNat(); ++i){
         if(cmp(coord_numbers[i])){
-            tmp.emplace_back(i, std::vector{SizeVec{}});
+            tmp.emplace_back(i, SizeVec{});
         }
     }
     return tmp;
 }
 
 template<typename T>
-static std::vector<SelectionPair> invertSel(const T& step, const std::vector<SelectionPair>& in){
-    std::vector<SelectionPair> out;
+static SelectionIndices invertSel(const T& step, const SelectionIndices& in){
+    SelectionIndices out;
     const auto nat = step.getNat();
     out.reserve(nat);
     for(size_t i=0; i<nat; ++i){
@@ -199,21 +203,21 @@ static std::vector<SelectionPair> invertSel(const T& step, const std::vector<Sel
                         [&i](const auto& pair){
                             return pair.first == i;
                         }) == in.end()){
-            out.emplace_back(i, std::vector{SizeVec{}});
+            out.emplace_back(i, SizeVec{});
         }
     }
     return out;
 }
 
 template<typename T>
-static std::vector<SelectionPair> evalSubFilter(const T& step,
+static SelectionIndices evalSubFilter(const T& step,
                                   const SelectionFilter& filter,
                                   SelectionFilter& subfilter,
-                                  const std::vector<SelectionPair>& parent){
+                                  const SelectionIndices& parent){
     using Op = SelectionFilter::Op;
-    std::vector<SelectionPair> child = evalFilter(step, subfilter);
-    std::vector<SelectionPair> tmp(parent.size()+child.size());
-    std::vector<SelectionPair>::iterator it;
+    SelectionIndices child = evalFilter(step, subfilter);
+    SelectionIndices tmp(parent.size()+child.size());
+    SelectionIndices::iterator it;
     if((filter.op & Op::XOR) == Op::XOR){
         it = std::set_symmetric_difference(parent.begin(), parent.end(),
                                            child.begin(), child.end(),
@@ -237,9 +241,9 @@ static std::vector<SelectionPair> evalSubFilter(const T& step,
 }
 
 template<typename T>
-std::vector<SelectionPair> evalFilter(const T& step, SelectionFilter& filter)
+SelectionIndices evalFilter(const T& step, SelectionFilter& filter)
 {
-    std::vector<SelectionPair> tmp;
+    SelectionIndices tmp;
     switch(filter.mode){
     case SelectionFilter::Mode::Group:
         tmp = evalFilter(step, *filter.groupfilter);

@@ -30,7 +30,7 @@ IO::Data XSFParser(const std::string& name, std::istream &file)
 {
     IO::Data data{};
     auto& m = data.mol;
-    m.setName(name);
+    m.name = name;
 
     std::string line, buf;
     bool animated{false};
@@ -151,17 +151,17 @@ IO::Data XSFParser(const std::string& name, std::istream &file)
                     // apply to whole trajectory
                     for(auto& s: m.getSteps()){
                         s.setCellVec(tmp);
-                        s.setCellDim(1, CdmFmt::Angstrom);
+                        s.setCellDim(1, AtomFmt::Angstrom);
                     }
                 }else{
                     auto& s = m.getStep(idx-1);
                     s.setCellVec(tmp);
-                    s.setCellDim(1, CdmFmt::Angstrom);
+                    s.setCellDim(1, AtomFmt::Angstrom);
                 }
             }else{
                 auto& s = m.newStep();
                 s.setCellVec(tmp);
-                s.setCellDim(1, CdmFmt::Angstrom);
+                s.setCellDim(1, AtomFmt::Angstrom);
             }
         }else if(hasCell && (line.find("CONVCOORD") != line.npos)){
          // ignored

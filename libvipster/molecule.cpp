@@ -11,21 +11,21 @@ Molecule::Molecule(const std::string &name, size_t s):
 {
     for(decltype(steps)::size_type i=0; i!=s; ++i){
         steps.emplace_back();
-        steps.back().pte = pte;
+        steps.back().atoms->ctxt.pte = pte;
     }
 }
 
 Step& Molecule::newStep(const Step &step)
 {
     steps.push_back(step);
-    steps.back().pte = pte;
+    steps.back().atoms->ctxt.pte = pte;
     return steps.back();
 }
 
 Step& Molecule::newStep(Step &&step)
 {
     steps.push_back(std::move(step));
-    steps.back().pte = pte;
+    steps.back().atoms->ctxt.pte = pte;
     return steps.back();
 }
 
@@ -52,29 +52,4 @@ const std::list<Step>& Molecule::getSteps() const noexcept
 size_t Molecule::getNstep() const noexcept
 {
     return steps.size();
-}
-
-void Molecule::setName(const std::string &s)
-{
-    name = s;
-}
-
-const std::string& Molecule::getName(void)const noexcept
-{
-    return name;
-}
-
-void Molecule::setKPoints(const KPoints &k)
-{
-    kpoints = k;
-}
-
-const KPoints& Molecule::getKPoints() const noexcept
-{
-    return kpoints;
-}
-
-KPoints& Molecule::getKPoints() noexcept
-{
-    return kpoints;
 }

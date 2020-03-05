@@ -4,6 +4,15 @@
 
 using namespace Vipster;
 
+bool Vipster::operator==(const Element &lhs, const Element &rhs)
+{
+    return std::tie(lhs.PWPP, lhs.CPPP, lhs.CPNL, lhs.Z, lhs.m,
+                    lhs.bondcut, lhs.covr, lhs.vdwr, lhs.col)
+            ==
+           std::tie(rhs.PWPP, rhs.CPPP, rhs.CPNL, rhs.Z, rhs.m,
+                    rhs.bondcut, rhs.covr, rhs.vdwr, rhs.col);
+}
+
 const Vipster::PeriodicTable Vipster::pte = {
     {{"",      { "", "", "", 0,   0.0,       -1,   1.46, 3.21, {   0,   0,   0, 255 } }},
      {"H",     { "", "", "", 1,   1.0079,    0.72, 0.72, 2.27, { 190, 190, 190, 255 } }},

@@ -17,8 +17,11 @@ public:
           kpoints{}
     {
         steps.emplace_back(step);
-        steps.back().pte = pte;
+        steps.back().atoms->ctxt.pte = pte;
     }
+
+    std::string name;
+    KPoints kpoints;
     // TODO: make sure that this has the appropriate root!
     std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
 
@@ -30,16 +33,8 @@ public:
     const std::list<Step>& getSteps(void) const noexcept;
     size_t getNstep(void) const noexcept;
 
-    void setName(const std::string &s);
-    const std::string& getName(void) const noexcept;
-
-    void setKPoints(const KPoints &k);
-    KPoints& getKPoints(void) noexcept;
-    const KPoints& getKPoints(void) const noexcept;
 private:
     std::list<Step> steps;
-    std::string name;
-    KPoints kpoints;
 };
 }
 #endif // MOLECULE_H

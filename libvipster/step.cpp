@@ -3,68 +3,58 @@
 using namespace Vipster;
 
 Step::Step(AtomFmt fmt, const std::string &c)
-    : StepMutable{std::make_shared<PeriodicTable>(),
-                  std::make_shared<AtomList>(fmt),
+    : StepMutable{std::make_shared<atom_source>(fmt),
                   std::make_shared<BondList>(),
-                  std::make_shared<CellData>(),
                   std::make_shared<std::string>(c)}
 {}
 
 Step::Step(const Step& s)
-    : StepMutable{s.pte,
-                  std::make_shared<AtomList>(*s.atoms),
+    : StepMutable{std::make_shared<atom_source>(*s.atoms),
                   std::make_shared<BondList>(*s.bonds),
-                  std::make_shared<CellData>(*s.cell),
                   std::make_shared<std::string>(*s.comment)}
 {}
 
 Step::Step(Step&& s)
-    : StepMutable{s.pte,
-                  s.atoms, s.bonds,
-                  s.cell, s.comment}
+    : StepMutable{std::move(s)}
 {}
 
 Step& Step::operator=(const Step& s)
 {
-    pte = s.pte;
     *atoms = *s.atoms;
     *bonds = *s.bonds;
-    *cell = *s.cell;
     *comment = *s.comment;
     return *this;
 }
 
 Step& Step::operator=(Step&& s)
 {
-    pte = std::move(s.pte);
     atoms = std::move(s.atoms);
     bonds = std::move(s.bonds);
-    cell = std::move(s.cell);
     comment = std::move(s.comment);
     return *this;
 }
 
 void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
 {
-    AtomList& al = *atoms;
+    atom_source& al = *atoms;
     al.coordinates.emplace_back(coord);
-    al.elements.push_back(&*pte->find_or_fallback(name));
+    al.elements.push_back(&*al.ctxt.pte->find_or_fallback(name));
     al.properties.emplace_back(prop);
 }
 
 void Step::newAtoms(size_t i){
     size_t nat = getNat()+i;
-    AtomList& al = *atoms;
+    atom_source& al = *atoms;
     al.coordinates.resize(nat);
     al.elements.reserve(nat);
     for(size_t j=0; j<i; ++j){
-        al.elements.push_back(&*pte->find_or_fallback(""));
+        al.elements.push_back(&*al.ctxt.pte->find_or_fallback(""));
     }
     al.properties.resize(nat);
 }
 
 void Step::delAtom(size_t _i){
-    AtomList& al = *atoms;
+    atom_source& al = *atoms;
     auto i = static_cast<long>(_i);
     al.coordinates.erase(al.coordinates.begin()+i);
     al.elements.erase(al.elements.begin()+i);
@@ -73,30 +63,36 @@ void Step::delAtom(size_t _i){
 
 void Step::enableCell(bool val) noexcept
 {
-    cell->enabled = val;
+    atoms->ctxt.cell->enabled = val;
 }
 
 void Step::setCellVec(const Mat &vec, bool scale)
 {
     Mat inv = Mat_inv(vec);
+    auto &cell = atoms->ctxt.cell;
     cell->enabled = true;
     // 'scaling' means the system grows/shrinks with the cell
-    if (scale == (atoms->fmt == AtomFmt::Crystal)){
+    if (scale == (atoms->ctxt.fmt == AtomFmt::Crystal)){
         // scaled crystal or unscaled other coordinates stay as-is
-        cell->cellvec = vec;
-        cell->invvec = inv;
+        cell->matrix = vec;
+        cell->inverse = inv;
     }else{
         // unscaled crystal or scaled other coordinates have to be transformed
-        auto tmpFmt = scale ? AtomFmt::Crystal : AtomFmt::Alat;
-        auto tmp = formatAll(atoms->coordinates, atoms->fmt, tmpFmt);
-        cell->cellvec = vec;
-        cell->invvec = inv;
-        atoms->coordinates = formatAll(tmp, tmpFmt, atoms->fmt);
+        auto copy = atoms->ctxt;
+        cell->matrix = vec;
+        cell->inverse = inv;
+        auto fmt = detail::makeConverter(copy, atoms->ctxt);
+        for(auto &at: *this){
+            at.coord = fmt(at.coord);
+        }
     }
 }
 
-void Step::setCellDim(double cdm, CdmFmt fmt, bool scale)
+void Step::setCellDim(double cdm, AtomFmt fmt, bool scale)
 {
+    if(atomFmtRelative(fmt) || fmt > detail::AtomContext::toAngstrom.size()){
+        throw Error{"Step::setCellDim: Invalid AtomFmt, needs to be absolute"};
+    }
     if(!(cdm>0)) {
         throw Error("Step::setCellDim(): "
                     "cell-dimension must be positive");
@@ -105,8 +101,8 @@ void Step::setCellDim(double cdm, CdmFmt fmt, bool scale)
      * 'scaling' means the system grows/shrinks with the cell
      * => relative coordinates stay the same
      */
-    cell->enabled = true;
-    bool relative = atomFmtRelative(atoms->fmt);
+    atoms->ctxt.cell->enabled = true;
+    bool relative = atoms->ctxt.fmtRelative();
     if (scale != relative){
         double ratio;
         if (relative) {
@@ -118,11 +114,7 @@ void Step::setCellDim(double cdm, CdmFmt fmt, bool scale)
             c *= ratio;
         }
     }
-    if (fmt == CdmFmt::Bohr) {
-        cell->celldim = cdm * bohrrad;
-    } else {
-        cell->celldim = cdm;
-    }
+    atoms->ctxt.cell->dimension = cdm * detail::AtomContext::toAngstrom[fmt];
 }
 
 void Step::modWrap(){
@@ -207,17 +199,17 @@ void Step::modAlign(uint8_t step_dir, uint8_t target_dir){
     setCellVec(newCell, true);
 }
 
-void Step::modReshape(Mat newMat, double newCdm, CdmFmt cdmFmt){
-    auto oldCdm = getCellDim(cdmFmt);
+void Step::modReshape(Mat newMat, double newDim, AtomFmt Fmt){
+    auto oldCdm = getCellDim(Fmt);
     auto oldMat = getCellVec();
-    if((newMat == oldMat) && (float_comp(newCdm, oldCdm))){
+    if((newMat == oldMat) && (float_comp(newDim, oldCdm))){
         return;
     }
     modWrap();
     size_t fac;
     if(newMat == oldMat){
         // only changing cdm
-        fac = static_cast<size_t>(std::ceil(newCdm/oldCdm));
+        fac = static_cast<size_t>(std::ceil(newDim/oldCdm));
         modMultiply(fac, fac, fac);
     }else{
         // change vectors or both
@@ -234,7 +226,7 @@ void Step::modReshape(Mat newMat, double newCdm, CdmFmt cdmFmt){
                        std::abs(m[0][2]) + std::abs(m[1][2]) + std::abs(m[2][2])
                        };
         };
-        Vec newExtent = getExtent(newMat*newCdm);
+        Vec newExtent = getExtent(newMat*newDim);
         Vec oldExtent = getExtent(oldMat*oldCdm);
         size_t fac[3] = {static_cast<size_t>(std::ceil(newExtent[0]/oldExtent[0])),
                          static_cast<size_t>(std::ceil(newExtent[1]/oldExtent[1])),
@@ -257,6 +249,6 @@ void Step::modReshape(Mat newMat, double newCdm, CdmFmt cdmFmt){
         }
     }
     setCellVec(newMat);
-    setCellDim(newCdm, cdmFmt);
+    setCellDim(newDim, Fmt);
     modCrop();
 }

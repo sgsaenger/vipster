@@ -21,6 +21,7 @@ struct Element{
     ColVec          col;
 };
 
+bool operator==(const Element &lhs, const Element &rhs);
 void to_json(nlohmann::json& j,const Element& p);
 void from_json(const nlohmann::json& j, Element& p);
 

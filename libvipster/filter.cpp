@@ -49,7 +49,7 @@ static void writeIdx(std::ostream& os, const SelectionFilter& filter){
         os << filter.indices.cbegin()->first;
     }else{
         os << "[ ";
-        for(const auto& p:filter.indices){
+        for(const auto& p: filter.indices){
             os << p.first << " ";
         }
         os << ']';
@@ -195,10 +195,10 @@ static void parseIdx(std::istream& is, SelectionFilter& filter){
             auto left = std::stoul(token.substr(0, splitPos));
             auto right = std::stoul(token.substr(splitPos+1));
             for(auto i=std::min(left, right); i<=std::max(left,right);++i){
-                filter.indices.emplace(static_cast<size_t>(i), std::vector{SizeVec{}});
+                filter.indices.emplace_back(static_cast<size_t>(i), SizeVec{});
             }
         }else{
-            filter.indices.emplace(std::stoul(token), std::vector{SizeVec{}});
+            filter.indices.emplace_back(std::stoul(token), SizeVec{});
         }
     };
     if(token.front() == '['){

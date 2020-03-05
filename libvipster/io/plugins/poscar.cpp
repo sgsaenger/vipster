@@ -15,7 +15,7 @@ static IO::Preset makePreset()
 IO::Data PoscarParser(const std::string& name, std::istream &file){
     IO::Data d{};
     Molecule &m = d.mol;
-    m.setName(name);
+    m.name = name;
     Step &s = m.newStep();
     s.setFmt(AtomFmt::Crystal);
 
@@ -51,7 +51,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
             throw IO::Error{"POSCAR: invalid cell vectors"};
         }
     }
-    s.setCellDim(1, CdmFmt::Angstrom);
+    s.setCellDim(1, AtomFmt::Angstrom);
     s.setCellVec(cell);
     // atom types (optional), then number of atom per type
     readline();
@@ -123,7 +123,7 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
         double vol = Mat_det(cell);
         alat = -alat/vol;
     }
-    s.setCellDim(alat, CdmFmt::Angstrom, true);
+    s.setCellDim(alat, AtomFmt::Angstrom, true);
 
     return d;
 }
@@ -141,7 +141,7 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
     const auto& s = m.getStep(index).asFmt(cartesian ?
                                                  AtomFmt::Angstrom : AtomFmt::Crystal);
     file << s.getComment() << '\n';
-    file << s.getCellDim(CdmFmt::Angstrom) << '\n';
+    file << s.getCellDim(AtomFmt::Angstrom) << '\n';
     file << std::fixed << std::setprecision(10);
     for(size_t i=0; i<3; ++i){
         const auto& v = s.getCellVec()[i];

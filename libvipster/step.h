@@ -8,6 +8,8 @@
 
 namespace Vipster {
 
+namespace detail{
+
 /*
  * Basic serial Atom container
  *
@@ -23,12 +25,7 @@ struct AtomList{
     using iterator = AtomIterator<false>;
     using const_iterator = AtomIterator<true>;
 
-    AtomList(AtomFmt fmt) : fmt{fmt} {}
-    AtomList(const AtomList&) = default;
-    AtomList(AtomList&&) = default;
-    AtomList& operator=(const AtomList&) = default;
-    AtomList& operator=(AtomList&&) = default;
-
+    AtomContext ctxt;
     // Coordinates
     std::vector<Vec> coordinates{};
     // Pointers to PeriodicTable entries
@@ -36,8 +33,33 @@ struct AtomList{
     // Properties
     std::vector<AtomProperties> properties{};
     // complete Step-interface
-    AtomFmt fmt;
     size_t getNat() const noexcept {return elements.size();}
+
+    AtomList(AtomFmt fmt,
+             std::shared_ptr<PeriodicTable> pte=std::make_shared<PeriodicTable>())
+        : ctxt{fmt} {}
+    // specialize copy constructor because AtomList is supposed to own its cell
+    AtomList(const AtomList &rhs)
+        : ctxt{rhs.ctxt.fmt,
+               rhs.ctxt.pte,
+               std::make_shared<AtomContext::CellData>(*rhs.ctxt.cell)},
+          coordinates{rhs.coordinates},
+          elements{rhs.elements},
+          properties{rhs.properties}
+    {}
+    AtomList(AtomList&&) = default;
+    AtomList& operator=(const AtomList&) = default;
+    AtomList& operator=(AtomList&&) = default;
+    // enable creation from other Atom-sources
+    template<typename T>
+    AtomList(const T &rhs)
+        : ctxt{rhs.ctxt.fmt,
+               rhs.ctxt.pte,
+               std::make_shared<AtomContext::CellData>(*rhs.ctxt.cell)},
+          coordinates{rhs.coordinates},
+          elements{rhs.elements},
+          properties{rhs.properties}
+    {}
 
     template<bool isConst>
     class AtomView
@@ -46,13 +68,26 @@ struct AtomList{
          *
          * should behave like a reference
          */
-    private:
+        Vec *v;
+        PeriodicTable::value_type **elem;
+        AtomProperties *prop;
+
+        AtomView()
+            : source{nullptr},
+              v{nullptr},
+              elem{nullptr},
+              prop{nullptr}
+        {}
+        template<bool> friend class AtomView;
         class _Vec{
         public:
             _Vec(AtomView &a): a{a} {}
             // can only be explicitely constructed to reference an Atom
             _Vec(const _Vec&) = delete;
             // assigning changes the origin
+            _Vec& operator=(const _Vec& rhs){
+                return operator=(static_cast<const Vec&>(rhs));
+            }
             _Vec& operator=(const Vec& rhs){
                 *a.v = rhs;
                 return *this;
@@ -60,6 +95,11 @@ struct AtomList{
             // convert to regular Vec-reference
             operator Vec&() {return *a.v;}
             operator const Vec&() const {return *a.v;}
+            // formatted Vec access
+            Vec asFmt(const AtomContext &ctxt) const
+            {
+                return makeConverter(a.source->ctxt, ctxt)(static_cast<const Vec&>(*this));
+            }
             // array access
             Vec::value_type& operator[](std::size_t i){
                 return (*a.v)[i];
@@ -68,7 +108,7 @@ struct AtomList{
                 return (*a.v)[i];
             }
             // comparison
-            bool operator==(const Vec& rhs) const {return *this == rhs;}
+            bool operator==(const Vec& rhs) const {return *a.v == rhs;}
         private:
             AtomView &a;
         };
@@ -79,8 +119,12 @@ struct AtomList{
             _Name(const _Name&) =delete;
             // assigning a string makes this point to the
             // appropriate entry in the periodic table
+            _Name& operator=(const _Name& rhs){
+                *a.elem = &*a.source->ctxt.pte->find_or_fallback(rhs);
+                return *this;
+            }
             _Name& operator=(const std::string& rhs){
-                *a.elem = &*a.pte->find_or_fallback(rhs);
+                *a.elem = &*a.source->ctxt.pte->find_or_fallback(rhs);
                 return *this;
             }
             // convert to regular string-reference
@@ -108,9 +152,12 @@ struct AtomList{
             // can only be explicitely constructed to reference an Atom
             _Element(const _Element& at) =delete;
             // Allow member-access via pointer-syntax
+            Element* operator->() { return &(*a.elem)->second;}
             const Element* operator->() const{return &(*a.elem)->second;}
             // convert to reference
             operator const Element&() const {return (*a.elem)->second;}
+            // comparison
+            bool operator==(const Element& rhs) const { return (*a.elem)->second == rhs;}
         private:
             AtomView &a;
         };
@@ -120,8 +167,12 @@ struct AtomList{
             // can only be explicitely constructed to reference an Atom
             _Properties(const _Properties&) =delete;
             // like real reference, assigning changes the origin
+            _Properties& operator=(const _Properties& rhs){
+                *a.prop = static_cast<const AtomProperties&>(rhs);
+                return *this;
+            }
             _Properties& operator=(const AtomProperties& rhs){
-                *a.v = rhs;
+                *a.prop = rhs;
                 return *this;
             }
             // convert to regular AtomProperties-reference
@@ -134,11 +185,20 @@ struct AtomList{
         private:
             AtomView &a;
         };
-   protected:
-        Vec *v;
-        PeriodicTable *pte;
-        PeriodicTable::value_type **elem;
-        AtomProperties *prop;
+    protected:
+        AtomList *source;
+        AtomView& operator+=(ptrdiff_t i){
+            v += i;
+            elem += i;
+            prop += i;
+            return *this;
+        }
+        void pointTo(const AtomView& rhs){
+            source = rhs.source;
+            v = rhs.v;
+            elem = rhs.elem;
+            prop = rhs.prop;
+        }
     public:
         // "Data", encapsulated in wrapper objects
         std::conditional_t<isConst, const _Vec, _Vec> coord{*this};
@@ -147,57 +207,77 @@ struct AtomList{
         std::conditional_t<isConst, const _Properties, _Properties> properties{*this};
 
         AtomView(AtomList &al,
-                 PeriodicTable &pte,
                  size_t i)
-            : v{&al.coordinates[i]},
-              pte{&pte},
+            : source{&al},
+              v{&al.coordinates[i]},
               elem{&al.elements[i]},
               prop{&al.properties[i]}
         {}
         // copying is templated to allow conversion to const
         // copy constructor creates new object pointing to same data
         AtomView(const AtomView &rhs)
-            : v{rhs.v},
-              pte{rhs.pte},
+            : source{rhs.source},
+              v{rhs.v},
               elem{rhs.elem},
               prop{rhs.prop}
         {}
         template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
         AtomView(const AtomView<B> &rhs)
-            : v{rhs.v},
-              pte{rhs.pte},
+            : source{rhs.source},
+              v{rhs.v},
               elem{rhs.elem},
               prop{rhs.prop}
         {}
         // copy assignment changes data
         AtomView& operator=(const AtomView &rhs){
-            coord = rhs.coord;
+            coord = rhs.coord.asFmt(source->ctxt);
             name = rhs.name;
             properties = rhs.properties;
+            return *this;
         }
         template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
         AtomView& operator=(const AtomView<B> &rhs){
-            coord = rhs.coord;
+            coord = rhs.coord.asFmt(source->ctxt);
             name = rhs.name;
             properties = rhs.properties;
+            return *this;
+        }
+        template<bool B, template<bool> typename AV>
+        AtomView& operator=(const AV<B> &rhs){
+            coord = rhs.coord.asFmt(source->ctxt);
+            name = rhs.name;
+            properties = rhs.properties;
+            return *this;
         }
         virtual ~AtomView() = default;
+
+        bool operator==(const AtomView &rhs) const noexcept{
+            return std::tie(coord, name, properties)
+                    ==
+                   std::tie(rhs.coord, rhs.name, rhs.properties);
+        }
+        bool operator!=(const AtomView &rhs) const noexcept{
+            return !operator==(rhs);
+        }
     };
 
     template<bool isConst>
     class AtomIterator: private AtomView<isConst>
     {
+        template<bool> friend class AtomIterator;
     public:
         using difference_type = ptrdiff_t;
         using value_type = AtomView<isConst>;
         using reference = value_type&;
         using pointer = value_type*;
         using iterator_category = std::random_access_iterator_tag;
-        // TODO: default constructibility
+        AtomIterator()
+            : value_type{},
+              idx{}
+        {}
         AtomIterator(AtomList &atoms,
-                     PeriodicTable &pte,
                      size_t idx)
-            : value_type{atoms, pte, idx},
+            : value_type{atoms, idx},
               idx{idx}
         {}
         // copy-functions are duplicated as templates to allow for conversion to const
@@ -211,19 +291,13 @@ struct AtomList{
         {}
         // copy assignment just assigns the iterator, not to the atom (which has reference semantics)
         AtomIterator&   operator=(const AtomIterator &it){
-            this->v = it.v;
-            this->elem = it.elem;
-            this->pte = it.pte;
-            this->prop = it.prop;
+            value_type::pointTo(it);
             idx = it.idx;
             return *this;
         }
         template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
         AtomIterator&   operator=(const AtomIterator<B> &it){
-            this->v = it.v;
-            this->elem = it.elem;
-            this->pte = it.pte;
-            this->prop = it.prop;
+            value_type::pointTo(it);
             idx = it.idx;
             return *this;
         }
@@ -246,7 +320,7 @@ struct AtomList{
             return idx - rhs.idx;
         }
         bool            operator==(const AtomIterator &rhs) const noexcept{
-            return (this->elem == rhs.elem);
+            return (this->source == rhs.source) && (this->idx == rhs.idx);
         }
         bool            operator!=(const AtomIterator &rhs) const noexcept{
             return !operator==(rhs);
@@ -284,9 +358,7 @@ struct AtomList{
         }
         AtomIterator&   operator+=(difference_type i){
             idx += i;
-            this->v += i;
-            this->elem += i;
-            this->prop += i;
+            value_type::operator+=(i);
             return *this;
         }
         AtomIterator&   operator-=(difference_type i){
@@ -306,16 +378,19 @@ struct AtomList{
     };
 };
 
+}
+
 /*
  * Main Step-class
  *
  * with AtomList as source, this is the main class to use for atom-storage
  */
 
-class Step: public StepMutable<AtomList>
+class Step: public StepMutable<detail::AtomList>
 {
+    friend class Molecule;
 public:
-    Step(AtomFmt at_fmt=AtomFmt::Bohr,
+    Step(AtomFmt at_fmt=AtomFmt::Angstrom,
          const std::string &comment="");
     Step(const Step& s);
     Step(Step&& s);
@@ -323,15 +398,10 @@ public:
     Step& operator=(Step&& s);
     template<typename T>
     Step(const StepConst<T>& s)
-        : StepMutable<AtomList>{s.pte,
-                            std::make_shared<AtomList>(s.getFmt()),
-                            std::make_shared<BondList>(),
-                            std::make_shared<CellData>(),
-                            std::make_shared<std::string>(s.getComment())}
+        : StepMutable{std::make_shared<detail::AtomList>(s.atoms->ctxt),
+                      std::make_shared<BondList>(*s.bonds),
+                      std::make_shared<std::string>(s.getComment())}
     {
-        enableCell(s.hasCell());
-        setCellDim(s.getCellDim(CdmFmt::Bohr), CdmFmt::Bohr);
-        setCellVec(s.getCellVec());
         newAtoms(s);
     }
 
@@ -339,57 +409,31 @@ public:
     void    newAtom(std::string name="",
                     Vec coord=Vec{},
                     AtomProperties prop=AtomProperties{});
-    template<typename Atom>
-    void    newAtom(const Atom& at){
-        AtomList &al = *atoms;
-        al.coordinates.push_back(at.coord);
-        al.elements.push_back(&*pte->find_or_fallback(at.name));
-        al.properties.push_back(at.properties);
+    template<template<bool> typename T, bool B>
+    void    newAtom(const T<B>& at){
+        newAtom();
+        back() = at;
     }
     void    newAtoms(size_t i);
     template<typename T>
     void    newAtoms(const StepConst<T>& s)
     {
         const size_t nat = this->getNat() + s.getNat();
-        const size_t fmt = static_cast<size_t>(atoms->fmt);
         // reserve space for new atoms
-        AtomList& al = *this->atoms;
+        atom_source& al = *this->atoms;
         al.coordinates.reserve(nat);
         al.elements.reserve(nat);
         al.properties.reserve(nat);
-        if(atoms->fmt <= AtomFmt::Alat){
-            // relative positioning
-            if(s.getFmt() <= AtomFmt::Alat){
-                // source is relative, need to convert twice
-                auto step = s.asFmt(AtomFmt::Angstrom);
-                auto fmt = getFormatter(AtomFmt::Angstrom, atoms->fmt);
-                for(const auto& at: step){
-                    al.coordinates.push_back(fmt(at.coord));
-                    al.elements.push_back(&*pte->find_or_fallback(at.name));
-                    al.properties.push_back(at.properties);
-                }
-            }else{
-                // source is absolute, convert once
-                auto fmt = getFormatter(s.getFmt(), atoms->fmt);
-                for(const auto& at: s){
-                    al.coordinates.push_back(fmt(at.coord));
-                    al.elements.push_back(&*pte->find_or_fallback(at.name));
-                    al.properties.push_back(at.properties);
-                }
-            }
-        }else{
-            // absolute positioning
-            auto step = s.asFmt(atoms->fmt);
-            for(const auto& at: step){
-                al.coordinates.push_back(at.coord);
-                al.elements.push_back(&*pte->find_or_fallback(at.name));
-                al.properties.push_back(at.properties);
-            }
+        auto fmt = detail::makeConverter(s.atoms->ctxt, atoms->ctxt);
+        for(const auto &at: s){
+            al.coordinates.push_back(fmt(at.coord));
+            al.elements.push_back(&*al.ctxt.pte->find_or_fallback(at.name));
+            al.properties.push_back(at.properties);
         }
     }
     void    delAtom(size_t i);
     template<typename T>
-    void delAtoms(StepConst<Selection<T>>& s)
+    void delAtoms(StepConst<detail::Selection<T>>& s)
     {
         const auto& idx = s.getAtoms().indices;
         for(auto it = idx.rbegin(); it != idx.rend(); ++it)
@@ -401,7 +445,7 @@ public:
 
     // Cell
     void enableCell(bool val) noexcept;
-    void setCellDim(double cdm, CdmFmt fmt, bool scale=false);
+    void setCellDim(double cdm, AtomFmt fmt, bool scale=false);
     void setCellVec(const Mat &vec, bool scale=false);
 
     // Modifier functions
@@ -409,7 +453,7 @@ public:
     void modCrop();
     void modMultiply(size_t x, size_t y, size_t z);
     void modAlign(uint8_t step_dir, uint8_t target_dir);
-    void modReshape(Mat newMat, double newCdm, CdmFmt cdmFmt);
+    void modReshape(Mat newMat, double newDim, AtomFmt Fmt);
 };
 
 }

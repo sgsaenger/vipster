@@ -8,7 +8,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
 {
     IO::Data d{};
     Molecule& m = d.mol;
-    m.setName(name);
+    m.name = name;
     Step *s = &m.newStep();
 
     std::string line, dummy_s;
@@ -16,7 +16,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
     double celldim{};
     Mat cellvec;
     bool gamma{false}, readInitial{false};
-    CdmFmt cdmfmt{CdmFmt::Bohr};
+    AtomFmt cdmfmt{AtomFmt::Bohr};
     std::vector<std::string> pseudopotentials{};
     while (std::getline(file, line)) {
         if (line.find("number of atoms/cell") != std::string::npos) {
@@ -39,7 +39,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
                 continue;
             }
             // found discrete k-points, parse them
-            auto& kpts = m.getKPoints();
+            auto& kpts = m.kpoints;
             kpts.active = KPoints::Fmt::Discrete;
             kpts.discrete.kpoints.resize(nk);
             for (auto& k: kpts.discrete.kpoints) {
@@ -83,7 +83,7 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
                 std::string tmp;
                 auto ss = std::stringstream{line};
                 ss >> tmp;
-                auto& entry = (*s->pte)[tmp];
+                auto& entry = (*m.pte)[tmp];
                 ss >> tmp >> tmp;
                 entry.m = std::stod(tmp);
                 entry.PWPP = pseudopotentials[i];
@@ -106,13 +106,13 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
         } else if ((line.find("CELL_PARAMETERS") != std::string::npos) &&
                    (line.find("DEPRECATED") == std::string::npos)) {
             if (line.find("(bohr)") != std::string::npos) {
-                cdmfmt = CdmFmt::Bohr;
+                cdmfmt = AtomFmt::Bohr;
                 celldim = 1;
             }else if (line.find("angstrom") != std::string::npos) {
-                cdmfmt = CdmFmt::Angstrom;
+                cdmfmt = AtomFmt::Angstrom;
                 celldim = 1;
             }else{
-                cdmfmt = CdmFmt::Bohr;
+                cdmfmt = AtomFmt::Bohr;
                 celldim = std::stod(line.substr(line.find('=')+1));
             }
             // parse vectors

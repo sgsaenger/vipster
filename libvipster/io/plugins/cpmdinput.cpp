@@ -157,7 +157,7 @@ static Mat makeCell(int ibrav, double b, double c,
 IO::Data CPInpParser(const std::string& name, std::istream &file){
     IO::Data d{};
     Molecule &m = d.mol;
-    m.setName(name);
+    m.name = name;
     Step &s = m.newStep();
     d.param = makeParam();
     auto &p = *d.param;
@@ -168,7 +168,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
     std::string buf, line;
     int ibrav{0};
     double cellDim{1}, b{1}, c{1}, alpha{0}, beta{0}, gamma{0};
-    CdmFmt cf{CdmFmt::Bohr};
+    AtomFmt cf{AtomFmt::Bohr};
     AtomFmt af{AtomFmt::Bohr};
     std::vector<std::string> types;
     bool scale{false};
@@ -202,11 +202,11 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
             if(curName == "&SYSTEM"){
                 if(line.find("ANGSTROM") != line.npos) {
                     parsed = true;
-                    cf = CdmFmt::Angstrom;
+                    cf = AtomFmt::Angstrom;
                     af = AtomFmt::Angstrom;
                 }else if(line.find("KPOINTS") != line.npos){
                     parsed = true;
-                    auto& kp = m.getKPoints();
+                    auto& kp = m.kpoints;
                     if(line.find("MONKHORST-PACK") != line.npos){
                         kp.active = KPoints::Fmt::MPG;
                         std::getline(file, buf);
@@ -335,9 +335,9 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                         name = name2;
                     }
                     types.push_back(name);
-                    (*s.pte)[name].CPPP = CPPP;
+                    (*m.pte)[name].CPPP = CPPP;
                     std::getline(file, buf);
-                    (*s.pte)[name].CPNL = IO::trim(buf);
+                    (*m.pte)[name].CPNL = IO::trim(buf);
                     std::getline(file, buf);
                     size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
@@ -448,7 +448,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                     parsed = true;
                     for(auto& t: types){
                         std::getline(file, buf);
-                        (*s.pte)[t].m = std::stod(buf);
+                        (*m.pte)[t].m = std::stod(buf);
                     }
                 }
             }
@@ -492,7 +492,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
     const auto& s =  m.getStep(index).asFmt((atfmt.name() == "Active") ?
                                             m.getStep(index).getFmt() : // use active format
                                             static_cast<AtomFmt>(atfmt.value())); // use explicit format
-    auto cf = (s.getFmt() == AtomFmt::Angstrom) ? CdmFmt::Angstrom : CdmFmt::Bohr;
+    auto cf = (s.getFmt() == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
     const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix").first);
     const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix").first);
     const auto& PPNonlocality = std::get<std::string>(p->at("PPNonlocality").first);
@@ -612,7 +612,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                  << "  " << tmpvec[0][0] << ' ' << tmpvec[0][1] << ' ' << tmpvec[0][2] << '\n'
                  << "  " << tmpvec[1][0] << ' ' << tmpvec[1][1] << ' ' << tmpvec[1][2] << '\n'
                  << "  " << tmpvec[2][0] << ' ' << tmpvec[2][1] << ' ' << tmpvec[2][2] << '\n';
-            const auto kp = m.getKPoints();
+            const auto kp = m.kpoints;
             if(kp.active == KPoints::Fmt::MPG){
                 const auto& mpg = kp.mpg;
                 file << "  KPOINTS MONKHORST-PACK";

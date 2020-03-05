@@ -17,7 +17,7 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
     d.param = makeParam();
     auto& p = *d.param;
     Molecule &m = d.mol;
-    m.setName(name);
+    m.name = name;
     auto s = &m.newStep();
 
     bool foundCoords{false};

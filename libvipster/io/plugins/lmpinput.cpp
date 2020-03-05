@@ -242,10 +242,10 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
 
     IO::Data data{};
     Molecule& m = data.mol;
-    m.setName(name);
+    m.name = name;
     Step& s = m.newStep();
     s.setFmt(AtomFmt::Angstrom);
-    s.setCellDim(1, CdmFmt::Angstrom);
+    s.setCellDim(1, AtomFmt::Angstrom);
 
     std::string tmp;
     size_t nat{}, nbnd{}, ntype{};
@@ -347,15 +347,15 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                     name = std::to_string(id);
                     types[id] = name;
                     // and try to guess type from mass
-                    s.pte->insert_or_assign(name,
+                    m.pte->insert_or_assign(name,
                         [&t1](){
                         const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pte.at("")};
                         double best_diff{5};
-                        for(const auto& pair: Vipster::pte){
-                            double cur_diff = std::abs(t1-pair.second.m);
+                        for(const auto& [name, type]: Vipster::pte){
+                            double cur_diff = std::abs(t1-type.m);
                             if(cur_diff < best_diff){
                                 best_diff = cur_diff;
-                                cur_guess = &pair.second;
+                                cur_guess = &type;
                             }
                         }
                         return *cur_guess;
@@ -365,7 +365,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                     throw IO::Error("Lammps Input: failed to parse atom type");
                 }
                 // finally, save mass
-                (*s.pte)[types[id]].m = t1;
+                (*m.pte)[types[id]].m = t1;
             }
         } else if (line.find("Atoms") != std::string::npos) {
             std::vector<lmpTok> fmt{};
@@ -667,7 +667,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         }
     }
 
-    auto vec = step.getCellVec() * step.getCellDim(CdmFmt::Angstrom);
+    auto vec = step.getCellVec() * step.getCellDim(AtomFmt::Angstrom);
     if(!float_comp(vec[0][1], 0.) || !float_comp(vec[0][2], 0.) || !float_comp(vec[1][2], 0.)){
         throw IO::Error("Lammps Input: cell vectors must form diagonal or lower triangular matrix");
     }
@@ -683,7 +683,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     std::map<std::string, size_t> atomtypemap;
     for(const auto& t: step.getTypes()){
         atomtypemap.emplace(t, atomtypemap.size()+1);
-        file << atomtypemap.size() << ' ' << step.pte->at(t).m << " # " << t << '\n';
+        file << atomtypemap.size() << ' ' << m.pte->at(t).m << " # " << t << '\n';
     }
 
     file << "\nAtoms # " << style.at(style) << "\n\n";

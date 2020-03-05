@@ -45,7 +45,7 @@ static IO::Preset makePreset()
         {{"atoms", {NamedEnum{4, {"Crystal", "Alat", "Angstrom", "Bohr", "Active"}},
                     "Active: Use the current Step's active atom format\n"
                     "Else: Enforce the selected format"}},
-         {"cell", {NamedEnum{2, {"Bohr", "Angstrom", "Active"}},
+         {"cell", {NamedEnum{2, {"Angstrom", "Bohr", "Active"}},
                     "Active: Match current Step's active atom format (Å if Å, Bohr otherwise)\n"
                     "Else: Enforce the selected format"}}}};
 }
@@ -182,30 +182,30 @@ void parseKPoints(std::string name, std::istream& file, Molecule& m)
             std::getline(file, line);
             line = IO::trim(line);
         }
-        m.getKPoints().active = KPoints::Fmt::MPG;
-        KPoints::MPG &mpg = m.getKPoints().mpg;
+        m.kpoints.active = KPoints::Fmt::MPG;
+        KPoints::MPG &mpg = m.kpoints.mpg;
         std::stringstream linestream{line};
         linestream >> mpg.x >> mpg.y >> mpg.z >> mpg.sx >> mpg.sy >> mpg.sz;
         if (linestream.fail()) throw IO::Error("PWScf Input: failed to parse automatic K-Points");
     } else {
-        m.getKPoints().active = KPoints::Fmt::Discrete;
+        m.kpoints.active = KPoints::Fmt::Discrete;
         if(name.find("CRYSTAL") != name.npos) {
-            m.getKPoints().discrete.properties = KPoints::Discrete::crystal;
+            m.kpoints.discrete.properties = KPoints::Discrete::crystal;
         }
         if(name.find("_B") != name.npos) {
-            m.getKPoints().discrete.properties =
+            m.kpoints.discrete.properties =
                     static_cast<KPoints::Discrete::Properties>(
-                        m.getKPoints().discrete.properties |
+                        m.kpoints.discrete.properties |
                         KPoints::Discrete::band);
         }
         std::string line;
         std::getline(file, line);
         size_t nk;
         std::stringstream{line} >> nk;
-        m.getKPoints().discrete.kpoints.resize(nk);
+        m.kpoints.discrete.kpoints.resize(nk);
         for(size_t k=0; k!=nk; ++k){
             std::getline(file, line);
-            KPoints::Discrete::Point &kp = m.getKPoints().discrete.kpoints[k];
+            KPoints::Discrete::Point &kp = m.kpoints.discrete.kpoints[k];
             std::stringstream{line} >> kp.pos[0] >> kp.pos[1] >> kp.pos[2] >> kp.weight;
         }
     }
@@ -245,23 +245,23 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
         bool scale = atomFmtRelative(s.getFmt());
         switch (cell.fmt) {
         case CellInp::Bohr:
-            s.setCellDim(1, CdmFmt::Bohr, scale);
+            s.setCellDim(1, AtomFmt::Bohr, scale);
             break;
         case CellInp::Angstrom:
-            s.setCellDim(1, CdmFmt::Angstrom, scale);
+            s.setCellDim(1, AtomFmt::Angstrom, scale);
             break;
         case CellInp::Alat:
             {
                 auto celldm = sys.find("celldm(1)");
                 auto cellA = sys.find("A");
                 if ((celldm != sys.end()) && (cellA == sys.end())) {
-                    s.setCellDim(std::stod(celldm->second), CdmFmt::Bohr, scale);
+                    s.setCellDim(std::stod(celldm->second), AtomFmt::Bohr, scale);
                     sys.erase(celldm);
                 } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-                    s.setCellDim(std::stod(cellA->second), CdmFmt::Angstrom, scale);
+                    s.setCellDim(std::stod(cellA->second), AtomFmt::Angstrom, scale);
                     sys.erase(cellA);
                 } else if ((celldm == sys.end()) && (cellA == sys.end())) {
-                    s.setCellDim(1, CdmFmt::Bohr, scale);
+                    s.setCellDim(1, AtomFmt::Bohr, scale);
                     break;
                 } else {
                     throw IO::Error("PWScf Input: specify either celldm or A,B,C, but not both!");
@@ -273,20 +273,20 @@ void createCell(Molecule &m, IO::Parameter &p, CellInp &cell)
         }
         s.setCellVec(cell.cell, s.getFmt() == AtomFmt::Crystal);
     }else{
-        CdmFmt cdmFmt;
+        AtomFmt cdmFmt;
         auto celldm = sys.find("celldm(1)");
         auto cellA = sys.find("A");
         if ((celldm != sys.end()) && (cellA == sys.end())) {
-            cdmFmt = CdmFmt::Bohr;
+            cdmFmt = AtomFmt::Bohr;
             sys.erase(celldm);
         } else if ((celldm == sys.end()) && (cellA != sys.end())) {
-            cdmFmt = CdmFmt::Angstrom;
+            cdmFmt = AtomFmt::Angstrom;
             sys.erase(cellA);
         } else {
             throw IO::Error("PWScf Input: Specify either celldm or A,B,C, but not both!");
         }
         Vec axes{}, angles{};
-        if(cdmFmt == CdmFmt::Bohr){
+        if(cdmFmt == AtomFmt::Bohr){
             axes[0] = stod(celldm->second);
             auto celldm2 = sys.find("celldm(2)");
             if(celldm2 != sys.end()) axes[1] = stod(celldm2->second);
@@ -325,16 +325,16 @@ void parseCard(std::string name, std::istream& file,
     else if (name.find("ATOMIC_POSITIONS") != name.npos) parseCoordinates(name, file, m, p);
     else if (name.find("K_POINTS") != name.npos) parseKPoints(name, file, m);
     else if (name.find("CELL_PARAMETERS") != name.npos) parseCell(name, file, cell);
-    else if (name.find("OCCUPATIONS") != name.npos) throw IO::Error("PWScf Input: OCCUPATIONS not implemented");
-    else if (name.find("CONSTRAINTS") != name.npos) throw IO::Error("PWScf Input: CONSTRAINTS not implemented");
-    else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("PWScf Input: ATOMIC_FORCES not implemented");
+//    else if (name.find("OCCUPATIONS") != name.npos) throw IO::Error("PWScf Input: OCCUPATIONS not implemented");
+//    else if (name.find("CONSTRAINTS") != name.npos) throw IO::Error("PWScf Input: CONSTRAINTS not implemented");
+//    else if (name.find("ATOMIC_FORCES") != name.npos) throw IO::Error("PWScf Input: ATOMIC_FORCES not implemented");
 }
 
 IO::Data PWInpParser(const std::string& name, std::istream &file)
 {
     IO::Data d{};
     Molecule &m = d.mol;
-    m.setName(name);
+    m.name = name;
     m.newStep();
     d.param = makeParam();
     auto &p = *d.param;
@@ -392,9 +392,9 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             file << " ntyp = " << s.getNtyp() << '\n';
             auto cell_fmt = (cellfmt.name() == "Active") ?
                         ((s.getFmt() == AtomFmt::Angstrom) ?
-                             CdmFmt::Angstrom : CdmFmt::Bohr) : // match coordinates
-                        static_cast<CdmFmt>(cellfmt.value()); // use explicit
-            if(cell_fmt == CdmFmt::Bohr){
+                             AtomFmt::Angstrom : AtomFmt::Bohr) : // match coordinates
+                        static_cast<AtomFmt>(cellfmt.value()); // use explicit
+            if(cell_fmt == AtomFmt::Bohr){
                 file << " celldm(1) = " << s.getCellDim(cell_fmt) << '\n';
             }else{
                 file << " A = " << s.getCellDim(cell_fmt) << '\n';
@@ -408,7 +408,7 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     file << "ATOMIC_SPECIES\n"
          << std::fixed << std::setprecision(5);
     for(auto &t: s.getTypes()){
-        auto e = (*s.pte)[t];
+        auto e = (*m.pte)[t];
         file << std::left << std::setw(3) << t << ' '
              << std::right << std::setw(9) << e.m << ' ';
         if(e.PWPP.empty()){
@@ -438,7 +438,7 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
         file << '\n';
     }
     file << "\nK_POINTS " << std::defaultfloat;
-    const KPoints& k = m.getKPoints();
+    const KPoints& k = m.kpoints;
     const std::array<std::string, 6> kdprop =
         {{"tpiba", "crystal", "tpiba_b", "crystal_b", "tpiba_c", "crystal_c"}};
     switch(k.active){

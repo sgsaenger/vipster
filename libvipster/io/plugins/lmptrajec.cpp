@@ -79,7 +79,7 @@ LmpTrajecParser(const std::string& name, std::istream &file)
 
     IO::Data data{};
     Molecule& m = data.mol;
-    m.setName(name);
+    m.name = name;
     Step* s = nullptr;
 
     std::string line;
@@ -99,7 +99,7 @@ LmpTrajecParser(const std::string& name, std::istream &file)
                 throw IO::Error("Lammps Dump: failed to parse nat");
             }
             s->newAtoms(nat);
-            s->setCellDim(1, CdmFmt::Angstrom);
+            s->setCellDim(1, AtomFmt::Angstrom);
             // Cell
             cell = Mat{};
             std::getline(file, line);
