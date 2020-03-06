@@ -120,6 +120,7 @@ public:
     {
         return {*atoms, getNat()-1};
     }
+    // TODO: remove this? breaks invariants of atomcontext
     const atom_source&  getAtoms() const noexcept
     {
         return *atoms;

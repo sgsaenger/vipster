@@ -67,12 +67,12 @@ void GUI::SelData::initGL(void *context)
     glVertexAttribDivisor(shader.vert_scale, 1);
     glEnableVertexAttribArray(shader.vert_scale);
 
-    glVertexAttribIPointer(shader.pbc_crit, 3,
-                          GL_SHORT,
-                          sizeof(SelProp),
-                          reinterpret_cast<const GLvoid*>(offsetof(SelProp, mult)));
-    glVertexAttribDivisor(shader.pbc_crit, 1);
-    glEnableVertexAttribArray(shader.pbc_crit);
+//    glVertexAttribIPointer(shader.pbc_crit, 3,
+//                          GL_SHORT,
+//                          sizeof(SelProp),
+//                          reinterpret_cast<const GLvoid*>(offsetof(SelProp, mult)));
+//    glVertexAttribDivisor(shader.pbc_crit, 1);
+//    glEnableVertexAttribArray(shader.pbc_crit);
     glBindVertexArray(0);
 }
 
@@ -126,41 +126,43 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         return;
     }
     sel_buffer.reserve(curSel->getNat()); // too small, but better than nothing
-    auto fmt = curSel->getFormatter(AtomFmt::Crystal, curSel->getFmt());
+//    auto fmt = curSel->getFormatter(AtomFmt::Crystal, curSel->getFmt());
     if(useVdW){
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
-            for(const auto& off: it.getSel().second){
-                auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
-                                               static_cast<Vec::value_type>(off[1]),
-                                               static_cast<Vec::value_type>(off[2])});
+//            for(const auto& off: it.getSel().second){
+                const Vec& pos = it->coord;
+//                auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
+//                                               static_cast<Vec::value_type>(off[1]),
+//                                               static_cast<Vec::value_type>(off[2])});
                 sel_buffer.push_back({{static_cast<float>(pos[0]),
                                        static_cast<float>(pos[1]),
                                        static_cast<float>(pos[2])},
                                       static_cast<float>(it->type->vdwr*1.3),
-                                      {static_cast<int16_t>(off[0]),
-                                       static_cast<int16_t>(off[1]),
-                                       static_cast<int16_t>(off[2])},
+//                                      {static_cast<int16_t>(off[0]),
+//                                       static_cast<int16_t>(off[1]),
+//                                       static_cast<int16_t>(off[2])},
                                      });
-            }
+//            }
             ++it;
         }
     }else{
         auto it = curSel->cbegin();
         while(it != curSel->cend()){
-            for(const auto& off: it.getSel().second){
-                auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
-                                               static_cast<Vec::value_type>(off[1]),
-                                               static_cast<Vec::value_type>(off[2])});
+//            for(const auto& off: it.getSel().second){
+                const Vec& pos = it->coord;
+//                auto pos = it->coord + fmt(Vec{static_cast<Vec::value_type>(off[0]),
+//                                               static_cast<Vec::value_type>(off[1]),
+//                                               static_cast<Vec::value_type>(off[2])});
                 sel_buffer.push_back({{static_cast<float>(pos[0]),
                                        static_cast<float>(pos[1]),
                                        static_cast<float>(pos[2])},
                                       static_cast<float>(it->type->covr*1.3),
-                                      {static_cast<int16_t>(off[0]),
-                                       static_cast<int16_t>(off[1]),
-                                       static_cast<int16_t>(off[2])},
+//                                      {static_cast<int16_t>(off[0]),
+//                                       static_cast<int16_t>(off[1]),
+//                                       static_cast<int16_t>(off[2])},
                                      });
-            }
+//            }
             ++it;
         }
     }
@@ -178,7 +180,7 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
         break;
     case AtomFmt::Crystal:
     case AtomFmt::Alat:
-        tmp_mat *= curSel->getCellDim(CdmFmt::Bohr);
+        tmp_mat *= curSel->getCellDim(AtomFmt::Bohr);
         break;
     default:
         break;

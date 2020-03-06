@@ -10,6 +10,7 @@
 #include <vector>
 #include <array>
 #include "molecule.h"
+#include "settings.h"
 #include "guimat.h"
 #include "guidata.h"
 #include "stepdata.h"

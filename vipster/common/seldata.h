@@ -9,7 +9,7 @@ namespace GUI {
     struct SelProp{ // 22 bytes
         float pos[3];    // 3*4 = 12 bytes
         float rad;  // 4 bytes
-        int16_t mult[3]; // 3*2 = 6 bytes
+//        int16_t mult[3]; // 3*2 = 6 bytes
     };
 
     class SelData: public Data{

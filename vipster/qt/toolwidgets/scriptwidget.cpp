@@ -18,8 +18,9 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
         switch(in.mode){
         case OpVec::Mode::Direct:
             return in.v;
-        case OpVec::Mode::Relative:
-            return step.formatVec(in.v, in.fmt, step.getFmt());
+        // FIXME: reimplement
+//        case OpVec::Mode::Relative:
+//            return step.formatVec(in.v, in.fmt, step.getFmt());
         case OpVec::Mode::Position:
             if(in.m1){
                 return -step.at(in.id1).coord;

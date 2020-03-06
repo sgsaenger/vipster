@@ -41,7 +41,7 @@ void IO::intToCart(Step& s, const std::string& name, const std::array<size_t,3>&
         // dihedral
         values[2] *= deg2rad;
     }else{
-        // rotate in xz-plane TODO IS THAT CORRECT PLZ CHECK ME KTHXBYE
+        // rotate in xz-plane
         s.newAtom(name, s[ids[0]-1].coord + Vec{
             std::cos(values[1])*values[0],
             0,

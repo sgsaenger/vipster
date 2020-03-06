@@ -50,36 +50,22 @@ void PickWidget::updateWidget(GUI::change_t change)
     const auto& curSel = master->curSel->asFmt(AtomFmt::Angstrom);
     auto& text = *ui->PickText;
     text.setPlainText("Atoms:");
-    auto it = curSel.cbegin();
-    size_t nat = 0;
+    const size_t nat = curSel.getNat();
     std::vector<QString> names;
-    std::vector<Vec> coords;
-    auto fmt = curSel.getFormatter(AtomFmt::Crystal, AtomFmt::Angstrom);
-    while(it != curSel.cend()){
-        int count = 0;
-        const auto& pair = it.getSel();
-        for(const auto& off: pair.second){
-            names.push_back(QString::number(pair.first)+QString{count,'\''});
-            if(nat<4){
-                // save four coordinates in unwrapped form
-                coords.push_back(it->coord + fmt(Vec{static_cast<double>(off[0]),
-                                                     static_cast<double>(off[1]),
-                                                     static_cast<double>(off[2])}));
-            }
-            if(off != SizeVec{0,0,0}){
-                text.appendPlainText(names.back()+'('+
-                                     QString::fromStdString(it->name)+") <"+
-                                     QString::number(off[0])+','+
-                                     QString::number(off[1])+','+
-                                     QString::number(off[2])+'>');
-            }else{
-                text.appendPlainText(names.back()+'('+
-                                     QString::fromStdString(it->name)+')');
-            }
-            count++;
-            nat++;
+    std::map<size_t, int> count;
+    for(auto it = curSel.cbegin(); it != curSel.cend() ;++it){
+        names.push_back(QString::number(it.getIdx())+QString{count[it.getIdx()]++,'\''});
+        const SizeVec& off = it->off;
+        if(off != SizeVec{}){
+            text.appendPlainText(names.back()+'('+
+                                 QString::fromStdString(it->name)+") <"+
+                                 QString::number(off[0])+','+
+                                 QString::number(off[1])+','+
+                                 QString::number(off[2])+'>');
+        }else{
+            text.appendPlainText(names.back()+'('+
+                                 QString::fromStdString(it->name)+')');
         }
-        ++it;
     }
     if(nat>4){
         //Don't display additional information when too many atoms are selected
@@ -97,12 +83,12 @@ void PickWidget::updateWidget(GUI::change_t change)
      *  |-----|------|-----|-------|
      */
     if(nat>1){
-        auto diff01 = coords[0] - coords[1];
+        auto diff01 = curSel[0].coord - curSel[1].coord;
         auto dist01 = Vec_length(diff01);
         printDist(text, names[0], names[1], dist01);
         if(nat>2){
-            auto diff02 = coords[0] - coords[2];
-            auto diff12 = coords[1] - coords[2];
+            auto diff02 = curSel[0].coord - curSel[2].coord;
+            auto diff12 = curSel[1].coord - curSel[2].coord;
             auto dist02 = Vec_length(diff02);
             auto dist12 = Vec_length(diff12);
             printDist(text, names[0], names[2], dist02);
@@ -118,9 +104,9 @@ void PickWidget::updateWidget(GUI::change_t change)
                 printAngle(text, names[1], names[2], names[0], ang120);
                 printAngle(text, names[2], names[0], names[1], ang201);
             }else{
-                auto diff03 = coords[0] - coords[3];
-                auto diff13 = coords[1] - coords[3];
-                auto diff23 = coords[2] - coords[3];
+                auto diff03 = curSel[0].coord - curSel[3].coord;
+                auto diff13 = curSel[1].coord - curSel[3].coord;
+                auto diff23 = curSel[2].coord - curSel[3].coord;
                 auto dist03 = Vec_length(diff03);
                 auto dist13 = Vec_length(diff13);
                 auto dist23 = Vec_length(diff23);

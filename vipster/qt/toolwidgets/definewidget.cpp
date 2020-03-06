@@ -59,21 +59,21 @@ void DefineWidget::fillTable()
     int i{0};
     table.clearContents();
     ui->defTable->setRowCount(defMap->size());
-    for(auto& def: *defMap){
+    for(auto& [name, def]: *defMap){
         // if contained in extras, this group is displayed
         table.setItem(i, 0, new QTableWidgetItem{});
         table.item(i, 0)->setFlags(Qt::ItemIsSelectable|
                                    Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
         table.item(i, 0)->setCheckState(Qt::CheckState(
-                        master->curVP->hasExtraData(std::get<2>(def.second), false)*2));
+                        master->curVP->hasExtraData(std::get<2>(def), false)*2));
         // name
-        table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(def.first)));
+        table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(name)));
         // filter-str
         table.setItem(i, 2, new QTableWidgetItem(QString::fromStdString(
-            std::get<1>(def.second))));
+            std::get<1>(def))));
         // color button
         auto* but = new QPushButton("Select");
-        const auto& color = std::get<2>(def.second)->color;
+        const auto& color = std::get<2>(def)->color;
         but->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
                            .arg(color[0]).arg(color[1]).arg(color[2]));
         connect(but, &QPushButton::clicked, this, &DefineWidget::colButton_clicked);

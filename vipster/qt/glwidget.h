@@ -36,7 +36,7 @@ private:
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;
     Vipster::Vec shift;
-    std::map<size_t, std::vector<Vipster::SizeVec>> pickAtoms(QPoint from, QPoint to);
+    std::set<Vipster::SelectionPair> pickAtoms(QPoint from, QPoint to);
     void rotAtoms(QPoint delta);
     void shiftAtomsXY(QPoint delta);
     void shiftAtomsZ(QPoint delta);

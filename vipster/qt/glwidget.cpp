@@ -150,11 +150,11 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
-std::map<size_t, std::vector<SizeVec> > GLWidget::pickAtoms(QPoint from, QPoint to)
+std::set<SelectionPair> GLWidget::pickAtoms(QPoint from, QPoint to)
 {
     // return indices of atoms enclosed by rectangle
     // defined by `from` and `to`
-    std::map<size_t, std::vector<SizeVec>> idx;
+    std::set<SelectionPair> idx;
     makeCurrent();
     drawSel(this);
     QOpenGLFramebufferObjectFormat format;
@@ -192,7 +192,7 @@ std::map<size_t, std::vector<SizeVec> > GLWidget::pickAtoms(QPoint from, QPoint 
             auto y = yrem / mult[0];
             auto x = yrem % mult[0];
             // untangle atom-id
-            idx[i].push_back({x,y,z});
+            idx.insert({i, {x,y,z}});
         }
     }
     return idx;
@@ -356,40 +356,40 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             SelectionFilter filter{};
             filter.mode = SelectionFilter::Mode::Index;
             if(add){
-                const auto& origIndices = curSel->getAtoms().indices;
-                filter.indices.insert(origIndices.begin(), origIndices.end());
+                filter.indices = curSel->getAtoms().indices;
             }
             auto idx = pickAtoms(mousePos, rectPos);
-            if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
-                auto i = *idx.begin();
-                auto pos = filter.indices.find(i.first);
-                if(pos == filter.indices.end()){
-                    // if not present, add single atom
-                    filter.indices[i.first] = i.second;
-                }else{
-                    auto pbc = std::find(pos->second.begin(), pos->second.end(), i.second[0]);
-                    if(pbc == pos->second.end()){
-                        // atom present, add aditional periodic image
-                        pos->second.push_back(i.second[0]);
-                    }else if(pos->second.size() > 1){
-                        // atom present, remove selected periodic image
-                        pos->second.erase(pbc);
-                    }else{
-                        // atom present, no periodic images remaining, remove completely
-                        filter.indices.erase(pos);
-                    }
-                }
-            }else{
-                // if area is selected, always merge sets
-                for(const auto& p: idx){
-                    auto& target = filter.indices[p.first];
-                    for(auto& pbc: p.second){
-                        if(std::find(target.begin(), target.end(), pbc) == target.end()){
-                            target.push_back(pbc);
-                        }
-                    }
-                }
-            }
+            // FIXME: reimplement
+//            if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
+//                auto i = *idx.begin();
+//                auto pos = filter.indices.find(i.first);
+//                if(pos == filter.indices.end()){
+//                    // if not present, add single atom
+//                    filter.indices[i.first] = i.second;
+//                }else{
+//                    auto pbc = std::find(pos->second.begin(), pos->second.end(), i.second[0]);
+//                    if(pbc == pos->second.end()){
+//                        // atom present, add aditional periodic image
+//                        pos->second.push_back(i.second[0]);
+//                    }else if(pos->second.size() > 1){
+//                        // atom present, remove selected periodic image
+//                        pos->second.erase(pbc);
+//                    }else{
+//                        // atom present, no periodic images remaining, remove completely
+//                        filter.indices.erase(pos);
+//                    }
+//                }
+//            }else{
+//                // if area is selected, always merge sets
+//                for(const auto& p: idx){
+//                    auto& target = filter.indices[p.first];
+//                    for(auto& pbc: p.second){
+//                        if(std::find(target.begin(), target.end(), pbc) == target.end()){
+//                            target.push_back(pbc);
+//                        }
+//                    }
+//                }
+//            }
             *curSel = curStep->select(filter);
             rectPos = mousePos;
             triggerUpdate(GUI::Change::selection);
@@ -401,19 +401,16 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
     case MouseMode::Bond:
         // if we have manual bonds and picked exactly two atoms, toggle bond
         auto idx1 = pickAtoms(rectPos, rectPos);
-        if(idx1.size() != 1 && idx1.begin()->second.size() != 1) break;
+        if(idx1.size() != 1) break;
         auto idx2 = pickAtoms(e->pos(), e->pos());
-        if(idx2.size() != 1 && idx2.begin()->second.size() != 1) break;
+        if(idx2.size() != 1) break;
         auto at1 = *idx1.begin();
         auto at2 = *idx2.begin();
-        DiffVec off_l = {static_cast<DiffVec::value_type>(at1.second.front()[0]-at2.second.front()[0]),
-                         static_cast<DiffVec::value_type>(at1.second.front()[1]-at2.second.front()[1]),
-                         static_cast<DiffVec::value_type>(at1.second.front()[2]-at2.second.front()[2]),
+        DiffVec off_l = {static_cast<DiffVec::value_type>(at1.second[0]-at2.second[0]),
+                         static_cast<DiffVec::value_type>(at1.second[1]-at2.second[1]),
+                         static_cast<DiffVec::value_type>(at1.second[2]-at2.second[2]),
                         };
-        DiffVec off_r = {static_cast<DiffVec::value_type>(-off_l[0]),
-                         static_cast<DiffVec::value_type>(-off_l[1]),
-                         static_cast<DiffVec::value_type>(-off_l[2]),
-                        };
+        DiffVec off_r = {-off_l[0], -off_l[1], -off_l[2]};
         // ignore bonds between one atom with itself
         if((at1.first == at2.first) && (off_l == DiffVec{0,0,0}))
             break;

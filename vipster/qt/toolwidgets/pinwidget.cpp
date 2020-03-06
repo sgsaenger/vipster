@@ -55,7 +55,7 @@ void PinWidget::PinnedStep::draw(const Vec &off,
                                  const Mat &cv, bool drawCell, void *context)
 {
     Vec off_loc = off + this->offset;
-    Mat cv_loc = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
+    Mat cv_loc = curStep->getCellVec() * curStep->getCellDim(AtomFmt::Bohr);
     auto mult_loc = curStep->hasCell() ? mult : GUI::PBCVec{{1,1,1}};
     if(repeat){
         for(int x=0; x<m[0]; ++x){
@@ -131,7 +131,7 @@ void PinWidget::on_addStep_clicked()
     ui->addStep->setDisabled(true);
     // add to list of steps
     pinnedSteps.push_back(std::make_shared<PinnedStep>(master->globals, master->curStep,
-        master->curMol->getName() + " (Step "
+        master->curMol->name + " (Step "
             + std::to_string(master->curVP->moldata[master->curMol].curStep) + ')',
         GUI::PBCVec{1,1,1}));
     pinnedSteps.back()->update(pinnedSteps.back()->curStep,
@@ -188,7 +188,7 @@ void PinWidget::on_insertStep_clicked()
 {
     if (!curPin || (curPin->curStep == master->curStep)) return;
     Step s = *curPin->curStep;
-    s.modShift(s.formatVec(curPin->offset, AtomFmt::Bohr, s.getFmt()));
+    s.asFmt(AtomFmt::Bohr).modShift(curPin->offset);
     std::array<bool,3> fit = {ui->xFit->isChecked(),
                               ui->yFit->isChecked(),
                               ui->zFit->isChecked()};
@@ -197,8 +197,8 @@ void PinWidget::on_insertStep_clicked()
         s.modMultiply(m[0], m[1], m[2]);
     }
     if (s.hasCell() && (fit != std::array<bool,3>{{false, false, false}})){
-        auto fac = master->curStep->getCellDim(CdmFmt::Bohr) /
-                s.getCellDim(CdmFmt::Bohr);
+        auto fac = master->curStep->getCellDim(AtomFmt::Bohr) /
+                s.getCellDim(AtomFmt::Bohr);
         auto cell = s.getCellVec();
         const auto& target = master->curStep->getCellVec();
         if (fit[0]) cell[0] = target[0] * fac;

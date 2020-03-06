@@ -73,10 +73,10 @@ void GuiWrapper::drawPre(void *context)
 
 void GuiWrapper::drawImpl(const Vec &pos, void *context)
 {
-    Vec off = pos - curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
+    Vec off = pos - curStep->getCenter(AtomFmt::Bohr, settings.rotCom.val);
     Mat cv = {{{{1,0,0}}, {{0,1,0}}, {{0,0,1}}}};
     if(curStep->hasCell()){
-        cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
+        cv = curStep->getCellVec() * curStep->getCellDim(AtomFmt::Bohr);
         off -= (mult[0]-1)*cv[0]/2.;
         off -= (mult[1]-1)*cv[1]/2.;
         off -= (mult[2]-1)*cv[2]/2.;
@@ -137,7 +137,7 @@ void GuiWrapper::drawSel(void *context)
         glDisable(GL_MULTISAMPLE);
     }
 #endif
-    Vec off = -curStep->getCenter(CdmFmt::Bohr, settings.rotCom.val);
+    Vec off = -curStep->getCenter(AtomFmt::Bohr, settings.rotCom.val);
     mainStep.drawSel(off, mult, context);
 #ifndef __EMSCRIPTEN__
     if(settings.antialias.val){

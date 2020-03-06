@@ -141,11 +141,11 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
     // if necessary, make sure that data is up to date
     if(change & (GUI::Change::atoms | GUI::Change::fmt)){
-        // TODO: what to do here?
+        // FIXME: what to do here?
 //        curStep->evaluateCache();
     }
     if(change & GUI::Change::selection){
-        // TODO: what to do here?
+        // FIXME: what to do here?
 //        curSel->evaluateCache();
     }
     // notify widgets
@@ -285,33 +285,33 @@ void MainWindow::newMol()
 {
     molecules.emplace_back();
     molecules.back().pte->root = &pte;
-    registerMol(molecules.back().getName());
+    registerMol(molecules.back().name);
 }
 
 void MainWindow::newMol(QAction* sender)
 {
     if(sender == ui->actionCopy_Trajector){
         molecules.emplace_back(*curMol);
-        molecules.back().setName(molecules.back().getName() + " (copy)");
+        molecules.back().name += " (copy)";
         molecules.back().pte->root = &pte;
-        registerMol(molecules.back().getName());
+        registerMol(molecules.back().name);
     }else if( sender == ui->actionCopy_single_Step){
-        molecules.emplace_back(*curStep, curMol->getName() + " (copy of step " +
+        molecules.emplace_back(*curStep, curMol->name + " (copy of step " +
                                std::to_string(curVP->moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
-        registerMol(molecules.back().getName());
+        registerMol(molecules.back().name);
     }else if( sender == ui->actionCopy_current_Selection){
-        molecules.emplace_back(*curSel, curMol->getName() + " (copy of selection of step " +
+        molecules.emplace_back(*curSel, curMol->name + " (copy of selection of step " +
                                std::to_string(curVP->moldata[curMol].curStep) + ')');
         molecules.back().pte->root = &pte;
-        registerMol(molecules.back().getName());
+        registerMol(molecules.back().name);
     }
 }
 
 void MainWindow::newData(IO::Data &&d)
 {
     molecules.push_back(std::move(d.mol));
-    const auto& name = molecules.back().getName();
+    const auto& name = molecules.back().name;
     registerMol(name);
     if(d.param){
         paramWidget->registerParam(name, std::move(*d.param));

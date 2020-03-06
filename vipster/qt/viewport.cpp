@@ -29,7 +29,7 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     ui->closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
     // fill mol-list
     for(const auto& mol: master->molecules){
-        ui->molList->addItem(mol.getName().c_str());
+        ui->molList->addItem(mol.name.c_str());
     }
 }
 
@@ -66,11 +66,11 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
         // short-circuit if rest of GUI does not need to be updated
         // if necessary, make sure that data is up to date
         if(change & (GUI::Change::atoms | GUI::Change::fmt)){
-            // TODO: what to do here?
+            // FIXME: what to do here?
 //            curStep->evaluateCache();
         }
         if(change & GUI::Change::selection){
-            // TODO: what to do here?
+            // FIXME: what to do here?
 //            curSel->evaluateCache();
         }
         // trigger update in viewports that display the same step

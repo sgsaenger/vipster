@@ -330,30 +330,30 @@ int main(int argc, char *argv[])
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;
             if(kpoints[0] == "gamma"){
+                mol.kpoints.active = KPoints::Fmt::Gamma;
                 if(kpoints.size() > 1){
                     throw CLI::ParseError("K-Point \"gamma\" takes no arguments", 1);
                 }
-                mol.setKPoints(KPoints{KPoints::Fmt::Gamma, {}, {}});
             }else if(kpoints[0] == "mpg"){
+                mol.kpoints.active = KPoints::Fmt::MPG;
                 const std::string mpg_err = "Monkhorst-Pack grid expects three integer "
                                             "and three float arguments";
                 if(kpoints.size() != 7){
                     throw CLI::ParseError(mpg_err, 1);
                 }
                 try {
-                    mol.setKPoints(KPoints{KPoints::Fmt::MPG, {
-                                       std::stoi(kpoints[1]),
+                    mol.kpoints.mpg = {std::stoi(kpoints[1]),
                                        std::stoi(kpoints[2]),
                                        std::stoi(kpoints[3]),
                                        std::stod(kpoints[4]),
                                        std::stod(kpoints[5]),
-                                       std::stod(kpoints[6]),
-                                   }, {}});
+                                       std::stod(kpoints[6])};
                 } catch (...) {
                     throw CLI::ParseError(mpg_err, 1);
                 }
             //TODO: discrete
             }else if(kpoints[0] == "disc"){
+                mol.kpoints.active = KPoints::Fmt::Discrete;
                 if(kpoints.size() < 4){
                     throw CLI::ParseError("K-Point \"disc\" takes at least three arguments", 1);
                 }
@@ -361,15 +361,14 @@ int main(int argc, char *argv[])
                 if(kpoints.size() != 4+4*N){
                     throw CLI::ParseError("K-Point \"disc\" takes exactly three + 4*N arguments", 1);
                 }
-                uint8_t properties{};
+                auto &properties = mol.kpoints.discrete.properties;
                 if(std::stoi(kpoints[2])){
                     properties |= KPoints::Discrete::band;
                 }
                 if(std::stoi(kpoints[3])){
                     properties |= KPoints::Discrete::crystal;
                 }
-                mol.setKPoints({KPoints::Fmt::Discrete, {}, {properties}});
-                auto& list = mol.getKPoints().discrete.kpoints;
+                auto& list = mol.kpoints.discrete.kpoints;
                 list.resize(N);
                 size_t i = 4;
                 for(auto& kpoint: list){

@@ -80,8 +80,10 @@ void MolWidget::updateWidget(GUI::change_t change)
     }
     if ((change & GUI::stepChanged) == GUI::stepChanged) {
         // reset old fmt-string
-        auto oldFmt = static_cast<int>(ownStep->getFmt());
-        ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+        if(ownStep){
+            auto oldFmt = static_cast<int>(ownStep->getFmt());
+            ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+        }
         // assign StepFormatter to curStep, mark fmt as active
         auto fmt = master->curStep->getFmt();
         curStep = master->curStep;
@@ -115,7 +117,7 @@ void MolWidget::updateWidget(GUI::change_t change)
         fillCell();
     }
     if (change & GUI::Change::kpoints) {
-        ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->getKPoints().active));
+        ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->kpoints.active));
         fillKPoints();
     }
 }
@@ -129,7 +131,7 @@ void MolWidget::fillCell()
     ui->cellEnabledBox->setChecked(ownStep->hasCell());
     ui->cellDimBox->setValue(static_cast<double>(
                                  ownStep->getCellDim(
-            static_cast<CdmFmt>(ui->cellFmt->currentIndex()))));
+            static_cast<AtomFmt>(ui->cellFmt->currentIndex()))));
     Mat vec = ownStep->getCellVec();
     for(int j=0;j!=3;++j){
         for(int k=0;k!=3;++k){
@@ -143,7 +145,7 @@ void MolWidget::on_cellTrajecButton_clicked()
     if(ui->cellEnabledBox->isChecked()){
         auto scale = ui->cellScaleBox->isChecked();
         auto dim = ui->cellDimBox->value();
-        auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+        auto fmt = static_cast<AtomFmt>(ui->cellFmt->currentIndex());
         Mat vec{};
         for(int row=0; row<3; ++row){
             for(int col=0; col<3; ++col){
@@ -172,7 +174,7 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
         auto scale = ui->cellScaleBox->isChecked();
         if (scale) change |= GUI::Change::atoms;
         auto dim = ui->cellDimBox->value();
-        auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+        auto fmt = static_cast<AtomFmt>(ui->cellFmt->currentIndex());
         Mat vec{};
         for(int row=0; row<3; ++row){
             for(int col=0; col<3; ++col){
@@ -201,7 +203,7 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
 void MolWidget::on_cellFmt_currentIndexChanged(int idx)
 {
     QSignalBlocker blockCDB(ui->cellDimBox);
-    ui->cellDimBox->setValue(static_cast<double>(ownStep->getCellDim(static_cast<CdmFmt>(idx))));
+    ui->cellDimBox->setValue(static_cast<double>(ownStep->getCellDim(static_cast<AtomFmt>(idx))));
 }
 
 void MolWidget::on_cellDimBox_valueChanged(double cdm)
@@ -210,7 +212,7 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     if(ui->cellEnabledBox->checkState() == Qt::CheckState::Unchecked){
         return;
     }
-    auto fmt = static_cast<CdmFmt>(ui->cellFmt->currentIndex());
+    auto fmt = static_cast<AtomFmt>(ui->cellFmt->currentIndex());
     auto scale = ui->cellScaleBox->isChecked();
     curStep->setCellDim(cdm, fmt, scale);
     GUI::change_t change = GUI::Change::cell;
@@ -289,7 +291,7 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
     for(const auto& i: idx){
-        filter.indices.emplace(static_cast<size_t>(i.row()), std::vector{SizeVec{}});
+        filter.indices.emplace_back(static_cast<size_t>(i.row()), SizeVec{});
     }
     *master->curSel = curStep->select(filter);
     triggerUpdate(GUI::Change::selection);
@@ -315,7 +317,7 @@ void MolWidget::fillKPoints()
 {
     QSignalBlocker blockCrystal(ui->crystal);
     QSignalBlocker blockBands(ui->bands);
-    const auto& kpoints = curMol->getKPoints();
+    const auto& kpoints = curMol->kpoints;
     for(int i=0; i<3; ++i){
         if(i == static_cast<int>(kpoints.active)){
             ui->activeKpoint->setItemText(i, activeKpoints[i]);
@@ -353,20 +355,20 @@ void MolWidget::fillKPoints()
 
 void MolWidget::on_kFmtButton_clicked()
 {
-    auto oldFmt = static_cast<int>(curMol->getKPoints().active);
+    auto oldFmt = static_cast<int>(curMol->kpoints.active);
     ui->activeKpoint->setItemText(oldFmt, inactiveKpoints[oldFmt]);
     auto newFmt = ui->activeKpoint->currentIndex();
     ui->activeKpoint->setItemText(newFmt, activeKpoints[newFmt]);
-    curMol->getKPoints().active = static_cast<KPoints::Fmt>(newFmt);
+    curMol->kpoints.active = static_cast<KPoints::Fmt>(newFmt);
     triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::on_bands_stateChanged(int arg)
 {
     if(arg){
-        curMol->getKPoints().discrete.properties |= KPoints::Discrete::band;
+        curMol->kpoints.discrete.properties |= KPoints::Discrete::band;
     }else{
-        curMol->getKPoints().discrete.properties ^= KPoints::Discrete::band;
+        curMol->kpoints.discrete.properties ^= KPoints::Discrete::band;
     }
     triggerUpdate(GUI::Change::kpoints);
 }
@@ -374,16 +376,16 @@ void MolWidget::on_bands_stateChanged(int arg)
 void MolWidget::on_crystal_stateChanged(int arg)
 {
     if(arg){
-        curMol->getKPoints().discrete.properties |= KPoints::Discrete::crystal;
+        curMol->kpoints.discrete.properties |= KPoints::Discrete::crystal;
     }else{
-        curMol->getKPoints().discrete.properties ^= KPoints::Discrete::crystal;
+        curMol->kpoints.discrete.properties ^= KPoints::Discrete::crystal;
     }
     triggerUpdate(GUI::Change::kpoints);
 }
 
 void MolWidget::mpg_change()
 {
-    auto& kpoints = curMol->getKPoints().mpg;
+    auto& kpoints = curMol->kpoints.mpg;
     if(sender() == ui->mpg_x){
         kpoints.x = ui->mpg_x->value();
     }else if(sender() == ui->mpg_y){
@@ -414,7 +416,7 @@ void MolWidget::on_discretetable_itemSelectionChanged()
 
 void MolWidget::on_actionNew_K_Point_triggered()
 {
-    auto& kpoints = curMol->getKPoints().discrete.kpoints;
+    auto& kpoints = curMol->kpoints.discrete.kpoints;
     kpoints.push_back(KPoints::Discrete::Point{});
     fillKPoints();
     triggerUpdate(GUI::Change::kpoints);
@@ -425,7 +427,7 @@ void MolWidget::on_actionDelete_K_Point_triggered()
     if(curKPoint < 0){
         throw Error{"MolWidget: \"Delete K-Point\" triggered with invalid selection"};
     }
-    auto& kpoints = curMol->getKPoints().discrete.kpoints;
+    auto& kpoints = curMol->kpoints.discrete.kpoints;
     kpoints.erase(kpoints.begin()+curKPoint);
     fillKPoints();
     triggerUpdate(GUI::Change::kpoints);
@@ -433,7 +435,7 @@ void MolWidget::on_actionDelete_K_Point_triggered()
 
 void MolWidget::on_discretetable_cellChanged(int row, int column)
 {
-    auto& kp = curMol->getKPoints().discrete.kpoints[row];
+    auto& kp = curMol->kpoints.discrete.kpoints[row];
     QTableWidgetItem *cell = ui->discretetable->item(row, column);
     if(column == 3){
         kp.weight = cell->text().toDouble();

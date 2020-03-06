@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>373</width>
-    <height>779</height>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,7 +64,12 @@
          <widget class="QComboBox" name="atomFmtBox">
           <item>
            <property name="text">
-            <string>Bohr</string>
+            <string>Crystal</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Alat</string>
            </property>
           </item>
           <item>
@@ -74,12 +79,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Crystal</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Alat</string>
+            <string>Bohr</string>
            </property>
           </item>
          </widget>

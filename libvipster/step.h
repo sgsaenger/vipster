@@ -21,7 +21,7 @@ struct AtomList{
     using atom = AtomView<false>;
     using const_atom = AtomView<true>;
     template<bool isConst>
-    class AtomIterator;
+    using AtomIterator = detail::AtomIterator<AtomView, isConst>;
     using iterator = AtomIterator<false>;
     using const_iterator = AtomIterator<true>;
 
@@ -35,8 +35,7 @@ struct AtomList{
     // complete Step-interface
     size_t getNat() const noexcept {return elements.size();}
 
-    AtomList(AtomFmt fmt,
-             std::shared_ptr<PeriodicTable> pte=std::make_shared<PeriodicTable>())
+    AtomList(AtomFmt fmt)
         : ctxt{fmt} {}
     // specialize copy constructor because AtomList is supposed to own its cell
     AtomList(const AtomList &rhs)
@@ -186,7 +185,8 @@ struct AtomList{
             AtomView &a;
         };
     protected:
-        AtomList *source;
+        using Source = AtomList;
+        Source *source;
         AtomView& operator+=(ptrdiff_t i){
             v += i;
             elem += i;
@@ -260,122 +260,6 @@ struct AtomList{
             return !operator==(rhs);
         }
     };
-
-    template<bool isConst>
-    class AtomIterator: private AtomView<isConst>
-    {
-        template<bool> friend class AtomIterator;
-    public:
-        using difference_type = ptrdiff_t;
-        using value_type = AtomView<isConst>;
-        using reference = value_type&;
-        using pointer = value_type*;
-        using iterator_category = std::random_access_iterator_tag;
-        AtomIterator()
-            : value_type{},
-              idx{}
-        {}
-        AtomIterator(AtomList &atoms,
-                     size_t idx)
-            : value_type{atoms, idx},
-              idx{idx}
-        {}
-        // copy-functions are duplicated as templates to allow for conversion to const
-        // default copy constructor
-        AtomIterator(const AtomIterator &it)
-            : value_type{it}, idx{it.idx}
-        {}
-        template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
-        AtomIterator(const AtomIterator<B> &it)
-            : value_type{it}, idx{it.idx}
-        {}
-        // copy assignment just assigns the iterator, not to the atom (which has reference semantics)
-        AtomIterator&   operator=(const AtomIterator &it){
-            value_type::pointTo(it);
-            idx = it.idx;
-            return *this;
-        }
-        template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
-        AtomIterator&   operator=(const AtomIterator<B> &it){
-            value_type::pointTo(it);
-            idx = it.idx;
-            return *this;
-        }
-        // access
-        reference       operator*() const {
-            // remove constness of iterator, as it is independent of constness of Atom
-            return static_cast<reference>(*const_cast<AtomIterator*>(this));
-        }
-        pointer         operator->() const {
-            return &(operator*());
-        }
-        reference       operator[](difference_type i){
-            return *operator+(i);
-        }
-        size_t          getIdx() const noexcept{
-            return idx;
-        }
-        // comparison
-        difference_type operator-(const AtomIterator &rhs) const noexcept{
-            return idx - rhs.idx;
-        }
-        bool            operator==(const AtomIterator &rhs) const noexcept{
-            return (this->source == rhs.source) && (this->idx == rhs.idx);
-        }
-        bool            operator!=(const AtomIterator &rhs) const noexcept{
-            return !operator==(rhs);
-        }
-        friend bool     operator< (const AtomIterator &lhs, const AtomIterator &rhs){
-            return lhs.idx < rhs.idx;
-        }
-        friend bool     operator> (const AtomIterator &lhs, const AtomIterator &rhs){
-            return lhs.idx > rhs.idx;
-        }
-        friend bool     operator<= (const AtomIterator &lhs, const AtomIterator &rhs){
-            return lhs.idx <= rhs.idx;
-        }
-        friend bool     operator>= (const AtomIterator &lhs, const AtomIterator &rhs){
-            return lhs.idx >= rhs.idx;
-        }
-        // in-/decrement
-        AtomIterator&   operator++(){
-            operator+=(1);
-            return *this;
-        }
-        AtomIterator&   operator--(){
-            operator+=(-1);
-            return *this;
-        }
-        AtomIterator    operator++(int){
-            auto tmp = *this;
-            operator+=(1);
-            return tmp;
-        }
-        AtomIterator    operator--(int){
-            auto tmp = *this;
-            operator+=(-1);
-            return tmp;
-        }
-        AtomIterator&   operator+=(difference_type i){
-            idx += i;
-            value_type::operator+=(i);
-            return *this;
-        }
-        AtomIterator&   operator-=(difference_type i){
-            operator+=(-i);
-            return *this;
-        }
-        AtomIterator    operator+(difference_type i) const {
-            AtomIterator copy{*this};
-            return copy+=i;
-        }
-        AtomIterator    operator-(difference_type i) const {
-            AtomIterator copy{*this};
-            return copy-=i;
-        }
-    private:
-        size_t idx;
-    };
 };
 
 }
@@ -398,11 +282,21 @@ public:
     Step& operator=(Step&& s);
     template<typename T>
     Step(const StepConst<T>& s)
-        : StepMutable{std::make_shared<detail::AtomList>(s.atoms->ctxt),
-                      std::make_shared<BondList>(*s.bonds),
+        : StepMutable{std::make_shared<detail::AtomList>(s.getFmt()),
+                      std::make_shared<BondList>(),
                       std::make_shared<std::string>(s.getComment())}
     {
+        // copy Cell
+        if(s.hasCell()){
+            setCellDim(s.getCellDim(AtomFmt::Bohr), AtomFmt::Bohr);
+            setCellVec(s.getCellVec());
+        }
+        // copy Atoms
         newAtoms(s);
+        // copy Bonds
+        for(const auto& b: s.getBonds()){
+            addBond(b.at1, b.at2, b.diff, b.type ? b.type->first : "");
+        }
     }
 
     // Atoms
@@ -424,7 +318,8 @@ public:
         al.coordinates.reserve(nat);
         al.elements.reserve(nat);
         al.properties.reserve(nat);
-        auto fmt = detail::makeConverter(s.atoms->ctxt, atoms->ctxt);
+        // TODO: only place where getAtoms().ctxt is needed, refactor?
+        auto fmt = detail::makeConverter(s.getAtoms().ctxt, atoms->ctxt);
         for(const auto &at: s){
             al.coordinates.push_back(fmt(at.coord));
             al.elements.push_back(&*al.ctxt.pte->find_or_fallback(at.name));

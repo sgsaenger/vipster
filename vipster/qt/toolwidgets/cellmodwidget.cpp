@@ -99,7 +99,7 @@ void CellModWidget::on_reshapeButton_clicked()
         return;
     }
     auto cdm = ui->cdmSel->value();
-    auto fmt = static_cast<CdmFmt>(ui->cdmFmtSel->currentIndex());
+    auto fmt = static_cast<AtomFmt>(ui->cdmFmtSel->currentIndex());
     if(ui->trajecCheck->isChecked()){
         for(auto& step: master->curMol->getSteps()){
             step.modReshape(newMat, cdm, fmt);

@@ -318,7 +318,7 @@ void GUI::StepData::drawSel(Vec off, const PBCVec &mult, void *context)
     glUniformMatrix3fv(sel_shader.pos_scale, 1, 0, cell_mat.data());
     if(curStep->hasCell()){
         Vec tmp;
-        Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
+        Mat cv = curStep->getCellVec() * curStep->getCellDim(AtomFmt::Bohr);
         off -= (mult[0]-1)*cv[0]/2.;
         off -= (mult[1]-1)*cv[1]/2.;
         off -= (mult[2]-1)*cv[2]/2.;
@@ -386,7 +386,7 @@ void GUI::StepData::update(Step* step,
     this->atRadFac = atRadFac;
 
 // CELL
-    Mat cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Bohr);
+    Mat cv = curStep->getCellVec() * curStep->getCellDim(AtomFmt::Bohr);
     cell_buffer = {0,0,0,
                   static_cast<float>(cv[0][0]), static_cast<float>(cv[0][1]), static_cast<float>(cv[0][2]),
                   static_cast<float>(cv[1][0]), static_cast<float>(cv[1][1]), static_cast<float>(cv[1][2]),
@@ -408,7 +408,7 @@ void GUI::StepData::update(Step* step,
         break;
     case AtomFmt::Crystal:
     case AtomFmt::Alat:
-        tmp_mat *= curStep->getCellDim(CdmFmt::Bohr);
+        tmp_mat *= curStep->getCellDim(AtomFmt::Bohr);
         break;
     default:
         break;
@@ -451,7 +451,7 @@ void GUI::StepData::update(Step* step,
     const auto& at_coord = curStep->getAtoms().coordinates;
     const auto& at_prop = curStep->getAtoms().properties;
     auto fmt = curStep->getFmt();
-    auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
+//    auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
     float c, s, ic;
     bond_buffer.clear();
     bond_buffer.reserve(bonds.size());
@@ -463,7 +463,7 @@ void GUI::StepData::update(Step* step,
         cv = curStep->getCellVec();
         break;
     case AtomFmt::Angstrom:
-        cv = curStep->getCellVec() * curStep->getCellDim(CdmFmt::Angstrom);
+        cv = curStep->getCellVec() * curStep->getCellDim(AtomFmt::Angstrom);
         break;
     case AtomFmt::Bohr:
         break;
@@ -478,9 +478,10 @@ void GUI::StepData::update(Step* step,
         if (bd.diff[2]>0)     { at_pos2 += bd.diff[2]*cv[2]; }
         else if (bd.diff[2]<0){ at_pos1 -= bd.diff[2]*cv[2]; }
         auto bond_axis = at_pos1 - at_pos2;
-        if(fmt == AtomFmt::Crystal){
-            bond_axis = fmt_fun(bond_axis);
-        }
+        // FIXME: is this necessary?
+//        if(fmt == AtomFmt::Crystal){
+//            bond_axis = fmt_fun(bond_axis);
+//        }
         auto bond_pos = (at_pos1+at_pos2)/2;
         const auto& col1 = bd.type ? bd.type->second : elements[bd.at1]->second.col;
         const auto& col2 = bd.type ? bd.type->second : elements[bd.at2]->second.col;
