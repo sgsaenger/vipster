@@ -312,18 +312,12 @@ public:
     template<typename T>
     void    newAtoms(const StepConst<T>& s)
     {
-        const size_t nat = this->getNat() + s.getNat();
-        // reserve space for new atoms
-        atom_source& al = *this->atoms;
-        al.coordinates.reserve(nat);
-        al.elements.reserve(nat);
-        al.properties.reserve(nat);
-        // TODO: only place where getAtoms().ctxt is needed, refactor?
-        auto fmt = detail::makeConverter(s.getAtoms().ctxt, atoms->ctxt);
-        for(const auto &at: s){
-            al.coordinates.push_back(fmt(at.coord));
-            al.elements.push_back(&*al.ctxt.pte->find_or_fallback(at.name));
-            al.properties.push_back(at.properties);
+        const size_t oldNat = this->getNat();
+        newAtoms(s.getNat());
+        auto tgt = begin()+oldNat;
+        auto src = s.begin();
+        for(; tgt != end(); ++tgt, ++src){
+            *tgt = *src;
         }
     }
     void    delAtom(size_t i);

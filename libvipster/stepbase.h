@@ -435,6 +435,7 @@ public:
     // Bonds
     void setBonds() const
     {
+        this->bonds->bonds.clear();
         if(this->atoms->ctxt.cell->enabled){
             setBondsCell();
         }else{

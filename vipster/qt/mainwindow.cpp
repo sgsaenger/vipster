@@ -67,7 +67,7 @@ void MainWindow::setupUI()
     QDockWidget* firstDock{nullptr};
     for(const auto& pair: makeMainWidgets(this)){
         auto *tmp = new QDockWidget(this);
-        baseWidgets.push_back(pair.first);
+        mainWidgets.push_back(pair.first);
         tmp->setWidget(pair.first);
         tmp->setAllowedAreas(Qt::LeftDockWidgetArea);
         tmp->setFeatures(QDockWidget::DockWidgetMovable |
@@ -139,20 +139,15 @@ void MainWindow::updateWidgets(GUI::change_t change)
         curStep = curVP->curStep;
         curSel = curVP->curSel;
     }
-    // if necessary, make sure that data is up to date
-    if(change & (GUI::Change::atoms | GUI::Change::fmt)){
-        // FIXME: what to do here?
-//        curStep->evaluateCache();
-    }
-    if(change & GUI::Change::selection){
-        // FIXME: what to do here?
-//        curSel->evaluateCache();
+    // if necessary, make sure that bonds are up to date
+    if((change & GUI::Change::atoms) && stepdata[curStep].automatic_bonds){
+        curStep->setBonds();
     }
     // notify widgets
     for(auto& w: viewports){
         w->updateWidget(change);
     }
-    for(auto& w: baseWidgets){
+    for(auto& w: mainWidgets){
         w->updateWidget(change);
     }
     for(auto& w: toolWidgets){
@@ -192,7 +187,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
         case VP_VSPLIT:
             if(viewports.size() == 1) viewports.front()->ui->closeButton->setEnabled(true);
             viewports.push_back(new ViewPort{*sender});
-            viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
+            viewports.back()->updateWidget(GUI::molChanged);
             hsplits.push_back(new QSplitter{vsplit});
             hsplits.back()->setChildrenCollapsible(false);
             hsplits.back()->addWidget(viewports.back());
@@ -201,7 +196,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
         case VP_HSPLIT:
             if(viewports.size() == 1) viewports.front()->ui->closeButton->setEnabled(true);
             viewports.push_back(new ViewPort{*sender});
-            viewports.back()->updateWidget(GUI::stepChanged|GUI::molChanged);
+            viewports.back()->updateWidget(GUI::molChanged);
             for(auto& h: hsplits){
                 for(auto& c: h->children()){
                     if (c == sender){
@@ -218,7 +213,7 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
             }
             // make sender current viewport
             curVP = sender;
-            updateWidgets(GUI::vpChanged);
+            updateWidgets(GUI::molChanged);
             break;
         default:
             throw Error{"Invalid viewport change"};
@@ -236,6 +231,7 @@ void MainWindow::editAtoms(QAction* sender)
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionDelete_Atom_s){
         curStep->delAtoms(*curSel);
+        *curSel = curStep->select({});
         change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
@@ -260,6 +256,7 @@ void MainWindow::editAtoms(QAction* sender)
     }else if ( sender == ui->actionCut_Atom_s){
         copyBuf = std::make_unique<Step::selection>(*curSel);
         curStep->delAtoms(*curSel);
+        *curSel = curStep->select({});
         change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionPaste_Atom_s){
         if(!copyBuf) return;

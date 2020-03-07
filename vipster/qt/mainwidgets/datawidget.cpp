@@ -23,9 +23,11 @@ DataWidget::~DataWidget()
 void DataWidget::updateWidget(GUI::change_t change)
 {
     if(change & GUI::Change::data){
-        const BaseData& dat = *master->data.back();
-        ui->DataSel->addItem(dat.name.c_str());
-        ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
+        if(master->data.size() > ui->DataSel->count()){
+            const BaseData& dat = *master->data.back();
+            ui->DataSel->addItem(dat.name.c_str());
+            ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
+        }
     }
     ui->ThreeDWidget->updateWidget(change);
     ui->VecWidget->updateWidget(change);

@@ -64,14 +64,10 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
         master->updateWidgets(change);
     }else{
         // short-circuit if rest of GUI does not need to be updated
-        // if necessary, make sure that data is up to date
-        if(change & (GUI::Change::atoms | GUI::Change::fmt)){
-            // FIXME: what to do here?
-//            curStep->evaluateCache();
-        }
-        if(change & GUI::Change::selection){
-            // FIXME: what to do here?
-//            curSel->evaluateCache();
+        // if necessary, make sure that bonds are up to date
+        if((change & GUI::Change::atoms) &&
+           master->stepdata[curStep].automatic_bonds){
+            curStep->setBonds();
         }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){
@@ -88,7 +84,7 @@ void ViewPort::updateWidget(GUI::change_t change)
         setMultEnabled(curStep->hasCell());
     }
     if(change & GUI::Change::extra){
-        // remove extra-data that has been erase
+        // remove extra-data that has been erased
         std::remove_if(vpdata.extras.begin(), vpdata.extras.end(),
                        [](const auto &wp){return wp.expired();});
         for(auto &sd: stepdata){
@@ -202,7 +198,7 @@ void ViewPort::setStep(int i, bool setMol)
         ui->lastStepButton->setEnabled(true);
     }
     if(setMol){
-        triggerUpdate(GUI::stepChanged | GUI::molChanged);
+        triggerUpdate(GUI::molChanged);
     }else{
         triggerUpdate(GUI::stepChanged);
     }

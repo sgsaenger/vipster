@@ -40,7 +40,7 @@ void GLWidget::updateWidget(GUI::change_t change)
             selection.color = settings.selCol.val;
         }
         if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt |
-                     GUI::Change::settings | GUI::Change::trajec)) {
+                     GUI::Change::settings)) {
             updateMainStep();
             updateMainSelection();
         }else if(change & GUI::Change::selection){

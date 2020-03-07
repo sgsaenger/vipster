@@ -318,18 +318,21 @@
           <property name="minimum">
            <double>0.010000000000000</double>
           </property>
+          <property name="value">
+           <double>1.000000000000000</double>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QComboBox" name="cellFmt">
           <item>
            <property name="text">
-            <string>Bohr</string>
+            <string>Angstrom</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Angstrom</string>
+            <string>Bohr</string>
            </property>
           </item>
          </widget>

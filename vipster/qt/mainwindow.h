@@ -91,7 +91,7 @@ private:
     QDir path{};
     QSplitter *vsplit;
     std::vector<QSplitter*> hsplits;
-    std::vector<BaseWidget*> baseWidgets;
+    std::vector<BaseWidget*> mainWidgets;
     std::vector<BaseWidget*> toolWidgets;
 };
 #endif // MAINWINDOW_H

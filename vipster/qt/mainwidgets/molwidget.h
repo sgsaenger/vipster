@@ -58,7 +58,7 @@ private:
     void setSelection(void);
     Ui::MolWidget *ui;
     Vipster::Step *curStep;
-    std::unique_ptr<Vipster::Step::formatter> ownStep; //TODO: make sure this is not null before the widget is used
+    std::unique_ptr<Vipster::Step::formatter> ownStep;
     Vipster::Molecule* curMol;
     AtomModel molModel{this};
     BondModel bondModel{this};

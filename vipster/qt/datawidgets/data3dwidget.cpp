@@ -47,7 +47,7 @@ void Data3DWidget::updateWidget(GUI::change_t change)
     if(change & GUI::Change::settings){
         for(auto& p: surfaces){
             p.second->update({{master->settings.posCol.val,
-                             master->settings.negCol.val}, 2, 1});
+                               master->settings.negCol.val}, 2, 1});
         }
     }
 }

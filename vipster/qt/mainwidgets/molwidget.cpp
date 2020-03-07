@@ -81,7 +81,7 @@ void MolWidget::updateWidget(GUI::change_t change)
     if ((change & GUI::stepChanged) == GUI::stepChanged) {
         // reset old fmt-string
         if(ownStep){
-            auto oldFmt = static_cast<int>(ownStep->getFmt());
+            auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
             ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
         }
         // assign StepFormatter to curStep, mark fmt as active
@@ -90,7 +90,7 @@ void MolWidget::updateWidget(GUI::change_t change)
         ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
         molModel.setStep(&*ownStep);
         setSelection();
-        auto ifmt = static_cast<int>(fmt);
+        auto ifmt = static_cast<int>(fmt)+2;
         QSignalBlocker blockAtFmt(ui->atomFmtBox);
         ui->atomFmtBox->setCurrentIndex(ifmt);
         ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
@@ -220,7 +220,8 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     if(scale){
         change |= GUI::Change::atoms;
     }
-    if(scale != atomFmtRelative(ownStep->getFmt())){
+    // short-circuit resetting the molModel
+    if(scale == atomFmtAbsolute(ownStep->getFmt())){
         molModel.setStep(&*ownStep);
         setSelection();
     }
@@ -251,6 +252,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
     if(scale){
         change |= GUI::Change::atoms;
     }
+    // short-circuit resetting the molModel
     if(scale != (ownStep->getFmt()==AtomFmt::Crystal)){
         molModel.setStep(&*ownStep);
         setSelection();
@@ -260,7 +262,7 @@ void MolWidget::on_cellVecTable_cellChanged(int row, int column)
 
 void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
-    ownStep = std::make_unique<Step::formatter>(curStep->asFmt(static_cast<AtomFmt>(index)));
+    ownStep = std::make_unique<Step::formatter>(curStep->asFmt(static_cast<AtomFmt>(index-2)));
     molModel.setStep(&*ownStep);
     setSelection();
 }
@@ -268,14 +270,17 @@ void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 void MolWidget::on_atomFmtButton_clicked()
 {
     auto ifmt = ui->atomFmtBox->currentIndex();
-    auto fmt = static_cast<AtomFmt>(ifmt);
-    auto oldFmt = static_cast<int>(curStep->getFmt());
+    auto fmt = static_cast<AtomFmt>(ifmt-2);
+    auto oldFmt = static_cast<int>(curStep->getFmt())+2;
+    GUI::change_t change = GUI::Change::fmt;
     ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
     ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-    curStep->setFmt(fmt);
+    curStep->modScale(fmt);
+    ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+    molModel.setStep(&*ownStep);
     master->curSel->setFmt(fmt);
-    if((fmt >= AtomFmt::Crystal) && !ownStep->hasCell()){
-        ui->cellEnabledBox->setChecked(true);
+    if(atomFmtRelative(fmt) && atomFmtAbsolute(static_cast<AtomFmt>(oldFmt-2))){
+        change |= GUI::Change::atoms | GUI::Change::cell;
     }
     triggerUpdate(GUI::Change::fmt);
 }

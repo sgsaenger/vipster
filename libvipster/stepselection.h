@@ -140,7 +140,7 @@ struct Selection{
             operator Vec() const {return a.base::coord + a.off;}
             Vec asFmt(const AtomContext &ctxt) const
             {
-                return makeConverter(*a.ctxt, ctxt)(static_cast<const Vec&>(*this));
+                return makeConverter(a.source->ctxt, ctxt)(*this);
             }
             /* array access
              * const-access as usual,

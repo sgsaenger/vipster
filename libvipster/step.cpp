@@ -71,20 +71,20 @@ void Step::setCellVec(const Mat &vec, bool scale)
     Mat inv = Mat_inv(vec);
     auto &cell = atoms->ctxt.cell;
     cell->enabled = true;
+    bool isCrystal = atoms->ctxt.fmt == AtomFmt::Crystal;
     // 'scaling' means the system grows/shrinks with the cell
-    if (scale == (atoms->ctxt.fmt == AtomFmt::Crystal)){
+    if (scale == isCrystal){
         // scaled crystal or unscaled other coordinates stay as-is
         cell->matrix = vec;
         cell->inverse = inv;
     }else{
         // unscaled crystal or scaled other coordinates have to be transformed
-        auto copy = atoms->ctxt;
+        auto fmt = isCrystal ? cell->matrix * inv : cell->inverse * vec;
+        for(auto &at: *this){
+            at.coord = at.coord * fmt;
+        }
         cell->matrix = vec;
         cell->inverse = inv;
-        auto fmt = detail::makeConverter(copy, atoms->ctxt);
-        for(auto &at: *this){
-            at.coord = fmt(at.coord);
-        }
     }
 }
 
