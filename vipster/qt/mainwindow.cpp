@@ -342,7 +342,7 @@ void MainWindow::loadMol()
         try {
             try {
                 // try to open file without explicit format
-                newData(readFile(file));
+                newData(readFile(file, plugins));
             } catch (const IO::Error &e) {
                 // if error is not fatal, we just need the format, so request it
                 if(!e.fatal){

@@ -96,24 +96,35 @@ void ViewPort::updateWidget(GUI::change_t change)
     openGLWidget->updateWidget(change);
 }
 
-void ViewPort::addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global)
+auto cmpExtraData(const std::shared_ptr<GUI::Data>& sp)
 {
-    auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
-    extras.push_back(dat);
+    return [&](const std::weak_ptr<GUI::Data>& wp){
+        return (!wp.owner_before(sp)) && (!sp.owner_before(wp));
+    };
 }
 
-void ViewPort::delExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global)
+void ViewPort::addExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
 {
     auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
-    std::remove_if(extras.begin(), extras.end(),
-                   [&](const auto &wp){return !(wp.owner_before(dat)) && !(dat.owner_before(wp));});
+    auto pos = std::find_if(extras.begin(), extras.end(), cmpExtraData(dat));
+    if(pos == extras.end()){
+        extras.push_back(dat);
+    }
 }
 
-bool ViewPort::hasExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global)
+void ViewPort::delExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
 {
     auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
-    return extras.end() != std::find_if(extras.begin(), extras.end(),
-        [&](const auto &wp){return !(wp.owner_before(dat)) && !(dat.owner_before(wp));});
+    auto pos = std::find_if(extras.begin(), extras.end(), cmpExtraData(dat));
+    if(pos != extras.end()){
+        extras.erase(pos);
+    }
+}
+
+bool ViewPort::hasExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
+{
+    auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
+    return std::find_if(extras.begin(), extras.end(), cmpExtraData(dat)) != extras.end();
 }
 
 void ViewPort::registerMol(const std::string &name)
@@ -164,11 +175,16 @@ void ViewPort::setStep(int i, bool setMol)
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
     // ensure this step will be reused when mol is selected again
     moldata[curMol].curStep = i;
-    // handle bond Mode
+    // if step has not been accessed previously, set bonds to manual if bonds are already present
+    if((master->stepdata.find(curStep) == master->stepdata.end()) &&
+       !curStep->getBonds().empty()){
+        master->stepdata[curStep].automatic_bonds = false;
+    }
+    // set widget's bond mode accordingly
     setBondMode(master->stepdata[curStep].automatic_bonds);
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
-    // if no previous selection exists, create one, afterwards assign it
+    // if no previous selection exists in this viewport, create one, afterwards assign it
     auto& selRef = stepdata[curStep].sel;
     if(!selRef && curStep){
         selRef = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));

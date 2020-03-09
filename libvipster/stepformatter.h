@@ -107,7 +107,7 @@ struct Formatter{
             class _Value_type{
             public:
                 _Value_type(_Vec& _v, size_t i): _v{_v}, i{i} {}
-                operator const Vec::value_type&() const {return _v[i];}
+                operator const Vec::value_type&() const {return static_cast<const Vec&>(_v)[i];}
                 _Value_type& operator=(Vec::value_type val){
                     Vec v = _v;
                     v[i] = val;

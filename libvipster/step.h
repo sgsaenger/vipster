@@ -139,7 +139,9 @@ struct AtomList{
                 return s << n.c_str();
             }
             friend std::istream& operator>>(std::istream &s, _Name &n){
-                s >> n;
+                std::string tmp;
+                s >> tmp;
+                n = tmp;
                 return s;
             }
         private:

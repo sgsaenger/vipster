@@ -14,7 +14,8 @@ class CellModWidget : public BaseWidget
 
 public:
     explicit CellModWidget(QWidget *parent = nullptr);
-    ~CellModWidget();
+    ~CellModWidget() override;
+    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
     void on_wrapButton_clicked();

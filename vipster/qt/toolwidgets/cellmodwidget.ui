@@ -231,12 +231,12 @@
        <widget class="QComboBox" name="cdmFmtSel">
         <item>
          <property name="text">
-          <string>Bohr</string>
+          <string>Angstrom</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Angstrom</string>
+          <string>Bohr</string>
          </property>
         </item>
        </widget>

@@ -45,10 +45,9 @@ private:
     Vipster::Step* curStep{nullptr};
     decltype(MainWindow::StepState::definitions) *defMap{nullptr};
     std::remove_pointer_t<decltype(defMap)>::iterator curIt;
-    // TODO: check if this aliasing works at all
-    Vipster::Step::selection &curSel{std::get<0>(curIt->second)};
-    Vipster::SelectionFilter &curFilter{std::get<1>(curIt->second)};
-    std::shared_ptr<Vipster::GUI::SelData> &curSelData{std::get<2>(curIt->second)};
+    Vipster::Step::selection &curSel();
+    Vipster::SelectionFilter &curFilter();
+    std::shared_ptr<Vipster::GUI::SelData> &curSelData();
     QList<QAction*> contextActions;
 };
 

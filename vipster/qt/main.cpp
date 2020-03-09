@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
         if(app.remaining_size()!=0){
             for(const auto& file: app.remaining()){
                 try{
-                    data.push_back(readFile(file));
+                    data.push_back(readFile(file, plugins));
                 }catch(const Vipster::IO::Error &e){
                     std::cout << e.what() << std::endl;
                     throw CLI::RuntimeError{1};

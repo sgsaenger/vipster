@@ -17,6 +17,13 @@ CellModWidget::~CellModWidget()
     delete ui;
 }
 
+void CellModWidget::updateWidget(Vipster::GUI::change_t change)
+{
+    if(change & GUI::Change::cell){
+        setEnabled(master->curStep->hasCell());
+    }
+}
+
 void CellModWidget::on_wrapButton_clicked()
 {
     GUI::change_t change;

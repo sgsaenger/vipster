@@ -50,6 +50,21 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
     }
 }
 
+Vipster::Step::selection& DefineWidget::curSel()
+{
+    return std::get<0>(curIt->second);
+}
+
+Vipster::SelectionFilter& DefineWidget::curFilter()
+{
+    return std::get<1>(curIt->second);
+}
+
+std::shared_ptr<Vipster::GUI::SelData>& DefineWidget::curSelData()
+{
+    return std::get<2>(curIt->second);
+}
+
 void DefineWidget::fillTable()
 {
     auto& table = *ui->defTable;
@@ -101,11 +116,11 @@ void DefineWidget::on_newButton_clicked()
             std::tuple{std::move(sel),
                 filter,
                 std::make_shared<GUI::SelData>(master->globals)});
-        auto& seldata = std::get<2>(it->second);
-        seldata->update(&std::get<0>(it->second),
+        curIt = it;
+        curSelData()->update(&curSel(),
             master->settings.atRadVdW.val, master->settings.atRadFac.val);
-        seldata->color = defaultColors[defMap->size()%5];
-        master->curVP->addExtraData(curSelData, false);
+        curSelData()->color = defaultColors[defMap->size()%5];
+        master->curVP->addExtraData(curSelData(), false);
         triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
     }catch(const Error &e){
         QMessageBox msg{this};
@@ -123,7 +138,7 @@ void DefineWidget::deleteAction()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"delete group\" triggered with invalid selection"};
     }
-    master->curVP->delExtraData(curSelData, false);
+    master->curVP->delExtraData(curSelData(), false);
     defMap->erase(curIt);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
@@ -150,11 +165,11 @@ void DefineWidget::on_fromSelButton_clicked()
         std::tuple{*master->curSel,
                    filter,
                    std::make_shared<GUI::SelData>(master->globals)});
-    auto& seldata = std::get<2>(it->second);
-    seldata->update(&std::get<0>(it->second),
+    curIt = it;
+    curSelData()->update(&curSel(),
         master->settings.atRadVdW.val, master->settings.atRadFac.val);
-    seldata->color = defaultColors[defMap->size()%5];
-    master->curVP->addExtraData(seldata, false);
+    curSelData()->color = defaultColors[defMap->size()%5];
+    master->curVP->addExtraData(curSelData(), false);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
@@ -163,8 +178,8 @@ void DefineWidget::toSelAction()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
-    *master->curSel = curSel;
-    master->curVP->delExtraData(curSelData, false);
+    *master->curSel = curSel();
+    master->curVP->delExtraData(curSelData(), false);
     triggerUpdate(GUI::Change::selection | GUI::Change::extra);
 }
 
@@ -173,8 +188,8 @@ void DefineWidget::updateAction()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"update group\" triggered with invalid selection"};
     }
-    curSel = curStep->select(curFilter);
-    curSelData->update(&curSel,
+    curSel() = curStep->select(curFilter());
+    curSelData()->update(&curSel(),
         master->settings.atRadVdW.val, master->settings.atRadFac.val);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
@@ -193,9 +208,9 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
     case 0:
         // toggle visibility
         if(cell->checkState()){
-            master->curVP->addExtraData(curSelData, false);
+            master->curVP->addExtraData(curSelData(), false);
         }else{
-            master->curVP->delExtraData(curSelData, false);
+            master->curVP->delExtraData(curSelData(), false);
         }
         triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         break;
@@ -218,8 +233,8 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
         // change filter
         try{
             auto filter = cell->text().toStdString();
-            curSel = curStep->select(filter);
-            curSelData->update(&curSel,
+            curSel() = curStep->select(filter);
+            curSelData()->update(&curSel(),
                 master->settings.atRadVdW.val, master->settings.atRadFac.val);
             triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         }catch(const Error &e){
@@ -254,7 +269,7 @@ void DefineWidget::on_defTable_itemSelectionChanged()
 
 void DefineWidget::colButton_clicked()
 {
-    auto& col = curSelData->color;
+    auto& col = curSelData()->color;
     auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
     auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                          QColorDialog::ShowAlphaChannel);

@@ -272,15 +272,14 @@ void MolWidget::on_atomFmtButton_clicked()
     auto ifmt = ui->atomFmtBox->currentIndex();
     auto fmt = static_cast<AtomFmt>(ifmt-2);
     auto oldFmt = static_cast<int>(curStep->getFmt())+2;
-    GUI::change_t change = GUI::Change::fmt;
     ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
     ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     curStep->modScale(fmt);
     ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
     molModel.setStep(&*ownStep);
     master->curSel->setFmt(fmt);
-    if(atomFmtRelative(fmt) && atomFmtAbsolute(static_cast<AtomFmt>(oldFmt-2))){
-        change |= GUI::Change::atoms | GUI::Change::cell;
+    if(atomFmtRelative(fmt)){
+        ui->cellEnabledBox->setChecked(true);
     }
     triggerUpdate(GUI::Change::fmt);
 }

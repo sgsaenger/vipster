@@ -148,14 +148,14 @@ void Step::modMultiply(size_t x, size_t y, size_t z){
     }else if(fac == 1){
         return;
     }
-    auto oldNat = getNat();
-    auto newNat = oldNat * fac;
+    auto newNat = getNat() * fac;
     atoms->coordinates.reserve(newNat);
     atoms->elements.reserve(newNat);
     atoms->properties.reserve(newNat);
-    auto handle = asFmt(AtomFmt::Crystal);
     auto cell = this->getCellVec();
     auto multiply = [&](uint8_t dir, size_t mult){
+        auto oldNat = getNat();
+        auto handle = asFmt(AtomFmt::Crystal);
         cell[dir] *= mult;
         for(size_t i=1; i<mult; ++i){
             std::copy_n(atoms->coordinates.begin(), oldNat, std::back_inserter(atoms->coordinates));
