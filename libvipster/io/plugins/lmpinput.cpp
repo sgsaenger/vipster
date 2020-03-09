@@ -86,8 +86,7 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
     auto checkInt = [&atoms](size_t col){
         try{
             for (auto& at: atoms){
-                auto f = stod(at[col]);
-                if(f != floor(f)){
+                if(at[col].find('.') != at[col].npos){
                     return false;
                 }
             }
@@ -97,16 +96,16 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
         }
     };
     if(narg == 5){
-        // only one possible setup (atomic)
-        return {lmpTok::type, lmpTok::pos};
+        // only one possible fmt (atomic)
+        return fmtmap.at("atomic");
     }
     if(narg == 6){
         if(checkInt(2)){
             // angle/molecular have molID, then type
-            return {lmpTok::ignore, lmpTok::type, lmpTok::pos};
+            return fmtmap.at("angle");
         }
         // parse as charge, even though this is most likely wrong
-        return {lmpTok::type, lmpTok::charge, lmpTok::pos};
+        return fmtmap.at("charge");
     }
     std::vector<lmpTok> parser{};
     size_t col{1}, poscoord{narg-4};
@@ -122,7 +121,8 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
         col++;
     }
     parser.push_back(lmpTok::type);
-    for(size_t img=narg-1; img>=std::max(narg-3,static_cast<size_t>(5)); --img){
+    for(size_t img=narg-1; img >= std::max(narg-3, static_cast<size_t>(5)) &&
+                           poscoord-col >= 0 ; --img){
         if (!checkInt(img)){
             break;
         }
