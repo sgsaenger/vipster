@@ -23,7 +23,7 @@ jobs:
           run: |
               mkdir -p build
               cd build
-              emcmake cmake -DWEB=ON -DCMAKE_BUILD_TYPE=Release ..
+              emcmake cmake -DVIPSTER_WEB=ON -DCMAKE_BUILD_TYPE=Release ..
 
         - name: Build
           run: |

@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.9)
 
 project(Vipster VERSION 1.18)
 
-option(TESTS "Build tests" OFF)
-option(DESKTOP "Build QT-based desktop app" OFF)
+option(VIPSTER_TESTS "Build tests" OFF)
+option(VIPSTER_DESKTOP "Build QT-based desktop app" OFF)
 option(BUILD_SHARED_LIBS "Build libvipster as shared library" ON)
 include(CMakeDependentOption)
-cmake_dependent_option(WEB "Build WASM-Module" OFF "NOT DESKTOP" OFF)
-cmake_dependent_option(PYSHELL "Python shell in desktop app" ON "DESKTOP" OFF)
-cmake_dependent_option(PYBIND "Python bindings" OFF "NOT WEB" OFF)
-cmake_dependent_option(PYPI "To be set when built via setup.py" OFF "PYBIND" OFF)
-cmake_dependent_option(EGG_INFO "Create infos for python package" ON "PYBIND" OFF)
+cmake_dependent_option(VIPSTER_WEB "Build WASM-Module" OFF "NOT VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ON "VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_PYLIB "Python bindings" OFF "NOT VIPSTER_WEB" OFF)
+cmake_dependent_option(VIPSTER_PYPI "To be set when built via setup.py" OFF "VIPSTER_PYLIB" OFF)
+cmake_dependent_option(VIPSTER_EGG_INFO "Create infos for python package" ON "VIPSTER_PYLIB" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -25,8 +25,8 @@ include_directories(vipster/qt)
 file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.h" "libvipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "libvipster/*.h" "libvipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
-list(REMOVE_ITEM PY_SOURCES "libvipster/main.py.cpp")
-if(WEB)
+list(REMOVE_ITEM PY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/libvipster/main.py.cpp")
+if(VIPSTER_WEB)
     # not needed here, so we can circumvent missing <filesystem>
     file(GLOB CONF_SOURCES "libvipster/configfile.*")
     list(REMOVE_ITEM LIB_SOURCES ${CONF_SOURCES})
@@ -45,7 +45,7 @@ if(UNIX)
     target_link_libraries(libvipster dl)
     # on traditional unix-like platforms,
     # install files to appropriate locations
-    if(NOT APPLE AND NOT WEB)
+    if(NOT APPLE AND NOT VIPSTER_WEB)
         install(TARGETS libvipster
             LIBRARY
             DESTINATION "lib"
@@ -65,7 +65,7 @@ if(NOT nlohmann_json_FOUND)
 endif()
 target_link_libraries(libvipster nlohmann_json::nlohmann_json)
 
-if(TESTS)
+if(VIPSTER_TESTS)
     # Tests, so far only for library
     file(GLOB TEST_SOURCES "tests/*.cpp")
     add_executable(test_lib ${TEST_SOURCES})
@@ -82,22 +82,24 @@ if(TESTS)
     add_test(NAME test_lib COMMAND $<TARGET_FILE:test_lib>)
 endif()
 
-# find pybind11 if needed
-if(PYBIND OR PYSHELL)
+# create python binding objects
+if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
     find_package(PythonInterp 3.6 REQUIRED)
     find_package(PythonLibs 3.6 REQUIRED)
     find_package(pybind11 2.4.4 CONFIG)
     if(NOT pybind11_FOUND)
         add_subdirectory(external/pybind11)
     endif()
+    add_library(pyvipster OBJECT ${PY_SOURCES})
+    target_link_libraries(pyvipster PRIVATE pybind11::module)
 endif()
 
-if(PYBIND)
-    # Python-bindings
-    pybind11_add_module(pyvipster ${PY_SOURCES} "libvipster/main.py.cpp")
-    set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "_vipster")
-    target_link_libraries(pyvipster PRIVATE libvipster)
-    if(PYPI OR (UNIX AND NOT APPLE))
+if(VIPSTER_PYLIB)
+    # standalone python bindings
+    pybind11_add_module(bindings $<TARGET_OBJECTS:pyvipster> "libvipster/main.py.cpp")
+    set_target_properties(bindings PROPERTIES OUTPUT_NAME "_vipster")
+    target_link_libraries(bindings PRIVATE libvipster)
+    if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
@@ -105,16 +107,16 @@ print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE}/vipster)
         install(FILES "util/package-init.py" DESTINATION ${PYTHON_SITE}/vipster RENAME "__init__.py")
-        if(EGG_INFO AND NOT PYPI)
+        if(VIPSTER_EGG_INFO AND NOT VIPSTER_PYPI)
             install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
             install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
-        elseif(PYPI)
+        elseif(VIPSTER_PYPI)
             configure_file("util/package-init.py" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/__init__.py COPYONLY)
         endif()
     endif()
 endif()
 
-if(DESKTOP)
+if(VIPSTER_DESKTOP)
     # Qt-based desktop application
 
     # load and setup qt
@@ -142,12 +144,12 @@ if(DESKTOP)
          )
 
     # python-widget:
-    if(NOT PYSHELL)
+    if(NOT VIPSTER_PYWIDGET)
         file(GLOB_RECURSE QTPY_SOURCES "vipster/*.py.*")
         list(REMOVE_ITEM QT_SOURCES ${QTPY_SOURCES})
     else()
         add_definitions(-DUSE_PYTHON)
-        list(APPEND QT_SOURCES ${PY_SOURCES})
+        list(APPEND QT_SOURCES $<TARGET_OBJECTS:pyvipster>)
     endif()
 
     # icon-files:
@@ -165,7 +167,7 @@ if(DESKTOP)
     endif()
     # set link targets
     target_link_libraries(vipster Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
-    if(PYSHELL)
+    if(VIPSTER_PYWIDGET)
         target_link_libraries(vipster pybind11::embed)
     endif()
     # on traditional unix-like platforms,
@@ -178,7 +180,7 @@ if(DESKTOP)
     endif()
 endif()
 
-if(WEB)
+if(VIPSTER_WEB)
     # Emscripten-based web application
     set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0")
     file(GLOB WEB_RESOURCES "vipster/resources/*.frag" "vipster/resources/*.vert")
