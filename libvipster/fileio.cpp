@@ -1,4 +1,5 @@
 #include <iostream>
+#include <locale>
 #include "fileio.h"
 
 using namespace Vipster;
@@ -40,20 +41,27 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
 // read with explicit format
 IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
 {
+    // set locale to C to get consistent parsing
+    std::string userLocale = setlocale(0, nullptr);
+    setlocale(LC_ALL, "C");
     // check if file can be read
     std::ifstream file{fn};
     if(!file){
+        setlocale(LC_ALL, userLocale.c_str());
         throw IO::Error("Could not open \""+fn+'"');
     }
     // try to parse
     if(!plug->parser){
+        setlocale(LC_ALL, userLocale.c_str());
         throw IO::Error("Format is not readable");
     }
     auto tmp = plug->parser(fn, file);
     if(!tmp.mol.getNstep()){
+        setlocale(LC_ALL, userLocale.c_str());
         throw IO::Error("No Molecule could be parsed");
     }
     // return if successful
+    setlocale(LC_ALL, userLocale.c_str());
     return tmp;
 }
 

@@ -142,7 +142,6 @@ void parseCoordinates(std::string name, std::istream& file,
 
     s.newAtoms(nat);
     std::string line, coord_expr;
-    int err_pos;
     for (auto& at: s) {
         std::getline(file, line);
         line = IO::trim(line);
@@ -153,10 +152,11 @@ void parseCoordinates(std::string name, std::istream& file,
         std::stringstream linestream{line};
         linestream >> at.name;
         for(size_t i=0; i<3; ++i){
+            int err_pos{};
             linestream >> coord_expr;
             at.coord[i] = te_interp(coord_expr.c_str(), &err_pos);
             if(err_pos){
-                throw IO::Error("PWScf Input: error parsing atom: "+coord_expr);
+                throw IO::Error("PWScf Input: error parsing atom: "+line);
             }
         }
         if (linestream.fail()) {
