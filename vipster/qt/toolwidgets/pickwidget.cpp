@@ -54,7 +54,7 @@ void PickWidget::updateWidget(GUI::change_t change)
     std::vector<QString> names;
     std::map<size_t, int> count;
     for(auto it = curSel.cbegin(); it != curSel.cend() ;++it){
-        names.push_back(QString::number(it.getIdx())+QString{count[it.getIdx()]++,'\''});
+        names.push_back(QString::number(it->idx)+QString{count[it->idx]++,'\''});
         const SizeVec& off = it->off;
         if(off != SizeVec{}){
             text.appendPlainText(names.back()+'('+

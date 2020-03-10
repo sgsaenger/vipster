@@ -57,6 +57,18 @@ struct Selection{
         AtomView()
             : base{}, source{}, sel{}
         {}
+        class _Index{
+        private:
+            AtomView &a;
+        public:
+            _Index(AtomView &a)
+                : a{a}
+            {}
+            // only explicit initialization, no assignment
+            _Index(const _Index&) = delete;
+            // expose index in source-Step
+            operator int() { return a.sel->first; }
+        };
         class _Offset{
         private:
             AtomView &a;
@@ -198,6 +210,7 @@ struct Selection{
     public:
         // "Data", encapsulated in wrapper objects
         _Offset off{*this};
+        _Index idx{*this};
         std::conditional_t<isConst, const _Vec, _Vec>   coord{*this};
         using base::name;
         using base::type;
