@@ -27,7 +27,7 @@ private slots:
 
 public:
     struct OpVec{
-        enum class Mode{Direct, Relative, Position, Combination};
+        enum class Mode{Direct, Position, Combination};
         Mode mode{Mode::Direct};
         Vipster::Vec v;
         Vipster::AtomFmt fmt;

@@ -35,10 +35,8 @@ static void writeCoord(std::ostream& os, const SelectionFilter& filter){
 static void writePos(std::ostream& os, const SelectionFilter& filter){
     using Pos = SelectionFilter::Pos;
     os << "pos ";
-    constexpr char fmtToC[] = {'b', 'a', 'c', 'd'};
     constexpr char dirToC[] = {'x', 'y', 'z'};
     os << dirToC[(filter.pos & Pos::DIR_MASK)>>2];
-    os << fmtToC[filter.pos & Pos::FMT_MASK];
     os << ((filter.pos & Pos::P_CMP_MASK)? '<' : '>');
     os << filter.posVal;
 }
@@ -171,8 +169,6 @@ static void parsePos(std::istream& is, SelectionFilter& filter){
     filter.pos = 0;
     const std::map<char, Pos> cToPos{
         {'x', Pos::X}, {'y', Pos::Y}, {'z', Pos::Z},
-        {'a', Pos::ANG}, {'b', Pos::BOHR},
-        {'c', Pos::CRYS}, {'d', Pos::CDM},
         {'<', Pos::P_LT}, {'>', Pos::P_GT}
     };
     char ctoken;
@@ -180,8 +176,11 @@ static void parsePos(std::istream& is, SelectionFilter& filter){
     filter.pos |= cToPos.at(ctoken);
     is >> ctoken;
     filter.pos |= cToPos.at(ctoken);
-    is >> ctoken;
-    filter.pos |= cToPos.at(ctoken);
+    is >> std::ws;
+    if(is.peek() == '='){
+        is >> ctoken;
+        filter.pos |= Pos::P_EQ;
+    }
     is >> filter.posVal;
 }
 

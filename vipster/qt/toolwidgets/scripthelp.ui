@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -111,16 +111,7 @@ There are three target types:&lt;/p&gt;
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
-&lt;p&gt;Vectors may be defined in 4 ways:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;tt&gt;(x,y,z)&lt;/tt&gt;: Direct vector in the coordinate format that is currently active for the main structure&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;(x,y,z,fmt)&lt;/tt&gt;: Direct vector with explicitely specified coordinate format (one of &lt;tt&gt;angstrom&lt;/tt&gt;, &lt;tt&gt;bohr&lt;/tt&gt;, &lt;tt&gt;crystal&lt;/tt&gt;, &lt;tt&gt;alat&lt;/tt&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;(-)id&lt;/tt&gt;: Position vector of atom &lt;tt&gt;id&lt;/tt&gt; (optionally negated)&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;(-)id1+id2&lt;/tt&gt;: Sum vector of two atom positions&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;(-)id1-id2&lt;/tt&gt;: Difference vector of two atoms&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Vectors may be defined in 4 ways:&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(x,y,z)&lt;/span&gt;: Direct vector in the coordinate format that is currently active for the main structure&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(-)id&lt;/span&gt;: Position vector of atom &lt;span style=&quot; font-family:'Hack';&quot;&gt;id&lt;/span&gt; (optionally negated)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(-)id1+id2&lt;/span&gt;: Sum vector of two atom positions&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(-)id1-id2&lt;/span&gt;: Difference vector of two atoms&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

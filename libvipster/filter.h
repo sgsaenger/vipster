@@ -34,8 +34,7 @@ using SelectionIndices = std::vector<SelectionPair>;
  *
  * PosCrit ::= "pos ", Direction, Format, CompOp, Float;
  * Direction ::= "x" | "y" | "z";
- * Format ::= "a" | "b" | "c" | "d";
- * CompOp ::= ">" | "<";
+ * CompOp ::= (">" | "<"), ["="];
  *
  * CoordCrit ::= "coord ", CompEqOp, Integer;
  * CompEqOp ::= "=" | CompOp;
@@ -97,9 +96,9 @@ struct SelectionFilter{
             XOR=0x12, XNOR=0x16,
             PAIR_MASK=0x1E,
             UPDATE=0x80};
-    enum Pos{CRYS=0x0, CDM=0x1, ANG=0x2, BOHR=0x3, FMT_MASK=0x3,// 2 bits for format
-             X=0x0, Y=0x4, Z=0x8, DIR_MASK=0xC, // 2  bits for space direction
-             P_GT=0x0, P_LT=0x10, P_CMP_MASK=0x10,  // 1 bit for comp direction
+    enum Pos{X=0x0, Y=0x1, Z=0x2, DIR_MASK=0x3, // 2  bits for space direction
+             P_GT=0x0, P_LT=0x4, P_GEQ=0x8, P_LEQ=0xC,
+             P_EQ=0x8, P_CMP_MASK=0xC,  // 2 bit for comp direction
             };
     enum Coord{C_GT=0x0, C_EQ=0x1, C_LT=0x2, C_CMP_MASK=0x3};
     Mode mode;
@@ -108,7 +107,6 @@ struct SelectionFilter{
     uint8_t coord;
     double posVal;
     size_t coordVal;
-//    std::map<size_t, SizeVec> indices;
     SelectionIndices indices;
     std::set<std::string> types;
     std::unique_ptr<SelectionFilter> groupfilter{nullptr};
@@ -152,12 +150,18 @@ static SelectionIndices evalPos(const T& step, const SelectionFilter& filter){
     std::size_t idx{0};
     auto cmp = [&filter](const Vec& at){
         size_t dir = (filter.pos & filter.DIR_MASK) >> 2;
-        if(filter.pos & filter.P_LT){
+        switch(filter.pos & filter.P_CMP_MASK){
+        case SelectionFilter::P_GT:
+            return at[dir] > filter.posVal;
+        case SelectionFilter::P_LT:
             return at[dir] < filter.posVal;
+        case SelectionFilter::P_GEQ:
+            return at[dir] >= filter.posVal;
+        case SelectionFilter::P_LEQ:
+            return at[dir] <= filter.posVal;
         }
-        return at[dir] > filter.posVal;
     };
-    for(const auto& at: step.asFmt(static_cast<AtomFmt>((filter.pos & filter.FMT_MASK)-2))){
+    for(const auto& at: step){
         if(cmp(at.coord)){
             tmp.emplace_back(idx, SizeVec{});
         }
@@ -291,7 +295,7 @@ constexpr const char* FilterAbout =
         "<li>index [0 3 5 7-12]</li>"
         "</ul>"
         "</li>"
-        "<li><b><tt>pos</tt></b>: relative position (x,y,z to choose axis, a,b,c,d to choose format (Ångstrom, Bohr, Crystal, Alat, respectively))"
+        "<li><b><tt>pos</tt></b>: relative position (x,y,z to choose axis, >,>=,<,<= to select comparison, followed by target value)"
         "<ul>"
         "<li>pos xa&gt;5</li>"
         "<li>pos z c &lt; 0.5</li>"

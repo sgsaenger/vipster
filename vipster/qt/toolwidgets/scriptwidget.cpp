@@ -9,6 +9,8 @@ using namespace Vipster;
 using ScriptOp = ScriptWidget::ScriptOp;
 using OpVec = ScriptWidget::OpVec;
 
+// TODO: allow all operations to target a given format
+
 std::pair<bool, GUI::change_t> ScriptWidget::execute(
         const std::vector<ScriptOp>& operations,
         Step& step, ViewPort::StepState& data)
@@ -18,9 +20,6 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
         switch(in.mode){
         case OpVec::Mode::Direct:
             return in.v;
-        // FIXME: reimplement
-//        case OpVec::Mode::Relative:
-//            return step.formatVec(in.v, in.fmt, step.getFmt());
         case OpVec::Mode::Position:
             if(in.m1){
                 return -step.at(in.id1).coord;
@@ -136,31 +135,9 @@ std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool
             throw Error("Explicit vector could not be parsed");
         }
         if(c != ')'){
-            std::string fmt;
-            is >> fmt;
-            if(fmt.back() == ')'){
-                fmt.pop_back();
-            }else{
-                is >> c;
-                if(c != ')'){
-                    throw Error("Unterminated vector");
-                }
-            }
-            std::transform(fmt.begin(), fmt.end(), fmt.begin(), ::tolower);
-            std::map<std::string, AtomFmt> fmtmap={
-                {"angstrom", AtomFmt::Angstrom},
-                {"bohr", AtomFmt::Bohr},
-                {"crystal", AtomFmt::Crystal},
-                {"alat", AtomFmt::Alat}
-            };
-            if(fmtmap.find(fmt) == fmtmap.end()){
-                throw Error("Unknown vector format: "+fmt);
-            }
-            vec.mode = ScriptWidget::OpVec::Mode::Relative;
-            vec.fmt = fmtmap.at(fmt);
-        }else{
-            vec.mode = ScriptWidget::OpVec::Mode::Direct;
+            throw Error("Unterminated vector");
         }
+        vec.mode = ScriptWidget::OpVec::Mode::Direct;
     }else{
         if(c == '-'){
             vec.m1 = true;
