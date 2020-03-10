@@ -12,6 +12,8 @@
 #include <vector>
 #include <set>
 
+// BUG: conversion direction is wrong makeConverter, to/fromAngstrom and g/setCellDim
+
 namespace Vipster {
 
 namespace detail{

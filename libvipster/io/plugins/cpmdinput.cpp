@@ -465,7 +465,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
 
     // apply scaling
     s.setCellDim(cellDim, cf);
-    s.setFmt(af);
+    s.setFmt(af, false);
     if(scale){
         for(auto& at: s){
             at.coord[0] /= scaleVec[0];
@@ -491,7 +491,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
     const auto &atfmt = std::get<NamedEnum>(c->at("fmt").first);
     const auto& s =  m.getStep(index).asFmt((atfmt.name() == "Active") ?
                                             m.getStep(index).getFmt() : // use active format
-                                            static_cast<AtomFmt>(atfmt.value())); // use explicit format
+                                            static_cast<AtomFmt>(atfmt.value()-2)); // use explicit format
     auto cf = (s.getFmt() == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
     const auto& PPPrefix = std::get<std::string>(p->at("PPPrefix").first);
     const auto& PPSuffix = std::get<std::string>(p->at("PPSuffix").first);
