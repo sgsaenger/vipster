@@ -465,7 +465,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
 
     // apply scaling
     s.setCellDim(cellDim, cf);
-    s.modScale(af);
+    s.setFmt(af);
     if(scale){
         for(auto& at: s){
             at.coord[0] /= scaleVec[0];

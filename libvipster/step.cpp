@@ -61,6 +61,26 @@ void Step::delAtom(size_t _i){
     al.properties.erase(al.properties.begin()+i);
 }
 
+void Step::setFmt(AtomFmt tgt, bool scale)
+{
+    if(tgt == this->atoms->ctxt.fmt){ return; }
+    if(atomFmtRelative(tgt)){
+        atoms->ctxt.cell->enabled = true;
+    }
+    if(scale && (getNat() != 0)){
+        auto tmp = asFmt(tgt);
+        auto source = tmp.cbegin();
+        auto target = begin();
+        while(source != tmp.cend()){
+            target->coord = source->coord;
+            ++target;
+            ++source;
+        }
+        atoms->ctxt.fmt = tgt;
+    }
+    atoms->ctxt.fmt = tgt;
+}
+
 void Step::enableCell(bool val) noexcept
 {
     atoms->ctxt.cell->enabled = val;

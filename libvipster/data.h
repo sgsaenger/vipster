@@ -6,6 +6,8 @@
 
 #include "vec.h"
 
+// BUG: array access seems to be wrong
+
 namespace Vipster{
 
 struct BaseData{

@@ -195,7 +195,7 @@ IO::Data OrcaParser(const std::string& name, std::istream &file){
             //}
         }
     }
-    s->modScale(at_fmt);
+    s->setFmt(at_fmt);
 
     return d;
 }

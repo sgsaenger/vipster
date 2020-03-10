@@ -301,6 +301,9 @@ public:
         }
     }
 
+    // Format
+    void setFmt(AtomFmt fmt, bool scale=true);
+
     // Atoms
     void    newAtom(std::string name="",
                     Vec coord=Vec{},

@@ -5,7 +5,7 @@
 
 namespace Vipster::Py{
 
-/* BUG: Optimize assignment
+/* FIXME: Optimize assignment
  *
  * problems so far:
  * - assignment from formatter not working as intended, library problem?
@@ -84,7 +84,7 @@ py::class_<S> bind_step(py::handle &m, std::string name){
         })
         .def_property_readonly("ntyp", &S::getNtyp)
     // FMT
-        .def_property("fmt", &S::getFmt, &S::setFmt)
+        .def_property_readonly("fmt", &S::getFmt)
         .def("asFmt", py::overload_cast<AtomFmt>(&S::asFmt), "fmt"_a)
     // CELL
         .def_property_readonly("hasCell", &S::hasCell)
@@ -104,7 +104,6 @@ py::class_<S> bind_step(py::handle &m, std::string name){
     // SELECTION
         .def("select", [](S &s, const std::string &sel){return s.select(sel);}, "selection"_a)
     // Modification functions
-        .def("modScale", &S::modScale, "fmt"_a)
         .def("modShift", &S::modShift, "shift"_a, "factor"_a=1.0f)
         .def("modRotate", &S::modRotate, "angle"_a, "axis"_a, "shift"_a=Vec{})
         .def("modMirror", &S::modMirror, "axis1"_a, "axis1"_a, "shift"_a=Vec{})
@@ -160,6 +159,8 @@ void Step(py::module& m){
 
     auto s = bind_step<Vipster::Step>(m, "Step")
         .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Angstrom, "comment"_a="")
+    // Format
+        .def("setFmt", &Step::setFmt)
     // Atoms
         .def("newAtom", [](Vipster::Step& s, std::string name, Vec coord, AtomProperties prop){
              s.newAtom(name, coord, prop);},

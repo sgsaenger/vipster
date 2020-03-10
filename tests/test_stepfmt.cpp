@@ -52,12 +52,12 @@ TEST_CASE( "Vipster::detail::Formatter", "[format]"){
         // add formatted atoms
         s.setFmt(AtomFmt::Crystal);
         s.newAtom("H", {{1,2,3}});
-        s.modScale(AtomFmt::Alat);
+        s.setFmt(AtomFmt::Alat);
         s.newAtom("H", {{1,2,3}});
-        s.modScale(AtomFmt::Angstrom);
+        s.setFmt(AtomFmt::Angstrom);
         s.newAtom("H", {{1,2,3}});
         // reset s to Angstrom
-        s.modScale(AtomFmt::Angstrom);
+        s.setFmt(AtomFmt::Angstrom);
         for(size_t i=0; i<3; ++i){
         SECTION("comparison "+fmtNames[i]){
             auto fmt = static_cast<AtomFmt>(i-2);

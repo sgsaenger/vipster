@@ -274,10 +274,16 @@ void MolWidget::on_atomFmtButton_clicked()
     auto oldFmt = static_cast<int>(curStep->getFmt())+2;
     ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
     ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-    curStep->modScale(fmt);
-    ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+    curStep->setFmt(fmt); // (possibly) invalidates dependent objects
+    // reset table-model
     molModel.setStep(&*ownStep);
-    master->curSel->setFmt(fmt);
+    // reset formatter
+    ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+    // reset selection
+    SelectionFilter filter{};
+    filter.mode = SelectionFilter::Mode::Index;
+    filter.indices = master->curSel->getAtoms().indices;
+    *master->curSel = curStep->select(filter);
     if(atomFmtRelative(fmt)){
         ui->cellEnabledBox->setChecked(true);
     }

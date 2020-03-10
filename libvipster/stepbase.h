@@ -231,13 +231,6 @@ public:
     {
         return atoms->ctxt.fmt;
     }
-    void                setFmt(AtomFmt tgt) const
-    {
-        if(atomFmtRelative(tgt)){
-            atoms->ctxt.cell->enabled = true;
-        }
-        atoms->ctxt.fmt = tgt;
-    }
 
     // Bonds
     const std::vector<Bond>&    getBonds() const
@@ -489,18 +482,6 @@ public:
     }
 
     // Modifier functions
-    void modScale(AtomFmt tgt){
-        if(tgt == this->atoms->ctxt.fmt){ return; }
-        auto tmp = asFmt(tgt);
-        auto source = tmp.cbegin();
-        auto target = this->begin();
-        while(source != tmp.cend()){
-            target->coord = source->coord;
-            ++target;
-            ++source;
-        }
-        this->atoms->ctxt.fmt = tgt;
-    }
     void modShift(Vec shift, double fac=1.0){
         shift *= fac;
         for(auto& at:*this){

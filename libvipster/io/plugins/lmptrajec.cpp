@@ -47,9 +47,9 @@ auto IdentifyColumns(std::string& line)
     case scaled:
         return [=](std::istream &file, Step& s){
             if(cs == scaled) {
-                s.modScale(AtomFmt::Crystal);
+                s.setFmt(AtomFmt::Crystal);
             } else {
-                s.modScale(AtomFmt::Angstrom);
+                s.setFmt(AtomFmt::Angstrom);
             }
             std::string line;
             for (auto& at:s) {
