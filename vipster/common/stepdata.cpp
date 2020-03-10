@@ -451,7 +451,7 @@ void GUI::StepData::update(Step* step,
     const auto& at_coord = curStep->getAtoms().coordinates;
     const auto& at_prop = curStep->getAtoms().properties;
     auto fmt = curStep->getFmt();
-//    auto fmt_fun = curStep->getFormatter(fmt, AtomFmt::Bohr);
+    auto fmt_ax_crystal = cv;
     float c, s, ic;
     bond_buffer.clear();
     bond_buffer.reserve(bonds.size());
@@ -478,10 +478,9 @@ void GUI::StepData::update(Step* step,
         if (bd.diff[2]>0)     { at_pos2 += bd.diff[2]*cv[2]; }
         else if (bd.diff[2]<0){ at_pos1 -= bd.diff[2]*cv[2]; }
         auto bond_axis = at_pos1 - at_pos2;
-        // FIXME: is this necessary?
-//        if(fmt == AtomFmt::Crystal){
-//            bond_axis = fmt_fun(bond_axis);
-//        }
+        if(fmt == AtomFmt::Crystal){
+            bond_axis = bond_axis * fmt_ax_crystal;
+        }
         auto bond_pos = (at_pos1+at_pos2)/2;
         const auto& col1 = bd.type ? bd.type->second : elements[bd.at1]->second.col;
         const auto& col2 = bd.type ? bd.type->second : elements[bd.at2]->second.col;
