@@ -286,6 +286,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     }
 }
 
+// FIXME: at least rotation is broken with Crystal
 void GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
     e->accept();
@@ -351,45 +352,22 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() != Qt::MouseButton::RightButton){
+            // get selected atoms
+            auto pick = pickAtoms(mousePos, rectPos);
+            // join with existing selection if requested
             bool add = (e->button() & Qt::MouseButton::MiddleButton) ||
                        (e->modifiers() & Qt::ControlModifier);
+            if(add){
+                for(const auto &idx: curSel->getAtoms().indices){
+                    pick.insert(idx);
+                }
+            }
+            // create new filter
             SelectionFilter filter{};
             filter.mode = SelectionFilter::Mode::Index;
-            if(add){
-                filter.indices = curSel->getAtoms().indices;
-            }
-            auto idx = pickAtoms(mousePos, rectPos);
-            // FIXME: reimplement
-//            if((idx.size() == 1) && (idx.begin()->second.size() == 1)){
-//                auto i = *idx.begin();
-//                auto pos = filter.indices.find(i.first);
-//                if(pos == filter.indices.end()){
-//                    // if not present, add single atom
-//                    filter.indices[i.first] = i.second;
-//                }else{
-//                    auto pbc = std::find(pos->second.begin(), pos->second.end(), i.second[0]);
-//                    if(pbc == pos->second.end()){
-//                        // atom present, add aditional periodic image
-//                        pos->second.push_back(i.second[0]);
-//                    }else if(pos->second.size() > 1){
-//                        // atom present, remove selected periodic image
-//                        pos->second.erase(pbc);
-//                    }else{
-//                        // atom present, no periodic images remaining, remove completely
-//                        filter.indices.erase(pos);
-//                    }
-//                }
-//            }else{
-//                // if area is selected, always merge sets
-//                for(const auto& p: idx){
-//                    auto& target = filter.indices[p.first];
-//                    for(auto& pbc: p.second){
-//                        if(std::find(target.begin(), target.end(), pbc) == target.end()){
-//                            target.push_back(pbc);
-//                        }
-//                    }
-//                }
-//            }
+            filter.indices.resize(pick.size());
+            std::copy(pick.begin(), pick.end(), filter.indices.begin());
+            // create new selection from filter
             *curSel = curStep->select(filter);
             rectPos = mousePos;
             triggerUpdate(GUI::Change::selection);
