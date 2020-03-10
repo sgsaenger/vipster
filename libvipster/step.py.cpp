@@ -1,18 +1,35 @@
 #include "pyvipster.h"
 #include "step.h"
 
-// TODO: think about const-correctness!
+#include <utility>
 
 namespace Vipster::Py{
+
+/* BUG: Optimize assignment
+ *
+ * problems so far:
+ * - assignment from formatter not working as intended, library problem?
+ * - assignment to sub-steps not working, types mapped multiple times
+ *   -> pybind/python can't deduce correct overload at RT
+ * - bindings are not templated -> confined to one atom_source hierarchy
+ *
+ * Possible solutions:
+ * - Introduce a standalone atom to allow for conversion between hierarchies
+ *   (probably slow, but only when working within python)
+ *   could also solve the problem of comparability
+ * - bind formatter/selection within bind_step so assignments can refer to concrete instances
+ *   of the whole hierarchy (better)
+ *   OR
+ *   remove duplicate bindings via constexpr if and detail::is_selection/is_formatter (worse)
+ */
 template <typename S>
 py::class_<S> bind_step(py::handle &m, std::string name){
-    py::class_<StepConst<typename S::source>>(m, ("__"+name+"Base__").c_str());
-    auto cl = py::class_<S, StepConst<typename S::source>>(m, name.c_str())
-        .def_readonly("pte", &S::pte)
+    py::class_<StepConst<typename S::atom_source>>(m, ("__"+name+"Base__").c_str());
+    auto s = py::class_<S, StepConst<typename S::atom_source>>(m, name.c_str())
+        .def("getPTE", &S::getPTE)
         .def_property("comment", &S::getComment, &S::setComment)
     // Atoms
         .def("__getitem__", [](S& s, int i){
-                s.evaluateCache();
                 if (i<0){
                     i = i+static_cast<int>(s.getNat());
                 }
@@ -21,8 +38,7 @@ py::class_<S> bind_step(py::handle &m, std::string name){
                 }
                 return s[static_cast<size_t>(i)];
             }, py::keep_alive<0, 1>())
-        .def("__setitem__", [](S& s, int i, const Atom& at){
-                s.evaluateCache();
+        .def("__setitem__", [](S& s, int i, const typename S::atom& at){
                 if (i<0){
                     i = i+static_cast<int>(s.getNat());
                 }
@@ -31,62 +47,135 @@ py::class_<S> bind_step(py::handle &m, std::string name){
                 }
                 s[static_cast<size_t>(i)] = at;
         })
-        .def("__len__", [](const S& s){s.evaluateCache(); return s.getNat();})
-        .def_property_readonly("nat", [](const S& s){s.evaluateCache(); return s.getNat();})
-        .def("__iter__", [](S& s){s.evaluateCache(); return py::make_iterator(s.begin(), s.end());})
+        .def("__setitem__", [](S& s, int i, const typename S::formatter::atom& at){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                s[static_cast<size_t>(i)] = at;
+        })
+        .def("__setitem__", [](S& s, int i, const typename S::selection::atom& at){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                s[static_cast<size_t>(i)] = at;
+        })
+        .def("__setitem__", [](S& s, int i, const typename S::formatter::selection::atom& at){
+                if (i<0){
+                    i = i+static_cast<int>(s.getNat());
+                }
+                if ((i<0) || i>=static_cast<int>(s.getNat())){
+                    throw py::index_error();
+                }
+                s[static_cast<size_t>(i)] = at;
+        })
+        .def("__len__", &S::getNat)
+        .def_property_readonly("nat", &S::getNat)
+        .def("__iter__", [](S& s){return py::make_iterator(s.begin(), s.end());})
     // TYPES
         .def("getTypes", [](const S& s){
-            s.evaluateCache();
             auto oldT = s.getTypes();
             return std::vector<std::string>(oldT.begin(), oldT.end());
         })
-        .def_property_readonly("ntyp", [](const S& s){s.evaluateCache(); return s.getNtyp();})
+        .def_property_readonly("ntyp", &S::getNtyp)
     // FMT
         .def_property("fmt", &S::getFmt, &S::setFmt)
-        .def("asFmt", [](S& s, AtomFmt fmt){s.evaluateCache(); return s.asFmt(fmt);}, "fmt"_a)
+        .def("asFmt", py::overload_cast<AtomFmt>(&S::asFmt), "fmt"_a)
     // CELL
-        .def_property("hasCell", &S::hasCell, &S::enableCell)
+        .def_property_readonly("hasCell", &S::hasCell)
         .def("getCellDim", &S::getCellDim)
         .def("getCellVec", &S::getCellVec)
-        .def("getCom", [](const S& s){s.evaluateCache(); return s.getCom();})
-        .def("getCom", [](const S& s, AtomFmt fmt){s.evaluateCache(); return s.getCom(fmt);}, "fmt"_a)
-        .def("getCenter", [](const S& s, CdmFmt fmt, bool com){s.evaluateCache(); return s.getCenter(fmt, com);},
-             "fmt"_a, "com"_a=false)
+        .def("getCom", py::overload_cast<>(&S::getCom, py::const_))
+        .def("getCom", py::overload_cast<AtomFmt>(&S::getCom, py::const_), "fmt"_a)
+        .def("getCenter", &S::getCenter, "fmt"_a, "com"_a)
     // BONDS
-        .def("getBonds", [](const S& s){
-                s.evaluateCache();
+        .def("getBonds", [](const S& s, bool update){
+                if(update){
+                    s.setBonds();
+                }
                 return s.getBonds();
-            })
+            }, "update"_a=true)
         .def("setBonds", &S::setBonds)
-        .def("getBondMode", &S::getBondMode)
-        .def("setBondMode", &S::setBondMode, "mode"_a)
     // SELECTION
-        .def("select", [](S& s, std::string sel)->Step::selection{s.evaluateCache(); return s.select(sel);}, "sel"_a)
+        .def("select", [](S &s, const std::string &sel){return s.select(sel);}, "selection"_a)
     // Modification functions
         .def("modScale", &S::modScale, "fmt"_a)
         .def("modShift", &S::modShift, "shift"_a, "factor"_a=1.0f)
         .def("modRotate", &S::modRotate, "angle"_a, "axis"_a, "shift"_a=Vec{})
         .def("modMirror", &S::modMirror, "axis1"_a, "axis1"_a, "shift"_a=Vec{})
     ;
-    return std::move(cl);
+
+    using Atom = typename S::atom;
+    using _Vec = decltype(std::declval<typename S::atom>().coord);
+    auto a = py::class_<Atom>(s, "Atom")
+        .def_property("name", [](const Atom &a)->const std::string&{return a.name;},
+                      [](Atom &a, std::string s){a.name = s;})
+        .def_property("coord", [](const Atom &a)->const _Vec&{return a.coord;},
+                      [](Atom &a, Vec c){a.coord = c;})
+        .def_property("properties", [](const Atom &a)->const AtomProperties&{return a.properties;},
+                      [](Atom &a, AtomProperties bs){a.properties = bs;})
+//        .def("__eq__", [](const Atom &lhs, const Atom &rhs){return lhs == rhs;},py::is_operator())
+//        .def(py::self == py::self)
+//        .def(py::self != py::self)
+    ;
+
+    py::class_<_Vec>(a, "_Vec")
+        .def("__getitem__", [](const _Vec& v, int i) -> Vec::value_type{
+            if (i<0) {
+                i += 3;
+            }
+            if ((i<0) || (i>=3)) {
+                throw py::index_error();
+            }
+            return v[i];
+        })
+        .def("__setitem__", [](_Vec& v, int i, Vec::value_type val){
+            if (i<0) {
+                i += 3;
+            }
+            if ((i<0) || (i>=3)) {
+                throw py::index_error();
+            }
+            v[i] = val;
+        }, py::keep_alive<0, 1>())
+        .def("__repr__", [name](const _Vec& v){
+            return name + "::Atom::Vec["
+                    + std::to_string(v[0]) + ", "
+                    + std::to_string(v[1]) + ", "
+                    + std::to_string(v[2]) + "]";
+        })
+        .def(py::self == py::self)
+        .def(py::self == Vec())
+    ;
+
+    return std::move(s);
 }
 
 void Step(py::module& m){
-    py::enum_<CdmFmt>(m, "CellDimFmt")
-        .value("Bohr", CdmFmt::Bohr)
-        .value("Angstrom", CdmFmt::Angstrom)
-    ;
 
     auto s = bind_step<Vipster::Step>(m, "Step")
-        .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Bohr, "comment"_a="")
+        .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Angstrom, "comment"_a="")
     // Atoms
         .def("newAtom", [](Vipster::Step& s, std::string name, Vec coord, AtomProperties prop){
-             s.evaluateCache();
              s.newAtom(name, coord, prop);},
              "name"_a="", "coord"_a=Vec{}, "properties"_a=AtomProperties{})
-        .def("newAtom", [](Vipster::Step& s, const Atom& at){ s.evaluateCache(); s.newAtom(at);}, "at"_a)
-        .def("delAtom", [](Vipster::Step& s, size_t i){s.evaluateCache(); s.delAtom(i);}, "i"_a)
+        .def("newAtom", [](Vipster::Step& s, const Step::atom& at){s.newAtom(at);}, "at"_a)
+        .def("newAtom", [](Vipster::Step& s, const Step::formatter::atom& at){s.newAtom(at);}, "at"_a)
+        .def("newAtom", [](Vipster::Step& s, const Step::selection::atom& at){s.newAtom(at);}, "at"_a)
+        .def("newAtom", [](Vipster::Step& s, const Step::selection::formatter::atom& at){s.newAtom(at);}, "at"_a)
+        .def("newAtoms", [](Vipster::Step& s, size_t i){s.newAtoms(i);}, "i"_a)
+        .def("newAtoms", [](Vipster::Step& s, const Vipster::Step& rhs){s.newAtoms(rhs);}, "step"_a)
+        .def("newAtoms", [](Vipster::Step& s, const Vipster::Step::formatter& rhs){s.newAtoms(rhs);}, "step"_a)
+        .def("newAtoms", [](Vipster::Step& s, const Vipster::Step::selection& rhs){s.newAtoms(rhs);}, "step"_a)
+        .def("newAtoms", [](Vipster::Step& s, const Vipster::Step::selection::formatter& rhs){s.newAtoms(rhs);}, "step"_a)
+        .def("delAtom", [](Vipster::Step& s, size_t i){s.delAtom(i);}, "i"_a)
     // CELL
+        .def("enableCell", &Vipster::Step::enableCell, "val"_a)
         .def("setCellDim", &Vipster::Step::setCellDim, "cdm"_a, "fmt"_a, "scale"_a=false)
         .def("setCellVec", &Vipster::Step::setCellVec, "vec"_a, "scale"_a=false)
     // Modification functions
@@ -98,7 +187,7 @@ void Step(py::module& m){
     ;
 
     bind_step<Vipster::Step::selection>(s, "Selection");
-    // TODO: selection specific functions?
-
+    bind_step<Vipster::Step::formatter>(s, "Formatter");
+    bind_step<Vipster::Step::formatter::selection>(s, "SelectionFormatter");
 }
 }

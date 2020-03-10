@@ -39,10 +39,5 @@ void Bond(py::module &m){
             }
         })
     ;
-
-    py::enum_<BondMode>(m, "Mode")
-        .value("Manual", BondMode::Manual)
-        .value("Automatic", BondMode::Automatic)
-    ;
 }
 }

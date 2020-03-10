@@ -17,11 +17,17 @@ py::class_<Array, holder_type> bind_array(py::handle &m, std::string const &name
     Class_ cl(m, name.c_str(), std::forward<Args>(args)...);
     cl.def(py::init());
     cl.def("__getitem__",[](const Array &v, SizeType i)->const ValueType&{
+        if(i<0){
+            i += v.size();
+        }
         if(i<0 || i>= v.size())
             throw py::index_error();
         return v[i];
     }, py::return_value_policy::reference_internal);
     cl.def("__setitem__",[](Array &v, SizeType i, ValueType f){
+        if(i<0){
+            i += v.size();
+        }
         if(i<0 || i>= v.size())
             throw py::index_error();
         v[i] = f;

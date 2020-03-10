@@ -4,7 +4,6 @@
 namespace Vipster::Py{
 void Vec(py::module& m){
     bind_array<Vipster::Vec>(m, "Vec")
-        // TODO: shorthand definitions?
         .def("__add__", [](const Vipster::Vec &v1, const Vipster::Vec &v2){return v1+v2;}, py::is_operator())
         .def("__sub__", [](const Vipster::Vec &v1, const Vipster::Vec &v2){return v1-v2;}, py::is_operator())
         .def("__add__", [](const Vipster::Vec &v, double f){return v+f;}, py::is_operator())

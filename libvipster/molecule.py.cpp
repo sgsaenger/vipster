@@ -4,7 +4,7 @@
 namespace Vipster::Py{
 void Molecule(py::module& m){
     py::class_<Vipster::Molecule>(m, "Molecule")
-        .def(py::init()) // WARNING: set pte-root
+        .def(py::init()) // FIXME: set pte-root
         .def_readonly("pte", &Vipster::Molecule::pte)
         .def("newStep", [](Vipster::Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const Step&>(&Vipster::Molecule::newStep), "step"_a)
@@ -20,8 +20,8 @@ void Molecule(py::module& m){
         .def("__iter__", [](const Vipster::Molecule& m){return py::make_iterator(m.getSteps().begin(), m.getSteps().end());})
         .def("__len__", &Vipster::Molecule::getNstep)
         .def_property_readonly("nstep", &Vipster::Molecule::getNstep)
-        .def_property("name", &Vipster::Molecule::getName, &Vipster::Molecule::setName)
-        .def_property("kpoints", py::overload_cast<>(&Vipster::Molecule::getKPoints), &Vipster::Molecule::setKPoints)
+        .def_readwrite("name", &Vipster::Molecule::name)
+        .def_readwrite("kpoints", &Vipster::Molecule::kpoints)
     ;
 }
 }
