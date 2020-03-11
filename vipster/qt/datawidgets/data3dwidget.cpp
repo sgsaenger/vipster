@@ -58,21 +58,24 @@ void Data3DWidget::setData(const BaseData* data)
     if(curData == nullptr){
         throw Error("Invalid dataset");
     }
-    // TODO: this is wrong, isn't it?
-    QSignalBlocker block{this};
-
     // init plane-state
     auto slicePos = slices.find(curData);
     if(slicePos != slices.end()){
         curSlice = slicePos->second;
+        QSignalBlocker blockBut{ui->sliceBut};
         ui->sliceBut->setChecked(master->curVP->hasExtraData(curSlice, false));
+        QSignalBlocker blockDir{ui->sliceDir};
         ui->sliceDir->setCurrentIndex(static_cast<int>(curSlice->dir));
+        QSignalBlocker blockVal{ui->sliceVal};
         ui->sliceVal->setMaximum(static_cast<int>(curData->extent[curSlice->dir]));
         ui->sliceVal->setValue(static_cast<int>(curSlice->pos));
     }else{
         curSlice = nullptr;
+        QSignalBlocker blockBut{ui->sliceBut};
         ui->sliceBut->setChecked(false);
+        QSignalBlocker blockDir{ui->sliceDir};
         ui->sliceDir->setCurrentIndex(0);
+        QSignalBlocker blockVal{ui->sliceVal};
         ui->sliceVal->setMaximum(static_cast<int>(curData->extent[0]));
         ui->sliceVal->setValue(0);
     }
@@ -89,19 +92,27 @@ void Data3DWidget::setData(const BaseData* data)
     auto surfPos = surfaces.find(curData);
     if(surfPos != surfaces.end()){
         curSurf = surfPos->second;
+        QSignalBlocker blockBut{ui->surfBut};
         ui->surfBut->setChecked(master->curVP->hasExtraData(curSurf, false));
+        QSignalBlocker blockToggle{ui->surfToggle};
         ui->surfToggle->setCheckState(Qt::CheckState(curSurf->plusmin*2));
         auto isoval = static_cast<double>(curSurf->isoval);
+        QSignalBlocker blockVal{ui->surfVal};
         ui->surfVal->setText(QString::number(isoval));
         auto _val = (isoval - validator.bottom()) *
                     ui->surfSlider->maximum() /
                     (validator.top()-validator.bottom());
+        QSignalBlocker blockSlider{ui->surfSlider};
         ui->surfSlider->setValue(static_cast<int>(_val));
     }else{
         curSurf = nullptr;
+        QSignalBlocker blockBut{ui->surfBut};
         ui->surfBut->setChecked(false);
+        QSignalBlocker blockToggle{ui->surfToggle};
         ui->surfToggle->setCheckState(Qt::CheckState::Unchecked);
+        QSignalBlocker blockVal{ui->surfVal};
         ui->surfVal->setText("0.0");
+        QSignalBlocker blockSlider{ui->surfSlider};
         ui->surfSlider->setValue(0);
     }
 }

@@ -6,8 +6,6 @@
 
 #include "vec.h"
 
-// BUG: array access seems to be wrong
-
 namespace Vipster{
 
 struct BaseData{
@@ -86,8 +84,8 @@ public:
     using const_iterator = typename std::vector<T>::const_iterator;
 // data-members
 public:
-    Mat cell;
-    Vec origin;
+    Mat cell{};
+    Vec origin{};
     const Extent extent;
     const size_t size;
 };

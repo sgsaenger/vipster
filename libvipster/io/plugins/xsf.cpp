@@ -5,24 +5,50 @@
 using namespace Vipster;
 
 template<typename T>
-auto mkparser(){
+static auto mkparser(){
     return [](IO::Data& d, std::string&& n, std::istream& f){
         constexpr size_t N = T::Dim;
+        // parse extent
         std::array<size_t, N> extent;
-        f >> extent[0] >> extent[1] >> extent[2];
-        T grid{extent};
-        grid.name = n;
-        f >> grid.origin[0] >> grid.origin[1] >> grid.origin[2];
-        grid.origin *= invbohr;
         for(size_t i=0; i<N; ++i){
-            f >> grid.cell[i][0] >> grid.cell[i][1] >> grid.cell[i][2];
+            f >> extent[i];
         }
-        grid.cell *= invbohr;
-        grid.origin += Vec{0.5/extent[0], 0.5/extent[1], 0.5/extent[2]}*grid.cell;
-        for(auto& val: grid){
-            f >> val;
+        // create grid
+        auto grid = std::make_unique<T>(extent);
+        grid->name = n;
+        // parse origin
+        auto& origin = grid->origin;
+        f >> origin[0] >> origin[1] >> origin[2];
+        origin *= invbohr;
+        // parse cell
+        auto& cell = grid->cell;
+        for(size_t i=0; i<N; ++i){
+            f >> cell[i][0] >> cell[i][1] >> cell[i][2];
         }
-        d.data.emplace_back(std::make_unique<const T>(std::move(grid)));
+        cell *= invbohr;
+        // shift origin
+        Vec tmp{};
+        for(size_t i=0; i<N; ++i){
+            tmp[i] = 0.5 / extent[i];
+        }
+        origin += tmp * cell;
+        // parse datagrid
+        if constexpr (N == 2){
+            for(size_t j=0; j<extent[1]; ++j){
+                for(size_t i=0; i<extent[0]; ++i){
+                    f >> (*grid)(i,j);
+                }
+            }
+        }else{
+            for(size_t k=0; k<extent[2]; ++k){
+                for(size_t j=0; j<extent[1]; ++j){
+                    for(size_t i=0; i<extent[0]; ++i){
+                        f >> (*grid)(i,j,k);
+                    }
+                }
+            }
+        }
+        d.data.push_back(std::move(grid));
     };
 };
 
