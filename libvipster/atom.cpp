@@ -37,7 +37,7 @@ detail::CoordConverter Vipster::detail::makeConverter(const AtomContext &source,
                                               / target.cell->dimension;};
         default:
             return [&](const Vec &v){return v * (source.cell->matrix * source.cell->dimension)
-                                              * detail::AtomContext::toAngstrom[target.fmt];};
+                                              * detail::AtomContext::fromAngstrom[target.fmt];};
         }
     case AtomFmt::Alat:
         switch(target.fmt){

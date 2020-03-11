@@ -12,8 +12,6 @@
 #include <vector>
 #include <set>
 
-// BUG: conversion direction is wrong makeConverter, to/fromAngstrom and g/setCellDim
-
 namespace Vipster {
 
 namespace detail{
@@ -247,7 +245,7 @@ public:
     }
     double  getCellDim(AtomFmt fmt) const
     {
-        if(atomFmtRelative(fmt) || fmt > detail::AtomContext::toAngstrom.size()){
+        if(atomFmtRelative(fmt) || fmt > detail::AtomContext::fromAngstrom.size()){
             throw Error{"StepConst::getCellDim: Invalid AtomFmt, needs to be absolute"};
         }
         return atoms->ctxt.cell->dimension * detail::AtomContext::fromAngstrom[fmt];

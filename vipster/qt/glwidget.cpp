@@ -286,7 +286,6 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     }
 }
 
-// FIXME: at least rotation is broken with Crystal
 void GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
     e->accept();

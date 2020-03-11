@@ -275,10 +275,10 @@ void MolWidget::on_atomFmtButton_clicked()
     ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
     ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
     curStep->setFmt(fmt); // (possibly) invalidates dependent objects
-    // reset table-model
-    molModel.setStep(&*ownStep);
     // reset formatter
     ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+    // reset table-model
+    molModel.setStep(&*ownStep);
     // reset selection
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
