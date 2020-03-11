@@ -42,7 +42,7 @@ set_target_properties(libvipster
     )
 if(UNIX)
     # allow dynamic plugin loading
-    target_link_libraries(libvipster dl)
+    target_link_libraries(libvipster PUBLIC dl)
     # on traditional unix-like platforms,
     # install files to appropriate locations
     if(NOT APPLE AND NOT VIPSTER_WEB)
@@ -61,9 +61,10 @@ endif()
 find_package(nlohmann_json 3.3.0 CONFIG)
 if(NOT nlohmann_json_FOUND)
     set(JSON_BuildTests OFF CACHE INTERNAL "")
+    set(JSON_Install OFF CACHE INTERNAL "")
     add_subdirectory(external/nlohmann_json)
 endif()
-target_link_libraries(libvipster nlohmann_json::nlohmann_json)
+target_link_libraries(libvipster PUBLIC nlohmann_json::nlohmann_json)
 
 if(VIPSTER_TESTS)
     # Tests, so far only for library
@@ -75,7 +76,7 @@ if(VIPSTER_TESTS)
     if(NOT Catch2_FOUND)
         add_subdirectory(external/Catch2)
     endif()
-    target_link_libraries(test_lib libvipster Catch2::Catch2)
+    target_link_libraries(test_lib PRIVATE libvipster Catch2::Catch2)
 
     # enable testing via build system
     enable_testing()
@@ -91,7 +92,7 @@ if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
         add_subdirectory(external/pybind11)
     endif()
     add_library(pyvipster OBJECT ${PY_SOURCES})
-    target_link_libraries(pyvipster PRIVATE pybind11::module)
+    target_link_libraries(pyvipster PUBLIC libvipster PRIVATE pybind11::module)
 endif()
 
 if(VIPSTER_PYLIB)
@@ -166,9 +167,9 @@ if(VIPSTER_DESKTOP)
         set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
     endif()
     # set link targets
-    target_link_libraries(vipster Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
+    target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
     if(VIPSTER_PYWIDGET)
-        target_link_libraries(vipster pybind11::embed)
+        target_link_libraries(vipster PRIVATE pybind11::embed)
     endif()
     # on traditional unix-like platforms,
     # install files to appropriate locations
@@ -197,5 +198,5 @@ if(VIPSTER_WEB)
         "vipster/web/main.cpp")
     add_executable(webvipster ${WEB_SOURCES})
     set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
-    target_link_libraries(webvipster libvipster)
+    target_link_libraries(webvipster PRIVATE libvipster)
 endif()
