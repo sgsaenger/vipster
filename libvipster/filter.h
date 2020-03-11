@@ -149,7 +149,7 @@ static SelectionIndices evalPos(const T& step, const SelectionFilter& filter){
     SelectionIndices tmp;
     std::size_t idx{0};
     auto cmp = [&filter](const Vec& at){
-        size_t dir = (filter.pos & filter.DIR_MASK) >> 2;
+        size_t dir = (filter.pos & filter.DIR_MASK);
         switch(filter.pos & filter.P_CMP_MASK){
         case SelectionFilter::P_GT:
             return at[dir] > filter.posVal;

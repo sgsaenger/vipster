@@ -97,14 +97,14 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
     SECTION("by pos"){
         s.setCellDim(2, AtomFmt::Bohr);
         s.setCellVec(Mat{Vec{1,1,0}, Vec{0,1,0}, Vec{0,0,1}});
-        auto selA = s.select("pos xa>0");
-        CHECK(selA.getNat() == 2);
-        auto selB = s.select("pos xb>0");
-        CHECK(selB.getNat() == 2);
-        auto selC = s.select("pos y c < 0");
-        CHECK(selC.getNat() == 1);
-        auto selD = s.select("pos xd > 0.5");
-        CHECK(selD.getNat() == 1);
+        auto selG = s.select("pos x>0");
+        CHECK(selG.getNat() == 2);
+        auto selGE = s.select("pos x>= 1");
+        CHECK(selGE.getNat() == 2);
+        auto selL = s.select("pos y < 2");
+        CHECK(selL.getNat() == 2);
+        auto selLE = s.select("pos y <= 0");
+        CHECK(selLE.getNat() == 2);
     }
     SECTION("by coord"){
         auto selEQ = s.select("coord =1");
@@ -121,7 +121,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         CHECK(notTypeList.getNat() == 1);
         auto notCoordLT = s.select("not coord <1");
         CHECK(notCoordLT.getNat() == 2);
-        auto notPosB = s.select("not pos xb>0");
+        auto notPosB = s.select("not pos x>0");
         CHECK(notPosB.getNat() == 1);
     }
     SECTION("complex"){
