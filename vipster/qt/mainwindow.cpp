@@ -139,9 +139,11 @@ void MainWindow::updateWidgets(GUI::change_t change)
         curStep = curVP->curStep;
         curSel = curVP->curSel;
     }
-    // if necessary, make sure that bonds are up to date
-    if((change & GUI::Change::atoms) && stepdata[curStep].automatic_bonds){
-        curStep->setBonds();
+    // if necessary, make sure that bonds/overlaps are up to date
+    if((change & GUI::Change::atoms) &&
+       (stepdata[curStep].automatic_bonds ||
+        settings.overlap.val)){
+        curStep->setBonds(!stepdata[curStep].automatic_bonds);
     }
     // notify widgets
     for(auto& w: viewports){

@@ -15,6 +15,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
+    registerSetting(master->settings.overlap);
     registerSetting(master->settings.atRadVdW);
     registerSetting(master->settings.atRadFac);
     registerSetting(master->settings.bondRad);

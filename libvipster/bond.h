@@ -22,9 +22,15 @@ namespace Vipster {
                 ==
                std::tie(rhs.at1, rhs.at2, rhs.diff);
     }
+    struct Overlap{
+        std::size_t at1;
+        std::size_t at2;
+        bool        periodic; // TODO: unused
+    };
 
     struct BondList{
-        std::vector<Bond>               bonds;
+        std::vector<Bond>               list;
+        std::vector<Overlap>            overlaps;
         std::map<std::string, ColVec>   types;
     };
 

@@ -52,7 +52,10 @@ private slots:
 
     void on_atomHelpButton_clicked();
 
+    void on_ovlpTable_itemSelectionChanged();
+
 private:
+    void checkOverlap(void);
     void fillCell(void);
     void fillKPoints(void);
     void setSelection(void);

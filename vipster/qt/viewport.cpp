@@ -64,10 +64,11 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
         master->updateWidgets(change);
     }else{
         // short-circuit if rest of GUI does not need to be updated
-        // if necessary, make sure that bonds are up to date
+        // if necessary, make sure that bonds/overlaps are up to date
         if((change & GUI::Change::atoms) &&
-           master->stepdata[curStep].automatic_bonds){
-            curStep->setBonds();
+           (master->stepdata[curStep].automatic_bonds ||
+            master->settings.overlap.val)){
+            curStep->setBonds(!master->stepdata[curStep].automatic_bonds);
         }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){

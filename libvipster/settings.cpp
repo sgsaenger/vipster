@@ -14,6 +14,7 @@ void readSetting(const nlohmann::json& j, Setting<T>& s)
 }
 
 void Vipster::from_json(const nlohmann::json& j, Settings& s){
+    readSetting(j, s.overlap);
     readSetting(j, s.atRadFac);
     readSetting(j, s.atRadVdW);
     readSetting(j, s.bondRad);
@@ -29,6 +30,7 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
 }
 
 void Vipster::to_json(nlohmann::json& j, const Settings& s){
+    j[s.overlap.name] = s.overlap.val;
     j[s.atRadFac.name] = s.atRadFac.val;
     j[s.atRadVdW.name] = s.atRadVdW.val;
     j[s.bondRad.name] = s.bondRad.val;

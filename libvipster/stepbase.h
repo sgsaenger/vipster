@@ -235,7 +235,11 @@ public:
     // Bonds
     const std::vector<Bond>&    getBonds() const
     {
-        return bonds->bonds;
+        return bonds->list;
+    }
+    const std::vector<Overlap>& getOverlaps() const
+    {
+        return bonds->overlaps;
     }
 
     // Cell
@@ -281,10 +285,10 @@ public:
     }
     Vec     getCenter(AtomFmt fmt, bool com=false) const
     {
-        if(com || !atoms->ctxt.cell->enabled){
+        if(com || !hasCell()){
             return getCom(fmt);
         }
-        const Mat& cv = atoms->ctxt.cell->matrix;
+        const Mat& cv = getCellVec();
         return (cv[0]+cv[1]+cv[2]) * getCellDim(fmt) / 2;
     }
 
@@ -426,13 +430,23 @@ public:
     }
 
     // Bonds
-    void setBonds() const
+    void setBonds(bool overlap_only=false) const
     {
-        this->bonds->bonds.clear();
-        if(this->atoms->ctxt.cell->enabled){
-            setBondsCell();
+        if(overlap_only){
+            this->bonds->overlaps.clear();
+            if(this->hasCell()){
+                setBondsCell<true>();
+            }else{
+                setBondsMolecule<true>();
+            }
         }else{
-            setBondsMolecule();
+            this->bonds->list.clear();
+            this->bonds->overlaps.clear();
+            if(this->hasCell()){
+                setBondsCell<false>();
+            }else{
+                setBondsMolecule<false>();
+            }
         }
     }
     void addBond(size_t at1, size_t at2, DiffVec diff={}, const std::string& type="")
@@ -454,23 +468,23 @@ public:
         };
         if(!type.empty()){
             // register/look-up type, then create bond
-            this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
+            this->bonds->list.push_back({at1, at2, getDistance(at1, at2, diff), diff,
                                             &*this->bonds->types.emplace(type,
                                              defaultColors[this->bonds->types.size()%5]).first});
         }else{
             // create untyped bond
-            this->bonds->bonds.push_back({at1, at2, getDistance(at1, at2, diff), diff,
+            this->bonds->list.push_back({at1, at2, getDistance(at1, at2, diff), diff,
                                             nullptr});
         }
     }
     void delBond(size_t idx)
     {
-        auto& bonds = this->bonds->bonds;
+        auto& bonds = this->bonds->list;
         bonds.erase(bonds.begin()+idx);
     }
     void setBondType(size_t idx, std::string type)
     {
-        auto& bond = this->bonds->bonds[idx];
+        auto& bond = this->bonds->list[idx];
         if(type.empty()){
             bond.type = nullptr;
         }else{
@@ -556,11 +570,12 @@ protected:
 
 private:
 
-    // generate non-periodic bonds
+    // generate non-periodic bonds/overlaps
+    template<bool overlap_only>
     void setBondsMolecule() const
     {
         // get suitable absolute representation
-        const AtomFmt fmt = (this->atoms->ctxt.fmt == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
+        const AtomFmt fmt = (this->getFmt() == AtomFmt::Angstrom) ? AtomFmt::Angstrom : AtomFmt::Bohr;
         const double fmtscale{(fmt == AtomFmt::Angstrom) ? invbohr : 1};
         auto tgtFmt = asFmt(fmt);
         // get bounds of system and largest cutoff
@@ -617,58 +632,59 @@ private:
             }
         }
         // get bonds by iterating over bins and their neighbors
-        auto& bonds = this->bonds->bonds;
+        auto& bonds = this->bonds->list;
+        auto& overlaps = this->bonds->overlaps;
         for(size_t x=0; x<bins.extent[0]; ++x){
             for(size_t y=0; y<bins.extent[1]; ++y){
                 for(size_t z=0; z<bins.extent[2]; ++z){
-                    for (auto it_i=bins(x,y,z).begin(); it_i != bins(x,y,z).end(); ++it_i) {
-                        auto i = *it_i;
-                        const auto& at_i = tgtFmt[i];
-                        auto cut_i = at_i.type->bondcut;
-                        if (cut_i <= 0){
-                            continue;
-                        }
-                        // loop over rest of current bin
-                        for (auto it_j = it_i+1; it_j!=bins(x,y,z).end(); ++it_j) {
-                            auto j = *it_j;
-                            const auto& at_j = tgtFmt[j];
-                            auto cut_j = at_j.type->bondcut;
-                            if (cut_j <= 0) {
-                                continue;
-                            }
-                            auto effcut = (cut_i + cut_j) * 1.1f;
-                            Vec dist_v = at_i.coord - at_j.coord;
-                            if (((dist_v[0] *= fmtscale) > effcut) ||
-                                ((dist_v[1] *= fmtscale) > effcut) ||
-                                ((dist_v[2] *= fmtscale) > effcut)) {
-                                continue;
-                            }
-                            auto dist_n = Vec_dot(dist_v, dist_v);
-                            if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                bonds.push_back({i, j, std::sqrt(dist_n), {}});
-                            }
-                        }
-                        // visit neighboring bins
+                    const auto& bin_source = bins(x,y,z);
+                    for (auto it_source=bin_source.begin(); it_source != bin_source.end(); ++it_source) {
+                        auto idx_source = *it_source;
+                        const auto& at_source = tgtFmt[idx_source];
+                        auto cut_source = at_source.type->bondcut;
+                        // evaluate bonds between bin_source and bin(xt, yt, zt)
                         auto bondcheck = [&](size_t xt, size_t yt, size_t zt){
-                            for (const auto& j: bins(xt, yt, zt)) {
-                                const auto& at_j = tgtFmt[j];
-                                auto cut_j = at_j.type->bondcut;
-                                if (cut_j <= 0) {
-                                    continue;
-                                }
-                                auto effcut = (cut_i + cut_j) * 1.1f;
-                                Vec dist_v = at_i.coord - at_j.coord;
-                                if (((dist_v[0] *= fmtscale) > effcut) ||
-                                    ((dist_v[1] *= fmtscale) > effcut) ||
-                                    ((dist_v[2] *= fmtscale) > effcut)) {
-                                    continue;
-                                }
-                                auto dist_n = Vec_dot(dist_v, dist_v);
-                                if((0.57f < dist_n) && (dist_n < effcut*effcut)) {
-                                    bonds.push_back({i, j, std::sqrt(dist_n), {}});
+                            const auto& bin_target = bins(xt, yt, zt);
+                            /* if bin_target == bin_source,
+                             * we only need to visit atoms that have not been visited by the outer loop
+                             * else we need to loop over all atoms in bin_target
+                             */
+                            auto it_target = (xt == x && yt == y && zt == z) ?
+                                        it_source+1 :
+                                        bin_target.begin();
+                            for(; it_target != bin_target.end(); ++it_target){
+                                auto idx_target = *it_target;
+                                const auto& at_target = tgtFmt[idx_target];
+                                auto cut_target = at_target.type->bondcut;
+                                auto effcut = (cut_source + cut_target) * 1.1f;
+                                if (overlap_only || effcut <= 0){
+                                    // one or both atoms do not form bonds
+                                    // check only overlap
+                                    Vec dist_v = at_source.coord - at_target.coord;
+                                    auto dist_n = Vec_dot(dist_v, dist_v);
+                                    if(0.57f > dist_n){
+                                        overlaps.push_back({idx_source, idx_target, false});
+                                    }
+                                }else{
+                                    // check for bonds and overlap
+                                    Vec dist_v = at_source.coord - at_target.coord;
+                                    if (((dist_v[0] *= fmtscale) > effcut) ||
+                                        ((dist_v[1] *= fmtscale) > effcut) ||
+                                        ((dist_v[2] *= fmtscale) > effcut)) {
+                                        continue;
+                                    }
+                                    auto dist_n = Vec_dot(dist_v, dist_v);
+                                    if(0.57f > dist_n){
+                                        overlaps.push_back({idx_source, idx_target, false});
+                                    }else if(dist_n < effcut*effcut){
+                                        bonds.push_back({idx_source, idx_target, std::sqrt(dist_n), {}});
+                                    }
                                 }
                             }
                         };
+                        // check rest of current bin
+                        bondcheck(x, y, z);
+                        // visit neighboring bins
                         // +x (includes -x)
                         if (x < bins.extent[0]-1) {
                             bondcheck(x+1, y, z);
@@ -727,11 +743,13 @@ private:
         }
     }
 
-    // generate periodic bonds
+    // generate periodic bonds/overlaps
+    template<bool overlap_only>
     void setBondsCell() const
     {
         const auto asCrystal = asFmt(AtomFmt::Crystal);
-        auto& bonds = this->bonds->bonds;
+        auto& bonds = this->bonds->list;
+        auto& overlaps = this->bonds->overlaps;
         const auto cell = this->getCellVec() * this->getCellDim(AtomFmt::Bohr);
         // offset vectors for bin-bin interactions
         const Vec x_v = cell[0];
@@ -815,10 +833,6 @@ private:
                         auto idx_source = *it_source;
                         const auto& at_source = asCrystal[idx_source];
                         auto cut_source = at_source.type->bondcut;
-                        if (cut_source <= 0){
-                            // non-bonding atom type
-                            continue;
-                        }
                         // evaluate bonds between bin_source and bin(x_t,y_t,z_t)
                         auto checkBin = [&](size_t x_t, size_t y_t, size_t z_t){
                             const auto& bin_target = bins(x_t, y_t, z_t);
@@ -833,10 +847,6 @@ private:
                                 auto idx_target = *it_target;
                                 const auto& at_target = asCrystal[idx_target];
                                 auto cut_target = at_target.type->bondcut;
-                                if (cut_target <= 0) {
-                                    // non-bonding atom type
-                                    continue;
-                                }
                                 // effective cutoff, with a 10% stretching margin
                                 auto effcut = (cut_source + cut_target) * 1.1f;
                                 // distance in crystal-units
@@ -860,21 +870,36 @@ private:
                                     getSignFuzzy(dist_v[1]),
                                     getSignFuzzy(dist_v[2]),
                                 };
+                                // early check for overlapping atoms
                                 if(!(crit_v[0]|crit_v[1]|crit_v[2])){
-                                    // TODO: fail here? set flag? overlapping atoms!
+                                    overlaps.push_back({idx_source, idx_target, false});
                                     continue;
                                 }
                                 // evaluation-lambda
-                                auto checkBond = [&](const Vec& dist, const DiffVec& offset)
+                                using bondFun = std::function<void(const Vec&, const DiffVec&)>;
+                                auto checkBond =
+                                (overlap_only || effcut <= 0)
+                                    ?
+                                bondFun{[&](const Vec& dist, const DiffVec& offset)
+                                {
+                                    double dist_n = Vec_dot(dist, dist);
+                                    if(0.57 > dist_n){
+                                        overlaps.push_back({idx_source, idx_target, offset != DiffVec{}});
+                                    }
+                                }}
+                                    :
+                                bondFun{[&](const Vec& dist, const DiffVec& offset)
                                 {
                                     if ((dist[0]>effcut) || (dist[1]>effcut) || (dist[2]>effcut)) {
                                         return;
                                     }
                                     double dist_n = Vec_dot(dist, dist);
-                                    if ((0.57 < dist_n) && (dist_n < effcut*effcut)) {
+                                    if(0.57 > dist_n){
+                                        overlaps.push_back({idx_source, idx_target, offset != DiffVec{}});
+                                    }else if(dist_n < effcut * effcut){
                                         bonds.push_back({idx_source, idx_target, std::sqrt(dist_n), offset});
                                     }
-                                };
+                                }};
                                 /* if there are multiple bins in all directions
                                  * we can perform a naive wrapping,
                                  * as no bin-bin bonds with ourself are possible

@@ -111,6 +111,7 @@ void MolWidget::updateWidget(GUI::change_t change)
         setSelection();
     }
     if (change & GUI::Change::atoms) {
+        checkOverlap();
         bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     }
     if (change & GUI::Change::cell) {
@@ -119,6 +120,28 @@ void MolWidget::updateWidget(GUI::change_t change)
     if (change & GUI::Change::kpoints) {
         ui->activeKpoint->setCurrentIndex(static_cast<int>(curMol->kpoints.active));
         fillKPoints();
+    }
+}
+
+void MolWidget::checkOverlap()
+{
+    const auto& ovlp = curStep->getOverlaps();
+    if(ovlp.empty()){
+        ui->ovlpTable->hide();
+        ui->ovlpLabel->hide();
+        ui->bondButton->setText("Bonds");
+    }else{
+        auto& table = *ui->ovlpTable;
+        QSignalBlocker tableblock{table};
+        table.setCurrentCell(-1, -1);
+        table.setRowCount(ovlp.size());
+        for(size_t i=0; i<ovlp.size(); ++i){
+            table.setItem(i, 0, new QTableWidgetItem{QString::number(ovlp[i].at1)});
+            table.setItem(i, 1, new QTableWidgetItem{QString::number(ovlp[i].at2)});
+        }
+        table.show();
+        ui->ovlpLabel->show();
+        ui->bondButton->setText("Bonds (!)");
     }
 }
 
@@ -481,4 +504,15 @@ void MolWidget::on_bondModeBox_currentIndexChanged(int index)
     }
     bondModel.setStep(&*ownStep, automatic);
     triggerUpdate(GUI::Change::atoms);
+}
+
+void MolWidget::on_ovlpTable_itemSelectionChanged()
+{
+    auto selection = ui->ovlpTable->selectedItems();
+    if(!selection.empty()){
+        const auto& sel = *selection[0];
+        const auto& ovlp = curStep->getOverlaps()[sel.row()];
+        auto idx = sel.column() == 0 ? ovlp.at1 : ovlp.at2;
+        ui->atomTable->selectRow(idx);
+    }
 }

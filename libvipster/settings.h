@@ -17,6 +17,7 @@ struct Setting{
 };
 
 struct Settings{
+    Setting<bool>   overlap{"Check for overlapping atoms", true};
     Setting<bool>   atRadVdW{"Atom radius VdW", false};
     Setting<double> atRadFac{"Atom radius factor", bohrrad};
     Setting<double> bondRad{"Bond radius", bohrrad};
