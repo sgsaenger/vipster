@@ -159,8 +159,10 @@ int main(int argc, char *argv[])
     // conversion parser + data + options
     auto convert = app.add_subcommand("convert", "Directly convert a file");
     struct{
-        std::vector<std::string> input;
-        std::vector<std::string> output;
+        std::string in_fmt;
+        std::string in_fn;
+        std::string out_fmt;
+        std::string out_fn;
         std::vector<std::string> kpoints;
         std::string param;
         std::string preset;
@@ -252,14 +254,14 @@ int main(int argc, char *argv[])
                       "List available output-behavior-presets");
 
     // main arguments
-    auto conv_in = convert->add_option("in", conv_data.input,
-                                       "fmt and filename of input");
-    conv_in->required(true);
-    conv_in->expected(2);
-    auto conv_out = convert->add_option("out", conv_data.output,
-                                        "fmt and filename of output");
-    conv_out->required(true);
-    conv_out->expected(2);
+    convert->add_option("in_fmt", conv_data.in_fmt,
+                        "format of input file")->required(true);
+    convert->add_option("in_fn", conv_data.in_fn,
+                        "input filename")->required(true);
+    convert->add_option("out_fmt", conv_data.out_fmt,
+                        "format of output file")->required(true);
+    convert->add_option("out_fn", conv_data.out_fn,
+                        "output filename")->required(true);
 
     convert->callback([&](){
         // determine/check in&out formats
@@ -282,20 +284,20 @@ int main(int argc, char *argv[])
             }
             return fmts_out;
         }();
-        auto pos_in = IOCmdIn.find(conv_data.input[0]);
+        auto pos_in = IOCmdIn.find(conv_data.in_fmt);
         if(pos_in == IOCmdIn.end()){
-            throw CLI::ParseError("Invalid input format: "+conv_data.input[0], 1);
+            throw CLI::ParseError("Invalid input format: "+conv_data.in_fmt, 1);
         }else{
             fmt_in = pos_in->second;
         }
-        auto pos_out = IOCmdOut.find(conv_data.output[0]);
+        auto pos_out = IOCmdOut.find(conv_data.out_fmt);
         if(pos_out == IOCmdOut.end()){
-            throw CLI::ParseError("Invalid output format: "+conv_data.output[0], 1);
+            throw CLI::ParseError("Invalid output format: "+conv_data.out_fmt, 1);
         }else{
             fmt_out = pos_out->second;
         }
         // read input
-        auto [mol, param, data] = readFile(conv_data.input[1], fmt_in);
+        auto [mol, param, data] = readFile(conv_data.in_fn, fmt_in);
         std::optional<IO::Preset> preset{};
         if(fmt_out->makeParam){
             std::string par_name;
@@ -308,7 +310,7 @@ int main(int argc, char *argv[])
                 const auto& pos = params.at(fmt_out).find(par_name);
                 if(pos == params.at(fmt_out).end()){
                     throw CLI::ParseError("Invalid parameter \""+par_name+
-                                          "\" for format "+conv_data.output[0], 1);
+                                          "\" for format "+conv_data.out_fmt, 1);
                 }
                 param = pos->second;
             }
@@ -323,7 +325,7 @@ int main(int argc, char *argv[])
             auto pos = presets.at(fmt_out).find(pres_name);
             if(pos == presets.at(fmt_out).end()){
                 throw CLI::ParseError("Invalid IO preset \""+pres_name+
-                                      "\" for format "+conv_data.output[0], 1);
+                                      "\" for format "+conv_data.out_fmt, 1);
             }
             preset = pos->second;
         }
@@ -383,7 +385,7 @@ int main(int argc, char *argv[])
                 throw CLI::ParseError(std::string{"Invalid KPoint style\n"}+kp_err, 1);
             }
         }
-        writeFile(conv_data.output[1], fmt_out, mol, std::nullopt, param, preset);
+        writeFile(conv_data.out_fn, fmt_out, mol, std::nullopt, param, preset);
         throw CLI::Success();
     });
 
