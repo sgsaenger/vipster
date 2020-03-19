@@ -232,7 +232,7 @@ public:
         return atoms->ctxt.fmt;
     }
 
-    // Bonds
+    // Topology
     const std::vector<Bond>&    getBonds() const
     {
         return bonds->list;
@@ -240,6 +240,75 @@ public:
     const std::vector<Overlap>& getOverlaps() const
     {
         return bonds->overlaps;
+    }
+    std::tuple<std::vector<Angle>,
+               std::vector<Dihedral>,
+               std::vector<Dihedral>> getTopology(bool angles=true, bool dihedrals=true, bool impropers=true) const
+    {
+        std::vector<Angle> anglelist{};
+        std::vector<Dihedral> dihedrallist{};
+        std::vector<Dihedral> improperlist{};
+        const auto& bonds = getBonds();
+        if(angles || dihedrals){
+            /* combine pairs of bonds that share a common atom
+             */
+            for(auto it1=bonds.begin(); it1!=bonds.end(); ++it1){
+                for(auto it2=it1+1; it2!=bonds.end(); ++it2){
+                    bool found{false};
+                    if(it1->at1 == it2->at1){
+                        anglelist.push_back({it1->at2, it1->at1, it2->at2});
+                        found = true;
+                    }else if(it1->at2 == it2->at1){
+                        anglelist.push_back({it1->at1, it1->at2, it2->at2});
+                        found = true;
+                    }else if(it1->at1 == it2->at2){
+                        anglelist.push_back({it1->at2, it1->at1, it2->at1});
+                        found = true;
+                    }else if(it1->at2 == it2->at2){
+                        anglelist.push_back({it1->at1, it1->at2, it2->at1});
+                        found = true;
+                    }
+                    if(impropers && found){
+                        /* create all 4-tuples of atoms where the first atom is bound to the others
+                         * i.e. 2-1-3
+                         *        |
+                         *        4
+                         */
+                        const auto& ang = anglelist.back();
+                        for(auto it3=it2+1; it3!=bonds.end(); ++it3){
+                           if(it3->at1 == ang.at2){
+                               improperlist.push_back({ang.at2, ang.at1, ang.at3, it3->at2});
+                           }else if(it3->at2 == ang.at2){
+                               improperlist.push_back({ang.at2, ang.at1, ang.at3, it3->at1});
+                           }
+                        }
+                    }
+                }
+            }
+        }
+        /* create all 4-tuples that are pairwise connected in a row
+         * i.e.: 1-2-3-4
+         */
+        if(dihedrals){
+            for(auto it1=anglelist.begin(); it1!=anglelist.end(); ++it1){
+                for(auto it2=it1+1; it2!=anglelist.end(); ++it2){
+                    if(it1->at2 == it2->at1){
+                        if(it1->at1 == it2->at2){
+                            dihedrallist.push_back({it1->at3, it1->at2, it1->at1, it2->at3});
+                        }else if(it1->at3 == it2->at2){
+                            dihedrallist.push_back({it1->at1, it1->at2, it1->at3, it2->at3});
+                        }
+                    }else if(it1->at2 == it2->at3){
+                        if(it1->at1 == it2->at2){
+                            dihedrallist.push_back({it1->at3, it1->at2, it1->at1, it2->at1});
+                        }else if(it1->at3 == it2->at2){
+                            dihedrallist.push_back({it1->at1, it1->at2, it1->at3, it2->at1});
+                        }
+                    }
+                }
+            }
+        }
+        return {anglelist, dihedrallist, improperlist};
     }
 
     // Cell

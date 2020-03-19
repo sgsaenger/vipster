@@ -454,163 +454,87 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::LmpInput){
         throw IO::Error("Lammps Input: writer needs suitable IO preset");
     }
-    auto bonds = std::get<bool>(c->at("bonds").first);
-    auto angles = std::get<bool>(c->at("angles").first);
-    auto dihedrals = std::get<bool>(c->at("dihedrals").first);
-    auto impropers = std::get<bool>(c->at("impropers").first);
+    auto print_bonds = std::get<bool>(c->at("bonds").first);
+    auto print_angles = std::get<bool>(c->at("angles").first);
+    auto print_dihed = std::get<bool>(c->at("dihedrals").first);
+    auto print_improp = std::get<bool>(c->at("impropers").first);
+    auto [angles, dihedrals, impropers] = step.getTopology(print_angles, print_dihed, print_improp);
     const auto &style = std::get<NamedEnum>(c->at("style").first);
     const auto tokens = fmtmap.at(style.at(style));
     bool needsMolID = std::find(tokens.begin(), tokens.end(), lmpTok::mol) != tokens.end();
 
     file << std::setprecision(std::numeric_limits<Vec::value_type>::max_digits10);
 
-    // prepare bonds
-    std::vector<std::tuple<size_t, size_t, size_t>> bondlist;
+    /* prepare topology
+     *
+     * *typemap contains names and their lammps-internal type index, starting with 1
+     * *typelist maps the lammps-type index to the vipster-internal index
+     */
+    std::vector<size_t> bondtypelist;
     std::map<std::string, size_t> bondtypemap;
-    if(bonds || angles || dihedrals || impropers || needsMolID){
-        for(auto& bond: step.getBonds()){
+    if(print_bonds){// || angles || dihedrals || impropers || needsMolID){
+        for(const auto& bond: step.getBonds()){
             if(bond.type){
-                bondlist.push_back({std::min(bond.at1, bond.at2),
-                                    std::max(bond.at1, bond.at2),
-                                    bondtypemap.emplace(bond.type->first,
-                                     bondtypemap.size()+1).first->second});
+                bondtypelist.push_back(bondtypemap.emplace(
+                    bond.type->first,
+                    bondtypemap.size()+1).first->second);
             }else{
-                const std::string& t1 = step[bond.at1].name;
-                const std::string& t2 = step[bond.at2].name;
-                bondlist.push_back({std::min(bond.at1, bond.at2),
-                                    std::max(bond.at1, bond.at2),
-                                    bondtypemap.emplace(
-                                     std::min(t1, t2)+'-'+std::max(t1,t2),
-                                     bondtypemap.size()+1).first->second});
+                const std::string& name1 = step[bond.at1].name;
+                const std::string& name2 = step[bond.at2].name;
+                bondtypelist.push_back(bondtypemap.emplace(
+                    std::min(name1, name2)+'-'+std::max(name1,name2),
+                    bondtypemap.size()+1).first->second);
             }
         }
-        std::sort(bondlist.begin(), bondlist.end(), [](const auto& l, const auto& r){
-            return std::tie(std::get<0>(l), std::get<1>(l)) <
-                   std::tie(std::get<0>(r), std::get<1>(r));
-        });
     }
 
-    // prepare angles and impropers
-    std::vector<std::tuple<size_t, size_t, size_t, size_t>> anglelist;
     std::map<std::string, size_t> angletypemap;
-    std::vector<std::tuple<size_t, size_t, size_t, size_t>> improplist;
-    std::vector<std::string> improptypelist;
-    std::map<std::string, size_t> improptypemap;
-    if(angles || dihedrals || impropers){
-        for(auto it=bondlist.begin(); it!=bondlist.end(); ++it){
-            const auto& a0 = std::get<0>(*it);
-            const auto& a1 = std::get<1>(*it);
-            const std::string& na0 = step[a0].name;
-            const std::string& na1 = step[a1].name;
-            for(auto it2=it+1; it2!=bondlist.end(); ++it2){
-                const auto& b0 = std::get<0>(*it2);
-                const auto& b1 = std::get<1>(*it2);
-                const std::string& nb0 = step[b0].name;
-                const std::string& nb1 = step[b1].name;
-                bool found{false};
-                if(a0 == b0){
-                    anglelist.emplace_back(a1, a0, b1,
-                        angletypemap.emplace(
-                          std::min(na1, nb1)+'-'+na0+'-'+std::max(na1, nb1),
-                          angletypemap.size()+1).first->second);
-                    found = true;
-                }else if(a1 == b0){
-                    anglelist.emplace_back(a0, a1, b1,
-                        angletypemap.emplace(
-                          std::min(na0, nb1)+'-'+na1+'-'+std::max(na0, nb1),
-                          angletypemap.size()+1).first->second);
-                    found = true;
-                }else if(a1 == b1){
-                    anglelist.emplace_back(a0, a1, b0,
-                        angletypemap.emplace(
-                          std::min(na0, nb0)+'-'+na1+'-'+std::max(na0, nb0),
-                          angletypemap.size()+1).first->second);
-                    found = true;
-                }
-                // a0 == b1 impossible because of sorting
-                if(impropers && found){
-                    for(auto it3=it2+1; it3!=bondlist.end(); ++it3){
-                        const auto& c0 = std::get<0>(*it3);
-                        const auto& c1 = std::get<1>(*it3);
-                        const auto& ang = anglelist.back();
-                        const auto& t0 = std::get<0>(ang);
-                        const auto& t1 = std::get<1>(ang);
-                        const auto& t2 = std::get<2>(ang);
-                        if(c0 == t1){
-                            improplist.emplace_back(t1, t0, t2, c1);
-                        }else if(c1 == t1){
-                            improplist.emplace_back(t1, t0, t2, c0);
-                        }
-                    }
-                }
-            }
-        }
-        for(const auto& improp: improplist){
-            std::string t0 = step[std::get<0>(improp)].name;
-            std::string t1 = step[std::get<1>(improp)].name;
-            std::string t2 = step[std::get<2>(improp)].name;
-            std::string t3 = step[std::get<3>(improp)].name;
-            if(t1 < t2){
-                std::swap(t1, t2);
-            }
-            if(t1 < t3){
-                std::swap(t1, t3);
-            }
-            if(t2 < t3){
-                std::swap(t2, t3);
-            }
-            improptypelist.emplace_back(t0+'-'+t1+'-'+t2+'-'+t3);
-            improptypemap.emplace(improptypelist.back(), improptypemap.size()+1);
+    std::vector<size_t> angletypelist;
+    if(print_angles){
+        for(const auto& angle: angles){
+            const std::string& name1 = step[angle.at1].name;
+            const std::string& name2 = step[angle.at2].name;
+            const std::string& name3 = step[angle.at3].name;
+            angletypelist.push_back(angletypemap.emplace(
+                std::min(name1, name3)+'-'+name2+std::max(name1,name3),
+                angletypemap.size()+1).first->second);
         }
     }
 
-    // prepare dihedrals
-    std::vector<std::tuple<size_t, size_t, size_t, size_t>> dihedlist;
-    std::vector<std::string> dihedtypelist;
-    std::map<std::string, size_t> dihedtypemap;
-    if(dihedrals){
-        for(auto it=anglelist.begin(); it!=anglelist.end(); ++it){
-            const auto& a0 = std::get<0>(*it);
-            const auto& a1 = std::get<1>(*it);
-            const auto& a2 = std::get<2>(*it);
-            for(auto it2=it+1; it2!=anglelist.end(); ++it2){
-                const auto& b0 = std::get<0>(*it2);
-                const auto& b1 = std::get<1>(*it2);
-                const auto& b2 = std::get<2>(*it2);
-                if(a1 == b0){
-                    if(b1 == a0){
-                        if(a2 != b2){
-                            dihedlist.emplace_back(a2, a1, a0, b2);
-                        }
-                    }else if(b1 == a2){
-                        if(a0 != b2){
-                            dihedlist.emplace_back(a0, a1, a2, b2);
-                        }
-                    }
-                }else if(a1 == b2){
-                    if(b1 == a0){
-                        if(a2 != b0){
-                            dihedlist.emplace_back(a2, a1, a0, b0);
-                        }
-                    }else if(b1 == a2){
-                        if(a0 != b0){
-                            dihedlist.emplace_back(a0, a1, a2, b0);
-                        }
-                    }
-                }
-            }
+    std::vector<size_t> improptypelist;
+    std::map<std::string, size_t> improptypemap;
+    if(print_improp){
+        for(const auto& improp: impropers){
+            const std::string& name1 = step[improp.at1].name.c_str();
+            std::array<const char*,3> names = {step[improp.at2].name.c_str(),
+                                               step[improp.at3].name.c_str(),
+                                               step[improp.at4].name.c_str()};
+            std::sort(names.begin(), names.end(), [](const auto& lhs, const auto& rhs){
+                return strcmp(lhs, rhs) < 0;
+            });
+            improptypelist.push_back(improptypemap.emplace(
+                name1+'-'+names[0]+'-'+names[1]+'-'+names[2],
+                improptypemap.size()+1).first->second);
         }
-        for(const auto& dihed: dihedlist){
-            const std::string& t0 = step[std::get<0>(dihed)].name;
-            const std::string& t1 = step[std::get<1>(dihed)].name;
-            const std::string& t2 = step[std::get<2>(dihed)].name;
-            const std::string& t3 = step[std::get<3>(dihed)].name;
-            if((t0 < t3) || ((t0 == t3) && (t1 < t2))){
-                dihedtypelist.emplace_back(t0+'-'+t1+'-'+t2+'-'+t3);
+    }
+
+    std::vector<size_t> dihedtypelist;
+    std::map<std::string, size_t> dihedtypemap; // map vipster type to lammps type
+    if(print_dihed){
+        for(const auto& dihed: dihedrals){
+            const std::string& name1 = step[dihed.at1].name;
+            const std::string& name2 = step[dihed.at2].name;
+            const std::string& name3 = step[dihed.at3].name;
+            const std::string& name4 = step[dihed.at4].name;
+            if(name1 < name4){
+                dihedtypelist.push_back(dihedtypemap.emplace(
+                    name1+'-'+name2+'-'+name3+'-'+name4,
+                    dihedtypemap.size()+1).first->second);
             }else{
-                dihedtypelist.emplace_back(t3+'-'+t2+'-'+t1+'-'+t0);
+                dihedtypelist.push_back(dihedtypemap.emplace(
+                    name4+'-'+name3+'-'+name2+'-'+name1,
+                    dihedtypemap.size()+1).first->second);
             }
-            dihedtypemap.emplace(dihedtypelist.back(), dihedtypemap.size()+1);
         }
     }
 
@@ -638,29 +562,29 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     file << '\n'
          << step.getNat() << " atoms\n"
          << step.getNtyp() << " atom types\n";
-    if(bonds && !bondlist.empty()){
-        file << bondlist.size() << " bonds\n"
+    if(print_bonds && !bondtypelist.empty()){
+        file << bondtypelist.size() << " bonds\n"
              << bondtypemap.size() << " bond types\n";
         for(const auto& pair: bondtypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
-    if(angles && !anglelist.empty()){
-        file << anglelist.size() << " angles\n"
+    if(print_angles && !angletypelist.empty()){
+        file << angletypelist.size() << " angles\n"
              << angletypemap.size() << " angle types\n";
         for(const auto& pair: angletypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
-    if(dihedrals && !dihedlist.empty()){
-        file << dihedlist.size() << " dihedrals\n"
+    if(print_dihed && !dihedtypelist.empty()){
+        file << dihedtypelist.size() << " dihedrals\n"
              << dihedtypemap.size() << " dihedral types\n";
         for(const auto& pair: dihedtypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
         }
     }
-    if(impropers && !improplist.empty()){
-        file << improplist.size() << " impropers\n"
+    if(print_improp && !improptypelist.empty()){
+        file << improptypelist.size() << " impropers\n"
              << improptypemap.size() << " improper types\n";
         for(const auto& pair: improptypemap){
             file << '#' << pair.second << ' ' << pair.first << '\n';
@@ -689,48 +613,49 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     file << "\nAtoms # " << style.at(style) << "\n\n";
     makeWriter(tokens, molID, atomtypemap)(file, step);
 
-    if(bonds && !bondlist.empty()){
+    if(print_bonds && !bondtypelist.empty()){
         file << "\nBonds\n\n";
-        for(size_t i=0; i!=bondlist.size(); ++i){
+        const auto& bonds = step.getBonds();
+        for(size_t i=0; i!=bondtypelist.size(); ++i){
             file << (i+1) << ' '
-                 << std::get<2>(bondlist[i]) << ' '
-                 << (std::get<0>(bondlist[i])+1) << ' '
-                 << (std::get<1>(bondlist[i])+1) << '\n';
+                 << bondtypelist[i] << ' '
+                 << bonds[i].at1+1 << ' '
+                 << bonds[i].at2+1 << '\n';
         }
     }
 
-    if(angles && !anglelist.empty()){
+    if(print_angles && !angletypelist.empty()){
         file << "\nAngles\n\n";
-        for(size_t i=0; i!=anglelist.size(); ++i){
+        for(size_t i=0; i!=angletypelist.size(); ++i){
             file << (i+1) << ' '
-                 << std::get<3>(anglelist[i]) << ' '
-                 << (std::get<0>(anglelist[i])+1) << ' '
-                 << (std::get<1>(anglelist[i])+1) << ' '
-                 << (std::get<2>(anglelist[i])+1) << '\n';
+                 << angletypelist[i] << ' '
+                 << angles[i].at1+1 << ' '
+                 << angles[i].at2+1 << ' '
+                 << angles[i].at3+1 << '\n';
         }
     }
 
-    if(dihedrals && !dihedlist.empty()){
+    if(print_dihed && !dihedtypelist.empty()){
         file << "\nDihedrals\n\n";
-        for(size_t i=0; i!=dihedlist.size(); ++i){
+        for(size_t i=0; i!=dihedtypelist.size(); ++i){
             file << (i+1) << ' '
-                 << dihedtypemap.at(dihedtypelist[i]) << ' '
-                 << (std::get<0>(dihedlist[i])+1) << ' '
-                 << (std::get<1>(dihedlist[i])+1) << ' '
-                 << (std::get<2>(dihedlist[i])+1) << ' '
-                 << (std::get<3>(dihedlist[i])+1) << '\n';
+                 << dihedtypelist[i] << ' '
+                 << dihedrals[i].at1+1 << ' '
+                 << dihedrals[i].at2+1 << ' '
+                 << dihedrals[i].at3+1 << ' '
+                 << dihedrals[i].at4+1 << '\n';
         }
     }
 
-    if(impropers && !improplist.empty()){
+    if(print_improp && !improptypelist.empty()){
         file << "\nImpropers\n\n";
-        for(size_t i=0; i!=improplist.size(); ++i){
+        for(size_t i=0; i!=improptypelist.size(); ++i){
             file << (i+1) << ' '
-                 << improptypemap.at(improptypelist[i]) << ' '
-                 << (std::get<0>(improplist[i])+1) << ' '
-                 << (std::get<1>(improplist[i])+1) << ' '
-                 << (std::get<2>(improplist[i])+1) << ' '
-                 << (std::get<3>(improplist[i])+1) << '\n';
+                 << improptypelist[i] << ' '
+                 << impropers[i].at1+1 << ' '
+                 << impropers[i].at2+1 << ' '
+                 << impropers[i].at3+1 << ' '
+                 << impropers[i].at4+1 << '\n';
         }
     }
     file << '\n';

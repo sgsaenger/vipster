@@ -10,28 +10,45 @@
 #include "global.h"
 
 namespace Vipster {
+    using BondTypeMap = std::map<std::string, ColVec>;
+    using BondType = BondTypeMap::value_type;
+
     struct Bond{
         std::size_t at1;
         std::size_t at2;
         double      dist;
         DiffVec     diff;
-        std::pair<const std::string, ColVec>* type{nullptr};
+        BondType*   type{nullptr};
     };
     inline bool operator==(const Bond& lhs, const Bond& rhs){
         return std::tie(lhs.at1, lhs.at2, lhs.diff)
                 ==
                std::tie(rhs.at1, rhs.at2, rhs.diff);
     }
+
     struct Overlap{
         std::size_t at1;
         std::size_t at2;
         bool        periodic; // TODO: unused
     };
 
+    struct Angle{
+        std::size_t at1;
+        std::size_t at2;
+        std::size_t at3;
+    };
+
+    struct Dihedral{
+        std::size_t at1;
+        std::size_t at2;
+        std::size_t at3;
+        std::size_t at4;
+    };
+
     struct BondList{
-        std::vector<Bond>               list;
-        std::vector<Overlap>            overlaps;
-        std::map<std::string, ColVec>   types;
+        std::vector<Bond>       list;
+        std::vector<Overlap>    overlaps;
+        BondTypeMap             types;
     };
 
     constexpr const char* BondsAbout =
