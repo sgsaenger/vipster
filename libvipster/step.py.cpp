@@ -101,6 +101,8 @@ py::class_<S> bind_step(py::handle &m, std::string name){
                 return s.getBonds();
             }, "update"_a=true)
         .def("setBonds", &S::setBonds)
+        .def("getOverlaps", &S::getOverlaps)
+        .def("getTopology", &S::getTopology, "angles"_a=true, "dihedrals"_a=true, "impropers"_a=true)
     // SELECTION
         .def("select", [](S &s, const std::string &sel){return s.select(sel);}, "selection"_a)
     // Modification functions
