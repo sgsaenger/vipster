@@ -1,5 +1,6 @@
 #include "plugin.py.h"
 #include <pybind11/eval.h>
+#include <pybind11/stl.h>
 
 using namespace Vipster;
 
@@ -35,11 +36,11 @@ IO::Data Py::Plugin::parser_impl(const std::string& n, std::istream &file){
         // TODO costly: copying whole file to string first
         std::string filestring;
         file >> filestring;
-        return py::cast<IO::Data>(pyReader(n, filestring));
+        IO::Data data{{n,0},{},{}};
+        pyReader(py::cast(data, py::return_value_policy::reference), filestring);
+        return data;
     }catch(const py::error_already_set& e){
         throw IO::Error{e.what()};
-    }catch(const py::cast_error&){
-        throw IO::Error{"Could not parse a Molecule"};
     }
 }
 
@@ -122,7 +123,7 @@ Py::Plugin* Py::Plugin::create(fs::path file){
     if(py::hasattr(pyplug, "parameters") &&
             py::isinstance<py::dict>(pyplug.attr("parameters"))){
         auto dict = py::cast<py::dict>(pyplug.attr("parameters"));
-        IO::Parameter::BaseMap::map_t tmp{};
+        IO::Parameter::map_t tmp{};
         for(const auto& [key, value]: dict){
             if(py::isinstance<py::tuple>(value) &&
                     (py::cast<py::tuple>(value).size() == 2)){
@@ -132,9 +133,9 @@ Py::Plugin* Py::Plugin::create(fs::path file){
                     // string
                     tmp[py::str(key)] = {py::str(tuple[0]),
                                          py::str(tuple[1])};
-                }else if(py::isinstance<py::tuple>(tuple[0])){
+                }else if(py::isinstance<py::list>(tuple[0])){
                     // list of strings
-                    auto list = py::cast<py::tuple>(tuple[0]);
+                    auto list = py::cast<py::list>(tuple[0]);
                     std::vector<std::string> vec{};
                     for(const auto& val: list){
                         vec.push_back(py::str(val));
@@ -161,7 +162,7 @@ Py::Plugin* Py::Plugin::create(fs::path file){
     if(py::hasattr(pyplug, "preset") &&
             py::isinstance<py::dict>(pyplug.attr("preset"))){
         auto dict = py::cast<py::dict>(pyplug.attr("preset"));
-        IO::Preset::BaseMap::map_t tmp{};
+        IO::Preset::map_t tmp{};
         for(const auto& [key, value]: dict){
             if(py::isinstance<py::tuple>(value) &&
                     (py::cast<py::tuple>(value).size() == 2)){
