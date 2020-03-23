@@ -417,8 +417,8 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             file << e.PWPP << '\n';
         }
     }
-    const std::array<std::string, 4> fmt2str = {{"bohr", "angstrom", "crystal", "alat"}};
-    file << "\nATOMIC_POSITIONS " << fmt2str[static_cast<size_t>(s.getFmt())] << '\n'
+    const std::array<std::string, 4> fmt2str = {{"crystal", "alat", "angstrom", "bohr"}};
+    file << "\nATOMIC_POSITIONS " << fmt2str[static_cast<size_t>(s.getFmt())+2] << '\n'
          << std::fixed << std::setprecision(5);
     AtomFlags fixComp{};
     fixComp[AtomFlag::FixX] = true;
