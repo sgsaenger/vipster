@@ -109,7 +109,7 @@ if(VIPSTER_PYLIB)
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
-        install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE}/vipster)
+        install(TARGETS bindings LIBRARY DESTINATION ${PYTHON_SITE}/vipster)
         install(FILES "util/package-init.py" DESTINATION ${PYTHON_SITE}/vipster RENAME "__init__.py")
         if(VIPSTER_EGG_INFO AND NOT VIPSTER_PYPI)
             install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
