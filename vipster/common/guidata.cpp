@@ -43,15 +43,18 @@ void GUI::GlobalData::initGL()
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
     const auto fmt = QOpenGLContext::currentContext()->format();
+    bool newEnough = false;
     if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
         if(fmt.version() >= qMakePair(3,3)){
             header = "# version 330\n";
+            newEnough = true;
         }else{
             header = "# version 140\n";
         }
     }else{
         if(fmt.version() >= qMakePair(3,0)){
             header = "# version 300 es\nprecision highp float;\n";
+            newEnough = true;
         }else{
             header = "# version 100 es\nprecision highp float;\n";
         }
@@ -66,6 +69,10 @@ void GUI::GlobalData::initGL()
     auto glVersionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     std::cout << "OpenGL Version: " << glVersionStr << std::endl;
     std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    if(!newEnough){
+        std::cout << "Sorry, Vipster requires OpenGL 3.3 or OpenGL ES 3.0 or higher. Exiting." << std::endl;
+        std::exit(1);
+    }
     // skip ES information
     bool isES = strstr(glVersionStr, "OpenGL ES");
     if(isES){
