@@ -287,6 +287,7 @@ void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
     ownStep = std::make_unique<Step::formatter>(curStep->asFmt(static_cast<AtomFmt>(index-2)));
     molModel.setStep(&*ownStep);
+    bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     setSelection();
 }
 
@@ -300,8 +301,9 @@ void MolWidget::on_atomFmtButton_clicked()
     curStep->setFmt(fmt); // (possibly) invalidates dependent objects
     // reset formatter
     ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
-    // reset table-model
+    // reset models
     molModel.setStep(&*ownStep);
+    bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     // reset selection
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
