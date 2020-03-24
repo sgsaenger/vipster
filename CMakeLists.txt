@@ -7,6 +7,7 @@ option(VIPSTER_DESKTOP "Build QT-based desktop app" OFF)
 option(BUILD_SHARED_LIBS "Build libvipster as shared library" ON)
 include(CMakeDependentOption)
 cmake_dependent_option(VIPSTER_WEB "Build WASM-Module" OFF "NOT VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
 cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ON "VIPSTER_DESKTOP" OFF)
 cmake_dependent_option(VIPSTER_PYLIB "Python bindings" OFF "NOT VIPSTER_WEB" OFF)
 cmake_dependent_option(VIPSTER_PYPI "To be set when built via setup.py" OFF "VIPSTER_PYLIB" OFF)
@@ -14,12 +15,6 @@ cmake_dependent_option(VIPSTER_EGG_INFO "Create infos for python package" ON "VI
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(external/tinyexpr)
-include_directories(libvipster)
-include_directories(python)
-include_directories(vipster/qt)
 
 # Library, needed for everything else
 file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.h" "libvipster/*.py.cpp")
@@ -58,13 +53,15 @@ if(UNIX)
     endif()
 endif()
 # find suitable json-library
-find_package(nlohmann_json 3.3.0 CONFIG)
+find_package(nlohmann_json 3.3.0 CONFIG QUIET)
 if(NOT nlohmann_json_FOUND)
+    message("Could not find suitable nlohmann/json installation, using internal version")
     set(JSON_BuildTests OFF CACHE INTERNAL "")
     set(JSON_Install OFF CACHE INTERNAL "")
     add_subdirectory(external/nlohmann_json)
 endif()
 target_link_libraries(libvipster PUBLIC nlohmann_json::nlohmann_json)
+target_include_directories(libvipster PRIVATE "external/tinyexpr")
 
 if(VIPSTER_TESTS)
     # Tests, so far only for library
@@ -72,11 +69,13 @@ if(VIPSTER_TESTS)
     add_executable(test_lib ${TEST_SOURCES})
 
     # find suitable catch2-installation
-    find_package(Catch2 2.4.1 CONFIG)
+    find_package(Catch2 2.4.1 CONFIG QUIET)
     if(NOT Catch2_FOUND)
+        message("Could not find suitable Catch2 installation, using internal version")
         add_subdirectory(external/Catch2)
     endif()
     target_link_libraries(test_lib PRIVATE libvipster Catch2::Catch2)
+    target_include_directories(test_lib PRIVATE libvipster)
 
     # enable testing via build system
     enable_testing()
@@ -87,12 +86,14 @@ endif()
 if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
     find_package(PythonInterp 3.6 REQUIRED)
     find_package(PythonLibs 3.6 REQUIRED)
-    find_package(pybind11 2.4.4 CONFIG)
+    find_package(pybind11 2.4.4 CONFIG QUIET)
     if(NOT pybind11_FOUND)
+        message("Could not find suitable Pybind11 installation, using internal version")
         add_subdirectory(external/pybind11)
     endif()
-    add_library(pyvipster OBJECT ${PY_SOURCES})
-    target_link_libraries(pyvipster PUBLIC libvipster PRIVATE pybind11::module)
+    add_library(bindings OBJECT ${PY_SOURCES})
+    target_link_libraries(bindings PUBLIC libvipster PRIVATE pybind11::module)
+    target_include_directories(bindings PUBLIC libvipster)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
     endif()
@@ -100,9 +101,9 @@ endif()
 
 if(VIPSTER_PYLIB)
     # standalone python bindings
-    pybind11_add_module(bindings $<TARGET_OBJECTS:pyvipster> "libvipster/main.py.cpp")
-    set_target_properties(bindings PROPERTIES OUTPUT_NAME "_vipster")
-    target_link_libraries(bindings PRIVATE libvipster)
+    pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "libvipster/main.py.cpp")
+    set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "_vipster")
+    target_link_libraries(pyvipster PRIVATE libvipster)
     if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
@@ -131,13 +132,14 @@ if(VIPSTER_DESKTOP)
     set(CMAKE_AUTORCC ON)
 
     # find suitable cli11 installation
-    find_package(CLI11 1.7.1 CONFIG)
+    find_package(CLI11 1.7.1 CONFIG QUIET)
     if(NOT CLI11_FOUND)
+        message("Could not find suitable CLI11 installation, using internal version")
         set(CLI11_TESTING OFF CACHE INTERNAL "")
         add_subdirectory(external/CLI11)
     endif()
 
-    # executable
+    # get source files and split off optional sources
     file(GLOB_RECURSE QT_SOURCES
          "vipster/qt/*.h"
          "vipster/qt/*.cpp"
@@ -146,15 +148,10 @@ if(VIPSTER_DESKTOP)
          "vipster/common/*.cpp"
          "vipster/resources/vipster.qrc"
          )
-
-    # python-widget:
-    if(NOT VIPSTER_PYWIDGET)
-        file(GLOB_RECURSE QTPY_SOURCES "vipster/*.py.*")
-        list(REMOVE_ITEM QT_SOURCES ${QTPY_SOURCES})
-    else()
-        add_definitions(-DUSE_PYTHON)
-        list(APPEND QT_SOURCES $<TARGET_OBJECTS:pyvipster>)
-    endif()
+    file(GLOB_RECURSE QTPY_SOURCES "vipster/*.py.*")
+    list(REMOVE_ITEM QT_SOURCES ${QTPY_SOURCES})
+    file(GLOB_RECURSE QTLMP_SOURCES "vipster/*.lmp.*")
+    list(REMOVE_ITEM QT_SOURCES ${QTLMP_SOURCES})
 
     # icon-files:
     if(APPLE)
@@ -164,16 +161,58 @@ if(VIPSTER_DESKTOP)
     elseif(WIN32)
         set(ICON_SOURCES "util/win.rc")
     endif()
+
+    # executable
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
-    # fix name-clash on import lib, assuming gcc-conventions, needs changes for clang
+
+    # fix name-clash on import library when using mingw/gcc
     if(WIN32)
         set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
     endif()
-    # set link targets
+
+    # link QT, CLI11 and vipster
     target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
+    target_include_directories(vipster PRIVATE libvipster "vipster/common" "vipster/qt")
+
+    # python-widget:
     if(VIPSTER_PYWIDGET)
+        add_definitions(-DUSE_PYTHON)
+        target_sources(vipster PRIVATE ${QTPY_SOURCES} $<TARGET_OBJECTS:bindings>)
         target_link_libraries(vipster PRIVATE pybind11::embed)
     endif()
+
+    # lammps-widget:
+    if(VIPSTER_LAMMPS)
+        # NOTE: only support internal lammps-build for now
+        # build exception-enabled library
+        set(BUILD_TOOLS OFF CACHE INTERNAL "")
+        set(BUILD_DOC OFF CACHE INTERNAL "")
+        set(BUILD_EXE OFF CACHE INTERNAL "")
+        set(BUILD_LIB ON CACHE INTERNAL "")
+        set(LAMMPS_EXCEPTIONS ON CACHE INTERNAL "")
+        # enable simple and regularly used packages
+        set(PKG_MOLECULE ON CACHE INTERNAL "")
+        set(PKG_MANYBODY ON CACHE INTERNAL "")
+        set(PKG_RIGID ON CACHE INTERNAL "")
+        set(PKG_KSPACE ON CACHE INTERNAL "")
+        set(PKG_MISC ON CACHE INTERNAL "")
+        add_subdirectory(external/lammps/cmake EXCLUDE_FROM_ALL)
+        # set link/include options
+        target_include_directories(vipster PRIVATE "external/lammps/src" "${CMAKE_CURRENT_BINARY_DIR}/external/lammps/cmake/styles")
+        target_link_libraries(vipster PRIVATE lammps)
+        if(BUILD_MPI)
+            add_definitions(-DUSE_MPI)
+            find_package(MPI REQUIRED)
+            target_link_libraries(vipster PRIVATE ${MPI_CXX_LIBRARIES})
+        else()
+            target_include_directories(vipster PRIVATE "external/lammps/src/STUBS")
+            target_link_libraries(vipster PRIVATE mpi_stubs)
+        endif()
+        # enable widget in vipster
+        add_definitions(-DUSE_LAMMPS)
+        target_sources(vipster PRIVATE ${QTLMP_SOURCES})
+    endif()
+
     # on traditional unix-like platforms,
     # install files to appropriate locations
     if(UNIX AND NOT APPLE)

@@ -1,7 +1,6 @@
 #ifndef PYTHONWIDGET_PY_H
 #define PYTHONWIDGET_PY_H
 
-#include <QWidget>
 #include "../basewidget.h"
 
 namespace Ui {

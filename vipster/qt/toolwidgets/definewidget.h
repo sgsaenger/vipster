@@ -8,8 +8,8 @@
 #include "molecule.h"
 #include "../basewidget.h"
 #include "../viewport.h"
-#include "../common/seldata.h"
 #include "../mainwindow.h"
+#include "seldata.h"
 
 namespace Ui {
 class DefineWidget;

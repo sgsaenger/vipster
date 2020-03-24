@@ -6,3 +6,4 @@ Included herein are:
 - [CLI11](https://github.com/CLIUtils/CLI11) (v1.9.0, BSD): vipster, git submodule
 - [pybind11](https://github.com/pybind/pybind11) (git:4f72ef8, BSD): libvipster/vipster, git submodule, optional
 - [Catch2](https://github.com/catchorg/Catch2) (v2.9.2, Boost): unit-tests, git submodule
+- LAMMPS (stable_3Mar2020, GPL): vipster, git submodule optional

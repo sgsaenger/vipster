@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "../basewidget.h"
-#include "../common/stepdata.h"
+#include "stepdata.h"
 #include "molecule.h"
 
 namespace Ui {

@@ -3,7 +3,7 @@
 
 #include "../molecule.h"
 #include "../data.h"
-#include "io/parameters.h"
+#include "parameters.h"
 
 #include <vector>
 #include <optional>

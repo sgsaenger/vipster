@@ -12,6 +12,9 @@
 #ifdef USE_PYTHON
 #include "toolwidgets/pythonwidget.py.h"
 #endif
+#ifdef USE_LAMMPS
+#include "toolwidgets/lammpswidget.lmp.h"
+#endif
 
 inline std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
 {
@@ -24,6 +27,9 @@ inline std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* par
         {new ScriptWidget(parent), "Script"},
 #ifdef USE_PYTHON
         {new PythonWidget(parent), "Python"},
+#endif
+#ifdef USE_LAMMPS
+        {new LammpsWidget(parent), "LAMMPS"},
 #endif
     };
 }

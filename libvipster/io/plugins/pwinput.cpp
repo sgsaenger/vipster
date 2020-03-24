@@ -1,6 +1,6 @@
 #include "pwinput.h"
-#include "crystal.h"
-#include "io/util.h"
+#include "../../crystal.h"
+#include "../util.h"
 
 #include "tinyexpr.h"
 

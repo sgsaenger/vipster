@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "../basewidget.h"
-#include "../../common/meshdata.h"
+#include "meshdata.h"
 #include "molecule.h"
 
 namespace Ui {

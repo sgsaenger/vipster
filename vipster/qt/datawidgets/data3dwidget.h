@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QDoubleValidator>
 #include "../mainwidgets/datawidget.h"
-#include "../../common/meshdata.h"
+#include "meshdata.h"
 
 namespace Ui {
 class Data3DWidget;

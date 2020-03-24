@@ -2,7 +2,7 @@
 #define BASEWIDGET_H
 
 #include <QWidget>
-#include "../common/guiglobals.h"
+#include "guiglobals.h"
 
 class MainWindow;
 

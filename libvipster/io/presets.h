@@ -3,8 +3,8 @@
 
 #include "nlohmann/json.hpp"
 
-#include "staticmap.h"
-#include "namedenum.h"
+#include "../staticmap.h"
+#include "../namedenum.h"
 
 #include <string>
 #include <variant>

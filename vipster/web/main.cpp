@@ -3,7 +3,7 @@
 #include <emscripten/html5.h>
 #include <emscripten/vr.h>
 
-#include "../common/guiwrapper.h"
+#include "guiwrapper.h"
 #include "molecule.h"
 #include "fileio.h"
 

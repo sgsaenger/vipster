@@ -3,7 +3,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "staticmap.h"
+#include "../staticmap.h"
 
 #include <string>
 #include <variant>

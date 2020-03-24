@@ -5,7 +5,7 @@
 #include "scripthelp.h"
 #include "../basewidget.h"
 #include "../viewport.h"
-#include "../common/guiglobals.h"
+#include "guiglobals.h"
 #include "molecule.h"
 
 namespace Ui {

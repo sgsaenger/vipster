@@ -7,9 +7,9 @@
 #include <QFrame>
 
 #include "molecule.h"
-#include "../common/guiglobals.h"
-#include "../common/guidata.h"
-#include "../common/seldata.h"
+#include "guiglobals.h"
+#include "guidata.h"
+#include "seldata.h"
 
 namespace Ui {
 class ViewPort;

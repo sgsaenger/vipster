@@ -1,7 +1,7 @@
 #ifndef NAMEDENUM_H
 #define NAMEDENUM_H
 
-#include <staticmap.h>
+#include "staticmap.h"
 #include <vector>
 #include <string>
 

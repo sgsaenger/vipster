@@ -11,8 +11,8 @@
 #include "configfile.h"
 
 #include "viewport.h"
-#include "../common/guiwrapper.h"
-#include "../common/guidata.h"
+#include "guiwrapper.h"
+#include "guidata.h"
 #include "mainwidgets/paramwidget.h"
 #include "mainwidgets/presetwidget.h"
 

@@ -4,7 +4,7 @@
 #include <QOpenGLWidget>
 #include "step.h"
 #include "viewport.h"
-#include "../common/guiwrapper.h"
+#include "guiwrapper.h"
 
 class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
 {

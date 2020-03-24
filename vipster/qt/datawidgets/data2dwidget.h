@@ -4,7 +4,7 @@
 #include <memory>
 #include <QWidget>
 #include "../mainwidgets/datawidget.h"
-#include "../../common/meshdata.h"
+#include "meshdata.h"
 
 namespace Ui {
 class Data2DWidget;
