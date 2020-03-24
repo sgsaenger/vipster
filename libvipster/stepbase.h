@@ -842,15 +842,18 @@ private:
         cut = 5*cut;
         // get cell lengths
         Vec size_split{
-            std::abs(cell[0][0]) + std::abs(cell[1][0]) + std::abs(cell[2][0]),
-            std::abs(cell[0][1]) + std::abs(cell[1][1]) + std::abs(cell[2][1]),
-            std::abs(cell[0][2]) + std::abs(cell[1][2]) + std::abs(cell[2][2])
+            Vec_length(cell[0]),
+            Vec_length(cell[1]),
+            Vec_length(cell[2])
         };
         // partition the cell
         SizeVec n_split{1, 1, 1};
         for(size_t i{0}; i<3; ++i){
             if(size_split[i] >= cut){
                 n_split[i] = std::max(size_t{1}, static_cast<size_t>(std::round(size_split[i]/cut)));
+                if(n_split[i] == 2){
+                    n_split[i] = 1; // get periodic bonds via checkbond-calls instead of messy double-counting of bin-bin interaction
+                }
                 size_split[i] = 1./n_split[i];
             }
         }
@@ -990,18 +993,18 @@ private:
                                     continue;
                                 }
                                 // x, -x
-                                if (dir_with_self[0]) {
+                                if (dir_with_self[0] || (x_t == 0)) {
                                     if (crit_v[0] != 0) {
                                         checkBond(dist_v-crit_v[0]*x_v,
                                                   {{diff_v[0]+crit_v[0],diff_v[1],diff_v[2]}});
                                     }
                                 }
                                 // y, -y
-                                if (dir_with_self[1]) {
+                                if (dir_with_self[1] || (y_t == 0)) {
                                     if (crit_v[1] != 0) {
                                         checkBond(dist_v-crit_v[1]*y_v,
                                                   {{diff_v[0],diff_v[1]+crit_v[1],diff_v[2]}});
-                                        if (dir_with_self[0]) {
+                                        if (dir_with_self[0] || (x_t == 0)) {
                                             // x+y, -x-y
                                             if (crit_v[0] == crit_v[1]) {
                                                 checkBond(dist_v-crit_v[0]*xy_v,
@@ -1019,11 +1022,11 @@ private:
                                     }
                                 }
                                 // z, -z
-                                if (dir_with_self[2]) {
+                                if (dir_with_self[2] || (z_t == 0)) {
                                     if (crit_v[2] != 0) {
                                         checkBond(dist_v-crit_v[2]*z_v,
                                                   {{diff_v[0],diff_v[1],diff_v[2]+crit_v[2]}});
-                                        if (dir_with_self[0]) {
+                                        if (dir_with_self[0] || (x_t == 0)) {
                                             // x+z, -x-z
                                             if (crit_v[0] == crit_v[2]) {
                                                 checkBond(dist_v-crit_v[0]*xz_v,
@@ -1038,14 +1041,14 @@ private:
                                                             diff_v[2]+crit_v[2]}});
                                             }
                                         }
-                                        if (dir_with_self[1]) {
+                                        if (dir_with_self[1] || (y_t == 0)) {
                                             // y+z, -y-z
                                             if (crit_v[1] == crit_v[2]) {
                                                 checkBond(dist_v-crit_v[1]*yz_v,
                                                           {{diff_v[0],
                                                             diff_v[1]+crit_v[1],
                                                             diff_v[2]+crit_v[2]}});
-                                                if (dir_with_self[0]) {
+                                                if (dir_with_self[0] || (x_t == 0)) {
                                                     // x+y+z, -x-y-z
                                                     if (crit_v[0] == crit_v[2]) {
                                                         checkBond(dist_v-crit_v[0]*xyz_v,
@@ -1066,7 +1069,7 @@ private:
                                                           {{diff_v[0],
                                                             diff_v[1]+crit_v[1],
                                                             diff_v[2]+crit_v[2]}});
-                                                if (dir_with_self[0]) {
+                                                if (dir_with_self[0] || (x_t == 0)) {
                                                     // x-y+z, -x+y-z
                                                     if (crit_v[0] == crit_v[2]) {
                                                         checkBond(dist_v-crit_v[0]*xmyz_v,
