@@ -125,19 +125,19 @@ struct Selection{
             }
             // implement modify-assignment here because we can't convert to reference
             _Vec& operator+=(const Vec& rhs){
-                a.base::coord += rhs - a.off;
+                a.base::coord += rhs;
                 return *this;
             }
             _Vec& operator-=(const Vec& rhs){
-                a.base::coord -= rhs - a.off;
+                a.base::coord -= rhs;
                 return *this;
             }
             _Vec& operator+=(const double &f){
-                a.base::coord += Vec{f,f,f} - a.off;
+                a.base::coord += Vec{f,f,f};
                 return *this;
             }
             _Vec& operator-=(const double &f){
-                a.base::coord -= Vec{f,f,f} - a.off;
+                a.base::coord -= Vec{f,f,f};
                 return *this;
             }
             _Vec& operator*=(const double &f){

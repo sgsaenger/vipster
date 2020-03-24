@@ -276,7 +276,10 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
                     shift = curStep->getCom(AtomFmt::Bohr);
                 }
             }else{
-                shift = curStep->asFmt(AtomFmt::Bohr)[idx.begin()->first].coord;
+                SelectionFilter filter{};
+                filter.mode = SelectionFilter::Mode::Index;
+                filter.indices.push_back(*idx.begin());
+                shift = curStep->asFmt(AtomFmt::Bohr).select(filter)[0].coord;
             }
         }
         break;
