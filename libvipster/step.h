@@ -332,7 +332,9 @@ public:
         const auto& idx = s.getAtoms().indices;
         for(auto it = idx.rbegin(); it != idx.rend(); ++it)
         {
-            delAtom(it->first);
+            if(it->first < getNat()){
+                delAtom(it->first);
+            }
         }
         s = select({});
     }
