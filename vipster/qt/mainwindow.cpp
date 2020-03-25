@@ -287,7 +287,7 @@ void MainWindow::newMol()
 
 void MainWindow::newMol(Molecule&& mol)
 {
-    molecules.emplace_back(mol);
+    molecules.emplace_back(std::move(mol));
     molecules.back().pte->root = &pte;
     registerMol(molecules.back().name);
 }
