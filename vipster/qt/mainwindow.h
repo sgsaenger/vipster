@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "fileio.h"
-#include "step.h"
+#include "molecule.h"
 #include "configfile.h"
 
 #include "viewport.h"
@@ -69,6 +69,8 @@ public:
     Vipster::IO::Plugins    &plugins;
     Vipster::IO::Parameters &params;
     Vipster::IO::Presets    &presets;
+
+    void newMol(Vipster::Molecule &&mol);
 
 public slots:
     void about();

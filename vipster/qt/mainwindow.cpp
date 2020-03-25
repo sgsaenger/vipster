@@ -282,7 +282,12 @@ void MainWindow::registerMol(const std::string& name)
 
 void MainWindow::newMol()
 {
-    molecules.emplace_back();
+    newMol(Molecule{});
+}
+
+void MainWindow::newMol(Molecule&& mol)
+{
+    molecules.emplace_back(mol);
     molecules.back().pte->root = &pte;
     registerMol(molecules.back().name);
 }
@@ -309,9 +314,8 @@ void MainWindow::newMol(QAction* sender)
 
 void MainWindow::newData(IO::Data &&d)
 {
-    molecules.push_back(std::move(d.mol));
+    newMol(std::move(d.mol));
     const auto& name = molecules.back().name;
-    registerMol(name);
     if(d.param){
         paramWidget->registerParam(name, std::move(*d.param));
     }
