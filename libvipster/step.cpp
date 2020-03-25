@@ -22,6 +22,11 @@ Step& Step::operator=(const Step& s)
 {
     *atoms = *s.atoms;
     *bonds = *s.bonds;
+    for(auto& b: bonds->list){
+        if(b.type){
+            b.type = &*bonds->types.find(b.type->first);
+        }
+    }
     *comment = *s.comment;
     return *this;
 }
