@@ -4,9 +4,6 @@
 
 #include <QMessageBox>
 
-#ifndef LAMMPS_EXCEPTIONS
-#define LAMMPS_EXCEPTIONS
-#endif
 #include "lammps.h"
 #include "domain.h"
 #include "error.h"
@@ -22,6 +19,7 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     ui(new Ui::LammpsWidget)
 {
     ui->setupUi(this);
+    ui->customFrame->setHidden(true);
     // set validators for minimize settings
     ui->etolInput->setValidator(new QDoubleValidator{0, 100, 5});
     ui->ftolInput->setValidator(new QDoubleValidator{0, 100, 5});
@@ -44,10 +42,48 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
         }
         ++i;
     }
-//#define PAIR_CLASS
-//#define PairStyle(key,Class) BARGL
-//#include "style_pair.h"
-//#undef PAIR_CLASS
+
+    // register installed FF styles
+#define PAIR_CLASS
+#define PairStyle(key,Class) ui->pairSel->addItem(#key);
+#include "style_pair.h"
+#undef PAIR_CLASS
+
+#define BOND_CLASS
+#define BondStyle(key,Class) ui->bondSel->addItem(#key);
+#include "style_bond.h"
+#undef BOND_CLASS
+
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) ui->angleSel->addItem(#key);
+#include "style_angle.h"
+#undef ANGLE_CLASS
+
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) ui->dihedSel->addItem(#key);
+#include "style_dihedral.h"
+#undef DIHEDRAL_CLASS
+
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) ui->impropSel->addItem(#key);
+#include "style_improper.h"
+#undef IMPROPER_CLASS
+
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) ui->kspaceSel->addItem(#key);
+#include "style_kspace.h"
+#undef KSPACE_CLASS
+
+    // register min/md styles
+#define MINIMIZE_CLASS
+#define MinimizeStyle(key,Class) ui->minSel->addItem(#key);
+#include "style_minimize.h"
+#undef MINIMIZE_CLASS
+
+ui->mdSel->addItem("nve");
+ui->mdSel->addItem("nvt");
+ui->mdSel->addItem("npt");
+ui->mdSel->addItem("nph");
 }
 
 LammpsWidget::~LammpsWidget()
@@ -122,7 +158,7 @@ const std::map<size_t, std::vector<std::tuple<int, int, std::string>>> UFF_Crite
     {3,   {{-1, -1, "Li"}}},
     {4,   {{-1, -1, "Be3+2"}}},
     {5,   {{ 4, -1, "B_3"}, {3, -1, "B_2"}}},
-    {6,   {{ 4, -1, "C_3"}, {3,  1, "C_R"}, {3,  0, "C_2"}, {2, -1, "C_1"}}},
+    {6,   {{ 4, -1, "C_3"}, {3,  1, "C_R"}, {3,  0, "C_2"}, {2, -1, "C_1"}, {1, -1, "C_1"}}},
     {7,   {{ 3,  0, "N_3"}, {3,  1, "N_R"}, {2,  1, "N_R"}, {2,  0, "N_2"}, {1, -1, "N_1"}}},
     {8,   {{ 2,  0, "O_3"}, {2,  1, "O_R"}, {1, -1, "O_2"}}},
     {9,   {{-1, -1, "F_"}}},
@@ -452,7 +488,7 @@ void LammpsWidget::on_ffPrepare_clicked()
             auto element_pos = UFF_Criteria.find(Z);
             if(element_pos == UFF_Criteria.end()){
                 QMessageBox::critical(this, "Could not deduce atom type",
-                    QString{"Could not deduce force-field type of atom %1 with vipster type \"%2\" (Z: %3)"}
+                    QString{"Could not deduce force-field type of atom %1 of vipster type \"%2\" (Z: %3)"}
                         .arg(i).arg(atom.name.c_str()).arg(Z));
                 return;
             }
@@ -470,7 +506,7 @@ void LammpsWidget::on_ffPrepare_clicked()
                 });
                 if(variant_pos == variants.end()){
                     QMessageBox::critical(this, "Could not deduce atom type",
-                        QString{"Could not deduce force-field type of atom %1 with vipster type \"%2\" "
+                        QString{"Could not deduce force-field type of atom %1 of vipster type \"%2\" "
                                 "with coordination %3 and aromaticity %4"}
                             .arg(i).arg(atom.name.c_str()).arg(coord).arg(aromatic));
                     return;
@@ -480,4 +516,12 @@ void LammpsWidget::on_ffPrepare_clicked()
         }
     }
     master->newMol(std::move(mol));
+}
+
+void LammpsWidget::on_ffSel_currentIndexChanged(int index){
+    if(index == ui->ffSel->count()-1){
+        ui->customFrame->setHidden(false);
+    }else{
+        ui->customFrame->setHidden(true);
+    }
 }

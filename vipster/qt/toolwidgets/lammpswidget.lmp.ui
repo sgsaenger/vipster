@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>578</height>
+    <height>679</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,6 +78,101 @@
           <string>UFF</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Custom</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="customFrame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="1">
+          <widget class="QComboBox" name="pairSel"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="pairLabel">
+           <property name="text">
+            <string>Pair Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>pairSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="angleLabel">
+           <property name="text">
+            <string>Angle Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>angleSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="dihedLabel">
+           <property name="text">
+            <string>Dihedral Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>dihedSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="impropLabel">
+           <property name="text">
+            <string>Improper Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>impropSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="bondLabel">
+           <property name="text">
+            <string>Bond Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>bondSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="kspaceLabel">
+           <property name="text">
+            <string>KSpace Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>kspaceSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="bondSel"/>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="angleSel"/>
+         </item>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="dihedSel"/>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="impropSel"/>
+         </item>
+         <item row="5" column="1">
+          <widget class="QComboBox" name="kspaceSel"/>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
@@ -206,35 +301,39 @@
       <item>
        <widget class="QStackedWidget" name="calcStack">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="minPage">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="2">
-           <widget class="QLabel" name="maxItLabel">
+          <item row="2" column="2">
+           <widget class="QLineEdit" name="maxItInput">
             <property name="text">
-             <string>maxiter</string>
+             <string>100</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="etolLabel">
-            <property name="toolTip">
-             <string>Stopping tolerance for energy change (unitless, depends on system size)</string>
-            </property>
-            <property name="text">
-             <string>etol</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
+          <item row="1" column="3">
            <widget class="QLabel" name="maxevalLabel">
             <property name="text">
              <string>maxeval</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="2" column="3">
+           <widget class="QLineEdit" name="maxevalInput">
+            <property name="text">
+             <string>1000</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="ftolInput">
+            <property name="text">
+             <string>1.0e-6</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
            <widget class="QLabel" name="ftolLabel">
             <property name="toolTip">
              <string>Stopping tolerance for force (kcal/mol*angstrom)</string>
@@ -244,37 +343,56 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="2">
+           <widget class="QLabel" name="maxItLabel">
+            <property name="text">
+             <string>maxiter</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
            <widget class="QLineEdit" name="etolInput">
             <property name="text">
              <string>1.0e-4</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="ftolInput">
+          <item row="1" column="0">
+           <widget class="QLabel" name="etolLabel">
+            <property name="toolTip">
+             <string>Stopping tolerance for energy change (unitless, depends on system size)</string>
+            </property>
             <property name="text">
-             <string>1.0e-6</string>
+             <string>etol</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="maxItInput">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="minLabel">
             <property name="text">
-             <string>100</string>
+             <string>Min Style:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QLineEdit" name="maxevalInput">
-            <property name="text">
-             <string>1000</string>
-            </property>
-           </widget>
+          <item row="0" column="2" colspan="2">
+           <widget class="QComboBox" name="minSel"/>
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="page_2"/>
+        <widget class="QWidget" name="page_2">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QLabel" name="mdLabel">
+            <property name="text">
+             <string>Integrating fix:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="mdSel"/>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>
@@ -291,12 +409,12 @@
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>193</y>
+     <x>135</x>
+     <y>246</y>
     </hint>
     <hint type="destinationlabel">
-     <x>116</x>
-     <y>235</y>
+     <x>135</x>
+     <y>320</y>
     </hint>
    </hints>
   </connection>

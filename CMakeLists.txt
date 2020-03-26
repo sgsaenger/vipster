@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 
 project(Vipster VERSION 1.18)
 
@@ -184,6 +184,7 @@ if(VIPSTER_DESKTOP)
     # lammps-widget:
     if(VIPSTER_LAMMPS)
         # NOTE: only support internal lammps-build for now
+#        find_package(LAMMPS 20200319 REQUIRED)
         # build exception-enabled library
         set(BUILD_TOOLS OFF CACHE INTERNAL "")
         set(BUILD_DOC OFF CACHE INTERNAL "")
@@ -196,18 +197,18 @@ if(VIPSTER_DESKTOP)
         set(PKG_RIGID ON CACHE INTERNAL "")
         set(PKG_KSPACE ON CACHE INTERNAL "")
         set(PKG_MISC ON CACHE INTERNAL "")
-        add_subdirectory(external/lammps/cmake EXCLUDE_FROM_ALL)
+        add_subdirectory(external/lammps/cmake)
         # set link/include options
-        target_include_directories(vipster PRIVATE "external/lammps/src" "${CMAKE_CURRENT_BINARY_DIR}/external/lammps/cmake/styles")
+#        target_include_directories(vipster PRIVATE "external/lammps/src" "${CMAKE_CURRENT_BINARY_DIR}/external/lammps/cmake/styles")
         target_link_libraries(vipster PRIVATE lammps)
-        if(BUILD_MPI)
-            add_definitions(-DUSE_MPI)
-            find_package(MPI REQUIRED)
-            target_link_libraries(vipster PRIVATE ${MPI_CXX_LIBRARIES})
-        else()
-            target_include_directories(vipster PRIVATE "external/lammps/src/STUBS")
-            target_link_libraries(vipster PRIVATE mpi_stubs)
-        endif()
+#        if(BUILD_MPI)
+#            add_definitions(-DUSE_MPI)
+#            find_package(MPI REQUIRED)
+#            target_link_libraries(vipster PRIVATE ${MPI_CXX_LIBRARIES})
+#        else()
+#            target_include_directories(vipster PRIVATE "external/lammps/src/STUBS")
+#            target_link_libraries(vipster PRIVATE mpi_stubs)
+#        endif()
         # enable widget in vipster
         add_definitions(-DUSE_LAMMPS)
         target_sources(vipster PRIVATE ${QTLMP_SOURCES})

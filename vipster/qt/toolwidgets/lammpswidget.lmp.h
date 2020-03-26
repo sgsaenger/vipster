@@ -21,6 +21,8 @@ private slots:
 
     void on_ffPrepare_clicked();
 
+    void on_ffSel_currentIndexChanged(int index);
+
 private:
     Ui::LammpsWidget *ui;
 };
