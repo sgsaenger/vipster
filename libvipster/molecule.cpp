@@ -15,19 +15,19 @@ Molecule::Molecule(const std::string &name, size_t s):
     }
 }
 
-// TODO: make sure that atom-types point to correct PeriodicTable!
-
 Step& Molecule::newStep(const Step &step)
 {
-    steps.push_back(step);
+    steps.emplace_back();
     steps.back().atoms->ctxt.pte = pte;
+    steps.back() = step;
     return steps.back();
 }
 
 Step& Molecule::newStep(Step &&step)
 {
-    steps.push_back(std::move(step));
+    steps.emplace_back();
     steps.back().atoms->ctxt.pte = pte;
+    steps.back() = std::move(step);
     return steps.back();
 }
 

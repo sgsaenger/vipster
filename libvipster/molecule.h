@@ -16,8 +16,10 @@ public:
         : name{name},
           kpoints{}
     {
-        steps.emplace_back(step);
+        pte = std::make_shared<PeriodicTable>(step.getPTE());
+        steps.emplace_back();
         steps.back().atoms->ctxt.pte = pte;
+        steps.back() = step;
     }
 
     std::string name;
