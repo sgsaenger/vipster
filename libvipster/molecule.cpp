@@ -53,3 +53,13 @@ size_t Molecule::getNstep() const noexcept
 {
     return steps.size();
 }
+
+PeriodicTable& Molecule::getPTE()
+{
+    return *pte;
+}
+
+const PeriodicTable& Molecule::getPTE() const
+{
+    return *pte;
+}

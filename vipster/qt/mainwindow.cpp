@@ -288,7 +288,7 @@ void MainWindow::newMol()
 void MainWindow::newMol(Molecule&& mol)
 {
     molecules.emplace_back(std::move(mol));
-    molecules.back().pte->root = &pte;
+    molecules.back().getPTE().root = &pte;
     registerMol(molecules.back().name);
 }
 
@@ -297,17 +297,17 @@ void MainWindow::newMol(QAction* sender)
     if(sender == ui->actionCopy_Trajector){
         molecules.emplace_back(*curMol);
         molecules.back().name += " (copy)";
-        molecules.back().pte->root = &pte;
+        molecules.back().getPTE().root = &pte;
         registerMol(molecules.back().name);
     }else if( sender == ui->actionCopy_single_Step){
         molecules.emplace_back(*curStep, curMol->name + " (copy of step " +
                                std::to_string(curVP->moldata[curMol].curStep) + ')');
-        molecules.back().pte->root = &pte;
+        molecules.back().getPTE().root = &pte;
         registerMol(molecules.back().name);
     }else if( sender == ui->actionCopy_current_Selection){
         molecules.emplace_back(*curSel, curMol->name + " (copy of selection of step " +
                                std::to_string(curVP->moldata[curMol].curStep) + ')');
-        molecules.back().pte->root = &pte;
+        molecules.back().getPTE().root = &pte;
         registerMol(molecules.back().name);
     }
 }

@@ -347,7 +347,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                     name = std::to_string(id);
                     types[id] = name;
                     // and try to guess type from mass
-                    m.pte->insert_or_assign(name,
+                    m.getPTE().insert_or_assign(name,
                         [&t1](){
                         const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pte.at("")};
                         double best_diff{5};
@@ -365,7 +365,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
                     throw IO::Error("Lammps Input: failed to parse atom type");
                 }
                 // finally, save mass
-                (*m.pte)[types[id]].m = t1;
+                m.getPTE()[types[id]].m = t1;
             }
         } else if (line.find("Atoms") != std::string::npos) {
             std::vector<lmpTok> fmt{};
@@ -607,7 +607,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     std::map<std::string, size_t> atomtypemap;
     for(const auto& t: step.getTypes()){
         atomtypemap.emplace(t, atomtypemap.size()+1);
-        file << atomtypemap.size() << ' ' << m.pte->at(t).m << " # " << t << '\n';
+        file << atomtypemap.size() << ' ' << m.getPTE().at(t).m << " # " << t << '\n';
     }
 
     file << "\nAtoms # " << style.at(style) << "\n\n";

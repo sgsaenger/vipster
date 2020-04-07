@@ -335,9 +335,9 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                         name = name2;
                     }
                     types.push_back(name);
-                    (*m.pte)[name].CPPP = CPPP;
+                    s.getPTE()[name].CPPP = CPPP;
                     std::getline(file, buf);
-                    (*m.pte)[name].CPNL = IO::trim(buf);
+                    s.getPTE()[name].CPNL = IO::trim(buf);
                     std::getline(file, buf);
                     size_t oldNat = s.getNat();
                     size_t nat = std::stoul(buf);
@@ -448,7 +448,7 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                     parsed = true;
                     for(auto& t: types){
                         std::getline(file, buf);
-                        (*m.pte)[t].m = std::stod(buf);
+                        s.getPTE()[t].m = std::stod(buf);
                     }
                 }
             }
@@ -513,7 +513,7 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
             std::vector<std::pair<size_t, AtomFlags>> fixCoord;
             std::vector<double> masses;
             for(const auto& pair: types){
-                const auto& pE = (*m.pte)[pair.first];
+                const auto& pE = m.getPTE().at(pair.first);
                 masses.push_back(pE.m);
                 if(!pE.CPPP.empty()){
                     file << '*' << pE.CPPP << '\n';

@@ -228,7 +228,7 @@ void PeriodicTableWidget::updateWidget(GUI::change_t change)
     }else{
         if((change & GUI::molChanged) == GUI::molChanged){
             // load table of new molecule...
-            setTable(master->curMol->pte.get());
+            setTable(&master->curMol->getPTE());
         }else if(change & GUI::Change::atoms){
             // ...or update current table
             setTable(this->table);

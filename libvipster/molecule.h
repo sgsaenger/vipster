@@ -23,8 +23,9 @@ public:
 
     std::string name;
     KPoints kpoints;
-    // TODO: make sure that this has the appropriate root!
-    std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
+
+    PeriodicTable&          getPTE();
+    const PeriodicTable&    getPTE() const;
 
     Step& newStep(const Step& step);
     Step& newStep(Step&& step={});
@@ -36,6 +37,8 @@ public:
 
 private:
     std::list<Step> steps;
+    // TODO: make sure that this has the appropriate root!
+    std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
 };
 }
 #endif // MOLECULE_H
