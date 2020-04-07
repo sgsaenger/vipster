@@ -2,6 +2,7 @@
 #define LAMMPSWIDGET_LMP_H
 
 #include "basewidget.h"
+#include "lammpswidget_aux/forcefield.lmp.h"
 
 namespace Ui {
 class LammpsWidget;
@@ -25,6 +26,7 @@ private slots:
 
 private:
     Ui::LammpsWidget *ui;
+    ForceFields forcefields;
 };
 
 #endif // LAMMPSWIDGET_LMP_H
