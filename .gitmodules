@@ -13,3 +13,6 @@
 [submodule "external/lammps"]
 	path = external/lammps
 	url = https://github.com/lammps/lammps
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://github.com/fmtlib/fmt
