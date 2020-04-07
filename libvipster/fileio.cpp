@@ -109,18 +109,22 @@ bool  Vipster::writeFile(const std::string &fn,
             throw IO::Error{"Read-only format"};
         }
         bool use_temp = true;
+        bool res = false;
         auto filename = getTempPath()/fs::path{fn}.filename();
-        std::ofstream file{filename};
-        if(!file){
-            use_temp = false;
-            file = std::ofstream{fn};
+        {
+            // scoped writing so file is closed before copy
+            std::ofstream file{filename};
             if(!file){
-                throw IO::Error{"Could not open "+fn};
+                use_temp = false;
+                file = std::ofstream{fn};
+                if(!file){
+                    throw IO::Error{"Could not open "+fn};
+                }
             }
+            res = plug->writer(m, file, p, c, *idx);
         }
-        auto res = plug->writer(m, file, p, c, *idx);
         if(use_temp){
-            fs::copy(filename, fn, fs::copy_options::overwrite_existing);
+            fs::copy_file(filename, fn, fs::copy_options::overwrite_existing);
         }
         return res;
     }

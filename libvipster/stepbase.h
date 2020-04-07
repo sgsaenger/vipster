@@ -166,13 +166,15 @@ public:
     const_selection select(SelectionFilter filter) const
     {
         if constexpr(detail::is_selection<T>){
+            // create Selection<T> from Selection<T>
             return {std::make_shared<typename const_selection::atom_source>(
                             this->atoms->atoms, this->atoms->indices),
-                    this->bonds, this->comment};
+                    std::make_shared<BondList>(), this->comment};
         }else{
+            // create Selection<T> from T
             return {std::make_shared<typename const_selection::atom_source>(
                             this->atoms, evalFilter(*this, filter)),
-                    this->bonds, this->comment};
+                    std::make_shared<BondList>(), this->comment};
         }
     }
 
@@ -208,18 +210,18 @@ public:
         }else if constexpr(detail::is_selection<T>){
             using base_source = std::remove_reference_t<decltype(*this->atoms->atoms)>;
             if constexpr(detail::is_formatter<base_source>){
-                // create Selection<Formatter<T>> from Formatter<T>
+                // create Selection<Formatter<T>> from Selection<Formatter<T>>
                 return {std::make_shared<typename const_formatter::atom_source>(
                             std::make_shared<base_source>(
                                 this->atoms->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->comment};
-            }else{ // create Selection<Formatter<T>> from T
+                        std::make_shared<BondList>(), this->comment};
+            }else{ // create Selection<Formatter<T>> from Selection<T>
                 return {std::make_shared<typename const_formatter::atom_source>(
                             std::make_shared<detail::Formatter<base_source>>(
                                 this->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->comment};
+                        std::make_shared<BondList>(), this->comment};
             }
         }else{ // create Formatter<T> from T
             return {std::make_shared<typename const_formatter::atom_source>(
@@ -451,11 +453,15 @@ public:
     selection select(SelectionFilter filter)
     {
         if constexpr(detail::is_selection<T>){
-            return {std::make_shared<typename selection::atom_source>(this->atoms->atoms, this->atoms->indices),
-                    this->bonds, this->comment};
+            // create Selection<T> from Selection<T>
+            return {std::make_shared<typename selection::atom_source>(
+                            this->atoms->atoms, this->atoms->indices),
+                    std::make_shared<BondList>(), this->comment};
         }else{
-            return {std::make_shared<typename selection::atom_source>(this->atoms, evalFilter(*this, filter)),
-                    this->bonds, this->comment};
+            // create Selection<T> from T
+            return {std::make_shared<typename selection::atom_source>(
+                            this->atoms, evalFilter(*this, filter)),
+                    std::make_shared<BondList>(), this->comment};
         }
     }
 
@@ -483,13 +489,13 @@ public:
                             std::make_shared<base_source>(
                                 this->atoms->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->comment};
+                        std::make_shared<BondList>(), this->comment};
             }else{ // create Selection<Formatter<T>> from T
                 return {std::make_shared<typename formatter::atom_source>(
                             std::make_shared<detail::Formatter<base_source>>(
                                 this->atoms->atoms, tgt),
                             this->atoms->indices),
-                        this->bonds, this->comment};
+                        std::make_shared<BondList>(), this->comment};
             }
         }else{ // create Formatter<T> from T
             return {std::make_shared<typename formatter::atom_source>(

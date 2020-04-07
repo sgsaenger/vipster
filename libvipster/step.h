@@ -301,6 +301,9 @@ public:
         }
     }
 
+    // Periodic table
+    void setPTE(std::shared_ptr<PeriodicTable> newPTE);
+
     // Format
     void setFmt(AtomFmt fmt, bool scale=true);
 

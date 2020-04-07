@@ -43,7 +43,7 @@ void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
 {
     atom_source& al = *atoms;
     al.coordinates.emplace_back(coord);
-    al.elements.push_back(&*al.ctxt.pte->find_or_fallback(name));
+    al.elements.push_back(&*getPTE().find_or_fallback(name));
     al.properties.emplace_back(prop);
 }
 
@@ -53,7 +53,7 @@ void Step::newAtoms(size_t i){
     al.coordinates.resize(nat);
     al.elements.reserve(nat);
     for(size_t j=0; j<i; ++j){
-        al.elements.push_back(&*al.ctxt.pte->find_or_fallback(""));
+        al.elements.push_back(&*getPTE().find_or_fallback(""));
     }
     al.properties.resize(nat);
 }
@@ -64,6 +64,16 @@ void Step::delAtom(size_t _i){
     al.coordinates.erase(al.coordinates.begin()+i);
     al.elements.erase(al.elements.begin()+i);
     al.properties.erase(al.properties.begin()+i);
+}
+
+void Step::setPTE(std::shared_ptr<PeriodicTable> newPTE)
+{
+    // reassign types
+    for(auto &el: atoms->elements){
+        el = &*newPTE->find_or_fallback(el->first);
+    }
+    // let context own new table
+    atoms->ctxt.pte = newPTE;
 }
 
 void Step::setFmt(AtomFmt tgt, bool scale)
