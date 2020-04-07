@@ -2,6 +2,7 @@
 #define IOWRAPPER
 
 #include <map>
+#include <filesystem>
 #include <optional>
 
 #include "molecule.h"
@@ -23,6 +24,20 @@ namespace Vipster{
                        const std::optional<IO::Preset>& c=std::nullopt);
     const IO::Plugin* guessFmt(std::string fn,
                                const IO::Plugins &p=IO::defaultPlugins());
+    // RAII wrapper for temp folder
+    namespace detail {
+        class TempWrap{
+        public:
+            TempWrap();
+            ~TempWrap();
+            const std::filesystem::path& getPath() const;
+        private:
+            TempWrap(const TempWrap&) = delete;
+            std::filesystem::path tmppath;
+        };
+        extern const TempWrap tempwrap;
+    }
+    const std::filesystem::path& getTempPath();
 }
 
 #endif // IOWRAPPER

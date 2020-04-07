@@ -3,6 +3,35 @@
 #include "fileio.h"
 
 using namespace Vipster;
+namespace fs = std::filesystem;
+
+detail::TempWrap::TempWrap()
+    : tmppath{fs::temp_directory_path()/"vipster"}
+{
+    if(!fs::exists(tmppath)){
+        fs::create_directory(tmppath);
+    }else if(!fs::is_directory(tmppath)){
+        fs::remove(tmppath);
+        fs::create_directory(tmppath);
+    }
+}
+
+detail::TempWrap::~TempWrap()
+{
+    fs::remove_all(tmppath);
+}
+
+const fs::path& detail::TempWrap::getPath() const
+{
+    return tmppath;
+}
+
+const fs::path& Vipster::getTempPath()
+{
+    return detail::tempwrap.getPath();
+}
+
+const detail::TempWrap detail::tempwrap{};
 
 const IO::Plugin *Vipster::guessFmt(std::string fn, const IO::Plugins &p)
 {
@@ -72,21 +101,35 @@ bool  Vipster::writeFile(const std::string &fn,
                          const std::optional<IO::Parameter>& p,
                          const std::optional<IO::Preset>& c)
 {
-    std::ofstream file{fn};
     if(!idx){
         idx = m.getNstep()-1;
     }
     try{
-        if(!file){
-            throw IO::Error{"Could not open "+fn};
-        }
         if(!plug->writer){
             throw IO::Error{"Read-only format"};
         }
-        return plug->writer(m, file, p, c, *idx);
+        bool use_temp = true;
+        auto filename = getTempPath()/fs::path{fn}.filename();
+        std::ofstream file{filename};
+        if(!file){
+            use_temp = false;
+            file = std::ofstream{fn};
+            if(!file){
+                throw IO::Error{"Could not open "+fn};
+            }
+        }
+        auto res = plug->writer(m, file, p, c, *idx);
+        if(use_temp){
+            fs::copy(filename, fn, fs::copy_options::overwrite_existing);
+        }
+        return res;
     }
     catch(IO::Error &e){
         std::cout << e.what() << std::endl;
         throw;
+    }
+    catch(fs::filesystem_error &e){
+        std::cout << e.what() << std::endl;
+        throw IO::Error{e.what()};
     }
 }
