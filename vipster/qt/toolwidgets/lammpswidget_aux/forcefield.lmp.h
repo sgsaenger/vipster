@@ -2,16 +2,17 @@
 #define LMPFF_H
 
 #include "molecule.h"
+#include "io/plugins/lmpinput.h"
 
 struct ForceField{
-    std::optional<std::string> required_pair{};
-    std::optional<std::string> required_bond{};
-    std::optional<std::string> required_angle{};
-    std::optional<std::string> required_dihedral{};
-    std::optional<std::string> required_improper{};
+    std::optional<std::string> pair{};
+    std::optional<std::string> bond{};
+    std::optional<std::string> angle{};
+    std::optional<std::string> dihedral{};
+    std::optional<std::string> improper{};
     std::vector<std::string> extra_cmds{};
     std::function<Vipster::Molecule(const Vipster::Step&, const std::string&)> prepareStep{};
-    std::function<void()> prepareParameters{};
+    std::function<Vipster::IO::Parameter(const Vipster::Step&)> prepareParameters{};
 };
 
 using ForceFields = std::map<std::string, const ForceField*>;

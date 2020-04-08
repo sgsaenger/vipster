@@ -305,31 +305,10 @@
         </property>
         <widget class="QWidget" name="minPage">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="2" column="2">
-           <widget class="QLineEdit" name="maxItInput">
-            <property name="text">
-             <string>100</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="maxevalLabel">
-            <property name="text">
-             <string>maxeval</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="3">
            <widget class="QLineEdit" name="maxevalInput">
             <property name="text">
              <string>1000</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="ftolInput">
-            <property name="text">
-             <string>1.0e-6</string>
             </property>
            </widget>
           </item>
@@ -343,19 +322,15 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="maxItLabel">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="minLabel">
             <property name="text">
-             <string>maxiter</string>
+             <string>Min Style:</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLineEdit" name="etolInput">
-            <property name="text">
-             <string>1.0e-4</string>
-            </property>
-           </widget>
+          <item row="0" column="2" colspan="2">
+           <widget class="QComboBox" name="minSel"/>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="etolLabel">
@@ -367,29 +342,183 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QLabel" name="minLabel">
+          <item row="1" column="3">
+           <widget class="QLabel" name="maxevalLabel">
             <property name="text">
-             <string>Min Style:</string>
+             <string>maxeval</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QComboBox" name="minSel"/>
+          <item row="2" column="0">
+           <widget class="QLineEdit" name="etolInput">
+            <property name="text">
+             <string>1.0e-4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLineEdit" name="maxItInput">
+            <property name="text">
+             <string>100</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="ftolInput">
+            <property name="text">
+             <string>1.0e-6</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="maxItLabel">
+            <property name="text">
+             <string>maxiter</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="4">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
         <widget class="QWidget" name="page_2">
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
+          <item row="4" column="0">
            <widget class="QLabel" name="mdLabel">
             <property name="text">
              <string>Integrating fix:</string>
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="timeLabel">
+            <property name="text">
+             <string>Timestep (fs)</string>
+            </property>
+            <property name="buddy">
+             <cstring>timeInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QComboBox" name="velSel">
+            <item>
+             <property name="text">
+              <string>Init random</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Heat ramp (NVT)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Use existing velocities</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="velLabel">
+            <property name="text">
+             <string>Velocities</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="equibInput">
+            <property name="text">
+             <string>100</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
+           <widget class="QLineEdit" name="timeInput">
+            <property name="text">
+             <string>1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="stepInput">
+            <property name="text">
+             <string>1000</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="stepLabel">
+            <property name="text">
+             <string>Steps (dynamics)</string>
+            </property>
+            <property name="buddy">
+             <cstring>stepInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="pressLabel">
+            <property name="text">
+             <string>Pressure (atm)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
            <widget class="QComboBox" name="mdSel"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="equibLabel">
+            <property name="text">
+             <string>Steps (equilibrate)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="tempLabel">
+            <property name="text">
+             <string>Temperature (K)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="tempInput">
+            <property name="text">
+             <string>300</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QLineEdit" name="pressInput">
+            <property name="text">
+             <string>1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="reportInput">
+            <property name="text">
+             <string>10</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="reportLabel">
+            <property name="text">
+             <string>Steps (report)</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

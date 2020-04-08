@@ -33,6 +33,11 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     ui->ftolInput->setValidator(new QDoubleValidator{0, 100, 5});
     ui->maxItInput->setValidator(new QIntValidator{1, 10000000});
     ui->maxevalInput->setValidator(new QIntValidator{1, 10000000});
+    // set validators for MD settings
+    ui->tempInput->setValidator(new QDoubleValidator{0.1, 100000, 5});
+    ui->pressInput->setValidator(new QDoubleValidator{0, 100, 5});
+    ui->stepInput->setValidator(new QIntValidator{1, 10000000});
+    ui->timeInput->setValidator(new QDoubleValidator{0.00001, 1000, 5});
     // enable parallelization as available
 #ifdef USE_MPI
     ui->MPISpin->setDisabled(true);
@@ -60,7 +65,12 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     }
 
     // register installed FF styles
-    LAMMPS lmp{0, nullptr, MPI_COMM_WORLD};
+    std::array<char*, 5> lmparg{
+        nullptr,
+        "-screen", "none",
+        "-log", "none"
+    };
+    LAMMPS lmp{5, lmparg.data(), MPI_COMM_WORLD};
     Info info{&lmp};
     for(const auto& style: info.get_available_styles("pair")){
         ui->pairSel->addItem(style.c_str());
@@ -94,7 +104,7 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     if(info.has_style("fix", "nph"))
         ui->mdSel->addItem("nph");
 
-    // TODO: check if we can register callback?
+    // TODO: register callback or create own fix
 }
 
 LammpsWidget::~LammpsWidget()
@@ -104,6 +114,7 @@ LammpsWidget::~LammpsWidget()
 
 fs::path getLmpTmpDir()
 {
+    // TODO: add random token
     return getTempPath()/"lammps";
 }
 
@@ -112,92 +123,128 @@ void LammpsWidget::on_runButton_clicked()
     if(!master->curStep->getNat()){
         return;
     }
+    auto curStep = master->curStep->asFmt(AtomFmt::Angstrom);
     // get forcefield
     const auto FFname = ui->ffSel->currentText().toStdString();
     if(FFname == "Custom"){
         return;
     }
     const auto& FF = defaultForcefields().at(FFname);
-    // launch lammps in tempdir
-    auto tempdir = getLmpTmpDir();
-    auto log = tempdir/"log.lammps";
-    fs::create_directory(tempdir);
-    std::array<char*, 5> lmparg{
-        nullptr,
-        "-screen", "none",
-        "-log", &log.string()[0]
-    };
-    LAMMPS lmp{5, lmparg.data(), MPI_COMM_WORLD};
+    // manually unset and save user locale
+    std::string userLocale = setlocale(0, nullptr);
+    setlocale(LC_ALL, "C");
     try{
+        // launch lammps in tempdir
+        auto tempdir = getLmpTmpDir();
+        auto log = (tempdir/"log.lammps").string();
+        fs::create_directory(tempdir);
+        std::array<char*, 5> lmparg{
+            nullptr,
+            "-screen", "none",
+            "-log", &log[0]
+        };
+        LAMMPS lmp{5, lmparg.data(), MPI_COMM_WORLD};
+        // setup preset for FF demands
         auto preset = IO::LmpInput.makePreset();
-        // TODO: get this from forcefield?
-//        preset.at("style").first = "full";
-        std::get<bool>(preset.at("bonds").first) = FF->required_bond.has_value();
-//        preset.at("angles").first = FF->required_angle.has_value();
-//        preset.at("dihedrals").first = FF->required_dihedral.has_value();
-//        preset.at("impropers").first = FF->required_improper.has_value();
-        // FIXME: LmpInput is BROKEN. maybe because selection shares bonds with step which it SHOULD NOT FIX IT FIX IT
+        std::get<NamedEnum>(preset.at("style").first) = "full";
+        preset.at("coeff").first = true;
+        preset.at("bonds").first = FF->bond.has_value();
+        preset.at("angles").first = FF->angle.has_value();
+        preset.at("dihedrals").first = FF->dihedral.has_value();
+        preset.at("impropers").first = FF->improper.has_value();
+        // request parameter from FF
+        auto param = FF->prepareParameters(curStep);
+        // create input file
         writeFile(tempdir/"inpgeom", &IO::LmpInput, *master->curMol,
                   master->curVP->moldata[master->curMol].curStep-1,
-                  std::nullopt, preset);
-        auto curStep = master->curStep->asFmt(AtomFmt::Angstrom);
-        // initialize lammps
-        lmp.init();
-        // always use real units -> angstrom
-        lmp.update->set_units("real");
-        // always use full atoms because why not
-        lmp.input->one("atom_style full");
-        // create box
-        Mat vec;
+                  param, preset);
+        // setup system for forcefield calculation
+        lmp.input->one("units real"); // always use real units -> angstrom
+        lmp.input->one("atom_style full"); // always use full atoms
         if(curStep.hasCell()){
-            // use existing, periodic cell
-            lmp.input->one("boundary p p p");
-            vec = curStep.getCellVec();
-            if(!float_comp(vec[0][1], 0.) || !float_comp(vec[0][2], 0.) || !float_comp(vec[1][2], 0.)){
-                QMessageBox::critical(this, "Error in LAMMPS setup",
-                                      "LAMMPS: Cell vectors must form diagonal or lower triangular matrix");
-                return;
-            }
-            if(!float_comp(vec[1][0], 0.) || !float_comp(vec[2][0], 0.) || !float_comp(vec[2][1], 0.)){
-                lmp.input->one(fmt::format("region box prism {} {} {} {} {} {} {} {} {}",
-                                           0, vec[0][0],
-                                           0, vec[1][1],
-                                           0, vec[2][2],
-                                           vec[1][0], vec[2][0], vec[2][1]).c_str());
-            }else{
-                lmp.input->one(fmt::format("region box block {} {} {} {} {} {}",
-                                           0, vec[0][0],
-                                           0, vec[1][1],
-                                           0, vec[2][2]).c_str());
-            }
+            lmp.input->one("boundary p p p"); // periodic when cell is defined
         }else{
-            // create a shrink-wrapped box for lammps
-            lmp.input->one("boundary s s s");
-            Vec pos_min{{std::numeric_limits<double>::max(),
-                     std::numeric_limits<double>::max(),
-                     std::numeric_limits<double>::max()}};
-            Vec pos_max{{std::numeric_limits<double>::lowest(),
-                     std::numeric_limits<double>::lowest(),
-                     std::numeric_limits<double>::lowest()}};
-            for(const auto& at: curStep){
-                pos_min[0] = std::min(pos_min[0], at.coord[0]);
-                pos_min[1] = std::min(pos_min[1], at.coord[1]);
-                pos_min[2] = std::min(pos_min[2], at.coord[2]);
-                pos_max[0] = std::max(pos_max[0], at.coord[0]);
-                pos_max[1] = std::max(pos_max[1], at.coord[1]);
-                pos_max[2] = std::max(pos_max[2], at.coord[2]);
-            }
-            lmp.input->one(fmt::format("region box block {} {} {} {} {} {}",
-                                       pos_min[0], pos_max[0],
-                                       pos_min[1], pos_max[1],
-                                       pos_min[2], pos_max[2]).c_str());
+            lmp.input->one("boundary s s s"); // shrink-wrapped should create less surprises than fixed
         }
-        lmp.input->one(fmt::format("create_box {} box", curStep.getNtyp()).c_str());
+        if(FF->pair.has_value()){
+            lmp.input->one(fmt::format("pair_style {}", FF->pair.value()).c_str());
+        }
+        if(FF->bond.has_value()){
+            lmp.input->one(fmt::format("bond_style {}", FF->bond.value()).c_str());
+        }
+        if(FF->angle.has_value()){
+            lmp.input->one(fmt::format("angle_style {}", FF->bond.value()).c_str());
+        }
+        if(FF->dihedral.has_value()){
+            lmp.input->one(fmt::format("dihedral_style {}", FF->bond.value()).c_str());
+        }
+        if(FF->improper.has_value()){
+            lmp.input->one(fmt::format("improper_style {}", FF->bond.value()).c_str());
+        }
+        for(const auto &cmd: FF->extra_cmds){
+            lmp.input->one(cmd.c_str());
+        }
+        // read input file
+        lmp.input->one(fmt::format("read_data {}/inpgeom", tempdir.string()).c_str());
+        // run
+        if(ui->calcStack->currentIndex() == 0){
+            // Minimization
+            lmp.input->one("thermo 1");
+            lmp.input->one(fmt::format("min_style {}", ui->minSel->currentText().toStdString()).c_str());
+            lmp.input->one(fmt::format("minimize {} {} {} {}",
+                                       ui->etolInput->text().toInt(),
+                                       ui->ftolInput->text().toInt(),
+                                       ui->maxItInput->text().toInt(),
+                                       ui->maxevalInput->text().toInt()
+                                       ).c_str());
+        }else{
+            // MD
+            auto temp_target = ui->tempInput->text().toDouble();
+            auto press_target = ui->pressInput->text().toDouble();
+            auto dynstep = ui->stepInput->text().toUInt();
+            auto equibstep = ui->equibInput->text().toUInt();
+            auto reportstep = ui->reportInput->text().toUInt();
+            // set timestep
+            auto timestep = ui->timeInput->text().toDouble();
+            lmp.input->one(fmt::format("timestep {}", timestep).c_str());
+            // initialize velocities
+            auto velocities = ui->velSel->currentIndex();
+            if(velocities == 0){ // init random
+                lmp.input->one(fmt::format("velocity all create {} 123465 mom yes rot yes", temp_target).c_str());
+            }else if(velocities == 1){ // heat ramp
+                auto rampstep = equibstep ? equibstep : dynstep/10;
+                lmp.input->one(fmt::format("fix equib all nvt temp 0.1 {} 100.0", temp_target).c_str());
+                lmp.input->one(fmt::format("run {}", rampstep).c_str());
+                lmp.input->one("unfix equib");
+            }// else use existing -> no preparation
+            // integrating fix for MD
+            auto ensemble = ui->mdSel->currentText();
+            std::map<QString, std::string> ensembleFmt{
+                {"nve", "fix integrate all nve"},
+                {"nvt", "fix integrate all nvt temp {0} {0} 100.0"},
+                {"nph", "fix integrate all nph iso {1} {1} 100.0"},
+                {"npt", "fix integrate all npt temp {0} {0} 100.0 iso {1} {1} 100.0"},
+            };
+            lmp.input->one(fmt::format(ensembleFmt.at(ensemble), temp_target, press_target).c_str());
+            // equilibration
+            if(equibstep){
+                lmp.input->one(fmt::format("run {}", equibstep).c_str());
+            }
+            // actual MD
+            lmp.input->one(fmt::format("thermo {}", reportstep).c_str());
+            lmp.input->one(fmt::format("run {}", dynstep).c_str());
+        }
     }catch(LAMMPSAbortException &e){
-        QMessageBox::critical(this, "Error in LAMMPS run", QString::fromStdString(e.message));
+        QMessageBox::critical(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
     }catch(LAMMPSException &e){
-        QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.message));
+        QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
+    }catch(std::exception &e){
+        QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
+    }catch(...){
+        QMessageBox::warning(this, "Error in LAMMPS run", QString{"Unrecognized error when trying to run LAMMPS"});
     }
+    // restore user locale
+    setlocale(LC_ALL, userLocale.c_str());
 }
 
 void LammpsWidget::on_helpButton_clicked()
