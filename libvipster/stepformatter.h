@@ -101,7 +101,7 @@ struct Formatter{
              * const-access as usual,
              * mutable access to another helper that wraps assignment between back-and-forth conversion
              */
-            const Vec::value_type& operator[](std::size_t i) const{
+            Vec::value_type operator[](std::size_t i) const{
                 return a.source->ffun(a.base::coord)[i];
             }
             class _Value_type{

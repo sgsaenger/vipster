@@ -158,7 +158,7 @@ struct Selection{
              * const-access as usual,
              * mutable access to another helper that wraps assignment between back-and-forth conversion
              */
-            const Vec::value_type& operator[](std::size_t i) const{
+            Vec::value_type operator[](std::size_t i) const{
                 return (a.base::coord + a.off)[i];
             }
             class _Value_type{
