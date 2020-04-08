@@ -1,8 +1,15 @@
 #include "lmpinput.h"
 #include "../util.h"
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 #include <sstream>
 
 using namespace Vipster;
+
+// TODO: support velocities?
+// TODO: parse coeffs?
 
 static IO::Preset makePreset()
 {
@@ -15,7 +22,48 @@ static IO::Preset makePreset()
          {"angles", {false, "Toggle printing angles (extrapolated from bond network)"}},
          {"dihedrals", {false, "Toggle printing dihedrals (extrapolated from bond network)"}},
          {"impropers", {false, "Toggle printing impropers (extrapolated from bond network)"}},
+         {"coeff", {false, "Toggle printing parameters from parameter set"}}
     }};
+}
+
+using coeffmap = std::map<std::string, std::string>;
+
+static IO::Parameter makeParameter()
+{
+    return {&IO::LmpInput, {
+            {"Pair Coeff", {coeffmap{},
+                "If the IOPreset enables parameter printing, "
+                "pair coefficients are looked up according the atom type. "
+                "Missing types will cause an error."}},
+            {"Bond Coeff", {coeffmap{},
+                "If the IOPreset enables both bond and parameter printing, "
+                "parameters will be looked up according to the bond type. "
+                "Missing types will use the fallback (if present) or cause an error."}},
+            {"Bond Coeff Fallback", {std::string{},
+                "If this value is present, it will be used if a bond type can not "
+                "be found in the Bond Coeff map. If it is absent, missing bond types are an error."}},
+            {"Angle Coeff", {coeffmap{},
+                "If the IOPreset enables both angle and parameter printing, "
+                "parameters will be looked up according to the angle type. "
+                "Missing types will use the fallback (if present) or cause an error."}},
+            {"Angle Coeff Fallback", {std::string{},
+                "If this value is present, it will be used if a angle type can not "
+                "be found in the Angle Coeff map. If it is absent, missing angle types are an error."}},
+            {"Dihedral Coeff", {coeffmap{},
+                "If the IOPreset enables both dihedral and parameter printing, "
+                "parameters will be looked up according to the dihedral type. "
+                "Missing types will use the fallback (if present) or cause an error."}},
+            {"Dihedral Coeff Fallback", {std::string{},
+                "If this value is present, it will be used if a dihedral type can not "
+                "be found in the Dihedral Coeff map. If it is absent, missing dihedral types are an error."}},
+            {"Improper Coeff", {coeffmap{},
+                "If the IOPreset enables both improper and parameter printing, "
+                "parameters will be looked up according to the improper type. "
+                "Missing types will use the fallback (if present) or cause an error."}},
+            {"Improper Coeff Fallback", {std::string{},
+                "If this value is present, it will be used if a improper type can not "
+                "be found in the Improper Coeff map. If it is absent, missing improper types are an error."}},
+        }};
 }
 
 enum class lmpTok{
@@ -445,7 +493,7 @@ IO::Data LmpInpParser(const std::string& name, std::istream &file)
 }
 
 bool LmpInpWriter(const Molecule& m, std::ostream &file,
-                  const std::optional<IO::Parameter>&,
+                  const std::optional<IO::Parameter>& p,
                   const std::optional<IO::Preset>& c,
                   size_t index)
 {
@@ -454,6 +502,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     if(!c || c->getFmt() != &IO::LmpInput){
         throw IO::Error("Lammps Input: writer needs suitable IO preset");
     }
+    auto print_coeff = std::get<bool>(c->at("coeff").first);
     auto print_bonds = std::get<bool>(c->at("bonds").first);
     auto print_angles = std::get<bool>(c->at("angles").first);
     auto print_dihed = std::get<bool>(c->at("dihedrals").first);
@@ -468,11 +517,11 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     /* prepare topology
      *
      * *typemap contains names and their lammps-internal type index, starting with 1
-     * *typelist maps the lammps-type index to the vipster-internal index
+     * *typelist maps the lammps type index to the vipster item index
      */
     std::vector<size_t> bondtypelist;
     std::map<std::string, size_t> bondtypemap;
-    if(print_bonds){// || angles || dihedrals || impropers || needsMolID){
+    if(print_bonds){
         for(const auto& bond: step.getBonds()){
             if(bond.type){
                 bondtypelist.push_back(bondtypemap.emplace(
@@ -543,7 +592,6 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     std::list<std::set<size_t>> molSets{};
     if(needsMolID){
         molID.resize(step.getNat());
-        // make sure this doesn't reset bonds so the user won't be surprised
         for(const auto& bond: step.getBonds()){
             molSets.push_back(std::set<size_t>{bond.at1, bond.at2});
         }
@@ -591,21 +639,44 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         }
     }
 
-    auto vec = step.getCellVec() * step.getCellDim(AtomFmt::Angstrom);
-    if(!float_comp(vec[0][1], 0.) || !float_comp(vec[0][2], 0.) || !float_comp(vec[1][2], 0.)){
-        throw IO::Error("Lammps Input: cell vectors must form diagonal or lower triangular matrix");
-    }
-    file << "\n0.0 "
-         << vec[0][0] << " xlo xhi\n0.0 "
-         << vec[1][1] << " ylo yhi\n0.0 "
-         << vec[2][2] << " zlo zhi\n";
-    if(!float_comp(vec[1][0], 0.) || !float_comp(vec[2][0], 0.) || !float_comp(vec[2][1], 0.)){
-        file << vec[1][0] << ' ' << vec[2][0] << ' ' << vec[2][1] << " xy xz yz\n";
+    if(step.hasCell()){
+        // print existing cell
+        auto vec = step.getCellVec() * step.getCellDim(AtomFmt::Angstrom);
+        if(!float_comp(vec[0][1], 0.) || !float_comp(vec[0][2], 0.) || !float_comp(vec[1][2], 0.)){
+            throw IO::Error("Lammps Input: cell vectors must form diagonal or lower triangular matrix");
+        }
+        file << "\n0.0 "
+             << vec[0][0] << " xlo xhi\n0.0 "
+             << vec[1][1] << " ylo yhi\n0.0 "
+             << vec[2][2] << " zlo zhi\n";
+        if(!float_comp(vec[1][0], 0.) || !float_comp(vec[2][0], 0.) || !float_comp(vec[2][1], 0.)){
+            file << vec[1][0] << ' ' << vec[2][0] << ' ' << vec[2][1] << " xy xz yz\n";
+        }
+    }else{
+        // create bounding box suitable for shrink-wrapped non-periodic simulations
+        Vec pos_min{{std::numeric_limits<double>::max(),
+                 std::numeric_limits<double>::max(),
+                 std::numeric_limits<double>::max()}};
+        Vec pos_max{{std::numeric_limits<double>::lowest(),
+                 std::numeric_limits<double>::lowest(),
+                 std::numeric_limits<double>::lowest()}};
+        for(const auto& at: step){
+            pos_min[0] = std::min(pos_min[0], at.coord[0]);
+            pos_min[1] = std::min(pos_min[1], at.coord[1]);
+            pos_min[2] = std::min(pos_min[2], at.coord[2]);
+            pos_max[0] = std::max(pos_max[0], at.coord[0]);
+            pos_max[1] = std::max(pos_max[1], at.coord[1]);
+            pos_max[2] = std::max(pos_max[2], at.coord[2]);
+        }
+        file << '\n' << std::setprecision(8)
+             << pos_min[0] << ' ' << pos_max[0] << " xlo xhi\n"
+             << pos_min[1] << ' ' << pos_max[1] << " ylo yhi\n"
+             << pos_min[2] << ' ' << pos_max[2] << " zlo zhi\n";
     }
 
     file << "\nMasses\n\n";
     std::map<std::string, size_t> atomtypemap;
-    for(const auto& t: step.getTypes()){
+    for(const auto &t: step.getTypes()){
         atomtypemap.emplace(t, atomtypemap.size()+1);
         file << atomtypemap.size() << ' ' << m.getPTE().at(t).m << " # " << t << '\n';
     }
@@ -658,6 +729,110 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
                  << impropers[i].at4+1 << '\n';
         }
     }
+
+    if(print_coeff){
+        // parse parameter
+        if(!p || p->getFmt() != &IO::LmpInput){
+            throw IO::Error("Lammps Input: print coeffs requested but no suitable parameter set provided");
+        }
+        const auto& paircoeffs = std::get<coeffmap>(p->at("Pair Coeff").first);
+        const auto& bondcoeffs = std::get<coeffmap>(p->at("Bond Coeff").first);
+        const auto& bondfallback = IO::trim(std::get<std::string>(p->at("Bond Coeff Fallback").first));
+        bool bond_hasfallback = !bondfallback.empty();
+        const auto& anglecoeffs = std::get<coeffmap>(p->at("Angle Coeff").first);
+        const auto& anglefallback = IO::trim(std::get<std::string>(p->at("Angle Coeff Fallback").first));
+        bool angle_hasfallback = !anglefallback.empty();
+        const auto& dihedralcoeffs = std::get<coeffmap>(p->at("Dihedral Coeff").first);
+        const auto& dihedralfallback = IO::trim(std::get<std::string>(p->at("Dihedral Coeff Fallback").first));
+        bool dihedral_hasfallback = !bondfallback.empty();
+        const auto& impropercoeffs = std::get<coeffmap>(p->at("Improper Coeff").first);
+        const auto& improperfallback = IO::trim(std::get<std::string>(p->at("Improper Coeff Fallback").first));
+        bool improper_hasfallback = !bondfallback.empty();
+
+        // Pair Coeffs
+        file << "\nPair Coeffs\n\n";
+        // use atomtypemap created in the Masses section
+        for(const auto &[t, idx]: atomtypemap){
+            auto pos = paircoeffs.find(t);
+            if(pos == paircoeffs.end()){
+                throw IO::Error{fmt::format("Could not find pair coefficients for atom type {} in parameter set.", t)};
+            }
+            fmt::print(file, "{} {}\n", idx, pos->second);
+        }
+
+        // Bond Coeffs
+        if(print_bonds){
+            file << "\nBond Coeffs\n\n";
+            for(const auto &[t, idx]: bondtypemap){
+                auto pos = bondcoeffs.find(t);
+                if(pos == bondcoeffs.end()){
+                    if(bond_hasfallback){
+                        fmt::print(file, "{} {}\n", idx, bondfallback);
+                    }else{
+                        throw IO::Error{fmt::format("Could not find bond coefficients for bond type {} in parameter set. "
+                                                    "No fallback value provided", t)};
+                    }
+                }else{
+                    fmt::print(file, "{} {}\n", idx, pos->second);
+                }
+            }
+        }
+
+        // Angle Coeffs
+        if(print_angles){
+            file << "\nAngle Coeffs\n\n";
+            for(const auto &[t, idx]: angletypemap){
+                auto pos = anglecoeffs.find(t);
+                if(pos == anglecoeffs.end()){
+                    if(angle_hasfallback){
+                        fmt::print(file, "{} {}\n", idx, anglefallback);
+                    }else{
+                        throw IO::Error{fmt::format("Could not find angle coefficients for angle type {} in parameter set. "
+                                                    "No fallback value provided", t)};
+                    }
+                }else{
+                    fmt::print(file, "{} {}\n", idx, pos->second);
+                }
+            }
+        }
+
+        // Dihedral Coeffs
+        if(print_dihed){
+            file << "\nDihedral Coeffs\n\n";
+            for(const auto &[t, idx]: dihedtypemap){
+                auto pos = dihedralcoeffs.find(t);
+                if(pos == dihedralcoeffs.end()){
+                    if(dihedral_hasfallback){
+                        fmt::print(file, "{} {}\n", idx, dihedralfallback);
+                    }else{
+                        throw IO::Error{fmt::format("Could not find dihedral coefficients for dihedral type {} in parameter set. "
+                                                    "No fallback value provided", t)};
+                    }
+                }else{
+                    fmt::print(file, "{} {}\n", idx, pos->second);
+                }
+            }
+        }
+
+        // Improper Coeffs
+        if(print_improp){
+            file << "\nImproper Coeffs\n\n";
+            for(const auto &[t, idx]: improptypemap){
+                auto pos = impropercoeffs.find(t);
+                if(pos == impropercoeffs.end()){
+                    if(improper_hasfallback){
+                        fmt::print(file, "{} {}\n", idx, improperfallback);
+                    }else{
+                        throw IO::Error{fmt::format("Could not find improper coefficients for improper type {} in parameter set. "
+                                                    "No fallback value provided", t)};
+                    }
+                }else{
+                    fmt::print(file, "{} {}\n", idx, pos->second);
+                }
+            }
+        }
+    }
+
     file << '\n';
     return true;
 }
@@ -669,6 +844,6 @@ const IO::Plugin IO::LmpInput =
     "lmp",
     &LmpInpParser,
     &LmpInpWriter,
-    nullptr,
+    &makeParameter,
     &makePreset
 };
