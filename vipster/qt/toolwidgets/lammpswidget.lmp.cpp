@@ -234,6 +234,8 @@ void LammpsWidget::on_runButton_clicked()
         }
         // read input file
         lmp.input->one(fmt::format("read_data {}/inpgeom", tempdir.string()).c_str());
+        // get more details about energies
+        lmp.input->one("thermo_style custom step temp etotal ke pe ebond eangle edihed eimp evdwl ecoul");
         // register custom fix
         (*lmp.modify->fix_map)["vipster"] = &mkFixVipster;
         // run

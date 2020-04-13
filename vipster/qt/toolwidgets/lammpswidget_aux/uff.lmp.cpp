@@ -398,8 +398,8 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
                 atom.name = std::get<2>(*variant_pos);
             }
         }
-        // assign charge according to parameterization
-        atom.properties->charge = std::get<5>(UFF_Parameters.at(atom.name));
+        // clear charge
+        atom.properties->charge = 0;
     }
 
     // Step 4: determine bond-orders
@@ -439,7 +439,7 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
         }
         const auto& tuple = pos->second;
         const double r2sigma = 1 / std::pow(2, 1/6);
-        paircoeffs[t] = fmt::format("{} {}", std::get<2>(tuple) * r2sigma, std::get<3>(tuple));
+        paircoeffs[t] = fmt::format("{} {}", std::get<3>(tuple), std::get<2>(tuple) * r2sigma);
     }
     // determine reference distances, create bond coeffs
     auto& bondcoeffs = std::get<coeffmap>(p.at("Bond Coeff").first);
@@ -466,13 +466,13 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
         // determine force constant, store parameters
         if(bondcoeffs.find(b_name) == bondcoeffs.end()){
             double k = 664.12
-                     * s[b.at1].properties->charge
-                     * s[b.at2].properties->charge
+                     * std::get<5>(UFF_Parameters.at(name1))
+                     * std::get<5>(UFF_Parameters.at(name2))
                      / (r * r * r);
             // TODO:
 //            double D = BO * 70;
 //            double alpha = std::sqrt(k/(2*D));
-            bondcoeffs[b_name] = fmt::format("{} {}", r, 0.5*k); // harmonic
+            bondcoeffs[b_name] = fmt::format("{} {}", 0.5*k, r); // harmonic
         }
     }
     auto [angles, dihedrals, impropers] = s.getTopology();
@@ -485,7 +485,7 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
                                                name2, std::max(name1, name3));
         if(anglecoeffs.find(a_name) == anglecoeffs.end()){
             // force constant
-            double theta0 = std::get<1>(UFF_Parameters.at(name2));
+            double theta0 = deg2rad * std::get<1>(UFF_Parameters.at(name2));
             double cos_theta0 = std::cos(theta0);
             double r_ij = ref_dists.at({std::min(a.at1, a.at2), std::max(a.at1, a.at2)});
             double r_jk = ref_dists.at({std::min(a.at3, a.at2), std::max(a.at3, a.at2)});
@@ -523,14 +523,13 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
             // lammps formula: k * (1 + D * cos(n * phi))
             // -> k = 0.5 * V, D = -cos(n * phi_0)
             double k = 0;
-            int D = 0;
+            int D = 1;
             int n = 0;
             bool at2_sp3 = name2[2] == '3';
             bool at2_sp2 = name2[2] == '2' || name2[2] == 'R';
             bool at3_sp3 = name3[2] == '3';
             bool at3_sp2 = name3[2] == '2' || name3[2] == 'R';
             if(at2_sp3 && at3_sp3){
-                D = 1;
                 const std::map<std::string, double> group6 = {{"O_", 2},
                                                               {"S_", 6.8},
                                                               {"Se", 6.8},
@@ -549,16 +548,15 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
                     n = 3;
                 }
             }else if(at2_sp2 && at3_sp2){
-                // TODO:
-    //            k = 2.5 * std::sqrt(std::get<7>(UFF_Parameters.at(name2))*
-    //                                std::get<7>(UFF_Parameters.at(name3)))
-    //              * (1 + 4.18 * ln(BO));
+                k = 2.5 * std::sqrt(std::get<7>(UFF_Parameters.at(name2))*
+                                    std::get<7>(UFF_Parameters.at(name3)))
+                // TODO: replace with exact expression when BO is known
+                        * 3; //* (1 + 4.18 * ln(BO));
                 D = -1;
                 n = 2;
             }else if((at2_sp3 && at3_sp2) || (at2_sp2 && at3_sp3)){
                 // sp2 + sp3
                 k = 1;
-                D = 1;
                 n = 3;
             }
             dihedcoeffs[d_name] = fmt::format("{} {} {}", k, D, n);
@@ -608,7 +606,10 @@ const ForceField UFF {
     "hybrid fourier cosine",
     "harmonic",
     "fourier",
-    {"special_bonds lj/coul 0.0 0.0 1.0", "pair_modify mix geometric"},
+    {
+        "special_bonds lj/coul 0.0 0.0 1.0",
+        "pair_modify mix geometric",
+    },
     &UFF_PrepareStep,
     &UFF_PrepareParameters
 };
