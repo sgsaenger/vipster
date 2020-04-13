@@ -128,6 +128,7 @@ struct AtomList{
             }
             // convert to regular string-reference
             operator const std::string&() const {return (*a.elem)->first;}
+            operator std::string_view() const {return (*a.elem)->first;}
             // comparison
             bool operator==(const std::string& rhs) const {return (*a.elem)->first == rhs;}
             // const char* access

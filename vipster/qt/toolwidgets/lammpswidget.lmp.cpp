@@ -23,8 +23,7 @@ namespace fs = std::filesystem;
 
 LammpsWidget::LammpsWidget(QWidget *parent) :
     BaseWidget(parent),
-    ui(new Ui::LammpsWidget),
-    forcefields{defaultForcefields()}
+    ui(new Ui::LammpsWidget)
 {
     ui->setupUi(this);
     ui->customFrame->setHidden(true);
@@ -104,6 +103,53 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     if(info.has_style("fix", "nph"))
         ui->mdSel->addItem("nph");
 
+    // register forcefields if lammps is compatible
+    for(const auto& FF: defaultForcefields()){
+        // skip inserting if any style is not found in lammps
+        const auto& impl = *FF.second;
+        if(impl.pair.has_value()){
+            // special treatment because of cutoffs
+            std::string name;
+            std::stringstream line{impl.pair.value()};
+            bool val{true};
+            while(!(line >> name).eof()){
+                if(!isalpha(name[0])){
+                    continue;
+                }
+                val &= info.has_style("pair", name);
+            }
+            if(!val){
+                continue;
+            }
+        }
+        auto checkStyle = [&](const std::string &type, const std::string &line){
+            std::stringstream ls{line};
+            std::string name;
+            bool val{true};
+            while(!(ls >> name).eof()){ // loop to support hybrid
+                val &= info.has_style(type, name);
+            }
+            return val;
+        };
+        if(impl.bond.has_value() && !checkStyle("bond", impl.bond.value())){
+            continue;
+        }
+        if(impl.angle.has_value() && !checkStyle("angle", impl.angle.value())){
+            continue;
+        }
+        if(impl.dihedral.has_value() && !checkStyle("dihedral", impl.dihedral.value())){
+            continue;
+        }
+        if(impl.improper.has_value() && !checkStyle("improper", impl.improper.value())){
+            continue;
+        }
+        forcefields.insert(FF);
+        ui->ffSel->addItem(FF.first.c_str());
+    }
+    ui->ffSel->addItem("Custom");
+    // ensure widget is in valid state
+    on_ffSel_currentIndexChanged(0);
+
     // TODO: register callback or create own fix
 }
 
@@ -129,7 +175,7 @@ void LammpsWidget::on_runButton_clicked()
     if(FFname == "Custom"){
         return;
     }
-    const auto& FF = defaultForcefields().at(FFname);
+    const auto& FF = forcefields.at(FFname);
     // manually unset and save user locale
     std::string userLocale = setlocale(0, nullptr);
     setlocale(LC_ALL, "C");
@@ -173,13 +219,13 @@ void LammpsWidget::on_runButton_clicked()
             lmp.input->one(fmt::format("bond_style {}", FF->bond.value()).c_str());
         }
         if(FF->angle.has_value()){
-            lmp.input->one(fmt::format("angle_style {}", FF->bond.value()).c_str());
+            lmp.input->one(fmt::format("angle_style {}", FF->angle.value()).c_str());
         }
         if(FF->dihedral.has_value()){
-            lmp.input->one(fmt::format("dihedral_style {}", FF->bond.value()).c_str());
+            lmp.input->one(fmt::format("dihedral_style {}", FF->dihedral.value()).c_str());
         }
         if(FF->improper.has_value()){
-            lmp.input->one(fmt::format("improper_style {}", FF->bond.value()).c_str());
+            lmp.input->one(fmt::format("improper_style {}", FF->improper.value()).c_str());
         }
         for(const auto &cmd: FF->extra_cmds){
             lmp.input->one(cmd.c_str());
@@ -258,7 +304,7 @@ void LammpsWidget::on_ffPrepare_clicked()
     if(FFname == "Custom"){
         return;
     }
-    const auto& FF = defaultForcefields().at(FFname);
+    const auto& FF = forcefields.at(FFname);
     if(FF->prepareStep){
         try{
             auto mol = FF->prepareStep(*master->curStep, master->curMol->name);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>679</height>
+    <height>823</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,18 +72,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QComboBox" name="ffSel">
-        <item>
-         <property name="text">
-          <string>UFF</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Custom</string>
-         </property>
-        </item>
-       </widget>
+       <widget class="QComboBox" name="ffSel"/>
       </item>
       <item>
        <widget class="QFrame" name="customFrame">

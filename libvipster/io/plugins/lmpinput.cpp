@@ -531,7 +531,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
                 const std::string& name1 = step[bond.at1].name;
                 const std::string& name2 = step[bond.at2].name;
                 bondtypelist.push_back(bondtypemap.emplace(
-                    std::min(name1, name2)+'-'+std::max(name1,name2),
+                    fmt::format("{}-{}", std::min(name1, name2), std::max(name1, name2)),
                     bondtypemap.size()+1).first->second);
             }
         }
@@ -545,7 +545,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
             const std::string& name2 = step[angle.at2].name;
             const std::string& name3 = step[angle.at3].name;
             angletypelist.push_back(angletypemap.emplace(
-                std::min(name1, name3)+'-'+name2+std::max(name1,name3),
+                fmt::format("{}-{}-{}", std::min(name1, name3), name2, std::max(name1, name3)),
                 angletypemap.size()+1).first->second);
         }
     }
@@ -555,14 +555,12 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
     if(print_improp){
         for(const auto& improp: impropers){
             const std::string& name1 = step[improp.at1].name.c_str();
-            std::array<const char*,3> names = {step[improp.at2].name.c_str(),
-                                               step[improp.at3].name.c_str(),
-                                               step[improp.at4].name.c_str()};
-            std::sort(names.begin(), names.end(), [](const auto& lhs, const auto& rhs){
-                return strcmp(lhs, rhs) < 0;
-            });
+            std::array<std::string_view, 3> names = {step[improp.at2].name,
+                                                     step[improp.at3].name,
+                                                     step[improp.at4].name};
+            std::sort(names.begin(), names.end());
             improptypelist.push_back(improptypemap.emplace(
-                name1+'-'+names[0]+'-'+names[1]+'-'+names[2],
+                fmt::format("{}-{}-{}-{}", name1, names[0], names[1], names[2]),
                 improptypemap.size()+1).first->second);
         }
     }
@@ -575,15 +573,11 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
             const std::string& name2 = step[dihed.at2].name;
             const std::string& name3 = step[dihed.at3].name;
             const std::string& name4 = step[dihed.at4].name;
-            if(name1 < name4){
-                dihedtypelist.push_back(dihedtypemap.emplace(
-                    name1+'-'+name2+'-'+name3+'-'+name4,
-                    dihedtypemap.size()+1).first->second);
-            }else{
-                dihedtypelist.push_back(dihedtypemap.emplace(
-                    name4+'-'+name3+'-'+name2+'-'+name1,
-                    dihedtypemap.size()+1).first->second);
-            }
+            dihedtypelist.push_back(dihedtypemap.emplace(
+                name1 < name4 ?
+                    fmt::format("{}-{}-{}-{}", name1, name2, name3, name4) :
+                    fmt::format("{}-{}-{}-{}", name1, name2, name3, name4),
+                dihedtypemap.size()+1).first->second);
         }
     }
 

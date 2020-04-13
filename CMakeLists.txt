@@ -203,6 +203,7 @@ if(VIPSTER_DESKTOP)
             set(PKG_RIGID ON CACHE INTERNAL "")
             set(PKG_KSPACE ON CACHE INTERNAL "")
             set(PKG_MISC ON CACHE INTERNAL "")
+            set(PKG_USER-MISC ON CACHE INTERNAL "")
             add_subdirectory(external/lammps/cmake)
         endif()
         # set link/include options
