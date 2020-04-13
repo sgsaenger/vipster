@@ -268,38 +268,37 @@ const std::map<std::string, std::tuple<double, double, double, double, double, d
 Molecule UFF_PrepareStep(const Step &s, const std::string &name){
     Molecule mol{s, name+" (UFF)"};
     auto &step = mol.getStep(0);
-    // Step 1: create adjacency list
-    using adjacency_node = std::vector<void*>;
+
+    // Step 1: create adjacency list from bond list, assign bond-order=1 cases
+    using adjacency_node = std::vector<std::pair<size_t, size_t>>;
     auto adjacency_list = [](const Step &step)
     {
         std::vector<adjacency_node> coord(step.getNat());
-        for(const auto& b: step.getBonds()){
-            coord[b.at1].push_back(&coord[b.at2]);
-            coord[b.at2].push_back(&coord[b.at1]);
+        const auto& bonds = step.getBonds();
+        for(size_t i=0; i<bonds.size(); ++i){
+            const auto &b = bonds[i];
+            coord[b.at1].emplace_back(b.at2, i);
+            coord[b.at2].emplace_back(b.at1, i);
         }
         return coord;
     }(step);
+
     // Step 2: search for aromatic rings
-    auto aromatic_atoms = [](auto& al, const Step& step){
-        std::set<size_t> found_atoms;
-        if(al.empty()) return found_atoms;
+    auto [aromatic_atoms, bond_aromaticity] = [](auto& al, const Step& step){
+        std::set<size_t> aromatic_atoms;
+        std::map<size_t, double> bond_aromaticity;
+        if(al.empty()) return std::pair{std::move(aromatic_atoms), std::move(bond_aromaticity)};
         size_t target_size = 6;
         size_t current_size = 0;
-        adjacency_node *const baseNode = &*al.begin();
-        std::vector<adjacency_node*> indirect_al(al.size());
-        for(size_t i=0; i<al.size(); ++i){
-            indirect_al[i] = &al[i];
-        }
-        adjacency_node **curNode = &*indirect_al.begin();
-        adjacency_node **curEnd = curNode + indirect_al.size();
-        std::vector<std::tuple<adjacency_node**, adjacency_node**, int>> nodeStack;
-        // iterate over all nodes
+        size_t cur_idx = 0;
+        // store previous idx, current idx in previous adjacency list, and influence on ring size
+        std::vector<std::tuple<size_t, size_t, int>> node_stack;
+        // iterate over all atoms
         while(true){
-            const size_t curIdx = *curNode - baseNode;
             // check if the current atom could possibly be aromatic
             const auto pos = std::find_if(aromaticity_criteria.begin(), aromaticity_criteria.end(), [&](const auto& type){
-                return (std::get<0>(type) == step[*curNode - baseNode].type->Z)
-                    && (std::get<1>(type) == (*curNode)->size());
+                return (std::get<0>(type) == step[cur_idx].type->Z)
+                    && (std::get<1>(type) == al[cur_idx].size());
             });
             /* abort-criteria:
              * - non aromatic atom
@@ -312,41 +311,61 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
              */
             if(pos != aromaticity_criteria.end()){
                 if((current_size == target_size) &&
-                   (*curNode == *std::get<0>(nodeStack[0]))){
+                   (cur_idx == std::get<0>(node_stack[0]))){
                     // found an aromatic ring, success
-                    for(const auto &[node, t1, t2]: nodeStack){
-                        found_atoms.insert(*node - baseNode);
+                    for(const auto &[idx, neigh, __]: node_stack){
+                        // mark bond as aromatic
+                        // (TODO: naive search, visited 2*target_size times, optimize?)
+                        bond_aromaticity[al[idx][neigh].second] += 0.5/target_size;
+                        // mark atom as aromatic
+                        aromatic_atoms.insert(idx);
                     }
                 }else if(current_size < target_size){
                     // too small
-                    const auto tmp = std::find_if(nodeStack.begin(), nodeStack.end(), [&](const auto& tuple){return *std::get<0>(tuple) == *curNode;});
-                    if(tmp == nodeStack.end()){
+                    const auto tmp = std::find_if(node_stack.begin(), node_stack.end(),
+                                                  [&](const auto &tuple){return std::get<0>(tuple) == cur_idx;});
+                    if(tmp == node_stack.end()){
                         // is not ring, increase depth
                         current_size += 1;
                         target_size += std::get<2>(*pos);
-                        nodeStack.emplace_back(curNode, curEnd, std::get<2>(*pos));
-                        auto tmpSize = (*curNode)->size();
-                        curNode = reinterpret_cast<adjacency_node**>(&*(*curNode)->begin());
-                        curEnd = curNode + tmpSize;
+                        node_stack.emplace_back(cur_idx, 0, std::get<2>(*pos));
+                        cur_idx = al[cur_idx][0].first;
+                        // skip regular index increment
                         continue;
                     }
                 }
             }
             // query next atom on current or previous depth
-            while(++curNode == curEnd){
-                // decrease depth
-                current_size -= 1;
-                int tmp;
-                if(nodeStack.empty()){
-                    // exhausted adjacency list, return results
-                    return found_atoms;
+            std::function<void(void)> getNextIdx = [&](){
+                if(node_stack.empty()){
+                    // next base atom
+                    cur_idx++;
+                }else{
+                    size_t prev_idx = std::get<0>(node_stack.back());
+                    size_t &neigh_idx = std::get<1>(node_stack.back());
+                    int ring_change = std::get<2>(node_stack.back());
+                    neigh_idx++;
+                    if(neigh_idx >= al[prev_idx].size()){
+                        // decrease stack depth
+                        current_size -= 1;
+                        target_size -= ring_change;
+                        cur_idx = prev_idx;
+                        node_stack.pop_back();
+                        // recursively increase idx
+                        getNextIdx();
+                    }else{
+                        // next neighbour
+                        cur_idx = al[prev_idx][neigh_idx].first;
+                    }
                 }
-                std::tie(curNode, curEnd, tmp) = nodeStack.back();
-                nodeStack.pop_back();
-                target_size -= tmp;
+            };
+            getNextIdx();
+            if(cur_idx >= al.size()){
+                return std::pair{std::move(aromatic_atoms), std::move(bond_aromaticity)};
             }
         }
     }(adjacency_list, step);
+
     // Step 3: assign atom-types based on coordination and aromaticity
     for(size_t i=0; i<step.getNat(); ++i){
         auto atom = step[i];
@@ -356,7 +375,7 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
             // need to deduce atom type first
             auto element_pos = UFF_Criteria.find(Z);
             if(element_pos == UFF_Criteria.end()){
-                throw Error{fmt::format("Could not deduce force-field type of atom {} of vipster type \"{}\" (Z: {})",
+                throw Error{fmt::format("Could not deduce force-field type of atom {} of vipster type \"{}\" (Z {} is not parameterized)",
                                         i, atom.name.c_str(), Z)};
             }
             const auto& variants = element_pos->second;
@@ -372,8 +391,8 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
                         && ((std::get<1>(tuple) == -1) || std::get<1>(tuple) == aromatic); // aromaticity must match if not -1
                 });
                 if(variant_pos == variants.end()){
-                    throw Error{fmt::format("Could not deduce force-filed type of atom {} of vipster type {}"
-                                            " with coordination {} and aromaticity {}",
+                    throw Error{fmt::format("Could not deduce force-field type of atom {} of vipster type {}"
+                                            " (no parameter for coordination {} and aromaticity {})",
                                             i, atom.name.c_str(), coord, aromatic)};
                 }
                 atom.name = std::get<2>(*variant_pos);
@@ -382,11 +401,33 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
         // assign charge according to parameterization
         atom.properties->charge = std::get<5>(UFF_Parameters.at(atom.name));
     }
+
+    // Step 4: determine bond-orders
+    for(size_t i=0; i<s.getNat(); ++i){
+        /* applicable to:
+         * B_3 (0.5 when bridged), B_2 (1!), VA: 3
+         * C_1 (1, 2, 3), C_R (1, ~1.5), C_2(1, 2), VA: 4
+         * N_1, N_2, N_3 (1), N_R (1, ~1.5), VA: 3
+         * O_1 (3), O_2 (2), O_R (~1.5), VA: 2/3
+         * P_3 (1, 2), VA: 3/5
+         * S_2 (1, 2), S_R (~1.5), S_3 (1, 2), VA: 2/4/6
+         */
+        auto Z = s[i].type->Z;
+    }
     return mol;
 }
 
 IO::Parameter UFF_PrepareParameters(const Step &s)
 {
+    /* TODO:
+     * determine bond-order
+     * needed for:
+     * - r_BO (bond distance correction)
+     * - D_ij (alpha in morse bond potential)
+     * - V_sp2 (dihedral force constant)
+     * => necessary to distinguish bond type according to atom's BO?
+     */
+
     auto p = IO::LmpInput.makeParam();
     using coeffmap = std::map<std::string, std::string>;
     // create pair coeffs
@@ -400,50 +441,173 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
         const double r2sigma = 1 / std::pow(2, 1/6);
         paircoeffs[t] = fmt::format("{} {}", std::get<2>(tuple) * r2sigma, std::get<3>(tuple));
     }
-    // create bond coeffs
+    // determine reference distances, create bond coeffs
     auto& bondcoeffs = std::get<coeffmap>(p.at("Bond Coeff").first);
-    for(const auto &b: s.getBonds()){
-        const std::string& name1 = s[b.at1].name;
+    std::map<std::pair<size_t, size_t>, double> ref_dists{};
+    for(const auto &b: s.getBonds()){        const std::string& name1 = s[b.at1].name;
         const std::string& name2 = s[b.at2].name;
-        const std::string b_name = std::min(name1, name2)+'-'+std::max(name1,name2);
-        auto pos = bondcoeffs.find(b_name);
-        /* TODO:
-         * determine bond-order
-         * needed for r_BO distance correction
-         * and D_ij used in alpha, needed for morse potential
-         */
-        if(pos == bondcoeffs.end()){
-            double r_i = std::get<0>(UFF_Parameters.at(s[b.at1].name));
-            double r_j = std::get<0>(UFF_Parameters.at(s[b.at2].name));
-//            double r_BO = -0.1332 * (r_i + r_j) * log(BO);
-            double x_i = std::get<8>(UFF_Parameters.at(s[b.at1].name));
-            double x_j = std::get<8>(UFF_Parameters.at(s[b.at2].name));
-            double r_EN = r_i * r_j
-                    * (std::sqrt(x_i) - std::sqrt(x_j))
-                    * (std::sqrt(x_i) - std::sqrt(x_j))
-                    / (x_i * r_i + x_j * r_j);
-            double r = r_i + r_j + r_EN; // + r_BO
+        const std::string b_name = b.type ?
+                    b.type->first :
+                    fmt::format("{}-{}", std::min(name1, name2), std::max(name1, name2));
+        // corrected reference distance
+        double r_i = std::get<0>(UFF_Parameters.at(name1));
+        double r_j = std::get<0>(UFF_Parameters.at(name2));
+        // TODO:
+//        double r_BO = -0.1332 * (r_i + r_j) * log(BO);
+        double x_i = std::get<8>(UFF_Parameters.at(name1));
+        double x_j = std::get<8>(UFF_Parameters.at(name2));
+        double r_EN = r_i * r_j
+                * (std::sqrt(x_i) - std::sqrt(x_j))
+                * (std::sqrt(x_i) - std::sqrt(x_j))
+                / (x_i * r_i + x_j * r_j);
+        double r = r_i + r_j - r_EN; // + r_BO
+        // store for later use
+        ref_dists[{std::min(b.at1, b.at2), std::max(b.at1, b.at2)}] = r;
+        // determine force constant, store parameters
+        if(bondcoeffs.find(b_name) == bondcoeffs.end()){
             double k = 664.12
                      * s[b.at1].properties->charge
                      * s[b.at2].properties->charge
                      / (r * r * r);
+            // TODO:
 //            double D = BO * 70;
 //            double alpha = std::sqrt(k/(2*D));
             bondcoeffs[b_name] = fmt::format("{} {}", r, 0.5*k); // harmonic
         }
     }
+    auto [angles, dihedrals, impropers] = s.getTopology();
     auto& anglecoeffs = std::get<coeffmap>(p.at("Angle Coeff").first);
+    for(const auto &a: angles){
+        const std::string& name1 = s[a.at1].name;
+        const std::string& name2 = s[a.at2].name;
+        const std::string& name3 = s[a.at3].name;
+        const std::string a_name = fmt::format("{}-{}-{}", std::min(name1, name3),
+                                               name2, std::max(name1, name3));
+        if(anglecoeffs.find(a_name) == anglecoeffs.end()){
+            // force constant
+            double theta0 = std::get<1>(UFF_Parameters.at(name2));
+            double cos_theta0 = std::cos(theta0);
+            double r_ij = ref_dists.at({std::min(a.at1, a.at2), std::max(a.at1, a.at2)});
+            double r_jk = ref_dists.at({std::min(a.at3, a.at2), std::max(a.at3, a.at2)});
+            double r_ik = r_ij * r_ij + r_jk * r_jk - 2 * r_ij * r_jk * std::cos(theta0);
+            double Z_i = std::get<5>(UFF_Parameters.at(name1));
+            double Z_k = std::get<5>(UFF_Parameters.at(name3));
+            double k = 664.12 * Z_i * Z_k / std::pow(r_ik, 5) // beta reduced to 664.12 by eliminating the radii
+                     * (3 * r_ij * r_jk * (1 - cos_theta0 * cos_theta0)
+                        - r_ik * r_ik * cos_theta0);
+            if(name2 == "C_1"){
+                /* linear molecule: angle_style cosine
+                 * other linear atom types either not parameterized or not correctly recognized (N_1?)
+                 */
+                anglecoeffs[a_name] = fmt::format("cosine {}", k);
+            }else{
+                // general case: angle_style fourier
+                double c2 = 1 / (4 * std::sin(theta0) * std::sin(theta0));
+                double c1 = -4 * c2 * cos_theta0;
+                double c0 = c2 * (2 * cos_theta0 * cos_theta0 + 1);
+                anglecoeffs[a_name] = fmt::format("fourier {} {} {} {}", k, c0, c1, c2);
+            }
+        }
+    }
     auto& dihedcoeffs = std::get<coeffmap>(p.at("Dihedral Coeff").first);
+    for(const auto &d: dihedrals){
+        const std::string& name1 = s[d.at1].name;
+        const std::string& name2 = s[d.at2].name;
+        const std::string& name3 = s[d.at3].name;
+        const std::string& name4 = s[d.at4].name;
+        const std::string d_name = name1 < name4 ?
+                    fmt::format("{}-{}-{}-{}", name1, name2, name3, name4)
+                  : fmt::format("{}-{}-{}-{}", name4, name3, name2, name1);
+        if(dihedcoeffs.find(d_name) == dihedcoeffs.end()){
+            // uff formula: 0.5 * V * (1 - cos(n * phi_0) * cos(n * phi))
+            // lammps formula: k * (1 + D * cos(n * phi))
+            // -> k = 0.5 * V, D = -cos(n * phi_0)
+            double k = 0;
+            int D = 0;
+            int n = 0;
+            bool at2_sp3 = name2[2] == '3';
+            bool at2_sp2 = name2[2] == '2' || name2[2] == 'R';
+            bool at3_sp3 = name3[2] == '3';
+            bool at3_sp2 = name3[2] == '2' || name3[2] == 'R';
+            if(at2_sp3 && at3_sp3){
+                D = 1;
+                const std::map<std::string, double> group6 = {{"O_", 2},
+                                                              {"S_", 6.8},
+                                                              {"Se", 6.8},
+                                                              {"Te", 6.8},
+                                                              {"Po", 6.8}};
+                auto pos2 = group6.find(name2.substr(0,2));
+                auto pos3 = group6.find(name3.substr(0,2));
+                if((pos2 != group6.end()) && (pos3 != group6.end())){
+                    // both atoms are of group6
+                    k = 0.5 * std::sqrt(pos2->second * pos3->second);
+                    n = 2;
+                }else{
+                    // general case
+                    k = 0.5 * std::sqrt(std::get<6>(UFF_Parameters.at(name2)) *
+                                        std::get<6>(UFF_Parameters.at(name3)));
+                    n = 3;
+                }
+            }else if(at2_sp2 && at3_sp2){
+                // TODO:
+    //            k = 2.5 * std::sqrt(std::get<7>(UFF_Parameters.at(name2))*
+    //                                std::get<7>(UFF_Parameters.at(name3)))
+    //              * (1 + 4.18 * ln(BO));
+                D = -1;
+                n = 2;
+            }else if((at2_sp3 && at3_sp2) || (at2_sp2 && at3_sp3)){
+                // sp2 + sp3
+                k = 1;
+                D = 1;
+                n = 3;
+            }
+            dihedcoeffs[d_name] = fmt::format("{} {} {}", k, D, n);
+        }
+    }
     auto& impropcoeffs = std::get<coeffmap>(p.at("Improper Coeff").first);
+    for(const auto &i: impropers){
+        const std::string& name1 = s[i.at1].name;
+        std::array<std::string_view,3> names = {s[i.at2].name,
+                                                s[i.at3].name,
+                                                s[i.at4].name};
+        std::sort(names.begin(), names.end());
+        const std::string i_name = fmt::format("{}-{}-{}-{}", name1, names[0], names[1], names[2]);
+        auto pos = impropcoeffs.find(i_name);
+        if(pos == impropcoeffs.end()){
+            int c0{}, c1{}, c2{};
+            double k{};
+            std::map<std::string, double> group5 = {{"P_", 84.4339},
+                                                    {"As", 86.97305},
+                                                    {"Sb", 87.7047},
+                                                    {"Bi", 90.}};
+            if(name1 == "C_2" || name1 == "C_R"){
+                c0 = 1;
+                c1 = -1;
+                c2 = 0;
+                if(names[0].substr(0,2) == "O_" || names[1].substr(0,2) == "O_" || names[2].substr(0,2) == "O_"){
+                    k = 50./3.;
+                }else{
+                    k = 2;
+                }
+            }else if(auto pos = group5.find(name1.substr(0,2)); pos != group5.end()){
+                const auto &omega = pos->second;
+                c2 = 1;
+                c1 = -4 * c2 * std::cos(omega);
+                c0 = - (c1 * std::cos(omega) + c2 * std::cos(2 * omega));
+                k = 22. / (3 * (c0 + c1 + c2));
+            }
+            impropcoeffs[i_name] = fmt::format("{} {} {} {} 1", k, c0, c1, c2);
+        }
+    }
     return p;
 }
 
 const ForceField UFF {
     "lj/charmm/coul/charmm 13.0 15.0",
     "harmonic",
-    {},
-    {},
-    {},
+    "hybrid fourier cosine",
+    "harmonic",
+    "fourier",
     {"special_bonds lj/coul 0.0 0.0 1.0", "pair_modify mix geometric"},
     &UFF_PrepareStep,
     &UFF_PrepareParameters

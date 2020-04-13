@@ -576,7 +576,7 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
             dihedtypelist.push_back(dihedtypemap.emplace(
                 name1 < name4 ?
                     fmt::format("{}-{}-{}-{}", name1, name2, name3, name4) :
-                    fmt::format("{}-{}-{}-{}", name1, name2, name3, name4),
+                    fmt::format("{}-{}-{}-{}", name4, name3, name2, name1),
                 dihedtypemap.size()+1).first->second);
         }
     }
