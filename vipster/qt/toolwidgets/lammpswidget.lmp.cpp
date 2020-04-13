@@ -2,6 +2,7 @@
 #include "ui_lammpswidget.lmp.h"
 #include "../mainwindow.h"
 #include "io/plugins/lmpinput.h"
+#include "lammpswidget_aux/fix_vipster.lmp.h"
 
 #include <fmt/format.h>
 
@@ -14,6 +15,7 @@
 #include "lammps/error.h"
 #include "lammps/input.h"
 #include "lammps/info.h"
+#include "lammps/modify.h"
 #include "lammps/update.h"
 #include "lammps/exceptions.h"
 
@@ -232,11 +234,24 @@ void LammpsWidget::on_runButton_clicked()
         }
         // read input file
         lmp.input->one(fmt::format("read_data {}/inpgeom", tempdir.string()).c_str());
+        // register custom fix
+        (*lmp.modify->fix_map)["vipster"] = &mkFixVipster;
         // run
         if(ui->calcStack->currentIndex() == 0){
             // Minimization
+            auto min_style = ui->minSel->currentText().toStdString();
+            // report back each step
             lmp.input->one("thermo 1");
-            lmp.input->one(fmt::format("min_style {}", ui->minSel->currentText().toStdString()).c_str());
+            lmp.input->one("fix vipster all vipster 1");
+            auto fix_vipster = dynamic_cast<FixVipster*>(lmp.modify->fix[lmp.modify->nfix-1]);
+            if(!fix_vipster){
+                throw Vipster::Error{"Error on registering callback fix."};
+            }else{
+                fix_vipster->init_vipster(master, fmt::format("(Min: {})", min_style));
+            }
+            // set minimizer
+            lmp.input->one(fmt::format("min_style {}", min_style).c_str());
+            // trigger calculation
             lmp.input->one(fmt::format("minimize {} {} {} {}",
                                        ui->etolInput->text().toInt(),
                                        ui->ftolInput->text().toInt(),
@@ -278,6 +293,13 @@ void LammpsWidget::on_runButton_clicked()
             }
             // actual MD
             lmp.input->one(fmt::format("thermo {}", reportstep).c_str());
+            lmp.input->one(fmt::format("fix vipster all vipster {}", reportstep).c_str());
+            auto fix_vipster = dynamic_cast<FixVipster*>(lmp.modify->fix[lmp.modify->nfix-1]);
+            if(!fix_vipster){
+                throw Vipster::Error{"Error on registering callback fix."};
+            }else{
+                fix_vipster->init_vipster(master, fmt::format("(MD: {})", ensemble.toUpper().toStdString()));
+            }
             lmp.input->one(fmt::format("run {}", dynstep).c_str());
         }
     }catch(LAMMPSAbortException &e){

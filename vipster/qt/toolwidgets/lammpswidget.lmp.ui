@@ -183,6 +183,22 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="4">
+       <widget class="QLabel" name="GPULabel">
+        <property name="text">
+         <string>GPU:</string>
+        </property>
+        <property name="buddy">
+         <cstring>GPUSpin</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="MPISpin"/>
+      </item>
+      <item row="1" column="3">
+       <widget class="QSpinBox" name="OMPSpin"/>
+      </item>
       <item row="0" column="0" colspan="3">
        <widget class="QLabel" name="label">
         <property name="sizePolicy">
@@ -209,19 +225,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="MPILabel">
-        <property name="text">
-         <string>MPI:</string>
-        </property>
-        <property name="buddy">
-         <cstring>MPISpin</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="MPISpin"/>
-      </item>
       <item row="1" column="2">
        <widget class="QLabel" name="OMPLabel">
         <property name="text">
@@ -232,21 +235,18 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QSpinBox" name="OMPSpin"/>
-      </item>
-      <item row="1" column="4">
-       <widget class="QLabel" name="GPULabel">
-        <property name="text">
-         <string>GPU:</string>
-        </property>
-        <property name="buddy">
-         <cstring>GPUSpin</cstring>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="5">
        <widget class="QSpinBox" name="GPUSpin"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="MPILabel">
+        <property name="text">
+         <string>MPI:</string>
+        </property>
+        <property name="buddy">
+         <cstring>MPISpin</cstring>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -294,79 +294,81 @@
         </property>
         <widget class="QWidget" name="minPage">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="2" column="3">
-           <widget class="QLineEdit" name="maxevalInput">
-            <property name="text">
-             <string>1000</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="ftolLabel">
-            <property name="toolTip">
-             <string>Stopping tolerance for force (kcal/mol*angstrom)</string>
-            </property>
-            <property name="text">
-             <string>ftol</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QLabel" name="minLabel">
-            <property name="text">
-             <string>Min Style:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QComboBox" name="minSel"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="etolLabel">
-            <property name="toolTip">
-             <string>Stopping tolerance for energy change (unitless, depends on system size)</string>
-            </property>
-            <property name="text">
-             <string>etol</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="maxevalLabel">
-            <property name="text">
-             <string>maxeval</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLineEdit" name="etolInput">
-            <property name="text">
-             <string>1.0e-4</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QLineEdit" name="maxItInput">
-            <property name="text">
-             <string>100</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <widget class="QLineEdit" name="ftolInput">
             <property name="text">
              <string>1.0e-6</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="maxItLabel">
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="maxItInput">
             <property name="text">
-             <string>maxiter</string>
+             <string>100</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="4">
+          <item row="5" column="0">
+           <widget class="QLabel" name="maxevalLabel">
+            <property name="text">
+             <string>Max force evaluations</string>
+            </property>
+            <property name="buddy">
+             <cstring>maxevalInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="maxevalInput">
+            <property name="text">
+             <string>1000</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="maxItLabel">
+            <property name="text">
+             <string>Max min iterations</string>
+            </property>
+            <property name="buddy">
+             <cstring>maxItInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="etolInput">
+            <property name="text">
+             <string>1.0e-4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="ftolLabel">
+            <property name="toolTip">
+             <string>Stopping tolerance for force (kcal/mol*angstrom)</string>
+            </property>
+            <property name="text">
+             <string>Force tolerance</string>
+            </property>
+            <property name="buddy">
+             <cstring>ftolInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="etolLabel">
+            <property name="toolTip">
+             <string>Stopping tolerance for energy change (unitless, depends on system size)</string>
+            </property>
+            <property name="text">
+             <string>Energy tolerance</string>
+            </property>
+            <property name="buddy">
+             <cstring>etolInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="2">
            <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -379,6 +381,16 @@
             </property>
            </spacer>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="minLabel">
+            <property name="text">
+             <string>Min Style:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="minSel"/>
+          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="page_2">
@@ -387,6 +399,9 @@
            <widget class="QLabel" name="mdLabel">
             <property name="text">
              <string>Integrating fix:</string>
+            </property>
+            <property name="buddy">
+             <cstring>mdSel</cstring>
             </property>
            </widget>
           </item>
@@ -423,6 +438,9 @@
            <widget class="QLabel" name="velLabel">
             <property name="text">
              <string>Velocities</string>
+            </property>
+            <property name="buddy">
+             <cstring>velSel</cstring>
             </property>
            </widget>
           </item>
@@ -462,6 +480,9 @@
             <property name="text">
              <string>Pressure (atm)</string>
             </property>
+            <property name="buddy">
+             <cstring>pressInput</cstring>
+            </property>
            </widget>
           </item>
           <item row="4" column="1">
@@ -472,12 +493,18 @@
             <property name="text">
              <string>Steps (equilibrate)</string>
             </property>
+            <property name="buddy">
+             <cstring>equibInput</cstring>
+            </property>
            </widget>
           </item>
           <item row="5" column="0">
            <widget class="QLabel" name="tempLabel">
             <property name="text">
              <string>Temperature (K)</string>
+            </property>
+            <property name="buddy">
+             <cstring>tempInput</cstring>
             </property>
            </widget>
           </item>
@@ -506,6 +533,9 @@
            <widget class="QLabel" name="reportLabel">
             <property name="text">
              <string>Steps (report)</string>
+            </property>
+            <property name="buddy">
+             <cstring>reportInput</cstring>
             </property>
            </widget>
           </item>
