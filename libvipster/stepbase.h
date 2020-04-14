@@ -677,15 +677,15 @@ private:
         Vec size_split = diff;
         SizeVec n_split{1,1,1};
         if(diff[0] >= cut){
-            n_split[0] = static_cast<size_t>(std::round(diff[0] / cut));
+            n_split[0] = std::min(25ul, static_cast<size_t>(std::round(diff[0] / cut)));
             size_split[0] = diff[0] / n_split[0];
         }
         if(diff[1] >= cut){
-            n_split[1] = static_cast<size_t>(std::round(diff[1] / cut));
+            n_split[1] = std::min(25ul, static_cast<size_t>(std::round(diff[1] / cut)));
             size_split[1] = diff[1] / n_split[1];
         }
         if(diff[2] >= cut){
-            n_split[2] = static_cast<size_t>(std::round(diff[2] / cut));
+            n_split[2] = std::min(25ul, static_cast<size_t>(std::round(diff[2] / cut)));
             size_split[2] = diff[2] / n_split[2];
         }
         // assign atoms to bins
