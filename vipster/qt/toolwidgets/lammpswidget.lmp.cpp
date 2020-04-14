@@ -311,7 +311,7 @@ void LammpsWidget::on_runButton_clicked()
     }catch(std::exception &e){
         QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
     }catch(...){
-        QMessageBox::warning(this, "Error in LAMMPS run", QString{"Unrecognized error when trying to run LAMMPS"});
+        QMessageBox::critical(this, "Error in LAMMPS run", "Unrecognized error when trying to run LAMMPS");
     }
     // restore user locale
     setlocale(LC_ALL, userLocale.c_str());
@@ -334,8 +334,10 @@ void LammpsWidget::on_ffPrepare_clicked()
             auto mol = FF->prepareStep(*master->curStep, master->curMol->name);
             master->newMol(std::move(mol));
         }catch(const Vipster::Error &e){
-            QMessageBox::critical(this, "Could not deduce atom type", e.what());
+            QMessageBox::warning(this, "Could not prepare structure", e.what());
             return;
+        }catch(...){
+            QMessageBox::critical(this, "Could not prepare structure", "Unrecognzied error when trying to prepare the structure.");
         }
     }else{
         master->newMol({*master->curStep, master->curMol->name + " (" + FFname + ')'});

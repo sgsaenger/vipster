@@ -5,6 +5,7 @@
 #include "lammps/atom.h"
 #include "lammps/error.h"
 #include "lammps/force.h"
+#include "lammps/update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -19,12 +20,13 @@ FixVipster::FixVipster(LAMMPS *lmp, int narg, char **arg):
     Fix{lmp, narg, arg}
 {
     if (narg != 4) error->all(FLERR, "Illegal fix vipster command");
-    freq = force->inumeric(FLERR, arg[3]);
+    nevery = force->inumeric(FLERR, arg[3]);
+    if (nevery < 0) error->all(FLERR, "Illegal fix vipster command");
 }
 FixVipster::~FixVipster()
 {
     master->curVP->moldata[molecule].curStep = molecule->getNstep();
-    master->curVP->setMol(mol_idx);
+    master->curVP->setMol(master->molecules.size()-1);
 }
 
 int FixVipster::setmask()
@@ -40,9 +42,16 @@ void FixVipster::min_post_force(int)
 void FixVipster::final_integrate()
 {
     // TODO: update view when executed in thread
-    // TODO: honor report frequency (update->ntimestep?)
-    if (!master || !molecule || mol_idx < 0)
+    if (!master || !molecule)
         throw LAMMPSException{"fix vipster not correctly initialized by Vipster."};
+    // transfer data on requested steps
+    if(!(update->ntimestep % nevery) || update->ntimestep == update->laststep){
+        copyCurStep();
+    }
+}
+
+void FixVipster::copyCurStep()
+{
     // copy latest step
     auto &step = molecule->newStep(molecule->getStep(molecule->getNstep()-1));
     // collect x and f
@@ -64,7 +73,6 @@ void FixVipster::init_vipster(MainWindow *mw, const std::string &name)
     master = mw;
     // create new trajectory
     master->newMol(Vipster::Molecule{*master->curStep, master->curMol->name + ' ' + name});
-    // save pointer/idx of own trajectory
-    mol_idx = master->molecules.size()-1;
+    // save pointer of own trajectory
     molecule = master->curMol;
 }

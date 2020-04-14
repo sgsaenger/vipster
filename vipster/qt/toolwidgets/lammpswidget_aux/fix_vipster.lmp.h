@@ -17,10 +17,10 @@ public:
     void final_integrate() override;
     void init_vipster(MainWindow *mw, const std::string &name);
 private:
+    void copyCurStep();
     MainWindow *master{nullptr};
     Vipster::Molecule *molecule{nullptr};
-    int freq{1};
-    int mol_idx{-1};
+    int nevery{1};
 };
 
 }

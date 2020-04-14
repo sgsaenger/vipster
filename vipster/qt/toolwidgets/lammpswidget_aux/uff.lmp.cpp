@@ -1,6 +1,8 @@
 #include "uff.lmp.h"
 #include "fmt/format.h"
 
+#include "tinyexpr.h"
+
 using namespace Vipster;
 
 std::vector<std::tuple<size_t, size_t, int>> aromaticity_criteria{
@@ -33,7 +35,7 @@ const std::map<size_t, std::vector<std::tuple<int, int, std::string>>> UFF_Crite
     {4,   {{-1, -1, "Be3+2"}}},
     {5,   {{ 4, -1, "B_3"}, {3, -1, "B_2"}}},
     {6,   {{ 4, -1, "C_3"}, {3,  1, "C_R"}, {3,  0, "C_2"}, {2, -1, "C_1"}, {1, -1, "C_1"}}},
-    {7,   {{ 3,  0, "N_3"}, {3,  1, "N_R"}, {2,  1, "N_R"}, {2,  0, "N_2"}, {1, -1, "N_1"}}},
+    {7,   {{ 4, -1, "N_3"}, {3,  0, "N_3"}, {3,  1, "N_R"}, {2,  1, "N_R"}, {2,  0, "N_2"}, {1, -1, "N_1"}}},
     {8,   {{ 2,  0, "O_3"}, {2,  1, "O_R"}, {1, -1, "O_2"}}},
     {9,   {{-1, -1, "F_"}}},
     {10,  {{-1, -1, "Ne4+4"}}},
@@ -271,34 +273,29 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
 
     // Step 1: create adjacency list from bond list, assign bond-order=1 cases
     using adjacency_node = std::vector<std::pair<size_t, size_t>>;
-    auto adjacency_list = [](const Step &step)
-    {
-        std::vector<adjacency_node> coord(step.getNat());
-        const auto& bonds = step.getBonds();
-        for(size_t i=0; i<bonds.size(); ++i){
-            const auto &b = bonds[i];
-            coord[b.at1].emplace_back(b.at2, i);
-            coord[b.at2].emplace_back(b.at1, i);
-        }
-        return coord;
-    }(step);
+    std::vector<adjacency_node> adjacency_list(step.getNat());
+    const auto& bonds = step.getBonds();
+    for(size_t i=0; i<bonds.size(); ++i){
+        const auto &b = bonds[i];
+        adjacency_list[b.at1].emplace_back(b.at2, i);
+        adjacency_list[b.at2].emplace_back(b.at1, i);
+    }
 
     // Step 2: search for aromatic rings
-    auto [aromatic_atoms, bond_aromaticity] = [](auto& al, const Step& step){
-        std::set<size_t> aromatic_atoms;
-        std::map<size_t, double> bond_aromaticity;
-        if(al.empty()) return std::pair{std::move(aromatic_atoms), std::move(bond_aromaticity)};
+    std::set<size_t> aromatic_atoms;
+    std::map<size_t, double> bond_aromaticity;
+    if(!adjacency_list.empty()){
         size_t target_size = 6;
         size_t current_size = 0;
         size_t cur_idx = 0;
         // store previous idx, current idx in previous adjacency list, and influence on ring size
         std::vector<std::tuple<size_t, size_t, int>> node_stack;
         // iterate over all atoms
-        while(true){
+        while(cur_idx < adjacency_list.size()){
             // check if the current atom could possibly be aromatic
             const auto pos = std::find_if(aromaticity_criteria.begin(), aromaticity_criteria.end(), [&](const auto& type){
                 return (std::get<0>(type) == step[cur_idx].type->Z)
-                    && (std::get<1>(type) == al[cur_idx].size());
+                    && (std::get<1>(type) == adjacency_list[cur_idx].size());
             });
             /* abort-criteria:
              * - non aromatic atom
@@ -316,7 +313,7 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
                     for(const auto &[idx, neigh, __]: node_stack){
                         // mark bond as aromatic
                         // (TODO: naive search, visited 2*target_size times, optimize?)
-                        bond_aromaticity[al[idx][neigh].second] += 0.5/target_size;
+                        bond_aromaticity[adjacency_list[idx][neigh].second] += 0.5/target_size;
                         // mark atom as aromatic
                         aromatic_atoms.insert(idx);
                     }
@@ -329,7 +326,7 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
                         current_size += 1;
                         target_size += std::get<2>(*pos);
                         node_stack.emplace_back(cur_idx, 0, std::get<2>(*pos));
-                        cur_idx = al[cur_idx][0].first;
+                        cur_idx = adjacency_list[cur_idx][0].first;
                         // skip regular index increment
                         continue;
                     }
@@ -345,7 +342,7 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
                     size_t &neigh_idx = std::get<1>(node_stack.back());
                     int ring_change = std::get<2>(node_stack.back());
                     neigh_idx++;
-                    if(neigh_idx >= al[prev_idx].size()){
+                    if(neigh_idx >= adjacency_list[prev_idx].size()){
                         // decrease stack depth
                         current_size -= 1;
                         target_size -= ring_change;
@@ -355,16 +352,13 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
                         getNextIdx();
                     }else{
                         // next neighbour
-                        cur_idx = al[prev_idx][neigh_idx].first;
+                        cur_idx = adjacency_list[prev_idx][neigh_idx].first;
                     }
                 }
             };
             getNextIdx();
-            if(cur_idx >= al.size()){
-                return std::pair{std::move(aromatic_atoms), std::move(bond_aromaticity)};
-            }
         }
-    }(adjacency_list, step);
+    }
 
     // Step 3: assign atom-types based on coordination and aromaticity
     for(size_t i=0; i<step.getNat(); ++i){
@@ -403,31 +397,163 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
     }
 
     // Step 4: determine bond-orders
-    for(size_t i=0; i<s.getNat(); ++i){
+    {
         /* applicable to:
-         * B_3 (0.5 when bridged), B_2 (1!), VA: 3
-         * C_1 (1, 2, 3), C_R (1, ~1.5), C_2(1, 2), VA: 4
-         * N_1, N_2, N_3 (1), N_R (1, ~1.5), VA: 3
-         * O_1 (3), O_2 (2), O_R (~1.5), VA: 2/3
-         * P_3 (1, 2), VA: 3/5
-         * S_2 (1, 2), S_R (~1.5), S_3 (1, 2), VA: 2/4/6
+         * H_b (0.5)
+         * B_3 (0.5 when bridged) VA: 3
+         * C_1 (1, 2, 3), C_R (1, ~1.5), C_2 (1, 2), VA: 4
+         * N_1 (?), N_2 (?), N_R (1, ~1.5), VA: 3
+         * O_1 (3), O_2 (2), O_R (~1.5), VA: 2/3 ?
+         * P_3 (1, 2), VA: 3/5 ?
+         * S_2 (1, 2), S_R (~1.5), S_3 (1, 2), VA: 2/4/6 ?
          */
-        auto Z = s[i].type->Z;
+        std::map<std::string, int> special_types{
+            {"B_2", 3},
+            {"C_1", 4}, {"C_2", 4}, {"C_R", 4},
+            {"N_1", 3}, {"N_2", 3}, {"N_R", 3}, // N_R also 4
+            {"O_1", 3}, {"O_2", 2}, {"O_R", 3}, // reevaluate
+            {"P_3+3", 3}, {"P_3+5", 3}, // reevalute
+            {"S_2", 3}, {"S_3+2", 3}, {"S_3+4", 3}, {"S_3+6", 3}, {"S_R", 3} // reevaluate
+        };
+        std::set<size_t> remaining_atoms;
+        std::map<size_t, double> assigned_bonds;
+        // format fractions
+        auto toString = [](double BO) -> std::string{
+            if(float_comp(BO, 4./3.)){
+                return "4/3";
+            }else if(float_comp(BO, 5./3.)){
+                return "5/3";
+            }else if(float_comp(BO, 1.5)){
+                return "3/2";
+            }else{
+                return fmt::format("{}", static_cast<int>(BO));
+            }
+        };
+        // initial pass
+        size_t prev_size = bonds.size();
+        for(size_t i=0; i<bonds.size(); ++i){
+            const auto &b = bonds[i];
+            const std::string &name1 = step[b.at1].name;
+            const std::string &name2 = step[b.at2].name;
+            auto pos1 = special_types.find(name1);
+            auto pos2 = special_types.find(name2);
+            if(pos1 == special_types.end() || pos2 == special_types.end()){
+                // BO always 1
+                assigned_bonds[i] = 1;
+                step.setBondType(i, fmt::format("{}-{}",
+                                                std::min(name1, name2),
+                                                std::max(name1, name2)));
+            }else{
+                // save for later passes
+                remaining_atoms.insert(b.at1);
+                remaining_atoms.insert(b.at2);
+            }
+        }
+        int it = 0;
+        size_t guess_step = 0;
+        while(!remaining_atoms.empty()){
+            if(it++ >= 100) throw Error{"Exceeded max iterations for bond order assignment."};
+            for(auto it=remaining_atoms.begin(); it!=remaining_atoms.end();){
+                auto at1 = *it;
+                auto &al = adjacency_list[at1];
+                size_t at2 = 0;
+                int candidate = -1;
+                double valence = 0;
+                bool cont = false;
+                for(auto &[a, b]: al){
+                    if(bonds[b].type == nullptr){
+                        if(candidate == -1){
+                            at2 = a;
+                            candidate = b; // make this bond the assignment candidate
+                        }else{
+                            cont = true; // skip
+                        }
+                    }else{
+                        valence -= assigned_bonds[b]; // count assigned bond to valence
+                    }
+                }
+                if(candidate == -1){
+                    // all bonds assigned, remove and continue
+                    it = remaining_atoms.erase(it);
+                }else if(cont){
+                    // too many candidates left, continue
+                    ++it;
+                }else{
+                    // one unassigned bond left, assign remaining valence
+                    const std::string &name1 = step[at1].name;
+                    const std::string &name2 = step[at2].name;
+                    valence += special_types[name1];
+                    auto BO = std::max(1., std::min(3., valence));
+                    assigned_bonds[candidate] = BO;
+                    step.setBondType(candidate, fmt::format("{}-{} {}", std::min(name1, name2),
+                                                            std::max(name1, name2), toString(BO)));
+                    it = remaining_atoms.erase(it);
+                }
+            }
+            if(remaining_atoms.size() == prev_size){
+                /* make an educated guess to advance iteration
+                 * Step 1: assign all atoms with purely aromatic bonds
+                 * Step 2: assign all atoms with aromatic and non-aromatic bonds
+                 * Step 3: randomly assign a single bond at an atom with two undetermined bonds
+                 */
+                const std::array<std::function<bool(size_t)>, 3> predicates{
+                    [&](size_t i){
+                        const auto &al = adjacency_list[i];
+                        return al.size() == 3
+                            && bond_aromaticity[al[0].second] > 0
+                            && bond_aromaticity[al[1].second] > 0
+                            && bond_aromaticity[al[2].second] > 0;
+                    },
+                    [&](size_t i){
+                        const auto &al = adjacency_list[i];
+                        auto res = std::find_if(al.begin(), al.end(),
+                                            [&](const auto&p){
+                            bool res = bond_aromaticity[p.second] > 0;
+                            return res;
+                        }) != al.end();
+                        return res;
+                    },
+                    [&](size_t i){
+                        const auto &al = adjacency_list[i];
+                        auto test = std::count_if(al.begin(), al.end(),
+                                             [&](const auto &p){return bonds[p.second].type == nullptr;});
+                        return test == 2;
+                    }
+                };
+                const std::array<double, 3> BOs{4./3., 3./2., 1.};
+                std::function<bool(size_t)> predicate = predicates[guess_step];
+                double BO = BOs[guess_step];
+                for(auto pos = std::find_if(remaining_atoms.begin(),
+                                                 remaining_atoms.end(),
+                                                 predicate);
+                         pos != remaining_atoms.end();
+                         pos = guess_step < 2 ?
+                                std::find_if(++pos, remaining_atoms.end(), predicate) : // equipartition aromatics
+                                remaining_atoms.end()){ // single random guess for non-aromatics
+                    auto &al = adjacency_list[*pos];
+                    for(size_t i=0; i<al.size(); ++i){
+                        size_t b = al[i].second;
+                        if(bonds[b].type == nullptr){
+                            assigned_bonds[b] = BO;
+                            const std::string &name1 = step[*pos].name;
+                            const std::string &name2 = step[al[i].first].name;
+                            step.setBondType(b, fmt::format("{}-{} {}",
+                                                            std::min(name1, name2),
+                                                            std::max(name1, name2), toString(BO)));
+                            if(guess_step >= 2) break; // single guess for non-aromatics
+                        }
+                    }
+                }
+                if(guess_step < 2) guess_step++;
+            }
+            prev_size = remaining_atoms.size();
+        }
     }
     return mol;
 }
 
 IO::Parameter UFF_PrepareParameters(const Step &s)
 {
-    /* TODO:
-     * determine bond-order
-     * needed for:
-     * - r_BO (bond distance correction)
-     * - D_ij (alpha in morse bond potential)
-     * - V_sp2 (dihedral force constant)
-     * => necessary to distinguish bond type according to atom's BO?
-     */
-
     auto p = IO::LmpInput.makeParam();
     using coeffmap = std::map<std::string, std::string>;
     // create pair coeffs
@@ -443,26 +569,35 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
     }
     // determine reference distances, create bond coeffs
     auto& bondcoeffs = std::get<coeffmap>(p.at("Bond Coeff").first);
-    std::map<std::pair<size_t, size_t>, double> ref_dists{};
-    for(const auto &b: s.getBonds()){        const std::string& name1 = s[b.at1].name;
+    std::map<std::pair<size_t, size_t>, std::pair<double, double>> bond_ref{};
+    for(const auto &b: s.getBonds()){
+        const std::string& name1 = s[b.at1].name;
         const std::string& name2 = s[b.at2].name;
         const std::string b_name = b.type ?
                     b.type->first :
                     fmt::format("{}-{}", std::min(name1, name2), std::max(name1, name2));
+        // parse bond-order, if present;
+        double BO = 1;
+        std::string tmp;
+        std::stringstream ss{b_name};
+        ss >> tmp >> tmp;
+        if(!ss.fail()){
+            int err_pos;
+            BO = te_interp(tmp.c_str(), &err_pos);
+        }
         // corrected reference distance
         double r_i = std::get<0>(UFF_Parameters.at(name1));
         double r_j = std::get<0>(UFF_Parameters.at(name2));
-        // TODO:
-//        double r_BO = -0.1332 * (r_i + r_j) * log(BO);
+        double r_BO = -0.1332 * (r_i + r_j) * log(BO);
         double x_i = std::get<8>(UFF_Parameters.at(name1));
         double x_j = std::get<8>(UFF_Parameters.at(name2));
         double r_EN = r_i * r_j
                 * (std::sqrt(x_i) - std::sqrt(x_j))
                 * (std::sqrt(x_i) - std::sqrt(x_j))
                 / (x_i * r_i + x_j * r_j);
-        double r = r_i + r_j - r_EN; // + r_BO
+        double r = r_i + r_j - r_EN + r_BO;
         // store for later use
-        ref_dists[{std::min(b.at1, b.at2), std::max(b.at1, b.at2)}] = r;
+        bond_ref[{std::min(b.at1, b.at2), std::max(b.at1, b.at2)}] = {r, BO};
         // determine force constant, store parameters
         if(bondcoeffs.find(b_name) == bondcoeffs.end()){
             double k = 664.12
@@ -470,9 +605,10 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
                      * std::get<5>(UFF_Parameters.at(name2))
                      / (r * r * r);
             // TODO:
-//            double D = BO * 70;
-//            double alpha = std::sqrt(k/(2*D));
-            bondcoeffs[b_name] = fmt::format("{} {}", 0.5*k, r); // harmonic
+            double D = BO * 70;
+            double alpha = std::sqrt(k/(2*D));
+//            bondcoeffs[b_name] = fmt::format("{} {}", 0.5*k, r); // harmonic
+            bondcoeffs[b_name] = fmt::format("{} {} {}", D, alpha, r);
         }
     }
     auto [angles, dihedrals, impropers] = s.getTopology();
@@ -487,8 +623,8 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
             // force constant
             double theta0 = deg2rad * std::get<1>(UFF_Parameters.at(name2));
             double cos_theta0 = std::cos(theta0);
-            double r_ij = ref_dists.at({std::min(a.at1, a.at2), std::max(a.at1, a.at2)});
-            double r_jk = ref_dists.at({std::min(a.at3, a.at2), std::max(a.at3, a.at2)});
+            double r_ij = bond_ref.at({std::min(a.at1, a.at2), std::max(a.at1, a.at2)}).first;
+            double r_jk = bond_ref.at({std::min(a.at3, a.at2), std::max(a.at3, a.at2)}).first;
             double r_ik = r_ij * r_ij + r_jk * r_jk - 2 * r_ij * r_jk * std::cos(theta0);
             double Z_i = std::get<5>(UFF_Parameters.at(name1));
             double Z_k = std::get<5>(UFF_Parameters.at(name3));
@@ -548,10 +684,10 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
                     n = 3;
                 }
             }else if(at2_sp2 && at3_sp2){
+                double BO = bond_ref.at({std::min(d.at2, d.at3), std::max(d.at2, d.at3)}).second;
                 k = 2.5 * std::sqrt(std::get<7>(UFF_Parameters.at(name2))*
                                     std::get<7>(UFF_Parameters.at(name3)))
-                // TODO: replace with exact expression when BO is known
-                        * 3; //* (1 + 4.18 * ln(BO));
+                        * (1 + 4.18 * std::log2(BO));
                 D = -1;
                 n = 2;
             }else if((at2_sp3 && at3_sp2) || (at2_sp2 && at3_sp3)){
@@ -602,7 +738,7 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
 
 const ForceField UFF {
     "lj/charmm/coul/charmm 13.0 15.0",
-    "harmonic",
+    "morse",
     "hybrid fourier cosine",
     "harmonic",
     "fourier",
