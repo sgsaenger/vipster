@@ -16,6 +16,10 @@
 #pragma pop_macro("slots")
 #endif
 
+#ifdef USE_LAMMPS
+#include "toolwidgets/lammpswidget_aux/run.lmp.h"
+#endif
+
 using namespace Vipster;
 
 // setup and launch GUI
@@ -388,6 +392,16 @@ int main(int argc, char *argv[])
         writeFile(conv_data.out_fn, fmt_out, mol, std::nullopt, param, preset);
         throw CLI::Success();
     });
+
+#ifdef USE_LAMMPS
+    auto lmp = app.add_subcommand("lammps_mpi_slave");
+    lmp->group("");
+    lmp->callback([&](){
+        // launch lammps mpi slaves
+        Lammps::runSlave();
+        throw CLI::Success();
+    });
+#endif
 
     // do the parsing
     CLI11_PARSE(app, argc, argv)

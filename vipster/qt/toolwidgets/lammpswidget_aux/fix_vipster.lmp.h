@@ -2,7 +2,8 @@
 #define LMP_FIX_VIPSTER_H
 
 #include "lammps/fix.h"
-#include "mainwindow.h"
+
+#include "molecule.h"
 
 namespace LAMMPS_NS {
 
@@ -11,15 +12,14 @@ Fix* mkFixVipster(class LAMMPS*, int narg, char **arg);
 class FixVipster: public Fix {
 public:
     FixVipster(class LAMMPS*, int narg, char **arg);
-    ~FixVipster();
     int setmask() override;
+    void post_run() override;
     void min_post_force(int) override;
     void final_integrate() override;
-    void init_vipster(MainWindow *mw, const std::string &name);
+    MPI_Comm intercomm{MPI_COMM_NULL};
+    Vipster::Molecule *mol{nullptr};
 private:
-    void copyCurStep();
-    MainWindow *master{nullptr};
-    Vipster::Molecule *molecule{nullptr};
+    void sendStep();
     int nevery{1};
 };
 

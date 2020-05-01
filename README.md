@@ -57,12 +57,14 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 - [CLI11](https://github.com/CLIUtils/CLI11) 
 - [tinyexpr](https://github.com/codeplea/tinyexpr) 
 - [CMake](https://cmake.org)
+- [{fmt}](https://github.com/fmtlib/fmt)
 - and a C++17-capable compiler (g++/mingw > 7 or clang > 4)
 - optional:
     - [Qt5](https://www.qt.io) (desktop application)
     - [emscripten](http://kripken.github.io/emscripten-site) (web interface)
     - [pybind11](https://github.com/pybind/pybind11) (script interface)
     - [Catch2](https://github.com/catchorg/Catch2) (testing)
+    - [LAMMPS](https://lammps.sandia.gov) (interactive forcefield calculations)
 
 ## Supported file types:
 

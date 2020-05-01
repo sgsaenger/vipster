@@ -4,6 +4,8 @@
 #include "basewidget.h"
 #include "lammpswidget_aux/forcefield.lmp.h"
 
+#include <filesystem>
+
 namespace Ui {
 class LammpsWidget;
 }
@@ -27,6 +29,8 @@ private slots:
 private:
     Ui::LammpsWidget *ui;
     ForceFields forcefields;
+    void mkScript(const Vipster::Step &curStep, const ForceField &FF, const std::filesystem::path &tempdir);
+    void mkGeom(const Vipster::Step &curStep, const ForceField &FF, const std::filesystem::path &tempdir);
 };
 
 #endif // LAMMPSWIDGET_LMP_H

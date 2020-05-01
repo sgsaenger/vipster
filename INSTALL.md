@@ -68,6 +68,13 @@ add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
 
 By adding `-D VIPSTER_PYWIDGET=ON` to the build of the Qt-frontend, a python terminal with embedded vipster bindings is enabled.
 
+#### Interactive forcefield calculations
+
+Adding `-D VIPSTER_LAMMPS=ON` to the build of the Qt-frontend enables embedding [LAMMPS](https://lammps.sandia.gov).
+Currently it is possible to use the UFF or a custom forcefield.
+Vipster either uses a installation found in the `CMAKE_PREFIX_PATH` or builds LAMMPS as part of Vipster's build process.
+Please refer to the [Manual](https://lammps.sandia.gov/doc/Manual.html) for information about build configuration and additional features.
+
 ### Standalone Python-bindings
 
 These bindings should work on every platform that has python in its `$PATH`.

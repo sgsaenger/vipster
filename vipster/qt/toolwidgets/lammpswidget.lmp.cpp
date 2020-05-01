@@ -2,24 +2,21 @@
 #include "ui_lammpswidget.lmp.h"
 #include "../mainwindow.h"
 #include "io/plugins/lmpinput.h"
-#include "lammpswidget_aux/fix_vipster.lmp.h"
+#include "lammpswidget_aux/run.lmp.h"
+
+#include <thread>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include <QMessageBox>
 
 #include "lammps/lammps.h"
-#include "lammps/atom.h"
-#include "lammps/comm.h"
-#include "lammps/domain.h"
-#include "lammps/error.h"
-#include "lammps/input.h"
 #include "lammps/info.h"
-#include "lammps/modify.h"
-#include "lammps/update.h"
 #include "lammps/exceptions.h"
 
 using namespace Vipster;
+using namespace Vipster::Lammps;
 using namespace LAMMPS_NS;
 namespace fs = std::filesystem;
 
@@ -40,12 +37,16 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     ui->stepInput->setValidator(new QIntValidator{1, 10000000});
     ui->timeInput->setValidator(new QDoubleValidator{0.00001, 1000, 5});
     // enable parallelization as available
-#ifdef USE_MPI
+    auto nproc = std::max(1u, std::thread::hardware_concurrency());
+//#ifdef USE_MPI
     ui->MPISpin->setDisabled(true);
-#else
-    ui->MPISpin->setEnabled(true);
-#endif
+//#else
+//    ui->MPISpin->setEnabled(true);
+//    ui->MPISpin->setMinimum(1);
+//    ui->MPISpin->setMaximum(nproc);
+//#endif
     ui->OMPSpin->setDisabled(true);
+    ui->OMPSpin->setMaximum(nproc);
     ui->GPUSpin->setDisabled(true);
     int i=0;
     while(LAMMPS::installed_packages[i] != nullptr){
@@ -61,8 +62,12 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     MPI_Initialized(&flag);
     if(!flag){
         int argc{0};
+        int level{0};
         char **argv{nullptr};
-        MPI_Init(&argc, &argv);
+        MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &level);
+        if(level < MPI_THREAD_MULTIPLE){
+            ui->MPISpin->setDisabled(true);
+        }
     }
 
     // register installed FF styles
@@ -157,6 +162,7 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
 
 LammpsWidget::~LammpsWidget()
 {
+    MPI_Finalize();
     delete ui;
 }
 
@@ -182,136 +188,42 @@ void LammpsWidget::on_runButton_clicked()
     std::string userLocale = setlocale(0, nullptr);
     setlocale(LC_ALL, "C");
     try{
-        // launch lammps in tempdir
+        // prepare working directory
         auto tempdir = getLmpTmpDir();
-        auto log = (tempdir/"log.lammps").string();
         fs::create_directory(tempdir);
-        std::array<char*, 5> lmparg{
-            nullptr,
-            "-screen", "none",
-            "-log", &log[0]
-        };
-        LAMMPS lmp{5, lmparg.data(), MPI_COMM_WORLD};
-        // setup preset for FF demands
-        auto preset = IO::LmpInput.makePreset();
-        std::get<NamedEnum>(preset.at("style").first) = "full";
-        preset.at("coeff").first = true;
-        preset.at("bonds").first = FF->bond.has_value();
-        preset.at("angles").first = FF->angle.has_value();
-        preset.at("dihedrals").first = FF->dihedral.has_value();
-        preset.at("impropers").first = FF->improper.has_value();
-        // request parameter from FF
-        auto param = FF->prepareParameters(curStep);
-        // create input file
-        writeFile(tempdir/"inpgeom", &IO::LmpInput, *master->curMol,
-                  master->curVP->moldata[master->curMol].curStep-1,
-                  param, preset);
-        // setup system for forcefield calculation
-        lmp.input->one("units real"); // always use real units -> angstrom
-        lmp.input->one("atom_style full"); // always use full atoms
-        if(curStep.hasCell()){
-            lmp.input->one("boundary p p p"); // periodic when cell is defined
-        }else{
-            lmp.input->one("boundary s s s"); // shrink-wrapped should create less surprises than fixed
+        // prepare input files
+        mkGeom(curStep, *FF, tempdir);
+        mkScript(curStep, *FF, tempdir);
+        bool doMin = ui->calcStack->currentIndex() == 0;
+        auto params = doMin ? runParams{Lammps::runParams::Min,
+                                        ui->MPISpin->value(),
+                                        ui->OMPSpin->value(),
+                                        ui->GPUSpin->value(),
+                                        ui->maxItInput->text().toULong(),
+                                        ui->maxevalInput->text().toULong(),
+                                        ui->etolInput->text().toDouble(),
+                                        ui->ftolInput->text().toDouble()}
+                            : runParams{Lammps::runParams::MD,
+                                        ui->MPISpin->value(),
+                                        ui->OMPSpin->value(),
+                                        ui->GPUSpin->value(),
+                                        ui->stepInput->text().toULong()};
+        auto name = doMin ? fmt::format("(Min: {})", ui->minSel->currentText().toStdString())
+                          : fmt::format("MD: {})", ui->mdSel->currentText().toStdString());
+        Molecule mol{*master->curStep, master->curMol->name + name};
+        auto result = runMaster(tempdir, params, &mol);
+        if(result.first < 0){
+            QMessageBox::critical(this, "Error in LAMMPS run", QString::fromStdString(result.second)+
+                                  "\nThis error may not be recoverable from.\n"
+                                  "Trying to forcefully terminate LAMMPS processes, "
+                                  "please restart Vipster in case of unexpected behavior or performance loss.");
+        }else if(result.first > 0){
+            QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(result.second));
         }
-        if(FF->pair.has_value()){
-            lmp.input->one(fmt::format("pair_style {}", FF->pair.value()).c_str());
-        }
-        if(FF->bond.has_value()){
-            lmp.input->one(fmt::format("bond_style {}", FF->bond.value()).c_str());
-        }
-        if(FF->angle.has_value()){
-            lmp.input->one(fmt::format("angle_style {}", FF->angle.value()).c_str());
-        }
-        if(FF->dihedral.has_value()){
-            lmp.input->one(fmt::format("dihedral_style {}", FF->dihedral.value()).c_str());
-        }
-        if(FF->improper.has_value()){
-            lmp.input->one(fmt::format("improper_style {}", FF->improper.value()).c_str());
-        }
-        for(const auto &cmd: FF->extra_cmds){
-            lmp.input->one(cmd.c_str());
-        }
-        // read input file
-        lmp.input->one(fmt::format("read_data {}/inpgeom", tempdir.string()).c_str());
-        // get more details about energies
-        lmp.input->one("thermo_style custom step temp etotal ke pe ebond eangle edihed eimp evdwl ecoul");
-        // register custom fix
-        (*lmp.modify->fix_map)["vipster"] = &mkFixVipster;
-        // run
-        if(ui->calcStack->currentIndex() == 0){
-            // Minimization
-            auto min_style = ui->minSel->currentText().toStdString();
-            // report back each step
-            lmp.input->one("thermo 1");
-            lmp.input->one("fix vipster all vipster 1");
-            auto fix_vipster = dynamic_cast<FixVipster*>(lmp.modify->fix[lmp.modify->nfix-1]);
-            if(!fix_vipster){
-                throw Vipster::Error{"Error on registering callback fix."};
-            }else{
-                fix_vipster->init_vipster(master, fmt::format("(Min: {})", min_style));
-            }
-            // set minimizer
-            lmp.input->one(fmt::format("min_style {}", min_style).c_str());
-            // trigger calculation
-            lmp.input->one(fmt::format("minimize {} {} {} {}",
-                                       ui->etolInput->text().toInt(),
-                                       ui->ftolInput->text().toInt(),
-                                       ui->maxItInput->text().toInt(),
-                                       ui->maxevalInput->text().toInt()
-                                       ).c_str());
-        }else{
-            // MD
-            auto temp_target = ui->tempInput->text().toDouble();
-            auto press_target = ui->pressInput->text().toDouble();
-            auto dynstep = ui->stepInput->text().toUInt();
-            auto equibstep = ui->equibInput->text().toUInt();
-            auto reportstep = ui->reportInput->text().toUInt();
-            // set timestep
-            auto timestep = ui->timeInput->text().toDouble();
-            lmp.input->one(fmt::format("timestep {}", timestep).c_str());
-            // initialize velocities
-            auto velocities = ui->velSel->currentIndex();
-            if(velocities == 0){ // init random
-                lmp.input->one(fmt::format("velocity all create {} 123465 mom yes rot yes", temp_target).c_str());
-            }else if(velocities == 1){ // heat ramp
-                auto rampstep = equibstep ? equibstep : dynstep/10;
-                lmp.input->one(fmt::format("fix equib all nvt temp 0.1 {} 100.0", temp_target).c_str());
-                lmp.input->one(fmt::format("run {}", rampstep).c_str());
-                lmp.input->one("unfix equib");
-            }// else use existing -> no preparation
-            // integrating fix for MD
-            auto ensemble = ui->mdSel->currentText();
-            std::map<QString, std::string> ensembleFmt{
-                {"nve", "fix integrate all nve"},
-                {"nvt", "fix integrate all nvt temp {0} {0} 100.0"},
-                {"nph", "fix integrate all nph iso {1} {1} 100.0"},
-                {"npt", "fix integrate all npt temp {0} {0} 100.0 iso {1} {1} 100.0"},
-            };
-            lmp.input->one(fmt::format(ensembleFmt.at(ensemble), temp_target, press_target).c_str());
-            // equilibration
-            if(equibstep){
-                lmp.input->one(fmt::format("run {}", equibstep).c_str());
-            }
-            // actual MD
-            lmp.input->one(fmt::format("thermo {}", reportstep).c_str());
-            lmp.input->one(fmt::format("fix vipster all vipster {}", reportstep).c_str());
-            auto fix_vipster = dynamic_cast<FixVipster*>(lmp.modify->fix[lmp.modify->nfix-1]);
-            if(!fix_vipster){
-                throw Vipster::Error{"Error on registering callback fix."};
-            }else{
-                fix_vipster->init_vipster(master, fmt::format("(MD: {})", ensemble.toUpper().toStdString()));
-            }
-            lmp.input->one(fmt::format("run {}", dynstep).c_str());
-        }
-    }catch(LAMMPSAbortException &e){
-        QMessageBox::critical(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
-    }catch(LAMMPSException &e){
-        QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
+        // notify vipster of new mol
+        master->newMol(std::move(mol));
     }catch(std::exception &e){
         QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
-    }catch(...){
-        QMessageBox::critical(this, "Error in LAMMPS run", "Unrecognized error when trying to run LAMMPS");
     }
     // restore user locale
     setlocale(LC_ALL, userLocale.c_str());
@@ -341,6 +253,96 @@ void LammpsWidget::on_ffPrepare_clicked()
         }
     }else{
         master->newMol({*master->curStep, master->curMol->name + " (" + FFname + ')'});
+    }
+}
+
+void LammpsWidget::mkGeom(const Step &curStep, const ForceField &FF, const fs::path &tempdir)
+{
+    // setup preset for FF demands
+    auto preset = IO::LmpInput.makePreset();
+    std::get<NamedEnum>(preset.at("style").first) = "full";
+    preset.at("coeff").first = true;
+    preset.at("bonds").first = FF.bond.has_value();
+    preset.at("angles").first = FF.angle.has_value();
+    preset.at("dihedrals").first = FF.dihedral.has_value();
+    preset.at("impropers").first = FF.improper.has_value();
+    // request parameter from FF
+    auto param = FF.prepareParameters(curStep);
+    // create input file
+    writeFile(tempdir/"geom.lmp", &IO::LmpInput, *master->curMol,
+              master->curVP->moldata[master->curMol].curStep-1,
+              param, preset);
+}
+
+void LammpsWidget::mkScript(const Step &curStep, const ForceField &FF, const fs::path &tempdir)
+{
+    std::ofstream script{tempdir/"input"};
+    if(!script){
+        throw IO::Error{"Could not write input script at "+tempdir.string()+"/input"};
+    }
+    // common block: setup FF and cell
+    fmt::print(script,
+        "units real\n"
+        "atom_style full\n"
+        "boundary {box} {box} {box}\n"
+        "pair_style {pair}\n"
+        "bond_style {bond}\n"
+        "angle_style {angle}\n"
+        "dihedral_style {dihedral}\n"
+        "improper_style {improper}\n"
+        "{extra}\n"
+        "read_data {dir}/geom.lmp\n"
+        "thermo_style custom step temp etotal ke pe ebond eangle edihed eimp evdwl ecoul\n",
+    fmt::arg("box", curStep.hasCell() ? 'p' : 's'),
+    fmt::arg("pair", FF.pair.has_value() ? FF.pair.value() : "none"),
+    fmt::arg("bond", FF.bond.has_value() ? FF.bond.value() : "none"),
+    fmt::arg("angle", FF.angle.has_value() ? FF.angle.value() : "none"),
+    fmt::arg("dihedral", FF.dihedral.has_value() ? FF.dihedral.value() : "none"),
+    fmt::arg("improper", FF.improper.has_value() ? FF.improper.value() : "none"),
+    fmt::arg("extra", fmt::join(FF.extra_cmds, "\n")),
+    fmt::arg("dir", tempdir.string()));
+    // run
+    if(ui->calcStack->currentIndex() == 0){
+        // Minimization
+        fmt::print(script,
+            "thermo 1\n"
+            "fix vipster all vipster 1\n"
+            "min_style {}\n",
+        ui->minSel->currentText().toStdString()
+        );
+    }else{
+        // MD
+        auto temp_target = ui->tempInput->text().toDouble();
+        auto press_target = ui->pressInput->text().toDouble();
+        auto dynstep = ui->stepInput->text().toUInt();
+        auto equibstep = ui->equibInput->text().toUInt();
+        auto reportstep = ui->reportInput->text().toUInt();
+        auto timestep = ui->timeInput->text().toDouble();
+        auto velocities = ui->velSel->currentIndex();
+        auto rampstep = equibstep ? equibstep : dynstep/10;
+        auto ensemble = ui->mdSel->currentText();
+        std::map<QString, std::string> ensembleFmt{
+            {"nve", "fix integrate all nve"},
+            {"nvt", "fix integrate all nvt temp {0} {0} 100.0"},
+            {"nph", "fix integrate all nph iso {1} {1} 100.0"},
+            {"npt", "fix integrate all npt temp {0} {0} 100.0 iso {1} {1} 100.0"},
+        };
+        fmt::print(script,
+            "timestep {timestep}\n"
+            "#init velocities:\n{velocities}\n"
+            "{fix_integrate}\n"
+            "#equilibrate\n{equilibrate}\n"
+            "thermo {freq}\n"
+            "fix vipster all vipster {freq}\n",
+        fmt::arg("timestep", timestep),
+        // velocities: 0 -> create random, 1 -> heat ramp, else -> use existing
+        fmt::arg("velocities", fmt::format(velocities == 0 ? "#random\nvelocity all create {0} 123465 mom yes rot yes" :
+                                           velocities == 1 ? "#heat ramp\nfix equib all nvt temp 0.1 {0} 100.0\nrun {1}\nunfix equib" :
+                                           "#use existing", temp_target, rampstep)),
+        fmt::arg("fix_integrate", fmt::format(ensembleFmt.at(ensemble), temp_target, press_target)),
+        fmt::arg("equilibrate", equibstep ? fmt::format("run {}", equibstep) : "#no"),
+        fmt::arg("freq", reportstep)
+        );
     }
 }
 
