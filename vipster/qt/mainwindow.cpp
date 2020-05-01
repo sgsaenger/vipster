@@ -491,7 +491,7 @@ void MainWindow::about()
     QMessageBox::about(this,QString("About Vipster"),
     QString("<h2>Vipster v" VIPSTER_VERSION "b</h2>"
             "<p>"
-            "©Sebastian Gsänger, 2019"
+            "©Sebastian Gsänger, 2020"
             "<br>"
             "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
             "<br>"
@@ -504,6 +504,7 @@ void MainWindow::about()
             "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>,<br>"
             "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,<br>"
             "<a href='https://github.com/codeplea/tinyexpr'>TinyExpr</a>,<br>"
+            "<a href='https://github.com/fmtlib/fmt'>{fmt}</a>,<br>"
             "<a href='https://github.com/catchorg/catch2'>Catch2</a><br>"
             "and <a href='https://github.com/pybind/pybind11'>pybind11</a>."
             "</p>"));
@@ -524,7 +525,7 @@ void MainWindow::saveScreenshot()
 
         auto aa = settings.antialias.val;
         settings.antialias.val = false;
-        auto img = viewports.front()->openGLWidget->grabFramebuffer();
+        auto img = curVP->openGLWidget->grabFramebuffer();
         img.save(target);
         settings.antialias.val = aa;
         updateWidgets(0);

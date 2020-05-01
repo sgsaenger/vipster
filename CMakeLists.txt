@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Vipster VERSION 1.18)
+project(Vipster VERSION 1.19)
 
 option(VIPSTER_TESTS "Build tests" OFF)
 option(VIPSTER_DESKTOP "Build QT-based desktop app" OFF)
@@ -67,7 +67,7 @@ if(NOT fmt_FOUND)
     add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
 endif()
 target_link_libraries(libvipster PUBLIC nlohmann_json::nlohmann_json fmt::fmt-header-only)
-target_include_directories(libvipster PRIVATE "external/tinyexpr")
+target_include_directories(libvipster PUBLIC "external/tinyexpr")
 
 if(VIPSTER_TESTS)
     # Tests, so far only for library

@@ -16,11 +16,6 @@ detail::TempWrap::TempWrap()
     }
 }
 
-detail::TempWrap::~TempWrap()
-{
-    fs::remove_all(tmppath);
-}
-
 const fs::path& detail::TempWrap::getPath() const
 {
     return tmppath;

@@ -79,3 +79,4 @@ Most importantly, [try it in your browser!](https://sgsaenger.github.io/vipster/
 | Gaussian cube   | &#10004; |          |
 | XCrysden        | &#10004; |          |
 | ORCA input      | &#10004; | &#10004; |
+| VASP Poscar     | &#10004; | &#10004; |

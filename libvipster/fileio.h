@@ -29,7 +29,6 @@ namespace Vipster{
         class TempWrap{
         public:
             TempWrap();
-            ~TempWrap();
             const std::filesystem::path& getPath() const;
         private:
             TempWrap(const TempWrap&) = delete;
