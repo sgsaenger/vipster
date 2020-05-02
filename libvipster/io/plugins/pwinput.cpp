@@ -377,10 +377,10 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
             outNL = {"&CONTROL", "&SYSTEM", "&ELECTRONS"};
     auto calc = control.find("calculation");
     if(calc != control.end()){
-        if(calc->second == "'vc-relax'"){
+        if(calc->second == "'vc-relax'" || calc->second == "'vc-md'"){
             outNL.push_back("&IONS");
             outNL.push_back("&CELL");
-        }else if(calc->second == "'relax'"){
+        }else if(calc->second == "'relax'" || calc->second == "'md'"){
             outNL.push_back("&IONS");
         }
     }
