@@ -211,7 +211,7 @@ void LammpsWidget::on_runButton_clicked()
         auto name = doMin ? fmt::format("(Min: {})", ui->minSel->currentText().toStdString())
                           : fmt::format("MD: {})", ui->mdSel->currentText().toStdString());
         Molecule mol{*master->curStep, master->curMol->name + name};
-        auto result = runMaster(tempdir, params, &mol);
+        auto result = runMaster(tempdir.string(), params, &mol);
         if(result.first < 0){
             QMessageBox::critical(this, "Error in LAMMPS run", QString::fromStdString(result.second)+
                                   "\nThis error may not be recoverable from.\n"
@@ -269,7 +269,7 @@ void LammpsWidget::mkGeom(const Step &curStep, const ForceField &FF, const fs::p
     // request parameter from FF
     auto param = FF.prepareParameters(curStep);
     // create input file
-    writeFile(tempdir/"geom.lmp", &IO::LmpInput, *master->curMol,
+    writeFile((tempdir/"geom.lmp").string(), &IO::LmpInput, *master->curMol,
               master->curVP->moldata[master->curMol].curStep-1,
               param, preset);
 }

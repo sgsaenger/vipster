@@ -26,6 +26,8 @@ using namespace Vipster;
 [[noreturn]] void launchVipster(int argc, char *argv[],
                                 std::vector<IO::Data>&& data,
                                 ConfigState&& state){
+    QApplication qapp(argc, argv);
+    QApplication::setApplicationName("Vipster");
     QSurfaceFormat format;
     if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
         // try to get a 3.3core context on desktop
@@ -37,8 +39,6 @@ using namespace Vipster;
     }
     format.setSamples(8);
     QSurfaceFormat::setDefaultFormat(format);
-    QApplication qapp(argc, argv);
-    QApplication::setApplicationName("Vipster");
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});
     if(!data.empty()){
         MainWindow w{QDir::currentPath(), state, std::move(data)};

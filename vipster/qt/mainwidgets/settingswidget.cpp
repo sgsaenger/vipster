@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QSpacerItem>
 #include "settingswidget.h"
 #include "ui_settingswidget.h"
 #include "../mainwindow.h"
@@ -28,6 +29,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(master->settings.milCol);
     registerSetting(master->settings.posCol);
     registerSetting(master->settings.negCol);
+    ui->settingsLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Preferred, QSizePolicy::Expanding), labels.size(), 0, 1, -1);
 }
 
 SettingsWidget::~SettingsWidget()
