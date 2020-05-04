@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
         throw CLI::Success();
     });
 
-#ifdef USE_LAMMPS
+#if defined(USE_LAMMPS) && defined(USE_MPI)
     auto lmp = app.add_subcommand("lammps_mpi_slave");
     lmp->group("");
     lmp->callback([&](){

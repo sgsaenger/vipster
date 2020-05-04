@@ -64,10 +64,15 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
         int argc{0};
         int level{0};
         char **argv{nullptr};
+#ifdef USE_MPI
         MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &level);
         if(level < MPI_THREAD_MULTIPLE){
             ui->MPISpin->setDisabled(true);
         }
+#else
+        // LAMMPS-MPI stubs doesn't implement the threaded functions
+        MPI_Init(&argc, &argv);
+#endif
     }
 
     // register installed FF styles

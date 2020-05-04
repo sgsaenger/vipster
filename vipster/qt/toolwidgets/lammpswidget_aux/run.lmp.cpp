@@ -26,7 +26,9 @@ static std::atomic<bool> running{false};
 
 std::pair<int, std::string> Lammps::runMaster(std::string dir, runParams params, Molecule *mol)
 {
+#ifdef USE_MPI
     if(params.MPI <= 1){
+#endif
         // sequential execution on main vipster process
         try{
             run(dir, params, MPI_COMM_NULL, mol);
@@ -34,6 +36,7 @@ std::pair<int, std::string> Lammps::runMaster(std::string dir, runParams params,
             return {1, e.what()};
         }
         return {};
+#ifdef USE_MPI
     }else{
         running = true;
         // parallel execution via spawned child processes
@@ -174,6 +177,7 @@ void Lammps::runSlave()
     error_handler.join();
     MPI_Comm_disconnect(&intercomm);
     MPI_Finalize();
+#endif
 }
 
 void Lammps::run(std::string dir, runParams params, MPI_Comm intercomm, Molecule *mol)
