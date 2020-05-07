@@ -4,7 +4,7 @@ project(Vipster VERSION 1.19)
 
 option(VIPSTER_TESTS "Build tests" OFF)
 option(VIPSTER_DESKTOP "Build QT-based desktop app" OFF)
-option(BUILD_SHARED_LIBS "Build libvipster as shared library" ON)
+option(BUILD_SHARED_LIBS "Build shared library" ON)
 include(CMakeDependentOption)
 cmake_dependent_option(VIPSTER_WEB "Build WASM-Module" OFF "NOT VIPSTER_DESKTOP" OFF)
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
@@ -17,17 +17,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Library, needed for everything else
-file(GLOB_RECURSE PY_SOURCES "libvipster/pyvipster.h" "libvipster/*.py.h" "libvipster/*.py.cpp")
-file(GLOB_RECURSE LIB_SOURCES "libvipster/*.h" "libvipster/*.cpp" "external/tinyexpr.c")
+file(GLOB_RECURSE PY_SOURCES "vipster/pyvipster.h" "vipster/*.py.h" "vipster/*.py.cpp")
+file(GLOB_RECURSE LIB_SOURCES "vipster/*.h" "vipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
-list(REMOVE_ITEM PY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/libvipster/main.py.cpp")
+list(REMOVE_ITEM PY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/vipster/main.py.cpp")
 if(VIPSTER_WEB)
     # not needed here, so we can circumvent missing <filesystem>
-    file(GLOB CONF_SOURCES "libvipster/configfile.*")
+    file(GLOB CONF_SOURCES "vipster/configfile.*")
     list(REMOVE_ITEM LIB_SOURCES ${CONF_SOURCES})
 endif()
 add_library(libvipster ${LIB_SOURCES})
-configure_file("libvipster/version.h.in" "version.h")
+configure_file("vipster/version.h.in" "version.h")
 set_target_properties(libvipster
     PROPERTIES
         FRAMEWORK TRUE
@@ -45,7 +45,7 @@ if(UNIX)
             LIBRARY
             DESTINATION "lib"
             )
-        install(DIRECTORY "libvipster/"
+        install(DIRECTORY "vipster/"
             DESTINATION "include/vipster"
             FILES_MATCHING PATTERN "*.h"
             )
@@ -81,7 +81,6 @@ if(VIPSTER_TESTS)
         add_subdirectory(external/Catch2 EXCLUDE_FROM_ALL)
     endif()
     target_link_libraries(test_lib PRIVATE libvipster Catch2::Catch2)
-    target_include_directories(test_lib PRIVATE libvipster)
 
     # enable testing via build system
     enable_testing()
@@ -99,7 +98,6 @@ if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
     endif()
     add_library(bindings OBJECT ${PY_SOURCES})
     target_link_libraries(bindings PUBLIC libvipster PRIVATE pybind11::module)
-    target_include_directories(bindings PUBLIC libvipster)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
     endif()
@@ -107,7 +105,7 @@ endif()
 
 if(VIPSTER_PYLIB)
     # standalone python bindings
-    pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "libvipster/main.py.cpp")
+    pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "vipster/main.py.cpp")
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "_vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
     if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
@@ -147,16 +145,16 @@ if(VIPSTER_DESKTOP)
 
     # get source files and split off optional sources
     file(GLOB_RECURSE QT_SOURCES
-         "vipster/qt/*.h"
-         "vipster/qt/*.cpp"
-         "vipster/qt/*.ui"
-         "vipster/common/*.h"
-         "vipster/common/*.cpp"
-         "vipster/resources/vipster.qrc"
+         "gui/qt/*.h"
+         "gui/qt/*.cpp"
+         "gui/qt/*.ui"
+         "gui/common/*.h"
+         "gui/common/*.cpp"
+         "gui/resources/vipster.qrc"
          )
-    file(GLOB_RECURSE QTPY_SOURCES "vipster/*.py.*")
+    file(GLOB_RECURSE QTPY_SOURCES "gui/*.py.*")
     list(REMOVE_ITEM QT_SOURCES ${QTPY_SOURCES})
-    file(GLOB_RECURSE QTLMP_SOURCES "vipster/*.lmp.*")
+    file(GLOB_RECURSE QTLMP_SOURCES "gui/*.lmp.*")
     list(REMOVE_ITEM QT_SOURCES ${QTLMP_SOURCES})
 
     # icon-files:
@@ -178,7 +176,7 @@ if(VIPSTER_DESKTOP)
 
     # link QT, CLI11 and vipster
     target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
-    target_include_directories(vipster PRIVATE libvipster "vipster/common" "vipster/qt")
+    target_include_directories(vipster PRIVATE "gui/common" "gui/qt")
 
     # python-widget:
     if(VIPSTER_PYWIDGET)
@@ -228,7 +226,7 @@ endif()
 if(VIPSTER_WEB)
     # Emscripten-based web application
     set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0")
-    file(GLOB WEB_RESOURCES "vipster/resources/*.frag" "vipster/resources/*.vert")
+    file(GLOB WEB_RESOURCES "gui/resources/*.frag" "gui/resources/*.vert")
     foreach(file ${WEB_RESOURCES})
         get_filename_component(filename ${file} NAME)
         set(EMCC_EMBED_FLAGS "${EMCC_EMBED_FLAGS}  --embed-file ${file}@${filename}")
@@ -238,8 +236,8 @@ if(VIPSTER_WEB)
     file(GLOB WEB_SOURCES
         "gh-pages/emscripten/index.html"
         "gh-pages/emscripten/vipster_setup.js"
-        "vipster/common/*.cpp"
-        "vipster/web/main.cpp")
+        "gui/common/*.cpp"
+        "gui/web/main.cpp")
     add_executable(webvipster ${WEB_SOURCES})
     set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(webvipster PRIVATE libvipster)

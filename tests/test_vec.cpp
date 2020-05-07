@@ -1,5 +1,5 @@
-#include "vec.h"
-#include "configfile.h"
+#include "vipster/vec.h"
+#include "vipster/configfile.h"
 #include <ostream>
 
 using namespace Vipster;
