@@ -146,6 +146,9 @@ void ViewPort::setMol(int index)
     if(curData.curStep == 0){
         curData.curStep = nstep;
     }
+    // set mol-selector
+    QSignalBlocker selBlock{ui->molList};
+    ui->molList->setCurrentIndex(index);
     // set mult manually
     QSignalBlocker xBlock{ui->xMultBox};
     ui->xMultBox->setValue(curData.mult[0]);
@@ -278,7 +281,7 @@ void ViewPort::stepBut(QAbstractButton *but)
             playTimer.stop();
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
         }else{
-            playTimer.start(static_cast<int>(settings.animstep.val));
+            playTimer.start(static_cast<int>(master->settings.animstep.val));
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
         }
     }

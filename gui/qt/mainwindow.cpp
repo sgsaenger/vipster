@@ -14,7 +14,11 @@
 #include <QApplication>
 #include <QStyle>
 
+#include <filesystem>
+#include <fmt/format.h>
+
 using namespace Vipster;
+namespace fs = std::filesystem;
 
 MainWindow::MainWindow(QString path, ConfigState& state,
                        std::vector<IO::Data> &&d, QWidget *parent):
@@ -517,17 +521,42 @@ void MainWindow::saveScreenshot()
     diag.setAcceptMode(QFileDialog::AcceptSave);
     diag.setMimeTypeFilters({"image/png"});
     if(diag.exec() == QDialog::Accepted){
-        auto target = diag.selectedFiles()[0];
-        if(!target.endsWith(".png", Qt::CaseInsensitive)){
-            target += ".png";
-        }
         path = diag.directory();
+        auto target = diag.selectedFiles()[0];
 
-        auto aa = settings.antialias.val;
-        settings.antialias.val = false;
-        auto img = curVP->openGLWidget->grabFramebuffer();
-        img.save(target);
-        settings.antialias.val = aa;
-        updateWidgets(0);
+        saveScreenshot(target);
     }
+}
+
+void MainWindow::saveScreenshots()
+{
+    QFileDialog diag{this};
+    diag.setDirectory(path);
+    diag.setFileMode(QFileDialog::Directory);
+    diag.setAcceptMode(QFileDialog::AcceptSave);
+    diag.setOption(QFileDialog::DontConfirmOverwrite);
+    diag.setOption(QFileDialog::ShowDirsOnly, false);
+    if(diag.exec() == QDialog::Accepted){
+        path = diag.directory();
+        size_t curStep = curVP->moldata[curMol].curStep;
+        int width = std::log10(static_cast<double>(curMol->getNstep()))+1;
+        for(size_t i=1; i<=curMol->getNstep(); ++i){
+            curVP->setStep(i);
+            saveScreenshot(fmt::format("{}/Step-{:0{}}.png", path.path().toStdString(), i, width).c_str());
+        }
+        curVP->setStep(curStep);
+    }
+}
+
+void MainWindow::saveScreenshot(QString fn)
+{
+    if(!fn.endsWith(".png", Qt::CaseInsensitive)){
+        fn += ".png";
+    }
+    auto aa = settings.antialias.val;
+    settings.antialias.val = false;
+    auto img = curVP->openGLWidget->grabFramebuffer();
+    img.save(fn);
+    settings.antialias.val = aa;
+    updateWidgets(0);
 }

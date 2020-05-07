@@ -1,5 +1,6 @@
 #include "../mainwindow.h"
 #include "pythonconsole.py.h"
+#include "glwidget.h"
 #include "vipster/pyvipster.h"
 #include "vipster/molecule.h"
 #include <QTextBlock>
@@ -24,23 +25,53 @@ PythonConsole::PythonConsole(QWidget *parent) :
     textCursor().insertText("\nType \"help(vipster)\" for more information "
                             "about Vipster-specific functions."
                             "\n>>> ");
-    // expose GUI's data to python
     auto vip = py::module::import("vipster");
+    // GUI-specific functions
+    vip.def("makeScreenshot", [this](const char *fn){master->saveScreenshot(fn);});
+    vip.def("viewRotate", [this](float x, float y, float z){
+        master->curVP->openGLWidget->rotateViewMat(x, y, z);
+    });
+    vip.def("viewTranslate", [this](float x, float y, float z){
+        master->curVP->openGLWidget->translateViewMat(x, y, z);
+    });
+    vip.def("viewZoom", [this](float f){
+        master->curVP->openGLWidget->zoomViewMat(f);
+    });
+    // Step-access
     vip.def("curStep", [this](){return master->curStep;}, py::return_value_policy::reference);
+    vip.def("getStep", [this](size_t i){
+        if(i>=master->curMol->getNstep())
+            throw std::range_error("Step-id out of range");
+        return master->curMol->getStep(i+1);
+    });
+    vip.def("setStep", [this](size_t i){
+        if(i>=master->curMol->getNstep())
+            throw std::range_error("Step-id out of range");
+        master->curVP->setStep(i+1);
+    });
+    vip.def("numStep", [this](){return master->curMol->getNstep();});
     vip.def("curSel", [this](){return master->curSel;}, py::return_value_policy::reference);
+    // Molecule-access
     vip.def("curMol", [this](){return master->curMol;}, py::return_value_policy::reference);
     vip.def("getMol", [this](size_t i){
         if(i>=master->molecules.size())
             throw std::range_error("Molecule-id out of range");
         return &*std::next(master->molecules.begin(), i);
     }, py::return_value_policy::reference);
+    vip.def("setMol", [this](size_t i){
+        if(i>=master->molecules.size())
+            throw std::range_error("Molecule-id out of range");
+        master->curVP->setMol(i);
+    });
     vip.def("numMol", [this](){return master->molecules.size();});
+    // Data-access
     vip.def("numData", [this](){return master->data.size();});
     vip.def("getData", [this](size_t i){
         if(i>=master->data.size())
             throw std::range_error("Data-id out of range");
         return std::next(master->data.begin(), i)->get();
     }, py::return_value_policy::reference);
+    // import library
     py::exec("import vipster; from vipster import *");
     // overwrite help() to hide interactive mode (breaks console)
     py::exec("def help(*args, **kwds):\n"

@@ -71,6 +71,7 @@ public:
     Vipster::IO::Presets    &presets;
 
     void newMol(Vipster::Molecule &&mol);
+    void saveScreenshot(QString fn);
 
 public slots:
     void about();
@@ -84,6 +85,7 @@ public slots:
     void loadPreset();
     void savePreset();
     void saveScreenshot();
+    void saveScreenshots();
 
 private:
     void setupUI(void);
