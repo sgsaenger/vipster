@@ -648,12 +648,8 @@ bool LmpInpWriter(const Molecule& m, std::ostream &file,
         }
     }else{
         // create bounding box suitable for shrink-wrapped non-periodic simulations
-        Vec pos_min{{std::numeric_limits<double>::max(),
-                 std::numeric_limits<double>::max(),
-                 std::numeric_limits<double>::max()}};
-        Vec pos_max{{std::numeric_limits<double>::lowest(),
-                 std::numeric_limits<double>::lowest(),
-                 std::numeric_limits<double>::lowest()}};
+        Vec pos_min{{0,0,0}};
+        Vec pos_max{{1,1,1}};
         for(const auto& at: step){
             pos_min[0] = std::min(pos_min[0], at.coord[0]);
             pos_min[1] = std::min(pos_min[1], at.coord[1]);
