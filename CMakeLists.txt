@@ -106,7 +106,7 @@ endif()
 if(VIPSTER_PYLIB)
     # standalone python bindings
     pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "vipster/main.py.cpp")
-    set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "_vipster")
+    set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
     if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
@@ -114,7 +114,7 @@ if(VIPSTER_PYLIB)
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
-        install(TARGETS bindings LIBRARY DESTINATION ${PYTHON_SITE}/vipster)
+        install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE}/vipster)
         install(FILES "util/package-init.py" DESTINATION ${PYTHON_SITE}/vipster RENAME "__init__.py")
         if(VIPSTER_EGG_INFO AND NOT VIPSTER_PYPI)
             install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
