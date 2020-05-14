@@ -62,7 +62,7 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
             }
             return QStringLiteral("%1-%2").arg(bond.at1).arg(bond.at2);
         case 1:
-            return bond.dist * invbohr;
+            return bond.dist * bohrrad;
         case 2:
             if (bond.type) {
                 return bond.type->first.c_str();

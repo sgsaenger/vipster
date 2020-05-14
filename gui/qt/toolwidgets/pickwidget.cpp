@@ -19,7 +19,7 @@ inline void printDist(QPlainTextEdit& text,
                       QString idx1, QString idx2, double dist)
 {
     QString tmp = "Dist " + idx1 + '-' + idx2 + ": " +
-            QString::number(dist) + " Å";
+            QLocale::system().toString(dist) + " Å";
     text.appendPlainText(tmp);
 }
 

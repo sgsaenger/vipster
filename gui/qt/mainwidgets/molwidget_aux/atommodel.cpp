@@ -1,4 +1,4 @@
-#include "molmodel.h"
+#include "atommodel.h"
 #include "../molwidget.h"
 
 using namespace Vipster;

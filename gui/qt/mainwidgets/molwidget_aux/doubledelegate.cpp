@@ -1,11 +1,11 @@
-#include "atomdelegate.h"
+#include "doubledelegate.h"
 #include <QDoubleSpinBox>
 
-AtomDelegate::AtomDelegate(QObject *parent)
+DoubleDelegate::DoubleDelegate(QObject *parent)
     : QStyledItemDelegate{parent}
 {}
 
-QWidget *AtomDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+QWidget *DoubleDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                                      const QModelIndex &index) const
 {
     if(index.data(Qt::EditRole).userType() == QVariant::Double){

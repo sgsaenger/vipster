@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>373</width>
-    <height>831</height>
+    <height>931</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -384,7 +384,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTableWidget" name="cellVecTable">
+       <widget class="QTableView" name="cellVecTable">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -397,36 +397,6 @@
           <height>110</height>
          </size>
         </property>
-        <row>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </row>
-        <row>
-         <property name="text">
-          <string>2</string>
-         </property>
-        </row>
-        <row>
-         <property name="text">
-          <string>3</string>
-         </property>
-        </row>
-        <column>
-         <property name="text">
-          <string>x</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>y</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>z</string>
-         </property>
-        </column>
        </widget>
       </item>
       <item>

@@ -5,8 +5,9 @@
 #include <QItemSelection>
 #include "vipster/molecule.h"
 #include "../basewidget.h"
-#include "molwidget_aux/molmodel.h"
+#include "molwidget_aux/atommodel.h"
 #include "molwidget_aux/bondmodel.h"
+#include "molwidget_aux/cellmodel.h"
 
 namespace Ui {
 class MolWidget;
@@ -31,7 +32,6 @@ private slots:
     void on_cellEnabledBox_toggled(bool checked);
     void on_cellFmt_currentIndexChanged(int idx);
     void on_cellDimBox_valueChanged(double cdm);
-    void on_cellVecTable_cellChanged(int row, int column);
     void on_cellTrajecButton_clicked();
 
     // kpoint slots
@@ -55,6 +55,7 @@ private slots:
     void on_ovlpTable_itemSelectionChanged();
 
 private:
+    bool scale();
     void checkOverlap(void);
     void fillCell(void);
     void fillKPoints(void);
@@ -63,8 +64,10 @@ private:
     Vipster::Step *curStep;
     std::unique_ptr<Vipster::Step::formatter> ownStep;
     Vipster::Molecule* curMol;
-    AtomModel molModel{this};
+    AtomModel atomModel{this};
     BondModel bondModel{this};
+    friend class CellModel;
+    CellModel cellModel{this};
     QList<QAction*> headerActions;
     int curKPoint{-1};
     static constexpr const char* inactiveKpoints[] = {"Gamma", "Monkhorst-Pack grid", "Discrete"};
