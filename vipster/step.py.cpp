@@ -100,7 +100,7 @@ py::class_<S> bind_step(py::handle &m, std::string name){
                 }
                 return s.getBonds();
             }, "update"_a=true)
-        .def("setBonds", &S::setBonds)
+        .def("setBonds", &S::setBonds, "overlap_only"_a=false)
         .def("getOverlaps", &S::getOverlaps)
         .def("getTopology", &S::getTopology, "angles"_a=true, "dihedrals"_a=true, "impropers"_a=true)
     // SELECTION
