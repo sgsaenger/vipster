@@ -61,7 +61,7 @@ Last but not least, a (sadly, feature-reduced) browser version can be tried [her
 - [tinyexpr](https://github.com/codeplea/tinyexpr) 
 - [CMake](https://cmake.org)
 - [{fmt}](https://github.com/fmtlib/fmt)
-- and a C++17-capable compiler (g++/mingw > 7 or clang > 4)
+- and a C++17-capable compiler (g++ > 8 or clang > 4)
 - optional:
     - [Qt5](https://www.qt.io) (desktop application)
     - [emscripten](http://kripken.github.io/emscripten-site) (web interface)
