@@ -50,7 +50,7 @@ if(UNIX)
     target_link_libraries(libvipster PUBLIC dl)
     # on traditional unix-like platforms,
     # install files to appropriate locations
-    if(BUILD_SHARED_LIBS AND NOT APPLE AND NOT VIPSTER_WEB)
+    if(BUILD_SHARED_LIBS AND NOT VIPSTER_WEB)
         install(TARGETS libvipster
             LIBRARY
             DESTINATION "lib"
@@ -141,7 +141,7 @@ if(VIPSTER_PYLIB)
     pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "vipster/main.py.cpp")
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
+    if(VIPSTER_PYPI OR UNIX)
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
@@ -262,7 +262,7 @@ if(VIPSTER_DESKTOP)
 
     # on traditional unix-like platforms,
     # install files to appropriate locations
-    if(UNIX AND NOT APPLE)
+    if(UNIX)
         install(TARGETS vipster RUNTIME DESTINATION "bin")
         install(FILES "util/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
         install(FILES "util/vipster.desktop" DESTINATION "share/applications")

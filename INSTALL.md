@@ -34,81 +34,76 @@ chmod +x Vipster-Linux-x86_64.AppImage
 In order to compile Vipster, you need a working [cmake (>= 3.9)](https://cmake.org) installation.
 Your C++ compiler should support C++17.
 Vipster is tested against GCC (>=8) and Clang (>=4).
-So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see [MSYS2](https://www.msys2.org)).
+So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see e.g. [MSYS2](https://www.msys2.org)).
 
 ### Dependencies
 
-Besides the toolchain and Qt for the desktop clients, vipster uses a few header-only libraries.
-Please see `external/README.md` for information about which target needs which library in which version.
-Some dependencies are supplied as git submodules.
-If they can or shall not be provided by the operating system, they can be provided in-tree via `git submodule update --init`.
+*QtVipster* requires Qt in version >=5.10.
 
-### Qt-Frontend
+Other dependencies are listed in `external/README.md`.
+If they are not installed in your system,
+they are included as git submodules and will be configured automatically during the build.
+(This can be disabled by providing `-DVIPSTER_DOWNLOAD_DEPENDENCIES=OFF` to cmake, see below.)
 
-This frontend should work on every pc with OpenGL3.3 capabilities.
-Please make sure that you have a valid Qt installation.
-To build the frontend, run:
+### Build process (simple)
 
+We need two directories:
+- `$BUILD_DIR` is the directory that will contain your compiled files and can be chosen freely
+- `$SOURCE_DIR` is the path to the Vipster source tree, e.g. where you unzipped the download or cloned the Git tree.
+
+All commands shall be executed in `$BUILD_DIR`.
+Vipster is built in multiple steps:
+
+1. Configure the build via CMake (see below for more options):
 ```
-cd $VIPSTER_SOURCE
-mkdir build
-cd build
-cmake -D CMAKE_BUILD_TYPE=Release -D VIPSTER_DESKTOP=ON ..
+cmake -DCMAKE_BUILD_TYPE=Release $SOURCE_DIR
+```
+
+2. Perform the compilation:
+```
 cmake --build .
 ```
 
-One may also want to add `make install` to deploy the files.
-The target directory for this is set by adding e.g. `-D CMAKE_INSTALL_PREFIX=/usr`.
-On linux, the default target directory will probably default to `$HOME/.local`, which may suffice for a per-user install.
-
-If cmake does not find your Qt installation (e.g. `qmake` not in your `$PATH`) or you want to specify a certain version,
-add `-D CMAKE_PREFIX_PATH=$QT_ROOT` to the first cmake call.
-
-#### Built-in Python-widget
-
-By adding `-D VIPSTER_PYWIDGET=ON` to the build of the Qt-frontend, a python terminal with embedded vipster bindings is enabled.
-
-#### Interactive forcefield calculations
-
-Adding `-D VIPSTER_LAMMPS=ON` to the build of the Qt-frontend enables embedding [LAMMPS](https://lammps.sandia.gov).
-Currently it is possible to use the UFF or a custom forcefield.
-Vipster either uses a installation found in the `CMAKE_PREFIX_PATH` or builds LAMMPS as part of Vipster's build process.
-Please refer to the [Manual](https://lammps.sandia.gov/doc/Manual.html) for information about build configuration and additional features.
-
-### Standalone Python-bindings
-
-These bindings should work on every platform that has python in its `$PATH`.
-
-If you are on Linux and your distribution offers a Vipster-package, it should include the bindings.
-Please also refer to the documentation of [pybind11](https://github.com/pybind/pybind11).
-To build them from source, you can either do `python setup.py install`, which will install like any other python package, or go the manual way (and share the build environment/settings):
-
+3. (Optional, not Windows) Install your compiled program:
 ```
-cd $VIPSTER_SOURCE
-git submodule update --init --recursive
-mkdir build
-cd build
-cmake -D CMAKE_BUILD_TYPE=Release -D VIPSTER_PYLIB=ON ..
-cmake --build .
+cmake --build . -- install
 ```
-**NOTE**: By default, Python-Egg informations will be generated.
-This can be disabled by specifying `-DEGG_INFO=OFF`.
+
+### Build with options (advanced)
+
+You can provide options to CMake to further configure your installation.
+All options are given in the form of `-D<OPTION>=<VALUE>`.
+Step 1 can be repeated multiple times to apply modifications to the current configuration.
+You can also use `cmake-gui` (graphical) or `ccmake` (terminal) to change options interactively.
+After changing the configuration, execute Step 2 (and 3) again to update your compiled (installed) files.
+
+List of common/vipster options, see [CMake documentation](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) for more information:
+- CMAKE_BUILD_TYPE: General compiler options, set to "Release" for a normal build or "Debug" for debugging
+- CMAKE_INSTALL_PREFIX: Set install path, defaults to `/usr/local`. Common setting for a per-user install: `$HOME/.local`
+- VIPSTER_DESKTOP: Set to "ON" to build QtVipster, "OFF" otherwise (default if Qt is found)
+- VIPSTER_LAMMPS: Set to "ON" to enable embedded LAMMPS widget (depends on QtVipster).
+                  Will use a suitable installation if found, else will build it in-tree.
+                  See the [LAMMPS-Manual](https://lammps.sandia.gov/doc/Manual.html) for more information and configuration options.
+- VIPSTER_PYWIDGET: Set to "ON" to enable embedded Python widget (depends on QtVipster, defaults to "ON" if Python is found)
+- VIPSTER_PYLIB: Set to "ON" to build standalone Python library (defaults to "ON" if Python is found)
+- VIPSTER_DOWNLOAD_DEPENDENCIES: Set to "OFF" to disable automatic git submodule initialization
+- BUILD_TESTING: Set to "OFF" to disable testing ("ON" by default)
+- CMAKE_PREFIX_PATH: Set to path for your Qt installation if not found automatically
+
 
 ### Debugging/Tests
 
 If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
-Additionally, you can enable compilation of unit tests by adding `-D VIPSTER_TESTS=ON`.
+
+Unit tests are built by default (see `BUILD_TESTING`) and can be executed via `ctest`.
 
 ### Web-Frontend
 
-This frontend works in every browser with WebGL2 and WebAssembly support.
-It expects a working [emscripten](http://kripken.github.io/emscripten-site) installation.
-To compile, use:
+A feature-reduced browser frontend is available for browsers supporting WebGL2 and WebAssembly.
+Use [emscripten](http://kripken.github.io/emscripten-site) for building:
 ```
-cd $VIPSTER_SOURCE
-mkdir build
-cd build
-emcmake cmake -D CMAKE_BUILD_TYPE=Release -D VIPSTER_WEB=ON ..
+cd $BUILD_DIR
+emcmake cmake -D CMAKE_BUILD_TYPE=Release -D VIPSTER_WEB=ON $SOURCE_DIR
 emcmake cmake --build .
 ```
 
@@ -116,9 +111,9 @@ This prepares a .wasm file that contains the code, and a .js file that contains 
 To use this, one needs to embed it in a webpage and bind the exposed functions to HTML-events.
 An example implementation can be found in `gh-pages/emscripten`.
 
-#### Rebuild CSS (optional)
+#### Rebuild CSS
 
-To rebuild the css, run
+To rebuild the webpage's css, run
 ```
 npm install
 ```
