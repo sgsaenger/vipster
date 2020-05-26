@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LammpsWidget</class>
+ <widget class="QWidget" name="LammpsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>381</width>
+    <height>823</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="6" column="0">
+    <widget class="QPushButton" name="runButton">
+     <property name="text">
+      <string>Run</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QPushButton" name="helpButton">
+     <property name="text">
+      <string>Read me</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QFrame" name="ffFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Select force-field:</string>
+          </property>
+          <property name="buddy">
+           <cstring>ffSel</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="ffHelp">
+          <property name="text">
+           <string>?</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QComboBox" name="ffSel"/>
+      </item>
+      <item>
+       <widget class="QFrame" name="customFrame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="1">
+          <widget class="QComboBox" name="pairSel"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="pairLabel">
+           <property name="text">
+            <string>Pair Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>pairSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="angleLabel">
+           <property name="text">
+            <string>Angle Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>angleSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="dihedLabel">
+           <property name="text">
+            <string>Dihedral Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>dihedSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="impropLabel">
+           <property name="text">
+            <string>Improper Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>impropSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="bondLabel">
+           <property name="text">
+            <string>Bond Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>bondSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="kspaceLabel">
+           <property name="text">
+            <string>KSpace Style:</string>
+           </property>
+           <property name="buddy">
+            <cstring>kspaceSel</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="bondSel"/>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="angleSel"/>
+         </item>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="dihedSel"/>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="impropSel"/>
+         </item>
+         <item row="5" column="1">
+          <widget class="QComboBox" name="kspaceSel"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="ffPrepare">
+        <property name="text">
+         <string>Prepare calculation</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QFrame" name="parFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="4">
+       <widget class="QLabel" name="GPULabel">
+        <property name="text">
+         <string>GPU:</string>
+        </property>
+        <property name="buddy">
+         <cstring>GPUSpin</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="MPISpin"/>
+      </item>
+      <item row="1" column="3">
+       <widget class="QSpinBox" name="OMPSpin"/>
+      </item>
+      <item row="0" column="0" colspan="3">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Parallelization:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QPushButton" name="parHelp">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>?</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="OMPLabel">
+        <property name="text">
+         <string>OpenMP:</string>
+        </property>
+        <property name="buddy">
+         <cstring>OMPSpin</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QSpinBox" name="GPUSpin"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="MPILabel">
+        <property name="text">
+         <string>MPI:</string>
+        </property>
+        <property name="buddy">
+         <cstring>MPISpin</cstring>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="0">
+    <widget class="QFrame" name="calcFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QComboBox" name="calcSel">
+        <item>
+         <property name="text">
+          <string>Minimization</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Molecular Dynamics</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="calcStack">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="minPage">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="ftolInput">
+            <property name="text">
+             <string>1.0e-6</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="maxItInput">
+            <property name="text">
+             <string>100</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="maxevalLabel">
+            <property name="text">
+             <string>Max force evaluations</string>
+            </property>
+            <property name="buddy">
+             <cstring>maxevalInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="maxevalInput">
+            <property name="text">
+             <string>1000</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="maxItLabel">
+            <property name="text">
+             <string>Max min iterations</string>
+            </property>
+            <property name="buddy">
+             <cstring>maxItInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="etolInput">
+            <property name="text">
+             <string>1.0e-4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="ftolLabel">
+            <property name="toolTip">
+             <string>Stopping tolerance for force (kcal/mol*angstrom)</string>
+            </property>
+            <property name="text">
+             <string>Force tolerance</string>
+            </property>
+            <property name="buddy">
+             <cstring>ftolInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="etolLabel">
+            <property name="toolTip">
+             <string>Stopping tolerance for energy change (unitless, depends on system size)</string>
+            </property>
+            <property name="text">
+             <string>Energy tolerance</string>
+            </property>
+            <property name="buddy">
+             <cstring>etolInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="2">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="minLabel">
+            <property name="text">
+             <string>Min Style:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="minSel"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_2">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="4" column="0">
+           <widget class="QLabel" name="mdLabel">
+            <property name="text">
+             <string>Integrating fix:</string>
+            </property>
+            <property name="buddy">
+             <cstring>mdSel</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="timeLabel">
+            <property name="text">
+             <string>Timestep (fs)</string>
+            </property>
+            <property name="buddy">
+             <cstring>timeInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QComboBox" name="velSel">
+            <item>
+             <property name="text">
+              <string>Init random</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Heat ramp (NVT)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Use existing velocities</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="velLabel">
+            <property name="text">
+             <string>Velocities</string>
+            </property>
+            <property name="buddy">
+             <cstring>velSel</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="equibInput">
+            <property name="text">
+             <string>100</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="timeInput">
+            <property name="text">
+             <string>1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="stepInput">
+            <property name="text">
+             <string>1000</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="stepLabel">
+            <property name="text">
+             <string>Steps (dynamics)</string>
+            </property>
+            <property name="buddy">
+             <cstring>stepInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="pressLabel">
+            <property name="text">
+             <string>Pressure (atm)</string>
+            </property>
+            <property name="buddy">
+             <cstring>pressInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="mdSel"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="equibLabel">
+            <property name="text">
+             <string>Steps (equilibrate)</string>
+            </property>
+            <property name="buddy">
+             <cstring>equibInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="tempLabel">
+            <property name="text">
+             <string>Temperature (K)</string>
+            </property>
+            <property name="buddy">
+             <cstring>tempInput</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="tempInput">
+            <property name="text">
+             <string>300</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QLineEdit" name="pressInput">
+            <property name="text">
+             <string>1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="reportInput">
+            <property name="text">
+             <string>10</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="reportLabel">
+            <property name="text">
+             <string>Steps (report)</string>
+            </property>
+            <property name="buddy">
+             <cstring>reportInput</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>calcSel</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>calcStack</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>135</x>
+     <y>246</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>135</x>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

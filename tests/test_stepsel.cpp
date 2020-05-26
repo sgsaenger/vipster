@@ -1,18 +1,52 @@
-#include "step.h"
-#include "configfile.h"
+#include "vipster/step.h"
+#include <iostream>
 
-#include "catch2/catch.hpp"
 using namespace Vipster;
 
-TEST_CASE("Vipster::StepSel", "[step]") {
+namespace std {
+static ostream& operator<<(ostream& out, const Vec& v)
+{
+    out << "Vec{" << v[0] << ", " << v[1] << ", " << v[2] << "}";
+    return out;
+}
+
+static ostream& operator<<(ostream& out, const decltype(Step::atom::coord)& v)
+{
+    out << static_cast<const Vec&>(v);
+    return out;
+}
+
+static ostream& operator<<(ostream& out, const decltype(Step::selection::atom::coord)& v)
+{
+    out << static_cast<const Vec&>(v);
+    return out;
+}
+
+static ostream& operator<<(ostream& os, const Step::const_atom& at)
+{
+    os << "Atom{" << at.name << ", " << at.coord << ", " << at.properties->charge
+       << ", " << at.properties->flags << "}";
+    return os;
+}
+
+static ostream& operator<<(ostream& os, const Step::selection::atom& at)
+{
+    os << "Atom{" << at.name << ", " << at.coord << ", " << at.properties->charge
+       << ", " << at.properties->flags << "}";
+    return os;
+}
+
+}
+
+#include "catch2/catch.hpp"
+
+TEST_CASE("Vipster::detail::Selection", "[select]") {
     Step s{};
-    (*s.pte)["C"].bondcut = 1.46;
-    (*s.pte)["H"].bondcut = 0.72;
-    (*s.pte)["O"].bondcut = 1.38;
     s.setFmt(AtomFmt::Bohr);
     s.newAtom("C");
     s.newAtom("H", Vec{1,0,0});
     s.newAtom("O", Vec{2,2,2});
+    s.setBonds();
     SECTION("by type"){
         auto selC = s.select("type C");
         CHECK(selC.getNat() == 1);
@@ -50,26 +84,27 @@ TEST_CASE("Vipster::StepSel", "[step]") {
         CHECK(selList[1] == s[2]);
         auto selListRange = s.select("index [1-2 0]");
         CHECK(selListRange.getNat() == 3);
-        CHECK(selListRange[0] == s[0]);
-        CHECK(selListRange[1] == s[1]);
-        CHECK(selListRange[2] == s[2]);
+        CHECK(selListRange[0] == s[1]);
+        CHECK(selListRange[1] == s[2]);
+        CHECK(selListRange[2] == s[0]);
         auto selOverdefined = s.select("index [0 0-2]");
-        CHECK(selOverdefined.getNat() == 3);
+        CHECK(selOverdefined.getNat() == 4);
         CHECK(selOverdefined[0] == s[0]);
-        CHECK(selOverdefined[1] == s[1]);
-        CHECK(selOverdefined[2] == s[2]);
+        CHECK(selOverdefined[1] == s[0]);
+        CHECK(selOverdefined[2] == s[1]);
+        CHECK(selOverdefined[3] == s[2]);
     }
     SECTION("by pos"){
-        s.setCellDim(2, CdmFmt::Bohr);
+        s.setCellDim(2, AtomFmt::Bohr);
         s.setCellVec(Mat{Vec{1,1,0}, Vec{0,1,0}, Vec{0,0,1}});
-        auto selA = s.select("pos xa>0");
-        CHECK(selA.getNat() == 2);
-        auto selB = s.select("pos xb>0");
-        CHECK(selB.getNat() == 2);
-        auto selC = s.select("pos y c < 0");
-        CHECK(selC.getNat() == 1);
-        auto selD = s.select("pos xd > 0.5");
-        CHECK(selD.getNat() == 1);
+        auto selG = s.select("pos x>0");
+        CHECK(selG.getNat() == 2);
+        auto selGE = s.select("pos x>= 1");
+        CHECK(selGE.getNat() == 2);
+        auto selL = s.select("pos y < 2");
+        CHECK(selL.getNat() == 2);
+        auto selLE = s.select("pos y <= 0");
+        CHECK(selLE.getNat() == 2);
     }
     SECTION("by coord"){
         auto selEQ = s.select("coord =1");
@@ -86,36 +121,27 @@ TEST_CASE("Vipster::StepSel", "[step]") {
         CHECK(notTypeList.getNat() == 1);
         auto notCoordLT = s.select("not coord <1");
         CHECK(notCoordLT.getNat() == 2);
-        auto notPosB = s.select("not pos xb>0");
+        auto notPosB = s.select("not pos x>0");
         CHECK(notPosB.getNat() == 1);
     }
     SECTION("complex"){
         auto selOr = s.select("index 0 | type H");
         CHECK(selOr.getNat() == 2);
-        CHECK(selOr.getFilter().toStr() == "index 0 | type H");
         auto selNor = s.select("index 0 !| type H");
         CHECK(selNor.getNat() == 1);
-        CHECK(selNor.getFilter().toStr() == "index 0 !| type H");
         auto selAnd = s.select("index 0-2 & type H");
         CHECK(selAnd.getNat() == 1);
-        CHECK(selAnd.getFilter().toStr() == "index [ 0 1 2 ] & type H");
         auto selNand = s.select("index 0-2 !& type H");
         CHECK(selNand.getNat() == 2);
-        CHECK(selNand.getFilter().toStr() == "index [ 0 1 2 ] !& type H");
         auto selXor = s.select("not index 2 ^ type [H O]");
         CHECK(selXor.getNat() == 2);
-        CHECK(selXor.getFilter().toStr() == "not index 2 ^ type [ H O ]");
         auto selXnor = s.select("not index 2 !^ type [H O]");
         CHECK(selXnor.getNat() == 1);
-        CHECK(selXnor.getFilter().toStr() == "not index 2 !^ type [ H O ]");
         auto ungrouped = s.select("index 0 | index 1 & index 2");
         CHECK(ungrouped.getNat() == 1);
-        CHECK(ungrouped.getFilter().toStr() == "index 0 | index 1 & index 2");
         auto leftgrouped = s.select("(index 0 | index 0-2) & index 2");
         CHECK(leftgrouped.getNat() == 1);
-        CHECK(leftgrouped.getFilter().toStr()== "( index 0 | index [ 0 1 2 ] ) & index 2");
         auto rightgrouped = s.select("index 0 | (index 0-2 & index 2)");
         CHECK(rightgrouped.getNat() == 2);
-        CHECK(rightgrouped.getFilter().toStr() == "index 0 | ( index [ 0 1 2 ] & index 2 )");
     }
 }

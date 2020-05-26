@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ScriptHelp</class>
+ <widget class="QDialog" name="ScriptHelp">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>433</width>
+    <height>623</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Operations</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
+&lt;p&gt;The scripting language is line based.&lt;/p&gt;
+&lt;p&gt;Only the first three characters of an operation are interpreted.&lt;br&gt;
+The allowed &lt;tt&gt;operations&lt;/tt&gt; are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;sel&lt;/b&gt;ect filter&lt;/tt&gt;: change the current selection according to &lt;tt&gt;filter&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;def&lt;/b&gt;ine name filter&lt;/tt&gt;: create a &lt;tt&gt;name&lt;/tt&gt;d group of atoms according to &lt;tt&gt;filter&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;rot&lt;/b&gt;ate target angle vec (vec)&lt;/tt&gt;: rotate &lt;tt&gt;target&lt;/tt&gt; &lt;tt&gt;angle&lt;/tt&gt; degrees around first &lt;tt&gt;vec&lt;/tt&gt; (optionally positioned at second &lt;tt&gt;vec&lt;/tt&gt;) &lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;shi&lt;/b&gt;ft target vec (factor)&lt;/tt&gt;: shift the &lt;tt&gt;target&lt;/tt&gt; by the (optionally scaled) &lt;tt&gt;vec&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;mir&lt;/b&gt;ror target vec vec (vec)&lt;/tt&gt;: mirror the &lt;tt&gt;target&lt;/tt&gt; at the plane defined by the first two &lt;tt&gt;vec&lt;/tt&gt;tors,optionally positioned at third &lt;tt&gt;vec&lt;/tt&gt;&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;&lt;b&gt;ren&lt;/b&gt;ame target name&lt;/tt&gt;: rename the &lt;tt&gt;target&lt;/tt&gt; atoms to new atom-type&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For details about &lt;b&gt;&lt;tt&gt;target&lt;/tt&gt;&lt;/b&gt;s, see &lt;em&gt;Target&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;For details about the different ways to specify a &lt;tt&gt;vec&lt;/tt&gt;tor, see &lt;em&gt;Vectors&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;For details about &lt;b&gt;&lt;tt&gt;filter&lt;/tt&gt;&lt;/b&gt;s, see &lt;em&gt;Selection&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Arguments in parenthesis, e.g. &lt;tt&gt;(vec)&lt;/tt&gt;, are optional.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>Target</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
+&lt;p&gt;All modifying operations work on a given target.&lt;br&gt;
+There are three target types:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;all&lt;/tt&gt;&lt;/b&gt;: This refers to the complete current main structure, including hidden atoms, but excluding pinned steps or other data that widgets superimpose into the current view.&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;&lt;tt&gt;sel&lt;/tt&gt;&lt;/b&gt;: This refers to the current selection of the main structure, &lt;em&gt;at the time of evaluation&lt;/em&gt;. Subsequent calls to &lt;tt&gt;select&lt;/tt&gt; change the meaning of this target.&lt;/li&gt;
+&lt;li&gt;Finally, &lt;b&gt;&lt;tt&gt;define&lt;/tt&gt;&lt;/b&gt; may create filtered groups of atoms that may be assigned arbitrary single-word names other than &lt;b&gt;&lt;tt&gt;all&lt;/tt&gt;&lt;/b&gt; and &lt;b&gt;&lt;tt&gt;sel&lt;/tt&gt;&lt;/b&gt;. These defined groups behave otherwise in the same way as &lt;tt&gt;sel&lt;/tt&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Vectors</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Vectors may be defined in 4 ways:&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(x,y,z)&lt;/span&gt;: Direct vector in the coordinate format that is currently active for the main structure&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(-)id&lt;/span&gt;: Position vector of atom &lt;span style=&quot; font-family:'Hack';&quot;&gt;id&lt;/span&gt; (optionally negated)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(-)id1+id2&lt;/span&gt;: Sum vector of two atom positions&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Hack';&quot;&gt;(-)id1-id2&lt;/span&gt;: Difference vector of two atoms&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>Selection</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="filterLabel">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string>Close</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>ScriptHelp</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>176</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>31</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

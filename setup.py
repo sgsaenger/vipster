@@ -12,7 +12,7 @@ import subprocess
 import platform
 
 # CMake arguments
-cmake_defines = "-DPYBIND=YES -DPYPI=YES"\
+cmake_defines = "-DVIPSTER_PYLIB=YES -DVIPSTER_PYPI=YES"\
     " -DPYTHON_EXECUTABLE:FILEPATH=\""+sys.executable+'"'
 if os.name == 'nt':
     # force msys makefile generation
