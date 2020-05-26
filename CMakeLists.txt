@@ -2,16 +2,23 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Vipster VERSION 1.19)
 
-option(VIPSTER_TESTS "Build tests" OFF)
-option(VIPSTER_DESKTOP "Build QT-based desktop app" OFF)
+# default to shared libraries
 option(BUILD_SHARED_LIBS "Build shared library" ON)
+# enable main GUI App if Qt is found
+find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
+option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND})
+# automatic dependency solving
 option(VIPSTER_DOWNLOAD_DEPENDENCIES "Download required dependencies if not present" ON)
 mark_as_advanced(VIPSTER_DOWNLOAD_DEPENDENCIES)
 include(CMakeDependentOption)
+# Minimal standalone .wasm interface
 cmake_dependent_option(VIPSTER_WEB "Build WASM-Module" OFF "NOT VIPSTER_DESKTOP" OFF)
+# embedded LAMMPS widget
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
-cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ON "VIPSTER_DESKTOP" OFF)
-cmake_dependent_option(VIPSTER_PYLIB "Python bindings" OFF "NOT VIPSTER_WEB" OFF)
+# Python widget and standalone library
+find_package(PythonInterp 3.6 QUIET)
+cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${PythonInterp_FOUND} "VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_PYLIB "Python library" ${PythonInterp_FOUND} "NOT VIPSTER_WEB" OFF)
 cmake_dependent_option(VIPSTER_PYPI "To be set when built via setup.py" OFF "VIPSTER_PYLIB" OFF)
 cmake_dependent_option(VIPSTER_EGG_INFO "Create infos for python package" ON "VIPSTER_PYLIB" OFF)
 mark_as_advanced(VIPSTER_PYPI VIPSTER_EGG_INFO)
@@ -94,7 +101,7 @@ endif()
 target_link_libraries(libvipster PUBLIC nlohmann_json::nlohmann_json fmt::fmt-header-only)
 target_include_directories(libvipster PUBLIC "external/tinyexpr")
 
-if(VIPSTER_TESTS)
+if(BUILD_TESTING)
     # Tests, so far only for library
     file(GLOB TEST_SOURCES "tests/*.cpp")
     add_executable(test_lib ${TEST_SOURCES})
@@ -103,6 +110,7 @@ if(VIPSTER_TESTS)
     find_package(Catch2 2.4.1 CONFIG QUIET)
     if(NOT Catch2_FOUND)
         init_submodule("Catch2" "Catch2")
+        set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
         add_subdirectory(external/Catch2 EXCLUDE_FROM_ALL)
     endif()
     target_link_libraries(test_lib PRIVATE libvipster Catch2::Catch2)
