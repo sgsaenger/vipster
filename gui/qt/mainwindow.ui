@@ -20,7 +20,7 @@
    <string>Vipster</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../resources/vipster.qrc">
     <normaloff>:/images/vipster.png</normaloff>:/images/vipster.png</iconset>
   </property>
   <property name="dockOptions">
@@ -267,7 +267,9 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="../resources/vipster.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>

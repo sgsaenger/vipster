@@ -15,7 +15,7 @@ void Bond(py::module&);
 void Table(py::module&);
 void Step(py::module&);
 void KPoints(py::module&);
-void Molecule(py::module&);
+void Molecule(py::module&, const ConfigState&);
 void Data(py::module&);
 void IO(py::module&, const ConfigState&, bool);
 void config(py::module&, ConfigState&);
@@ -48,10 +48,10 @@ PYBIND11_MODULE(vipster, m) {
     Py::Table(m);
     Py::Step(m);
     Py::KPoints(m);
-    Py::Molecule(m);
     Py::Data(m);
-    // I/O
+    // Read config state, init state-dependent API
     Py::state = readConfig();
+    Py::Molecule(m, Py::state);
     Py::IO(m, Py::state, true);
     Py::config(m, Py::state);
 }

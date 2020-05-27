@@ -275,7 +275,10 @@ struct AtomList{
 
 class Step: public StepMutable<detail::AtomList>
 {
+private:
     friend class Molecule;
+    // Periodic table
+    void setPTE(std::shared_ptr<PeriodicTable> newPTE);
 public:
     Step(AtomFmt at_fmt=AtomFmt::Angstrom,
          const std::string &comment="");
@@ -301,9 +304,6 @@ public:
             addBond(b.at1, b.at2, b.diff, b.type ? b.type->first : "");
         }
     }
-
-    // Periodic table
-    void setPTE(std::shared_ptr<PeriodicTable> newPTE);
 
     // Format
     void setFmt(AtomFmt fmt, bool scale=true);

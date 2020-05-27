@@ -146,6 +146,14 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlobal) :
     ui->fromGlobalBut->setVisible(!isGlobal);
     ui->defaultBut->setVisible(isGlobal);
     ui->deleteBut->setVisible(isGlobal);
+    //initialize table if global
+    if(isGlobal){
+        // ensure that all regular types are present, irregardless of user settings
+        for(const auto&[el, _]: Vipster::pte){
+            master->pte.find_or_fallback(el);
+        }
+        setTable(&master->pte);
+    }
 }
 
 PeriodicTableWidget::~PeriodicTableWidget()
@@ -216,24 +224,16 @@ void PeriodicTableWidget::changeEntry()
     }else{
         throw Error{"PeriodicTable: changeEntry called with unknown sender"};
     }
+    setTable(table);
     setEntry(ui->pteList->currentItem());
     triggerUpdate(change);
 }
 
-void PeriodicTableWidget::updateWidget(GUI::change_t change)
+void PeriodicTableWidget::updateWidget(Vipster::GUI::change_t change)
 {
-    if(isGlobal){
-        // pull in changes to global table
-        setTable(&master->pte);
-    }else{
-        if((change & GUI::molChanged) == GUI::molChanged){
-            // load table of new molecule...
-            setTable(&master->curMol->getPTE());
-        }else if(change & GUI::Change::atoms){
-            // ...or update current table
-            setTable(this->table);
-        }
-    }
+    if(updateTriggered) return;
+    // update table
+    if(change & GUI::Change::settings) setTable(table);
 }
 
 void PeriodicTableWidget::on_helpButton_clicked()

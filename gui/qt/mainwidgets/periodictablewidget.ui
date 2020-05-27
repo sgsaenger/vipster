@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>445</height>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -266,8 +266,8 @@
    <slot>changeEntry()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>212</x>
-     <y>339</y>
+     <x>375</x>
+     <y>374</y>
     </hint>
     <hint type="destinationlabel">
      <x>266</x>
@@ -282,8 +282,8 @@
    <slot>changeEntry()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>265</x>
-     <y>365</y>
+     <x>381</x>
+     <y>406</y>
     </hint>
     <hint type="destinationlabel">
      <x>291</x>
@@ -293,13 +293,13 @@
   </connection>
   <connection>
    <sender>defaultBut</sender>
-   <signal>clicked(bool)</signal>
+   <signal>clicked()</signal>
    <receiver>PeriodicTableWidget</receiver>
    <slot>changeEntry()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>240</x>
-     <y>395</y>
+     <x>381</x>
+     <y>438</y>
     </hint>
     <hint type="destinationlabel">
      <x>281</x>
@@ -314,8 +314,8 @@
    <slot>changeEntry()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>313</x>
-     <y>420</y>
+     <x>381</x>
+     <y>470</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>

@@ -60,7 +60,7 @@ void Bond(py::module&);
 void Table(py::module&);
 void Step(py::module&);
 void KPoints(py::module&);
-void Molecule(py::module&);
+void Molecule(py::module&, const ConfigState&);
 void Data(py::module&);
 void IO(py::module&, const ConfigState&, bool);
 void config(py::module&, ConfigState&);
@@ -92,7 +92,6 @@ PYBIND11_EMBEDDED_MODULE(vipster, m)
     Py::Table(m);
     Py::Step(m);
     Py::KPoints(m);
-    Py::Molecule(m);
     Py::Data(m);
 }
 #endif
@@ -111,6 +110,7 @@ int main(int argc, char *argv[])
     pybind11::scoped_interpreter interp{};
     auto vipster_module = py::module::import("vipster");
     // expose rest of API and pass state without having to declare it as global
+    Py::Molecule(vipster_module, state);
     Py::IO(vipster_module, state, false);
     Py::config(vipster_module, state);
 #endif

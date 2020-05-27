@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,0,0,1,0,1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,0,0,1,0,0,0,1,0,0">
    <item>
     <widget class="QPushButton" name="atomTableButton">
      <property name="text">
@@ -410,6 +410,45 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="typeButton">
+     <property name="text">
+      <string>Types</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="typeContainer">
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="PeriodicTableWidget" name="typeWidget" native="true"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="newElemButton">
+        <property name="text">
+         <string>Create/replace Element</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="clearTableButton">
+        <property name="text">
+         <string>Remove unused Elements</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="kpointButton">
      <property name="text">
       <string>K-Points</string>
@@ -697,6 +736,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PeriodicTableWidget</class>
+   <extends>QWidget</extends>
+   <header>mainwidgets/periodictablewidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
@@ -706,8 +753,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>165</x>
-     <y>311</y>
+     <x>174</x>
+     <y>389</y>
     </hint>
     <hint type="destinationlabel">
      <x>174</x>
@@ -722,12 +769,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>203</x>
-     <y>549</y>
+     <x>212</x>
+     <y>736</y>
     </hint>
     <hint type="destinationlabel">
-     <x>195</x>
-     <y>649</y>
+     <x>204</x>
+     <y>914</y>
     </hint>
    </hints>
   </connection>
@@ -738,12 +785,12 @@
    <slot>setCurrentIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>261</x>
-     <y>587</y>
+     <x>263</x>
+     <y>779</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
-     <y>639</y>
+     <x>318</x>
+     <y>903</y>
     </hint>
    </hints>
   </connection>
@@ -754,8 +801,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>65</x>
-     <y>608</y>
+     <x>66</x>
+     <y>802</y>
     </hint>
     <hint type="destinationlabel">
      <x>143</x>
@@ -770,8 +817,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>87</x>
-     <y>608</y>
+     <x>88</x>
+     <y>802</y>
     </hint>
     <hint type="destinationlabel">
      <x>265</x>
@@ -786,8 +833,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>109</x>
-     <y>608</y>
+     <x>110</x>
+     <y>802</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -802,8 +849,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>65</x>
-     <y>612</y>
+     <x>66</x>
+     <y>806</y>
     </hint>
     <hint type="destinationlabel">
      <x>111</x>
@@ -818,8 +865,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>87</x>
-     <y>612</y>
+     <x>88</x>
+     <y>806</y>
     </hint>
     <hint type="destinationlabel">
      <x>240</x>
@@ -834,8 +881,8 @@
    <slot>mpg_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>109</x>
-     <y>612</y>
+     <x>110</x>
+     <y>806</y>
     </hint>
     <hint type="destinationlabel">
      <x>369</x>
@@ -850,8 +897,8 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>139</x>
-     <y>47</y>
+     <x>148</x>
+     <y>34</y>
     </hint>
     <hint type="destinationlabel">
      <x>121</x>
@@ -872,6 +919,22 @@
     <hint type="destinationlabel">
      <x>186</x>
      <y>223</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>typeButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>typeContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>353</x>
+     <y>587</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>360</x>
+     <y>641</y>
     </hint>
    </hints>
   </connection>

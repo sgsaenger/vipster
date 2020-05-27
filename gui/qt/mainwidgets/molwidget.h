@@ -54,6 +54,10 @@ private slots:
 
     void on_ovlpTable_itemSelectionChanged();
 
+    void on_clearTableButton_clicked();
+
+    void on_newElemButton_clicked();
+
 private:
     bool scale();
     void checkOverlap(void);

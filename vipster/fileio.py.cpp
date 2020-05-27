@@ -18,7 +18,7 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
         .def(py::init<>())
         .def_readwrite("mol", &IO::Data::mol)
         .def_readwrite("param", &IO::Data::param)
-//        .def_readwrite("data", &IO::Data::data)
+//        .def_readwrite("data", &IO::Data::data) // TODO
     ;
 
     if(enableRead){

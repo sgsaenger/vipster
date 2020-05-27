@@ -37,7 +37,6 @@ public:
 
 private:
     std::list<Step> steps;
-    // TODO: make sure that this has the appropriate root!
     std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
 };
 }

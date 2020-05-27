@@ -3,6 +3,7 @@
 #include "../mainwindow.h"
 #include "molwidget_aux/bonddelegate.h"
 #include "molwidget_aux/doubledelegate.h"
+#include "molwidget_aux/newelement.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QMenu>
@@ -14,6 +15,8 @@ MolWidget::MolWidget(QWidget *parent) :
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
+
+    ui->typeContainer->setVisible(false);
 
     // setup k-points
     ui->discretetable->addAction(ui->actionNew_K_Point);
@@ -67,10 +70,7 @@ MolWidget::~MolWidget()
 
 void MolWidget::updateWidget(GUI::change_t change)
 {
-    if (updateTriggered) {
-        updateTriggered = false;
-        return;
-    }
+    if (updateTriggered)  return;
     if ((change & GUI::molChanged) == GUI::molChanged) {
         curMol = master->curMol;
     }
@@ -107,6 +107,7 @@ void MolWidget::updateWidget(GUI::change_t change)
         setSelection();
     }
     if (change & GUI::Change::atoms) {
+        ui->typeWidget->setTable(&curMol->getPTE());
         checkOverlap();
         bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     }
@@ -466,5 +467,18 @@ void MolWidget::on_ovlpTable_itemSelectionChanged()
         const auto& ovlp = curStep->getOverlaps()[sel.row()];
         auto idx = sel.column() == 0 ? ovlp.at1 : ovlp.at2;
         ui->atomTable->selectRow(idx);
+    }
+}
+
+void MolWidget::on_clearTableButton_clicked()
+{
+    curStep->cleanPTE();
+    ui->typeWidget->setTable(&curStep->getPTE());
+}
+
+void MolWidget::on_newElemButton_clicked()
+{
+    if(newelement(curStep->getPTE()).exec()){
+        ui->typeWidget->setTable(&curStep->getPTE());
     }
 }
