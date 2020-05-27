@@ -241,12 +241,12 @@ void MainWindow::editAtoms(QAction* sender)
         change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
-            at.properties->flags[AtomFlag::Hidden] = 1;
+            at.properties->flags[AtomProperties::Hidden] = 1;
         }
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionShow_Atom_s){
         for(auto& at: *curSel){
-            at.properties->flags[AtomFlag::Hidden] = 0;
+            at.properties->flags[AtomProperties::Hidden] = 0;
         }
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionRename_Atom_s){

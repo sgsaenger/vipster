@@ -164,9 +164,9 @@ void parseCoordinates(std::string name, std::istream& file,
         }
         bool x{true},y{true},z{true};
         linestream >> x >> y >> z;
-        at.properties->flags[AtomFlag::FixX] = !x;
-        at.properties->flags[AtomFlag::FixY] = !y;
-        at.properties->flags[AtomFlag::FixZ] = !z;
+        at.properties->flags[AtomProperties::FixX] = !x;
+        at.properties->flags[AtomProperties::FixY] = !y;
+        at.properties->flags[AtomProperties::FixZ] = !z;
     }
 }
 
@@ -420,10 +420,10 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
     const std::array<std::string, 4> fmt2str = {{"crystal", "alat", "angstrom", "bohr"}};
     file << "\nATOMIC_POSITIONS " << fmt2str[static_cast<size_t>(s.getFmt())+2] << '\n'
          << std::fixed << std::setprecision(5);
-    AtomFlags fixComp{};
-    fixComp[AtomFlag::FixX] = true;
-    fixComp[AtomFlag::FixY] = true;
-    fixComp[AtomFlag::FixZ] = true;
+    AtomProperties::Flags fixComp{};
+    fixComp[AtomProperties::FixX] = true;
+    fixComp[AtomProperties::FixY] = true;
+    fixComp[AtomProperties::FixZ] = true;
     for (const auto& at: s) {
         file << std::left << std::setw(3) << at.name
              << std::right << std::setprecision(8)
@@ -431,9 +431,9 @@ bool PWInpWriter(const Molecule& m, std::ostream &file,
              << ' ' << std::setw(12) << at.coord[1]
              << ' ' << std::setw(12) << at.coord[2];
         if((at.properties->flags & fixComp).any()){
-            file << ' ' << !at.properties->flags[AtomFlag::FixX]
-                 << ' ' << !at.properties->flags[AtomFlag::FixY]
-                 << ' ' << !at.properties->flags[AtomFlag::FixZ];
+            file << ' ' << !at.properties->flags[AtomProperties::FixX]
+                 << ' ' << !at.properties->flags[AtomProperties::FixY]
+                 << ' ' << !at.properties->flags[AtomProperties::FixZ];
         }
         file << '\n';
     }

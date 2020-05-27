@@ -142,9 +142,9 @@ IO::Data PWOutParser(const std::string& name, std::istream &file)
                 linestream >> at.name >> at.coord[0] >> at.coord[1] >> at.coord[2];
                 bool x{true}, y{true}, z{true};
                 linestream >> x >> y >> z;
-                at.properties->flags[AtomFlag::FixX] = !x;
-                at.properties->flags[AtomFlag::FixY] = !y;
-                at.properties->flags[AtomFlag::FixZ] = !z;
+                at.properties->flags[AtomProperties::FixX] = !x;
+                at.properties->flags[AtomProperties::FixY] = !y;
+                at.properties->flags[AtomProperties::FixZ] = !z;
             }
         }
         else if (line.find("Begin final coordinates") != std::string::npos) {

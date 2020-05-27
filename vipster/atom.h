@@ -170,16 +170,14 @@ namespace Vipster{
      * this contains all non-essential properties of an Atom,
      * i.e. everything besides position and type
      */
-    namespace Enums{
-    enum AtomFlag: uint8_t {FixX, FixY, FixZ, Hidden};
-    }
-    using Enums::AtomFlag;
-    constexpr size_t nAtFlag = 4;
-    using AtomFlags = std::bitset<nAtFlag>;
     struct AtomProperties{
         double      charge;
         Vec         forces;
-        AtomFlags   flags;
+        // Bit flags
+        enum Flag: uint8_t {FixX, FixY, FixZ, Hidden};
+        static constexpr size_t nAtFlag = 4;
+        using Flags = std::bitset<nAtFlag>;
+        Flags       flags;
     };
     bool operator==(const AtomProperties &p1, const AtomProperties &p2);
 

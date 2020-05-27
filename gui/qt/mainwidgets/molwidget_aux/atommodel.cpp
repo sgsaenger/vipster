@@ -102,13 +102,13 @@ QVariant AtomModel::data(const QModelIndex &index, int role) const
         // return bool*2 so true becomes CheckState::Checked
         switch(col){
         case 8:
-            return 2*atom.properties->flags[AtomFlag::Hidden];
+            return 2*atom.properties->flags[AtomProperties::Hidden];
         case 9:
-            return 2*atom.properties->flags[AtomFlag::FixX];
+            return 2*atom.properties->flags[AtomProperties::FixX];
         case 10:
-            return 2*atom.properties->flags[AtomFlag::FixY];
+            return 2*atom.properties->flags[AtomProperties::FixY];
         case 11:
-            return 2*atom.properties->flags[AtomFlag::FixZ];
+            return 2*atom.properties->flags[AtomProperties::FixZ];
         }
     }
     return QVariant{};
@@ -143,16 +143,16 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             auto atom = curStep->at(index.row());
             switch(col){
             case 8:
-                atom.properties->flags[AtomFlag::Hidden] = value==Qt::Checked;
+                atom.properties->flags[AtomProperties::Hidden] = value==Qt::Checked;
                 break;
             case 9:
-                atom.properties->flags[AtomFlag::FixX] = value==Qt::Checked;
+                atom.properties->flags[AtomProperties::FixX] = value==Qt::Checked;
                 break;
             case 10:
-                atom.properties->flags[AtomFlag::FixY] = value==Qt::Checked;
+                atom.properties->flags[AtomProperties::FixY] = value==Qt::Checked;
                 break;
             case 11:
-                atom.properties->flags[AtomFlag::FixZ] = value==Qt::Checked;
+                atom.properties->flags[AtomProperties::FixZ] = value==Qt::Checked;
                 break;
             }
         }else{

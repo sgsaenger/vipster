@@ -432,7 +432,7 @@ void GUI::StepData::update(Step* step,
                                     static_cast<float>(at.coord[1]),
                                     static_cast<float>(at.coord[2])},
                                    static_cast<float>(at.type->vdwr), at.type->col,
-                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
+                                   static_cast<uint8_t>(at.properties->flags[AtomProperties::Hidden])});
         }
     }else{
         for (const auto& at: *curStep){
@@ -440,7 +440,7 @@ void GUI::StepData::update(Step* step,
                                     static_cast<float>(at.coord[1]),
                                     static_cast<float>(at.coord[2])},
                                    static_cast<float>(at.type->covr), at.type->col,
-                                   static_cast<uint8_t>(at.properties->flags[AtomFlag::Hidden])});
+                                   static_cast<uint8_t>(at.properties->flags[AtomProperties::Hidden])});
         }
     }
 
@@ -501,8 +501,8 @@ void GUI::StepData::update(Step* step,
                 {static_cast<int16_t>(std::abs(bd.diff[0])),
                  static_cast<int16_t>(std::abs(bd.diff[1])),
                  static_cast<int16_t>(std::abs(bd.diff[2])),
-                 static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
-                                      at_prop[bd.at2].flags[AtomFlag::Hidden])},
+                 static_cast<int16_t>(at_prop[bd.at1].flags[AtomProperties::Hidden] ||
+                                      at_prop[bd.at2].flags[AtomProperties::Hidden])},
                  col1, col2});
         }else{
             // all other bonds
@@ -534,8 +534,8 @@ void GUI::StepData::update(Step* step,
                 {static_cast<int16_t>(std::abs(bd.diff[0])),
                  static_cast<int16_t>(std::abs(bd.diff[1])),
                  static_cast<int16_t>(std::abs(bd.diff[2])),
-                 static_cast<int16_t>(at_prop[bd.at1].flags[AtomFlag::Hidden] ||
-                                      at_prop[bd.at2].flags[AtomFlag::Hidden])},
+                 static_cast<int16_t>(at_prop[bd.at1].flags[AtomProperties::Hidden] ||
+                                      at_prop[bd.at2].flags[AtomProperties::Hidden])},
                 //2*vec4 with colors
                 col1, col2});
         }

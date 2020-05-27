@@ -356,10 +356,10 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                     parsed = true;
                     std::vector<std::string> other;
                     while(buf.find("END CONSTRAINTS") == buf.npos){
-                        AtomFlags fixComp{};
-                        fixComp[AtomFlag::FixX] = true;
-                        fixComp[AtomFlag::FixY] = true;
-                        fixComp[AtomFlag::FixZ] = true;
+                        AtomProperties::Flags fixComp{};
+                        fixComp[AtomProperties::FixX] = true;
+                        fixComp[AtomProperties::FixY] = true;
+                        fixComp[AtomProperties::FixZ] = true;
                         if(buf.find("FIX") != buf.npos){
                             if((buf.find("ALL") != buf.npos) ||
                                (buf.find("QM") != buf.npos)){
@@ -425,9 +425,9 @@ IO::Data CPInpParser(const std::string& name, std::istream &file){
                                 for(size_t i=0; i < nat; ++i){
                                     bool x{}, y{}, z{};
                                     file >> idx >> x >> y >> z;
-                                    s[idx-1].properties->flags[AtomFlag::FixX] = !x;
-                                    s[idx-1].properties->flags[AtomFlag::FixY] = !y;
-                                    s[idx-1].properties->flags[AtomFlag::FixZ] = !z;
+                                    s[idx-1].properties->flags[AtomProperties::FixX] = !x;
+                                    s[idx-1].properties->flags[AtomProperties::FixY] = !y;
+                                    s[idx-1].properties->flags[AtomProperties::FixZ] = !z;
                                 }
                             }else{
                                 other.push_back(buf);
@@ -504,13 +504,13 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
             for(auto it=s.begin(); it!=s.end(); ++it){
                 types[it->name].push_back(it.getIdx());
             }
-            AtomFlags fixComp{};
-            fixComp[AtomFlag::FixX] = true;
-            fixComp[AtomFlag::FixY] = true;
-            fixComp[AtomFlag::FixZ] = true;
+            AtomProperties::Flags fixComp{};
+            fixComp[AtomProperties::FixX] = true;
+            fixComp[AtomProperties::FixY] = true;
+            fixComp[AtomProperties::FixZ] = true;
             size_t count{0};
             std::vector<size_t> fixAtom;
-            std::vector<std::pair<size_t, AtomFlags>> fixCoord;
+            std::vector<std::pair<size_t, AtomProperties::Flags>> fixCoord;
             std::vector<double> masses;
             for(const auto& pair: types){
                 const auto& pE = m.getPTE().at(pair.first);
@@ -574,9 +574,9 @@ bool CPInpWriter(const Molecule& m, std::ostream &file,
                          << fixCoord.size() << "\n  ";
                     for(const auto& pair: fixCoord){
                         file << pair.first << ' '
-                             << pair.second[AtomFlag::FixX] << ' '
-                             << pair.second[AtomFlag::FixY] << ' '
-                             << pair.second[AtomFlag::FixZ] << "\n  ";
+                             << pair.second[AtomProperties::FixX] << ' '
+                             << pair.second[AtomProperties::FixY] << ' '
+                             << pair.second[AtomProperties::FixZ] << "\n  ";
                     }
                     file << '\n';
                 }

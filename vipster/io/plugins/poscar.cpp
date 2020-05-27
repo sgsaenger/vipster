@@ -111,9 +111,9 @@ IO::Data PoscarParser(const std::string& name, std::istream &file){
         ss >> at.coord[0] >> at.coord[1] >> at.coord[2];
         if(selective){
             ss >> sel[0] >> sel[1] >> sel[2];
-            if(sel[0] == 'F') at.properties->flags[AtomFlag::FixX] = true;
-            if(sel[1] == 'F') at.properties->flags[AtomFlag::FixY] = true;
-            if(sel[2] == 'F') at.properties->flags[AtomFlag::FixZ] = true;
+            if(sel[0] == 'F') at.properties->flags[AtomProperties::FixX] = true;
+            if(sel[1] == 'F') at.properties->flags[AtomProperties::FixY] = true;
+            if(sel[2] == 'F') at.properties->flags[AtomProperties::FixZ] = true;
         }
     }
 
@@ -180,9 +180,9 @@ bool PoscarWriter(const Molecule& m, std::ostream &file,
                 file << ' ' << it->coord[0]
                      << ' ' << it->coord[1]
                      << ' ' << it->coord[2]
-                     << ' ' << (it->properties->flags[AtomFlag::FixX] ? 'F' : 'T')
-                     << ' ' << (it->properties->flags[AtomFlag::FixY] ? 'F' : 'T')
-                     << ' ' << (it->properties->flags[AtomFlag::FixZ] ? 'F' : 'T')
+                     << ' ' << (it->properties->flags[AtomProperties::FixX] ? 'F' : 'T')
+                     << ' ' << (it->properties->flags[AtomProperties::FixY] ? 'F' : 'T')
+                     << ' ' << (it->properties->flags[AtomProperties::FixZ] ? 'F' : 'T')
                      << '\n';
             }
         }
