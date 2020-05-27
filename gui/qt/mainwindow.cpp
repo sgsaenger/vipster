@@ -493,7 +493,7 @@ void MainWindow::savePreset()
 void MainWindow::about()
 {
     QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster v" VIPSTER_VERSION "b</h2>"
+    QString("<h2>Vipster v" VIPSTER_VERSION "</h2>"
             "<p>"
             "©Sebastian Gsänger, 2020"
             "<br>"

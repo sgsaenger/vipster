@@ -28,6 +28,8 @@ using namespace Vipster;
                                 ConfigState&& state){
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
+    QApplication::setApplicationVersion(VIPSTER_VERSION);
+    std::cout << "Vipster v" VIPSTER_VERSION << std::endl;
     QSurfaceFormat format;
     if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
         // try to get a 3.3core context on desktop
@@ -116,7 +118,7 @@ int main(int argc, char *argv[])
 #endif
 
     // main parser + data-targets
-    CLI::App app{"Vipster v" VIPSTER_VERSION "b"};
+    CLI::App app{"Vipster v" VIPSTER_VERSION};
     app.allow_extras(true);
     std::map<const IO::Plugin*, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, const IO::Plugin*> fmt_opts{};
