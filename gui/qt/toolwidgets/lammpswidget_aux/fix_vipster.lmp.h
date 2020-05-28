@@ -3,7 +3,7 @@
 
 #include "lammps/fix.h"
 
-#include "molecule.h"
+#include "vipster/molecule.h"
 
 namespace LAMMPS_NS {
 
