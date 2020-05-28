@@ -224,7 +224,7 @@ if(VIPSTER_DESKTOP)
         if(LAMMPS_FOUND)
             if(${LAMMPS_VERSION} GREATER_EQUAL 20200505)
                 get_target_property(LMP_INC_DIR LAMMPS::lammps INTERFACE_INCLUDE_DIRECTORIES)
-                if(EXISTS ${LMP_INC_DIR}/exceptions.h)
+                if(EXISTS ${LMP_INC_DIR}/lammps/exceptions.h)
                     message("Found LAMMPS (suitable version \"${LAMMPS_VERSION}\" at ${LMP_INC_DIR})")
                     set(USE_LAMMPS_BUILTIN OFF)
                     # link against imported target
