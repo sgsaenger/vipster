@@ -32,7 +32,7 @@ const change = {
     config: 32
 };
 
-change.step = change.atoms | change.cell | change.fmt;
+change.step = change.atoms | change.cell;
 change.mol = change.kpoints;
 
 function setupCanvas(canvas) {
@@ -121,9 +121,8 @@ function setupHammer(canvas) {
 }
 
 function fillAtoms() {
-    const fmt = parseInt(dom.selectAtomFormat.value);
-    const at = Module.getAtomIt(Module.curMol, Module.curStep, fmt);
-    const nat = Module.getNAtoms(Module.curMol, Module.curStep);
+    const at = Module.getAtomIt();
+    const nat = Module.getNAtoms();
     const nbsp = '&nbsp;';
 
     let html = `
@@ -160,9 +159,9 @@ function fillAtoms() {
 
 function fillCell() {
     const fmt = parseInt(dom.cdmFmtSel.value);
-    const mat = Module.getCellVec(Module.curMol, Module.curStep);
+    const mat = Module.getCellVec();
 
-    dom.cellDim.value = Module.getCellDim(Module.curMol, Module.curStep, fmt);
+    dom.cellDim.value = Module.getCellDim(fmt);
 
     for (let row = 0; row < 3; ++row) {
         for (let col = 0; col < 3; ++col) {
@@ -173,10 +172,7 @@ function fillCell() {
 
 function atomChanged(tgt) {
     const fmt = parseInt(dom.selectAtomFormat.value);
-    const at = Module.getAtom(
-        Module.curMol, Module.curStep, fmt,
-        parseInt(tgt.parentElement.dataset.idx),
-    );
+    const at = Module.getAtom( parseInt(tgt.parentElement.dataset.idx));
 
     if (tgt.dataset.idx === 'name') {
         at.name = tgt.innerText;
@@ -203,26 +199,26 @@ function cellDimChanged(tgt) {
     const scale = dom.cellScale.checked;
     const trajec = dom.cellToMol.checked;
 
-    if (trajec) {
-        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
-            Module.setCellDim(Module.curMol, i, newVal, fmt, scale);
-        }
-    } else {
-        Module.setCellDim(Module.curMol, Module.curStep, newVal, fmt, scale);
-    }
+//    if (trajec) {
+//        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
+//            Module.setCellDim(Module.curMol, i, newVal, fmt, scale);
+//        }
+//    } else {
+    Module.setCellDim(newVal, fmt, scale);
+//    }
 
     update(change.cell);
 }
 
 function cellEnabled(val) {
     const trajec = dom.cellToMol.checked;
-    if (trajec) {
-        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
-            Module.enableCell(Module.curMol, i, val);
-        }
-    } else {
-        Module.enableCell(Module.curMol, Module.curStep, val);
-    }
+//    if (trajec) {
+//        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
+//            Module.enableCell(Module.curMol, i, val);
+//        }
+//    } else {
+    Module.enableCell(val);
+//    }
 
     update(change.cell);
 }
@@ -235,19 +231,19 @@ function cellVecChanged(tgt) {
 
     const col = tgt.dataset.idx;
     const row = tgt.parentElement.dataset.idx;
-    const vec = Module.getCellVec(Module.curMol, Module.curStep);
+    const vec = Module.getCellVec();
     const trajec = document.getElementById('cellToMol').checked;
     const scale = document.getElementById('cellScale').checked;
 
     vec[row][col] = newVal;
 
-    if (trajec) {
-        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
-            Module.setCellVec(Module.curMol, i, vec, scale);
-        }
-    } else {
-        Module.setCellVec(Module.curMol, Module.curStep, vec, scale);
-    }
+//    if (trajec) {
+//        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
+//            Module.setCellVec(Module.curMol, i, vec, scale);
+//        }
+//    } else {
+    Module.setCellVec(vec, scale);
+//    }
 
     update(change.cell);
 }
@@ -345,9 +341,14 @@ function setMult() {
 }
 
 function update(arg) {
+    if (arg & change.fmt) {
+        Module.setFmt(parseInt(dom.selectAtomFormat.value) -2);
+        setStep(Module.curStep);
+    }
+
     if (arg & (change.atoms | change.cell)) {
         // ensure that step-data is in a valid state
-        Module.evalCache();
+        Module.evalBonds();
         // ensure that GL is in a valid state
         Module.updateView();
         // update atom-table
@@ -362,15 +363,15 @@ function update(arg) {
 
 function setStep(i) {
     Module.curStep = i;
+    Module.setStep(Module.curMol, i);
 
-    const hasCell = Module.hasCell(Module.curMol, Module.curStep);
+    const hasCell = Module.hasCell();
     $('.if-cell').toggle(hasCell);
 
     dom.stepCur.innerHTML = i + 1;
-    dom.selectAtomFormat.value = Module.getFmt(Module.curMol, Module.curStep);
+    dom.selectAtomFormat.value = Module.getFmt() + 2;
     dom.checkboxCellEnabled.checked = hasCell;
 
-    Module.setStep(Module.curMol, i);
     update(change.step);
 }
 

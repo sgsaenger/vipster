@@ -61,6 +61,7 @@ void GUI::GlobalData::initGL()
     }
     folder = ":/shaders";
 #else
+    bool newEnough{true};
     header = "# version 300 es\nprecision highp float;\n";
     folder = "";
 #endif

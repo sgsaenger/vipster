@@ -107,12 +107,12 @@
               <div class="widget__body">
                 <form class="mb-3">
                   <div class="input-group">
-                    <select class="custom-select" id="selectAtomFormat" onInput="update(change.atoms)"
+                    <select class="custom-select" id="selectAtomFormat" onInput="update(change.fmt)"
                         title="Atom format">
-                      <option value="0">Bohr</option>
-                      <option value="1">Ångström</option>
-                      <option value="2">Crystal</option>
-                      <option value="3">Alat</option>
+                      <option value="0">Crystal</option>
+                      <option value="1">Alat</option>
+                      <option value="2">Ångström</option>
+                      <option value="3">Bohr</option>
                     </select>
                   </div>
                 </form>
@@ -144,10 +144,10 @@
                   <label class="custom-control-label" for="checkboxCellEnabled">Cell enabled</label>
                 </div>
 
-                <div class="custom-control custom-checkbox mb-2">
+<!--                <div class="custom-control custom-checkbox mb-2">
                   <input type="checkbox" class="custom-control-input" id="cellToMol">
                   <label class="custom-control-label" for="cellToMol">Apply to all steps</label>
-                </div>
+                </div>-->
 
                 <div class="custom-control custom-checkbox if-cell">
                   <input type="checkbox" class="custom-control-input" id="cellScale">

@@ -4,8 +4,8 @@
 #include <emscripten/vr.h>
 
 #include "guiwrapper.h"
-#include "molecule.h"
-#include "fileio.h"
+#include "vipster/molecule.h"
+#include "vipster/fileio.h"
 
 namespace em = emscripten;
 using namespace Vipster;
@@ -53,21 +53,22 @@ std::string emWriteFile(int m, int s, int f){
 // Molecules
 int emGetNMol(void){ return molecules.size();}
 int emGetMolNstep(int m){ return molecules[m].getNstep();}
-std::string emGetMolName(int m){ return molecules[m].getName();}
+std::string emGetMolName(int m){ return molecules[m].name;}
 
 // Steps
 void emSetStep(int m, int s){ gui.setMainStep(&molecules[m].getStep(s)); }
 void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
-int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
-Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
-Step::iterator emGetAtomIt(int m, int s, int fmt){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt).begin(); }
-int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
+int emGetNAtoms(){ return gui.curStep->getNat(); }
+Step::atom emGetAtom(int at){ return (*gui.curStep)[at]; }
+Step::iterator emGetAtomIt(){ return gui.curStep->begin(); }
+int emGetFmt(){ return (int)gui.curStep->getFmt(); }
+void emSetFmt(int fmt){ gui.curStep->setFmt((AtomFmt) fmt, true); }
 
 // Atom
-std::string emGetAtName(const Atom& at){return at.name;}
-void emSetAtName(Atom& at, const std::string &name){at.name = name;}
-Vec emGetAtCoord(const Atom& at){return at.coord;}
-void emSetAtCoord(Atom& at, Vec v){at.coord = v;}
+std::string emGetAtName(const Step::atom& at){return at.name;}
+void emSetAtName(Step::atom& at, const std::string &name){at.name = name;}
+Vec emGetAtCoord(const Step::atom& at){return at.coord;}
+void emSetAtCoord(Step::atom& at, Vec v){at.coord = v;}
 
 // Iterator
 std::string emGetItName(const Step::iterator& it){return it->name;}
@@ -76,12 +77,12 @@ Vec emGetItCoord(const Step::iterator& it){return it->coord;}
 void emSetItCoord(Step::iterator& it, Vec v){it->coord = v;}
 
 // Cell
-double emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCellDim((CdmFmt)fmt);}
-void emSetCellDim(int m, int s, double cdm, int fmt, bool scale){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt, scale);}
-Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
-void emSetCellVec(int m, int s, Mat vec, bool scale){molecules[m].getStep(s).setCellVec(vec, scale);}
-void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
-bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
+double emGetCellDim(int fmt){return gui.curStep->getCellDim((AtomFmt)fmt);}
+void emSetCellDim(double cdm, int fmt, bool scale){gui.curStep->setCellDim(cdm, (AtomFmt)fmt, scale);}
+Mat emGetCellVec(){return gui.curStep->getCellVec();}
+void emSetCellVec(Mat vec, bool scale){ gui.curStep->setCellVec(vec, scale);}
+void emEnableCell(bool b){ gui.curStep->enableCell(b); }
+bool emHasCell(){return gui.curStep->hasCell(); }
 
 // Expose Canvas operations
 void emUpdateView(void){ gui.updateMainStep(); }
@@ -90,7 +91,7 @@ void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
 void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
 
 // validate Cache
-void emEvalCache(void){ gui.curStep->evaluateCache(); }
+void emEvalBonds(void){ gui.curStep->setBonds(); }
 
 int emGuessFmt(std::string file){
     auto pos = file.find_last_of('.');
@@ -111,7 +112,7 @@ int emGuessFmt(std::string file){
 };
 
 std::string emFmtName(int m, int f){
-    auto name = molecules[m].getName();
+    auto name = molecules[m].name;
     auto dot = name.find_last_of('.');
     if(dot != name.npos){
         name = name.substr(0, dot);
@@ -122,7 +123,7 @@ std::string emFmtName(int m, int f){
 void emVrMove(int val){vrMoving = val;}
 
 EMSCRIPTEN_BINDINGS(vipster){
-    em::function("evalCache", &emEvalCache);
+    em::function("evalBonds", &emEvalBonds);
     em::function("getNMol", &emGetNMol);
     em::function("getMolNStep", &emGetMolNstep);
     em::function("getMolName", &emGetMolName);
@@ -133,6 +134,7 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("getAtom", &emGetAtom);
     em::function("getAtomIt", &emGetAtomIt);
     em::function("getFmt", &emGetFmt);
+    em::function("setFmt", &emSetFmt);
     em::function("getNAtoms", &emGetNAtoms);
     em::function("getCellDim", &emGetCellDim);
     em::function("setCellDim", &emSetCellDim);
@@ -155,11 +157,11 @@ EMSCRIPTEN_BINDINGS(vipster){
             .element(em::index<0>())
             .element(em::index<1>())
             .element(em::index<2>());
-    em::class_<Atom>("Atom")
+    em::class_<Step::atom>("Atom")
             .property("name", &emGetAtName, &emSetAtName)
             .property("coord", &emGetAtCoord, &emSetAtCoord);
     em::class_<Step::iterator>("Step_iterator")
-            .function("increment", &Step::iterator::operator++)
+            .function("increment", em::select_overload<Step::iterator&()>(&Step::iterator::operator++))
             .property("name", &emGetItName, &emSetItName)
             .property("coord", &emGetItCoord, &emSetItCoord);
 }
@@ -369,7 +371,7 @@ int main()
     }
     molecules.emplace_back("Example Crystal");
     step = &molecules[1].getStep(0);
-    step->setCellDim(5.64, CdmFmt::Angstrom);
+    step->setCellDim(5.64, AtomFmt::Angstrom);
     step->setFmt(AtomFmt::Crystal);
     step->newAtom("Na",{{0.0,0.0,0.0}});
     step->newAtom("Cl",{{0.5,0.0,0.0}});
