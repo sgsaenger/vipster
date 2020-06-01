@@ -9,6 +9,9 @@ jobs:
     build:
         name: 'Build python bindings'
         runs-on: windows-latest
+        strategy:
+            matrix:
+                python-version: [3.5, 3.6, 3.7, 3.8]
 
         steps:
             - uses: actions/checkout@v1
@@ -17,18 +20,18 @@ jobs:
 
             - name: Cache MinGW
               id: cache-mingw
-              uses: actions/cache@v1
+              uses: actions/cache@v2
               with:
                   path: MinGW
-                  key: mingw
+                  key: mingw-17.1
 
             - name: Install MinGW
               if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
               shell: bash
               run: |
                   choco install wget -y --no-progress
-                  wget https://nuwen.net/files/mingw/mingw-17.0-without-git.exe
-                  7z x mingw-17.0-without-git.exe
+                  wget https://nuwen.net/files/mingw/mingw-17.1-without-git.exe
+                  7z x mingw-17.1-without-git.exe
                   MinGW/set_distro_paths.bat
 
             - name: Configure MinGW
@@ -40,27 +43,17 @@ jobs:
 
             - name: create archive
               shell: bash
+              if: ${{ matrix.python-version }} == 3.8
               run: |
                   pip install setuptools_scm
                   python setup.py sdist --formats=zip
 
-            - name: Setup Python (3.6)
+            - name: Setup Python
               uses: actions/setup-python@v1
               with:
-                  python-version: 3.6
+                  python-version: ${{ matrix.python-version }}
 
-            - name: Build wheel (3.6)
-              shell: bash
-              run: |
-                  pip install setuptools wheel cmake
-                  python setup.py bdist_wheel
-
-            - name: Setup Python (3.7)
-              uses: actions/setup-python@v1
-              with:
-                  python-version: 3.7
-
-            - name: Build wheel (3.7)
+            - name: Build wheel
               shell: bash
               run: |
                   pip install setuptools wheel cmake
