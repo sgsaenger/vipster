@@ -1,3 +1,2 @@
-graft libvipster
-graft external
-include README.md LICENSE
+graft vipster
+include README.md LICENSE CMakeLists.txt INSTALL.md

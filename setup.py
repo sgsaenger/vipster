@@ -98,10 +98,9 @@ class CMakeBuildExt(build_ext):
             build_type = 'Debug' if self.debug else 'Release'
             cmake_args = [CMAKE_EXE,
                           ext.sourcedir,
-                          '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' +
-                          output_dir + '/vipster',
-                          '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' +
-                          output_dir + '/vipster',
+                          '-DBUILD_TESTING=OFF',
+                          '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + output_dir,
+                          '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + output_dir,
                           '-DCMAKE_BUILD_TYPE=' + build_type]
             cmake_args.extend(
                 [x for x in
