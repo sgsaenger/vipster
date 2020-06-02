@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% macro traverse(nodes) %}
+    {% for node in nodes %}
+        <li>
+            <h1>{{ node.type }}: {{ node.name }}</h1>
+            {% if node.doc %}
+                {{ node.doc }}
+            {% endif %}
+            {% if node.children %}
+                <h2>Members:</h2>
+                <ul>
+                    {{ traverse(node.children) }}
+                </ul>
+            {% endif %}
+        </li>
+    {% endfor %}
+{% endmacro %}
+
+<ul>
+    {{ traverse(tree) }}
+</ul>
+
+{% endblock %}

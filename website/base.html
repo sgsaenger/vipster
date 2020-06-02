@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="images/favicon.png">
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+    </body>
+        <nav>
+            <a href="index.html"> Vipster </a>
+            <ul>
+            {% for page in pages %}
+                <li>
+                    <a href="{{ page.url }}">{{ page.name }}</a>
+                    {% if page.pages %}
+                    <ul>
+                        {% for subpage in page.pages %}
+                            <li><a href="{{ subpage.url }}">{{ subpage.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        </nav>
+        <main>
+        {% block content %}{% endblock %}
+        </main>
+    </body>
+    <footer>
+        <p><a href="#">Back to top</a></p>
+        <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
+    </footer>
+</html>
