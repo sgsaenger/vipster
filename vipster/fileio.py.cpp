@@ -4,20 +4,8 @@
 #include <nlohmann/json.hpp>
 #include "fileio.py.h"
 #include "fileio.h"
-#include "io/plugin.py.h"
-#include "io/presets.py.h"
-#include "io/parameters.py.h"
 
-void Vipster::Py::IO(py::module& m, const ConfigState& state, bool enableRead){
-    auto io = m.def_submodule("IO");
-
-    py::class_<IO::Data>(io, "Data")
-        .def(py::init<>())
-        .def_readwrite("mol", &IO::Data::mol)
-        .def_readwrite("param", &IO::Data::param)
-//        .def_readwrite("data", &IO::Data::data) // TODO
-    ;
-
+void Vipster::Py::FileIO(py::module& m, const ConfigState& state, bool enableRead){
     if(enableRead){
         /*
          * read a file
@@ -91,9 +79,4 @@ void Vipster::Py::IO(py::module& m, const ConfigState& state, bool enableRead){
             return std::string{};
         }
     },"format"_a, "molecule"_a, "index"_a=std::nullopt, "param"_a=nullptr, "config"_a=nullptr);
-
-    // Expose parameters and presets
-    Py::Plugins(io);
-    Py::Parameters(io);
-    Py::Presets(io);
 }

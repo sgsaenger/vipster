@@ -14,7 +14,7 @@ PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets);
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets::mapped_type);
 
 void Vipster::Py::Presets(py::module &io){
-    py::class_<IO::Preset>(io, "Preset")
+    py::class_<IO::Preset>(io, "__Preset")
         .def("__repr__", [](const IO::Preset &p){
             std::ostringstream s;
             nlohmann::json j;
@@ -24,7 +24,7 @@ void Vipster::Py::Presets(py::module &io){
         });
 
     py::bind_map<IO::Presets::mapped_type>(io, "__StrPresMap__");
-    py::bind_map<IO::Presets>(io, "IOPresets")
+    py::bind_map<IO::Presets>(io, "__PresetMap")
         .def("__repr__", [](IO::Presets& p){
             std::ostringstream s;
             s << "IOPresets{";

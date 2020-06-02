@@ -2,5 +2,5 @@
 #include "configfile.h"
 
 namespace Vipster::Py{
-void IO(py::module& m, const ConfigState& state, bool enableRead);
+void FileIO(py::module& m, const ConfigState& state, bool enableRead);
 }

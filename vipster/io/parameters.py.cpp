@@ -14,7 +14,7 @@ PYBIND11_MAKE_OPAQUE(Vipster::IO::Parameters);
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Parameters::mapped_type);
 
 void Vipster::Py::Parameters(py::module &io){
-    py::class_<IO::Parameter>(io, "Parameter")
+    py::class_<IO::Parameter>(io, "__Parameter")
         .def("__repr__", [](const IO::Parameter &p){
             std::ostringstream s;
             nlohmann::json j;
@@ -24,7 +24,7 @@ void Vipster::Py::Parameters(py::module &io){
         });
 
     py::bind_map<IO::Parameters::mapped_type>(io, "__StrParMap__");
-    py::bind_map<IO::Parameters>(io, "Parameters")
+    py::bind_map<IO::Parameters>(io, "__ParameterMap")
         .def("__repr__", [](IO::Parameters& p){
             std::ostringstream s;
             s << "Parameters{";

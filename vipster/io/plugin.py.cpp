@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 
 using namespace Vipster;
+namespace fs = std::filesystem;
 
 namespace Vipster::IO {
 std::ostream& operator<<(std::ostream& os, const Plugin *p){

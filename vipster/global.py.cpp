@@ -4,6 +4,9 @@
 #include "data.py.h"
 #include "configfile.py.h"
 #include "fileio.py.h"
+#include "io/parameters.py.h"
+#include "io/plugin.py.h"
+#include "io/presets.py.h"
 #include "kpoints.py.h"
 #include "molecule.py.h"
 #include "periodictable.py.h"
@@ -43,6 +46,10 @@ void Vipster::Py::setupVipster(py::module &m, ConfigState &state, bool enableWri
     Py::Data(m);
     // Read config state, init state-dependent API
     Py::Molecule(m, state);
-    Py::IO(m, state, enableWrite);
+    Py::FileIO(m, state, enableWrite);
+    Py::Plugins(m);
+    Py::Parameters(m);
+    Py::Presets(m);
+    // expose state
     Py::config(m, state);
 }

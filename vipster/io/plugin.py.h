@@ -5,16 +5,13 @@
 #include "../global.py.h"
 #include "plugin.h"
 
-namespace fs = std::filesystem;
-namespace py = pybind11;
-
 namespace Vipster::Py{
 void Plugins(py::module& io);
 
 class Plugin : public IO::Plugin
 {
 public:
-    static Plugin* create(fs::path file);
+    static Plugin* create(std::filesystem::path file);
 private:
     Plugin()=default;
     IO::Data parser_impl(const std::string& n, std::istream &file);

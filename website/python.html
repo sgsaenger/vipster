@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% macro traverse(nodes) %}
+{% macro traverse(nodes, i) %}
     {% for node in nodes %}
         <li>
-            <h1>{{ node.type }}: {{ node.name }}</h1>
+            {% if node.type in ["Module", "Class"] %}
+                <h{{ i }}>{{ node.type }}: {{ node.name }}</h{{ i }}>
+            {% else %}
+                <p>{{ node.type }}: {{ node.name }}</p>
+            {% endif %}
             {% if node.doc %}
                 {{ node.doc }}
             {% endif %}
             {% if node.children %}
-                <h2>Members:</h2>
+                <h{{ i+1 }}>Members:</h{{ i+1 }}>
                 <ul>
-                    {{ traverse(node.children) }}
+                    {{ traverse(node.children, i+1) }}
                 </ul>
             {% endif %}
         </li>
@@ -19,7 +23,7 @@
 {% endmacro %}
 
 <ul>
-    {{ traverse(tree) }}
+    {{ traverse(tree, 1) }}
 </ul>
 
 {% endblock %}
