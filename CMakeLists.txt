@@ -28,7 +28,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Library, needed for everything else
-file(GLOB_RECURSE PY_SOURCES "vipster/pyvipster.h" "vipster/*.py.h" "vipster/*.py.cpp")
+file(GLOB_RECURSE PY_SOURCES "vipster/*.py.h" "vipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "vipster/*.h" "vipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 list(REMOVE_ITEM PY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/vipster/main.py.cpp")

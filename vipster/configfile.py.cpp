@@ -1,17 +1,16 @@
 #include <pybind11/eval.h>
 #include <filesystem>
-#include "pyvipster.h"
+
+#include "configfile.py.h"
 #include "configfile.h"
 #include "io/plugin.py.h"
 
 namespace fs = std::filesystem;
 
-namespace Vipster::Py{
-
-void config(py::module& m, ConfigState& state){
+void Vipster::Py::config(py::module& m, ConfigState& state){
     m.attr("PeriodicTable") = std::get<0>(state);
     m.attr("Parameters") = py::cast(std::get<3>(state), py::return_value_policy::reference);
-    m.attr("IOPresets") = py::cast(std::get<4>(state), py::return_value_policy::reference);
+    m.attr("Presets") = py::cast(std::get<4>(state), py::return_value_policy::reference);
     auto& plugins = std::get<2>(state);
     auto& params = std::get<3>(state);
     auto& presets = std::get<4>(state);
@@ -37,5 +36,4 @@ void config(py::module& m, ConfigState& state){
     for(const auto* p: plugins){
         plug.attr(p->command.c_str()) = p;
     }
-}
 }

@@ -1,8 +1,7 @@
-#include "pyvipster.h"
+#include "atom.py.h"
 #include "atom.h"
 
-namespace Vipster::Py{
-void Atom(py::module& m){
+void Vipster::Py::Atom(py::module& m){
     py::enum_<AtomFmt>(m, "Fmt")
         .value("Crystal", AtomFmt::Crystal)
         .value("Alat", AtomFmt::Alat)
@@ -23,7 +22,7 @@ void Atom(py::module& m){
         .value("Hidden", AtomProperties::Hidden)
     ;
 
-    py::class_<AtomProperties::Flags>(p, "Flags")
+    py::class_<AtomProperties::Flags>(p, "__Flags__")
         .def("__getitem__",[](const AtomProperties::Flags &bs, AtomProperties::Flag ap){
             return static_cast<bool>(bs[static_cast<uint8_t>(ap)]);
         })
@@ -31,5 +30,4 @@ void Atom(py::module& m){
             bs[static_cast<uint8_t>(ap)] = val;
         })
     ;
-}
 }

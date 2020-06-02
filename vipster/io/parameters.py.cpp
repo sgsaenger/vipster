@@ -1,6 +1,6 @@
-#include "../pyvipster.h"
-#include "vipster/io/plugin.h"
-#include "vipster/io/parameters.h"
+#include "parameters.py.h"
+#include "plugin.h"
+#include "parameters.h"
 
 namespace Vipster::IO {
 std::ostream& operator<<(std::ostream& os, const Parameter &p){
@@ -13,8 +13,7 @@ std::ostream& operator<<(std::ostream& os, const Parameter &p){
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Parameters);
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Parameters::mapped_type);
 
-namespace Vipster::Py{
-void Parameters(py::module &io){
+void Vipster::Py::Parameters(py::module &io){
     py::class_<IO::Parameter>(io, "Parameter")
         .def("__repr__", [](const IO::Parameter &p){
             std::ostringstream s;
@@ -40,5 +39,4 @@ void Parameters(py::module &io){
             return s.str();
         })
     ;
-}
 }

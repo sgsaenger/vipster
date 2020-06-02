@@ -1,6 +1,6 @@
-#include "vipster/pyvipster.h"
-#include "vipster/io/plugin.h"
-#include "vipster/io/presets.h"
+#include "presets.py.h"
+#include "plugin.h"
+#include "presets.h"
 
 namespace Vipster::IO{
 std::ostream& operator<<(std::ostream& os, const Preset &p){
@@ -13,9 +13,7 @@ std::ostream& operator<<(std::ostream& os, const Preset &p){
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets);
 PYBIND11_MAKE_OPAQUE(Vipster::IO::Presets::mapped_type);
 
-namespace Vipster::Py{
-
-void Presets(py::module &io){
+void Vipster::Py::Presets(py::module &io){
     py::class_<IO::Preset>(io, "Preset")
         .def("__repr__", [](const IO::Preset &p){
             std::ostringstream s;
@@ -41,6 +39,4 @@ void Presets(py::module &io){
             return s.str();
         })
     ;
-}
-
 }

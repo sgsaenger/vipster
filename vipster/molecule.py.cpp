@@ -1,9 +1,7 @@
-#include "pyvipster.h"
+#include "molecule.py.h"
 #include "molecule.h"
-#include "configfile.h"
 
-namespace Vipster::Py{
-void Molecule(py::module& m, const Vipster::ConfigState &state){
+void Vipster::Py::Molecule(py::module& m, const Vipster::ConfigState &state){
     py::class_<Vipster::Molecule>(m, "Molecule")
         .def(py::init([&state](const std::string&name, size_t s){
             Vipster::Molecule m{name, s};
@@ -28,5 +26,4 @@ void Molecule(py::module& m, const Vipster::ConfigState &state){
         .def_readwrite("name", &Vipster::Molecule::name)
         .def_readwrite("kpoints", &Vipster::Molecule::kpoints)
     ;
-}
 }

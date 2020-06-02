@@ -11,8 +11,7 @@ std::ostream& operator<<(std::ostream& os, const Plugin *p){
 }
 
 // expose plugins
-namespace Vipster::Py{
-void Plugins(py::module& io){
+void Vipster::Py::Plugins(py::module& io){
     py::class_<IO::Plugin>(io, "__Plugin")
     .def("__repr__", [](const IO::Plugin *p){return "Plugins."+p->command;})
     .def_readonly("name", &IO::Plugin::name)
@@ -27,7 +26,6 @@ void Plugins(py::module& io){
     .def_property_readonly("hasPresets", [](const IO::Plugin*const p){
         return static_cast<bool>(p->makePreset);})
     ;
-}
 }
 
 // implement Py::Plugin

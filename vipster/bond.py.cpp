@@ -1,4 +1,4 @@
-#include "pyvipster.h"
+#include "bond.py.h"
 #include "bond.h"
 #include <pybind11/stl.h>
 
@@ -7,8 +7,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Overlap>);
 PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Angle>);
 PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Dihedral>);
 
-namespace Vipster::Py{
-void Bond(py::module &m){
+void Vipster::Py::Bond(py::module &m){
     py::bind_vector<std::vector<Vipster::Bond>>(m,"__BondVector__");
     py::bind_vector<std::vector<Overlap>>(m,"__OverlapVector__");
     py::bind_vector<std::vector<Angle>>(m,"__AngleVector__");
@@ -72,5 +71,4 @@ void Bond(py::module &m){
         .def_readonly("at3", &Dihedral::at3)
         .def_readonly("at4", &Dihedral::at4)
     ;
-}
 }

@@ -1,8 +1,7 @@
-#include "pyvipster.h"
+#include "vec.py.h"
 #include "vec.h"
 
-namespace Vipster::Py{
-void Vec(py::module& m){
+void Vipster::Py::Vec(py::module& m){
     bind_array<Vipster::Vec>(m, "Vec")
         .def("__add__", [](const Vipster::Vec &v1, const Vipster::Vec &v2){return v1+v2;}, py::is_operator())
         .def("__sub__", [](const Vipster::Vec &v1, const Vipster::Vec &v2){return v1-v2;}, py::is_operator())
@@ -27,5 +26,4 @@ void Vec(py::module& m){
         .def("determinant", &Mat_det)
         .def("inverse", &Mat_inv)
     ;
-}
 }

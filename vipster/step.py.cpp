@@ -1,9 +1,9 @@
-#include "pyvipster.h"
+#include "step.py.h"
 #include "step.h"
 
 #include <utility>
 
-namespace Vipster::Py{
+using namespace Vipster;
 
 /* FIXME: Optimize assignment
  *
@@ -157,12 +157,12 @@ py::class_<S> bind_step(py::handle &m, std::string name){
     return std::move(s);
 }
 
-void Step(py::module& m){
+void Vipster::Py::Step(py::module& m){
 
     auto s = bind_step<Vipster::Step>(m, "Step")
         .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Angstrom, "comment"_a="")
     // Format
-        .def("setFmt", &Step::setFmt)
+        .def("setFmt", &Step::setFmt, "fmt"_a, "scale"_a=false)
     // Atoms
         .def("newAtom", [](Vipster::Step& s, std::string name, Vec coord, AtomProperties prop){
              s.newAtom(name, coord, prop);},
@@ -189,8 +189,7 @@ void Step(py::module& m){
         .def("modReshape", &Step::modReshape, "newMat"_a, "newCdm"_a, "cdmFmt"_a)
     ;
 
+    auto sf = bind_step<Vipster::Step::formatter>(s, "Formatter");
     bind_step<Vipster::Step::selection>(s, "Selection");
-    bind_step<Vipster::Step::formatter>(s, "Formatter");
-    bind_step<Vipster::Step::formatter::selection>(s, "SelectionFormatter");
-}
+    bind_step<Vipster::Step::formatter::selection>(sf, "Selection");
 }

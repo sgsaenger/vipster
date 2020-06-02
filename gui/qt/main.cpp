@@ -12,7 +12,7 @@
 #pragma push_macro("slots")
 #undef slots
 #include <pybind11/embed.h>
-#include "vipster/pyvipster.h"
+#include "vipster/global.py.h"
 #pragma pop_macro("slots")
 #endif
 
@@ -54,48 +54,8 @@ using namespace Vipster;
 }
 
 #ifdef USE_PYTHON
-// setup embedded python module
-namespace Vipster::Py{
-void Vec(py::module&);
-void Atom(py::module&);
-void Bond(py::module&);
-void Table(py::module&);
-void Step(py::module&);
-void KPoints(py::module&);
-void Molecule(py::module&, const ConfigState&);
-void Data(py::module&);
-void IO(py::module&, const ConfigState&, bool);
-void config(py::module&, ConfigState&);
-}
-
-PYBIND11_EMBEDDED_MODULE(vipster, m)
-{
-    m.doc() = "Python bindings for loaded data\n"
-              "===============================\n\n"
-              "Use curMol() to access the currently loaded molecule, "
-              "or getMol(n) to acces the n-th loaded molecule. "
-              "Please inspect Molecule and Step as the main data containers "
-              "for more information.";
-    /*
-     * Basic containers
-     */
-
-    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap__");
-    py::bind_vector<std::vector<std::string>>(m, "__StrVector__");
-    bind_array<ColVec>(m, "ColVec");
-
-    /*
-     * Initialize library
-     */
-
-    Py::Vec(m);
-    Py::Atom(m);
-    Py::Bond(m);
-    Py::Table(m);
-    Py::Step(m);
-    Py::KPoints(m);
-    Py::Data(m);
-}
+// create embedded python module
+PYBIND11_EMBEDDED_MODULE(vipster, m) {}
 #endif
 
 // command-line handling
@@ -111,10 +71,8 @@ int main(int argc, char *argv[])
     // instance the python-interpreter, keep it alive for the program's duration
     pybind11::scoped_interpreter interp{};
     auto vipster_module = py::module::import("vipster");
-    // expose rest of API and pass state without having to declare it as global
-    Py::Molecule(vipster_module, state);
-    Py::IO(vipster_module, state, false);
-    Py::config(vipster_module, state);
+    // register types and state in module
+    Py::setupVipster(vipster_module, state, false);
 #endif
 
     // main parser + data-targets

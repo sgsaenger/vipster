@@ -2,13 +2,15 @@
 #define PLUG_PY_H
 
 #include <filesystem>
-#include "vipster/pyvipster.h"
-#include "vipster/io/plugin.h"
+#include "../global.py.h"
+#include "plugin.h"
 
 namespace fs = std::filesystem;
 namespace py = pybind11;
 
 namespace Vipster::Py{
+void Plugins(py::module& io);
+
 class Plugin : public IO::Plugin
 {
 public:

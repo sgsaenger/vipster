@@ -5,9 +5,13 @@
 #include "pybind11/operators.h"
 #include "pybind11/stl_bind.h"
 
+#include "configfile.h"
+
 namespace py = pybind11;
 using namespace py::literals;
 
+namespace Vipster::Py{
+void setupVipster(py::module &m, ConfigState &state, bool enableWrite);
 template <typename Array, typename holder_type = std::unique_ptr<Array>, typename... Args>
 py::class_<Array, holder_type> bind_array(py::handle &m, std::string const &name, Args&&... args) {
     using Class_ = pybind11::class_<Array, holder_type>;
@@ -54,6 +58,7 @@ py::class_<Array, holder_type> bind_array(py::handle &m, std::string const &name
         return repr;
     });
     return cl;
+}
 }
 
 #endif // PYVIPSTER"H

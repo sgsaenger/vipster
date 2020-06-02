@@ -1,17 +1,14 @@
-#include <pybind11/functional.h>
-#include "nlohmann/json.hpp"
-#include "pyvipster.h"
-#include "fileio.h"
-#include "configfile.h"
 #include <map>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
+#include <nlohmann/json.hpp>
+#include "fileio.py.h"
+#include "fileio.h"
+#include "io/plugin.py.h"
+#include "io/presets.py.h"
+#include "io/parameters.py.h"
 
-namespace Vipster::Py{
-void Plugins(py::module&);
-void Parameters(py::module&);
-void Presets(py::module&);
-
-void IO(py::module& m, const ConfigState& state, bool enableRead){
+void Vipster::Py::IO(py::module& m, const ConfigState& state, bool enableRead){
     auto io = m.def_submodule("IO");
 
     py::class_<IO::Data>(io, "Data")
@@ -99,5 +96,4 @@ void IO(py::module& m, const ConfigState& state, bool enableRead){
     Py::Plugins(io);
     Py::Parameters(io);
     Py::Presets(io);
-}
 }

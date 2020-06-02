@@ -1,4 +1,4 @@
-#include "pyvipster.h"
+#include "data.py.h"
 #include "data.h"
 
 template <typename T>
@@ -66,8 +66,7 @@ py::class_<T> bind_datagrid(py::module &m, std::string const &name){
    return std::move(tmp);
 }
 
-namespace Vipster::Py{
-void Data(py::module& m){
+void Vipster::Py::Data(py::module& m){
    auto b = py::class_<BaseData>(m, "__BaseData")
        .def_readwrite("name", &BaseData::name)
    ;
@@ -77,5 +76,4 @@ void Data(py::module& m){
    bind_datagrid<DataGrid3D_f>(m, "DataGrid3D_f");
    bind_array<typename DataGrid3D_f::Extent>(b, "Extent3D");
    bind_datagrid<DataGrid3D_v>(m, "DataGrid3D_v");
-}
 }
