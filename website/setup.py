@@ -3,13 +3,14 @@
 from dataclasses import dataclass, field
 from typing import Optional, Any
 from pathlib import Path
+from shutil import copytree
+from sys import argv
 import inspect
-import vipster
 import json
 import jinja2
-from sys import argv
+import vipster
 
-if argv[1]:
+if len(argv) > 1:
     targetdir = Path(argv[1])
     if targetdir.exists():
         if not targetdir.is_dir():
@@ -64,9 +65,18 @@ def walkTree(node):
 
 walkTree(root)
 
+########################
+# Extract Format plugins
+########################
+
+formats = [c for n,c in inspect.getmembers(vipster.Plugins) if n[0] != '_']
+
 ###############
 # Create Page #
 ###############
+
+copytree(str(Path(__file__).parent.absolute())+"/gh-pages",
+         targetdir, dirs_exist_ok=True)
 
 env = jinja2.Environment(
     loader=jinja2.FileSystemLoader(Path(__file__).parent.absolute()),
@@ -77,16 +87,17 @@ env = jinja2.Environment(
 class Page:
     name: str
     url: str
-    pages: ['Page'] = field(default_factory=list)
-    content: str = ""
+    base: str = ""
 
 about_content = ""
 qt_content = ""
 download_content = ""
 
-all_pages = [Page("About", "about.html", [Page("Formats", "format.html"),
-                                          Page("QtVipster", "gui.html"),
-                                          Page("Python API", "python.html")]),
+all_pages = [Page("About", "about.html"),
+             Page("Documentation", "gui.html"),
+             Page("GUI Features", "gui.html", "Documentation"),
+             Page("File Formats", "format.html", "Documentation"),
+             Page("Python API", "python.html", "Documentation"),
              Page("Download", "download.html"),
             ]
 
@@ -94,7 +105,6 @@ def printPages(pages):
     for page in pages:
         template = env.get_template(page.url)
         with open(str(targetdir.absolute())+"/"+page.url, 'w') as f:
-            f.write(template.render(current=page, pages=all_pages, tree=[root]))
-        printPages(page.pages)
+            f.write(template.render(current=page, pages=all_pages, tree=[root], formats=formats))
 
 printPages(all_pages)

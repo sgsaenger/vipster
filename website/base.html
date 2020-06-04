@@ -5,26 +5,43 @@
         <title>Vipster</title>
         <link rel="icon" type="image/png" href="images/favicon.png">
         <link rel="stylesheet" href="css/styles.css">
+        {%- block header %}
+        {%- endblock %}
     </head>
     </body>
-        <nav>
-            <a href="index.html"> Vipster </a>
-            <ul>
-            {% for page in pages %}
-                <li>
-                    <a href="{{ page.url }}">{{ page.name }}</a>
-                    {% if page.pages %}
-                    <ul>
-                        {% for subpage in page.pages %}
-                            <li><a href="{{ subpage.url }}">{{ subpage.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </li>
-            {% endfor %}
-            </ul>
+        <nav class="navbar">
+            <a class="menuitem" href="index.html"> Vipster</a>
+            <div class="menu">
+            {%- for page in pages %}
+                {%- if not page.base %}
+                {%- if page == current %}
+                <a class="menuitem menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
+                {%- else %}
+                <a class="menuitem" href="{{ page.url }}">{{ page.name }}</a>
+                {%- endif %}
+                {%- endif %}
+            {%- endfor %}
+            </div>
         </nav>
+        {% if current.base -%}
+        <nav class="navbar navbar-nested">
+            <div></div>
+            <div class="menu">
+            {%- for page in pages %}
+                {%- if page.base == current.base %}
+                {%- if page == current %}
+                <a class="menuitem menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
+                {%- else %}
+                <a class="menuitem" href="{{ page.url }}">{{ page.name }}</a>
+                {%- endif %}
+                {%- endif %}
+            {%- endfor %}
+            </div>
+        </nav>
+        <main class="main-nested">
+        {%- else %}
         <main>
+        {%- endif -%}
         {% block content %}{% endblock %}
         </main>
     </body>

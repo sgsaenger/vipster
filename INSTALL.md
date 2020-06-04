@@ -9,7 +9,9 @@ Vipster has four main components:
 ## Precompiled releases
 
 Binary releases of *QtVipster* are provided for Windows, Linux and (infrequently) macOS on [github](https://github.com/sgsaenger/vipster/releases).
+
 An exemplary implementation of *WebVipster* can be found [here](https://sgsaenger.github.io/vipster/emscripten).
+
 An easy way to install *PyVipster* is via pip and PyPi: `pip install vipster`
 
 ### QtVipster on Windows
@@ -32,6 +34,7 @@ chmod +x Vipster-Linux-x86_64.AppImage
 ## Build from source
 
 In order to compile Vipster, you need a working [cmake (>= 3.9)](https://cmake.org) installation.
+
 Your C++ compiler should support C++17.
 Vipster is tested against GCC (>=8) and Clang (>=4).
 So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see e.g. [MSYS2](https://www.msys2.org)).
