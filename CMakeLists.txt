@@ -25,6 +25,7 @@ mark_as_advanced(VIPSTER_PYPI VIPSTER_EGG_INFO)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Library, needed for everything else
 file(GLOB_RECURSE PY_SOURCES "vipster/pyvipster.h" "vipster/*.py.h" "vipster/*.py.cpp")
@@ -162,7 +163,6 @@ if(VIPSTER_DESKTOP)
 
     # load and setup qt
     find_package(Qt5 5.10 CONFIG REQUIRED COMPONENTS Widgets Gui)
-    set(CMAKE_INCLUDE_CURRENT_DIR ON)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
@@ -290,5 +290,5 @@ if(VIPSTER_WEB)
     add_executable(webvipster ${WEB_SOURCES})
     set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(webvipster PRIVATE libvipster)
-    target_include_directories(webvipster PRIVATE "." "gui/common")
+    target_include_directories(webvipster PRIVATE "gui/common")
 endif()
