@@ -101,10 +101,11 @@ all_pages = [Page("About", "about.html"),
              Page("Download", "download.html"),
             ]
 
-def printPages(pages):
-    for page in pages:
-        template = env.get_template(page.url)
-        with open(str(targetdir.absolute())+"/"+page.url, 'w') as f:
-            f.write(template.render(current=page, pages=all_pages, tree=[root], formats=formats))
-
-printPages(all_pages)
+for page in all_pages + [Page("Index", "index.html")]:
+    template = env.get_template(page.url)
+    with open(str(targetdir.absolute())+"/"+page.url, 'w') as f:
+        f.write(template.render(current=page,
+                                pages=all_pages,
+                                tree=[root],
+                                vipster=vipster,
+                                formats=formats))

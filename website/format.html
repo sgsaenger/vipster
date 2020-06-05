@@ -1,4 +1,13 @@
 {% extends "base.html" %}
+
+{% block contentlist %}
+<ol>
+{% for f in formats %}
+<li><a href="#{{ f.command }}">{{ f.name }}</a></li>
+{% endfor %}
+</ol>
+{% endblock %}
+
 {% block content %}
 <p>
 Vipster supports various different formats describing atomic structures.
@@ -21,9 +30,10 @@ or in Bohr units with the list of bonds.
 The following plugins are included in a default installation:
 </p>
 
-<ul>
+<ul class="code">
 {% for f in formats %}
-<li>
+<li class="highlight">
+    <a class="anchor" id="{{ f.command }}"></a>
     <h1>
         {{ f.name }}
         {% if f.hasParser and f.hasWriter %}
@@ -34,16 +44,41 @@ The following plugins are included in a default installation:
         (write only)
         {% endif %}
     </h1>
-    <p>Command line argument: --{{ f.command }}</p>
-    <p>Default extension: {{ f.extension }}</p>
+    <p class="highlight highlight-nested">Command line argument: <code>--{{ f.command }}</code></p>
+    <p class="highlight highlight-nested">Matches files named: <code>{{ f.extension if f.extension[0].isupper() else "*."+f.extension }}</code></p>
     {% if f.hasParameters %}
-    <h2> Parameters: </h2>
+        {% set params = vipster.Parameters[f]['default'] %}
+        <div class="highlight highlight-nested">
+        <h2>Parameters</h2>
+        <ul class="code">
+        {% for p in params %}
+            {% set param = params.doc(p).split('\n', maxsplit=3) %}
+            <li class="highlight">
+            <p><code>{{ param[0] }} {{ param[1] }}</code></p>
+            <p>{{ param[3] }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+        </div>
     {% endif %}
     {% if f.hasPresets %}
-    <h2> Output preset: </h2>
+        {% set presets = vipster.Presets[f]['default'] %}
+        <div class="highlight highlight-nested">
+        <h2>Output preset</h2>
+        <ul class="code">
+        {% for p in presets %}
+            {% set preset = presets.doc(p).split('\n', maxsplit=3) %}
+            <li class="highlight">
+            <p><code>{{ preset[0] }} {{ preset[1] }}</code></p>
+            <p>{{ preset[3] }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+        </div>
     {% endif %}
     <p>
 </li>
 {% endfor %}
 </ul>
+</div>
 {% endblock %}

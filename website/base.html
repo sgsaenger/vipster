@@ -5,48 +5,61 @@
         <title>Vipster</title>
         <link rel="icon" type="image/png" href="images/favicon.png">
         <link rel="stylesheet" href="css/styles.css">
-        {%- block header %}
+        {%- block head %}
         {%- endblock %}
     </head>
-    </body>
-        <nav class="navbar">
-            <a class="menuitem" href="index.html"> Vipster</a>
-            <div class="menu">
+    {%- if current.base -%}
+    <body class="body-nested">
+    {% else %}
+    <body>
+    {%- endif %}
+        <nav class="navbar flex">
+            <a class="menuitem flex" href="index.html"> Vipster</a>
+            <div class="menu flex">
             {%- for page in pages %}
                 {%- if not page.base %}
                 {%- if page == current %}
-                <a class="menuitem menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
+                <a class="menuitem flex menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
                 {%- else %}
-                <a class="menuitem" href="{{ page.url }}">{{ page.name }}</a>
-                {%- endif %}
-                {%- endif %}
+                <a class="menuitem flex" href="{{ page.url }}">{{ page.name }}</a>
+                {%- endif %} {%- endif %}
             {%- endfor %}
             </div>
         </nav>
         {% if current.base -%}
-        <nav class="navbar navbar-nested">
+        <nav class="navbar flex navbar-nested">
             <div></div>
-            <div class="menu">
+            <div class="menu flex">
             {%- for page in pages %}
                 {%- if page.base == current.base %}
                 {%- if page == current %}
-                <a class="menuitem menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
+                <a class="menuitem flex menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
                 {%- else %}
-                <a class="menuitem" href="{{ page.url }}">{{ page.name }}</a>
+                <a class="menuitem flex" href="{{ page.url }}">{{ page.name }}</a>
                 {%- endif %}
                 {%- endif %}
             {%- endfor %}
             </div>
         </nav>
-        <main class="main-nested">
-        {%- else %}
-        <main>
         {%- endif -%}
-        {% block content %}{% endblock %}
+        <header>
+        {%- block header %}{%- endblock %}
+        </header>
+        <main>
+        <div class="content-list">
+        {%- block contentlist %}{%- endblock %}
+        </div>
+        <div class="content-body">
+        <div class="content-main">
+        {%- block content %}{%- endblock %}
+        </div>
+        </div>
         </main>
+        <footer class="content-body">
+            <div class="content-main flex">
+                <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
+                <p><a href="#">Back to top</a></p>
+            </div>
+        </footer>
     </body>
-    <footer>
-        <p><a href="#">Back to top</a></p>
-        <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
-    </footer>
 </html>
