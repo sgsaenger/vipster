@@ -5,6 +5,10 @@
 #include "../global.py.h"
 #include "plugin.h"
 
+namespace Vipster::IO{
+std::ostream& operator<<(std::ostream &os, const Plugin *p);
+}
+
 namespace Vipster::Py{
 void Plugins(py::module& io);
 

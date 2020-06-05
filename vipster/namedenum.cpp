@@ -9,7 +9,7 @@ NamedEnum::NamedEnum(int value, const std::vector<std::string> &names)
     : val{value}
 {
     if(value > names.size()){
-        throw Error{"CustomEnum value out of range"};
+        throw Error{"NamedEnum value out of range"};
     }
     std::vector<std::pair<int, std::string>> tmp;
     for(size_t i=0; i<names.size(); ++i){
@@ -38,10 +38,20 @@ const std::string& NamedEnum::name() const
     return at(val);
 }
 
+std::vector<std::string> NamedEnum::names() const
+{
+    std::vector<std::string> n{};
+    n.reserve(size());
+    for(auto [k, v]: *this){
+        n.push_back(v);
+    }
+    return n;
+}
+
 NamedEnum& NamedEnum::operator=(int v)
 {
     if(v > size()){
-        throw Error{"CustomEnum value out of range"};
+        throw Error{"NamedEnum value out of range"};
     }
     val = v;
     return *this;
@@ -54,6 +64,6 @@ NamedEnum& NamedEnum::operator=(const std::string& s)
         val = pos->first;
         return *this;
     }else{
-        throw Error{"CustomEnum name unknown"};
+        throw Error{"NamedEnum name unknown"};
     }
 }

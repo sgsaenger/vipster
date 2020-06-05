@@ -22,7 +22,7 @@ void Vipster::Py::Atom(py::module& m){
         .value("Hidden", AtomProperties::Hidden)
     ;
 
-    py::class_<AtomProperties::Flags>(p, "__Flags__")
+    py::class_<AtomProperties::Flags>(p, "__Flags")
         .def("__getitem__",[](const AtomProperties::Flags &bs, AtomProperties::Flag ap){
             return static_cast<bool>(bs[static_cast<uint8_t>(ap)]);
         })

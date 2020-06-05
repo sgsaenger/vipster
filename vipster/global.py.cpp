@@ -15,6 +15,9 @@
 
 using namespace Vipster;
 
+PYBIND11_MAKE_OPAQUE(std::map<std::string, std::string>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
+
 void Vipster::Py::setupVipster(py::module &m, ConfigState &state, bool enableWrite)
 {
     m.doc() = "Vipster\n"
@@ -28,8 +31,8 @@ void Vipster::Py::setupVipster(py::module &m, ConfigState &state, bool enableWri
      * Basic containers
      */
 
-    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap__");
-    py::bind_vector<std::vector<std::string>>(m, "__StrVector__");
+    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap");
+    py::bind_vector<std::vector<std::string>>(m, "__StrVector");
     bind_array<ColVec>(m, "ColVec");
     bind_array<DiffVec>(m, "DiffVec");
 

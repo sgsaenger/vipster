@@ -5,12 +5,6 @@
 using namespace Vipster;
 namespace fs = std::filesystem;
 
-namespace Vipster::IO {
-std::ostream& operator<<(std::ostream& os, const Plugin *p){
-    return os << "Plugins."+p->command;
-}
-}
-
 // expose plugins
 void Vipster::Py::Plugins(py::module& io){
     py::class_<IO::Plugin>(io, "__Plugin")
@@ -27,6 +21,10 @@ void Vipster::Py::Plugins(py::module& io){
     .def_property_readonly("hasPresets", [](const IO::Plugin*const p){
         return static_cast<bool>(p->makePreset);})
     ;
+}
+
+std::ostream& IO::operator<<(std::ostream& os, const Plugin *p){
+    return os << "vipster.Plugins."+p->command;
 }
 
 // implement Py::Plugin
