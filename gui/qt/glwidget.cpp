@@ -150,7 +150,7 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
     update();
 }
 
-std::set<SelectionPair> GLWidget::pickAtoms(QPoint from, QPoint to)
+SelectionIndices GLWidget::pickAtoms(QPoint from, QPoint to)
 {
     // return indices of atoms enclosed by rectangle
     // defined by `from` and `to`
@@ -195,7 +195,7 @@ std::set<SelectionPair> GLWidget::pickAtoms(QPoint from, QPoint to)
             idx.insert({i, {x,y,z}});
         }
     }
-    return idx;
+    return {idx.begin(), idx.end()};
 }
 
 void GLWidget::rotAtoms(QPoint delta)
@@ -360,15 +360,21 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             bool add = (e->button() & Qt::MouseButton::MiddleButton) ||
                        (e->modifiers() & Qt::ControlModifier);
             if(add){
-                for(const auto &idx: curSel->getAtoms().indices){
-                    pick.insert(idx);
+                auto idx = curSel->getAtoms().indices;
+                for(const auto& p: pick){
+                    auto pos = std::find_if(idx.begin(), idx.end(), [&p](const auto& i){
+                        return i == p;
+                    });
+                    if(pos == idx.end()){
+                        idx.push_back(p);
+                    }
                 }
+                std::swap(pick, idx);
             }
             // create new filter
             SelectionFilter filter{};
             filter.mode = SelectionFilter::Mode::Index;
-            filter.indices.resize(pick.size());
-            std::copy(pick.begin(), pick.end(), filter.indices.begin());
+            filter.indices = std::move(pick);
             // create new selection from filter
             *curSel = curStep->select(filter);
             rectPos = mousePos;
