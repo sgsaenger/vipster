@@ -52,6 +52,7 @@ IO::Data CubeParser(const std::string& name, std::istream &file){
             cell[i] *= extent[i];
         }
     }
+    s.setCellDim(1, AtomFmt::Bohr);
     s.setCellVec(cell);
     for(auto& at: s){
         file >> at.name >> at.properties->charge
