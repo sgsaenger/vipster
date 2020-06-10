@@ -6,7 +6,6 @@ from pathlib import Path
 from shutil import copytree
 from sys import argv
 import inspect
-import json
 import jinja2
 import vipster
 
@@ -75,7 +74,7 @@ formats = [c for n,c in inspect.getmembers(vipster.Plugins) if n[0] != '_']
 # Create Page #
 ###############
 
-copytree(str(Path(__file__).parent.absolute())+"/gh-pages",
+copytree(str(Path(__file__).parent.absolute())+"/content",
          targetdir, dirs_exist_ok=True)
 
 env = jinja2.Environment(

@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<p>
+<p class="content-text">
 Vipster is a fast and easy to use graphical editor for periodic atomistic simulations
 running on Windows, Linux, macOS and *BSD.
 </p>
+<img src="images/screenshot.png" alt="Screenshot" class="content-image">
+<div class="content-text">
 <p>
     It supports small isolated molecules for quantum mechanical calculations,
     large periodic trajectories for molecular dynamics and everything inbetween.
@@ -52,5 +54,5 @@ running on Windows, Linux, macOS and *BSD.
     Add support for more file formats by providing user-defined plugins via the Python- or C++-API.
 </li>
 </ul>
-<img id="Screenshot" src="images/screenshot.png" alt="Screenshot">
+</div>
 {% endblock %}

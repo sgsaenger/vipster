@@ -28,6 +28,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="content-text">
 <h1>Binary release</h1>
 <p id="dl-links">
     Get precompiled builds from <a href="https://github.com/sgsaenger/vipster/releases">here</a>.
@@ -62,8 +63,11 @@ If you want to use the Vipster library in your Python environments, you can inst
 </p>
 <pre><code>$ pip install vipster</code></pre>
 <p>
-Note that if you installed Vipster via a package manager,
-the bindings may already be installed for your system Python installation.
+Note:
+<ul>
+<li>if you installed Vipster via a package manager, the bindings may already be installed for your system Python installation</li>
+<li>if you install Vipster via <code>pip</code>, the GUI is not included</li>
+</ul>
 </p>
 
 <h1>Build from source</h1>
@@ -94,4 +98,5 @@ Development happens on this branch. It may therefore contain bugs or not compile
 Use it to get the newest features or contribute to the project.
 <pre><code>$ git clone https://github.com/sgsaenger/vipster -b testing</code></pre>
 
+</div>
 {% endblock %}

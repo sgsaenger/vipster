@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
-{% block contentlist %}
-<ol>
+{% block content %}
+<ol class="content-list">
 {% for f in formats %}
 <li><a href="#{{ f.command }}">{{ f.name }}</a></li>
 {% endfor %}
 </ol>
-{% endblock %}
 
-{% block content %}
+<div class="content-text">
 <p>
 Vipster supports various different formats describing atomic structures.
 It is written with no specific format in mind.
@@ -29,10 +28,10 @@ or in Bohr units with the list of bonds.
 <p>
 The following plugins are included in a default installation:
 </p>
+</div>
 
-<ul class="code">
 {% for f in formats %}
-<li class="highlight">
+<div class="content-text highlight">
     <a class="anchor" id="{{ f.command }}"></a>
     <h1>
         {{ f.name }}
@@ -44,8 +43,8 @@ The following plugins are included in a default installation:
         (write only)
         {% endif %}
     </h1>
-    <p class="highlight highlight-nested">Command line argument: <code>--{{ f.command }}</code></p>
-    <p class="highlight highlight-nested">Matches files named: <code>{{ f.extension if f.extension[0].isupper() else "*."+f.extension }}</code></p>
+    <div class="highlight highlight-nested">Command line argument: <code>--{{ f.command }}</code></div>
+    <div class="highlight highlight-nested">Matches files named: <code>{{ f.extension if f.extension[0].isupper() else "*."+f.extension }}</code></div>
     {% if f.hasParameters %}
         {% set params = vipster.Parameters[f]['default'] %}
         <div class="highlight highlight-nested">
@@ -76,9 +75,8 @@ The following plugins are included in a default installation:
         </ul>
         </div>
     {% endif %}
-    <p>
-</li>
-{% endfor %}
-</ul>
 </div>
+{% endfor %}
+<!--</ul>-->
+<!--</div>-->
 {% endblock %}
