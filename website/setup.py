@@ -46,7 +46,7 @@ class Node:
     parent: Optional['Node']
     children: ['Node'] = field(default_factory=list)
 
-root = Node(vipster, "Module", "vipster", "", None)
+tree = Node(vipster, "Module", "vipster", "", None)
 
 def walkTree(node):
     # TODO: get members of Enums and _SOME_ instances?
@@ -62,7 +62,7 @@ def walkTree(node):
                                   node))
         walkTree(node.children[-1])
 
-walkTree(root)
+walkTree(tree)
 
 ########################
 # Extract Format plugins
@@ -105,6 +105,6 @@ for page in all_pages + [Page("Index", "index.html")]:
     with open(str(targetdir.absolute())+"/"+page.url, 'w') as f:
         f.write(template.render(current=page,
                                 pages=all_pages,
-                                tree=[root],
+                                tree=tree,
                                 vipster=vipster,
                                 formats=formats))

@@ -1,31 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% macro traverse(nodes, i) %}
-    {% for node in nodes %}
-        <li>
-            {% if node.type in ["Module", "Class"] %}
-                <h{{ i }}>{{ node.type }}: {{ node.name }}</h{{ i }}>
+<div class="content-list">
+<ol>
+<a href="#{{ tree.name }}">{{ tree.type }}: {{ tree.name }}</a>
+{%- for node in tree.children %}
+<li><a href="#{{ node.name }}">{{ node.type }}: {{ node.name }}</a></li>
+{%- endfor %}
+</ol>
+</div>
+
+{% macro traverseContent(nodes, i) %}
+{% for node in nodes %}
+    {%- if i%2 == 0 %}
+    <div class="content-text highlight">
+    {%- else %}
+    <div class="content-text highlight highlight-nested">
+    {%- endif %}
+        <a class="anchor" id="{{ node.name }}"></a>
+        <h{{ i }}>{{ node.type }}: {{ node.name }}</h{{ i }}>
+        {% if node.doc %}
+            {% for line in node.doc.split('\n') %}
+            {% if loop.index == 1 %}
+            <code>{{ line }}</code>
             {% else %}
-                <p>{{ node.type }}: {{ node.name }}</p>
+            {{ line }}
             {% endif %}
-            {% if node.doc %}
-                {{ node.doc }}
-            {% endif %}
-            {% if node.children %}
-                <h{{ i+1 }}>Members:</h{{ i+1 }}>
-                <ul>
-                    {{ traverse(node.children, i+1) }}
-                </ul>
-            {% endif %}
-        </li>
-    {% endfor %}
+            <br>
+            {% endfor %}
+        {% endif %}
+        {% if node.children %}
+            <h{{ i+1 }}>Members:</h{{ i+1 }}>
+            {{ traverseContent(node.children, i+1) }}
+        {% endif %}
+    </div>
+{% endfor %}
 {% endmacro %}
 
 <div class="content-text">
-<ul>
-    {{ traverse(tree, 1) }}
-</ul>
-</div>
+<a class="anchor" id="{{ tree.name }}"></a>
+<h1>{{ tree.type }}: {{ tree.name }}</h1>
+<p>{{ tree.doc }}</p>
+<h2>Members:</h2>
+{{ traverseContent(tree.children, 2) }}
 
 {% endblock %}

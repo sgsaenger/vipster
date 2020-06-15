@@ -40,82 +40,6 @@ img{
     display: block;
 }
 
-/* fragmented highlights on gui page */
-.content-text.highlight,
-.content-head.highlight,
-.content-image.highlight{
-    background: #333;
-    padding: 6px 12px;
-}
-
-.content-text.highlight{
-    margin: 0px 0px 6px 0px;
-    border-radius: 0px 0px 4px 4px;
-}
-
-.content-head.highlight{
-    margin: 6px 0px 0px 0px;
-    border-radius: 4px 4px 0px 0px;
-}
-
-.content-image.highlight{
-    margin: 0px;
-    border-radius: 0px;
-}
-
-.content-image{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-@media (min-width: 768px){
-    main{
-        grid-template-columns: min-content 1fr;
-    }
-    .content-list{
-        grid-row: 1;
-        position: sticky;
-        width: 200px;
-        top: 118px;
-    }
-    .content-text, .content-head, .content-image{
-        grid-column-start: 2;
-    }
-}
-
-@media (min-width: 1200px){
-    main{
-        grid-template-columns: minmax(min-content, 1fr) minmax(auto, 960px) minmax(min-content, 1fr);
-    }
-    .content-text, .content-head{
-        grid-column-start: 2;
-    }
-    .content-image{
-        flex-direction: row;
-        grid-column-start: 3;
-        grid-row: auto / span 2;
-        align-self: center;
-        min-width: 400px;
-    }
-    .content-head.highlight{
-        border-top-right-radius: 0px;
-    }
-    .content-text.highlight{
-        border-bottom-right-radius: 0px;
-    }
-    .content-image.highlight{
-        align-self: auto;
-        justify-self: left;
-        margin: 6px 0px;
-        border-top-right-radius: 4px;
-        border-bottom-right-radius: 4px;
-    }
-    .content-image > img{
-        max-height: 80%;
-    }
-}
-
 footer{
     display: flex;
     justify-content: center;
@@ -136,6 +60,7 @@ ul.code{
     padding: 0;
 }
 
+/* navbar, fixed at top of window */
 .navbar{
     position: fixed;
     top: 0px;
@@ -151,6 +76,7 @@ ul.code{
     top: 50px;
 }
 
+/* menu buttons for navbar */
 .menu{
     height: 100%;
 }
@@ -170,6 +96,7 @@ a.menuitem{
     background: #111;
 }
 
+/* boxes for content structuring */
 .highlight{
     background: #333;
     padding: 6px 12px;
@@ -187,6 +114,70 @@ a.highlight{
     background: #666;
 }
 
+/* fragmented highlights on gui page */
+.gui-text{
+    margin: 0px 0px 6px 0px;
+    border-radius: 0px 0px 4px 4px;
+}
+
+.gui-head{
+    margin: 6px 0px 0px 0px;
+    border-radius: 4px 4px 0px 0px;
+}
+
+.gui-image{
+    margin: 0px;
+    border-radius: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@media (min-width: 768px){
+    main{
+        grid-template-columns: min-content 1fr;
+    }
+    .content-list{
+        grid-row: 1;
+        position: sticky;
+        width: 200px;
+        top: 118px;
+    }
+    .content-text, .content-image{
+        grid-column-start: 2;
+    }
+}
+
+@media (min-width: 1200px){
+    main{
+        grid-template-columns: minmax(min-content, 1fr) minmax(auto, 960px) minmax(min-content, 1fr);
+    }
+    .content-image{
+        grid-column-start: 3;
+        grid-row: auto / span 2;
+        align-self: center;
+        min-width: 400px;
+    }
+    .gui-head{
+        border-top-right-radius: 0px;
+    }
+    .gui-text{
+        border-bottom-right-radius: 0px;
+    }
+    .gui-image{
+        flex-direction: row;
+        align-self: auto;
+        justify-self: left;
+        margin: 6px 0px;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    .gui-image > img{
+        max-height: 80%;
+    }
+}
+
+/* classes for highlighting part of an image */
 .overlay-container{
     position: relative;
 }
