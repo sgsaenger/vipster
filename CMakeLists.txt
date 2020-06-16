@@ -207,6 +207,11 @@ if(VIPSTER_DESKTOP)
     # executable
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
 
+    # set rpath for local installations on linux
+    if(UNIX AND BUILD_SHARED_LIBS AND NOT APPLE)
+        set_target_properties(vipster PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    endif()
+
     # fix name-clash on import library when using mingw/gcc
     if(WIN32)
         set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
