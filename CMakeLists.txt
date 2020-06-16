@@ -139,7 +139,7 @@ if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
     endif()
     add_library(bindings OBJECT ${PY_SOURCES})
-    target_link_libraries(bindings PUBLIC libvipster PRIVATE pybind11::module)
+    target_link_libraries(bindings PUBLIC libvipster PRIVATE fmt::fmt-header-only pybind11::module)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
     endif()
@@ -218,7 +218,7 @@ if(VIPSTER_DESKTOP)
     endif()
 
     # link QT, CLI11 and vipster
-    target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
+    target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster fmt::fmt-header-only)
     target_include_directories(vipster PRIVATE "gui/common" "gui/qt")
 
     # python-widget:
