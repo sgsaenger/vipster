@@ -552,9 +552,9 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
     return mol;
 }
 
-IO::Parameter UFF_PrepareParameters(const Step &s)
+Parameter UFF_PrepareParameters(const Step &s)
 {
-    auto p = IO::LmpInput.makeParam();
+    auto p = Plugins::LmpInput.makeParam();
     using coeffmap = std::map<std::string, std::string>;
     // create pair coeffs
     auto& paircoeffs = std::get<coeffmap>(p.at("Pair Coeff").first);

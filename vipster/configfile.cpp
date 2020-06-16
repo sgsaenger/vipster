@@ -30,13 +30,13 @@ namespace fs = std::filesystem;
 #define LIBEXTENSION ".so"
 #endif
 
-const IO::Plugin* openPlugin(fs::path name)
+const Plugin* openPlugin(fs::path name)
 {
 #if defined(_WIN32)
     try{
         auto file = LoadLibrary(std::string{name.string()}.c_str());
         if(file == NULL) return nullptr;
-        return reinterpret_cast<const IO::Plugin*>(GetProcAddress(file, "plugin"));
+        return reinterpret_cast<const Plugin*>(GetProcAddress(file, "plugin"));
     }catch(...){
         return nullptr;
     }
@@ -44,7 +44,7 @@ const IO::Plugin* openPlugin(fs::path name)
     try{
         auto *file = dlopen(name.c_str(), RTLD_LAZY);
         if(!file) return nullptr;
-        return static_cast<const IO::Plugin*>(dlsym(file, "plugin"));
+        return static_cast<const Plugin*>(dlsym(file, "plugin"));
     }catch(...){
         return nullptr;
     }
@@ -62,19 +62,33 @@ fs::path Vipster::getConfigDir(){
 #endif
 }
 
+// forward declare conversion functions, implemented in specific files
+namespace Vipster{
+void to_json(nlohmann::json& j, const Element& p);
+void from_json(const nlohmann::json& j, Element& p);
+void to_json(nlohmann::json& j,const PeriodicTable& p);
+void from_json(const nlohmann::json& j, PeriodicTable& p);
+void to_json(nlohmann::json& j, const Preset& p);
+void from_json(const nlohmann::json& j, Preset& p);
+void to_json(nlohmann::json& j, const Parameter& p);
+void from_json(const nlohmann::json& j, Parameter& p);
+void to_json(nlohmann::json& j, const Settings& s);
+void from_json(const nlohmann::json& j, Settings& s);
+}
+
 ConfigState Vipster::readConfig()
 {
     // create state
     ConfigState retVal{};
     PeriodicTable &pte = std::get<0>(retVal);
     Settings &settings = std::get<1>(retVal);
-    IO::Plugins &plugins = std::get<2>(retVal);
-    IO::Parameters &params = std::get<3>(retVal);
-    IO::Presets &presets = std::get<4>(retVal);
+    PluginList &plugins = std::get<2>(retVal);
+    ParameterMap &params = std::get<3>(retVal);
+    PresetMap &presets = std::get<4>(retVal);
     // load defaults as a minimum starting point
     pte = Vipster::pte;
     settings = Vipster::settings;
-    plugins = IO::defaultPlugins();
+    plugins = defaultPlugins();
     for(const auto& plug: plugins){
         if(plug->makeParam){
             params[plug]["default"] = plug->makeParam();
@@ -177,8 +191,8 @@ void Vipster::saveConfig(const ConfigState& cs)
     // convenience refs
     const PeriodicTable &pte = std::get<0>(cs);
     const Settings &settings = std::get<1>(cs);
-    const IO::Parameters &params = std::get<3>(cs);
-    const IO::Presets &presets = std::get<4>(cs);
+    const ParameterMap &params = std::get<3>(cs);
+    const PresetMap &presets = std::get<4>(cs);
     // check dir, try to create if it doesn't exist
     auto dir = getConfigDir();
     bool success{true};

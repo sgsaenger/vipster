@@ -3,7 +3,7 @@
 
 #include "configfile.py.h"
 #include "configfile.h"
-#include "io/plugin.py.h"
+#include "plugin.py.h"
 
 namespace fs = std::filesystem;
 
@@ -33,7 +33,7 @@ void Vipster::Py::config(py::module& m, ConfigState& state){
     }
     // expose plugins
     auto plug = m.def_submodule("Plugins");
-    for(const auto* p: plugins){
+    for(const Vipster::Plugin* p: plugins){
         plug.attr(p->command.c_str()) = p;
     }
 }

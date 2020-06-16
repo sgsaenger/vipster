@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <bitset>
+#include <memory>
 
 #include "vec.h"
 #include "periodictable.h"

@@ -26,7 +26,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QString path, Vipster::ConfigState& state,
-                        std::vector<Vipster::IO::Data> &&d={},
+                        std::vector<Vipster::IOTuple> &&d={},
                         QWidget *parent = nullptr);
     ~MainWindow() override;
     // Viewports
@@ -51,13 +51,13 @@ public:
     Vipster::Step::selection* curSel{nullptr};
     std::unique_ptr<Vipster::Step::selection> copyBuf{};
     void updateWidgets(Vipster::GUI::change_t change);
-    void newData(Vipster::IO::Data&& d);
+    void newData(Vipster::IOTuple&& d);
     // Parameter data
-    std::map<const Vipster::IO::Plugin*, QMenu*> paramMenus;
+    std::map<const Vipster::Plugin*, QMenu*> paramMenus;
     ParamWidget* paramWidget;
     const decltype (ParamWidget::params)& getParams() const noexcept;
     // Preset data
-    std::map<const Vipster::IO::Plugin*, QMenu*> presetMenus;
+    std::map<const Vipster::Plugin*, QMenu*> presetMenus;
     PresetWidget* presetWidget;
     const decltype (PresetWidget::presets)& getPresets() const noexcept;
     // Extra data
@@ -66,9 +66,9 @@ public:
     Vipster::ConfigState    &state;
     Vipster::PeriodicTable  &pte;
     Vipster::Settings       &settings;
-    Vipster::IO::Plugins    &plugins;
-    Vipster::IO::Parameters &params;
-    Vipster::IO::Presets    &presets;
+    Vipster::PluginList     &plugins;
+    Vipster::ParameterMap   &params;
+    Vipster::PresetMap      &presets;
 
     void newMol(Vipster::Molecule &&mol);
     void saveScreenshot(QString fn);

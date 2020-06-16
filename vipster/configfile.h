@@ -6,16 +6,18 @@
 
 #include "periodictable.h"
 #include "settings.h"
-#include "fileio.h"
+#include "plugin.h"
+#include "parameters.h"
+#include "presets.h"
 
 namespace Vipster{
 
 // call this functions to read user-defined settings
 using ConfigState = std::tuple<PeriodicTable,
                                Settings,
-                               IO::Plugins,
-                               IO::Parameters,
-                               IO::Presets
+                               PluginList,
+                               ParameterMap,
+                               PresetMap
                                >;
 ConfigState readConfig();
 void saveConfig(const ConfigState &);

@@ -25,7 +25,10 @@ mark_as_advanced(VIPSTER_PYPI VIPSTER_EGG_INFO)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# include current dir so library can be accessed via "vipster/*.h"
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# add tinyexpr to the include path
+include_directories("external/tinyexpr")
 
 # Library, needed for everything else
 file(GLOB_RECURSE PY_SOURCES "vipster/*.py.h" "vipster/*.py.cpp")
@@ -53,6 +56,7 @@ if(UNIX)
     # install files to appropriate locations
     if(BUILD_SHARED_LIBS AND NOT APPLE AND NOT VIPSTER_WEB)
         install(TARGETS libvipster
+            EXPORT "Vipster"
             LIBRARY
             DESTINATION "lib"
             FRAMEWORK
@@ -63,6 +67,8 @@ if(UNIX)
             FILES_MATCHING PATTERN "*.h"
             )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+        target_include_directories(libvipster PUBLIC $<INSTALL_INTERFACE:include>)
+        install(EXPORT "Vipster" DESTINATION "lib/cmake")
     endif()
 endif()
 
@@ -94,6 +100,7 @@ if(NOT nlohmann_json_FOUND)
     set(JSON_Install OFF CACHE INTERNAL "")
     add_subdirectory(external/nlohmann_json EXCLUDE_FROM_ALL)
 endif()
+target_link_libraries(libvipster PRIVATE nlohmann_json::nlohmann_json)
 
 # find suitable fmt-library
 find_package(fmt 6.1.2 CONFIG QUIET)
@@ -101,8 +108,7 @@ if(NOT fmt_FOUND)
     init_submodule("{fmt}" "fmt")
     add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
 endif()
-target_link_libraries(libvipster PUBLIC nlohmann_json::nlohmann_json fmt::fmt-header-only)
-target_include_directories(libvipster PUBLIC "external/tinyexpr")
+target_link_libraries(libvipster PRIVATE fmt::fmt-header-only)
 
 if(BUILD_TESTING)
     # Tests, so far only for library

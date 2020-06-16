@@ -30,7 +30,7 @@ void ParamWidget::clearParams()
 }
 
 void ParamWidget::registerParam(const std::string &name,
-                                const IO::Parameter &data)
+                                const Parameter &data)
 {
     params.emplace_back(name, data);
     ui->paramSel->addItem(QString::fromStdString(
@@ -74,7 +74,7 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
     QTreeWidget *tree{nullptr};
     for(auto& [name, pair]: *curParam){
         switch(pair.first.index()){
-        case IO::Parameter::i_strmap:
+        case Parameter::i_strmap:
         {
             if(!tree){
                 tree = setupTree();
@@ -91,10 +91,10 @@ void ParamWidget::on_paramSel_currentIndexChanged(int index)
             }
             break;
         }
-        case IO::Parameter::i_strvec:
+        case Parameter::i_strvec:
             vectors.push_back(QString::fromStdString(name));
             break;
-        case IO::Parameter::i_str:
+        case Parameter::i_str:
         {
             // label + lineedit
             auto *row = new QHBoxLayout{};
@@ -252,5 +252,5 @@ void ParamWidget::setupText(const QVector<QString> &vectors)
 void ParamWidget::on_pushButton_clicked()
 {
     QMessageBox::information(this, QString("About parameter presets"),
-                             Vipster::IO::ParametersAbout);
+                             Vipster::ParametersAbout);
 }
