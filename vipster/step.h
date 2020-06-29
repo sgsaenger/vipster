@@ -333,11 +333,14 @@ public:
     template<typename T>
     void delAtoms(StepConst<detail::Selection<T>>& s)
     {
-        const auto& idx = s.getAtoms().indices;
-        for(auto it = idx.rbegin(); it != idx.rend(); ++it)
+        std::set<size_t> indices{};
+        for(const auto [idx, _]: s.getAtoms().indices){
+            indices.insert(idx);
+        }
+        for(auto it = indices.rbegin(); it != indices.rend(); ++it)
         {
-            if(it->first < getNat()){
-                delAtom(it->first);
+            if(*it < getNat()){
+                delAtom(*it);
             }
         }
         s = select({});
