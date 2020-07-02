@@ -1,7 +1,6 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
-#include <emscripten/vr.h>
 
 #include "guiwrapper.h"
 #include "vipster/molecule.h"
@@ -14,17 +13,12 @@ static GUI::GlobalData glGlobals{};
 static GuiWrapper gui{glGlobals, settings};
 static std::vector<Molecule> molecules;
 
-static VRDisplayHandle handle;
-static unsigned long vrWidth, vrHeight;
-static bool vrMoving{false}, vrHasPos{false};
-static Vec vrPos{0,0,-10};
-
-static IO::Plugins plugins = IO::defaultPlugins();
+static PluginList plugins = defaultPlugins();
 
 std::string emReadFile(std::string fn, int fmt){
     try {
-        auto d = readFile(fn, plugins[fmt]);
-        molecules.push_back(d.mol);
+        auto [m, p, d] = readFile(fn, plugins[fmt]);
+        molecules.push_back(std::move(m));
         return "";
     } catch (std::exception &e) {
         return e.what();
@@ -34,11 +28,11 @@ std::string emReadFile(std::string fn, int fmt){
 std::string emWriteFile(int m, int s, int f){
     try{
         const auto& plug = plugins[f];
-        IO::Parameter param{nullptr};
+        Parameter param{nullptr};
         if(plug->makeParam){
             param = plug->makeParam();
         }
-        IO::Preset preset{nullptr};
+        Preset preset{nullptr};
         if(plug->makePreset){
             preset = plug->makePreset();
         }
@@ -98,7 +92,7 @@ int emGuessFmt(std::string file){
     if(pos != file.npos){
         std::string ext = file.substr(pos+1);
         auto pos = std::find_if(plugins.begin(), plugins.end(),
-                                [&](const IO::Plugin* plug){
+                                [&](const Plugin* plug){
                                     return plug->extension == ext;
                                 });
         if(pos == plugins.end()){
@@ -120,7 +114,6 @@ std::string emFmtName(int m, int f){
     return name + '.' + plugins[f]->extension;
 }
 
-void emVrMove(int val){vrMoving = val;}
 
 EMSCRIPTEN_BINDINGS(vipster){
     em::function("evalBonds", &emEvalBonds);
@@ -148,7 +141,6 @@ EMSCRIPTEN_BINDINGS(vipster){
     em::function("translate", &emTranslate);
     em::function("guessFmt", &emGuessFmt);
     em::function("getFormattedName", &emFmtName);
-    em::function("vrToggleMove", &emVrMove);
     em::value_array<Vec>("Vec")
             .element(em::index<0>())
             .element(em::index<1>())
@@ -236,105 +228,6 @@ void main_loop(){
     gui.draw();
 }
 
-void vr_update_pos(const VRFrameData& data){
-//    if(vrHasPos){
-//        vrPos[0] = data.pose.position.x;
-//        vrPos[1] = data.pose.position.y;
-//        vrPos[2] = data.pose.position.z;
-//    }else if(vrMoving){
-    if(vrMoving && !vrHasPos){
-        Vec tmp{
-            data.pose.orientation.x,
-            data.pose.orientation.y,
-            data.pose.orientation.z,
-        };
-        tmp /= Vec_length(tmp);
-        vrPos += tmp;
-    }
-}
-
-void vr_loop(){
-    if (!emscripten_vr_display_presenting(handle)) {
-        emscripten_vr_cancel_display_render_loop(handle);
-        EM_ASM($('#vr-exit').hide());
-        EM_ASM($('#vr-enter').show());
-        EM_ASM(resizeCanvas());
-    }else{
-        VRFrameData data;
-        emscripten_vr_get_frame_data(handle, &data);
-        vr_update_pos(data);
-        gui.drawVR(data.leftProjectionMatrix, data.leftViewMatrix,
-                   data.rightProjectionMatrix, data.rightViewMatrix,
-                   vrPos, vrWidth, vrHeight);
-        emscripten_vr_submit_frame(handle);
-    }
-}
-
-EM_BOOL vr_stop_presenting(int, const EmscriptenMouseEvent*, void*){
-    emscripten_vr_exit_present(handle);
-    return 1;
-}
-
-EM_BOOL vr_start_presenting(int, const EmscriptenMouseEvent*, void*){
-    VRLayerInit layer{NULL, VR_LAYER_DEFAULT_LEFT_BOUNDS, VR_LAYER_DEFAULT_RIGHT_BOUNDS};
-    if(!emscripten_vr_request_present(handle, &layer, 1, nullptr, nullptr)){
-        printf("Request present failed\n");
-        return 0;
-    }
-    if(!emscripten_vr_set_display_render_loop(handle, vr_loop)){
-        printf("Error: failed to set vr-render-loop\n.");
-    }
-    VREyeParameters leftParams, rightParams;
-    emscripten_vr_get_eye_parameters(handle, VREyeLeft, &leftParams);
-    emscripten_vr_get_eye_parameters(handle, VREyeRight, &rightParams);
-    vrWidth = leftParams.renderWidth = rightParams.renderWidth;
-    vrHeight = std::max(leftParams.renderHeight, rightParams.renderHeight);
-    emscripten_set_canvas_element_size("#canvas", vrWidth, vrHeight);
-    EM_ASM($('#vr-enter').hide());
-    EM_ASM($('#vr-exit').show());
-    return 1;
-}
-
-void tryInitVR(void*){
-    printf("Browser running WebVR version %d.%d\n",
-                    emscripten_vr_version_major(),
-                    emscripten_vr_version_minor());
-    if(!emscripten_vr_ready()){
-        printf("VR not initialized\n");
-        return;
-    }else{
-        int numDisplays = emscripten_vr_count_displays();
-        if(!numDisplays){
-            printf("No VR displays connected\n");
-            return;
-        }
-        printf("Number of VR displays: %d\n", numDisplays);
-        for(int i=0; i<numDisplays; ++i){
-            handle = emscripten_vr_get_display_handle(i);
-            printf("Display %d: %s\n", i, emscripten_vr_get_display_name(handle));
-            VRDisplayCapabilities caps;
-            if(!emscripten_vr_get_display_capabilities(handle, &caps)){
-                printf("Error: failed to get display capabilities.\n");
-                continue;
-            }
-            printf("Display Capabilities:\n"
-                   "{hasPosition: %d, hasExternalDisplay: %d, canPresent: %d, maxLayers: %u}\n",
-                   caps.hasPosition, caps.hasExternalDisplay, caps.canPresent, caps.maxLayers);
-            if(caps.hasExternalDisplay && !emscripten_vr_display_connected(handle)){
-                printf("Error: has external display, but is not connected.\n");
-                continue;
-            }
-            printf("Succeeded so far, using this display\n");
-            vrHasPos = caps.hasPosition;
-            EM_ASM($('#vr-enter').show());
-            emscripten_set_click_callback("vr-enter", nullptr, 0, vr_start_presenting);
-            emscripten_set_click_callback("vr-exit", nullptr, 0, vr_stop_presenting);
-            return;
-        }
-    }
-    printf("Could not find a working VR display\n");
-}
-
 int main()
 {
     // create WebGL2 context
@@ -350,7 +243,6 @@ int main()
         EM_ASM(alertWebGL());
         return 0;
     }
-    emscripten_vr_init(tryInitVR, nullptr);
 
     // init GL
     emscripten_webgl_make_context_current(context);
