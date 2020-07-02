@@ -9,6 +9,8 @@
 
 using namespace Vipster;
 
+decltype (GUI::Data::global_map) GUI::Data::global_map;
+
 #ifdef __EMSCRIPTEN__
 #include <fstream>
 std::string readShader(const std::string &filePath)
@@ -34,36 +36,34 @@ std::string readShader(const std::string &filePath)
 }
 #endif
 
-GUI::GlobalData::GlobalData()
-{}
-
-void GUI::GlobalData::initGL()
+void GUI::Data::initGlobal(void *context)
 {
-    if (initialized) return;
+    auto &glob = global_map[context];
+    if (glob.initialized) return;
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
     const auto fmt = QOpenGLContext::currentContext()->format();
     bool newEnough = false;
     if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
         if(fmt.version() >= qMakePair(3,3)){
-            header = "# version 330\n";
+            glob.header = "# version 330\n";
             newEnough = true;
         }else{
-            header = "# version 140\n";
+            glob.header = "# version 140\n";
         }
     }else{
         if(fmt.version() >= qMakePair(3,0)){
-            header = "# version 300 es\nprecision highp float;\n";
+            glob.header = "# version 300 es\nprecision highp float;\n";
             newEnough = true;
         }else{
-            header = "# version 100 es\nprecision highp float;\n";
+            glob.header = "# version 100 es\nprecision highp float;\n";
         }
     }
-    folder = ":/shaders";
+    glob.folder = ":/shaders";
 #else
     bool newEnough{true};
-    header = "# version 300 es\nprecision highp float;\n";
-    folder = "";
+    glob.header = "# version 300 es\nprecision highp float;\n";
+    glob.folder = "";
 #endif
     std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
@@ -83,19 +83,19 @@ void GUI::GlobalData::initGL()
     int majorVersion = std::strtol(glVersionStr, &glVersionEnd, 10);
     int minorVersion = std::strtol(glVersionEnd+1, &glVersionEnd, 10);
     // generate buffers and upload data
-    glGenBuffers(1, &sphere_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, sphere_vbo);
+    glGenBuffers(1, &glob.sphere_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, glob.sphere_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(atom_model),
                  static_cast<const void*>(&atom_model), GL_STATIC_DRAW);
-    glGenBuffers(1, &cylinder_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, cylinder_vbo);
+    glGenBuffers(1, &glob.cylinder_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, glob.cylinder_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(bond_model),
                  static_cast<const void*>(&bond_model), GL_STATIC_DRAW);
-    glGenBuffers(1, &cell_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cell_ibo);
+    glGenBuffers(1, &glob.cell_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glob.cell_ibo);
     GLushort indices[24] = {0,1,0,2,0,3,1,4,1,5,2,4,2,6,3,5,3,6,4,7,5,7,6,7};
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), static_cast<void*>(indices), GL_STATIC_DRAW);
-    initialized = true;
+    glob.initialized = true;
 }
 
 void GUI::Data::syncToGPU(void *context)
@@ -106,23 +106,29 @@ void GUI::Data::syncToGPU(void *context)
         wrap_initialized = true;
     }
     #endif
-    if(!initialized[context]){
-        initGL(context);
-        initialized[context] = true;
+    auto &global = global_map[context];
+    if(!global.initialized){
+        initGlobal(context);
+        global.initialized = true;
     }
-    if(updated){
-        updateGL();
-        updated = false;
+    auto &instance = instance_map[context];
+    if(!instance.initialized){
+        initGL(context);
+        instance.initialized = true;
+    }
+    if(!instance.synchronized){
+        updateGL(context);
+        instance.synchronized = true;
     }
 }
 
-GLuint GUI::Data::loadShader(const std::string &vert, const std::string &frag)
+GLuint GUI::Data::loadShader(const GlobalContext &globals, const std::string &vert, const std::string &frag)
 {
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
     GLint gl_ok = GL_FALSE;
 
-    std::string vertShaderStr = global.header + readShader(global.folder + vert);
+    std::string vertShaderStr = globals.header + readShader(globals.folder + vert);
     const char *vertShaderSrc = vertShaderStr.c_str();
     glShaderSource(vertShader, 1, &vertShaderSrc, nullptr);
     glCompileShader(vertShader);
@@ -138,7 +144,7 @@ GLuint GUI::Data::loadShader(const std::string &vert, const std::string &frag)
         throw std::invalid_argument{"Vertex-Shader does not compile"};
     }
 
-    std::string fragShaderStr = global.header + readShader(global.folder + frag);
+    std::string fragShaderStr = globals.header + readShader(globals.folder + frag);
     const char *fragShaderSrc = fragShaderStr.c_str();
     glShaderSource(fragShader, 1, &fragShaderSrc, nullptr);
     glCompileShader(fragShader);
@@ -176,13 +182,13 @@ GLuint GUI::Data::loadShader(const std::string &vert, const std::string &frag)
     return program;
 }
 
-GUI::Data::Data(const GlobalData& glob)
-    : global{glob}
-{}
+//GUI::Data::Data()
+//{}
 
 GUI::Data::Data(GUI::Data&& dat)
-    : global{dat.global}
 {
-    std::swap(updated, dat.updated);
-    std::swap(initialized, dat.initialized);
+    std::swap(instance_map, dat.instance_map);
+#ifndef __EMSCRIPTEN__
+    std::swap(wrap_initialized, dat.wrap_initialized);
+#endif
 }

@@ -28,8 +28,8 @@ private:
     Ui::MillerWidget *ui;
     struct MillerPlane: Vipster::GUI::MeshData
     {
-        MillerPlane(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
-                    Vipster::Vec offset, Vipster::Mat cell, Texture texture,
+        MillerPlane(std::vector<Face>&& faces, Vipster::Vec offset,
+                    Vipster::Mat cell, Texture texture,
                     const std::array<int8_t, 3> &hkl);
         std::array<int8_t, 3> hkl;
     };

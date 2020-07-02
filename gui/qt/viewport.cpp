@@ -15,7 +15,7 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     setFocusPolicy(Qt::StrongFocus);
     // try to create opengl-widget
     // TODO: catch error when no gl3.3 is available
-    openGLWidget = new GLWidget{this, master->globals, master->settings};
+    openGLWidget = new GLWidget{this, master->settings};
     ui->verticalLayout->insertWidget(1, openGLWidget, 1);
     setFocusProxy(openGLWidget);
     // connect timer for animation

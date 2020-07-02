@@ -35,8 +35,8 @@ private slots:
 private:
     Ui::PinWidget *ui;
     struct PinnedStep: public Vipster::GUI::StepData{
-        PinnedStep(const Vipster::GUI::GlobalData &glob, Vipster::Step *step,
-                   const std::string& name, Vipster::GUI::PBCVec mult);
+        PinnedStep(Vipster::Step *step, const std::string& name,
+                   Vipster::GUI::PBCVec mult);
         std::string name;
         Vipster::GUI::PBCVec mult;
         Vipster::Vec offset{};

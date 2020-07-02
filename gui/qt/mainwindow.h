@@ -34,7 +34,6 @@ public:
     enum VPChange{VP_CLOSE, VP_VSPLIT, VP_HSPLIT, VP_ACTIVE};
     void changeViewports(ViewPort* sender, VPChange change);
     ViewPort* curVP{nullptr};
-    Vipster::GUI::GlobalData globals{};
     // Molecule and Step data
     std::list<Vipster::Molecule> molecules;
     // TODO: store StepData with weak_ptr

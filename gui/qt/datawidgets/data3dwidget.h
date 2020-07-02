@@ -37,7 +37,7 @@ private:
 
     struct DatSlice: public Vipster::GUI::MeshData{
         size_t dir, pos;
-        DatSlice(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+        DatSlice(std::vector<Face>&& faces,
                  Vipster::Vec offset, Vipster::Mat cell,
                  Texture texture, size_t dir, size_t pos);
     };
@@ -47,7 +47,7 @@ private:
     struct IsoSurf: public Vipster::GUI::MeshData{
         bool plusmin;
         double isoval;
-        IsoSurf(const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+        IsoSurf(std::vector<Face>&& faces,
                 Vipster::Vec offset, Vipster::Mat cell,
                 Texture texture, bool plusmin, double isoval);
     };

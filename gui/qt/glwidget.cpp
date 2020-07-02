@@ -7,9 +7,9 @@
 
 using namespace Vipster;
 
-GLWidget::GLWidget(QWidget *parent, GUI::GlobalData &g, const Vipster::Settings& settings):
+GLWidget::GLWidget(QWidget *parent, const Vipster::Settings& settings):
     QOpenGLWidget(parent),
-    GuiWrapper{g, settings},
+    GuiWrapper{settings},
     settings{settings}
 {
     setTextureFormat(GL_RGBA16);
@@ -156,7 +156,7 @@ SelectionIndices GLWidget::pickAtoms(QPoint from, QPoint to)
     // defined by `from` and `to`
     std::set<SelectionPair> idx;
     makeCurrent();
-    drawSel(this);
+    drawSel();
     QOpenGLFramebufferObjectFormat format;
     format.setSamples(0);
     format.setInternalTextureFormat(GL_RGBA16);

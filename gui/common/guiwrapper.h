@@ -27,7 +27,7 @@ public:
     virtual ~GuiWrapper() = default;
 #endif
 public:
-    GuiWrapper(GUI::GlobalData &g, const Settings &s);
+    GuiWrapper(const Settings &s);
     void initGL();
     void draw(void *context=nullptr);
     void drawSel(void *context=nullptr);
@@ -50,9 +50,8 @@ public:
     GUI::PBCVec mult{{1,1,1}};
     Step* curStep{nullptr};
     Step::selection* curSel{nullptr};
-    GUI::GlobalData& globals;
-    GUI::StepData mainStep{globals, nullptr};
-    GUI::SelData selection{globals, nullptr};
+    GUI::StepData mainStep{nullptr};
+    GUI::SelData selection{nullptr};
     std::vector<std::weak_ptr<GUI::Data>> *stepExtras{nullptr};
     std::vector<std::weak_ptr<GUI::Data>> *vpExtras{nullptr};
 private:

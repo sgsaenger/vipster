@@ -42,10 +42,9 @@ void PinWidget::updateWidget(GUI::change_t change)
     }
 }
 
-PinWidget::PinnedStep::PinnedStep(const GUI::GlobalData &glob,
-                                  Step *step, const std::string& name,
+PinWidget::PinnedStep::PinnedStep(Step *step, const std::string& name,
                                   GUI::PBCVec mult)
-    : GUI::StepData{glob, step},
+    : GUI::StepData{step},
       name{name},
       mult{mult}
 {}
@@ -130,7 +129,7 @@ void PinWidget::on_addStep_clicked()
 {
     ui->addStep->setDisabled(true);
     // add to list of steps
-    pinnedSteps.push_back(std::make_shared<PinnedStep>(master->globals, master->curStep,
+    pinnedSteps.push_back(std::make_shared<PinnedStep>(master->curStep,
         master->curMol->name + " (Step "
             + std::to_string(master->curVP->moldata[master->curMol].curStep) + ')',
         GUI::PBCVec{1,1,1}));

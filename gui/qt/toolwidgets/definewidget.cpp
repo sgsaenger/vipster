@@ -115,7 +115,7 @@ void DefineWidget::on_newButton_clicked()
         auto [it, _] = defMap->insert_or_assign(name,
             std::tuple{std::move(sel),
                 filter,
-                std::make_shared<GUI::SelData>(master->globals)});
+                std::make_shared<GUI::SelData>()});
         curIt = it;
         curSelData()->update(&curSel(),
             master->settings.atRadVdW.val, master->settings.atRadFac.val);
@@ -164,7 +164,7 @@ void DefineWidget::on_fromSelButton_clicked()
     auto [it, _] = defMap->insert_or_assign(tmp,
         std::tuple{*master->curSel,
                    filter,
-                   std::make_shared<GUI::SelData>(master->globals)});
+                   std::make_shared<GUI::SelData>()});
     curIt = it;
     curSelData()->update(&curSel(),
         master->settings.atRadVdW.val, master->settings.atRadFac.val);

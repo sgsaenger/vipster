@@ -29,40 +29,45 @@ struct StepData: public Data{
     Step* curStep;
     // CPU-State:
     float atRadFac{0};
-    // GPU-State:
-    std::map<void*, GLuint[4]> vaos;
-    // GPU-Data:
-    bool vbo_initialized{false};
-    GLuint vbos[3] = {0,0,0};
-    GLuint &atom_vbo{vbos[0]};
-    GLuint &bond_vbo{vbos[1]}, &cell_vbo{vbos[2]};
-    // Shader:
-    static struct{
-        GLuint program;
-        GLuint vertex, position, vert_scale, color, hide;
-        GLint offset, pos_scale, scale_fac;
+    // GPU-State+Data (stored per instance and per context):
+    struct ObjectContext{
         bool initialized{false};
-    } atom_shader;
-    static struct{
-        GLuint program;
-        GLuint vertex, position, color1, color2, mMatrix, pbc_crit;
-        GLint offset, pos_scale, pbc_cell, mult;
+        GLuint atom_vao{};
+        GLuint bond_vao{};
+        GLuint cell_vao{};
+        GLuint sel_vao{};
+        GLuint atom_vbo{};
+        GLuint bond_vbo{};
+        GLuint cell_vbo{};
+    };
+    std::map<void*, ObjectContext> object_map;
+    // Shaders (stored per class and per context:
+    struct ShaderContext{
         bool initialized{false};
-    } bond_shader;
-    static struct{
-        GLuint program;
-        GLuint vertex;
-        GLint offset;
-        bool initialized{false};
-    } cell_shader;
-    static struct{
-        GLuint program;
-        GLuint vertex, position, vert_scale, hide;
-        GLint offset, pos_scale, scale_fac, pbc_instance;
-        bool initialized{false};
-    } sel_shader;
+        struct{
+            GLuint program;
+            GLuint vertex, position, vert_scale, color, hide;
+            GLint offset, pos_scale, scale_fac;
+        } atom_shader;
+        struct{
+            GLuint program;
+            GLuint vertex, position, color1, color2, mMatrix, pbc_crit;
+            GLint offset, pos_scale, pbc_cell, mult;
+        } bond_shader;
+        struct{
+            GLuint program;
+            GLuint vertex;
+            GLint offset;
+        } cell_shader;
+        struct{
+            GLuint program;
+            GLuint vertex, position, vert_scale, hide;
+            GLint offset, pos_scale, scale_fac, pbc_instance;
+        } sel_shader;
+    };
+    static std::map<void*, ShaderContext> shader_map;
     // Methods:
-    StepData(const GlobalData& glob, Step* step=nullptr);
+    StepData(Step* step=nullptr);
     ~StepData() override;
     StepData(StepData&& s);
     StepData(const StepData& s)=delete;
@@ -73,12 +78,20 @@ struct StepData: public Data{
     void update(Step* step, bool useVdW, float atRadFac, float bondRad);
     void drawSel(Vec off, const PBCVec &mult, void *context);
 private:
-    void updateGL() override;
+    void updateGL(void *context) override;
     void initGL(void *context) override;
     void initAtom(GLuint vao);
     void initBond(GLuint vao);
     void initCell(GLuint vao);
     void initSel(GLuint vao);
+    void initAtomVAO(GlobalContext& globals, ObjectContext& objects, ShaderContext& shaders);
+    void initBondVAO(GlobalContext& globals, ObjectContext& objects, ShaderContext& shaders);
+    void initCellVAO(GlobalContext& globals, ObjectContext& objects, ShaderContext& shaders);
+    void initSelVAO(GlobalContext& globals, ObjectContext& objects, ShaderContext& shaders);
+    void initAtomShader(GlobalContext& globals, ShaderContext& shaders);
+    void initBondShader(GlobalContext& globals, ShaderContext& shaders);
+    void initCellShader(GlobalContext& globals, ShaderContext& shaders);
+    void initSelShader(GlobalContext& globals, ShaderContext& shaders);
 };
 }
 }

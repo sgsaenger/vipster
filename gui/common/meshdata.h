@@ -28,27 +28,33 @@ private:
     std::array<float, 9> cell_gpu;
     Texture texture;
     // GPU-State/Data:
-    std::map<void*, GLuint[2]> vaos;
-    GLuint vbos[2] = {0,0};
-    bool vbo_initialized{false};
-    GLuint tex{0};
-    GLuint &mesh_vbo{vbos[0]}, &cell_vbo{vbos[1]};
+    struct ObjectContext{
+        bool initialized{false};
+        GLuint mesh_vao{};
+        GLuint cell_vao{};
+        GLuint mesh_vbo{};
+        GLuint cell_vbo{};
+        GLuint tex{};
+    };
+    std::map<void*, ObjectContext> object_map;
     // Shader:
-    static struct{
-        GLuint program;
-        GLuint vertex, normal, vert_UV;
-        GLint pos_scale, offset, tex;
+    struct ShaderContext{
+        struct{
+            GLuint program;
+            GLuint vertex, normal, vert_UV;
+            GLint pos_scale, offset, tex;
+        } mesh_shader;
+        struct{
+            GLuint program;
+            GLuint vertex;
+            GLint offset;
+        } cell_shader;
         bool initialized{false};
-    } mesh_shader;
-    static struct{
-        GLuint program;
-        GLuint vertex;
-        GLint offset;
-        bool initialized{false};
-    } cell_shader;
+    };
+    static std::map<void*, ShaderContext> shader_map;
 public:
-    MeshData(const GlobalData& glob, std::vector<Face>&& faces,
-             Vec offset, Mat cell, Texture texture);
+    MeshData(std::vector<Face>&& faces, Vec offset,
+             Mat cell, Texture texture);
     MeshData(MeshData&& dat);
     MeshData(const MeshData& dat)=delete;
     MeshData& operator=(const MeshData& dat)=delete;
@@ -60,10 +66,12 @@ public:
     void update(const Texture& tex);
     void update(const Vipster::Mat &cell);
 private:
-    void updateGL(void) override;
+    void updateGL(void *context) override;
     void initGL(void *context) override;
-    void initMesh(GLuint vao);
-    void initCell(GLuint vao);
+    void initMeshVAO(GlobalContext& globals, ObjectContext& objects, ShaderContext& shaders);
+    void initCellVAO(GlobalContext& globals, ObjectContext& objects, ShaderContext& shaders);
+    void initMeshShader(GlobalContext& globals, ShaderContext& shaders);
+    void initCellShader(GlobalContext& globals, ShaderContext& shaders);
 };
 
 }

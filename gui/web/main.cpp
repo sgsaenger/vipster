@@ -9,8 +9,7 @@
 namespace em = emscripten;
 using namespace Vipster;
 
-static GUI::GlobalData glGlobals{};
-static GuiWrapper gui{glGlobals, settings};
+static GuiWrapper gui{settings};
 static std::vector<Molecule> molecules;
 
 static PluginList plugins = defaultPlugins();
