@@ -9,6 +9,7 @@
 #include "plugins/xsf.h"
 #include "plugins/orca.h"
 #include "plugins/poscar.h"
+#include "plugins/json.h"
 
 namespace Vipster{
 
@@ -24,7 +25,8 @@ PluginList defaultPlugins()
             &Plugins::Cube,
             &Plugins::XSF,
             &Plugins::OrcaInput,
-            &Plugins::Poscar
+            &Plugins::Poscar,
+            &Plugins::JSON
     };
 }
 }
