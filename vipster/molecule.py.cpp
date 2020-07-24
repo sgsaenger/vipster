@@ -8,6 +8,8 @@ void Vipster::Py::Molecule(py::module& m, const Vipster::ConfigState &state){
             m.getPTE().root = &std::get<0>(state);
             return m;
         }), "name"_a="New Molecule", "steps"_a=1)
+        .def(py::init<const Vipster::Molecule&>())
+        .def(py::init<const Step&, std::string>(), "step"_a, "name"_a="Copy of Step")
         .def_property_readonly("pte", py::overload_cast<>(&Vipster::Molecule::getPTE, py::const_))
         .def("newStep", [](Vipster::Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const Step&>(&Vipster::Molecule::newStep), "step"_a)
