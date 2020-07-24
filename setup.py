@@ -19,7 +19,7 @@ if os.name == 'nt':
     cmake_defines += " -G \"MSYS Makefiles\""
 else:
     # force static linking
-    cmake_defines += " -DBUILD_SHARED_LIBS=NO"
+    cmake_defines += " -DBUILD_SHARED_LIBS=OFF"
 # circumvent hypot definition error in 3.x < 3.7
 if sys.version_info.major == 3 and sys.version_info.minor < 7:
     cmake_defines += " -DCMAKE_CXX_FLAGS=\"-D_hypot=hypot\""

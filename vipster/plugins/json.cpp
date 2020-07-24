@@ -68,7 +68,7 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
             }
         }
     }catch(nlohmann::detail::exception& e){
-        throw Error(e.what());
+        throw IOError(e.what());
     }
     return {std::move(m), std::optional<Parameter>{}, DataList{}};
 }

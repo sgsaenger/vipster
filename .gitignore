@@ -35,6 +35,7 @@ moc_*
 .idea/
 .vscode/
 .eslintrc.json
+.ipynb_checkpoints/
 
 # NPM packages
 node_modules/

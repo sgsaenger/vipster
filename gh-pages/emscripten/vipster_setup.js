@@ -63,7 +63,6 @@ function setupHammer(canvas) {
         }
 
         console.log('press');
-        Module.vrToggleMove(true);
     });
     hammer.on('pressup', (e) => {
         if (e.pointerType !== 'touch'){
@@ -71,7 +70,6 @@ function setupHammer(canvas) {
         }
 
         console.log('pressup');
-        Module.vrToggleMove(false);
     });
 
     hammer.on('panstart', (e) => {
@@ -82,7 +80,6 @@ function setupHammer(canvas) {
         console.log('panstart');
         this.oldX = e.deltaX;
         this.oldY = e.deltaY;
-        Module.vrToggleMove(false);
     });
 
     hammer.on('pan', (e) => {
@@ -103,7 +100,6 @@ function setupHammer(canvas) {
 
         console.log('pinchstart');
         this.oldScale = 0.0
-        Module.vrToggleMove(false);
     });
     hammer.on('pinch', (e) => {
         if (e.pointerType !== 'touch') {
