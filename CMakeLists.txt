@@ -2,26 +2,44 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Vipster VERSION 1.19)
 
-# default to shared libraries
-option(BUILD_SHARED_LIBS "Build shared library" ON)
-# enable main GUI App if Qt is found
-find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
-option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND})
+include(CMakeDependentOption)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel ..."
+        FORCE)
+endif()
+
 # automatic dependency solving
 option(VIPSTER_DOWNLOAD_DEPENDENCIES "Download required dependencies if not present" ON)
-mark_as_advanced(VIPSTER_DOWNLOAD_DEPENDENCIES)
-include(CMakeDependentOption)
+
+# detect compilation with emscripten
+if(EMSCRIPTEN)
+    # default to static libraries and no tests
+    option(BUILD_SHARED_LIBS "Build shared library" OFF)
+    option(BUILD_TESTING "Build tests" OFF)
+else()
+    # default to shared libraries and tests
+    option(BUILD_SHARED_LIBS "Build shared library" ON)
+    option(BUILD_TESTING "Build tests" ON)
+endif()
+
 # Minimal standalone .wasm interface
-cmake_dependent_option(VIPSTER_WEB "Build WASM-Module" OFF "NOT VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_WEB "Build JS+WebGL GUI" ON "EMSCRIPTEN" OFF)
+mark_as_advanced(VIPSTER_WEB)
+
+# enable main GUI App if Qt is found
+find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
+cmake_dependent_option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND} "NOT EMSCRIPTEN" OFF)
+
 # embedded LAMMPS widget
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
+
 # Python widget and standalone library
 find_package(PythonInterp 3.6 QUIET)
 cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${PythonInterp_FOUND} "VIPSTER_DESKTOP" OFF)
-cmake_dependent_option(VIPSTER_PYLIB "Python library" ${PythonInterp_FOUND} "NOT VIPSTER_WEB" OFF)
-cmake_dependent_option(VIPSTER_PYPI "To be set when built via setup.py" OFF "VIPSTER_PYLIB" OFF)
-cmake_dependent_option(VIPSTER_EGG_INFO "Create infos for python package" ON "VIPSTER_PYLIB" OFF)
-mark_as_advanced(VIPSTER_PYPI VIPSTER_EGG_INFO)
+option(VIPSTER_PYLIB "Standalone Python library" OFF)
+mark_as_advanced(VIPSTER_PYLIB)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
