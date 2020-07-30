@@ -6,7 +6,10 @@
 using namespace Vipster;
 using namespace nlohmann;
 
-const std::map<std::string, int> str2fmt = {{"crystal",-2}, {"alat",-1}, {"angstrom",0}, {"bohr",1}};
+const std::map<std::string, AtomFmt> str2fmt = {{"crystal", AtomFmt::Crystal},
+                                                {"alat", AtomFmt::Alat},
+                                                {"angstrom", AtomFmt::Angstrom},
+                                                {"bohr", AtomFmt::Bohr}};
 
 static Preset makePreset()
 {
@@ -34,9 +37,14 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
                 // handle format
                 auto fmt = AtomFmt::Angstrom;
                 if (auto f = j.find("fmt"); f != j.end()) {
-                    fmt = static_cast<AtomFmt>(str2fmt.at(f->get<std::string>()));
+                    auto ff = f->get<std::string>();
+                    auto pos = str2fmt.find(ff);
+                    if(pos == str2fmt.end()){
+                        throw IOError(fmt::format("JSON-Parser: Invalid atom format: {} (Valid: [crystal, alat, angstrom, bohr]", ff));
+                    }
+                    fmt = pos->second;
                 }
-                s.setFmt(fmt);
+                s.setFmt(fmt, false);
                 // parse atoms
                 if(!atoms->is_array()){
                     throw IOError(fmt::format("JSON-Parser: Not a valid atom-array: {}", atoms->dump()));
@@ -62,8 +70,8 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
                 if(auto cell = j.find("cell"); cell != j.end()){
                     auto c = *cell;
                     s.enableCell(true);
-                    s.setCellDim(c["dimension"].get<double>(), s.getFmt() == AtomFmt::Bohr ? AtomFmt::Bohr : AtomFmt::Angstrom);
-                    s.setCellVec(c["vectors"].get<Mat>());
+                    s.setCellDim(c["dimension"].get<double>(), s.getFmt() == AtomFmt::Bohr ? AtomFmt::Bohr : AtomFmt::Angstrom, true);
+                    s.setCellVec(c["vectors"].get<Mat>(), true);
                 }
             }
         }
