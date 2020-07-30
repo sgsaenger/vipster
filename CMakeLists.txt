@@ -168,17 +168,15 @@ if(VIPSTER_PYLIB)
     pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "vipster/main.py.cpp")
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
+    if(VIPSTER_PYLIB OR (UNIX AND NOT APPLE))
         execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
-        if(VIPSTER_EGG_INFO AND NOT VIPSTER_PYPI)
-            install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
-            install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
-        endif()
+        install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
+        install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
     endif()
 endif()
 
