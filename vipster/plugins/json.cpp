@@ -45,6 +45,13 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
                     fmt = pos->second;
                 }
                 s.setFmt(fmt, false);
+                // parse cell
+                if(auto cell = j.find("cell"); cell != j.end()){
+                    auto c = *cell;
+                    s.enableCell(true);
+                    s.setCellDim(c["dimension"].get<double>(), s.getFmt() == AtomFmt::Bohr ? AtomFmt::Bohr : AtomFmt::Angstrom);
+                    s.setCellVec(c["vectors"].get<Mat>());
+                }
                 // parse atoms
                 if(!atoms->is_array()){
                     throw IOError(fmt::format("JSON-Parser: Not a valid atom-array: {}", atoms->dump()));
@@ -65,13 +72,6 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
                     for(const auto &bond: *bonds){
                         s.addBond(bond[0], bond[1]);
                     }
-                }
-                // parse cell
-                if(auto cell = j.find("cell"); cell != j.end()){
-                    auto c = *cell;
-                    s.enableCell(true);
-                    s.setCellDim(c["dimension"].get<double>(), s.getFmt() == AtomFmt::Bohr ? AtomFmt::Bohr : AtomFmt::Angstrom, true);
-                    s.setCellVec(c["vectors"].get<Mat>(), true);
                 }
             }
         }
