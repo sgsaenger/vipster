@@ -144,15 +144,15 @@
                   <label class="custom-control-label" for="checkboxCellEnabled">Cell enabled</label>
                 </div>
 
-<!--                <div class="custom-control custom-checkbox mb-2">
+                <div class="custom-control custom-checkbox mb-2">
                   <input type="checkbox" class="custom-control-input" id="cellToMol">
                   <label class="custom-control-label" for="cellToMol">Apply to all steps</label>
-                </div>-->
+                </div>
 
-                <div class="custom-control custom-checkbox if-cell">
+                <!--<div class="custom-control custom-checkbox if-cell">
                   <input type="checkbox" class="custom-control-input" id="cellScale">
                   <label class="custom-control-label" for="cellScale">Scale coordinates with cell</label>
-                </div>
+                </div>-->
 
                 <div class="if-cell mt-3" style="display: none;">
                   <h3>Cell repetitions</h3>
@@ -190,14 +190,14 @@
                   <div class="widget-cell__properties">
                     <div class="input-group mb-2">
                       <div class="input-group-prepend">
-                        <div class="input-group-text">Dimension</div>
+                        <div class="input-group-text">Dimension (Å)</div>
                       </div>
                       <input type="number" class="form-control" id="cellDim" min="0.0001" value="1"
                           max="100" step="any"
                           onchange="cellDimChanged(this)">
                     </div>
 
-                    <div class="input-group mb-3">
+                    <!--<div class="input-group mb-3">
                       <div class="input-group-prepend">
                         <div class="input-group-text">Format</div>
                       </div>
@@ -205,7 +205,7 @@
                         <option value="0">Bohr</option>
                         <option value="1">Angstrom</option>
                       </select>
-                    </div>
+                    </div>-->
                   </div>
 
                   <h3>Cell vectors</h3>

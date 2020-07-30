@@ -3,10 +3,10 @@ const DESKTOP_BREAKPOINT = 992;
 
 const dom = {};
 [
-    'alerts', 'atList', 'btnDownload', 'btnUpload', 'canvas', 'cdmFmtSel',
-    'cellDim', 'cellToMol', 'cellScale', 'cellVec', 'checkboxCellEnabled',
+    'alerts', 'atList', 'btnDownload', 'btnUpload', 'canvas',
+    'cellDim', 'cellToMol', 'cellVec', 'checkboxCellEnabled',
     'fileType', 'fileDrop', 'fileName', 'inputFile', 'loadFileModal', 'moleculeDropdown',
-    'saveFileType', 'selectAtomFormat', 'stepCur', 'stepMax', 'stepSlider', 'uploadGroup'
+    'noWebGL2Modal', 'saveFileType', 'selectAtomFormat', 'stepCur', 'stepMax', 'stepSlider', 'uploadGroup'
 ].forEach(id => {
     dom[id] = document.getElementById(id);
 });
@@ -16,11 +16,34 @@ const dom = {};
 var Module = {
     preRun: [],
     postRun: [],
-    curMol: 0,
-    curStep: 0,
+    curMol: null,
+    curStep: null,
     canvas: setupCanvas(dom.canvas),
     hammer: null,
-    file: null
+    file: null,
+    gui: null,
+    molecules: [],
+    onRuntimeInitialized: function () {
+        try{
+            Module.gui = new Module.VipsterView('canvas');
+        }catch(err){
+            dom.noWebGL2Modal.style.display = "block";
+        }
+        Module.molecules.push(new Module.Molecule('[{"atoms":[{"coord":[-0.756,-0.591,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.756,-0.591,0.0],"name":"H"}],"fmt":"angstrom"},{"atoms":[{"coord":[-0.736,-0.571,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.736,-0.571,0.0],"name":"H"}],"fmt":"angstrom"},{"atoms":[{"coord":[-0.716,-0.5509999999999999,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.716,-0.5509999999999999,0.0],"name":"H"}],"fmt":"angstrom"},{"atoms":[{"coord":[-0.696,-0.5309999999999999,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.696,-0.5309999999999999,0.0],"name":"H"}],"fmt":"angstrom"},{"atoms":[{"coord":[-0.716,-0.5509999999999999,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.716,-0.5509999999999999,0.0],"name":"H"}],"fmt":"angstrom"},{"atoms":[{"coord":[-0.736,-0.571,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.736,-0.571,0.0],"name":"H"}],"fmt":"angstrom"},{"atoms":[{"coord":[-0.756,-0.591,0.0],"name":"H"},{"coord":[0.0,0.0,0.0],"name":"O"},{"coord":[0.756,-0.591,0.0],"name":"H"}],"fmt":"angstrom"}]'));
+        Module.molecules[0].name = "Example Molecule"
+        Module.molecules.push(new Module.Molecule('[{"atoms":[{"coord":[0.0,0.0,0.0],"name":"Na"},{"coord":[0.5,0.0,0.0],"name":"Cl"},{"coord":[0.5,0.5,0.0],"name":"Na"},{"coord":[0.0,0.5,0.0],"name":"Cl"},{"coord":[0.5,0.0,0.5],"name":"Na"},{"coord":[0.0,0.0,0.5],"name":"Cl"},{"coord":[0.0,0.5,0.5],"name":"Na"},{"coord":[0.5,0.5,0.5],"name":"Cl"}],"cell":{"dimension":5.64,"vectors":[[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]]},"fmt":"crystal"}]'));
+        Module.molecules[1].name = "Example Crystal"
+        setMol(0);
+        for(i = 0; i < Module.nplug(); i++){
+            var name = Module.plugName(i);
+            if(Module.plugRead(i)){
+                dom.fileType.innerHTML += `<option value=${i}>${name}</option>`
+            }
+            if(Module.plugWrite(i)){
+                dom.saveFileType.innerHTML += `<option value=${i}>${name}</option>`
+            }
+        }
+    }
 };
 
 const change = {
@@ -88,7 +111,7 @@ function setupHammer(canvas) {
         }
 
         console.log('pan');
-        Module.rotate(e.deltaX - this.oldX, e.deltaY - this.oldY);
+        Module.gui.rotate(e.deltaX - this.oldX, e.deltaY - this.oldY);
         this.oldX = e.deltaX;
         this.oldY = e.deltaY;
     });
@@ -109,7 +132,7 @@ function setupHammer(canvas) {
         console.log('pinch');
                   console.log(e.scale);
         const delta = (e.scale - this.oldScale) < 0 ? 0.98 : 1.02;
-        Module.zoom(delta);
+        Module.gui.zoom(delta);
         this.oldScale = e.scale;
     });
 
@@ -117,8 +140,8 @@ function setupHammer(canvas) {
 }
 
 function fillAtoms() {
-    const at = Module.getAtomIt();
-    const nat = Module.getNAtoms();
+    const at = Module.curStep.getAtomIt();
+    const nat = Module.curStep.nat;
     const nbsp = '&nbsp;';
 
     let html = `
@@ -154,10 +177,10 @@ function fillAtoms() {
 }
 
 function fillCell() {
-    const fmt = parseInt(dom.cdmFmtSel.value);
-    const mat = Module.getCellVec();
+    //const fmt = parseInt(dom.cdmFmtSel.value);
+    const mat = Module.curStep.cellVec;
 
-    dom.cellDim.value = Module.getCellDim(fmt);
+    dom.cellDim.value = Module.curStep.cellDim;
 
     for (let row = 0; row < 3; ++row) {
         for (let col = 0; col < 3; ++col) {
@@ -168,7 +191,7 @@ function fillCell() {
 
 function atomChanged(tgt) {
     const fmt = parseInt(dom.selectAtomFormat.value);
-    const at = Module.getAtom( parseInt(tgt.parentElement.dataset.idx));
+    const at = Module.curStep.getAtom( parseInt(tgt.parentElement.dataset.idx));
 
     if (tgt.dataset.idx === 'name') {
         at.name = tgt.innerText;
@@ -191,30 +214,30 @@ function cellDimChanged(tgt) {
         return;
     }
 
-    const fmt = parseInt(dom.cdmFmtSel.value);
-    const scale = dom.cellScale.checked;
+    //const fmt = parseInt(dom.cdmFmtSel.value);
+    //const scale = dom.cellScale.checked;
     const trajec = dom.cellToMol.checked;
 
-//    if (trajec) {
-//        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
-//            Module.setCellDim(Module.curMol, i, newVal, fmt, scale);
-//        }
-//    } else {
-    Module.setCellDim(newVal, fmt, scale);
-//    }
+    if (trajec) {
+        for (let i = 0; i < Module.curMol.nstep; ++i) {
+            Module.curMol.getStep(i).cellDim = val;
+        }
+    } else {
+        Module.curStep.cellDim = newVal;
+    }
 
     update(change.cell);
 }
 
 function cellEnabled(val) {
     const trajec = dom.cellToMol.checked;
-//    if (trajec) {
-//        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
-//            Module.enableCell(Module.curMol, i, val);
-//        }
-//    } else {
-    Module.enableCell(val);
-//    }
+    if (trajec) {
+        for (let i = 0; i < Module.curMol.nstep; ++i) {
+            Module.curMol.getStep(i).hasCell = val;
+        }
+    } else {
+        Module.curStep.hasCell = val;
+    }
 
     update(change.cell);
 }
@@ -227,19 +250,19 @@ function cellVecChanged(tgt) {
 
     const col = tgt.dataset.idx;
     const row = tgt.parentElement.dataset.idx;
-    const vec = Module.getCellVec();
-    const trajec = document.getElementById('cellToMol').checked;
-    const scale = document.getElementById('cellScale').checked;
+    const vec = Module.curStep.cellVec;
+    const trajec = dom.cellToMol.checked;
+    //const scale = document.getElementById('cellScale').checked;
 
     vec[row][col] = newVal;
 
-//    if (trajec) {
-//        for (let i = 0; i < Module.getMolNStep(Module.curMol); ++i) {
-//            Module.setCellVec(Module.curMol, i, vec, scale);
-//        }
-//    } else {
-    Module.setCellVec(vec, scale);
-//    }
+    if (trajec) {
+        for (let i = 0; i < Module.curMol.nstep; ++i) {
+            Module.curMol.getStep(i).cellVec = vec;
+        }
+    } else {
+        Module.curStep.cellVec = vec;
+    }
 
     update(change.cell);
 }
@@ -278,20 +301,20 @@ function readFile() {
 
     reader.onload = (e) => {
         FS.createDataFile('/tmp', Module.file.name, e.target.result, true);
-        const readError = Module.readFile('/tmp/'+Module.file.name, parseInt(dom.fileType.value));
-        FS.unlink('/tmp/'+Module.file.name);
-
-        if (readError.length) {
+        try{
+            Module.molecules.push(new Module.Molecule('/tmp/'+Module.file.name, parseInt(dom.fileType.value)));
+        }catch(err){
             $(document.body).append(createAlert('<strong>Unable to load file</strong><br>Correct format?', 'danger'));
             if (VERBOSE) {
-                console.warn(readError);
+                console.warn(err);
             }
             return false;
         }
+        FS.unlink('/tmp/'+Module.file.name);
 
         // noinspection JSCheckFunctionSignatures
-        const idx = Module.getNMol() - 1;
-        const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.getMolName(idx)}</a>`;
+        const idx = Module.molecules.length - 1;
+        const link = `<a class="dropdown-item" href="#" data-idx="${idx}">${Module.molecules[idx].name}</a>`;
 
         $(dom.moleculeDropdown)
             .find('.dropdown-divider')
@@ -311,7 +334,8 @@ function saveDialog() {
 }
 
 function saveFile() {
-    const writeError = Module.writeFile(Module.curMol, Module.curStep, parseInt(dom.saveFileType.value));
+    const step = parseInt(dom.stepSlider.value);
+    const writeError = Module.writeFile(Module.curMol, step, parseInt(dom.saveFileType.value));
     if (writeError.length) {
         $(document.body).append(createAlert('<strong>Unable to download file</strong>', 'danger'));
         if (VERBOSE) {
@@ -325,7 +349,7 @@ function saveFile() {
     var url = window.URL.createObjectURL(blob);
     this.href = url;
     this.target = '_blank';
-    this.download = Module.getFormattedName(Module.curMol, parseInt(dom.saveFileType.value));
+    this.download = Module.addExtension(Module.curMol.name, parseInt(dom.saveFileType.value));
     console.log(this);
 }
 
@@ -333,20 +357,23 @@ function setMult() {
     const x = document.getElementById('xmult').value;
     const y = document.getElementById('ymult').value;
     const z = document.getElementById('zmult').value;
-    Module.setMult(parseInt(x), parseInt(y), parseInt(z));
+    Module.gui.mult = [parseInt(x), parseInt(y), parseInt(z)];
 }
 
 function update(arg) {
     if (arg & change.fmt) {
-        Module.setFmt(parseInt(dom.selectAtomFormat.value) -2);
-        setStep(Module.curStep);
+        Module.curStep.fmt = parseInt(dom.selectAtomFormat.value) -2;
+        console.log(Module.curStep.fmt);
+        if (Module.curStep.fmt < 0) {
+            arg = change.cell;
+        }
     }
 
-    if (arg & (change.atoms | change.cell)) {
+    if (arg & (change.atoms | change.cell | change.fmt)) {
         // ensure that step-data is in a valid state
-        Module.evalBonds();
+        Module.curStep.setBonds();
         // ensure that GL is in a valid state
-        Module.updateView();
+        Module.gui.setStep(Module.curStep);
         // update atom-table
         fillAtoms();
     }
@@ -358,23 +385,22 @@ function update(arg) {
 }
 
 function setStep(i) {
-    Module.curStep = i;
-    Module.setStep(Module.curMol, i);
+    Module.curStep = Module.curMol.getStep(i);
 
-    const hasCell = Module.hasCell();
+    const hasCell = Module.curStep.hasCell;
     $('.if-cell').toggle(hasCell);
 
     dom.stepCur.innerHTML = i + 1;
-    dom.selectAtomFormat.value = Module.getFmt() + 2;
+    dom.selectAtomFormat.value = Module.curStep.fmt + 2;
     dom.checkboxCellEnabled.checked = hasCell;
 
     update(change.step);
 }
 
 function setMol(idx) {
-    Module.curMol = idx;
-    const nstep = Module.getMolNStep(idx);
-    const molName = Module.getMolName(Module.curMol);
+    Module.curMol = Module.molecules[idx];
+    const nstep = Module.curMol.nstep;
+    const molName = Module.curMol.name;
 
     // update molecule dropdown
     $(dom.moleculeDropdown).find('.dropdown-toggle:first').text(molName);
@@ -410,9 +436,9 @@ function resizeCanvas() {
 }
 
 $(document).ready(function () {
-    // Set correct canvas size on resize
     Module.hammer = setupHammer(canvas);
 
+    // Set correct canvas size on resize
     window.addEventListener('resize', resizeCanvas);
 
     dom.btnDownload.onclick = saveFile;
@@ -444,16 +470,3 @@ $(document).ready(function () {
         });
 });
 
-// noinspection JSUnusedGlobalSymbols
-function addParser(idx, name) {
-    // eslint-disable-next-line no-undef
-    $(dom.fileType).append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
-}
-
-function addWriter(idx, name) {
-    $('#saveFileType').append(`<option value=${idx}>${UTF8ToString(name)}</option>`);
-}
-
-function alertWebGL() {
-    $('#noWebGL2Modal').modal()
-}
