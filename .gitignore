@@ -40,6 +40,7 @@ moc_*
 # NPM packages
 node_modules/
 package-lock.json
+*.tgz
 
 # python dist-stuff
 build/
