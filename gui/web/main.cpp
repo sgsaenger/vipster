@@ -259,6 +259,7 @@ EMSCRIPTEN_BINDINGS(vipster)
                   std::function([](const Step& s){ return s.getCellVec(); }),
                   std::function([](Step &s, Mat m){ s.setCellVec(m, false); }))
         .function("setBonds", std::function([](Step &s){ s.setBonds(); }))
+        .function("hasBonds", std::function([](Step &s){ return !s.getBonds().empty(); }))
         ;
     em::class_<Step::atom>("Atom")
         .property("name",
