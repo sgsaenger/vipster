@@ -14,6 +14,9 @@ static PluginList plugins = defaultPlugins();
 
 EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void *gui_ptr)
 {
+    if(mouseEvent->button == 2){
+        return 0; // don't act on right click
+    }
     auto &gui = *reinterpret_cast<GuiWrapper*>(gui_ptr);
     enum class MouseMode { Camera, Select, Modify};
     enum class OpMode { None, Rotation, Translation };
@@ -22,7 +25,7 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void 
     switch (eventType) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
         if(currentOp == OpMode::None){
-            int button = mouseEvent->button | mouseEvent->altKey | mouseEvent->ctrlKey << 1;
+            int button = mouseEvent->button | mouseEvent->shiftKey | mouseEvent->ctrlKey << 1;
             switch(button){
             case 0:
                 currentOp = OpMode::Rotation;
@@ -83,6 +86,7 @@ public:
         EmscriptenWebGLContextAttributes attrs;
         emscripten_webgl_init_context_attributes(&attrs);
         attrs.enableExtensionsByDefault = 1;
+        attrs.preserveDrawingBuffer = true;
         attrs.majorVersion = 2;
         attrs.minorVersion = 0;
         context = emscripten_webgl_create_context(canvas.c_str(), &attrs);
