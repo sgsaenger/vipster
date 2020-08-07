@@ -120,7 +120,7 @@ bool JSONWriter(const Molecule &m, std::ostream &file,
             }
         }
         // store cell
-        if(atomFmtAbsolute(step.getFmt()) | (std::get<bool>(pp.at("cell").first) && step.hasCell())){
+        if(atomFmtRelative(step.getFmt()) | (std::get<bool>(pp.at("cell").first) && step.hasCell())){
             auto& cell = j["cell"] = json::object();
             cell["dimension"] = step.getCellDim(step.getFmt() == AtomFmt::Bohr ?
                                                 AtomFmt::Bohr :
