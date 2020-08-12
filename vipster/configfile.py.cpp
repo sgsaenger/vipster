@@ -16,18 +16,19 @@ void Vipster::Py::config(py::module& m, ConfigState& state){
     auto& presets = std::get<4>(state);
     // try to parse python-based plugins
     auto pluginDir = getConfigDir()/"plugins";
-    if(!fs::exists(pluginDir)) return;
-    for(const auto& file: fs::directory_iterator(pluginDir)){
-        if(file.path().extension() != ".py") continue;
-        auto plug = Plugin::create(file);
-        if(plug){
-            std::cerr << "Loading Python-plugin " << file.path() << std::endl;
-            plugins.push_back(plug);
-            if(plug->makeParam){
-                params[plug]["default"] = plug->makeParam();
-            }
-            if(plug->makePreset){
-                presets[plug]["default"] = plug->makePreset();
+    if(fs::exists(pluginDir)){
+        for(const auto& file: fs::directory_iterator(pluginDir)){
+            if(file.path().extension() != ".py") continue;
+            auto plug = Plugin::create(file);
+            if(plug){
+                std::cerr << "Loading Python-plugin " << file.path() << std::endl;
+                plugins.push_back(plug);
+                if(plug->makeParam){
+                    params[plug]["default"] = plug->makeParam();
+                }
+                if(plug->makePreset){
+                    presets[plug]["default"] = plug->makePreset();
+                }
             }
         }
     }
