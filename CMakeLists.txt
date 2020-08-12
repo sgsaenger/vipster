@@ -301,7 +301,7 @@ endif()
 
 if(VIPSTER_WEB)
     # Emscripten-based web application
-    set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1")
+    set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=0 -s SINGLE_FILE=1 -s MODULARIZE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1")
     file(GLOB WEB_RESOURCES "gui/resources/*.frag" "gui/resources/*.vert")
     foreach(file ${WEB_RESOURCES})
         get_filename_component(filename ${file} NAME)

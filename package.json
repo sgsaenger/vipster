@@ -19,11 +19,9 @@
     "visualization"
   ],
   "scripts": {
-    "prepare": "emcmake cmake -Bbuild/npm; cmake --build build/npm; mkdir -p dist; cp build/npm/vipster.{js,wasm} dist",
-    "clean": "rm -rf build/npm dist/vipster.{js,wasm}"
+    "prepare": "emcmake cmake -Bbuild/npm && cmake --build build/npm && mkdir -p dist && cp build/npm/vipster.js dist",
+    "clean": "rm -rf build/npm dist/vipster.js"
   },
   "main": "dist/vipster.js",
-  "files": [
-    "dist/vipster.wasm"
-  ]
+  "files": []
 }
