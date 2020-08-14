@@ -7,21 +7,23 @@
         .then(response => response.json())
         .then(release => {
             let par = document.getElementById('dl-links');
-            par.innerHTML = `<h2>Latest stable release: ${release.name ? release.name : release.tag_name}</h2><ul>`;
+            var list = `<h2>Latest stable release: ${release.name ? release.name : release.tag_name}</h2><ul>`;
             for(asset of release.assets){
-                par.innerHTML += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
+                list += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
             }
-            par.innerHTML += "</ul>";
+            list += "</ul>";
+            par.innerHTML = list;
         })
         .then(none => fetch("https://api.github.com/repos/sgsaenger/vipster/releases/tags/continuous"))
         .then(response => response.json())
         .then(release => {
             let par = document.getElementById('dl-links');
-            par.innerHTML += `<h2>Development release (unstable):</h2><ul>`;
+            var list = `<h2>Development release (unstable):</h2><ul>`;
             for(asset of release.assets){
-                par.innerHTML += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
+                list += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
             }
-            par.innerHTML += "</ul>";
+            list += "</ul>";
+            par.innerHTML += list;
         });
     });
 </script>

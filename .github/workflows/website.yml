@@ -14,22 +14,32 @@ jobs:
           with:
               submodules: true
 
+        - uses: actions/setup-python@v1
+          with:
+              python-version: '3.8'
+
         - uses: mymindstorm/setup-emsdk@v2
           with:
-              version: latest-fastcomp
+              version: latest
 
-        - name: Configure
+        - name: Build Website
+          run: |
+              pip install .
+              mkdir gh-pages
+              python website/setup.py gh-pages
+
+        - name: Configure Vipster
           shell: bash
           run: |
               mkdir -p build
               cd build
-              emcmake cmake -DVIPSTER_WEB=ON -DCMAKE_BUILD_TYPE=Release ..
+              emcmake cmake ..
 
-        - name: Build
+        - name: Build Vipster
           run: |
               cd build
               cmake --build .
-              cp vipster.{js,wasm} ../gh-pages/emscripten
+              cp vipster.js ../gh-pages/emscripten
 
         - uses: alex-page/blazing-fast-gh-pages-deploy@v1.1.0
           with:

@@ -12,6 +12,9 @@ ui_*
 moc_*
 *.moc
 
+# website
+gh-pages/
+
 # Test files
 *.xyz
 *.pwi

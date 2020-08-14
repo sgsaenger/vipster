@@ -1,0 +1,32 @@
+.btn {
+    white-space: nowrap;
+}
+
+.btn-default {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+
+    &:focus,
+    &:hover {
+        color: #333;
+        background: rgba(255, 255, 255, 0.8);
+    }
+}
+
+.table {
+    border-radius: $border-radius;
+
+    thead th {
+        border-top: none;
+    }
+}
+
+td:focus {
+    outline-color: lighten(theme-color('primary'), 16%);
+}
+
+.alert {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+}

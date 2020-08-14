@@ -22,7 +22,7 @@ body{
     align-items: center;
 }
 
-main{
+.grid{
     display: grid;
     margin: auto 8px;
 }
@@ -40,9 +40,9 @@ img{
     display: block;
 }
 
-footer{
+.footer{
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: start;
 }
 
@@ -134,13 +134,13 @@ a.highlight{
 }
 
 @media (min-width: 768px){
-    main{
+    .grid{
         grid-template-columns: min-content 1fr;
     }
     .content-list{
-        grid-row: 1;
+        grid-row: 1 / 4;
         position: sticky;
-        width: 200px;
+        width: 250px;
         top: 118px;
     }
     .content-text, .content-image{
@@ -149,7 +149,7 @@ a.highlight{
 }
 
 @media (min-width: 1200px){
-    main{
+    .grid{
         grid-template-columns: minmax(min-content, 1fr) minmax(auto, 960px) minmax(min-content, 1fr);
     }
     .content-image{

@@ -1,0 +1,16 @@
+// Required for _variables.scss
+@import "../node_modules/bootstrap/scss/functions";
+
+// Import variable overrides and then Boootstrap
+@import "variables";
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+// Own component styling
+@import "_components/base";
+@import "_components/controls";
+@import "_components/layout";
+@import "_components/overrides";
+@import "_components/typography";
+@import "_components/widgets";
+@import "_components/vr";
+@import "_components/modals";
