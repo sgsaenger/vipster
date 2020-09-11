@@ -56,11 +56,6 @@ inline Vec operator +(Vec v, const double &f)
     return v+=f;
 }
 
-inline Vec operator +(const double &f, Vec v)
-{
-    return v+=f;
-}
-
 inline Vec operator -(const Vec &v)
 {
     return {{-v[0],-v[1],-v[2]}};

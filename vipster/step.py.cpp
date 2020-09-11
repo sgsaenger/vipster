@@ -162,7 +162,7 @@ void Vipster::Py::Step(py::module& m){
     auto s = bind_step<Vipster::Step>(m, "Step")
         .def(py::init<AtomFmt, std::string>(), "fmt"_a=AtomFmt::Angstrom, "comment"_a="")
     // Format
-        .def("setFmt", &Step::setFmt, "fmt"_a, "scale"_a=false)
+        .def("setFmt", &Step::setFmt, "fmt"_a, "scale"_a=true)
     // Atoms
         .def("newAtom", [](Vipster::Step& s, std::string name, Vec coord, AtomProperties prop){
              s.newAtom(name, coord, prop);},
