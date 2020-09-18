@@ -15,7 +15,7 @@
 namespace Vipster{
     // read with format guess
     IOTuple readFile(const std::string &fn,
-                      const PluginList &p=defaultPlugins());
+                     const PluginList &p=defaultPlugins());
     // read with explicit format
     IOTuple readFile(const std::string &fn, const Plugin* plug);
     bool    writeFile(const std::string &fn, const Plugin* plug, const Molecule &m,

@@ -24,8 +24,11 @@ public:
     std::string name;
     KPoints kpoints;
 
+    std::set<std::string>   getTypes() const;
+
     PeriodicTable&          getPTE();
     const PeriodicTable&    getPTE() const;
+    void                    cleanPTE();
 
     Step& newStep(const Step& step);
     Step& newStep(Step&& step={});

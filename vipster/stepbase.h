@@ -397,18 +397,6 @@ public:
     {
         return *this->atoms->ctxt.pte;
     }
-    void cleanPTE()
-    {
-        auto in_use = this->getTypes();
-        auto &pte = getPTE();
-        for(auto it = pte.begin(); it != pte.end();){
-            if(in_use.find(it->first) == in_use.end()){
-                it = pte.erase(it);
-            }else{
-                ++it;
-            }
-        }
-    }
 
     // Atoms
     using typename StepConst<T>::atom_source;

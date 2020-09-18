@@ -70,41 +70,42 @@ MolWidget::~MolWidget()
 
 void MolWidget::updateWidget(GUI::change_t change)
 {
-    if (updateTriggered)  return;
-    if ((change & GUI::molChanged) == GUI::molChanged) {
-        curMol = master->curMol;
-    }
-    if ((change & GUI::stepChanged) == GUI::stepChanged) {
-        // reset old fmt-string
-        if(ownStep){
-            auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
-            ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+    if (!updateTriggered){
+        if ((change & GUI::molChanged) == GUI::molChanged) {
+            curMol = master->curMol;
         }
-        // assign StepFormatter to curStep, mark fmt as active
-        auto fmt = master->curStep->getFmt();
-        curStep = master->curStep;
-        ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
-        atomModel.setStep(ownStep.get());
-        setSelection();
-        auto ifmt = static_cast<int>(fmt)+2;
-        QSignalBlocker blockAtFmt(ui->atomFmtBox);
-        ui->atomFmtBox->setCurrentIndex(ifmt);
-        ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-        // expose BondMode
-        QSignalBlocker blockBondMode(ui->bondModeBox);
-        bool autobonds = master->stepdata[curStep].automatic_bonds;
-        ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
-        if(autobonds){
-            ui->bondSetButton->setDisabled(true);
-        }else{
-            ui->bondButton->setChecked(true);
-            ui->bondSetButton->setEnabled(true);
+        if ((change & GUI::stepChanged) == GUI::stepChanged) {
+            // reset old fmt-string
+            if(ownStep){
+                auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
+                ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+            }
+            // assign StepFormatter to curStep, mark fmt as active
+            auto fmt = master->curStep->getFmt();
+            curStep = master->curStep;
+            ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+            atomModel.setStep(ownStep.get());
+            setSelection();
+            auto ifmt = static_cast<int>(fmt)+2;
+            QSignalBlocker blockAtFmt(ui->atomFmtBox);
+            ui->atomFmtBox->setCurrentIndex(ifmt);
+            ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
+            // expose BondMode
+            QSignalBlocker blockBondMode(ui->bondModeBox);
+            bool autobonds = master->stepdata[curStep].automatic_bonds;
+            ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
+            if(autobonds){
+                ui->bondSetButton->setDisabled(true);
+            }else{
+                ui->bondButton->setChecked(true);
+                ui->bondSetButton->setEnabled(true);
+            }
+        }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
+            atomModel.setStep(ownStep.get());
+            setSelection();
+        }else if (change & (GUI::Change::selection)){
+            setSelection();
         }
-    }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
-        atomModel.setStep(ownStep.get());
-        setSelection();
-    }else if (change & (GUI::Change::selection)){
-        setSelection();
     }
     if (change & GUI::Change::atoms) {
         ui->typeWidget->setTable(&curMol->getPTE());
@@ -472,13 +473,13 @@ void MolWidget::on_ovlpTable_itemSelectionChanged()
 
 void MolWidget::on_clearTableButton_clicked()
 {
-    curStep->cleanPTE();
-    ui->typeWidget->setTable(&curStep->getPTE());
+    curMol->cleanPTE();
+    ui->typeWidget->setTable(&curMol->getPTE());
 }
 
 void MolWidget::on_newElemButton_clicked()
 {
-    if(newelement(curStep->getPTE()).exec()){
-        ui->typeWidget->setTable(&curStep->getPTE());
+    if(newelement(curMol->getPTE()).exec()){
+        ui->typeWidget->setTable(&curMol->getPTE());
     }
 }
