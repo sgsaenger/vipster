@@ -142,7 +142,7 @@ jobs:
           run: |
               echo "Deploying"
               cd build
-              pip install numpy moltemplate
+              # pip install numpy moltemplate # fails packaging
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
                 echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage
