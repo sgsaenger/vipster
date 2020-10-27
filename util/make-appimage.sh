@@ -10,11 +10,6 @@ export SOURCE_DIR=$(grep Vipster_SOURCE_DIR CMakeCache.txt | cut -d "=" -f 2)
 export PY_BIN=$(grep "PYTHON_EXECUTABLE:FILEPATH" CMakeCache.txt | cut -d "=" -f 2)
 export PY_PREFIX=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.PREFIX)")
 
-# copy python standard-library
-export PY_LIB_DIR=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))")
-mkdir -p AppDir/$PY_LIB_DIR
-cp -r $PY_LIB_DIR/. AppDir/$PY_LIB_DIR
-
 # add libpython to LD_LIBRARY_PATH so linuxdeployqt finds it
 export LD_LIBRARY_PATH=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.get_config_var('LIBDIR'))"):$LD_LIBRARY_PATH
 
@@ -22,6 +17,11 @@ export LD_LIBRARY_PATH=$(${PY_BIN} -c "from distutils import sysconfig as s; pri
 wget -q -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt
 chmod +x linuxdeployqt
 ./linuxdeployqt AppDir/usr/share/applications/vipster.desktop -bundle-non-qt-libs
+
+# copy python standard-library
+export PY_LIB_DIR=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))")
+mkdir -p AppDir/$PY_LIB_DIR
+cp -r $PY_LIB_DIR/. AppDir/$PY_LIB_DIR
 
 # move libpython so we can use system's version if compatible
 mkdir -p AppDir/usr/optional/python

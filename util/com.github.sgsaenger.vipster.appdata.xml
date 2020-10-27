@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>com.github.sgsaenger.vipster</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0</project_license>
+    <name>Vipster</name>
+    <summary>Visualization of various molecular structure files</summary>
+    <description>
+        <p>Vipster is a powerful and versatile tool for pre- and post-processing of periodic chemical structures. It's designed from the ground up with periodic simulations in mind.</p>
+    </description>
+    <launchable type="desktop-id">com.github.sgsaenger.vipster.desktop</launchable>
+    <url type="homepage">https://sgsaenger.github.io/vipster</url>
+    <screenshots>
+        <screenshot type="default">
+            <caption>A typical use case: editing a MoS2-crystal</caption>
+            <image>https://sgsaenger.github.io/vipster/images/screenshot.png</image>
+        </screenshot>
+    </screenshots>
+    <provides>
+        <library>libvipster.so</library>
+        <binary>vipster</binary>
+    </provides>
+</component>
