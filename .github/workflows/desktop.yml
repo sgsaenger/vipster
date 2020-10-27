@@ -39,36 +39,15 @@ jobs:
           uses: actions/cache@v2
           with:
               path: Qt
-              key: ${{ runner.os }}-QtCache-5.13.2
+              key: ${{ runner.os }}-QtCache-5.15.1
 
         - name: Install Qt
-          if: steps.cache-qt.outputs.cache-hit != 'true'
-          shell: bash
-          run: |
-              pip install -I setuptools aqtinstall
-              if [ "$RUNNER_OS" == "Linux" ]; then
-                  aqt install -O Qt 5.13.2 linux desktop gcc_64
-              elif [ "$RUNNER_OS" == "macOS" ]; then
-                  brew update
-                  brew install p7zip
-                  aqt install -O Qt 5.13.2 mac desktop clang_64
-              else
-                  aqt install -O Qt 5.13.2 windows desktop win64_mingw73
-              fi
-
-        - name: Configure Qt
-          shell: bash
-          run: |
-              if [ "$RUNNER_OS" == "Linux" ]; then
-                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/gcc_64
-              elif [ "$RUNNER_OS" == "macOS" ]; then
-                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/clang_64
-              else
-                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/mingw73_64
-              fi
-              echo ::add-path::$QTDIR/bin
-              echo ::set-env name=QTDIR::$QTDIR
-              echo ::set-env name=CMAKE_PREFIX_PATH::$QTDIR:$CMAKE_PREFIX_PATH
+          uses: jurplel/install-qt-action@v2
+          with:
+            version: '5.15.1'
+            target: 'desktop'
+            arch: 'win64_mingw81'
+            cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
