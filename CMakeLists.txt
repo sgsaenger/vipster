@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(Vipster VERSION 1.19)
 
@@ -36,8 +36,8 @@ cmake_dependent_option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND}
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
 
 # Python widget and standalone library
-find_package(PythonInterp 3.6 QUIET)
-cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${PythonInterp_FOUND} "VIPSTER_DESKTOP" OFF)
+find_package(Python3 3.6 QUIET COMPONENTS Interpreter Development)
+cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${Python3_FOUND} "VIPSTER_DESKTOP" OFF)
 option(VIPSTER_PYLIB "Standalone Python library" OFF)
 mark_as_advanced(VIPSTER_PYLIB)
 
@@ -149,9 +149,8 @@ endif()
 
 # create python binding objects
 if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
-    find_package(PythonInterp 3.6 REQUIRED)
-    find_package(PythonLibs 3.6 REQUIRED)
-    find_package(pybind11 2.4.4 CONFIG QUIET)
+    find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter Development)
+    find_package(pybind11 2.6.0 CONFIG QUIET)
     if(NOT pybind11_FOUND)
         init_submodule("Pybind11" "pybind11")
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
@@ -169,13 +168,13 @@ if(VIPSTER_PYLIB)
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
     if(VIPSTER_PYLIB OR (UNIX AND NOT APPLE))
-        execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+        execute_process(COMMAND "${Python3_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
-        install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
+        install(CODE  "execute_process(COMMAND \"${Python3_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
         install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
     endif()
 endif()
@@ -196,6 +195,10 @@ if(VIPSTER_DESKTOP)
         set(CLI11_TESTING OFF CACHE INTERNAL "")
         add_subdirectory(external/CLI11 EXCLUDE_FROM_ALL)
     endif()
+
+    # find OpenGL (needed if not in compiler's sysroot)
+    set(OpenGL_GL_PREFERENCE GLVND)
+    find_package(OpenGL)
 
     # get source files and split off optional sources
     file(GLOB_RECURSE QT_SOURCES
@@ -234,14 +237,18 @@ if(VIPSTER_DESKTOP)
     endif()
 
     # link QT, CLI11 and vipster
-    target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster fmt::fmt-header-only)
+    target_link_libraries(vipster PRIVATE
+        Qt5::Gui Qt5::Widgets OpenGL::GL
+        CLI11::CLI11
+        fmt::fmt-header-only
+        libvipster)
     target_include_directories(vipster PRIVATE "gui/common" "gui/qt")
 
     # python-widget:
     if(VIPSTER_PYWIDGET)
         add_definitions(-DUSE_PYTHON)
         target_sources(vipster PRIVATE ${QTPY_SOURCES} $<TARGET_OBJECTS:bindings>)
-        target_link_libraries(vipster PRIVATE pybind11::embed)
+        target_link_libraries(vipster PRIVATE pybind11::embed Python3::Python)
     endif()
 
     # lammps-widget:
