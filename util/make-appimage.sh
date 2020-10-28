@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 # create a portable AppImage from a pre-built tree
 
 echo "creating .AppImage"

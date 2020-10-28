@@ -81,9 +81,11 @@ jobs:
               # install and enable GCC9
               sudo add-apt-repository ppa:ubuntu-toolchain-r/test
               sudo apt-get update
-              sudo apt-get install g++-9 libgl1-mesa-dev libxkbcommon-x11-0
+              sudo apt-get install g++-9
               echo ::set-env name=CC::gcc-9
               echo ::set-env name=CXX::g++-9
+              # install qt dependencies
+              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0
               # enable coverage on debug-build
               if [ $BUILD_TYPE == "Debug" ];then
                 echo ::set-env name=CMAKE_CXX_FLAGS::"-g -O0 -fprofile-arcs -ftest-coverage"

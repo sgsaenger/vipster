@@ -103,7 +103,7 @@ function(init_submodule NAME PATH)
         if(NUM_FILES EQUAL 0)
             message(FATAL_ERROR
                 "Could not find suitable ${NAME} installation and included version at external/${PATH} is not initialized.\n"
-                "Please install ${NAME} or execute \"git submodule update --init ${PATH}\".")
+                "Please install ${NAME} or execute \"git submodule update --init external/${PATH}\".")
         else()
             message("Could not find suitable ${NAME} installation, using included version at external/${PATH}")
         endif()
