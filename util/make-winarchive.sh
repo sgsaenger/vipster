@@ -5,8 +5,8 @@ echo "creating 7z-Archive"
 mkdir Vipster
 cp vipster.exe Vipster
 cp libvipster.dll Vipster
-cp $pythonLocation/python39.dll Vipster
-7z a -tzip Vipster/python39.zip $pythonLocation/Lib/*
+cp $pythonLocation/python38.dll Vipster
+7z a -tzip Vipster/python38.zip $pythonLocation/Lib/*
 windeployqt --compiler-runtime --no-translations Vipster/vipster.exe
 cp $Qt5_Dir/bin/lib{gcc_s_seh-1,stdc++-6,winpthread-1}.dll Vipster
 7z a Vipster-Win-x86_64.7z Vipster
