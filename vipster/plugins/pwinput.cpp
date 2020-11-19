@@ -74,6 +74,7 @@ void parseNamelist(std::string name, std::istream& file, Parameter& p)
         while((beg = line.find_first_not_of(valsep, end)) != line.npos) {
             end = line.find_first_of(keysep, beg);
             key = line.substr(beg, end-beg);
+            for (auto &c: key) c = static_cast<char>(std::tolower(c));
             beg = line.find_first_not_of(valsep, end);
             end = line.find_first_of(valsep, beg);
             quote_end = (end == line.npos) ? line.length()-1 : end-1;
@@ -253,7 +254,7 @@ void createCell(Molecule &m, Parameter &p, CellInp &cell)
         case CellInp::Alat:
             {
                 auto celldm = sys.find("celldm(1)");
-                auto cellA = sys.find("A");
+                auto cellA = sys.find("a");
                 if ((celldm != sys.end()) && (cellA == sys.end())) {
                     s.setCellDim(std::stod(celldm->second), AtomFmt::Bohr, scale);
                     sys.erase(celldm);
@@ -275,7 +276,7 @@ void createCell(Molecule &m, Parameter &p, CellInp &cell)
     }else{
         AtomFmt cdmFmt;
         auto celldm = sys.find("celldm(1)");
-        auto cellA = sys.find("A");
+        auto cellA = sys.find("a");
         if ((celldm != sys.end()) && (cellA == sys.end())) {
             cdmFmt = AtomFmt::Bohr;
             sys.erase(celldm);
