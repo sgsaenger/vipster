@@ -21,9 +21,9 @@ jobs:
           shell: bash
           run: |
               if [ ${{ github.event_name == 'release' }} ]; then
-                echo ::set-env name=BUILD_TYPE::Release
+                echo BUILD_TYPE=Release >> $GITHUB_ENV
               else
-                echo ::set-env name=BUILD_TYPE::Debug
+                echo BUILD_TYPE=Debug >> $GITHUB_ENV
               fi
 
         - uses: actions/checkout@v1
@@ -70,9 +70,9 @@ jobs:
           if: runner.os == 'Windows'
           shell: bash
           run: |
-              echo ::add-path::$GITHUB_WORKSPACE/MinGW/bin
-              echo ::set-env name=CMAKE_PREFIX_PATH::$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH
-              echo ::set-env name=CMAKE_GENERATOR::"MSYS Makefiles"
+              echo $GITHUB_WORKSPACE/MinGW/bin >> $GITHUB_PATH
+              echo CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH >> $GITHUB_ENV
+              echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
 
         - name: Configure Linux
           if: runner.os == 'Linux'
@@ -82,13 +82,13 @@ jobs:
               sudo add-apt-repository ppa:ubuntu-toolchain-r/test
               sudo apt-get update
               sudo apt-get install g++-9
-              echo ::set-env name=CC::gcc-9
-              echo ::set-env name=CXX::g++-9
+              echo CC=gcc-9 >> $GITHUB_ENV
+              echo CXX=g++-9 >> $GITHUB_ENV
               # install qt dependencies
               sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0
               # enable coverage on debug-build
               if [ $BUILD_TYPE == "Debug" ];then
-                echo ::set-env name=CMAKE_CXX_FLAGS::"-g -O0 -fprofile-arcs -ftest-coverage"
+                echo CMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" >> $GITHUB_ENV
               fi
 
         - name: Configure
@@ -126,16 +126,16 @@ jobs:
               pip install numpy moltemplate
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
-                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage
-                echo ::set-env name=ARTIFACT_NAME::Vipster-Linux-x86_64.AppImage
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPCE/build/Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 . ../util/make-osxapp.sh
-                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-OSX-x86_64.dmg
-                echo ::set-env name=ARTIFACT_NAME::Vipster-OSX-x86_64.dmg
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-OSX-x86_64.dmg" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-OSX-x86_64.dmg" >> $GITHUB_ENV
               else
                 . ../util/make-winarchive.sh
-                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.7z
-                echo ::set-env name=ARTIFACT_NAME::Vipster-Win-x86_64.7z
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.7z" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-Win-x86_64.7z" >> $GITHUB_ENV
               fi
               ls Vipster*
 
