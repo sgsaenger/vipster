@@ -126,7 +126,7 @@ jobs:
               pip install numpy moltemplate
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
-                echo "ARTIFACT_PATH=$GITHUB_WORKSPCE/build/Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
                 echo "ARTIFACT_NAME=Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 . ../util/make-osxapp.sh
