@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, shrink-to-fit=no">
 
-  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="icon" type="image/png" href="../images/favicon.png">
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
   <link href="styles/styles.css" rel="stylesheet">
 </head>
@@ -44,8 +44,8 @@
               </header>
 
               <div class="widget__body">
-                <button class="btn btn-primary btn-mol" id="btnLoad" onclick="loadDialog()">Load Molecule</button>
-                <button class="btn btn-primary btn-mol" id="btnSave" onclick="saveDialog()">Save Molecule</button>
+                <button class="btn btn-primary btn-mol" id="btnLoad">Load Molecule</button>
+                <button class="btn btn-primary btn-mol" id="btnSave">Save Molecule</button>
 
                 <h3>Current molecule</h3>
                 <div class="dropdown" id="moleculeDropdown">
@@ -82,8 +82,7 @@
               <form class="widget__body">
                 <div class="row">
                   <div class="col">
-                    <input type="range" class="custom-range" id="stepSlider" min="0" max="0" value="0"
-                        onInput="setStep(parseInt(this.value))">
+                    <input type="range" class="custom-range" id="stepSlider" min="0" max="0" value="0">
                   </div>
                   <div class="col text-right">
                     <span id="stepCur">1</span> / <span id="stepMax">1</span>
@@ -107,8 +106,7 @@
               <div class="widget__body">
                 <form class="mb-3">
                   <div class="input-group">
-                    <select class="custom-select" id="selectAtomFormat" onInput="update(change.fmt)"
-                        title="Atom format">
+                    <select class="custom-select" id="atomFmt" title="Atom format">
                       <option value="0">Crystal</option>
                       <option value="1">Alat</option>
                       <option value="2">Ångström</option>
@@ -118,8 +116,7 @@
                 </form>
 
                 <div class="table-responsive">
-                  <table class="table table-sm table-dark" id="atList"
-                      onInput="atomChanged(event.target)"></table>
+                  <table class="table table-sm table-dark" id="atomList"></table>
                 </div>
               </div>
             </article>
@@ -139,9 +136,8 @@
 
               <form class="widget__body">
                 <div class="custom-control custom-checkbox mb-2">
-                  <input type="checkbox" class="custom-control-input" id="checkboxCellEnabled"
-                      onChange="cellEnabled(this.checked)">
-                  <label class="custom-control-label" for="checkboxCellEnabled">Cell enabled</label>
+                  <input type="checkbox" class="custom-control-input" id="cellEnabled">
+                  <label class="custom-control-label" for="cellEnabled">Cell enabled</label>
                 </div>
 
                 <div class="custom-control custom-checkbox mb-2">
@@ -154,7 +150,7 @@
                   <label class="custom-control-label" for="cellScale">Scale coordinates with cell</label>
                 </div>-->
 
-                <div class="if-cell mt-3" style="display: none;">
+                <div class="if-cell mt-3" id="cellContainer" style="display: none;">
                   <h3>Cell repetitions</h3>
                   <div class="row mb-3">
                     <div class="col">
@@ -163,7 +159,7 @@
                           <div class="input-group-text">X</div>
                         </div>
                         <input type="number" class="form-control" id="xmult" min="1" value="1"
-                            max="255" placeholder="X" onchange="setMult()">
+                            max="255" placeholder="X">
                       </div>
                     </div>
                     <div class="col">
@@ -172,7 +168,7 @@
                           <div class="input-group-text">Y</div>
                         </div>
                         <input type="number" class="form-control" id="ymult" min="1" value="1"
-                            max="255" placeholder="Y" onchange="setMult()">
+                            max="255" placeholder="Y">
                       </div>
                     </div>
                     <div class="col">
@@ -181,7 +177,7 @@
                           <div class="input-group-text">Z</div>
                         </div>
                         <input type="number" class="form-control" id="zmult" min="1" value="1"
-                            max="255" placeholder="Z" onchange="setMult()">
+                            max="255" placeholder="Z">
                       </div>
                     </div>
                   </div>
@@ -192,26 +188,15 @@
                       <div class="input-group-prepend">
                         <div class="input-group-text">Dimension (Å)</div>
                       </div>
-                      <input type="number" class="form-control" id="cellDim" min="0.0001" value="1"
-                          max="100" step="any"
-                          onchange="cellDimChanged(this)">
+                      <input type="number" class="form-control" id="cellDim" min="0.0001"
+                             value="1" max="100" step="any">
                     </div>
 
-                    <!--<div class="input-group mb-3">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">Format</div>
-                      </div>
-                      <select class="custom-select" id="cdmFmtSel" onchange="update(change.cell)">
-                        <option value="0">Bohr</option>
-                        <option value="1">Angstrom</option>
-                      </select>
-                    </div>-->
                   </div>
 
                   <h3>Cell vectors</h3>
                   <div class="table-responsive">
-                    <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors"
-                        onInput="cellVecChanged(event.target)">
+                    <table class="table table-sm table-dark mb-3" id="cellVec" title="Cell vectors">
                       <thead>
                         <tr>
                           <th>#</th>
@@ -280,7 +265,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <div id="fileDrop" onclick="dom.inputFile.click()" ondrop="dropHandler(event);" ondragover="event.preventDefault()">
+          <div id="fileDrop" ondragover="event.preventDefault()">
             <p>Drag a file to this area or click to browse for files</p>
           </div>
           <div id="uploadGroup">
@@ -288,11 +273,11 @@
             <div class="input-group">
               <select class="custom-select" id="fileType" title="Input filetype"></select>
               <div class="input-group-append">
-                <button id="btnUpload" class="btn btn-primary" type="button" onclick="readFile()">Load file </button>
+                <button id="btnUpload" class="btn btn-primary" type="button">Load file </button>
               </div>
             </div>
           </div>
-          <input class="hidden" type="file" id="inputFile" name="file" onchange="selectFile(dom.inputFile.files[0])" hidden>
+          <input class="hidden" type="file" id="inputFile" name="file" hidden>
         </div>
       </div>
     </div>
