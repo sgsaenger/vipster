@@ -134,8 +134,8 @@ jobs:
                 echo "ARTIFACT_NAME=Vipster-OSX-x86_64.dmg" >> $GITHUB_ENV
               else
                 . ../util/make-winarchive.sh
-                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.7z" >> $GITHUB_ENV
-                echo "ARTIFACT_NAME=Vipster-Win-x86_64.7z" >> $GITHUB_ENV
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.zip" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-Win-x86_64.zip" >> $GITHUB_ENV
               fi
               ls Vipster*
 
