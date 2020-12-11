@@ -68,7 +68,7 @@
     <h1>Visualisation</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Visualisation" src="images/visualisation.png">
+    <img alt="Visualisation" src="images/widg_visualisation.png">
 </div>
 <div class="content-text highlight gui-text">
     <p>The main interaction area are the visualisation widgets.</p>
@@ -206,7 +206,7 @@
     </p>
     <p>
     Via the widgets buttons, new types can be created and interchanged between the molecule's table and the global table.
-    Types stored in the global table will be remembered by vipster across multiple launches.
+    Types stored in the global table will be remembered by Vipster across multiple launches.
     </p>
     <h2>Description of the properties</h2>
     <ul>
@@ -255,7 +255,7 @@
     <h1>Parameters</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Parameter widget" src="images/parameters.png">
+    <img alt="Parameter widget" src="images/widg_parameters.png">
 </div>
 <div class="content-text highlight gui-text">
     <p>
@@ -279,7 +279,7 @@
     <h1>IO Presets</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="IO Preset widget" src="images/presets.png">
+    <img alt="IO Preset widget" src="images/widg_presets.png">
 </div>
 <div class="content-text highlight gui-text">
     <p>
@@ -297,7 +297,7 @@
     <h1>Settings</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Settings widget" src="images/settings.png">
+    <img alt="Settings widget" src="images/widg_settings.png">
 </div>
 <div class="content-text highlight gui-text">
     <p>
@@ -326,7 +326,7 @@
     <h1>Additional data</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Additional data widget" src="images/data.png">
+    <img alt="Additional data widget" src="images/widg_data.png">
 </div>
 <div class="content-text highlight gui-text">
     <p>
@@ -358,10 +358,12 @@
     <h1>Selected Atoms</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Selected Atom widget" src="images/select.png">
+    <img alt="Selected Atom widget" src="images/tool_select.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    Show situation dependent information about selected atoms.
+    </p>
 </div>
 
 <div></div>
@@ -370,10 +372,11 @@ Hallo!
     <h1>Filter Atoms</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Filter Atom widget" src="images/filter.png">
+    <img alt="Filter Atom widget" src="images/tool_filter.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>Select groups of atoms that meet the given criteria.</p>
+    <p>These groups can be used for visual highlighting or as a target for <a href="#script">scripting</a>.</p>
 </div>
 
 <div class="content-text highlight gui-head">
@@ -381,10 +384,12 @@ Hallo!
     <h1>Lattice Planes</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Lattice Plane widget" src="images/planes.png">
+    <img alt="Lattice Plane widget" src="images/tool_planes.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    Display lattice planes according to their <a href="https://en.wikipedia.org/wiki/Miller_index">miller indices</a>.
+    </p>
 </div>
 
 <div class="content-text highlight gui-head">
@@ -392,10 +397,20 @@ Hallo!
     <h1>Pin steps</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Pin steps widget" src="images/pin.png">
+    <img alt="Pin steps widget" src="images/tool_pin.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    This tool allows to "pin" steps so they can be overlaid over other structures.
+    </p>
+    <p>
+    This can e.g. be used to track the time-evolution of a trajectory by pinning a specific configuration.
+    </p>
+    <p>
+    It is not limited to steps of a single trajectory though.
+    You can e.g. import a molecule into a structure of a crystal surface to create surface adsorbates.
+    With the multiplication and vector-fitting features, you can also easily create densely packed adsorption patterns.
+    </p>
 </div>
 
 <div class="content-text highlight gui-head">
@@ -403,10 +418,19 @@ Hallo!
     <h1>Modify cell</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Modify cell" src="images/cellmod.png">
+    <img alt="Modify cell" src="images/tool_cellmod.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    This tool provides a bunch of often-used operations on periodic structures.
+    </p>
+    <p>
+    These operations all consider the whole cell.
+    For operations like multiplication and reshaping,
+    keep in mind that atoms outside the box may lead to unexpected behavior.
+    Consider performing a wrap or crop operation first,
+    and don't forget to check for <a href="#bonds">overlapping atoms</a>.
+    </p>
 </div>
 
 <div class="content-text highlight gui-head">
@@ -414,10 +438,18 @@ Hallo!
     <h1>Script</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Script widget" src="images/script.png">
+    <img alt="Script widget" src="images/tool_script.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    For precise modifications on groups of atoms, a simple scripting language is included.
+    </p>
+    <p>
+    Here you can shift, rotate and mirror atoms via absolute or relative coordinates.
+    </p>
+    <p>
+    This also interacts with the <a href="#filter">named groups</a>: you can create groups in the script and use them as targets for operations.
+    </p>
 </div>
 
 <div class="content-text highlight gui-head">
@@ -425,10 +457,23 @@ Hallo!
     <h1>Python</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="Python widget" src="images/python.png">
+    <img alt="Python widget" src="images/tool_python.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    For more in-depth interactions, an embedded python widget is included.
+    </p>
+    <p>
+    This widget resembles a regular python shell with the Vipster module already loaded.
+    See the <a href="python.html">API documentation</a> for details on general usage.
+    You can interact with structures loaded in the GUI via a few special functions
+    such as <code>curMol()</code> or <code>curStep()</code>,
+    please use the <code>help()</code> and <code>dir()</code> functions to find out more.
+    </p>
+    <p>
+    Note: this widget may be missing from your executable.
+    Check the <a href="https://github.com/sgsaenger/vipster/blob/master/INSTALL.md">build instructions</a> on how to build your own executable with the python widget.
+    </p>
 </div>
 
 <div class="content-text highlight gui-head">
@@ -436,9 +481,48 @@ Hallo!
     <h1>LAMMPS</h1>
 </div>
 <div class="content-image highlight gui-image">
-    <img alt="LAMMPS widget" src="images/lammps.png">
+    <img alt="LAMMPS widget" src="images/tool_lammps.png">
 </div>
 <div class="content-text highlight gui-text">
-Hallo!
+    <p>
+    This widget allows to perform simple force field based simulations
+    with the <a href="https://lammps.sandia.gov">LAMMPS</a>
+    right inside Vipster.
+    </p>
+    <p>
+    Note: the integration is still in beta status and may lead to unexpected errors and crashes.
+    </p>
+    <p>
+    Performing simulations is a two-step process:
+    <ol>
+        <li>
+            <h3>
+            Set up the force field.
+            </h3>
+            <p>
+            You can choose between embedded forcefields and a custom configuration.
+            Embedded forcefields try to determine all atom and bond types as needed when you press the "Prepare calculation" button,
+            and try to give you hints on how to modify your structure to fit the chosen forcefield.
+            If this does not meet your needs, you can set your structure up by yourself (i.e. atom and bond types) and choose &amp; configure the LAMMPS specific interaction styles.
+            </p>
+        </li>
+        <li>
+            <h3>
+            Perform the calculation
+            </h3>
+            <p>
+            If your structure is set up correctly, you can perform the simulation.
+            You can choose between geometry optimizations and molecular dynamics,
+            corresponding to LAMMPS' <a href="https://lammps.sandia.gov/doc/minimize.html"><code>minimize</code></a>
+            and <a href="https://lammps.sandia.gov/doc/run.html"><code>run</code></a> commands.
+            Please see their documentation pages for further details.
+            </p>
+        </li>
+    </ol>
+    </p>
+    <p>
+    Note: this widget may be missing from your executable.
+    Check the <a href="https://github.com/sgsaenger/vipster/blob/master/INSTALL.md">build instructions</a> on how to build your own executable with the python widget.
+    </p>
 </div>
 {% endblock %}
