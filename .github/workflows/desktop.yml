@@ -30,10 +30,6 @@ jobs:
           with:
               submodules: true
 
-        - uses: actions/setup-python@v1
-          with:
-              python-version: '3.8'
-
         - name: Cache Qt
           id: cache-qt
           uses: actions/cache@v2
@@ -48,6 +44,10 @@ jobs:
             target: 'desktop'
             arch: 'win64_mingw81'
             cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+        - uses: actions/setup-python@v1
+          with:
+              python-version: '3.8'
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
