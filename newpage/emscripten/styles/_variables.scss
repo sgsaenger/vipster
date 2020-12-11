@@ -1,0 +1,46 @@
+// Colors
+$theme-colors: (
+    "primary":   hsl(185, 100%, 28%),
+    "secondary": hsl(200, 18%, 20%),
+    "blueGray":  hsl(185, 28%, 84%),
+);
+
+$body-bg:       hsl(204, 15%, 96%);
+$body-color:    #eee;
+$text-muted:    hsl(hue(theme-color('secondary')), 8%, 60%);
+
+// Typography
+$font-family-sans-serif: Roboto;
+$font-family-monospace: "Roboto Mono";
+$font-size-base: .85rem;
+
+$h1-font-size: $font-size-base * 2.25;
+$h2-font-size: $font-size-base * 1.25;
+$h3-font-size: $font-size-base * 1.1;
+
+// Layout
+$grid-gutter-width: 16px;
+
+$headings-margin-bottom: 1rem;
+
+$table-cell-padding-sm: .4rem .8rem;
+$table-dark-bg: theme-color('secondary');
+$table-dark-border-color: lighten(theme-color('secondary'), 12%);
+
+$input-btn-focus-color: theme-color('primary');
+$input-btn-padding-y: .6rem;
+
+$custom-control-indicator-bg:   theme-color('blueGray');
+$custom-range-track-bg:         theme-color('primary');
+$custom-range-thumb-bg:         theme-color('blueGray');
+$custom-range-thumb-active-bg:  lighten(theme-color('blueGray'), 30%);
+
+$dropdown-item-padding-y: .75rem;
+$dropdown-item-padding-x: 1.25rem;
+
+// ------
+// Own variables
+
+$controls-bg: theme-color('secondary');
+$controls-bar-height: 56px;
+$modal-content-bg: theme-color('secondary');

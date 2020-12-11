@@ -1,0 +1,204 @@
+*{
+box-sizing: border-box;
+}
+
+body{
+    font-family: "Open Sans", sans-serif;
+    background: #222;
+    color: #BBB;
+    margin: 50px 0 0 0;
+}
+.body-nested{
+    margin: 100px 0 0 0;
+}
+
+.anchor{
+    padding: 100px 0 0 0;
+}
+
+.flex{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.grid{
+    display: grid;
+    margin: auto 8px;
+}
+
+ul{
+    padding-left: 20px;
+}
+
+ol.content-list{
+    padding-left: 28px;
+}
+
+img{
+    max-width: 100%;
+    display: block;
+}
+
+.footer{
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+a{
+    color: #337ab7;
+    text-decoration: none;
+}
+a:hover{
+    color: #23527c;
+    text-decoration: underline;
+}
+
+ul.code{
+    list-style: none;
+    padding: 0;
+}
+
+/* navbar, fixed at top of window */
+.navbar{
+    position: fixed;
+    top: 0px;
+    height: 50px;
+    width: 100%;
+    z-index: 1000;
+    background: #333;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid black;
+}
+.navbar-nested{
+    top: 50px;
+}
+
+/* menu buttons for navbar */
+.menu{
+    height: 100%;
+}
+
+.menuitem{
+    height: 100%;
+    padding: 0 8px;
+}
+a.menuitem{
+    color: #BBB;
+    text-decoration: none;
+}
+.menuitem:hover{
+    background: #666;
+}
+.menuitem-active{
+    background: #111;
+}
+
+/* boxes for content structuring */
+.highlight{
+    background: #333;
+    padding: 6px 12px;
+    margin: 6px 0px;
+    border-radius: 4px;
+}
+.highlight-nested{
+    background: #222;
+}
+a.highlight{
+    color: #BBB;
+    text-decoration: none;
+}
+.highlight-button:hover{
+    background: #666;
+}
+
+/* fragmented highlights on gui page */
+.gui-text{
+    margin: 0px 0px 6px 0px;
+    border-radius: 0px 0px 4px 4px;
+}
+
+.gui-head{
+    margin: 6px 0px 0px 0px;
+    border-radius: 4px 4px 0px 0px;
+}
+
+.gui-image{
+    margin: 0px;
+    border-radius: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@media (min-width: 768px){
+    .grid{
+        grid-template-columns: min-content 1fr;
+    }
+    .content-list{
+        grid-row: 1 / 4;
+        position: sticky;
+        width: 250px;
+        top: 118px;
+    }
+    .content-text, .content-image{
+        grid-column-start: 2;
+    }
+}
+
+@media (min-width: 1200px){
+    .grid{
+        grid-template-columns: minmax(min-content, 1fr) minmax(auto, 960px) minmax(min-content, 1fr);
+    }
+    .content-image{
+        grid-column-start: 3;
+        grid-row: auto / span 2;
+        align-self: center;
+        min-width: 400px;
+    }
+    .gui-head{
+        border-top-right-radius: 0px;
+    }
+    .gui-text{
+        border-bottom-right-radius: 0px;
+    }
+    .gui-image{
+        flex-direction: row;
+        align-self: auto;
+        justify-self: left;
+        margin: 6px 0px;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    .gui-image > img{
+        max-height: 80%;
+    }
+}
+
+/* classes for highlighting part of an image */
+.overlay-container{
+    position: relative;
+}
+.img-overlay{
+    position: absolute;
+    border: solid 1px red;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: black 0px 0px 5px;
+}
+.img-overlay > *{
+    display: none;
+}
+.img-overlay:hover{
+    color: red;
+    background: #f001;
+    text-decoration: none;
+    z-index: 100;
+}
+.img-overlay:hover > *{
+    display: block;
+}

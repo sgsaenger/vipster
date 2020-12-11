@@ -1,0 +1,14 @@
+.close-dialog{
+    color: #fff;
+}
+
+#fileDrop {
+    cursor: pointer;
+    border: 2px dashed;
+    margin-bottom: .75rem;
+    text-align: center;
+    height: 5rem;
+    p {
+      line-height: 5rem;
+    }
+}
