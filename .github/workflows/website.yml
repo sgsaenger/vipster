@@ -22,6 +22,15 @@ jobs:
           with:
               version: latest
 
+        - name: Configure GCC
+          run: |
+              # install and enable GCC9
+              sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+              sudo apt-get update
+              sudo apt-get install g++-9
+              echo CC=gcc-9 >> $GITHUB_ENV
+              echo CXX=g++-9 >> $GITHUB_ENV
+
         - name: Build Website
           run: |
               pip install vipster
