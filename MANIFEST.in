@@ -1,2 +1,3 @@
 graft vipster
+graft external/pybind11
 include README.md LICENSE CMakeLists.txt INSTALL.md
