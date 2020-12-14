@@ -1,3 +1,6 @@
 graft vipster
 graft external/pybind11
+graft external/fmt
+graft external/nlohmann_json
+prune external/nlohmann_json/test
 include README.md LICENSE CMakeLists.txt INSTALL.md

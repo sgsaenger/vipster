@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(Vipster VERSION 1.19)
+project(Vipster VERSION 1.19.1)
 
 include(CMakeDependentOption)
 
