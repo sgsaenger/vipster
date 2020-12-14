@@ -33,7 +33,7 @@ jobs:
 
         - name: Build Website
           run: |
-              pip install vipster
+              pip install vipster Jinja2
               mkdir gh-pages
               python website/setup.py gh-pages
 
