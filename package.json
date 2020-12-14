@@ -1,0 +1,27 @@
+{
+  "name": "vipster",
+  "version": "1.19.3",
+  "description": "Molecular visualization and editing toolkit",
+  "author": "Sebastian Gsänger",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sgsaenger/vipster.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sgsaenger/vipster/issues"
+  },
+  "homepage": "https://sgsaenger.github.io/vipster",
+  "keywords": [
+    "chemistry",
+    "molecular graphics",
+    "molecular structure",
+    "visualization"
+  ],
+  "scripts": {
+    "prepare": "emcmake cmake -Bbuild/npm && cmake --build build/npm && mkdir -p dist && cp build/npm/vipster.js dist",
+    "clean": "rm -rf build/npm dist/vipster.js"
+  },
+  "main": "dist/vipster.js",
+  "files": []
+}

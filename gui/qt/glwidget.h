@@ -12,8 +12,7 @@ class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper
 
 public:
     enum class MouseMode { Camera, Select, Modify, Bond };
-    explicit GLWidget(QWidget *parent, Vipster::GUI::GlobalData &globals,
-                      const Vipster::Settings &settings);
+    explicit GLWidget(QWidget *parent, const Vipster::Settings &settings);
     ~GLWidget() override;
     void initializeGL(void) override;
     void paintGL(void) override;
@@ -36,7 +35,7 @@ private:
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;
     Vipster::Vec shift;
-    std::set<Vipster::SelectionPair> pickAtoms(QPoint from, QPoint to);
+    Vipster::SelectionIndices pickAtoms(QPoint from, QPoint to);
     void rotAtoms(QPoint delta);
     void shiftAtomsXY(QPoint delta);
     void shiftAtomsZ(QPoint delta);

@@ -4,8 +4,8 @@
 
 using namespace Vipster;
 
-GuiWrapper::GuiWrapper(GUI::GlobalData &g, const Settings &s)
-    : globals{g}, settings{s}
+GuiWrapper::GuiWrapper(const Settings &s)
+    : settings{s}
 {
     selection.color = s.selCol.val;
 }
@@ -15,9 +15,6 @@ void GuiWrapper::initGL()
 #ifndef __EMSCRIPTEN__
     initializeOpenGLFunctions();
 #endif
-    // init globals
-    globals.initGL();
-
     // init ViewUBO
     glGenBuffers(1, &view_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, view_ubo);

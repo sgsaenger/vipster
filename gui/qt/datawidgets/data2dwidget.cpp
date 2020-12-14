@@ -70,7 +70,7 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
             }
         }
         curPlane = std::make_shared<GUI::MeshData>(
-                    master->globals, std::vector<GUI::MeshData::Face>{
+                    std::vector<GUI::MeshData::Face>{
                         {{0,0,0},{},{0,0}},{{0,1,0},{},{0,1}},{{1,1,0},{},{1,1}},
                         {{0,0,0},{},{0,0}},{{1,0,0},{},{1,0}},{{1,1,0},{},{1,1}}
                     }, curData->origin, curData->cell, texture);

@@ -15,8 +15,7 @@ inline std::vector<std::pair<BaseWidget*, QString>> makeMainWidgets(QWidget* par
         {new ParamWidget(parent), "Parameter"},
         {new PresetWidget(parent), "IO-Presets"},
         {new SettingsWidget(parent), "Settings"},
-        {new PeriodicTableWidget(parent), "Periodic Table (Molecule)"},
-        {new PeriodicTableWidget(parent, true), "Periodic Table (Global)"},
+        {new PeriodicTableWidget(parent, true), "Periodic Table"},
         {new DataWidget(parent), "Additional Data"},
     };
 }

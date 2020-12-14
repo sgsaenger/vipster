@@ -17,23 +17,27 @@ namespace GUI {
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
         Step::selection* curSel{nullptr};
-        // GPU-State/Data:
         float atRadFac{};
-        std::map<void*, GLuint> vaos;
-        GLuint vbo{0};
-        bool vbo_initialized{false};
+        // GPU-State/Data:
+        struct ObjectContext{
+            bool initialized{false};
+            GLuint vao{};
+            GLuint vbo{};
+        };
+        std::map<void*, ObjectContext> object_map;
         // Shader:
-        static struct{
+        struct shader{
             GLuint program;
             GLuint vertex, position, vert_scale, pbc_crit;
             GLint offset, pos_scale, scale_fac, color, mult;
             bool initialized{false};
-        } shader;
-        void updateGL() override;
+        };
+        static std::map<void*, shader> shader_map;
+        void updateGL(void *context) override;
         void initGL(void *context) override;
     public:
         ColVec color{};
-        SelData(const GlobalData& glob, Step::selection* sel=nullptr);
+        SelData(Step::selection* sel=nullptr);
         SelData(SelData&& dat);
         SelData& operator=(SelData&& dat)=delete;
         SelData(const SelData& dat)=delete;
@@ -42,6 +46,8 @@ namespace GUI {
         void draw(const Vec &off, const PBCVec &mult, const Mat &cv,
                   bool drawCell, void *context) override;
         void update(Step::selection* sel, bool useVdW, float atRadFac);
+        void initShader(GlobalContext& globals, shader& shader);
+        void initVAO(GlobalContext& globals, ObjectContext& objects, shader& shader);
     };
 }
 }

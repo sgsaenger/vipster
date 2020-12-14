@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="content-text">
+Vipster is a fast and easy to use graphical editor for periodic atomistic simulations
+running on Windows, Linux, macOS and *BSD.
+</p>
+<img src="images/screenshot.png" alt="Screenshot" class="content-text" style="max-width: 700px; justify-self: center;">
+<div class="content-text">
+<p>
+    It supports small isolated molecules for quantum mechanical calculations,
+    large periodic trajectories for molecular dynamics and everything inbetween.
+    Features include:
+</p>
+<ul>
+<li>
+    Full support of periodicity:<br>
+    Set any arbitrary cell shape, display and determine bonds over periodic boundaries.
+</li>
+<li>
+    Support for trajectories with loosely coupled steps:<br>
+    Vary the number of atoms, shared or discrete unit cell
+</li>
+<li>
+    Custom atom and bond types:<br>
+    Use isotopes, special force field atom types or abstract particles by simply providing a name.
+</li>
+<li>
+    Flexible visualization:<br>
+    Compose multiple structures, isosurfaces, etc. in one window,
+    or view a single structure in multiple windows with different perspectives.
+</li>
+<li>
+    Hands-on editing:<br>
+    Select and manipulate atoms and bonds via mouse and keyboard shortcuts.
+</li>
+<li>
+    File format support:<br>
+    Vipster supports conceptually different formats by separating atomic structure data
+    from other data with special treatment.
+    Up to two separate presets can control format specific features and reliably generate
+    input files for calculations.
+</li>
+<li>
+    Scriptable:<br>
+    Small built-in script language with shorthand procedures for many regular modification procedures.
+</li>
+<li>
+    Python interface:<br>
+    The library backend is fully accessible via Python for advanced scripting needs,
+    both in GUI or standalone.
+</li>
+<li>
+    Extendable:<br>
+    Add support for more file formats by providing user-defined plugins via the Python- or C++-API.
+</li>
+</ul>
+</div>
+{% endblock %}

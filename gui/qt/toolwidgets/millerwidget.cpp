@@ -16,11 +16,10 @@ MillerWidget::~MillerWidget()
     delete ui;
 }
 
-MillerWidget::MillerPlane::MillerPlane(
-        const Vipster::GUI::GlobalData& glob, std::vector<Face>&& faces,
+MillerWidget::MillerPlane::MillerPlane(std::vector<Face>&& faces,
         Vipster::Vec off, Vipster::Mat cell, Texture texture,
         const std::array<int8_t, 3> &hkl) :
-    GUI::MeshData{glob, std::move(faces), off, cell, texture},
+    GUI::MeshData{std::move(faces), off, cell, texture},
     hkl{hkl}
 {}
 
@@ -221,7 +220,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
                        ui->zOff->value()};
         planes.insert_or_assign(curStep,
             std::make_shared<MillerPlane>(
-                master->globals, mkFaces(hkl), off,
+                mkFaces(hkl), off,
                 curStep->getCellVec()*curStep->getCellDim(AtomFmt::Bohr),
                 MillerPlane::Texture{{master->settings.milCol.val}, 1, 1}, hkl
             ));

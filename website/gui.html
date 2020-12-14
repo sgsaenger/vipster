@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ol class="content-list">
+<li><a href="#mainwin">Main window</a></li>
+<li><a href="#vis">Visualisation</a></li>
+    <li>
+        <a href="#mainwidgets">Main Widgets</a>
+        <ol>
+            <li>
+                <a href="#atoms">Molecule</a>
+                <ul>
+                    <li><a href="#atoms">Atoms</a></li>
+                    <li><a href="#bonds">Bonds</a></li>
+                    <li><a href="#cell">Cell</a></li>
+                    <li><a href="#type">Type</a></li>
+                    <li><a href="#kpoints">k-Points</a></li>
+                </ul>
+            </li>
+            <li><a href="#params">Parameters</a></li>
+            <li><a href="#presets">IO Presets</a></li>
+            <li><a href="#settings">Settings</a></li>
+            <li><a href="#type">Periodic table</a></li>
+            <li><a href="#data">Additional data</a></li>
+        </ol>
+    </li>
+    <li>
+        <a href="#tools">Tool widgets</a>
+        <ol>
+            <li><a href="#select">Selected Atoms</a></li>
+            <li><a href="#filter">Filter Atoms</a></li>
+            <li><a href="#planes">Lattice Planes</a></li>
+            <li><a href="#pin">Pin steps</a></li>
+            <li><a href="#cellmod">Modify cell</a></li>
+            <li><a href="#script">Script</a></li>
+            <li><a href="#python">Python</a></li>
+            <li><a href="#lammps">LAMMPS</a></li>
+        </ol>
+    </li>
+</ol>
+
+<div class="content-text">
+    <a class="anchor" id="mainwin"></a>
+    <h1>Main Window</h1>
+    <p>Vipster has a modular graphical interface.</p>
+    <p>Upon launch it shows one <a href="#vis">visualisation</a> area
+    and the <a href="#atoms">Molecule</a> widget to the left.</p>
+    <p>Details for these and other available widgets are listed below.</p>
+    <div class="overlay-container">
+        <a class="img-overlay" style="left: 0%; right: 98.2%; top:5.8%; bottom: 47%;" href="#mainwidgets">
+            <h2>Main widgets</h2>
+        </a>
+        <a class="img-overlay" style="left: 1.8%; right: 74.9%; top: 5.8%; bottom: 0%;" href="#atoms">
+            <h2>Molecule widget</h2>
+        </a>
+        <a class="img-overlay" style="left: 25.2%; right: 0%; top: 5.8%; bottom: 0%;" href="#vis">
+            <h2>Visualisation</h2>
+        </a>
+        <a class="img-overlay" style="left: 0.5%; right: 59.5%; top: 2.8%; bottom: 94.2%;" href="#tools">
+            <h2>Tool widgets</h2>
+        </a>
+        <img src="images/screenshot.png">
+    </div>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="vis"></a>
+    <h1>Visualisation</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Visualisation" src="images/widg_visualisation.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>The main interaction area are the visualisation widgets.</p>
+    <p>Upon launch, one widget is displayed. Via the buttons in the top right corner,
+    additional visualisation widgets can be added and removed as needed.
+    Other widgets always act on the data selected in the active (highlighted) visualisation widget.</p>
+    <p>The <em>Select Molecule</em> dropdown menu shows the molecules read from files or created within Vipster.
+    If a molecule contains multiple steps (e.g. a molecular dynamics trajectory),
+    they can be selected via the button and slider controls at the bottom.</p>
+    <p>Multiple modes for mouse interaction can be selected:</p>
+    <ul>
+    <li><b>Camera</b> will rotate, zoom and pan the camera.</li>
+    <li><b>Select Atoms</b> will enable to select single or multiple atoms by highlighting them.</li>
+    <li><b>Modify Atoms</b> will rotate or shift the molecule or currently selected atoms (if any).</li>
+    <li><b>Modify Bonds</b> (only active if <a href="#bonds">bond mode</a> is manual)
+    will allow to create and remove bonds by dragging between two atoms.</li>
+    </ul>
+    <p>If a molecule has a unit cell, the <em>Cell multiply</em> selectors can
+    be used to display multiple repetitions of the cell.</p>
+    <p><em>Align camera</em> will align the camera along the respective coordinate axis.</p>
+</div>
+
+<div class="content-text">
+    <a class="anchor" id="mainwidgets"></a>
+    <h1>Main Widgets</h1>
+    <p>
+    On the left hand border, the main widgets can be selected.
+    These widgets expose basic interaction with loaded data.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="atoms"></a>
+    <h1>Molecule (Atom section)</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Molecule (Atom section)" src="images/molwidget_atom.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>The properties of individual atoms can be modified via this table.
+    By default it displays the type and position, other properties can be toggled by right clicking the table header.</p>
+    <p>Atom properties:</p>
+    <ul>
+    <li><b>Type</b> given as an arbitrary user-defined string.
+    Vipster tries to guess the (derived) atom type as described in the <a href="#type">Type section</a>.</li>
+    <li><b>Coordinates</b>, displayed in the chosen coordinate format.</li>
+    <li><b>Forces</b>, arbitrary format.</li>
+    <li><b>Charge</b>, arbitrary format.</li>
+    <li><b>Visibility</b>, toggle display of this atom.</li>
+    <li><b>Constraints</b>, toggle keeping certain parts of this atom's coordinates fixed.</li>
+    </ul>
+    Check the <a href="format.html">File Formats</a> page for details on which properties can/will be used.
+    <br>
+    The coordinates can be shown in multiple formats:
+    <ul>
+    <li><b>Crystal</b>: relative to cell dimension and cell vectors.</li>
+    <li><b>Alat</b>: relative to cell dimension.</li>
+    <li><b>Ångström</b>: absolute position given in 10<sup>-10</sup>m.</li>
+    <li><b>Bohr</b>: absolute position given in multiples of the Bohr radius (approx. 0.529Å).</li>
+    </ul>
+    The currently <em>active</em> format specifies which format other widgets will work in,
+    e.g. the <a href="#script">Script</a> and <a href="#python">Python</a> widgets.
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="bonds"></a>
+    <h1>Molecule (Bond section)</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Molecule (Bond section)" src="images/molwidget_bond.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>Bonds in Vipster are a connection between two atoms.
+    There is no intrinsic notion of e.g. double bonds.</p>
+    <p>The bond mode can be set to either <em>automatic</em> oder <em>manual</em>.</p>
+    <p>
+    In automatic mode, bonds are evaluated whenever the current structure changes.
+    A bond will be created if the distance between two atoms is shorter than the sum
+    of their <a href="#type">type's</a> <em>bond cutoff radius</em> times 1.1.
+    The type of an automatically generated bond in turn is defined via the bonded atoms types.
+    </p>
+    <p>
+    Manual mode disables the automatic evaluation.
+    If a parsed file contains pre-defined bonds, the molecule will default to manual bond mode.
+    The user can apply the automatic evaluation mechanism above by pressing the <em>(Re-)calculate bonds</em> button.
+    Bonds can also be added or removed on a per-bond basis via <a href="#vis">graphical selection</a>.
+    The automatically generated bond type can be replaced by supplying a user-defined string.
+    </p>
+    <p>
+    If the header of this section contains an exclamation mark (i.e. <em>Bonds (!)</em>),
+    two or more atoms have to be found to overlap.
+    Keep in mind that this may also refer to overlapping atoms under periodic boundary conditions.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="cell"></a>
+    <h1>Molecule (Cell section)</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Molecule (Cell section)" src="images/molwidget_cell.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>Vipster has intrinsic support for periodic structures.</p>
+    <p>A unit cell is defined as three unit-less vectors, scaled by a lattice constant having a unit.</p>
+    <p>If the <em>Scale coordinates with cell</em> box is checked,
+    all changes to the unit cell will be applied to the contained atoms:
+    If the lattice constant is doubled, an atom with an x-coordinate of 2Å will now sit at 4Å.
+    The relative positioning inside the cell will be kept constant, however.
+    </p>
+    <p>In a trajectory, each step can have its own unit cell.
+    Via the <em>Apply to trajectory</em> button however,
+    the current settings can be applied across the complete trajectory.
+    This also respects the scaling setting.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="type"></a>
+    <h1>Molecule (Type section)</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Molecule (Type section)" src="images/molwidget_type.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>All atoms loaded into Vipster have a certain type, specifying multiple properties.</p>
+    <p>The type is changed by assigning an arbitrary name to an atom,
+    either when reading from a file or by user interaction.</p>
+    <p>Types are stored in the molecule's periodic table.
+    This table only contains types (previously) encountered in this molecule.
+    If a type is not known, it will be looked up from the global periodic table by fuzzy matching against known atom types.
+    During matching, trailing characters will be removed until a known type is encountered.
+    If a name is purely numeric, it will be matched against the proton number.
+    Types are shared across a trajectory, if applicable.
+    </p>
+    <p>
+    Via the widgets buttons, new types can be created and interchanged between the molecule's table and the global table.
+    Types stored in the global table will be remembered by Vipster across multiple launches.
+    </p>
+    <h2>Description of the properties</h2>
+    <ul>
+    <li><b>Bond cutoff radius</b>: cutoff for automatic determination of bonds (defaults to covalent radius).</li>
+    <li><b>Covalent radius</b>: used for display (default).</li>
+    <li><b>Van-der-Waals radius</b>: alternatively used for display.</li>
+    <li><b>Atomic number</b>: used for type matching and in some file formats.</li>
+    <li><b>Mass</b>: used for type matching and in some file formats.</li>
+    <li><b>Display color</b>: used for representation, may contain transparency.</li>
+    <li><b>PWScf PP-File</b>: pseudopotential file to be used when writing PWScf input.
+    See <a href="format.html#pwi">format</a> for details.</li>
+    <li><b>CPMD PP-File/Nonlocality</b>: pseudopotential file and settings to be used when writing CPMD input.
+    See <a href="format.html#cpi">format</a> for details.</li>
+    </ul>
+    <p>
+    The <em>Periodic table</em> widget works exactly like this section of the <em>Molecule</em> widget,
+    but controls the global periodic table.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="kpoints"></a>
+    <h1>Molecule (k-Point section)</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Molecule (k-Point section)" src="images/molwidget_kpoints.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>Quantum mechanical calculations of periodic systems often use a k-Point mesh to
+    achieve good representations of periodic systems even with small unit cells.</p>
+    <p>Supported settings are:</p>
+    <ul>
+    <li><b>Gamma</b>: only the k-Point at the origin of the brillouin zone will be used. Some codes have optimizations for this case.</li>
+    <li><b>Monkhorst-Pack grid</b>: will let the code generate an evenly spaced grid with <em>count</em> points along the corresponding vector of the brillouin zone.
+    May be offset by certain vectors, see the documentation of your code for details.</li>
+    <li><b>Discrete</b> list of points: manually specify a number of k-Points to use.
+    <em>Crystal</em> will tell your code to interpret the coordinates relative to the brillouin zone.
+    <em>Band</em> will tell your code to generate a path along certain k-Points for band structure generation.
+    See the documentation of your code for details and specific syntax.</li>
+    </ul>
+    <p>Note that only the active format will be used when writing to a file.</p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="parameters"></a>
+    <h1>Parameters</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Parameter widget" src="images/widg_parameters.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    Simulation input consists of both the atomistic structure and parameters controlling various aspects of a calculation.
+    Vipster encapsulates these <em>Parameters</em> and allows them to be reused in
+    a mix and match fashion for easy setup of calculations.
+    </p>
+    <p>
+    Only files intended for input for a simulation software use and require parameter sets.
+    Please refer to the parameters section of a specific <a href="format.html">format</a> for details
+    on the type and meaning of available settings.
+    </p>
+    <p>
+    When a suitable input file is read by Vipster, the corresponding parameter set will be extracted and loaded in this widget.
+    Alternatively, an empty or previously saved parameter set can be loaded from the file menu.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="presets"></a>
+    <h1>IO Presets</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="IO Preset widget" src="images/widg_presets.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    Similar to the <a href="#parameters">parameters</a>, <em>IO Presets</em> are used to control the generated files.
+    They control the way in which data is formatted and written to a file, e.g. the format used to specify coordinates.
+    </p>
+    <p>
+    Please refer to the output preset section of a specific <a href="format.html">format</a>
+    for details on the type and meaning of available settings.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="settings"></a>
+    <h1>Settings</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Settings widget" src="images/widg_settings.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    General behaviour and visualisation settings.
+    Will be saved on exit.
+    </p>
+    <ul>
+    <li><b>Check for overlapping atoms</b>: notifies about overlapping atoms in the <a href="#bonds">bonds</a> section and on save.
+    May cause slowdowns with large systems.</li>
+    <li><b>Atom radius VdW</b>: render atoms based on their van der Waals radius instead of the covalent radius.</li>
+    <li><b>Atom radius factor</b>: scales the radius before rendering.</li>
+    <li><b>Bond radius</b>: display radius for bonds.</li>
+    <li><b>Show cell</b>: toggle rendering of unit cell outlines.</li>
+    <li><b>Antialiasing</b>: toggle multisampling, may cause slowdowns on older GPUs or with large systems.</li>
+    <li><b>Perspective projection</b>: render with perspective instead of orthogonal projection.</li>
+    <li><b>Rotate around center of mass</b>: toggle between rotating around center of atoms instead of center of unit-cell.</li>
+    <li><b>Animation step (ms)</b>: timestep of automatic stepping through a trajectory (with play button).</li>
+    <li><b>Selection color</b>: color of shell around selected atoms.</li>
+    <li><b>Miller-plane color</b>: color of plane set via <a href="#planes">Lattice Planes</a> widget.</li>
+    <li><b>Positive-/Negative-isovalue color</b>: colors of isosurface generated via <a href="#data">Additional data</a> widget.</li>
+    </ul>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="data"></a>
+    <h1>Additional data</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Additional data widget" src="images/widg_data.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    Data that is neither tied to the atomic structure nor the simulation setup is loaded as <em>Additional Data</em>.
+    Currently, this refers to two and three-dimensional grids of scalar data.
+    A rainbow-style color map can be used to display planar data.
+    </p>
+    <p>
+    Two-dimensional data grids can be loaded from <a href="format.html#xsf">XSF</a> files
+    and be displayed as a color mapped plane.
+    </p>
+    <p>
+    Three-dimensional data grids can be loaded from <a href="format.html#xsf">XSF</a> and <a href="format.html#cube">Cube</a> files.
+    They can be visualised either as a color mapped slice across the grid volume or
+    as a isosurface at a certain isovalue.
+    </p>
+</div>
+
+<div class="content-text">
+    <a class="anchor" id="tools"></a>
+    <h1>Tool widgets</h1>
+    <p>
+    Optional tool widgets offer advanced interaction and modification options for molecular data.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="select"></a>
+    <h1>Selected Atoms</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Selected Atom widget" src="images/tool_select.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    Show situation dependent information about selected atoms.
+    </p>
+</div>
+
+<div></div>
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="filter"></a>
+    <h1>Filter Atoms</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Filter Atom widget" src="images/tool_filter.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>Select groups of atoms that meet the given criteria.</p>
+    <p>These groups can be used for visual highlighting or as a target for <a href="#script">scripting</a>.</p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="planes"></a>
+    <h1>Lattice Planes</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Lattice Plane widget" src="images/tool_planes.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    Display lattice planes according to their <a href="https://en.wikipedia.org/wiki/Miller_index">miller indices</a>.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="pin"></a>
+    <h1>Pin steps</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Pin steps widget" src="images/tool_pin.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    This tool allows to "pin" steps so they can be overlaid over other structures.
+    </p>
+    <p>
+    This can e.g. be used to track the time-evolution of a trajectory by pinning a specific configuration.
+    </p>
+    <p>
+    It is not limited to steps of a single trajectory though.
+    You can e.g. import a molecule into a structure of a crystal surface to create surface adsorbates.
+    With the multiplication and vector-fitting features, you can also easily create densely packed adsorption patterns.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="cellmod"></a>
+    <h1>Modify cell</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Modify cell" src="images/tool_cellmod.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    This tool provides a bunch of often-used operations on periodic structures.
+    </p>
+    <p>
+    These operations all consider the whole cell.
+    For operations like multiplication and reshaping,
+    keep in mind that atoms outside the box may lead to unexpected behavior.
+    Consider performing a wrap or crop operation first,
+    and don't forget to check for <a href="#bonds">overlapping atoms</a>.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="script"></a>
+    <h1>Script</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Script widget" src="images/tool_script.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    For precise modifications on groups of atoms, a simple scripting language is included.
+    </p>
+    <p>
+    Here you can shift, rotate and mirror atoms via absolute or relative coordinates.
+    </p>
+    <p>
+    This also interacts with the <a href="#filter">named groups</a>: you can create groups in the script and use them as targets for operations.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="python"></a>
+    <h1>Python</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="Python widget" src="images/tool_python.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    For more in-depth interactions, an embedded python widget is included.
+    </p>
+    <p>
+    This widget resembles a regular python shell with the Vipster module already loaded.
+    See the <a href="python.html">API documentation</a> for details on general usage.
+    You can interact with structures loaded in the GUI via a few special functions
+    such as <code>curMol()</code> or <code>curStep()</code>,
+    please use the <code>help()</code> and <code>dir()</code> functions to find out more.
+    </p>
+    <p>
+    Note: this widget may be missing from your executable.
+    Check the <a href="https://github.com/sgsaenger/vipster/blob/master/INSTALL.md">build instructions</a> on how to build your own executable with the python widget.
+    </p>
+</div>
+
+<div class="content-text highlight gui-head">
+    <a class="anchor" id="lammps"></a>
+    <h1>LAMMPS</h1>
+</div>
+<div class="content-image highlight gui-image">
+    <img alt="LAMMPS widget" src="images/tool_lammps.png">
+</div>
+<div class="content-text highlight gui-text">
+    <p>
+    This widget allows to perform simple force field based simulations
+    with the <a href="https://lammps.sandia.gov">LAMMPS</a>
+    right inside Vipster.
+    </p>
+    <p>
+    Note: the integration is still in beta status and may lead to unexpected errors and crashes.
+    </p>
+    <p>
+    Performing simulations is a two-step process:
+    <ol>
+        <li>
+            <h3>
+            Set up the force field.
+            </h3>
+            <p>
+            You can choose between embedded forcefields and a custom configuration.
+            Embedded forcefields try to determine all atom and bond types as needed when you press the "Prepare calculation" button,
+            and try to give you hints on how to modify your structure to fit the chosen forcefield.
+            If this does not meet your needs, you can set your structure up by yourself (i.e. atom and bond types) and choose &amp; configure the LAMMPS specific interaction styles.
+            </p>
+        </li>
+        <li>
+            <h3>
+            Perform the calculation
+            </h3>
+            <p>
+            If your structure is set up correctly, you can perform the simulation.
+            You can choose between geometry optimizations and molecular dynamics,
+            corresponding to LAMMPS' <a href="https://lammps.sandia.gov/doc/minimize.html"><code>minimize</code></a>
+            and <a href="https://lammps.sandia.gov/doc/run.html"><code>run</code></a> commands.
+            Please see their documentation pages for further details.
+            </p>
+        </li>
+    </ol>
+    </p>
+    <p>
+    Note: this widget may be missing from your executable.
+    Check the <a href="https://github.com/sgsaenger/vipster/blob/master/INSTALL.md">build instructions</a> on how to build your own executable with the python widget.
+    </p>
+</div>
+{% endblock %}

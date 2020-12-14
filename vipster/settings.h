@@ -1,7 +1,6 @@
 #ifndef Settings_H
 #define Settings_H
 
-#include "nlohmann/json.hpp"
 #include "global.h"
 #include "bond.h"
 
@@ -31,9 +30,6 @@ struct Settings{
     Setting<ColVec> posCol{"Positive-isovalue color", ColVec{255, 0, 0, 155}};
     Setting<ColVec> negCol{"Negative-isovalue color", ColVec{0, 0, 255, 155}};
 };
-
-void to_json(nlohmann::json& j, const Settings& s);
-void from_json(const nlohmann::json& j, Settings& s);
 
 extern const Settings settings;
 

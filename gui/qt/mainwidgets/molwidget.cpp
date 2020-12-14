@@ -3,6 +3,7 @@
 #include "../mainwindow.h"
 #include "molwidget_aux/bonddelegate.h"
 #include "molwidget_aux/doubledelegate.h"
+#include "molwidget_aux/newelement.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QMenu>
@@ -14,6 +15,8 @@ MolWidget::MolWidget(QWidget *parent) :
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);
+
+    ui->typeContainer->setVisible(false);
 
     // setup k-points
     ui->discretetable->addAction(ui->actionNew_K_Point);
@@ -67,46 +70,45 @@ MolWidget::~MolWidget()
 
 void MolWidget::updateWidget(GUI::change_t change)
 {
-    if (updateTriggered) {
-        updateTriggered = false;
-        return;
-    }
-    if ((change & GUI::molChanged) == GUI::molChanged) {
-        curMol = master->curMol;
-    }
-    if ((change & GUI::stepChanged) == GUI::stepChanged) {
-        // reset old fmt-string
-        if(ownStep){
-            auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
-            ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+    if (!updateTriggered){
+        if ((change & GUI::molChanged) == GUI::molChanged) {
+            curMol = master->curMol;
         }
-        // assign StepFormatter to curStep, mark fmt as active
-        auto fmt = master->curStep->getFmt();
-        curStep = master->curStep;
-        ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
-        atomModel.setStep(ownStep.get());
-        setSelection();
-        auto ifmt = static_cast<int>(fmt)+2;
-        QSignalBlocker blockAtFmt(ui->atomFmtBox);
-        ui->atomFmtBox->setCurrentIndex(ifmt);
-        ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-        // expose BondMode
-        QSignalBlocker blockBondMode(ui->bondModeBox);
-        bool autobonds = master->stepdata[curStep].automatic_bonds;
-        ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
-        if(autobonds){
-            ui->bondSetButton->setDisabled(true);
-        }else{
-            ui->bondButton->setChecked(true);
-            ui->bondSetButton->setEnabled(true);
+        if ((change & GUI::stepChanged) == GUI::stepChanged) {
+            // reset old fmt-string
+            if(ownStep){
+                auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
+                ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+            }
+            // assign StepFormatter to curStep, mark fmt as active
+            auto fmt = master->curStep->getFmt();
+            curStep = master->curStep;
+            ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
+            atomModel.setStep(ownStep.get());
+            setSelection();
+            auto ifmt = static_cast<int>(fmt)+2;
+            QSignalBlocker blockAtFmt(ui->atomFmtBox);
+            ui->atomFmtBox->setCurrentIndex(ifmt);
+            ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
+            // expose BondMode
+            QSignalBlocker blockBondMode(ui->bondModeBox);
+            bool autobonds = master->stepdata[curStep].automatic_bonds;
+            ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
+            if(autobonds){
+                ui->bondSetButton->setDisabled(true);
+            }else{
+                ui->bondButton->setChecked(true);
+                ui->bondSetButton->setEnabled(true);
+            }
+        }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
+            atomModel.setStep(ownStep.get());
+            setSelection();
+        }else if (change & (GUI::Change::selection)){
+            setSelection();
         }
-    }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
-        atomModel.setStep(ownStep.get());
-        setSelection();
-    }else if (change & (GUI::Change::selection)){
-        setSelection();
     }
     if (change & GUI::Change::atoms) {
+        ui->typeWidget->setTable(&curMol->getPTE());
         checkOverlap();
         bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
     }
@@ -466,5 +468,18 @@ void MolWidget::on_ovlpTable_itemSelectionChanged()
         const auto& ovlp = curStep->getOverlaps()[sel.row()];
         auto idx = sel.column() == 0 ? ovlp.at1 : ovlp.at2;
         ui->atomTable->selectRow(idx);
+    }
+}
+
+void MolWidget::on_clearTableButton_clicked()
+{
+    curMol->cleanPTE();
+    ui->typeWidget->setTable(&curMol->getPTE());
+}
+
+void MolWidget::on_newElemButton_clicked()
+{
+    if(newelement(curMol->getPTE()).exec()){
+        ui->typeWidget->setTable(&curMol->getPTE());
     }
 }

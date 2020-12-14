@@ -3,7 +3,6 @@
 
 #include "global.h"
 #include "staticmap.h"
-#include "nlohmann/json.hpp"
 
 #include <string>
 
@@ -22,8 +21,6 @@ struct Element{
 };
 
 bool operator==(const Element &lhs, const Element &rhs);
-void to_json(nlohmann::json& j,const Element& p);
-void from_json(const nlohmann::json& j, Element& p);
 
 class PeriodicTable: public StaticMap<std::string, Element>
 {
@@ -36,9 +33,6 @@ public:
     iterator find_or_fallback(const std::string &k);
     const PeriodicTable *root;
 };
-
-void to_json(nlohmann::json& j,const PeriodicTable& p);
-void from_json(const nlohmann::json& j, PeriodicTable& p);
 
 extern const PeriodicTable pte;
 constexpr const char* PeriodicTableAbout =

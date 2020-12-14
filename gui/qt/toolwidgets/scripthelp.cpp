@@ -8,6 +8,7 @@ ScriptHelp::ScriptHelp(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->filterLabel->setText(Vipster::FilterAbout);
+    setWindowTitle("Script grammar");
 }
 
 ScriptHelp::~ScriptHelp()

@@ -28,7 +28,7 @@ void PresetWidget::clearPresets()
 }
 
 void PresetWidget::registerPreset(const std::string& name,
-                                  const IO::Preset &data)
+                                  const Preset &data)
 {
     presets.emplace_back(name, data);
     ui->presetSel->addItem(QString::fromStdString(
@@ -72,7 +72,7 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
         QWidget* widget{};
         // setup specific widget
         switch(v.second.first.index()){
-        case IO::Preset::i_bool:
+        case Preset::i_bool:
         {
             auto box = new QCheckBox{};
             widget = box;
@@ -83,7 +83,7 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
             });
             break;
         }
-        case IO::Preset::i_enum:
+        case Preset::i_enum:
         {
             auto box = new QComboBox{};
             widget = box;
@@ -114,5 +114,5 @@ void PresetWidget::on_presetSel_currentIndexChanged(int index)
 void PresetWidget::on_helpButton_clicked()
 {
     QMessageBox::information(this, QString("About IO presets"),
-                             Vipster::IO::PresetsAbout);
+                             Vipster::PresetsAbout);
 }

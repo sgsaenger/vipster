@@ -28,7 +28,7 @@ const fs::path& Vipster::getTempPath()
 
 const detail::TempWrap detail::tempwrap{};
 
-const IO::Plugin *Vipster::guessFmt(std::string fn, const IO::Plugins &p)
+const Plugin *Vipster::guessFmt(std::string fn, const PluginList &p)
 {
     auto pos = fn.find_last_of('.');
     if(pos != fn.npos){
@@ -39,7 +39,7 @@ const IO::Plugin *Vipster::guessFmt(std::string fn, const IO::Plugins &p)
             fn = fn.substr(pos+1);
         }
     }
-    auto plug = std::find_if(p.begin(), p.end(), [&](const IO::Plugin* p){
+    auto plug = std::find_if(p.begin(), p.end(), [&](const Plugin* p){
         return p->extension == fn;
     });
     if(plug != p.end()){
@@ -50,12 +50,12 @@ const IO::Plugin *Vipster::guessFmt(std::string fn, const IO::Plugins &p)
 }
 
 // read with format guess
-IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
+IOTuple Vipster::readFile(const std::string &fn, const PluginList &p)
 {
     // get format
     auto plugin = guessFmt(fn, p);
     if(!plugin){
-        throw IO::Error{"Could not deduce format of file \""+fn+
+        throw IOError{"Could not deduce format of file \""+fn+
                         "\"\nPlease specify format explicitely", false};
     }
     // read file
@@ -63,7 +63,7 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugins &p)
 }
 
 // read with explicit format
-IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
+IOTuple Vipster::readFile(const std::string &fn, const Plugin *plug)
 {
     // set locale to C to get consistent parsing
     std::string userLocale = setlocale(0, nullptr);
@@ -72,17 +72,17 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
     std::ifstream file{fn};
     if(!file){
         setlocale(LC_ALL, userLocale.c_str());
-        throw IO::Error("Could not open \""+fn+'"');
+        throw IOError("Could not open \""+fn+'"');
     }
     // try to parse
     if(!plug->parser){
         setlocale(LC_ALL, userLocale.c_str());
-        throw IO::Error("Format is not readable");
+        throw IOError("Format is not readable");
     }
     auto tmp = plug->parser(fn, file);
-    if(!tmp.mol.getNstep()){
+    if(!std::get<0>(tmp).getNstep()){
         setlocale(LC_ALL, userLocale.c_str());
-        throw IO::Error("No Molecule could be parsed");
+        throw IOError("No Molecule could be parsed");
     }
     // return if successful
     setlocale(LC_ALL, userLocale.c_str());
@@ -90,18 +90,18 @@ IO::Data Vipster::readFile(const std::string &fn, const IO::Plugin *plug)
 }
 
 bool  Vipster::writeFile(const std::string &fn,
-                         const IO::Plugin *plug,
+                         const Plugin *plug,
                          const Molecule &m,
                          std::optional<size_t> idx,
-                         const std::optional<IO::Parameter>& p,
-                         const std::optional<IO::Preset>& c)
+                         const std::optional<Parameter>& p,
+                         const std::optional<Preset>& c)
 {
     if(!idx){
         idx = m.getNstep()-1;
     }
     try{
         if(!plug->writer){
-            throw IO::Error{"Read-only format"};
+            throw IOError{"Read-only format"};
         }
         bool use_temp = true;
         bool res = false;
@@ -113,7 +113,7 @@ bool  Vipster::writeFile(const std::string &fn,
                 use_temp = false;
                 file = std::ofstream{fn};
                 if(!file){
-                    throw IO::Error{"Could not open "+fn};
+                    throw IOError{"Could not open "+fn};
                 }
             }
             res = plug->writer(m, file, p, c, *idx);
@@ -126,12 +126,12 @@ bool  Vipster::writeFile(const std::string &fn,
         }
         return res;
     }
-    catch(IO::Error &e){
+    catch(IOError &e){
         std::cout << e.what() << std::endl;
         throw;
     }
     catch(fs::filesystem_error &e){
         std::cout << e.what() << std::endl;
-        throw IO::Error{e.what()};
+        throw IOError{e.what()};
     }
 }

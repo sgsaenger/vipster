@@ -325,7 +325,7 @@ public:
         }
         return atoms->ctxt.cell->dimension * detail::AtomContext::fromAngstrom[fmt];
     }
-    Mat     getCellVec() const
+    const Mat& getCellVec() const
     {
         return atoms->ctxt.cell->matrix;
     }

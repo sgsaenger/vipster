@@ -2,6 +2,7 @@
 #define DATA_H
 
 #include <vector>
+#include <memory>
 #include <numeric>
 
 #include "vec.h"
@@ -12,6 +13,8 @@ struct BaseData{
     std::string name{};
     virtual ~BaseData() = default;
 };
+
+using DataList = std::vector<std::unique_ptr<const BaseData>>;
 
 template<size_t N, typename T>
 struct DataGrid: public BaseData, private std::vector<T>

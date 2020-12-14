@@ -24,8 +24,11 @@ public:
     std::string name;
     KPoints kpoints;
 
+    std::set<std::string>   getTypes() const;
+
     PeriodicTable&          getPTE();
     const PeriodicTable&    getPTE() const;
+    void                    cleanPTE();
 
     Step& newStep(const Step& step);
     Step& newStep(Step&& step={});
@@ -37,7 +40,6 @@ public:
 
 private:
     std::list<Step> steps;
-    // TODO: make sure that this has the appropriate root!
     std::shared_ptr<PeriodicTable> pte = std::make_shared<PeriodicTable>();
 };
 }

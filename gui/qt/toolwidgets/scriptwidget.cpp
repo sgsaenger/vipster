@@ -67,7 +67,7 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
         {
             auto &defMap = master->stepdata[&step].definitions;
             auto [it, _] = defMap.insert_or_assign(op.s1,
-                std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>(master->globals)});
+                std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>()});
             auto& seldata = std::get<2>(it->second);
             seldata->update(&std::get<0>(it->second),
                             master->settings.atRadVdW.val,

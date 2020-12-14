@@ -552,9 +552,9 @@ Molecule UFF_PrepareStep(const Step &s, const std::string &name){
     return mol;
 }
 
-IO::Parameter UFF_PrepareParameters(const Step &s)
+Parameter UFF_PrepareParameters(const Step &s)
 {
-    auto p = IO::LmpInput.makeParam();
+    auto p = Plugins::LmpInput.makeParam();
     using coeffmap = std::map<std::string, std::string>;
     // create pair coeffs
     auto& paircoeffs = std::get<coeffmap>(p.at("Pair Coeff").first);
@@ -651,9 +651,13 @@ IO::Parameter UFF_PrepareParameters(const Step &s)
         const std::string& name2 = s[d.at2].name;
         const std::string& name3 = s[d.at3].name;
         const std::string& name4 = s[d.at4].name;
-        const std::string d_name = name1 < name4 ?
-                    fmt::format("{}-{}-{}-{}", name1, name2, name3, name4)
-                  : fmt::format("{}-{}-{}-{}", name4, name3, name2, name1);
+        const std::string d_name = name2 == name3 ?
+                    (name1 < name4 ?
+                        fmt::format("{}-{}-{}-{}", name1, name2, name3, name4) :
+                        fmt::format("{}-{}-{}-{}", name4, name3, name2, name1)):
+                    (name2 < name3 ?
+                        fmt::format("{}-{}-{}-{}", name1, name2, name3, name4) :
+                        fmt::format("{}-{}-{}-{}", name4, name3, name2, name1));
         if(dihedcoeffs.find(d_name) == dihedcoeffs.end()){
             // uff formula: 0.5 * V * (1 - cos(n * phi_0) * cos(n * phi))
             // lammps formula: k * (1 + D * cos(n * phi))

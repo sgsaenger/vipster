@@ -1,8 +1,7 @@
-#include "pyvipster.h"
+#include "kpoints.py.h"
 #include "kpoints.h"
 
-namespace Vipster::Py{
-void KPoints(py::module& m){
+void Vipster::Py::KPoints(py::module& m){
     auto k = py::class_<Vipster::KPoints>(m, "KPoints")
         .def(py::init())
         .def_readwrite("active", &KPoints::active)
@@ -45,5 +44,4 @@ void KPoints(py::module& m){
         .value("contour", KPoints::Discrete::Properties::contour)
     ;
 
-}
 }

@@ -1,4 +1,5 @@
 #include "settings.h"
+#include <nlohmann/json.hpp>
 
 using namespace Vipster;
 
@@ -13,7 +14,8 @@ void readSetting(const nlohmann::json& j, Setting<T>& s)
     }
 }
 
-void Vipster::from_json(const nlohmann::json& j, Settings& s){
+namespace Vipster{
+void from_json(const nlohmann::json& j, Settings& s){
     readSetting(j, s.overlap);
     readSetting(j, s.atRadFac);
     readSetting(j, s.atRadVdW);
@@ -29,7 +31,7 @@ void Vipster::from_json(const nlohmann::json& j, Settings& s){
     readSetting(j, s.negCol);
 }
 
-void Vipster::to_json(nlohmann::json& j, const Settings& s){
+void to_json(nlohmann::json& j, const Settings& s){
     j[s.overlap.name] = s.overlap.val;
     j[s.atRadFac.name] = s.atRadFac.val;
     j[s.atRadVdW.name] = s.atRadVdW.val;
@@ -43,4 +45,5 @@ void Vipster::to_json(nlohmann::json& j, const Settings& s){
     j[s.milCol.name] = s.milCol.val;
     j[s.posCol.name] = s.posCol.val;
     j[s.negCol.name] = s.negCol.val;
+}
 }

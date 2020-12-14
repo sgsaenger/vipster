@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>newelement</class>
+ <widget class="QDialog" name="newelement">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>162</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="0">
+    <widget class="QLabel" name="baseLabel">
+     <property name="text">
+      <string>Name of base element:</string>
+     </property>
+     <property name="buddy">
+      <cstring>baseName</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="baseName">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="newLabel">
+     <property name="text">
+      <string>Name of new Element:</string>
+     </property>
+     <property name="buddy">
+      <cstring>newName</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QCheckBox" name="baseCheck">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="newName"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="checkLabel">
+     <property name="text">
+      <string>Manually specify base element:</string>
+     </property>
+     <property name="buddy">
+      <cstring>baseCheck</cstring>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>newelement</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>newelement</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>249</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>baseCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>baseName</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>209</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>215</x>
+     <y>168</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

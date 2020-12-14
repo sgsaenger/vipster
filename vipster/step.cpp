@@ -73,7 +73,7 @@ void Step::setPTE(std::shared_ptr<PeriodicTable> newPTE)
         el = &*newPTE->find_or_fallback(el->first);
     }
     // let context own new table
-    atoms->ctxt.pte = newPTE;
+    atoms->ctxt.pte = std::move(newPTE);
 }
 
 void Step::setFmt(AtomFmt tgt, bool scale)

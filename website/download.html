@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script>
+    document.addEventListener("DOMContentLoaded", event => {
+        fetch("https://api.github.com/repos/sgsaenger/vipster/releases/latest")
+        .then(response => response.json())
+        .then(release => {
+            let par = document.getElementById('dl-links');
+            var list = `<h2>Latest stable release: ${release.name ? release.name : release.tag_name}</h2><ul>`;
+            for(asset of release.assets){
+                list += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
+            }
+            list += "</ul>";
+            par.innerHTML = list;
+        })
+        .then(none => fetch("https://api.github.com/repos/sgsaenger/vipster/releases/tags/continuous"))
+        .then(response => response.json())
+        .then(release => {
+            let par = document.getElementById('dl-links');
+            var list = `<h2>Development release (unstable):</h2><ul>`;
+            for(asset of release.assets){
+                list += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
+            }
+            list += "</ul>";
+            par.innerHTML += list;
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="content-text">
+<h1>Binary release</h1>
+<p id="dl-links">
+    Get precompiled builds from <a href="https://github.com/sgsaenger/vipster/releases">here</a>.
+</p>
+<h2> Installation instructions </h2>
+<ul>
+<li>
+    Windows: <br>
+    Unpack the archive with <a href="https://www.7-zip.org">7-zip</a> or a compatible archive program,
+    then run <code>Vipster.exe</code>.
+</li>
+<li>
+    Linux: <br>
+    Please first check if Vipster is available from your Distro's repositories.
+    Otherwise download the AppImage, make it executable
+    (<code>$ chmod +x Vipster-Linux-x86_64.AppImage</code>),
+    then run it directly (<code>$ ./Vipster-Linux-x86_64.AppImage</code>).
+</li>
+</ul>
+
+<h2>Package manager</h2>
+<p>
+You can also get Vipster from these repositories:
+</p>
+<a href="https://repology.org/project/vipster/versions">
+    <img src="https://repology.org/badge/vertical-allrepos/vipster.svg" alt="Packaging status">
+</a>
+
+<h1>Python bindings</h1>
+<p>
+If you want to use the Vipster library in your Python environments, you can install them via:
+</p>
+<pre><code>$ pip install vipster</code></pre>
+<p>
+Note:
+<ul>
+<li>if you installed Vipster via a package manager, the bindings may already be installed for your system Python installation</li>
+<li>if you install Vipster via <code>pip</code>, the GUI is not included</li>
+</ul>
+</p>
+
+<h1>Build from source</h1>
+<p>
+    To build Vipster from source, you need <a href="https://cmake.org">CMake</a> (&ge; 3.9)
+    and a C++-17 compatible compiler (including <code>&lt;filesystem&gt;</code> support).
+</p>
+<p>
+    To build the GUI, you also need to install Qt &ge; 5.10.
+</p>
+<p>
+    For detailed build instructions, please refer to
+    <a href="https://github.com/sgsaenger/vipster/blob/master/INSTALL.md"><code>INSTALL.md</code></a>.
+    Other dependencies are described in
+    <a href="https://github.com/sgsaenger/vipster/blob/master/external/README.md"><code>external/README.md</code></a>.
+</p>
+<p>
+    It is recommended to obtain the source via Git,
+    as this allows to easily track development and automatically obtain the dependencies under <code>external</code>.
+</p>
+
+<h2>Master branch</h2>
+This branch should always be stable. New features are only committed to this branch once they are deemed usable.
+<pre><code>$ git clone https://github.com/sgsaenger/vipster</code></pre>
+
+<h2>Testing branch</h2>
+Development happens on this branch. It may therefore contain bugs or not compile at all.
+Use it to get the newest features or contribute to the project.
+<pre><code>$ git clone https://github.com/sgsaenger/vipster -b testing</code></pre>
+
+</div>
+{% endblock %}

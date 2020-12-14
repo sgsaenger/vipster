@@ -1,7 +1,7 @@
 #include "../mainwindow.h"
 #include "pythonconsole.py.h"
 #include "glwidget.h"
-#include "vipster/pyvipster.h"
+#include "vipster/global.py.h"
 #include "vipster/molecule.h"
 #include <QTextBlock>
 #include <QScrollBar>

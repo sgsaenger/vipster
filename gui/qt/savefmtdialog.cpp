@@ -4,7 +4,7 @@
 
 using namespace Vipster;
 
-SaveFmtDialog::SaveFmtDialog(const IO::Plugins &plugins, QWidget *parent) :
+SaveFmtDialog::SaveFmtDialog(const PluginList &plugins, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SaveFmtDialog)
 {
@@ -69,7 +69,7 @@ void SaveFmtDialog::enablePresetWidget(bool on)
     }
 }
 
-std::optional<IO::Preset> SaveFmtDialog::getPreset()
+std::optional<Preset> SaveFmtDialog::getPreset()
 {
     const auto& p = ui->presetWidget->curPreset;
     if(p){
@@ -79,7 +79,7 @@ std::optional<IO::Preset> SaveFmtDialog::getPreset()
     }
 }
 
-std::optional<IO::Parameter> SaveFmtDialog::getParam()
+std::optional<Parameter> SaveFmtDialog::getParam()
 {
     const auto& p = ui->paramWidget->curParam;
     if(p){

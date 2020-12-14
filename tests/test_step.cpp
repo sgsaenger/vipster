@@ -57,7 +57,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
             REQUIRE( at.type == s.getPTE().at("") );
             REQUIRE( at.properties == AtomProperties{} );
         }
-        s.newAtom("C", {1,2,3}, {1.2, {4,5,6}, AtomFlag::FixX | AtomFlag::Hidden});
+        s.newAtom("C", {1,2,3}, {1.2, {4,5,6}, AtomProperties::FixX | AtomProperties::Hidden});
         const auto& at = s.back();
         REQUIRE( s.getNat() == 4 );
         REQUIRE( s.getNtyp() == 2 );
@@ -67,7 +67,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         REQUIRE( at.type == s.getPTE().at("C") );
         REQUIRE( at.properties->charge == 1.2 );
         REQUIRE( at.properties->forces == Vec{4,5,6} );
-        REQUIRE( at.properties->flags == (AtomFlag::FixX | AtomFlag::Hidden) );
+        REQUIRE( at.properties->flags == (AtomProperties::FixX | AtomProperties::Hidden) );
         s.delAtom(3);
         REQUIRE( s.getNat() == 3 );
         REQUIRE( s.getNtyp() == 1 );

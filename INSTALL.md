@@ -9,7 +9,9 @@ Vipster has four main components:
 ## Precompiled releases
 
 Binary releases of *QtVipster* are provided for Windows, Linux and (infrequently) macOS on [github](https://github.com/sgsaenger/vipster/releases).
+
 An exemplary implementation of *WebVipster* can be found [here](https://sgsaenger.github.io/vipster/emscripten).
+
 An easy way to install *PyVipster* is via pip and PyPi: `pip install vipster`
 
 ### QtVipster on Windows
@@ -31,10 +33,24 @@ chmod +x Vipster-Linux-x86_64.AppImage
 
 ## Build from source
 
-In order to compile Vipster, you need a working [cmake (>= 3.9)](https://cmake.org) installation.
+In order to compile Vipster, you need a working [CMake (>= 3.9)](https://cmake.org) installation.
+
 Your C++ compiler should support C++17.
 Vipster is tested against GCC (>=8) and Clang (>=4).
 So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see e.g. [MSYS2](https://www.msys2.org)).
+
+### PyVipster
+
+To build the python library from source, execute the `setup.py` script in the root folder:
+```
+python setup.py install --user # will install into your home directory
+python setup.py bdist_wheel # will create a .wheel file for distribution
+```
+#### For package maintainers:
+
+Installation via `setup.py` or `pip` will provide a statically linked library.
+To get bindings that dynamically link to a system-wide installation,
+use the CMake flag `-DVIPSTER_PYLIB=ON`.
 
 ### Dependencies
 
@@ -43,7 +59,7 @@ So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see
 Other dependencies are listed in `external/README.md`.
 If they are not installed in your system,
 they are included as git submodules and will be configured automatically during the build.
-(This can be disabled by providing `-DVIPSTER_DOWNLOAD_DEPENDENCIES=OFF` to cmake, see below.)
+(This can be disabled by providing `-DVIPSTER_DOWNLOAD_DEPENDENCIES=OFF` to CMake, see below.)
 
 ### Build process (simple)
 
@@ -56,7 +72,7 @@ Vipster is built in multiple steps:
 
 1. Configure the build via CMake (see below for more options):
 ```
-cmake -DCMAKE_BUILD_TYPE=Release $SOURCE_DIR
+cmake $SOURCE_DIR
 ```
 
 2. Perform the compilation:
@@ -69,7 +85,7 @@ cmake --build .
 cmake --build . -- install
 ```
 
-### Build with options (advanced)
+### Build options (advanced)
 
 You can provide options to CMake to further configure your installation.
 All options are given in the form of `-D<OPTION>=<VALUE>`.
@@ -78,14 +94,13 @@ You can also use `cmake-gui` (graphical) or `ccmake` (terminal) to change option
 After changing the configuration, execute Step 2 (and 3) again to update your compiled (installed) files.
 
 List of common/vipster options, see [CMake documentation](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) for more information:
-- CMAKE_BUILD_TYPE: General compiler options, set to "Release" for a normal build or "Debug" for debugging
+- CMAKE_BUILD_TYPE: General compilation preset, set to "Release" for a regular optimized build or "Debug" for debug flags
 - CMAKE_INSTALL_PREFIX: Set install path, defaults to `/usr/local`. Common setting for a per-user install: `$HOME/.local`
 - VIPSTER_DESKTOP: Set to "ON" to build QtVipster, "OFF" otherwise (default if Qt is found)
 - VIPSTER_LAMMPS: Set to "ON" to enable embedded LAMMPS widget (depends on QtVipster).
                   Will use a suitable installation if found, else will build it in-tree.
                   See the [LAMMPS-Manual](https://lammps.sandia.gov/doc/Manual.html) for more information and configuration options.
 - VIPSTER_PYWIDGET: Set to "ON" to enable embedded Python widget (depends on QtVipster, defaults to "ON" if Python is found)
-- VIPSTER_PYLIB: Set to "ON" to build standalone Python library (defaults to "ON" if Python is found)
 - VIPSTER_DOWNLOAD_DEPENDENCIES: Set to "OFF" to disable automatic git submodule initialization
 - BUILD_TESTING: Set to "OFF" to disable testing ("ON" by default)
 - CMAKE_PREFIX_PATH: Set to path for your Qt installation if not found automatically
@@ -103,7 +118,7 @@ A feature-reduced browser frontend is available for browsers supporting WebGL2 a
 Use [emscripten](http://kripken.github.io/emscripten-site) for building:
 ```
 cd $BUILD_DIR
-emcmake cmake -D CMAKE_BUILD_TYPE=Release -D VIPSTER_WEB=ON $SOURCE_DIR
+emcmake cmake -D CMAKE_BUILD_TYPE=Release $SOURCE_DIR
 emcmake cmake --build .
 ```
 

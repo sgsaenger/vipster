@@ -275,7 +275,10 @@ struct AtomList{
 
 class Step: public StepMutable<detail::AtomList>
 {
+private:
     friend class Molecule;
+    // Periodic table
+    void setPTE(std::shared_ptr<PeriodicTable> newPTE);
 public:
     Step(AtomFmt at_fmt=AtomFmt::Angstrom,
          const std::string &comment="");
@@ -301,9 +304,6 @@ public:
             addBond(b.at1, b.at2, b.diff, b.type ? b.type->first : "");
         }
     }
-
-    // Periodic table
-    void setPTE(std::shared_ptr<PeriodicTable> newPTE);
 
     // Format
     void setFmt(AtomFmt fmt, bool scale=true);
@@ -333,11 +333,14 @@ public:
     template<typename T>
     void delAtoms(StepConst<detail::Selection<T>>& s)
     {
-        const auto& idx = s.getAtoms().indices;
-        for(auto it = idx.rbegin(); it != idx.rend(); ++it)
+        std::set<size_t> indices{};
+        for(const auto [idx, _]: s.getAtoms().indices){
+            indices.insert(idx);
+        }
+        for(auto it = indices.rbegin(); it != indices.rend(); ++it)
         {
-            if(it->first < getNat()){
-                delAtom(it->first);
+            if(*it < getNat()){
+                delAtom(*it);
             }
         }
         s = select({});

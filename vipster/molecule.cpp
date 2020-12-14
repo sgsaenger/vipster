@@ -63,3 +63,27 @@ const PeriodicTable& Molecule::getPTE() const
 {
     return *pte;
 }
+
+void Molecule::cleanPTE()
+{
+    auto in_use = this->getTypes();
+    auto &pte = getPTE();
+    for(auto it = pte.begin(); it != pte.end();){
+        if(in_use.find(it->first) == in_use.end()){
+            it = pte.erase(it);
+        }else{
+            ++it;
+        }
+    }
+}
+
+std::set<std::string> Molecule::getTypes() const
+{
+    std::set<std::string> tmp{};
+    for(const auto& step: steps){
+        for(const auto& at: step){
+            tmp.insert(at.name);
+        }
+    }
+    return tmp;
+}

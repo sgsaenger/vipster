@@ -12,6 +12,9 @@ ui_*
 moc_*
 *.moc
 
+# website
+gh-pages/
+
 # Test files
 *.xyz
 *.pwi
@@ -35,10 +38,12 @@ moc_*
 .idea/
 .vscode/
 .eslintrc.json
+.ipynb_checkpoints/
 
 # NPM packages
 node_modules/
 package-lock.json
+*.tgz
 
 # python dist-stuff
 build/

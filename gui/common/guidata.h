@@ -16,28 +16,11 @@
 namespace Vipster{
 namespace GUI {
 
-/* Global OpenGL Data
- *
- * Contains strings to find/compile shaders correctly (platform/runtime dependent)
- * indices for shared OpenGL objects like basic mesh data
- */
-#ifdef __EMSCRIPTEN__
-struct GlobalData{
-#else
-struct GlobalData: protected QOpenGLExtraFunctions{
-#endif
-    GlobalData();
-    void initGL();
-    GLuint sphere_vbo, cylinder_vbo;
-    GLuint cell_ibo;
-    std::string header, folder;
-    bool initialized{false};
-};
-
 /* Base for concrete OpenGL Wrappers
  *
  * provides mechanism to load shaders
  * public interface for syncing data between cpu/gpu
+ * manages global OpenGL state for a context
  */
 #ifdef __EMSCRIPTEN__
 class Data
@@ -46,28 +29,37 @@ class Data: protected QOpenGLExtraFunctions
 #endif
 {
 public:
-    Data(const GlobalData&);
+    Data() = default;
     virtual ~Data() = default;
     Data(Data&&);
     Data(const Data&) = delete;
     Data& operator=(const Data&) = delete;
     Data& operator=(Data&&) = delete;
-    const GlobalData& global;
 
     virtual void draw(const Vec &off, const PBCVec &mult,
                       const Mat &cv, bool drawCell, void *context) = 0;
-    GLuint loadShader(const std::string &vert, const std::string &frag);
-    // TODO: split this in shader/vbo/vao management to reduce context sensitivity
     void syncToGPU(void *context);
 
 protected:
-    virtual void updateGL() = 0;
-    virtual void initGL(void *context) = 0;
-    std::map<void*, bool> initialized{};
-    bool updated{true};
+    struct GlobalContext{
+        bool initialized{false};
+        GLuint sphere_vbo{0}, cylinder_vbo{0};
+        GLuint cell_ibo{0};
+        std::string header{}, folder{};
+    };
+    static std::map<void*, GlobalContext> global_map;
+    struct InstanceContext{
+        bool initialized{false};
+        bool synchronized{false};
+    };
+    std::map<void*, InstanceContext>  instance_map;
 #ifndef __EMSCRIPTEN__
     bool wrap_initialized{false};
 #endif
+    void initGlobal(void *context);
+    virtual void updateGL(void *context) = 0;
+    virtual void initGL(void *context) = 0;
+    GLuint loadShader(const GlobalContext& globals, const std::string &vert, const std::string &frag);
 };
 
 #define READATTRIB(shader, name) \

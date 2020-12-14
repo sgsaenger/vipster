@@ -30,7 +30,6 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
     SECTION( "Addition and subtraction" ) {
         Vec v3{{2.5, 2.5, 2.5}};
         REQUIRE( v1+0.5 == v2 );
-        REQUIRE( 0.5+v1 == v2 );
         REQUIRE( v2-0.5 == v1 );
         v1 += 0.5;
         INFO( "In-place vec-float addition" )

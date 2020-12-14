@@ -6,24 +6,24 @@
 #include <optional>
 
 #include "molecule.h"
-#include "io/data.h"
-#include "io/plugin.h"
-#include "io/parameters.h"
-#include "io/presets.h"
+#include "iotuple.h"
+#include "plugin.h"
+#include "parameters.h"
+#include "presets.h"
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
     // read with format guess
-    IO::Data readFile(const std::string &fn,
-                      const IO::Plugins &p=IO::defaultPlugins());
+    IOTuple readFile(const std::string &fn,
+                     const PluginList &p=defaultPlugins());
     // read with explicit format
-    IO::Data readFile(const std::string &fn, const IO::Plugin* plug);
-    bool     writeFile(const std::string &fn, const IO::Plugin* plug, const Molecule &m,
-                       std::optional<size_t> idx={},
-                       const std::optional<IO::Parameter>& p=std::nullopt,
-                       const std::optional<IO::Preset>& c=std::nullopt);
-    const IO::Plugin* guessFmt(std::string fn,
-                               const IO::Plugins &p=IO::defaultPlugins());
+    IOTuple readFile(const std::string &fn, const Plugin* plug);
+    bool    writeFile(const std::string &fn, const Plugin* plug, const Molecule &m,
+                      std::optional<size_t> idx={},
+                      const std::optional<Parameter>& p=std::nullopt,
+                      const std::optional<Preset>& c=std::nullopt);
+    const Plugin* guessFmt(std::string fn,
+                           const PluginList &p=defaultPlugins());
     // RAII wrapper for temp folder
     namespace detail {
         class TempWrap{

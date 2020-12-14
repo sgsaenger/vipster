@@ -21,4 +21,5 @@ void BaseWidget::triggerUpdate(GUI::change_t change)
 {
     updateTriggered = true;
     master->updateWidgets(change);
+    updateTriggered = false;
 }

@@ -17,16 +17,16 @@ Data3DWidget::~Data3DWidget()
     delete ui;
 }
 
-Data3DWidget::IsoSurf::IsoSurf(const GUI::GlobalData& glob, std::vector<Face>&& faces,
+Data3DWidget::IsoSurf::IsoSurf(std::vector<Face>&& faces,
                 Vec off, Mat cell, Texture texture, bool plusmin, double isoval)
-    : GUI::MeshData{glob, std::move(faces), off, cell, texture},
+    : GUI::MeshData{std::move(faces), off, cell, texture},
       plusmin{plusmin},
       isoval{isoval}
 {}
 
-Data3DWidget::DatSlice::DatSlice(const GUI::GlobalData& glob, std::vector<Face>&& faces,
+Data3DWidget::DatSlice::DatSlice(std::vector<Face>&& faces,
                 Vec off, Mat cell, Texture texture, size_t dir, size_t pos)
-    : GUI::MeshData{glob, std::move(faces), off, cell, texture},
+    : GUI::MeshData{std::move(faces), off, cell, texture},
       dir{dir}, pos{pos}
 {}
 
@@ -222,7 +222,6 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
         auto pos = static_cast<size_t>(ui->sliceVal->value());
         auto off = static_cast<float>(pos) / curData->extent[dir];
         curSlice =  std::make_shared<DatSlice>(
-            master->globals,
             mkSlice(dir, off),
             curData->origin,
             curData->cell,
@@ -750,7 +749,6 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
         auto isoval = ui->surfVal->text().toDouble();
         auto pm = static_cast<bool>(ui->surfToggle->checkState());
         curSurf = std::make_shared<IsoSurf>(
-                    master->globals,
                     mkSurf(isoval, pm),
                     curData->origin,
                     curData->cell,

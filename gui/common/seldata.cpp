@@ -3,52 +3,66 @@
 
 using namespace Vipster;
 
-decltype(GUI::SelData::shader) GUI::SelData::shader;
+decltype(GUI::SelData::shader_map) GUI::SelData::shader_map;
 
-GUI::SelData::SelData(const GUI::GlobalData& glob, Step::selection *sel)
-    : Data{glob}, curSel{sel}
+GUI::SelData::SelData(Step::selection *sel)
+    : curSel{sel}
 {}
 
 GUI::SelData::SelData(SelData&& dat)
-    : Data{std::move(dat)},
-      sel_buffer{std::move(dat.sel_buffer)},
-      cell_mat{dat.cell_mat},
-      curSel{dat.curSel}
+    : Data{std::move(dat)}
+//      sel_buffer{std::move(dat.sel_buffer)},
+//      cell_mat{dat.cell_mat},
+//      curSel{dat.curSel}
 {
+    std::swap(sel_buffer, dat.sel_buffer);
+    std::swap(cell_mat, dat.cell_mat);
+    std::swap(curSel, dat.curSel);
+    std::swap(atRadFac, dat.atRadFac);
     std::swap(color, dat.color);
-    std::swap(vaos, dat.vaos);
-    std::swap(vbo, dat.vbo);
+    std::swap(object_map, object_map);
 }
 
 void GUI::SelData::initGL(void *context)
 {
+    auto &shader = shader_map[context];
     if(!shader.initialized){
-        shader.program = loadShader("/selection.vert", "/selection.frag");
-        READATTRIB(shader, vertex)
-        READATTRIB(shader, position)
-        READATTRIB(shader, vert_scale)
-        READATTRIB(shader, pbc_crit)
-        READUNIFORM(shader, color)
-        READUNIFORM(shader, offset)
-        READUNIFORM(shader, pos_scale)
-        READUNIFORM(shader, scale_fac)
-        READUNIFORM(shader, mult)
+        initShader(global_map[context], shader);
         shader.initialized = true;
     }
+    auto &objects = object_map[context];
+    if(!objects.initialized){
+        glGenVertexArrays(1, &objects.vao);
+        glGenBuffers(1, &objects.vbo);
+        initVAO(global_map[context], objects, shader);
+        objects.initialized = true;
+    }
+    glBindVertexArray(0);
+}
 
-    auto& vao = vaos[context];
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+void GUI::SelData::initShader(GlobalContext& globals, shader &shader)
+{
+    shader.program = loadShader(globals, "/selection.vert", "/selection.frag");
+    READATTRIB(shader, vertex)
+    READATTRIB(shader, position)
+    READATTRIB(shader, vert_scale)
+    READATTRIB(shader, pbc_crit)
+    READUNIFORM(shader, color)
+    READUNIFORM(shader, offset)
+    READUNIFORM(shader, pos_scale)
+    READUNIFORM(shader, scale_fac)
+    READUNIFORM(shader, mult)
+}
 
-    glBindBuffer(GL_ARRAY_BUFFER, global.sphere_vbo);
+void GUI::SelData::initVAO(GlobalContext& globals, ObjectContext &objects, shader &shader)
+{
+    glBindVertexArray(objects.vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, globals.sphere_vbo);
     glVertexAttribPointer(shader.vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(shader.vertex);
 
-    if(!vbo_initialized){
-        glGenBuffers(1, &vbo);
-        vbo_initialized = true;
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, objects.vbo);
 
     // ATOM POSITIONS
     glVertexAttribPointer(shader.position, 3,
@@ -72,16 +86,14 @@ void GUI::SelData::initGL(void *context)
                           reinterpret_cast<const GLvoid*>(offsetof(SelProp, mult)));
     glVertexAttribDivisor(shader.pbc_crit, 1);
     glEnableVertexAttribArray(shader.pbc_crit);
-    glBindVertexArray(0);
 }
 
 GUI::SelData::~SelData()
 {
-    if(vbo_initialized){
-        glDeleteBuffers(1, &vbo);
-    }
-    for(auto& vao: vaos){
-        glDeleteVertexArrays(1, &vao.second);
+    for(auto &[context, objects]: object_map){
+        if(!objects.initialized) continue;
+        glDeleteVertexArrays(1, &objects.vao);
+        glDeleteBuffers(1, &objects.vbo);
     }
 }
 
@@ -89,7 +101,8 @@ void GUI::SelData::draw(const Vec &off, const PBCVec &mult,
                         const Mat &, bool, void *context)
 {
     if(sel_buffer.size()){
-        glBindVertexArray(vaos[context]);
+        glBindVertexArray(object_map[context].vao);
+        auto &shader = shader_map[context];
         glUseProgram(shader.program);
         glUniform1f(shader.scale_fac, atRadFac);
         glUniform3f(shader.offset,
@@ -105,9 +118,9 @@ void GUI::SelData::draw(const Vec &off, const PBCVec &mult,
     }
 }
 
-void GUI::SelData::updateGL()
+void GUI::SelData::updateGL(void *context)
 {
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, object_map[context].vbo);
     if(!sel_buffer.empty()){
         glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(sel_buffer.size()*sizeof(SelProp)),
                      static_cast<const void*>(sel_buffer.data()), GL_STREAM_DRAW);
@@ -156,7 +169,9 @@ void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
             ++it;
         }
     }
-    updated = true;
+    for(auto &[context, state]: instance_map){
+        state.synchronized = false;
+    }
 
     Mat tmp_mat;
     if(curSel->getFmt() == AtomFmt::Crystal){

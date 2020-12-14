@@ -14,6 +14,7 @@ public:
     operator const std::string&() const;
     int value() const;
     const std::string& name() const;
+    std::vector<std::string> names() const;
     NamedEnum& operator=(int);
     NamedEnum& operator=(const std::string&);
 private:

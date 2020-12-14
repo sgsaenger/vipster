@@ -21,7 +21,7 @@ using namespace Vipster;
 namespace fs = std::filesystem;
 
 MainWindow::MainWindow(QString path, ConfigState& state,
-                       std::vector<IO::Data> &&d, QWidget *parent):
+                       std::vector<IOTuple> &&d, QWidget *parent):
     QMainWindow{parent},
     state{state},
     pte{std::get<0>(state)},
@@ -241,12 +241,12 @@ void MainWindow::editAtoms(QAction* sender)
         change = GUI::Change::atoms | GUI::Change::selection;
     }else if ( sender == ui->actionHide_Atom_s){
         for(auto& at: *curSel){
-            at.properties->flags[AtomFlag::Hidden] = 1;
+            at.properties->flags[AtomProperties::Hidden] = 1;
         }
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionShow_Atom_s){
         for(auto& at: *curSel){
-            at.properties->flags[AtomFlag::Hidden] = 0;
+            at.properties->flags[AtomProperties::Hidden] = 0;
         }
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionRename_Atom_s){
@@ -316,14 +316,14 @@ void MainWindow::newMol(QAction* sender)
     }
 }
 
-void MainWindow::newData(IO::Data &&d)
+void MainWindow::newData(IOTuple &&d)
 {
-    newMol(std::move(d.mol));
+    newMol(std::move(std::get<0>(d)));
     const auto& name = molecules.back().name;
-    if(d.param){
-        paramWidget->registerParam(name, std::move(*d.param));
+    if(auto &param = std::get<1>(d)){
+        paramWidget->registerParam(name, std::move(*param));
     }
-    for(auto& dat: d.data){
+    for(auto& dat: std::get<2>(d)){
         data.push_back(std::move(dat));
         updateWidgets(GUI::Change::data);
     }
@@ -353,7 +353,7 @@ void MainWindow::loadMol()
             try {
                 // try to open file without explicit format
                 newData(readFile(file, plugins));
-            } catch (const IO::Error &e) {
+            } catch (const IOError &e) {
                 // if error is not fatal, we just need the format, so request it
                 if(!e.fatal){
                     bool got_fmt{false};
@@ -371,7 +371,7 @@ void MainWindow::loadMol()
                     throw;
                 }
             }
-        }catch (const IO::Error &e){
+        }catch (const IOError &e){
             QMessageBox msg{this};
             msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
             msg.exec();
@@ -393,7 +393,7 @@ void MainWindow::saveMol()
                 writeFile(target, sfd.plugin, *curMol,
                           curVP->moldata[curMol].curStep-1,
                           sfd.getParam(), sfd.getPreset());
-            }catch(const IO::Error& e){
+            }catch(const IOError& e){
                 QMessageBox msg{this};
                 msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
                 msg.exec();
@@ -493,7 +493,7 @@ void MainWindow::savePreset()
 void MainWindow::about()
 {
     QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster v" VIPSTER_VERSION "b</h2>"
+    QString("<h2>Vipster v" VIPSTER_VERSION "</h2>"
             "<p>"
             "©Sebastian Gsänger, 2020"
             "<br>"

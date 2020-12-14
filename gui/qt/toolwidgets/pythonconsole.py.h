@@ -26,7 +26,6 @@ private:
     size_t curCmd{0};
     std::string tmpCmd{};
     std::vector<std::string> cmdHistory{};
-    QStringList commandbuf{};
     pybind11::dict locals{};
     int cmdBlock{-1};
     MainWindow* master{nullptr};

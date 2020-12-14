@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>677</width>
-    <height>105</height>
+    <height>109</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,7 +50,10 @@
      <item>
       <widget class="QComboBox" name="molList">
        <property name="sizeAdjustPolicy">
-        <enum>QComboBox::AdjustToContents</enum>
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+       </property>
+       <property name="minimumContentsLength">
+        <number>20</number>
        </property>
       </widget>
      </item>

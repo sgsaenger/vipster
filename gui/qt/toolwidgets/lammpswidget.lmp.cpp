@@ -3,7 +3,7 @@
 #include "../mainwindow.h"
 #include "lammpswidget_aux/run.lmp.h"
 
-#include "vipster/io/plugins/lmpinput.h"
+#include "vipster/plugins/lmpinput.h"
 
 #include <thread>
 
@@ -265,7 +265,7 @@ void LammpsWidget::on_ffPrepare_clicked()
 void LammpsWidget::mkGeom(const Step &curStep, const ForceField &FF, const fs::path &tempdir)
 {
     // setup preset for FF demands
-    auto preset = IO::LmpInput.makePreset();
+    auto preset = Plugins::LmpInput.makePreset();
     std::get<NamedEnum>(preset.at("style").first) = "full";
     preset.at("coeff").first = true;
     preset.at("bonds").first = FF.bond.has_value();
@@ -275,7 +275,7 @@ void LammpsWidget::mkGeom(const Step &curStep, const ForceField &FF, const fs::p
     // request parameter from FF
     auto param = FF.prepareParameters(curStep);
     // create input file
-    writeFile((tempdir/"geom.lmp").string(), &IO::LmpInput, *master->curMol,
+    writeFile((tempdir/"geom.lmp").string(), &Plugins::LmpInput, *master->curMol,
               master->curVP->moldata[master->curMol].curStep-1,
               param, preset);
 }
@@ -284,7 +284,7 @@ void LammpsWidget::mkScript(const Step &curStep, const ForceField &FF, const fs:
 {
     std::ofstream script{tempdir/"input"};
     if(!script){
-        throw IO::Error{"Could not write input script at "+tempdir.string()+"/input"};
+        throw IOError{"Could not write input script at "+tempdir.string()+"/input"};
     }
     // common block: setup FF and cell
     fmt::print(script,

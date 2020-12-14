@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Vipster</title>
+        <link rel="icon" type="image/png" href="images/favicon.png">
+        <link rel="stylesheet" href="css/styles.css">
+        {%- block head %}
+        {%- endblock %}
+    </head>
+    {%- if current.base -%}
+    <body class="body-nested">
+    {% else %}
+    <body>
+    {%- endif %}
+        <nav class="navbar flex">
+            <a class="menuitem flex" href="index.html"> Vipster</a>
+            <div class="menu flex">
+            {%- for page in pages %}
+                {%- if not page.base %}
+                {%- if page == current %}
+                <a class="menuitem flex menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
+                {%- else %}
+                <a class="menuitem flex" href="{{ page.url }}">{{ page.name }}</a>
+                {%- endif %} {%- endif %}
+            {%- endfor %}
+            </div>
+        </nav>
+        {% if current.base -%}
+        <nav class="navbar flex navbar-nested">
+            <div></div>
+            <div class="menu flex">
+            {%- for page in pages %}
+                {%- if page.base == current.base %}
+                {%- if page == current %}
+                <a class="menuitem flex menuitem-active" href="{{ page.url }}">{{ page.name }}</a>
+                {%- else %}
+                <a class="menuitem flex" href="{{ page.url }}">{{ page.name }}</a>
+                {%- endif %}
+                {%- endif %}
+            {%- endfor %}
+            </div>
+        </nav>
+        {%- endif -%}
+        <main class="grid">
+        {%- block contentlist %}{%- endblock %}
+        {%- block content %}{%- endblock %}
+        </main>
+        <footer class="grid">
+            <div class="content-text footer">
+                <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
+                <p></p>
+                <p><a href="#">Back to top</a></p>
+            </div>
+        </footer>
+    </body>
+</html>

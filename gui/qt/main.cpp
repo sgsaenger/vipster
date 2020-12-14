@@ -12,7 +12,7 @@
 #pragma push_macro("slots")
 #undef slots
 #include <pybind11/embed.h>
-#include "vipster/pyvipster.h"
+#include "vipster/global.py.h"
 #pragma pop_macro("slots")
 #endif
 
@@ -24,10 +24,12 @@ using namespace Vipster;
 
 // setup and launch GUI
 [[noreturn]] void launchVipster(int argc, char *argv[],
-                                std::vector<IO::Data>&& data,
+                                std::vector<IOTuple>&& data,
                                 ConfigState&& state){
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
+    QApplication::setApplicationVersion(VIPSTER_VERSION);
+    std::cout << "Vipster v" VIPSTER_VERSION << std::endl;
     QSurfaceFormat format;
     if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
         // try to get a 3.3core context on desktop
@@ -52,49 +54,8 @@ using namespace Vipster;
 }
 
 #ifdef USE_PYTHON
-// setup embedded python module
-namespace Vipster::Py{
-void Vec(py::module&);
-void Atom(py::module&);
-void Bond(py::module&);
-void Table(py::module&);
-void Step(py::module&);
-void KPoints(py::module&);
-void Molecule(py::module&);
-void Data(py::module&);
-void IO(py::module&, const ConfigState&, bool);
-void config(py::module&, ConfigState&);
-}
-
-PYBIND11_EMBEDDED_MODULE(vipster, m)
-{
-    m.doc() = "Python bindings for loaded data\n"
-              "===============================\n\n"
-              "Use curMol() to access the currently loaded molecule, "
-              "or getMol(n) to acces the n-th loaded molecule. "
-              "Please inspect Molecule and Step as the main data containers "
-              "for more information.";
-    /*
-     * Basic containers
-     */
-
-    py::bind_map<std::map<std::string,std::string>>(m, "__StrStrMap__");
-    py::bind_vector<std::vector<std::string>>(m, "__StrVector__");
-    bind_array<ColVec>(m, "ColVec");
-
-    /*
-     * Initialize library
-     */
-
-    Py::Vec(m);
-    Py::Atom(m);
-    Py::Bond(m);
-    Py::Table(m);
-    Py::Step(m);
-    Py::KPoints(m);
-    Py::Molecule(m);
-    Py::Data(m);
-}
+// create embedded python module
+PYBIND11_EMBEDDED_MODULE(vipster, m) {}
 #endif
 
 // command-line handling
@@ -102,24 +63,23 @@ int main(int argc, char *argv[])
 {
     // read user-defined settings and make state known
     auto state = Vipster::readConfig();
-    const IO::Plugins &plugins = std::get<2>(state);
-    const IO::Parameters &params = std::get<3>(state);
-    const IO::Presets &presets = std::get<4>(state);
+    const PluginList    &plugins = std::get<2>(state);
+    const ParameterMap  &params = std::get<3>(state);
+    const PresetMap     &presets = std::get<4>(state);
 
 #ifdef USE_PYTHON
     // instance the python-interpreter, keep it alive for the program's duration
     pybind11::scoped_interpreter interp{};
     auto vipster_module = py::module::import("vipster");
-    // expose rest of API and pass state without having to declare it as global
-    Py::IO(vipster_module, state, false);
-    Py::config(vipster_module, state);
+    // register types and state in module
+    Py::setupVipster(vipster_module, state, false);
 #endif
 
     // main parser + data-targets
-    CLI::App app{"Vipster v" VIPSTER_VERSION "b"};
+    CLI::App app{"Vipster v" VIPSTER_VERSION};
     app.allow_extras(true);
-    std::map<const IO::Plugin*, std::vector<std::string>> fmt_files{};
-    std::map<CLI::Option*, const IO::Plugin*> fmt_opts{};
+    std::map<const Plugin*, std::vector<std::string>> fmt_files{};
+    std::map<CLI::Option*, const Plugin*> fmt_opts{};
     for(auto& fmt: plugins){
         // parser
         if(!fmt->parser) continue;
@@ -134,12 +94,12 @@ int main(int argc, char *argv[])
         if(!app.get_subcommands().empty()){
             return;
         }
-        std::vector<IO::Data> data{};
+        std::vector<IOTuple> data{};
         if(app.remaining_size()!=0){
             for(const auto& file: app.remaining()){
                 try{
                     data.push_back(readFile(file, plugins));
-                }catch(const Vipster::IO::Error &e){
+                }catch(const Vipster::IOError &e){
                     std::cout << e.what() << std::endl;
                     throw CLI::RuntimeError{1};
                 }
@@ -150,7 +110,7 @@ int main(int argc, char *argv[])
             for(const auto& fn: op_fmt.first->results()){
                 try{
                     data.push_back(readFile(fn, op_fmt.second));
-                }catch(const Vipster::IO::Error &e){
+                }catch(const Vipster::IOError &e){
                     std::cout << e.what() << std::endl;
                     throw CLI::RuntimeError{1};
                 }
@@ -206,13 +166,13 @@ int main(int argc, char *argv[])
                         "Specify parameter set (defaults to parsed one, if present)");
     convert->add_flag("--help-param",
                       [](size_t){
-                          std::cout << Vipster::IO::ParametersAbout << std::endl;
+                          std::cout << Vipster::ParametersAbout << std::endl;
                           throw CLI::Success();
                       },
                       "Display help for parameter sets");
     convert->add_flag("--list-param",
                       [&](size_t){
-                          auto printFmt = [&](const IO::Plugin* fmt){
+                          auto printFmt = [&](const Plugin* fmt){
                               for(const auto& pair: params.at(fmt)){
                                   std::cout << pair.first << '\n';
                               }
@@ -234,13 +194,13 @@ int main(int argc, char *argv[])
                         "Specify behavior-preset for output plugin");
     convert->add_flag("--help-preset",
                       [](size_t){
-                          std::cout << Vipster::IO::PresetsAbout << std::endl;
+                          std::cout << Vipster::PresetsAbout << std::endl;
                           throw CLI::Success();
                       },
                       "Display help for output-behavior-presets");
     convert->add_flag("--list-preset",
                       [&](size_t){
-                          auto printFmt = [&](const IO::Plugin* fmt){
+                          auto printFmt = [&](const Plugin* fmt){
                               for(const auto& pair: presets.at(fmt)){
                                   std::cout << pair.first << '\n';
                               }
@@ -269,9 +229,9 @@ int main(int argc, char *argv[])
 
     convert->callback([&](){
         // determine/check in&out formats
-        const IO::Plugin *fmt_in, *fmt_out;
+        const Plugin *fmt_in, *fmt_out;
         const auto IOCmdIn = [&](){
-            std::map<std::string, const IO::Plugin*> fmts_in;
+            std::map<std::string, const Plugin*> fmts_in;
             for(const auto& plug: plugins){
                 if(plug->parser){
                     fmts_in[plug->command] = plug;
@@ -280,7 +240,7 @@ int main(int argc, char *argv[])
             return fmts_in;
         }();
         const auto IOCmdOut = [&](){
-            std::map<std::string, const IO::Plugin*> fmts_out;
+            std::map<std::string, const Plugin*> fmts_out;
             for(const auto& plug: plugins){
                 if(plug->writer){
                     fmts_out[plug->command] = plug;
@@ -302,7 +262,7 @@ int main(int argc, char *argv[])
         }
         // read input
         auto [mol, param, data] = readFile(conv_data.in_fn, fmt_in);
-        std::optional<IO::Preset> preset{};
+        std::optional<Preset> preset{};
         if(fmt_out->makeParam){
             std::string par_name;
             if(!conv_data.param.empty()){

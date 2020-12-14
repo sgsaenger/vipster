@@ -1,6 +1,7 @@
 #include "periodictable.h"
 #include <cctype>
 #include <optional>
+#include <nlohmann/json.hpp>
 
 using namespace Vipster;
 
@@ -206,7 +207,8 @@ Element& PeriodicTable::operator [](const std::string& k)
     return find_or_fallback(k)->second;
 }
 
-void Vipster::to_json(nlohmann::json& j, const Element& p)
+namespace Vipster{
+void to_json(nlohmann::json& j, const Element& p)
 {
     j["PWPP"] = p.PWPP;
     j["CPPP"] = p.CPPP;
@@ -219,7 +221,7 @@ void Vipster::to_json(nlohmann::json& j, const Element& p)
     j["col"] = p.col;
 }
 
-void Vipster::from_json(const nlohmann::json& j, Element& p)
+void from_json(const nlohmann::json& j, Element& p)
 {
     p.PWPP = j.value("PWPP", "");
     p.CPPP = j.value("CPPP", "");
@@ -232,16 +234,17 @@ void Vipster::from_json(const nlohmann::json& j, Element& p)
     p.col = j.value("col", ColVec{0,0,0,255});
 }
 
-void Vipster::to_json(nlohmann::json& j, const PeriodicTable& m)
+void to_json(nlohmann::json& j, const PeriodicTable& m)
 {
     for(const auto& e: m){
         j[e.first] = e.second;
     }
 }
 
-void Vipster::from_json(const nlohmann::json& j, PeriodicTable& m)
+void from_json(const nlohmann::json& j, PeriodicTable& m)
 {
     for(auto it=j.begin(); it!=j.end(); ++it){
         m.insert_or_assign(it.key(), it.value());
     }
+}
 }

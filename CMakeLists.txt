@@ -1,33 +1,55 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(Vipster VERSION 1.19)
 
-# default to shared libraries
-option(BUILD_SHARED_LIBS "Build shared library" ON)
-# enable main GUI App if Qt is found
-find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
-option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND})
+include(CMakeDependentOption)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel ..."
+        FORCE)
+endif()
+
 # automatic dependency solving
 option(VIPSTER_DOWNLOAD_DEPENDENCIES "Download required dependencies if not present" ON)
-mark_as_advanced(VIPSTER_DOWNLOAD_DEPENDENCIES)
-include(CMakeDependentOption)
+
+# detect compilation with emscripten
+if(EMSCRIPTEN)
+    # default to static libraries and no tests
+    option(BUILD_SHARED_LIBS "Build shared library" OFF)
+    option(BUILD_TESTING "Build tests" OFF)
+else()
+    # default to shared libraries and tests
+    option(BUILD_SHARED_LIBS "Build shared library" ON)
+    option(BUILD_TESTING "Build tests" ON)
+endif()
+
 # Minimal standalone .wasm interface
-cmake_dependent_option(VIPSTER_WEB "Build WASM-Module" OFF "NOT VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_WEB "Build JS+WebGL GUI" ON "EMSCRIPTEN" OFF)
+mark_as_advanced(VIPSTER_WEB)
+
+# enable main GUI App if Qt is found
+find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
+cmake_dependent_option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND} "NOT EMSCRIPTEN" OFF)
+
 # embedded LAMMPS widget
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
+
 # Python widget and standalone library
-find_package(PythonInterp 3.6 QUIET)
-cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${PythonInterp_FOUND} "VIPSTER_DESKTOP" OFF)
-cmake_dependent_option(VIPSTER_PYLIB "Python library" ${PythonInterp_FOUND} "NOT VIPSTER_WEB" OFF)
-cmake_dependent_option(VIPSTER_PYPI "To be set when built via setup.py" OFF "VIPSTER_PYLIB" OFF)
-cmake_dependent_option(VIPSTER_EGG_INFO "Create infos for python package" ON "VIPSTER_PYLIB" OFF)
-mark_as_advanced(VIPSTER_PYPI VIPSTER_EGG_INFO)
+find_package(Python3 3.6 QUIET COMPONENTS Interpreter Development)
+cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${Python3_FOUND} "VIPSTER_DESKTOP" OFF)
+option(VIPSTER_PYLIB "Standalone Python library" OFF)
+mark_as_advanced(VIPSTER_PYLIB)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# include current dir so library can be accessed via "vipster/*.h"
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# add tinyexpr to the include path
+include_directories("external/tinyexpr")
 
 # Library, needed for everything else
-file(GLOB_RECURSE PY_SOURCES "vipster/pyvipster.h" "vipster/*.py.h" "vipster/*.py.cpp")
+file(GLOB_RECURSE PY_SOURCES "vipster/*.py.h" "vipster/*.py.cpp")
 file(GLOB_RECURSE LIB_SOURCES "vipster/*.h" "vipster/*.cpp" "external/tinyexpr.c")
 list(REMOVE_ITEM LIB_SOURCES ${PY_SOURCES})
 list(REMOVE_ITEM PY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/vipster/main.py.cpp")
@@ -52,6 +74,7 @@ if(UNIX)
     # install files to appropriate locations
     if(BUILD_SHARED_LIBS AND NOT APPLE AND NOT VIPSTER_WEB)
         install(TARGETS libvipster
+            EXPORT "Vipster"
             LIBRARY
             DESTINATION "lib"
             FRAMEWORK
@@ -62,6 +85,8 @@ if(UNIX)
             FILES_MATCHING PATTERN "*.h"
             )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "include/vipster")
+        target_include_directories(libvipster PUBLIC $<INSTALL_INTERFACE:include>)
+        install(EXPORT "Vipster" DESTINATION "lib/cmake")
     endif()
 endif()
 
@@ -78,7 +103,7 @@ function(init_submodule NAME PATH)
         if(NUM_FILES EQUAL 0)
             message(FATAL_ERROR
                 "Could not find suitable ${NAME} installation and included version at external/${PATH} is not initialized.\n"
-                "Please install ${NAME} or execute \"git submodule update --init ${PATH}\".")
+                "Please install ${NAME} or execute \"git submodule update --init external/${PATH}\".")
         else()
             message("Could not find suitable ${NAME} installation, using included version at external/${PATH}")
         endif()
@@ -93,6 +118,7 @@ if(NOT nlohmann_json_FOUND)
     set(JSON_Install OFF CACHE INTERNAL "")
     add_subdirectory(external/nlohmann_json EXCLUDE_FROM_ALL)
 endif()
+target_link_libraries(libvipster PRIVATE nlohmann_json::nlohmann_json)
 
 # find suitable fmt-library
 find_package(fmt 6.1.2 CONFIG QUIET)
@@ -100,8 +126,7 @@ if(NOT fmt_FOUND)
     init_submodule("{fmt}" "fmt")
     add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
 endif()
-target_link_libraries(libvipster PUBLIC nlohmann_json::nlohmann_json fmt::fmt-header-only)
-target_include_directories(libvipster PUBLIC "external/tinyexpr")
+target_link_libraries(libvipster PRIVATE fmt::fmt-header-only)
 
 if(BUILD_TESTING)
     # Tests, so far only for library
@@ -124,15 +149,14 @@ endif()
 
 # create python binding objects
 if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
-    find_package(PythonInterp 3.6 REQUIRED)
-    find_package(PythonLibs 3.6 REQUIRED)
-    find_package(pybind11 2.4.4 CONFIG QUIET)
+    find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter Development)
+    find_package(pybind11 2.6.0 CONFIG QUIET)
     if(NOT pybind11_FOUND)
         init_submodule("Pybind11" "pybind11")
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
     endif()
     add_library(bindings OBJECT ${PY_SOURCES})
-    target_link_libraries(bindings PUBLIC libvipster PRIVATE pybind11::module)
+    target_link_libraries(bindings PUBLIC libvipster PRIVATE fmt::fmt-header-only pybind11::module)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
     endif()
@@ -143,17 +167,15 @@ if(VIPSTER_PYLIB)
     pybind11_add_module(pyvipster $<TARGET_OBJECTS:bindings> "vipster/main.py.cpp")
     set_target_properties(pyvipster PROPERTIES OUTPUT_NAME "vipster")
     target_link_libraries(pyvipster PRIVATE libvipster)
-    if(VIPSTER_PYPI OR (UNIX AND NOT APPLE))
-        execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+    if(VIPSTER_PYLIB OR (UNIX AND NOT APPLE))
+        execute_process(COMMAND "${Python3_EXECUTABLE}" "-c"
 "from distutils import sysconfig as s;
 print(s.get_python_lib(plat_specific=True,standard_lib=False))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
-        if(VIPSTER_EGG_INFO AND NOT VIPSTER_PYPI)
-            install(CODE  "execute_process(COMMAND \"${PYTHON_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
-            install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
-        endif()
+        install(CODE  "execute_process(COMMAND \"${Python3_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
+        install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
     endif()
 endif()
 
@@ -162,7 +184,6 @@ if(VIPSTER_DESKTOP)
 
     # load and setup qt
     find_package(Qt5 5.10 CONFIG REQUIRED COMPONENTS Widgets Gui)
-    set(CMAKE_INCLUDE_CURRENT_DIR ON)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
@@ -174,6 +195,10 @@ if(VIPSTER_DESKTOP)
         set(CLI11_TESTING OFF CACHE INTERNAL "")
         add_subdirectory(external/CLI11 EXCLUDE_FROM_ALL)
     endif()
+
+    # find OpenGL (needed if not in compiler's sysroot)
+    set(OpenGL_GL_PREFERENCE GLVND)
+    find_package(OpenGL)
 
     # get source files and split off optional sources
     file(GLOB_RECURSE QT_SOURCES
@@ -201,20 +226,29 @@ if(VIPSTER_DESKTOP)
     # executable
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
 
+    # set rpath for local installations on linux
+    if(UNIX AND BUILD_SHARED_LIBS AND NOT APPLE)
+        set_target_properties(vipster PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
+    endif()
+
     # fix name-clash on import library when using mingw/gcc
     if(WIN32)
         set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
     endif()
 
     # link QT, CLI11 and vipster
-    target_link_libraries(vipster PRIVATE Qt5::Gui Qt5::Widgets CLI11::CLI11 libvipster)
+    target_link_libraries(vipster PRIVATE
+        Qt5::Gui Qt5::Widgets OpenGL::GL
+        CLI11::CLI11
+        fmt::fmt-header-only
+        libvipster)
     target_include_directories(vipster PRIVATE "gui/common" "gui/qt")
 
     # python-widget:
     if(VIPSTER_PYWIDGET)
         add_definitions(-DUSE_PYTHON)
         target_sources(vipster PRIVATE ${QTPY_SOURCES} $<TARGET_OBJECTS:bindings>)
-        target_link_libraries(vipster PRIVATE pybind11::embed)
+        target_link_libraries(vipster PRIVATE pybind11::embed Python3::Python)
     endif()
 
     # lammps-widget:
@@ -224,7 +258,7 @@ if(VIPSTER_DESKTOP)
         if(LAMMPS_FOUND)
             if(${LAMMPS_VERSION} GREATER_EQUAL 20200505)
                 get_target_property(LMP_INC_DIR LAMMPS::lammps INTERFACE_INCLUDE_DIRECTORIES)
-                if(EXISTS ${LMP_INC_DIR}/exceptions.h)
+                if(EXISTS ${LMP_INC_DIR}/lammps/exceptions.h)
                     message("Found LAMMPS (suitable version \"${LAMMPS_VERSION}\" at ${LMP_INC_DIR})")
                     set(USE_LAMMPS_BUILTIN OFF)
                     # link against imported target
@@ -267,14 +301,17 @@ if(VIPSTER_DESKTOP)
     if(UNIX AND NOT APPLE)
         install(TARGETS vipster RUNTIME DESTINATION "bin")
         install(FILES "util/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
-        install(FILES "util/vipster.desktop" DESTINATION "share/applications")
-        install(FILES "util/vipster.appdata.xml" DESTINATION "share/metainfo")
+        install(FILES "util/com.github.sgsaenger.vipster.desktop" DESTINATION "share/applications")
+        install(FILES "util/com.github.sgsaenger.vipster.appdata.xml" DESTINATION "share/metainfo")
     endif()
 endif()
 
 if(VIPSTER_WEB)
     # Emscripten-based web application
-    set(EMCC_LINKER_FLAGS "--bind -s USE_WEBGL2=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0")
+    set(EMCC_LINKER_FLAGS
+        "--bind -s USE_WEBGL2=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['FS'] -s WASM=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1"
+        CACHE STRING
+        "Configure how and what Emscripten bundles")
     file(GLOB WEB_RESOURCES "gui/resources/*.frag" "gui/resources/*.vert")
     foreach(file ${WEB_RESOURCES})
         get_filename_component(filename ${file} NAME)
@@ -290,4 +327,5 @@ if(VIPSTER_WEB)
     add_executable(webvipster ${WEB_SOURCES})
     set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(webvipster PRIVATE libvipster)
+    target_include_directories(webvipster PRIVATE "gui/common")
 endif()

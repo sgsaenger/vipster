@@ -1,171 +1,23 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
-#include <emscripten/vr.h>
 
 #include "guiwrapper.h"
-#include "molecule.h"
-#include "fileio.h"
+#include "vipster/molecule.h"
+#include "vipster/fileio.h"
+#include "vipster/plugins/json.h"
 
 namespace em = emscripten;
 using namespace Vipster;
 
-static GUI::GlobalData glGlobals{};
-static GuiWrapper gui{glGlobals, settings};
-static std::vector<Molecule> molecules;
+static PluginList plugins = defaultPlugins();
 
-static VRDisplayHandle handle;
-static unsigned long vrWidth, vrHeight;
-static bool vrMoving{false}, vrHasPos{false};
-static Vec vrPos{0,0,-10};
-
-static IO::Plugins plugins = IO::defaultPlugins();
-
-std::string emReadFile(std::string fn, int fmt){
-    try {
-        auto d = readFile(fn, plugins[fmt]);
-        molecules.push_back(d.mol);
-        return "";
-    } catch (std::exception &e) {
-        return e.what();
-    }
-}
-
-std::string emWriteFile(int m, int s, int f){
-    try{
-        const auto& plug = plugins[f];
-        IO::Parameter param{nullptr};
-        if(plug->makeParam){
-            param = plug->makeParam();
-        }
-        IO::Preset preset{nullptr};
-        if(plug->makePreset){
-            preset = plug->makePreset();
-        }
-        writeFile("/tmp/output.file", plug, molecules[m],
-                  (size_t)s, param, preset);
-        return "";
-    } catch(std::exception &e) {
-        return e.what();
-    }
-}
-
-// Molecules
-int emGetNMol(void){ return molecules.size();}
-int emGetMolNstep(int m){ return molecules[m].getNstep();}
-std::string emGetMolName(int m){ return molecules[m].getName();}
-
-// Steps
-void emSetStep(int m, int s){ gui.setMainStep(&molecules[m].getStep(s)); }
-void emSetMult(uint8_t x, uint8_t y, uint8_t z){ gui.mult = {{x,y,z}}; }
-int emGetNAtoms(int m, int s){ return molecules[m].getStep(s).getNat(); }
-Atom emGetAtom(int m, int s, int fmt, int at){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt)[at]; }
-Step::iterator emGetAtomIt(int m, int s, int fmt){ return molecules[m].getStep(s).asFmt((AtomFmt)fmt).begin(); }
-int emGetFmt(int m, int s){ return (int)molecules[m].getStep(s).getFmt();}
-
-// Atom
-std::string emGetAtName(const Atom& at){return at.name;}
-void emSetAtName(Atom& at, const std::string &name){at.name = name;}
-Vec emGetAtCoord(const Atom& at){return at.coord;}
-void emSetAtCoord(Atom& at, Vec v){at.coord = v;}
-
-// Iterator
-std::string emGetItName(const Step::iterator& it){return it->name;}
-void emSetItName(Step::iterator& it, const std::string &name){it->name = name;}
-Vec emGetItCoord(const Step::iterator& it){return it->coord;}
-void emSetItCoord(Step::iterator& it, Vec v){it->coord = v;}
-
-// Cell
-double emGetCellDim(int m, int s, int fmt){return molecules[m].getStep(s).getCellDim((CdmFmt)fmt);}
-void emSetCellDim(int m, int s, double cdm, int fmt, bool scale){molecules[m].getStep(s).setCellDim(cdm, (CdmFmt)fmt, scale);}
-Mat emGetCellVec(int m, int s){return molecules[m].getStep(s).getCellVec();}
-void emSetCellVec(int m, int s, Mat vec, bool scale){molecules[m].getStep(s).setCellVec(vec, scale);}
-void emEnableCell(int m, int s, bool b){molecules[m].getStep(s).enableCell(b);}
-bool emHasCell(int m, int s){return molecules[m].getStep(s).hasCell();}
-
-// Expose Canvas operations
-void emUpdateView(void){ gui.updateMainStep(); }
-void emZoom(float val){gui.zoomViewMat(val);}
-void emRotate(int x, int y){gui.rotateViewMat(x,y,0);}
-void emTranslate(int x, int y){gui.translateViewMat(x,y,0);}
-
-// validate Cache
-void emEvalCache(void){ gui.curStep->evaluateCache(); }
-
-int emGuessFmt(std::string file){
-    auto pos = file.find_last_of('.');
-    if(pos != file.npos){
-        std::string ext = file.substr(pos+1);
-        auto pos = std::find_if(plugins.begin(), plugins.end(),
-                                [&](const IO::Plugin* plug){
-                                    return plug->extension == ext;
-                                });
-        if(pos == plugins.end()){
-            return 0;
-        }else{
-            return std::distance(plugins.begin(), pos);
-        }
-    }else{
-        return 0;
-    }
-};
-
-std::string emFmtName(int m, int f){
-    auto name = molecules[m].getName();
-    auto dot = name.find_last_of('.');
-    if(dot != name.npos){
-        name = name.substr(0, dot);
-    }
-    return name + '.' + plugins[f]->extension;
-}
-
-void emVrMove(int val){vrMoving = val;}
-
-EMSCRIPTEN_BINDINGS(vipster){
-    em::function("evalCache", &emEvalCache);
-    em::function("getNMol", &emGetNMol);
-    em::function("getMolNStep", &emGetMolNstep);
-    em::function("getMolName", &emGetMolName);
-    em::function("setStep", &emSetStep);
-    em::function("setMult", &emSetMult);
-    em::function("readFile", &emReadFile);
-    em::function("writeFile", &emWriteFile);
-    em::function("getAtom", &emGetAtom);
-    em::function("getAtomIt", &emGetAtomIt);
-    em::function("getFmt", &emGetFmt);
-    em::function("getNAtoms", &emGetNAtoms);
-    em::function("getCellDim", &emGetCellDim);
-    em::function("setCellDim", &emSetCellDim);
-    em::function("getCellVec", &emGetCellVec);
-    em::function("setCellVec", &emSetCellVec);
-    em::function("enableCell", &emEnableCell);
-    em::function("hasCell", &emHasCell);
-    em::function("updateView", &emUpdateView);
-    em::function("zoom", &emZoom);
-    em::function("rotate", &emRotate);
-    em::function("translate", &emTranslate);
-    em::function("guessFmt", &emGuessFmt);
-    em::function("getFormattedName", &emFmtName);
-    em::function("vrToggleMove", &emVrMove);
-    em::value_array<Vec>("Vec")
-            .element(em::index<0>())
-            .element(em::index<1>())
-            .element(em::index<2>());
-    em::value_array<Mat>("Mat")
-            .element(em::index<0>())
-            .element(em::index<1>())
-            .element(em::index<2>());
-    em::class_<Atom>("Atom")
-            .property("name", &emGetAtName, &emSetAtName)
-            .property("coord", &emGetAtCoord, &emSetAtCoord);
-    em::class_<Step::iterator>("Step_iterator")
-            .function("increment", &Step::iterator::operator++)
-            .property("name", &emGetItName, &emSetItName)
-            .property("coord", &emGetItCoord, &emSetItCoord);
-}
-
-EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*)
+EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void *gui_ptr)
 {
+    if(mouseEvent->button == 2){
+        return 0; // don't act on right click
+    }
+    auto &gui = *reinterpret_cast<GuiWrapper*>(gui_ptr);
     enum class MouseMode { Camera, Select, Modify};
     enum class OpMode { None, Rotation, Translation };
     static OpMode currentOp = OpMode::None;
@@ -173,7 +25,7 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     switch (eventType) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
         if(currentOp == OpMode::None){
-            int button = mouseEvent->button | mouseEvent->altKey | mouseEvent->ctrlKey << 1;
+            int button = mouseEvent->button | mouseEvent->shiftKey | mouseEvent->ctrlKey << 1;
             switch(button){
             case 0:
                 currentOp = OpMode::Rotation;
@@ -214,188 +66,232 @@ EM_BOOL mouse_event(int eventType, const EmscriptenMouseEvent* mouseEvent, void*
     return 1;
 }
 
-EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void*)
+EM_BOOL wheel_event(int, const EmscriptenWheelEvent* wheelEvent, void *gui_ptr)
 {
+    auto &gui = *reinterpret_cast<GuiWrapper*>(gui_ptr);
     gui.zoomViewMat(wheelEvent->deltaY<0?1.1:0.9);
     return 1;
 }
 
-void main_loop(){
-    int width, height;
-    static int localWidth, localHeight;
-    // handle resize
-    emscripten_get_canvas_element_size("#canvas", &width, &height);
-    if( width != localWidth || height != localHeight){
-        gui.resizeViewMat(width, height);
-        localWidth = width;
-        localHeight = height;
-    }
-    // draw
-    gui.draw();
-}
+EM_BOOL draw_loop(double time, void *view_ptr);
 
-void vr_update_pos(const VRFrameData& data){
-//    if(vrHasPos){
-//        vrPos[0] = data.pose.position.x;
-//        vrPos[1] = data.pose.position.y;
-//        vrPos[2] = data.pose.position.z;
-//    }else if(vrMoving){
-    if(vrMoving && !vrHasPos){
-        Vec tmp{
-            data.pose.orientation.x,
-            data.pose.orientation.y,
-            data.pose.orientation.z,
-        };
-        tmp /= Vec_length(tmp);
-        vrPos += tmp;
-    }
-}
-
-void vr_loop(){
-    if (!emscripten_vr_display_presenting(handle)) {
-        emscripten_vr_cancel_display_render_loop(handle);
-        EM_ASM($('#vr-exit').hide());
-        EM_ASM($('#vr-enter').show());
-        EM_ASM(resizeCanvas());
-    }else{
-        VRFrameData data;
-        emscripten_vr_get_frame_data(handle, &data);
-        vr_update_pos(data);
-        gui.drawVR(data.leftProjectionMatrix, data.leftViewMatrix,
-                   data.rightProjectionMatrix, data.rightViewMatrix,
-                   vrPos, vrWidth, vrHeight);
-        emscripten_vr_submit_frame(handle);
-    }
-}
-
-EM_BOOL vr_stop_presenting(int, const EmscriptenMouseEvent*, void*){
-    emscripten_vr_exit_present(handle);
-    return 1;
-}
-
-EM_BOOL vr_start_presenting(int, const EmscriptenMouseEvent*, void*){
-    VRLayerInit layer{NULL, VR_LAYER_DEFAULT_LEFT_BOUNDS, VR_LAYER_DEFAULT_RIGHT_BOUNDS};
-    if(!emscripten_vr_request_present(handle, &layer, 1, nullptr, nullptr)){
-        printf("Request present failed\n");
-        return 0;
-    }
-    if(!emscripten_vr_set_display_render_loop(handle, vr_loop)){
-        printf("Error: failed to set vr-render-loop\n.");
-    }
-    VREyeParameters leftParams, rightParams;
-    emscripten_vr_get_eye_parameters(handle, VREyeLeft, &leftParams);
-    emscripten_vr_get_eye_parameters(handle, VREyeRight, &rightParams);
-    vrWidth = leftParams.renderWidth = rightParams.renderWidth;
-    vrHeight = std::max(leftParams.renderHeight, rightParams.renderHeight);
-    emscripten_set_canvas_element_size("#canvas", vrWidth, vrHeight);
-    EM_ASM($('#vr-enter').hide());
-    EM_ASM($('#vr-exit').show());
-    return 1;
-}
-
-void tryInitVR(void*){
-    printf("Browser running WebVR version %d.%d\n",
-                    emscripten_vr_version_major(),
-                    emscripten_vr_version_minor());
-    if(!emscripten_vr_ready()){
-        printf("VR not initialized\n");
-        return;
-    }else{
-        int numDisplays = emscripten_vr_count_displays();
-        if(!numDisplays){
-            printf("No VR displays connected\n");
-            return;
-        }
-        printf("Number of VR displays: %d\n", numDisplays);
-        for(int i=0; i<numDisplays; ++i){
-            handle = emscripten_vr_get_display_handle(i);
-            printf("Display %d: %s\n", i, emscripten_vr_get_display_name(handle));
-            VRDisplayCapabilities caps;
-            if(!emscripten_vr_get_display_capabilities(handle, &caps)){
-                printf("Error: failed to get display capabilities.\n");
-                continue;
-            }
-            printf("Display Capabilities:\n"
-                   "{hasPosition: %d, hasExternalDisplay: %d, canPresent: %d, maxLayers: %u}\n",
-                   caps.hasPosition, caps.hasExternalDisplay, caps.canPresent, caps.maxLayers);
-            if(caps.hasExternalDisplay && !emscripten_vr_display_connected(handle)){
-                printf("Error: has external display, but is not connected.\n");
-                continue;
-            }
-            printf("Succeeded so far, using this display\n");
-            vrHasPos = caps.hasPosition;
-            EM_ASM($('#vr-enter').show());
-            emscripten_set_click_callback("vr-enter", nullptr, 0, vr_start_presenting);
-            emscripten_set_click_callback("vr-exit", nullptr, 0, vr_stop_presenting);
-            return;
-        }
-    }
-    printf("Could not find a working VR display\n");
-}
-
-int main()
+class VipsterView : public GuiWrapper
 {
-    // create WebGL2 context
-    EmscriptenWebGLContextAttributes attrs;
-    emscripten_webgl_init_context_attributes(&attrs);
-    attrs.enableExtensionsByDefault = 1;
-    attrs.majorVersion = 2;
-    attrs.minorVersion = 0;
-    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context( "#canvas", &attrs );
-    if (!context)
+public:
+    VipsterView(const std::string& canvasID)
+    : GuiWrapper{Vipster::settings},
+      canvas{canvasID}
     {
-        printf("WebGL 2 is not supported!\n");
-        EM_ASM(alertWebGL());
-        return 0;
+        // initialize GL context
+        EmscriptenWebGLContextAttributes attrs;
+        emscripten_webgl_init_context_attributes(&attrs);
+        attrs.enableExtensionsByDefault = 1;
+        attrs.preserveDrawingBuffer = true;
+        attrs.majorVersion = 2;
+        attrs.minorVersion = 0;
+        context = emscripten_webgl_create_context(canvas.c_str(), &attrs);
+        if (context<=0)
+        {
+            printf("Could not create WebGL2 context on canvas %s: %d\n", canvas.c_str(), context);
+            throw Error("Could not create WebGL2 context on canvas " + canvas + ": " + std::to_string(context));
+        }else{
+            printf("Creating context on canvas %s\n", canvas.c_str());
+        }
+        emscripten_webgl_make_context_current(context);
+        initGL();
+
+        // register mouse handling
+        emscripten_set_mousedown_callback(canvas.c_str(), this, 0, mouse_event);
+        emscripten_set_mouseup_callback(canvas.c_str(), this, 0, mouse_event);
+        emscripten_set_mousemove_callback(canvas.c_str(), this, 0, mouse_event);
+        emscripten_set_mouseleave_callback(canvas.c_str(), this, 0, mouse_event);
+        emscripten_set_wheel_callback(canvas.c_str(), this, 0, wheel_event);
+
+        // register simple draw-loop (can exist multiple times)
+        emscripten_request_animation_frame_loop(draw_loop, this);
     }
-    emscripten_vr_init(tryInitVR, nullptr);
-
-    // init GL
-    emscripten_webgl_make_context_current(context);
-    gui.initGL();
-
-    // init examples (something needs to be displayed for the renderer to not fail
-    Step* step;
-    //example H2O-vibration (crude approximation)
-    molecules.emplace_back("Example Molecule", 0);
-    double vibdist[] = {0,0.02,0.04,0.06,0.04,0.02,0};
-    for(double f:vibdist){
-        step = &molecules[0].newStep();
-        step->enableCell(false);
-        step->setFmt(AtomFmt::Angstrom);
-        step->newAtom("H",{{-0.756+f,-0.591+f,0}});
-        step->newAtom("O",{{0,0,0}});
-        step->newAtom("H",{{0.756-f,-0.591+f,0}});
+    ~VipsterView()
+    {
+        emscripten_webgl_destroy_context(context);
     }
-    molecules.emplace_back("Example Crystal");
-    step = &molecules[1].getStep(0);
-    step->setCellDim(5.64, CdmFmt::Angstrom);
-    step->setFmt(AtomFmt::Crystal);
-    step->newAtom("Na",{{0.0,0.0,0.0}});
-    step->newAtom("Cl",{{0.5,0.0,0.0}});
-    step->newAtom("Na",{{0.5,0.5,0.0}});
-    step->newAtom("Cl",{{0.0,0.5,0.0}});
-    step->newAtom("Na",{{0.5,0.0,0.5}});
-    step->newAtom("Cl",{{0.0,0.0,0.5}});
-    step->newAtom("Na",{{0.0,0.5,0.5}});
-    step->newAtom("Cl",{{0.5,0.5,0.5}});
-
-    // handle input
-    emscripten_set_mousedown_callback("#canvas", nullptr, 0, mouse_event);
-    emscripten_set_mouseup_callback("#canvas", nullptr, 0, mouse_event);
-    emscripten_set_mousemove_callback("#canvas", nullptr, 0, mouse_event);
-    emscripten_set_mouseleave_callback("#canvas", nullptr, 0, mouse_event);
-    emscripten_set_wheel_callback("#canvas", nullptr, 0, wheel_event);
-
-    //start
-    for(int i=0; i<plugins.size(); ++i){
-        EM_ASM_({addParser($0, $1)}, i, plugins[i]->name.c_str());
-        if(plugins[i]->writer){
-            EM_ASM_({addWriter($0, $1)}, i, plugins[i]->name.c_str());
+    void draw()
+    {
+        if(!curStep) return;
+        emscripten_webgl_make_context_current(context);
+        try{
+            // handle resize
+            int canvas_width{}, canvas_height{};
+            double css_width{}, css_height{};
+            emscripten_get_canvas_element_size(canvas.c_str(), &canvas_width, &canvas_height);
+            emscripten_get_element_css_size(canvas.c_str(), &css_width, &css_height);
+            if(canvas_width != css_width || canvas_height != css_height){
+                canvas_width = css_width;
+                canvas_height = css_height;
+                emscripten_set_canvas_element_size(canvas.c_str(), canvas_width, canvas_height);
+            }
+            // actual draw
+            emscripten_webgl_make_context_current(context);
+            resizeViewMat(canvas_width, canvas_height);
+            GuiWrapper::draw(reinterpret_cast<void*>(context));
+        }
+        catch(Vipster::Error e){
+            printf("%s\n", e.what());
+        }
+        catch(const std::exception& e){
+            printf("%s\n", e.what());
+        }
+        catch(...){
+            printf("Unknown error\n");
         }
     }
-    EM_ASM(setMol(0));
-    emscripten_set_main_loop(main_loop, 0, 1);
-    emscripten_webgl_destroy_context(context);
-    return 1;
+private:
+    std::string canvas;
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context;
+};
+
+EM_BOOL draw_loop(double time, void *view_ptr)
+{
+    auto &view = *reinterpret_cast<VipsterView*>(view_ptr);
+    view.draw();
+    return EM_TRUE;
+}
+
+// wrap to IO stuff
+size_t nplug(){ return plugins.size(); }
+std::string plugName(int i){ return plugins[i]->name; }
+bool plugRead(int i){ return static_cast<bool>(plugins[i]->parser); }
+bool plugWrite(int i){ return static_cast<bool>(plugins[i]->writer); }
+int guessFmtEm(std::string s){
+    auto pos = s.find_last_of('.');
+    if(pos != s.npos){
+        s = s.substr(pos+1);
+    }else{
+        pos = s.find_last_of("/\\");
+        if(pos != s.npos){
+            s = s.substr(pos+1);
+        }
+    }
+    auto plug = std::find_if(plugins.begin(), plugins.end(), [&](const Plugin *p){
+        return p->extension == s;
+    });
+    if(plug != plugins.end()){
+        return plug-plugins.begin();
+    }else{
+        return -1;
+    }
+}
+std::string addExtension(std::string s, int f){
+    auto ext = plugins[f]->extension;
+    auto pos = s.find_last_of('.');
+    if((pos == s.npos) && (s.substr(pos+1) != ext)){
+        return s.substr(0, pos) + '.' + ext;
+    }
+    return s;
+}
+std::string emWriteFile(const Molecule &m, int s, int f){
+    try{
+        const auto& plug = plugins[f];
+        Parameter param{nullptr};
+        if(plug->makeParam){
+            param = plug->makeParam();
+        }
+        Preset preset{nullptr};
+        if(plug->makePreset){
+            preset = plug->makePreset();
+        }
+        writeFile("/tmp/output.file", plug, m,
+                  (size_t)s, param, preset);
+        return "";
+    } catch(std::exception &e) {
+        return e.what();
+    }
+}
+
+
+EMSCRIPTEN_BINDINGS(vipster)
+{
+    // expose IO stuff via free functions
+    em::function("nplug", &nplug);
+    em::function("plugName", &plugName);
+    em::function("plugRead", &plugRead);
+    em::function("plugWrite", &plugWrite);
+    em::function("guessFmt", &guessFmtEm);
+    em::function("addExtension", &addExtension);
+    em::function("writeFile", &emWriteFile);
+    // GUI Wrapper
+    em::class_<VipsterView>("VipsterView")
+        .constructor<const std::string&>()
+        .function("setStep", std::function([](VipsterView &v, Step& s){ v.setMainStep(&s); }))
+        .function("draw", &VipsterView::draw)
+        .property("mult",
+                  std::function([](const VipsterView &v){ return v.mult; }),
+                  std::function([](VipsterView &v, GUI::PBCVec m){ v.mult = m; }))
+        .function("zoom", std::function([](VipsterView &v, float val){ v.zoomViewMat(val); }))
+        .function("rotate", std::function([](VipsterView &v, int x, int y){ v.rotateViewMat(x, y, 0); }))
+        .function("translate", std::function([](VipsterView &v, int x, int y){ v.translateViewMat(x, y, 0); }))
+        ;
+    // libvipster API
+    em::class_<Molecule>("Molecule")
+        .constructor(std::function([](){ return Molecule(); }))
+        // create from JSON-string
+        .constructor(std::function([](std::string s) -> Molecule{
+            auto ss = std::istringstream(s);
+            return std::get<0>(Plugins::JSON.parser("", ss));
+        }))
+        // create from File
+        .constructor(std::function([](const std::string& fn, int fmt){
+            return std::get<0>(readFile(fn, plugins[fmt]));
+        }))
+        .property("name", &Molecule::name)
+        .function("getStep",
+                  std::function([](Molecule *m, size_t idx){ return &m->getStep(idx); }),
+                  em::allow_raw_pointers()) // need to return a pointer so embind won't create a copy of Step
+        .property("nstep", std::function([](const Molecule& m){return m.getNstep();}))
+        ;
+    em::class_<Step>("Step")
+        .property("nat", std::function([](const Step& s){ return s.getNat(); }))
+        .function("getAtom", std::function([](Step &s, size_t i){ return s.at(i); }))
+        .function("getAtomIt", std::function([](Step &s){ return s.begin(); }))
+        .property("fmt",
+                  std::function([](const Step& s){ return static_cast<int>(s.getFmt());}),
+                  std::function([](Step &s, int f){ s.setFmt(static_cast<AtomFmt>(f), true);}))
+        .property("hasCell", &Step::hasCell, std::function([](Step& s, bool b){s.enableCell(b);}))
+        .property("cellDim",
+                  std::function([](const Step& s){ return s.getCellDim(AtomFmt::Angstrom); }),
+                  std::function([](Step &s, double d){ s.setCellDim(d, AtomFmt::Angstrom, false); }))
+        .property("cellVec",
+                  std::function([](const Step& s){ return s.getCellVec(); }),
+                  std::function([](Step &s, Mat m){ s.setCellVec(m, false); }))
+        .function("setBonds", std::function([](Step &s){ s.setBonds(); }))
+        .function("hasBonds", std::function([](Step &s){ return !s.getBonds().empty(); }))
+        ;
+    em::class_<Step::atom>("Atom")
+        .property("name",
+                  std::function([](const Step::atom& at)->std::string{ return at.name; }),
+                  std::function([](Step::atom& at, const std::string &name){ at.name = name; }))
+        .property("coord",
+                  std::function([](const Step::atom& at)->Vec{ return at.coord; }),
+                  std::function([](Step::atom& at, const Vec &coord){ at.coord = coord; }))
+        ;
+    em::class_<Step::iterator>("AtomIterator")
+        .function("increment", em::select_overload<Step::iterator&()>(&Step::iterator::operator++))
+        .property("name",
+                  std::function([](const Step::iterator& it)->std::string{ return it->name; }),
+                  std::function([](Step::iterator& it, const std::string &name){ it->name = name; }))
+        .property("coord",
+                  std::function([](const Step::iterator& it)->Vec{ return it->coord; }),
+                  std::function([](Step::iterator& it, const Vec &coord){ it->coord = coord; }))
+        ;
+    em::value_array<GUI::PBCVec>("PBCVec")
+            .element(em::index<0>())
+            .element(em::index<1>())
+            .element(em::index<2>());
+    em::value_array<Vec>("Vec")
+            .element(em::index<0>())
+            .element(em::index<1>())
+            .element(em::index<2>());
+    em::value_array<Mat>("Mat")
+            .element(em::index<0>())
+            .element(em::index<1>())
+            .element(em::index<2>());
 }

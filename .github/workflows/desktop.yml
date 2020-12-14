@@ -21,59 +21,38 @@ jobs:
           shell: bash
           run: |
               if [ ${{ github.event_name == 'release' }} ]; then
-                echo ::set-env name=BUILD_TYPE::Release
+                echo BUILD_TYPE=Release >> $GITHUB_ENV
               else
-                echo ::set-env name=BUILD_TYPE::Debug
+                echo BUILD_TYPE=Debug >> $GITHUB_ENV
               fi
 
         - uses: actions/checkout@v1
           with:
               submodules: true
 
+        - name: Cache Qt
+          id: cache-qt
+          uses: actions/cache@v2
+          with:
+              path: ../Qt
+              key: ${{ runner.os }}-QtCache-5.15.1
+
+        - name: Install Qt
+          uses: jurplel/install-qt-action@v2
+          with:
+            version: '5.15.1'
+            target: 'desktop'
+            arch: 'win64_mingw81'
+            cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
         - uses: actions/setup-python@v1
           with:
               python-version: '3.8'
 
-        - name: Cache Qt
-          id: cache-qt
-          uses: actions/cache@v1
-          with:
-              path: Qt
-              key: ${{ runner.os }}-5.13.2-qt
-
-        - name: Install Qt
-          if: steps.cache-qt.outputs.cache-hit != 'true'
-          shell: bash
-          run: |
-              pip install -I setuptools aqtinstall
-              if [ "$RUNNER_OS" == "Linux" ]; then
-                  aqt install -O Qt 5.13.2 linux desktop gcc_64
-              elif [ "$RUNNER_OS" == "macOS" ]; then
-                  brew update
-                  brew install p7zip
-                  aqt install -O Qt 5.13.2 mac desktop clang_64
-              else
-                  aqt install -O Qt 5.13.2 windows desktop win64_mingw73
-              fi
-
-        - name: Configure Qt
-          shell: bash
-          run: |
-              if [ "$RUNNER_OS" == "Linux" ]; then
-                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/gcc_64
-              elif [ "$RUNNER_OS" == "macOS" ]; then
-                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/clang_64
-              else
-                QTDIR=$GITHUB_WORKSPACE/Qt/5.13.2/mingw73_64
-              fi
-              echo ::add-path::$QTDIR/bin
-              echo ::set-env name=QTDIR::$QTDIR
-              echo ::set-env name=CMAKE_PREFIX_PATH::$QTDIR:$CMAKE_PREFIX_PATH
-
         - name: Cache MinGW
           if: runner.os == 'Windows'
           id: cache-mingw
-          uses: actions/cache@v1
+          uses: actions/cache@v2
           with:
               path: MinGW
               key: mingw-17.1
@@ -91,9 +70,9 @@ jobs:
           if: runner.os == 'Windows'
           shell: bash
           run: |
-              echo ::add-path::$GITHUB_WORKSPACE/MinGW/bin
-              echo ::set-env name=CMAKE_PREFIX_PATH::$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH
-              echo ::set-env name=CMAKE_GENERATOR::"MSYS Makefiles"
+              echo $GITHUB_WORKSPACE/MinGW/bin >> $GITHUB_PATH
+              echo CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH >> $GITHUB_ENV
+              echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
 
         - name: Configure Linux
           if: runner.os == 'Linux'
@@ -102,12 +81,14 @@ jobs:
               # install and enable GCC9
               sudo add-apt-repository ppa:ubuntu-toolchain-r/test
               sudo apt-get update
-              sudo apt-get install g++-9 libgl1-mesa-dev libxkbcommon-x11-0
-              echo ::set-env name=CC::gcc-9
-              echo ::set-env name=CXX::g++-9
+              sudo apt-get install g++-9
+              echo CC=gcc-9 >> $GITHUB_ENV
+              echo CXX=g++-9 >> $GITHUB_ENV
+              # install qt dependencies
+              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0
               # enable coverage on debug-build
               if [ $BUILD_TYPE == "Debug" ];then
-                echo ::set-env name=CMAKE_CXX_FLAGS::"-g -O0 -fprofile-arcs -ftest-coverage"
+                echo CMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" >> $GITHUB_ENV
               fi
 
         - name: Configure
@@ -115,7 +96,7 @@ jobs:
           run: |
               mkdir -p build
               cd build
-              cmake -DVIPSTER_DESKTOP=ON -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DVIPSTER_TESTS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+              cmake -DCMAKE_TUNE_FLAGS=' ' -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
 
         - name: Build
           run: |
@@ -142,18 +123,19 @@ jobs:
           run: |
               echo "Deploying"
               cd build
+              pip install numpy moltemplate
               if [ "$RUNNER_OS" == "Linux" ]; then
                 . ../util/make-appimage.sh
-                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage
-                echo ::set-env name=ARTIFACT_NAME::Vipster-Linux-x86_64.AppImage
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-Linux-x86_64.AppImage" >> $GITHUB_ENV
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 . ../util/make-osxapp.sh
-                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-OSX-x86_64.dmg
-                echo ::set-env name=ARTIFACT_NAME::Vipster-OSX-x86_64.dmg
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-OSX-x86_64.dmg" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-OSX-x86_64.dmg" >> $GITHUB_ENV
               else
                 . ../util/make-winarchive.sh
-                echo ::set-env name=ARTIFACT_PATH::$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.7z
-                echo ::set-env name=ARTIFACT_NAME::Vipster-Win-x86_64.7z
+                echo "ARTIFACT_PATH=$GITHUB_WORKSPACE/build/Vipster-Win-x86_64.zip" >> $GITHUB_ENV
+                echo "ARTIFACT_NAME=Vipster-Win-x86_64.zip" >> $GITHUB_ENV
               fi
               ls Vipster*
 

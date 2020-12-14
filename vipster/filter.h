@@ -295,7 +295,7 @@ constexpr const char* FilterAbout =
         "<li>index [0 3 5 7-12]</li>"
         "</ul>"
         "</li>"
-        "<li><b><tt>pos</tt></b>: relative position (x,y,z to choose axis, >,>=,<,<= to select comparison, followed by target value)"
+        "<li><b><tt>pos</tt></b>: relative position (x,y,z to choose axis, &gt;,&gt;=,&lt;,&lt;= to select comparison, followed by target value)"
         "<ul>"
         "<li>pos xa&gt;5</li>"
         "<li>pos z c &lt; 0.5</li>"

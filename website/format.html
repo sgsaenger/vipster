@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ol class="content-list">
+{% for f in formats %}
+<li><a href="#{{ f.command }}">{{ f.name }}</a></li>
+{% endfor %}
+</ol>
+
+<div class="content-text">
+<p>
+Vipster supports various different formats describing atomic structures.
+It is written with no specific format in mind.
+</p>
+<p>
+Whenever a format provides or requires additional data that is not tied to the atomic structure,
+this is encapsulated in a Parameter set.
+For example, the control blocks configuring a quantum chemical simulation can be read from a file,
+saved and then later be reused for setting up a series of other calculations with other molecules,
+but the same calculation settings.
+</p>
+<p>
+If a file format supports multiple ways to print the atomic structure,
+this can be controlled with an (output) preset.
+These can e.g. be used to select between printing the structure in Ångström with charges
+or in Bohr units with the list of bonds.
+</p>
+<p>
+The following plugins are included in a default installation:
+</p>
+</div>
+
+{% for f in formats %}
+<div class="content-text highlight">
+    <a class="anchor" id="{{ f.command }}"></a>
+    <h1>
+        {{ f.name }}
+        {% if f.hasParser and f.hasWriter %}
+        (read/write)
+        {% elif f.hasParser %}
+        (read only)
+        {% elif f.hasWriter %}
+        (write only)
+        {% endif %}
+    </h1>
+    <div class="highlight highlight-nested">Command line argument: <code>--{{ f.command }}</code></div>
+    <div class="highlight highlight-nested">Matches files named: <code>{{ f.extension if f.extension[0].isupper() else "*."+f.extension }}</code></div>
+    {% if f.hasParameters %}
+        {% set params = vipster.Parameters[f]['default'] %}
+        <div class="highlight highlight-nested">
+        <h2>Parameters</h2>
+        <ul class="code">
+        {% for p in params %}
+            {% set param = params.doc(p).split('\n', maxsplit=3) %}
+            <li class="highlight">
+            <p><code>{{ param[0] }} {{ param[1] }}</code></p>
+            <p>{{ param[3] }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+        </div>
+    {% endif %}
+    {% if f.hasPresets %}
+        {% set presets = vipster.Presets[f]['default'] %}
+        <div class="highlight highlight-nested">
+        <h2>Output preset</h2>
+        <ul class="code">
+        {% for p in presets %}
+            {% set preset = presets.doc(p).split('\n', maxsplit=3) %}
+            <li class="highlight">
+            <p><code>{{ preset[0] }} {{ preset[1] }}</code></p>
+            <p>{{ preset[3] }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+        </div>
+    {% endif %}
+</div>
+{% endfor %}
+<!--</ul>-->
+<!--</div>-->
+{% endblock %}

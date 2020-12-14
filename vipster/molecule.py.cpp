@@ -1,10 +1,15 @@
-#include "pyvipster.h"
+#include "molecule.py.h"
 #include "molecule.h"
 
-namespace Vipster::Py{
-void Molecule(py::module& m){
+void Vipster::Py::Molecule(py::module& m, const Vipster::ConfigState &state){
     py::class_<Vipster::Molecule>(m, "Molecule")
-        .def(py::init()) // FIXME: set pte-root
+        .def(py::init([&state](const std::string&name, size_t s){
+            Vipster::Molecule m{name, s};
+            m.getPTE().root = &std::get<0>(state);
+            return m;
+        }), "name"_a="New Molecule", "steps"_a=1)
+        .def(py::init<const Vipster::Molecule&>())
+        .def(py::init<const Step&, std::string>(), "step"_a, "name"_a="Copy of Step")
         .def_property_readonly("pte", py::overload_cast<>(&Vipster::Molecule::getPTE, py::const_))
         .def("newStep", [](Vipster::Molecule& m){m.newStep();})
         .def("newStep", py::overload_cast<const Step&>(&Vipster::Molecule::newStep), "step"_a)
@@ -23,5 +28,4 @@ void Molecule(py::module& m){
         .def_readwrite("name", &Vipster::Molecule::name)
         .def_readwrite("kpoints", &Vipster::Molecule::kpoints)
     ;
-}
 }
