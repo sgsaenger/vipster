@@ -11,7 +11,7 @@ jobs:
         runs-on: windows-latest
         strategy:
             matrix:
-                python-version: [3.5, 3.6, 3.7, 3.8]
+                python-version: [3.6, 3.7, 3.8, 3.9]
 
         steps:
             - uses: actions/checkout@v1
@@ -43,7 +43,7 @@ jobs:
 
             - name: create archive
               shell: bash
-              if: ${{ matrix.python-version }} == 3.8
+              if: ${{ matrix.python-version }} == 3.9
               run: |
                   pip install setuptools_scm
                   python setup.py sdist --formats=zip
