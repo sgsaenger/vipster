@@ -5,8 +5,8 @@
 #include "lammps/atom.h"
 #include "lammps/comm.h"
 #include "lammps/error.h"
-#include "lammps/force.h"
 #include "lammps/update.h"
+#include "lammps/utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -21,7 +21,7 @@ FixVipster::FixVipster(LAMMPS *lmp, int narg, char **arg):
     Fix{lmp, narg, arg}
 {
     if (narg != 4) error->all(FLERR, "Illegal fix vipster command");
-    nevery = force->inumeric(FLERR, arg[3]);
+    nevery = utils::inumeric(FLERR, arg[3], false, lmp);
     if (nevery < 0) error->all(FLERR, "Illegal fix vipster command");
 }
 
