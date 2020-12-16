@@ -158,7 +158,7 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
               name: ${{ matrix.artifact }}
-              path: ${{ matrix.artifact }}
+              path: build/${{ matrix.artifact }}
 
     web:
         name: 'WebVipster'
