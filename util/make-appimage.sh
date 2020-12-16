@@ -6,8 +6,8 @@ echo "creating .AppImage"
 cmake --build build -- DESTDIR=../AppDir install
 
 # get source dir and correct python from CMakeCache.txt
-export SOURCE_DIR=$(grep Vipster_SOURCE_DIR CMakeCache.txt | cut -d "=" -f 2)
-export PY_BIN=$(grep "Python3_EXECUTABLE" CMakeCache.txt | cut -d "=" -f 2)
+export SOURCE_DIR=$(grep Vipster_SOURCE_DIR build/CMakeCache.txt | cut -d "=" -f 2)
+export PY_BIN=$(grep "Python3_EXECUTABLE" build/CMakeCache.txt | cut -d "=" -f 2)
 export PY_PREFIX=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.PREFIX)")
 
 # add libpython to LD_LIBRARY_PATH so linuxdeployqt finds it
