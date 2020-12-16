@@ -19,11 +19,6 @@ jobs:
           with:
               submodules: true
 
-        - name: Setup Python
-          uses: actions/setup-python@v2
-          with:
-              python-version: '3.8'
-
         - name: Cache Qt
           id: cache-qt
           uses: actions/cache@v2
@@ -36,6 +31,11 @@ jobs:
               version: '5.15.2'
               target: 'desktop'
               cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+        - name: Setup Python
+          uses: actions/setup-python@v2
+          with:
+              python-version: '3.8'
 
         - name: Install dependencies
           run: |
@@ -80,14 +80,6 @@ jobs:
           with:
               submodules: true
 
-        - name: Setup Python
-          uses: actions/setup-python@v2
-          with:
-              python-version: '3.8'
-        - name: Add Python libraries
-          shell: bash
-          run: pip install numpy moltemplate
-
         - name: Cache Qt
           id: cache-qt
           uses: actions/cache@v2
@@ -101,6 +93,14 @@ jobs:
               target: 'desktop'
               arch: 'win64_mingw81'
               cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+        - name: Setup Python
+          uses: actions/setup-python@v2
+          with:
+              python-version: '3.8'
+        - name: Add Python libraries
+          shell: bash
+          run: pip install numpy moltemplate
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
@@ -150,7 +150,9 @@ jobs:
 
         - name: Bundle artifact
           shell: bash
-          run: . ./util/${{ matrix.script }}
+          run: |
+            cd build
+            . ../util/${{ matrix.script }}
 
         - name: Upload artifact
           uses: actions/upload-artifact@v2
