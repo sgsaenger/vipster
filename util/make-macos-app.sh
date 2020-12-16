@@ -2,6 +2,7 @@
 # create a dmg file from a pre-built tree
 
 echo "creating .dmg"
+mv build/vipster.app .
 mkdir -p vipster.app/Contents/Frameworks
 cp -a build/vipster.framework vipster.app/Contents/Frameworks
 # fix rpath

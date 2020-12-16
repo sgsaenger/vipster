@@ -136,7 +136,7 @@ jobs:
 
         - name: Configure
           shell: bash
-          run: cmake -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Release -B build
+          run: cmake -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
 
         - name: Build
           shell: bash
