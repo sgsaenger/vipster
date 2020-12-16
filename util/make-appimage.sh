@@ -3,7 +3,7 @@
 
 echo "creating .AppImage"
 # install vipster into AppDir
-cmake --build build -- DESTDIR=../AppDir install
+cmake --build build -- DESTDIR=AppDir install
 
 # get source dir and correct python from CMakeCache.txt
 export SOURCE_DIR=$(grep Vipster_SOURCE_DIR build/CMakeCache.txt | cut -d "=" -f 2)

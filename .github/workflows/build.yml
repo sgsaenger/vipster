@@ -69,7 +69,7 @@ jobs:
                       script: make-appimage.sh
                       artifact: Vipster-Linux-x86_64.AppImage
                     - os: windows-latest
-                      script: make-win-archive.se
+                      script: make-win-archive.sh
                       artifact: Vipster-Win-x86_64.zip
                     - os: macOS-latest
                       script: make-macos-app.sh
