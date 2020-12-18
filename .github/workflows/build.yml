@@ -157,7 +157,7 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
-              name: ${{ matrix.artifact }}
+              name: ${{ runner.os }}
               path: build/${{ matrix.artifact }}
 
     web:
@@ -188,7 +188,7 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
-              name: WebVipster.tgz
+              name: Web-Version
               path: ${{ env.ARTIFACT }}
 
     python:
@@ -241,5 +241,5 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
-              name: Python${{ matrix.python-version }}-Win.whl
+              name: Python${{ matrix.python-version }}-Windows
               path: dist/*.whl

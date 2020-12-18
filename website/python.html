@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="content-list">
-<ol>
+<ol class="content-list">
 <a href="#{{ tree.name }}">{{ tree.type }}: {{ tree.name }}</a>
 {%- for node in tree.children %}
 <li><a href="#{{ node.name }}">{{ node.type }}: {{ node.name }}</a></li>
 {%- endfor %}
 </ol>
-</div>
 
 {% macro traverseContent(nodes, i) %}
 {% for node in nodes %}

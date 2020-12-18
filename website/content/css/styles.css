@@ -33,6 +33,7 @@ ul{
 
 ol.content-list{
     padding-left: 28px;
+    height: min-content;
 }
 
 img{
