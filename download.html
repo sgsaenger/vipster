@@ -2,133 +2,174 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Vipster</title>
-        <link rel="icon" type="image/png" href="favicon.png">
-        <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet">
-        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="icon" type="image/png" href="images/favicon.png">
         <link rel="stylesheet" href="css/styles.css">
+<script>
+    document.addEventListener("DOMContentLoaded", event => {
+        // get latest stable release
+        fetch("https://api.github.com/repos/sgsaenger/vipster/releases/latest")
+        .then(response => response.ok ? response.json() : Promise.reject("Stable relase unavailable"))
+        .then(release => {
+            let header = document.getElementById('stable-head');
+            header.innerHTML += `: ${release.name ? release.name : release.tag_name}`;
+            let par = document.getElementById('stable-links');
+            var list = `Otherwise, you can download and install these releases directly:<ul>`;
+            for(asset of release.assets){
+                list += `<li><a href=${asset.browser_download_url}>${asset.name}</a></li>`;
+            }
+            list += "</ul>";
+            par.innerHTML = list;
+        })
+        .catch(e => console.log(e))
+        // get latest development artifacts
+        fetch("https://api.github.com/repos/sgsaenger/vipster/actions/runs")
+        .then(response => response.ok ? response.json() : Promise.reject("CI runs unavailable"))
+        .then(runs => runs.workflow_runs.find(run =>
+            run.status == "completed" &&
+            run.conclusion == "success" &&
+            run.event != "pull_request"))
+        .then(run => run === undefined ?
+            Promise.reject("No valid CI-artifacts") :
+            fetch(run.artifacts_url))
+        .then(response => response.json())
+        .then(artifacts => {
+            let par = document.getElementById('unstable');
+            var list = `<h2>Development release (unstable):</h2>
+                These builds are generated automatically and are more up to date, but may contain more bugs:
+                <ul>`;
+            for(artifact of artifacts.artifacts){
+                list += `<li><a href=${artifact.archive_download_url}>${artifact.name}</a></li>`;
+            }
+            list += "</ul>";
+            par.innerHTML += list;
+        })
+        .catch(e => console.log(e))
+    });
+</script>
 
-        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/solid.js"></script>
-        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/fontawesome.js"></script>
-
-
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function (event) {
-                let release = JSON.parse((() => {
-                    let request = new XMLHttpRequest();
-                    request.open("GET","https://api.github.com/repos/sgsaenger/vipster/releases/latest",false);
-                    request.send(null);
-                    return request.responseText;
-                })());
-                let header = document.getElementById('dl-header');
-                if(release.name){
-                    header.innerHTML += release.name;
-                }else{
-                    header.innerHTML += release.tag_name;
-                }
-                let list = document.getElementById('dl-list');
-                for(asset of release.assets){
-                    list.innerHTML += "<li><a href=" + asset.browser_download_url + ">" + asset.name + "</a></li>";
-                };
-                list.innerHTML += "<li><a href=" + release.tarball_url + ">Download source as .tar.gz</li>";
-                list.innerHTML += "<li><a href=" + release.zipball_url + ">Download source as .zip</li>";
-            });
-        </script>
     </head>
     <body>
-        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
-            <div class="container-fluid">
-                <div class="navbar-header">
-                    <a class="navbar-brand" href="index.html">
-                            VIPSTER
-                    </a>
-                    <a href="https://travis-ci.com/sgsaenger/vipster" class="navbar-text">
-                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=master" alt="Travis build status" height="17">
-                    </a>
-                    <a href="https://codecov.io/gh/sgsaenger/vipster" class="navbar-text">
-                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov" height="17">
-                    </a>
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                      data-target="#navbar" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div>
-                <div class="collapse navbar-collapse" id="navbar">
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> About <span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="about.html">Overview</a></li>
-                                <li><a href="gui.html">QtVipster</a></li>
-                                <li><a href="python.html">PyVipster</a></li>
-                            </ul>
-                        </li>
-                        <li class="active"><a href="#">Get it!</a></li>
-                        <li><a href="emscripten/index.html">Try it!</a></li>
-                    </ul>
-                </div>
+        <nav class="navbar flex">
+            <a class="menuitem flex" href="index.html"> Vipster</a>
+            <div class="menu flex">
+                <a class="menuitem flex" href="about.html">About</a>
+                <a class="menuitem flex" href="gui.html">Documentation</a>
+                <a class="menuitem flex menuitem-active" href="download.html">Download</a>
             </div>
         </nav>
-        <main class="container">
-            <h3 id="dl-header"> Latest release: </h3>
-            <ul id="dl-list"></ul>
-            <p> For feature-requests and bug-reports, please create an <a href="https://github.com/sgsaenger/vipster/issues">issue</a>.</p>
-            <p> Python bindings can be installed via:</p>
-            <p class="code">$ pip install vipster</p>
-            <h3> Build from source </h3>
-            <p> Depends on <a href="https://www.qt.io">Qt5</a> (&ge; 5.7), <a href="https://cmake.org">CMake</a> (&ge; 3.9)
-                and a C++17-capable compiler (G++/MinGW &ge; 7, Clang &ge; 4) </p>
-            <p> For build informations, please consult INSTALL.md contained in the source-archive. </p>
-            <h4> Master-branch </h4>
-            <p>
-                This branch is always stable.
-                Use this if you need features that are not available in a regular release, but like to minimize your risks.
-            </p>
-            <p>
-                Status:
-                    <a href="https://travis-ci.com/sgsaenger/vipster">
-                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=master" alt="Travis build status">
-                    </a>
-                    <a href="https://codecov.io/gh/sgsaenger/vipster">
-                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg" alt="Codecov">
-                    </a>
-            </p>
-            <p class="code">$ git clone https://github.com/sgsaenger/vipster<p>
-            <p><a href="https://github.com/sgsaenger/vipster/tarball/master">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/sgsaenger/vipster/zipball/master">Download as .zip</a></p>
-            <h4> Testing-branch </h4>
-            <p>
-                This branch should be stable, but doesn't need to be, as it is the main development target.
-                Use it if you want to get the newest features or contribute to the project.
-            </p>
-            <p>
-                Status:
-                    <a href="https://travis-ci.com/sgsaenger/vipster">
-                        <img src="https://travis-ci.com/sgsaenger/vipster.svg?branch=testing" alt="Travis build status">
-                    </a>
-                    <a href="https://codecov.io/gh/sgsaenger/vipster">
-                          <img src="https://codecov.io/gh/sgsaenger/vipster/branch/testing/graph/badge.svg" alt="Codecov">
-                    </a>
-            </p>
-            <p class="code">$ git clone https://github.com/sgsaenger/vipster -b testing<p>
-            <p><a href="https://github.com/sgsaenger/vipster/tarball/testing">Download as .tar.gz</a></p>
-            <p><a href="https://github.com/sgsaenger/vipster/zipball/testing">Download as .zip</a></p>
+        <main class="grid">
+<ol class="content-list">
+    <li><a href="#binary">Desktop version</a></li>
+    <li><a href="#web">Browser version</a></li>
+    <li><a href="#python">Python library</a></li>
+    <li><a href="#source">Build from source</a></li>
+</ol>
+
+<div class="content-text">
+<a class="anchor" id="binary"></a>
+<h1>Desktop version</h1>
+
+<h2 id="stable-head">Stable release</h2>
+<p>
+The preferred way to install Vipster is via a package manager.
+</p>
+<p>
+It is available in these repositories:
+</p>
+<a href="https://repology.org/project/vipster/versions">
+    <img src="https://repology.org/badge/vertical-allrepos/vipster.svg" alt="Packaging status">
+</a>
+
+<p id="stable-links">
+    Otherwise, please find precompiled builds <a href="https://github.com/sgsaenger/vipster/releases">here</a>.
+</p>
+
+<h3> Installation instructions </h3>
+<ul>
+<li>
+    Windows: <br>
+    Unpack the archive, then simply run <code>Vipster.exe</code>.
+</li>
+<li>
+    Linux: <br>
+    After downloading the AppImage, make it executable:
+    <pre><code>$ chmod +x Vipster-Linux-x86_64.AppImage</code></pre>
+    You can then run it directly:
+    <pre><code>$ ./Vipster-Linux-x86_64.AppImage</code></pre>
+    or integrate it into your system by installing <a href="https://github.com/TheAssassin/AppImageLauncher">AppImageLauncher</a>.
+</li>
+</ul>
+
+<div id="unstable">
+</div>
+
+<a class="anchor" id="web"></a>
+<h1>Browser version</h1>
+<p>
+Vipster can also run in your browser.
+A standalone application can be found <a href="emscripten">here</a>.<br>
+This is a full visualization tool, but lacks many of the editing features of the desktop application.
+</p>
+<p>
+If you want to include Vipster in your own web application, you can find it on npm:
+<pre><code>npm install vipster</code></pre>
+</p>
+<p>
+Note: rendering requires WebGL2 which unfortunately is blocked by Apple in its Safari browser. Sorry!
+</p>
+
+<a class="anchor" id="python"></a>
+<h1>Python bindings</h1>
+<p>
+If you want to use the Vipster library in your Python environments, you can install them via:
+</p>
+<pre><code>$ pip install vipster</code></pre>
+<p>
+Note:
+<ul>
+<li>if you installed Vipster via a package manager, the bindings may already be installed for your system Python installation</li>
+<li>if you install Vipster via <code>pip</code>, the GUI is not included</li>
+</ul>
+</p>
+
+<h2>Jupyter widget</h2>
+<p>
+Vipster can also be integrated with <a href="https://jupyter.org">Jupyter</a>.<br>
+Please go to the <a href="https://github.com/sgsaenger/vipsterview">VipsterView repository</a>
+to find out more.
+</p>
+
+<a class="anchor" id="source"></a>
+<h1>Build from source</h1>
+<p>
+    To build Vipster from source, you need <a href="https://cmake.org">CMake</a> (&ge; 3.9)
+    and a C++-17 compatible compiler (including <code>&lt;filesystem&gt;</code> support).
+</p>
+<p>
+    To build the GUI, you also need to install Qt &ge; 5.10.
+</p>
+<p>
+    For detailed build instructions, please refer to
+    <a href="https://github.com/sgsaenger/vipster/blob/master/INSTALL.md"><code>INSTALL.md</code></a>.
+    Other dependencies are described in
+    <a href="https://github.com/sgsaenger/vipster/blob/master/external/README.md"><code>external/README.md</code></a>.
+</p>
+<p>
+    It is recommended to obtain the source via Git:
+    <pre><code>$ git clone https://github.com/sgsaenger/vipster</code></pre>
+
+    This allows to easily track development and automatically obtain missing dependencies.
+</p>
+
+</div>
 
         </main>
-        <footer class="footer">
-            <div class="container">
-                <p class="pull-right"><a href="#">Back to top</a></p>
+        <footer class="grid">
+            <div class="content-text footer">
                 <p>Follow Vipster on <a href="https://github.com/sgsaenger/vipster">GitHub</a></p>
+                <p></p>
+                <p><a href="#">Back to top</a></p>
             </div>
         </footer>
     </body>
