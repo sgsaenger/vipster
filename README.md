@@ -19,7 +19,7 @@ Testing branch:
 
 Fast and easy to use graphical editor for periodic atomistic simulations.
 For more information, please visit the [Homepage](https://sgsaenger.github.io/vipster).
-![Example screenshot](gh-pages/images/screenshot.png)
+![Example screenshot](website/content/images/screenshot.png)
 
 Binary releases are available [here](https://github.com/sgsaenger/vipster/releases),
 installation instructions can be found [here](INSTALL.md).
