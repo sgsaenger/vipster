@@ -1,7 +1,7 @@
 #ifndef LMP_FIX_VIPSTER_H
 #define LMP_FIX_VIPSTER_H
 
-#include "lammps/fix.h"
+#include "fix.h"
 
 #include "vipster/molecule.h"
 

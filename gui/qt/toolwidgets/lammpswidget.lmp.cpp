@@ -12,9 +12,9 @@
 
 #include <QMessageBox>
 
-#include "lammps/lammps.h"
-#include "lammps/info.h"
-#include "lammps/exceptions.h"
+#include "lammps.h"
+#include "info.h"
+#include "exceptions.h"
 
 using namespace Vipster;
 using namespace Vipster::Lammps;

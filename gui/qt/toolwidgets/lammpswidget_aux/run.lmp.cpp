@@ -11,13 +11,12 @@
 #include <QApplication>
 #include <fmt/format.h>
 
-#include "lammps/lammps.h"
-#include "lammps/comm.h"
-#include "lammps/input.h"
-#include "lammps/modify.h"
-#include "lammps/exceptions.h"
-
-#include "lammps/error.h"
+#include "lammps.h"
+#include "comm.h"
+#include "input.h"
+#include "modify.h"
+#include "exceptions.h"
+#include "error.h"
 
 using namespace std::chrono_literals;
 using namespace LAMMPS_NS;

@@ -1,12 +1,12 @@
 #include "viewport.h"
 #include "fix_vipster.lmp.h"
 
-#include "lammps/lammps.h"
-#include "lammps/atom.h"
-#include "lammps/comm.h"
-#include "lammps/error.h"
-#include "lammps/update.h"
-#include "lammps/utils.h"
+#include "lammps.h"
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "update.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
