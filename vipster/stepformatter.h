@@ -29,8 +29,8 @@ struct Formatter{
     fmtfun ffun, invfun;
 
     Formatter(const std::shared_ptr<T> &atoms, AtomFmt fmt)
-        : atoms{atoms},
-          ctxt{fmt, atoms->ctxt.pte, atoms->ctxt.cell},
+        : ctxt{fmt, atoms->ctxt.pte, atoms->ctxt.cell},
+          atoms{atoms},
           ffun{makeConverter(atoms->ctxt, ctxt)},
           invfun{makeConverter(ctxt, atoms->ctxt)}
     {}
@@ -107,7 +107,7 @@ struct Formatter{
             class _Value_type{
             public:
                 _Value_type(_Vec& _v, size_t i): _v{_v}, i{i} {}
-                operator const Vec::value_type&() const {return static_cast<const Vec&>(_v)[i];}
+                operator Vec::value_type() const {return static_cast<const Vec&>(_v)[i];}
                 _Value_type& operator=(Vec::value_type val){
                     Vec v = _v;
                     v[i] = val;

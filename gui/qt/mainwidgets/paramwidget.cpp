@@ -234,7 +234,7 @@ void ParamWidget::setupText(const QVector<QString> &vectors)
         fillText(vectors[0]);
         connect(vecSel, QOverload<const QString&>::of(&QComboBox::currentIndexChanged),
                 fillText);
-    }else if(!vectors.empty()){
+    }else if(text){
         curVec = vectors[0].toStdString();
         auto label = new QLabel{QString::fromStdString(curVec)+':'};
         layout->insertWidget(0, label);

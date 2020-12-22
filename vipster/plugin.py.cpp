@@ -184,7 +184,7 @@ Py::Plugin* Py::Plugin::create(fs::path file){
                     for(const auto& n: py::cast<py::tuple>(tup2[1])){
                         names.push_back(py::str(n));
                     }
-                    if(idx < 0 || idx >= names.size()) continue;
+                    if(idx < 0 || idx >= static_cast<int>(names.size())) continue;
                     tmp[py::str(key)] = {NamedEnum{idx, names},
                                          py::str(tuple[1])};
                 }

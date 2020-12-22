@@ -320,7 +320,7 @@ public:
     }
     double  getCellDim(AtomFmt fmt) const
     {
-        if(atomFmtRelative(fmt) || fmt > detail::AtomContext::fromAngstrom.size()){
+        if(!atomFmtAbsolute(fmt)){
             throw Error{"StepConst::getCellDim: Invalid AtomFmt, needs to be absolute"};
         }
         return atoms->ctxt.cell->dimension * detail::AtomContext::fromAngstrom[fmt];

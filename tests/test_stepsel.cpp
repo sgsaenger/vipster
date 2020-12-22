@@ -10,12 +10,6 @@ static ostream& operator<<(ostream& out, const Vec& v)
     return out;
 }
 
-static ostream& operator<<(ostream& out, const decltype(Step::atom::coord)& v)
-{
-    out << static_cast<const Vec&>(v);
-    return out;
-}
-
 static ostream& operator<<(ostream& out, const decltype(Step::selection::atom::coord)& v)
 {
     out << static_cast<const Vec&>(v);

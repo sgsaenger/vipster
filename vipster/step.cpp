@@ -125,7 +125,7 @@ void Step::setCellVec(const Mat &vec, bool scale)
 
 void Step::setCellDim(double cdm, AtomFmt fmt, bool scale)
 {
-    if(atomFmtRelative(fmt) || fmt > detail::AtomContext::toAngstrom.size()){
+    if(!atomFmtAbsolute(fmt)){
         throw Error{"Step::setCellDim: Invalid AtomFmt, needs to be absolute"};
     }
     if(!(cdm>0)) {
@@ -136,8 +136,8 @@ void Step::setCellDim(double cdm, AtomFmt fmt, bool scale)
      * 'scaling' means the system grows/shrinks with the cell
      * => relative coordinates stay the same
      */
-    atoms->ctxt.cell->enabled = true;
-    bool relative = atoms->ctxt.fmtRelative();
+    enableCell(true);
+    bool relative = atomFmtRelative(getFmt());
     if (scale != relative){
         double ratio;
         if (relative) {

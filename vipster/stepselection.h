@@ -35,8 +35,8 @@ struct Selection{
     SelectionIndices indices;
 
     Selection(std::shared_ptr<T> atoms, SelectionIndices indices)
-        : atoms{atoms},
-          ctxt{atoms->ctxt},
+        : ctxt{atoms->ctxt},
+          atoms{atoms},
           indices{indices}
     {
         crys_ctxt = ctxt;
@@ -218,12 +218,14 @@ struct Selection{
         using base::operator==;
 
         AtomView(Selection &s, size_t i)
-            : base{*s.atoms, i>=s.indices.size() ? 0 : s.indices[i].first}, source{&s}, sel{&s.indices[i]}
+            : base{*s.atoms, i>=s.indices.size() ? 0 : s.indices[i].first},
+              sel{&s.indices[i]},
+              source{&s}
         {}
         // copying is templated to allow conversion to const
         // copy constructor creates new object pointing to same data
         AtomView(const AtomView &rhs)
-            : base{rhs}, source{rhs.source}, sel{rhs.sel}
+            : base{rhs}, sel{rhs.sel}, source{rhs.source}
         {}
         template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
         AtomView(const AtomView &rhs)

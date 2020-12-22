@@ -159,6 +159,9 @@ static SelectionIndices evalPos(const T& step, const SelectionFilter& filter){
             return at[dir] >= filter.posVal;
         case SelectionFilter::P_LEQ:
             return at[dir] <= filter.posVal;
+        default:
+            //should be unreachable
+            throw std::invalid_argument{"Invalid filter value"};
         }
     };
     for(const auto& at: step){

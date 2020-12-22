@@ -32,10 +32,6 @@ namespace Vipster{
         std::shared_ptr<PeriodicTable> pte{std::make_shared<PeriodicTable>()};
         std::shared_ptr<CellData> cell{std::make_shared<CellData>()};
 
-        // Crystal and Alat are relative formats, rest is absolute
-        bool fmtRelative() { return fmt <= Alat; }
-        bool fmtAbsolute() { return !fmtRelative(); }
-
         // conversion factors for absolute formats
         static inline std::vector<double> toAngstrom{1, bohrrad};
         static inline std::vector<double> fromAngstrom{1, invbohr};

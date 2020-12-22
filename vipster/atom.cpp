@@ -4,12 +4,12 @@ using namespace Vipster;
 
 bool Vipster::atomFmtRelative(AtomFmt f)
 {
-    return f<=AtomFmt::Alat;
+    return (f == AtomFmt::Crystal) || (f == AtomFmt::Alat);
 }
 
 bool Vipster::atomFmtAbsolute(AtomFmt f)
 {
-    return !atomFmtRelative(f);
+    return (f > AtomFmt::Alat) && (f < static_cast<AtomFmt>(detail::AtomContext::toAngstrom.size()));
 }
 
 bool Vipster::operator==(const AtomProperties &p1, const AtomProperties &p2)

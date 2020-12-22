@@ -211,25 +211,26 @@ struct AtomList{
 
         AtomView(AtomList &al,
                  size_t i)
-            : source{&al},
-              v{&al.coordinates[i]},
+            : v{&al.coordinates[i]},
               elem{&al.elements[i]},
-              prop{&al.properties[i]}
+              prop{&al.properties[i]},
+              source{&al}
         {}
         // copying is templated to allow conversion to const
         // copy constructor creates new object pointing to same data
         AtomView(const AtomView &rhs)
-            : source{rhs.source},
+            :
               v{rhs.v},
               elem{rhs.elem},
-              prop{rhs.prop}
+              prop{rhs.prop},
+              source{rhs.source}
         {}
         template<bool B, bool t=isConst, typename = typename std::enable_if<t>::type>
         AtomView(const AtomView<B> &rhs)
-            : source{rhs.source},
-              v{rhs.v},
+            : v{rhs.v},
               elem{rhs.elem},
-              prop{rhs.prop}
+              prop{rhs.prop},
+              source{rhs.source}
         {}
         // copy assignment changes data
         AtomView& operator=(const AtomView &rhs){

@@ -8,7 +8,7 @@ using namespace Vipster;
 NamedEnum::NamedEnum(int value, const std::vector<std::string> &names)
     : val{value}
 {
-    if(value > names.size()){
+    if(value > static_cast<int>(names.size())){
         throw Error{"NamedEnum value out of range"};
     }
     std::vector<std::pair<int, std::string>> tmp;
@@ -50,7 +50,7 @@ std::vector<std::string> NamedEnum::names() const
 
 NamedEnum& NamedEnum::operator=(int v)
 {
-    if(v > size()){
+    if(v > static_cast<int>(size())){
         throw Error{"NamedEnum value out of range"};
     }
     val = v;
