@@ -24,6 +24,10 @@ else()
     option(BUILD_TESTING "Build tests" ON)
 endif()
 
+# store whether we target shared lib
+# so dependencies can be used statically if needed
+set(IS_SHARED BUILD_SHARED_LIBS)
+
 # Minimal standalone .wasm interface
 cmake_dependent_option(VIPSTER_WEB "Build JS+WebGL GUI" ON "EMSCRIPTEN" OFF)
 mark_as_advanced(VIPSTER_WEB)
@@ -124,9 +128,11 @@ target_link_libraries(libvipster PRIVATE nlohmann_json::nlohmann_json)
 find_package(fmt 6.1.2 CONFIG QUIET)
 if(NOT fmt_FOUND)
     init_submodule("{fmt}" "fmt")
+    set(BUILD_SHARED_LIBS OFF)
     add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
+    set(BUILD_SHARED_LIBS IS_SHARED)
 endif()
-target_link_libraries(libvipster PRIVATE fmt::fmt-header-only)
+target_link_libraries(libvipster PRIVATE fmt::fmt)
 
 if(BUILD_TESTING)
     # Tests, so far only for library
@@ -156,7 +162,7 @@ if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
     endif()
     add_library(bindings OBJECT ${PY_SOURCES})
-    target_link_libraries(bindings PUBLIC libvipster PRIVATE fmt::fmt-header-only pybind11::module)
+    target_link_libraries(bindings PUBLIC libvipster PRIVATE fmt::fmt pybind11::module)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
     endif()
@@ -240,7 +246,7 @@ if(VIPSTER_DESKTOP)
     target_link_libraries(vipster PRIVATE
         Qt5::Gui Qt5::Widgets OpenGL::GL
         CLI11::CLI11
-        fmt::fmt-header-only
+        fmt::fmt
         libvipster)
     target_include_directories(vipster PRIVATE "gui/common" "gui/qt")
 
@@ -284,7 +290,6 @@ if(VIPSTER_DESKTOP)
             set(PKG_MISC ON CACHE BOOL "")
             set(PKG_USER-MISC ON CACHE BOOL "")
             # include lammps as static library
-            set(IS_SHARED BUILD_SHARED_LIBS)
             set(BUILD_SHARED_LIBS OFF)
             add_subdirectory(external/lammps/cmake EXCLUDE_FROM_ALL)
             set(BUILD_SHARED_LIBS IS_SHARED)
