@@ -1,10 +1,6 @@
 # [![logo](util/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
-Master branch:
 ![Build status (master)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=master)
-
-Testing branch:
-![Build status (testing)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=testing)
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/sgsaenger/vipster)](https://github.com/sgsaenger/vipster/releases)
 [![PyPI version](https://img.shields.io/pypi/v/vipster)](https://pypi.org/project/vipster)
@@ -12,7 +8,7 @@ Testing branch:
 
 [![codecov](https://codecov.io/gh/sgsaenger/vipster/branch/master/graph/badge.svg)](https://codecov.io/gh/sgsaenger/vipster)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2166/badge)](https://bestpractices.coreinfrastructure.org/projects/2166)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a276a159c93f47768c59dc264750f9f5)](https://app.codacy.com/manual/sgsaenger/vipster/dashboard)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f5dbd1d560fa45858976d9ecf8daf835)](https://app.codacy.com/gh/sgsaenger/vipster/dashboard)
 
 [![DOI](https://zenodo.org/badge/21859848.svg)](https://zenodo.org/badge/latestdoi/21859848)
 [![GPL-3.0 licensed](https://img.shields.io/github/license/sgsaenger/vipster)](https://www.gnu.org/licenses/gpl-3.0.html)
@@ -56,9 +52,9 @@ Last but not least, a (sadly, feature-reduced) browser version can be tried [her
 
 ## Dependencies:
 
-- [JSON for Modern C++](https://github.com/nlohmann/json) 
-- [CLI11](https://github.com/CLIUtils/CLI11) 
-- [tinyexpr](https://github.com/codeplea/tinyexpr) 
+- [JSON for Modern C++](https://github.com/nlohmann/json)
+- [CLI11](https://github.com/CLIUtils/CLI11)
+- [tinyexpr](https://github.com/codeplea/tinyexpr)
 - [CMake](https://cmake.org)
 - [{fmt}](https://github.com/fmtlib/fmt)
 - and a C++17-capable compiler (g++ > 8 or clang > 4)
