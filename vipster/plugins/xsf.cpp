@@ -165,7 +165,7 @@ IOTuple XSFParser(const std::string& name, std::istream &file)
             for(auto& v: tmp){
                 file >> v[0] >> v[1] >> v[2];
             }
-            if(hasCell && (line.find("CONVVEC") != line.npos)){
+            if(line.find("CONVVEC") != line.npos){
                 // ignore conventional cell for now
                 // would be useful, but is optional
                 continue;

@@ -24,7 +24,7 @@ using namespace Vipster;
 
 static std::atomic<bool> running{false};
 
-std::pair<int, std::string> Lammps::runMaster(std::string dir, runParams params, Molecule *mol)
+std::pair<int, std::string> Lammps::runMaster(const std::string &dir, runParams params, Molecule *mol)
 {
 #ifdef USE_MPI
     if(params.MPI <= 1){
@@ -180,9 +180,9 @@ void Lammps::runSlave()
 #endif
 }
 
-void Lammps::run(std::string dir, runParams params, MPI_Comm intercomm, Molecule *mol)
+void Lammps::run(const std::string& dir, runParams params, MPI_Comm intercomm, Molecule *mol)
 {
-    if(!(intercomm == MPI_COMM_NULL) ^ (mol == nullptr)){
+    if((intercomm == MPI_COMM_NULL) == (mol == nullptr)){
         throw Vipster::Error{"Only use MPI or in-memory access to Stepdata."};
     }
     auto log = dir+"/log.lammps";

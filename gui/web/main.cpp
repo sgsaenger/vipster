@@ -78,7 +78,7 @@ EM_BOOL draw_loop(double time, void *view_ptr);
 class VipsterView : public GuiWrapper
 {
 public:
-    VipsterView(const std::string& canvasID)
+    explicit VipsterView(const std::string& canvasID)
     : GuiWrapper{Vipster::settings},
       canvas{canvasID}
     {

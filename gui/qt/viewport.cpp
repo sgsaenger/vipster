@@ -86,12 +86,16 @@ void ViewPort::updateWidget(GUI::change_t change)
     }
     if(change & GUI::Change::extra){
         // remove extra-data that has been erased
-        std::remove_if(vpdata.extras.begin(), vpdata.extras.end(),
-                       [](const auto &wp){return wp.expired();});
+        vpdata.extras.erase(
+            std::remove_if(vpdata.extras.begin(), vpdata.extras.end(),
+                           [](const auto &wp){return wp.expired();}),
+            vpdata.extras.end());
         for(auto &sd: stepdata){
-            std::remove_if(sd.second.extras.begin(),
-                           sd.second.extras.begin(),
-                           [](const auto &wp){return wp.expired();});
+            sd.second.extras.erase(
+                std::remove_if(sd.second.extras.begin(),
+                               sd.second.extras.end(),
+                               [](const auto &wp){return wp.expired();}),
+                sd.second.extras.end());
         }
     }
     openGLWidget->updateWidget(change);

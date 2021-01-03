@@ -147,7 +147,6 @@ void MillerWidget::updateWidget(GUI::change_t change)
             ui->xOff->setValue(static_cast<double>(curPlane->offset[0]));
             ui->yOff->setValue(static_cast<double>(curPlane->offset[1]));
             ui->zOff->setValue(static_cast<double>(curPlane->offset[2]));
-            // TODO: mask event?
             auto block = QSignalBlocker{ui->pushButton};
             ui->pushButton->setChecked(true);
         }else{

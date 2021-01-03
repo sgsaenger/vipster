@@ -27,7 +27,7 @@ IOTuple OrcaParser(const std::string& name, std::istream &file){
         std::stringstream ls{line};
         std::string test;
         // prepare parsers for specific formats
-        const auto xyzParser = [](Step& s, std::istream &file, std::string term){
+        const auto xyzParser = [](Step& s, std::istream &file, const std::string &term){
             std::string line, test;
             std::stringstream ls;
             Vec coord;
@@ -43,7 +43,7 @@ IOTuple OrcaParser(const std::string& name, std::istream &file){
             }
             throw IOError("ORCA: unterminated coordinates");
         };
-        const auto intParser = [](Step& s, std::istream &file, std::string term){
+        const auto intParser = [](Step& s, std::istream &file, const std::string &term){
             std::string line, test;
             std::stringstream ls;
             SizeVec ids;
@@ -66,7 +66,7 @@ IOTuple OrcaParser(const std::string& name, std::istream &file){
                 }
             }
         };
-        const auto gzmtParser = [](Step& s, std::istream &file, std::string term){
+        const auto gzmtParser = [](Step& s, std::istream &file, const std::string &term){
             std::string line, test;
             std::stringstream ls;
             SizeVec ids;

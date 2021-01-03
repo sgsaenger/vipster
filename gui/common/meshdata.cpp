@@ -5,39 +5,26 @@ using namespace Vipster;
 decltype (GUI::MeshData::shader_map) GUI::MeshData::shader_map;
 
 GUI::MeshData::MeshData(std::vector<Face>&& faces,
-                        Vec offset, Mat cell, Texture texture)
+                        Vec offset, Mat cell, const Texture &texture)
     : offset{offset},
       faces{std::move(faces)},
-      cell{cell}, texture{texture}
-{
-    cell_buffer = {0,0,0,
+      cell{cell},
+      cell_buffer{0,0,0,
                   static_cast<float>(cell[0][0]), static_cast<float>(cell[0][1]), static_cast<float>(cell[0][2]),
                   static_cast<float>(cell[1][0]), static_cast<float>(cell[1][1]), static_cast<float>(cell[1][2]),
                   static_cast<float>(cell[2][0]), static_cast<float>(cell[2][1]), static_cast<float>(cell[2][2]),
                   static_cast<float>(cell[0][0]+cell[1][0]), static_cast<float>(cell[0][1]+cell[1][1]), static_cast<float>(cell[0][2]+cell[1][2]),
                   static_cast<float>(cell[0][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[2][2]),
                   static_cast<float>(cell[1][0]+cell[2][0]), static_cast<float>(cell[1][1]+cell[2][1]), static_cast<float>(cell[1][2]+cell[2][2]),
-                  static_cast<float>(cell[0][0]+cell[1][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[1][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[1][2]+cell[2][2]),
-                  };
-    cell_gpu = {{static_cast<float>(cell[0][0]),
-                 static_cast<float>(cell[1][0]),
-                 static_cast<float>(cell[2][0]),
-                 static_cast<float>(cell[0][1]),
-                 static_cast<float>(cell[1][1]),
-                 static_cast<float>(cell[2][1]),
-                 static_cast<float>(cell[0][2]),
-                 static_cast<float>(cell[1][2]),
-                 static_cast<float>(cell[2][2])}};
-}
+                  static_cast<float>(cell[0][0]+cell[1][0]+cell[2][0]), static_cast<float>(cell[0][1]+cell[1][1]+cell[2][1]), static_cast<float>(cell[0][2]+cell[1][2]+cell[2][2])},
+      cell_gpu{{static_cast<float>(cell[0][0]), static_cast<float>(cell[1][0]), static_cast<float>(cell[2][0]),
+                static_cast<float>(cell[0][1]), static_cast<float>(cell[1][1]), static_cast<float>(cell[2][1]),
+                static_cast<float>(cell[0][2]), static_cast<float>(cell[1][2]), static_cast<float>(cell[2][2])}},
+    texture{texture}
+{}
 
 GUI::MeshData::MeshData(MeshData&& dat)
     : Data{std::move(dat)}
-//      offset{dat.offset},
-//      faces{std::move(dat.faces)},
-//      cell{dat.cell},
-//      cell_buffer{dat.cell_buffer},
-//      cell_gpu{dat.cell_gpu},
-//      texture{dat.texture}
 {
     std::swap(offset, dat.offset);
     std::swap(faces, dat.faces);

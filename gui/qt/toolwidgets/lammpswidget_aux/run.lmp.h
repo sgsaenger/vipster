@@ -21,9 +21,9 @@ struct runParams{
     double etol{0}, ftol{0};
 };
 
-std::pair<int, std::string> runMaster(std::string dir, runParams params, Molecule *mol);
+std::pair<int, std::string> runMaster(const std::string &dir, runParams params, Molecule *mol);
 void runSlave();
-void run(std::string dir, runParams params, MPI_Comm intercomm, Molecule *mol=nullptr);
+void run(const std::string &dir, runParams params, MPI_Comm intercomm, Molecule *mol=nullptr);
 }
 
 #endif // RUN_LMP_H

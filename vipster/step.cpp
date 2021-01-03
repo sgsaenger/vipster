@@ -241,10 +241,9 @@ void Step::modReshape(Mat newMat, double newDim, AtomFmt Fmt){
         return;
     }
     modWrap();
-    size_t fac;
     if(newMat == oldMat){
         // only changing cdm
-        fac = static_cast<size_t>(std::ceil(newDim/oldCdm));
+        size_t fac = static_cast<size_t>(std::ceil(newDim/oldCdm));
         modMultiply(fac, fac, fac);
     }else{
         // change vectors or both

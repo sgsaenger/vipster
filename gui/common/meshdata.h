@@ -54,7 +54,7 @@ private:
     static std::map<void*, ShaderContext> shader_map;
 public:
     MeshData(std::vector<Face>&& faces, Vec offset,
-             Mat cell, Texture texture);
+             Mat cell, const Texture &texture);
     MeshData(MeshData&& dat);
     MeshData(const MeshData& dat)=delete;
     MeshData& operator=(const MeshData& dat)=delete;
