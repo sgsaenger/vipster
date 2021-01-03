@@ -22,6 +22,17 @@ using namespace Vipster;
  *   OR
  *   remove duplicate bindings via constexpr if and detail::is_selection/is_formatter (worse)
  */
+template <typename S, typename A>
+void __setitem__(S& s, int i, const A& at){
+    if (i<0){
+        i = i+static_cast<int>(s.getNat());
+    }
+    if ((i<0) || i>=static_cast<int>(s.getNat())){
+        throw py::index_error();
+    }
+    s[static_cast<size_t>(i)] = at;
+}
+
 template <typename S>
 py::class_<S> bind_step(py::handle &m, std::string name){
     py::class_<StepConst<typename S::atom_source>>(m, ("__"+name+"Base").c_str());
@@ -38,42 +49,10 @@ py::class_<S> bind_step(py::handle &m, std::string name){
                 }
                 return s[static_cast<size_t>(i)];
             }, py::keep_alive<0, 1>())
-        .def("__setitem__", [](S& s, int i, const typename S::atom& at){
-                if (i<0){
-                    i = i+static_cast<int>(s.getNat());
-                }
-                if ((i<0) || i>=static_cast<int>(s.getNat())){
-                    throw py::index_error();
-                }
-                s[static_cast<size_t>(i)] = at;
-        })
-        .def("__setitem__", [](S& s, int i, const typename S::formatter::atom& at){
-                if (i<0){
-                    i = i+static_cast<int>(s.getNat());
-                }
-                if ((i<0) || i>=static_cast<int>(s.getNat())){
-                    throw py::index_error();
-                }
-                s[static_cast<size_t>(i)] = at;
-        })
-        .def("__setitem__", [](S& s, int i, const typename S::selection::atom& at){
-                if (i<0){
-                    i = i+static_cast<int>(s.getNat());
-                }
-                if ((i<0) || i>=static_cast<int>(s.getNat())){
-                    throw py::index_error();
-                }
-                s[static_cast<size_t>(i)] = at;
-        })
-        .def("__setitem__", [](S& s, int i, const typename S::formatter::selection::atom& at){
-                if (i<0){
-                    i = i+static_cast<int>(s.getNat());
-                }
-                if ((i<0) || i>=static_cast<int>(s.getNat())){
-                    throw py::index_error();
-                }
-                s[static_cast<size_t>(i)] = at;
-        })
+        .def("__setitem__", __setitem__<S, typename S::atom>)
+        .def("__setitem__", __setitem__<S, typename S::formatter::atom>)
+        .def("__setitem__", __setitem__<S, typename S::selection::atom>)
+        .def("__setitem__", __setitem__<S, typename S::formatter::selection::atom>)
         .def("__len__", &S::getNat)
         .def_property_readonly("nat", &S::getNat)
         .def("__iter__", [](S& s){return py::make_iterator(s.begin(), s.end());})
@@ -115,11 +94,11 @@ py::class_<S> bind_step(py::handle &m, std::string name){
     using _Vec = decltype(std::declval<typename S::atom>().coord);
     auto a = py::class_<Atom>(s, "Atom")
         .def_property("name", [](const Atom &a)->const std::string&{return a.name;},
-                      [](Atom &a, std::string s){a.name = s;})
+                      [](Atom &a, const std::string &s){a.name = s;})
         .def_property("coord", [](const Atom &a)->const _Vec&{return a.coord;},
                       [](Atom &a, Vec c){a.coord = c;})
         .def_property("properties", [](const Atom &a)->const AtomProperties&{return a.properties;},
-                      [](Atom &a, AtomProperties bs){a.properties = bs;})
+                      [](Atom &a, const AtomProperties &bs){a.properties = bs;})
 //        .def("__eq__", [](const Atom &lhs, const Atom &rhs){return lhs == rhs;},py::is_operator())
 //        .def(py::self == py::self)
 //        .def(py::self != py::self)
@@ -154,7 +133,7 @@ py::class_<S> bind_step(py::handle &m, std::string name){
         .def(py::self == Vec())
     ;
 
-    return std::move(s);
+    return s;
 }
 
 void Vipster::Py::Step(py::module& m){

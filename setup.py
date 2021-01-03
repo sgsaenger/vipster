@@ -11,7 +11,6 @@ import re
 import sys
 import shlex
 import subprocess
-import platform
 
 # CMake arguments
 cmake_defines = "-DVIPSTER_PYLIB=YES -DVIPSTER_PYPI=YES"\
@@ -51,9 +50,7 @@ else:
 # CMake* classes borrowed from https://github.com/raydouglass/cmake_setuptools
 # until this works with other generators/python2
 class CMakeExtension(Extension):
-    """
-    setuptools.Extension for cmake
-    """
+    """setuptools.Extension for cmake."""
 
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -61,9 +58,7 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuildExt(build_ext):
-    """
-    setuptools build_ext which builds using cmake & make
-    """
+    """setuptools build_ext which builds using cmake & make."""
 
     def build_extension(self, ext):
         if isinstance(ext, CMakeExtension):
@@ -110,35 +105,34 @@ readme = re.sub('(INSTALL.md)', r'https://github.com/sgsaenger/'
 readme = re.sub('(util/vipster.png)', r'https://raw.githubusercontent.com/'
                 r'sgsaenger/vipster/master/\1', readme)
 
-setup(
-        name="vipster",
-        version=re.findall(r'project\(Vipster VERSION ([0-9.]*)',
-                           readfile('CMakeLists.txt'))[0],
-        author="Sebastian Gsänger",
-        url="https://github.com/sgsaenger/vipster",
-        description="A pre- and post-processing toolkit "
-                    "for atomistic simulations.",
-        long_description=readme,
-        long_description_content_type="text/markdown",
-        classifiers=[
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-            "Programming Language :: C++",
-            "Programming Language :: Python :: Implementation :: CPython",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
-            "Topic :: Scientific/Engineering :: Chemistry",
-            "Topic :: Scientific/Engineering :: Physics",
-            ],
-        python_requires='>=3.6',
-        keywords=['chemistry'],
-        license="GPL",
-        ext_modules=[CMakeExtension('pyvipster', '.')],
-        data_files=extralibs,
-        cmdclass={'build_ext': CMakeBuildExt},
-        zip_safe=False,
-        )
+setup(name="vipster",
+      version=re.findall(r'project\(Vipster VERSION ([0-9.]*)',
+                         readfile('CMakeLists.txt'))[0],
+      author="Sebastian Gsänger",
+      url="https://github.com/sgsaenger/vipster",
+      description="A pre- and post-processing toolkit "
+                  "for atomistic simulations.",
+      long_description=readme,
+      long_description_content_type="text/markdown",
+      classifiers=[
+          "Development Status :: 4 - Beta",
+          "Intended Audience :: Science/Research",
+          "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+          "Programming Language :: C++",
+          "Programming Language :: Python :: Implementation :: CPython",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: 3.9",
+          "Topic :: Scientific/Engineering :: Chemistry",
+          "Topic :: Scientific/Engineering :: Physics",
+      ],
+      python_requires='>=3.6',
+      keywords=['chemistry'],
+      license="GPL",
+      ext_modules=[CMakeExtension('pyvipster', '.')],
+      data_files=extralibs,
+      cmdclass={'build_ext': CMakeBuildExt},
+      zip_safe=False,
+      )
