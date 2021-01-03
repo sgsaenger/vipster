@@ -12,6 +12,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -23,11 +24,12 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
-  - Version [e.g. 1.14a]
-  - Interface [Desktop-App, Browser-App, C++-API, Python-API]
-  - Platform [e.g. Windows, Linux]
-  - Browser if applicable [e.g. Chromium, Safari]
+**Your system/installation (please complete the following information):**
+
+- Version [e.g. 1.14a]
+- Interface [Desktop-App, Browser-App, C++-API, Python-API]
+- Platform [e.g. Windows, Linux]
+- Browser if applicable [e.g. Chromium, Safari]
 
 **Additional context**
 Add any other context about the problem here.

@@ -1,6 +1,7 @@
 # Installation instructions
 
 Vipster has four main components:
+
 - *QtVipster*, a desktop-application
 - *PyVipster*, python bindings to accomodate scripting
 - *WebVipster*, a web-application
@@ -26,7 +27,8 @@ This also contains the python bindings.
 Other distributions may follow.
 
 If your distribution does not offer a package, there is a portable .AppImage file you can download from the releases page. This can be made executable and used directly:
-```
+
+```sh
 chmod +x Vipster-Linux-x86_64.AppImage
 ./Vipster-Linux-x86_64.AppImage
 ```
@@ -42,11 +44,13 @@ So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see
 ### PyVipster
 
 To build the python library from source, execute the `setup.py` script in the root folder:
-```
+
+```sh
 python setup.py install --user # will install into your home directory
 python setup.py bdist_wheel # will create a .wheel file for distribution
 ```
-#### For package maintainers:
+
+#### For package maintainers
 
 Installation via `setup.py` or `pip` will provide a statically linked library.
 To get bindings that dynamically link to a system-wide installation,
@@ -64,24 +68,28 @@ they are included as git submodules and will be configured automatically during 
 ### Build process (simple)
 
 We need two directories:
+
 - `$BUILD_DIR` is the directory that will contain your compiled files and can be chosen freely
 - `$SOURCE_DIR` is the path to the Vipster source tree, e.g. where you unzipped the download or cloned the Git tree.
 
 All commands shall be executed in `$BUILD_DIR`.
 Vipster is built in multiple steps:
 
-1. Configure the build via CMake (see below for more options):
-```
+Step 1: Configure the build via CMake (see below for more options):
+
+```sh
 cmake $SOURCE_DIR
 ```
 
-2. Perform the compilation:
-```
+Step 2: Perform the compilation:
+
+```sh
 cmake --build .
 ```
 
-3. (Optional, not Windows) Install your compiled program:
-```
+Step 3: (Optional, not Windows) Install your compiled program:
+
+```sh
 cmake --build . -- install
 ```
 
@@ -94,6 +102,7 @@ You can also use `cmake-gui` (graphical) or `ccmake` (terminal) to change option
 After changing the configuration, execute Step 2 (and 3) again to update your compiled (installed) files.
 
 List of common/vipster options, see [CMake documentation](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) for more information:
+
 - CMAKE_BUILD_TYPE: General compilation preset, set to "Release" for a regular optimized build or "Debug" for debug flags
 - CMAKE_INSTALL_PREFIX: Set install path, defaults to `/usr/local`. Common setting for a per-user install: `$HOME/.local`
 - VIPSTER_DESKTOP: Set to "ON" to build QtVipster, "OFF" otherwise (default if Qt is found)
@@ -105,7 +114,6 @@ List of common/vipster options, see [CMake documentation](https://cmake.org/cmak
 - BUILD_TESTING: Set to "OFF" to disable testing ("ON" by default)
 - CMAKE_PREFIX_PATH: Set to path for your Qt installation if not found automatically
 
-
 ### Debugging/Tests
 
 If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
@@ -116,7 +124,8 @@ Unit tests are built by default (see `BUILD_TESTING`) and can be executed via `c
 
 A feature-reduced browser frontend is available for browsers supporting WebGL2 and WebAssembly.
 Use [emscripten](http://kripken.github.io/emscripten-site) for building:
-```
+
+```sh
 cd $BUILD_DIR
 emcmake cmake -D CMAKE_BUILD_TYPE=Release $SOURCE_DIR
 emcmake cmake --build .
@@ -129,17 +138,19 @@ An example implementation can be found in `gh-pages/emscripten`.
 #### Rebuild CSS
 
 To rebuild the webpage's css, run
-```
+
+```sh
 npm install
 ```
+
 in `gh-pages/emscripten`. This will pull in dependencies and rebuild `styles.css`.
 
 The following NPM scripts are available:
 
-* `npm run build`:
+- `npm run build`:
 
     Compiles the SCSS code and executes the PostCSS Autoprefixer afterwards
 
-* `npm run css:watch`:
+- `npm run css:watch`:
 
     Starts the watch-mode: As soon as one of the SCSS files under `styles/` is changed, a CSS rebuild is triggered automatically.
