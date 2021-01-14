@@ -79,9 +79,9 @@ void GUI::Data::initGlobal(void *context)
     if(isES){
         glVersionStr = glVersionStr+11;
     }
-    char *glVersionEnd;
-    int majorVersion = std::strtol(glVersionStr, &glVersionEnd, 10);
-    int minorVersion = std::strtol(glVersionEnd+1, &glVersionEnd, 10);
+//    char *glVersionEnd;
+//    int majorVersion = std::strtol(glVersionStr, &glVersionEnd, 10);
+//    int minorVersion = std::strtol(glVersionEnd+1, &glVersionEnd, 10);
     // generate buffers and upload data
     glGenBuffers(1, &glob.sphere_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, glob.sphere_vbo);

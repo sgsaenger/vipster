@@ -127,7 +127,7 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
     // determine base argument length
     size_t narg{100};
     for(const auto& at:atoms){
-        narg = std::min(narg,at.size());
+        narg = std::min(narg, at.size());
     }
     file.seekg(rewindpos);
     // collect parser-pieces
@@ -156,7 +156,7 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
         return fmtmap.at("charge");
     }
     std::vector<lmpTok> parser{};
-    size_t col{1}, poscoord{narg-4};
+    std::int_fast32_t col{1}, poscoord{static_cast<std::int_fast32_t>(narg)-4};
     /* assume:
      * - trailing int-columns are image-flags
      * - three cols before image-flags are position
@@ -179,7 +179,7 @@ std::vector<lmpTok> getFmtGuess(std::istream& file, size_t nat){
     if((poscoord-col)>0){
         parser.push_back(lmpTok::charge);
         ++col;
-        for(size_t i=0; i<(poscoord-col); ++i){
+        for(std::int_fast32_t i=0; i<(poscoord-col); ++i){
             parser.push_back(lmpTok::ignore);
         }
     }
@@ -246,7 +246,7 @@ void groupSets(std::list<std::set<size_t>>& molecules){
     if(molecules.size() != size){
         groupSets(molecules);
     }
-};
+}
 
 auto makeWriter(const std::vector<lmpTok>& fmt,
                 const std::vector<size_t>& molID,

@@ -43,7 +43,7 @@ void from_json(const nlohmann::json& j, Preset& p)
             if(auto pos = j.find(v.first); pos != j.end()){
                 try{
                     val = pos->get<std::string>();
-                }catch(IOError){
+                }catch(IOError&){
                     // ignore
                 }
             }

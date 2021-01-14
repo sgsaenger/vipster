@@ -4,4 +4,4 @@
 ForceFields defaultForcefields()
 {
     return {{"UFF", &UFF}};
-};
+}

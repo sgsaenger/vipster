@@ -56,7 +56,7 @@ static Parameter makeParam()
                     "Will be printed as-is if the periodic table entry for the current type "
                     "does not contain an explicit non-locality string."}},
         }};
-};
+}
 
 static Preset makePreset()
 {

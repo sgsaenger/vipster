@@ -195,7 +195,6 @@ void Vipster::saveConfig(const ConfigState& cs)
     const PresetMap &presets = std::get<4>(cs);
     // check dir, try to create if it doesn't exist
     auto dir = getConfigDir();
-    bool success{true};
     json j;
     if(!fs::exists(dir)){
         std::error_code error;
@@ -211,56 +210,56 @@ void Vipster::saveConfig(const ConfigState& cs)
     std::ofstream pte_file{pte_path};
     if(!pte_file){
         std::cerr << "Can not open file at " << pte_path << " for writing Periodic Table" << std::endl;
-        success = false;
+    }else{
+        j = pte;
+        pte_file << j.dump(2);
     }
-    j = pte;
-    pte_file << j.dump(2);
     // Settings
     fs::path settings_path = dir/"settings.json";
     std::ofstream settings_file{settings_path};
     if(!settings_file){
         std::cerr << "Can not open file at " << settings_path << " for writing settings";
-        success = false;
+    }else{
+        j = settings;
+        settings_file << j.dump(2);
     }
-    j = settings;
-    settings_file << j.dump(2);
     // Parameters
     fs::path param_path = dir/"parameters.json";
     std::ofstream param_file{param_path};
     if(!param_file){
         std::cerr << "Can not open file at " << param_path << " for writing parameter sets";
-        success = false;
-    }
-    j = json{};
-    for(const auto& pair: params){
-        const auto& plugin = pair.first;
-        if(!plugin->makeParam) continue;
-        const auto& com = plugin->command;
-        j[com] = json{};
-        auto& tmp = j[com];
-        for(const auto& param: pair.second){
-            tmp[param.first] = param.second;
+    }else{
+        j = json{};
+        for(const auto& pair: params){
+            const auto& plugin = pair.first;
+            if(!plugin->makeParam) continue;
+            const auto& com = plugin->command;
+            j[com] = json{};
+            auto& tmp = j[com];
+            for(const auto& param: pair.second){
+                tmp[param.first] = param.second;
+            }
         }
+        param_file << j.dump(2);
     }
-    param_file << j.dump(2);
     // IO-Presets
     fs::path preset_path = dir/"iopresets.json";
     std::ofstream preset_file{preset_path};
     if(!preset_file){
         std::cerr << "Can not open file at " << preset_path << " for writing IO-presets";
-        success = false;
-    }
-    j = json{};
-    for(const auto& pair: presets){
-        const auto& plugin = pair.first;
-        if(!plugin->makePreset) continue;
-        const auto& com = plugin->command;
-        j[com] = json{};
-        auto& tmp = j[com];
-        for(const auto& preset: pair.second){
-            tmp[preset.first] = preset.second;
+    }else{
+        j = json{};
+        for(const auto& pair: presets){
+            const auto& plugin = pair.first;
+            if(!plugin->makePreset) continue;
+            const auto& com = plugin->command;
+            j[com] = json{};
+            auto& tmp = j[com];
+            for(const auto& preset: pair.second){
+                tmp[preset.first] = preset.second;
+            }
         }
+        preset_file << j.dump(2);
     }
-    preset_file << j.dump(2);
     return;
 }

@@ -2,10 +2,10 @@
 #include "bond.h"
 #include <pybind11/stl.h>
 
-PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Bond>);
-PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Overlap>);
-PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Angle>);
-PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Dihedral>);
+PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Bond>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Overlap>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Angle>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Dihedral>)
 
 void Vipster::Py::Bond(py::module &m){
     py::bind_vector<std::vector<Vipster::Bond>>(m,"__BondVector__");

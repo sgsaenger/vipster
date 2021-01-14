@@ -173,7 +173,7 @@ std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool
         throw Error("Mandatory vector missing");
     }
     return is;
-};
+}
 
 std::istream& operator>>(std::istream& is, std::tuple<double&, bool> dat){
     auto& val = std::get<0>(dat);

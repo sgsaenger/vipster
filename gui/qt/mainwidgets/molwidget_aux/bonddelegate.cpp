@@ -10,7 +10,7 @@ QWidget *BondDelegate::createEditor(QWidget *, const QStyleOptionViewItem &,
                                        const QModelIndex &index) const
 {
     auto dialog = new QColorDialog{index.data(Qt::UserRole).value<QColor>(), qApp->activeWindow()};
-    dialog->setModal(Qt::WindowModality::ApplicationModal);
+    dialog->setWindowModality(Qt::WindowModality::ApplicationModal);
     dialog->setOption(QColorDialog::ShowAlphaChannel);
     return dialog;
 }

@@ -2,7 +2,7 @@
 #include "data.h"
 
 template <typename T>
-py::class_<T> bind_datagrid(py::module &m, std::string const &name){
+py::class_<T, Vipster::BaseData> bind_datagrid(py::module &m, std::string const &name){
    auto tmp = py::class_<T, Vipster::BaseData>{m, name.c_str()}
        .def(py::init([](py::args args){
            py::tuple obj;
@@ -63,7 +63,7 @@ py::class_<T> bind_datagrid(py::module &m, std::string const &name){
        })
        .def("__len__", [](const T &d){return d.extent[0];})
    ;
-   return std::move(tmp);
+   return tmp;
 }
 
 void Vipster::Py::Data(py::module& m){

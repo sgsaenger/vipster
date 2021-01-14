@@ -14,16 +14,14 @@
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
     // read with format guess
-    IOTuple readFile(const std::string &fn,
-                     const PluginList &p=defaultPlugins());
+    IOTuple readFile(const std::string &fn, const PluginList &p);
     // read with explicit format
     IOTuple readFile(const std::string &fn, const Plugin* plug);
     bool    writeFile(const std::string &fn, const Plugin* plug, const Molecule &m,
                       std::optional<size_t> idx={},
                       const std::optional<Parameter>& p=std::nullopt,
                       const std::optional<Preset>& c=std::nullopt);
-    const Plugin* guessFmt(std::string fn,
-                           const PluginList &p=defaultPlugins());
+    const Plugin* guessFmt(std::string fn, const PluginList &p);
     // RAII wrapper for temp folder
     namespace detail {
         class TempWrap{

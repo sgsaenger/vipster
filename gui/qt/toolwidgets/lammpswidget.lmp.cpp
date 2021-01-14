@@ -63,9 +63,9 @@ LammpsWidget::LammpsWidget(QWidget *parent) :
     MPI_Initialized(&flag);
     if(!flag){
         int argc{0};
-        int level{0};
         char **argv{nullptr};
 #ifdef USE_MPI
+        int level{0};
         MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &level);
         if(level < MPI_THREAD_MULTIPLE){
             ui->MPISpin->setDisabled(true);

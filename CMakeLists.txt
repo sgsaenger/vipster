@@ -162,6 +162,7 @@ if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
     endif()
     add_library(bindings OBJECT ${PY_SOURCES})
+    target_compile_options(bindings PRIVATE "-fvisibility=hidden")
     target_link_libraries(bindings PUBLIC libvipster PRIVATE fmt::fmt pybind11::module)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
@@ -231,6 +232,7 @@ if(VIPSTER_DESKTOP)
 
     # executable
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
+    target_compile_options(vipster PRIVATE "-fvisibility=hidden")
 
     # set rpath for local installations on linux
     if(UNIX AND BUILD_SHARED_LIBS AND NOT APPLE)

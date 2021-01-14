@@ -58,10 +58,11 @@ void FixVipster::sendStep()
     }
     if(mol){
         auto &step = mol->newStep(mol->getStep(mol->getNstep()-1));
-        if(atom->natoms != step.getNat()){
+        auto natoms = static_cast<size_t>(atom->natoms);
+        if(natoms != step.getNat()){
             throw LAMMPSException{"Number of atoms differs between LAMMPS and Vipster. Aborting."};
         }
-        for(size_t i=0; i<atom->natoms; ++i){
+        for(size_t i=0; i<natoms; ++i){
             auto at = step.at(atom->tag[i]-1);
             at.coord[0] = atom->x[i][0];
             at.coord[1] = atom->x[i][1];

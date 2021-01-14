@@ -51,7 +51,7 @@ static auto mkparser(){
         }
         std::get<2>(d).push_back(std::move(grid));
     };
-};
+}
 
 IOTuple XSFParser(const std::string& name, std::istream &file)
 {
