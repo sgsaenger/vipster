@@ -24,7 +24,7 @@ jobs:
           uses: actions/cache@v2
           with:
               path: ../Qt
-              key: ubuntu-16.04-QtCache-5.15.2
+              key: ${{ runner.os }}-QtCache-5.15.2
         - name: Install Qt
           uses: jurplel/install-qt-action@v2
           with:
@@ -84,14 +84,15 @@ jobs:
           id: cache-qt
           uses: actions/cache@v2
           with:
-              path: ../Qt
-              key: ubuntu-16.04-QtCache-5.15.2
+              path: Qt
+              key: ${{ runner.os }}-QtCache-5.15.2
         - name: Install Qt
           uses: jurplel/install-qt-action@v2
           with:
               version: '5.15.2'
               target: 'desktop'
               arch: 'win64_mingw81'
+              dir: ${{ github.workspace }}
               cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
         - name: Setup Python
