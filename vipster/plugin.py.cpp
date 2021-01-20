@@ -1,23 +1,78 @@
 #include "plugin.py.h"
+#include "plugins/moltemplate.py.h"
+
 #include <pybind11/eval.h>
 #include <pybind11/stl.h>
+#include <fmt/format.h>
 
 using namespace Vipster;
-namespace fs = std::filesystem;
 
-// expose plugins
-void Vipster::Py::Plugins(py::module& m){
+std::vector<std::pair<std::string, py::object(*)()>> defaultPyPlugins(){
+    return {
+        {"moltemplate", &Plugins::moltemplate}
+    };
+}
+
+void Vipster::Py::Plugins(py::module& m, ConfigState &state){
+    // Create python-based Plugins
+    for(const auto& [name, plug]: defaultPyPlugins()){
+        try{
+            Plugin::try_create(plug(), state);
+        }catch(const py::error_already_set &e){
+            std::cerr << fmt::format("Disabling plugin {}:\n{}", name, e.what()) << std::endl;
+        }
+    }
+
+    // register Plugins with Python
     py::class_<Vipster::Plugin>(m, "__Plugin")
     .def("__repr__", [](const Vipster::Plugin *p){return "Plugins."+p->command;})
     .def_readonly("name", &Vipster::Plugin::name)
     .def_readonly("extension", &Vipster::Plugin::extension)
     .def_readonly("command", &Vipster::Plugin::command)
+    // Parser
+    .def("parser", [](const Vipster::Plugin *p, const std::string &name, const std::string &content) -> py::object{
+        if(!p->parser){
+            throw Error{fmt::format("Plugins.{} has no parser", p->command)};
+        }
+        auto contentstream = std::stringstream{content};
+        return py::cast(std::get<0>(p->parser(name, contentstream)));
+    })
     .def_property_readonly("hasParser", [](const Vipster::Plugin*const p){
         return static_cast<bool>(p->parser);})
+    // Writer
+    .def("writer", [](const Vipster::Plugin *plug,
+                      const Molecule& m,
+                      std::optional<size_t> idx,
+                      const std::optional<Parameter>& p,
+                      const std::optional<Preset>& c) -> py::object{
+        if(!plug->writer){
+            throw Error{fmt::format("Plugins.{} has no writer", plug->command)};
+        }
+        if(!idx){
+            idx = m.getNstep()-1;
+        }
+        std::stringstream file{};
+        plug->writer(m, file, p, c, *idx);
+        return py::cast(file.str());
+    }, "molecule"_a, "index"_a=std::nullopt, "parameters"_a=std::nullopt, "preset"_a=std::nullopt)
     .def_property_readonly("hasWriter", [](const Vipster::Plugin*const p){
         return static_cast<bool>(p->writer);})
+    // Parameters
+    .def("makeParameters", [](const Vipster::Plugin *const p){
+        if(!p->makeParam){
+            throw Error{fmt::format("Plugins.{} has no parameters", p->command)};
+        }
+        return py::cast(p->makeParam);
+    })
     .def_property_readonly("hasParameters", [](const Vipster::Plugin*const p){
         return static_cast<bool>(p->makeParam);})
+    // Presets
+    .def("makePreset", [](const Vipster::Plugin*const p){
+        if(!p->makeParam){
+            throw Error{fmt::format("Plugins.{} has no IO presets", p->command)};
+        }
+        return py::cast(p->makePreset());
+    })
     .def_property_readonly("hasPresets", [](const Vipster::Plugin*const p){
         return static_cast<bool>(p->makePreset);})
     ;
@@ -30,11 +85,8 @@ std::ostream& Vipster::operator<<(std::ostream& os, const Plugin *p){
 // implement Py::Plugin
 IOTuple Py::Plugin::parser_impl(const std::string& n, std::istream &file){
     try{
-        // TODO costly: copying whole file to string first
-        std::string filestring;
-        file >> filestring;
+        std::string filestring{std::istreambuf_iterator{file}, {}};
         IOTuple data{Molecule{n,0}, std::optional<Parameter>{}, DataList{}};
-//        pyReader(py::cast(data, py::return_value_policy::reference), filestring);
         pyReader(py::cast(std::get<0>(data), py::return_value_policy::reference),
                  filestring);
         return data;
@@ -78,25 +130,12 @@ Preset Py::Plugin::makePreset_impl(){
     }
 }
 
-Py::Plugin* Py::Plugin::create(fs::path file){
+// try to create a plugin from a Python object/Module
+// if a valid, complete spec is found, will register it with `state`
+bool Py::Plugin::try_create(const py::object &pyplug, ConfigState &state){
     using namespace std::placeholders;
     auto plug = new Py::Plugin{};
-    py::object pyplug;
-    try{
-        py::exec("import importlib.util as __util\n"
-                 "def __importAbsolute(name, path):\n"
-                 "  spec = __util.spec_from_file_location(name, path)\n"
-                 "  mod = __util.module_from_spec(spec)\n"
-                 "  spec.loader.exec_module(mod)\n"
-                 "  return mod"
-                 );
-        py::object import = py::globals()["__importAbsolute"];
-        pyplug = import(file.stem().string(), file.string());
-    }catch(...){
-        // plugin is broken
-        delete plug;
-        return nullptr;
-    }
+    // Parse strings for name, extension and CLI-flag
     if(py::hasattr(pyplug, "name") &&
             py::isinstance<py::str>(pyplug.attr("name"))){
         plug->name = py::str(pyplug.attr("name"));
@@ -109,6 +148,8 @@ Py::Plugin* Py::Plugin::create(fs::path file){
             py::isinstance<py::str>(pyplug.attr("command"))){
         plug->command = py::str(pyplug.attr("command"));
     }
+    // parser and writer must be functions
+    // TODO: possible to error on signature-mismatch?
     if(py::hasattr(pyplug, "parser") &&
             py::isinstance<py::function>(pyplug.attr("parser"))){
         plug->pyReader = pyplug.attr("parser");
@@ -119,6 +160,17 @@ Py::Plugin* Py::Plugin::create(fs::path file){
         plug->pyWriter = pyplug.attr("writer");
         plug->writer = std::bind(&Py::Plugin::writer_impl, plug, _1, _2, _3, _4, _5);
     }
+    // Require all spec-strings and at least one function to be a useful plugin
+    if(plug->name.empty() || plug->extension.empty() || plug->command.empty() ||
+       (!plug->parser && !plug->writer)){
+        // plugin is incomplete, abort
+        delete plug;
+        return false;
+    }
+    // register plugin with `state`'s list of plugins
+    auto &plugins = std::get<2>(state);
+    plugins.push_back(plug);
+    // Optional: Parameter-set definition
     if(py::hasattr(pyplug, "parameters") &&
             py::isinstance<py::dict>(pyplug.attr("parameters"))){
         auto dict = py::cast<py::dict>(pyplug.attr("parameters"));
@@ -154,10 +206,14 @@ Py::Plugin* Py::Plugin::create(fs::path file){
             }
         }
         if(!tmp.empty()){
+            // found a valid parameter template, register with plugin and state
             plug->param = {tmp.begin(), tmp.end()};
             plug->makeParam = std::bind(&Py::Plugin::makeParam_impl, plug);
+            auto &params = std::get<3>(state);
+            params[plug]["default"] = plug->makeParam();
         }
     }
+    // Optional: IO-Preset definition
     if(py::hasattr(pyplug, "preset") &&
             py::isinstance<py::dict>(pyplug.attr("preset"))){
         auto dict = py::cast<py::dict>(pyplug.attr("preset"));
@@ -191,14 +247,12 @@ Py::Plugin* Py::Plugin::create(fs::path file){
             }
         }
         if(!tmp.empty()){
+            // found a valid IO-Preset template, register with plugin and state
             plug->preset = {tmp.begin(), tmp.end()};
             plug->makePreset = std::bind(&Py::Plugin::makePreset_impl, plug);
+            auto &presets = std::get<4>(state);
+            presets[plug]["default"] = plug->makePreset();
         }
     }
-    if(!plug->name.empty() && !plug->extension.empty() && !plug->command.empty()){
-        return plug;
-    }
-    // plugin is incomplete
-    delete plug;
-    return nullptr;
+    return true;
 }

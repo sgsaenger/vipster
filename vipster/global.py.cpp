@@ -50,7 +50,7 @@ void Vipster::Py::setupVipster(py::module &m, ConfigState &state, bool enableWri
     // Read config state, init state-dependent API
     Py::Molecule(m, state);
     Py::FileIO(m, state, enableWrite);
-    Py::Plugins(m);
+    Py::Plugins(m, state);
     Py::Parameters(m);
     Py::Presets(m);
     // expose state

@@ -1,7 +1,6 @@
 #ifndef PLUG_PY_H
 #define PLUG_PY_H
 
-#include <filesystem>
 #include "global.py.h"
 #include "plugin.h"
 
@@ -10,12 +9,12 @@ std::ostream& operator<<(std::ostream &os, const Plugin *p);
 }
 
 namespace Vipster::Py{
-void Plugins(py::module& m);
+void Plugins(py::module& m, ConfigState& state);
 
 class Plugin : public Vipster::Plugin
 {
 public:
-    static Plugin* create(std::filesystem::path file);
+    static bool try_create(const py::object &pyplug, ConfigState &state);
 private:
     Plugin()=default;
     IOTuple parser_impl(const std::string& n, std::istream &file);

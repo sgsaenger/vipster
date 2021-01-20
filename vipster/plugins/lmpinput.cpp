@@ -14,7 +14,7 @@ using namespace Vipster;
 static Preset makePreset()
 {
     return {&Plugins::LmpInput,
-        {{"style", {NamedEnum{0, {"angle", "atomic", "bond",
+        {{"style", {NamedEnum{1, {"angle", "atomic", "bond",
                                   "charge", "full", "molecular"}},
                     "The atom_style to be used by Lammps.\n"
                     "See https://lammps.sandia.gov/doc/atom_style.html for details."}},
