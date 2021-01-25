@@ -80,7 +80,7 @@ void Step::setFmt(AtomFmt tgt, bool scale)
 {
     if(tgt == this->atoms->ctxt.fmt){ return; }
     if(atomFmtRelative(tgt)){
-        atoms->ctxt.cell->enabled = true;
+        enableCell(true);
     }
     if(scale && (getNat() != 0)){
         auto tmp = asFmt(tgt);
@@ -98,7 +98,15 @@ void Step::setFmt(AtomFmt tgt, bool scale)
 
 void Step::enableCell(bool val) noexcept
 {
-    atoms->ctxt.cell->enabled = val;
+    if(val && (atoms->ctxt.cell->matrix == Mat{})){
+        // on initial enabling, fill-in matrix that fits current structure
+        auto com = getCom(AtomFmt::Angstrom);
+        setCellVec({{{{std::max(1., 2*com[0]+0.5), 0, 0}},
+                     {{0, std::max(1., 2*com[1]+0.5), 0}},
+                     {{0, 0, std::max(1., 2*com[2]+0.5)}}}});
+    }else{
+        atoms->ctxt.cell->enabled = val;
+    }
 }
 
 void Step::setCellVec(const Mat &vec, bool scale)

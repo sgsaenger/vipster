@@ -24,8 +24,8 @@ namespace Vipster{
         struct CellData{
             bool    enabled{false};
             double  dimension{1};
-            Mat     matrix{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}};
-            Mat     inverse{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}};
+            Mat     matrix{};
+            Mat     inverse{};
         };
 
         Format fmt{Angstrom};

@@ -185,7 +185,12 @@ void MolWidget::on_cellEnabledBox_toggled(bool checked)
         auto dim = ui->cellDimBox->value();
         auto fmt = static_cast<AtomFmt>(ui->cellFmt->currentIndex());
         try{
-            curStep->setCellVec(cellModel.getVec(), scale);
+            auto vec = cellModel.getVec();
+            if(vec == Mat{}){
+                curStep->enableCell(true);
+            }else{
+                curStep->setCellVec(vec, scale);
+            }
         } catch(const Error& e){
             QMessageBox::critical(this, "Error setting cell vectors", e.what());
             QSignalBlocker block{ui->cellEnabledBox};
