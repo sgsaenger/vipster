@@ -12,7 +12,13 @@ Step::Step(const Step& s)
     : StepMutable{std::make_shared<atom_source>(*s.atoms),
                   std::make_shared<BondList>(*s.bonds),
                   std::make_shared<std::string>(*s.comment)}
-{}
+{
+    for(auto& b: bonds->list){
+        if(b.type){
+            b.type = &*bonds->types.find(b.type->first);
+        }
+    }
+}
 
 Step::Step(Step&& s)
     : StepMutable{std::move(s)}
