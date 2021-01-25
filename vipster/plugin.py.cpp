@@ -83,13 +83,11 @@ std::ostream& Vipster::operator<<(std::ostream& os, const Plugin *p){
 }
 
 // implement Py::Plugin
-IOTuple Py::Plugin::parser_impl(const std::string& n, std::istream &file){
+IOTuple Py::Plugin::parser_impl(const std::string& name, std::istream &file){
     try{
         std::string filestring{std::istreambuf_iterator{file}, {}};
-        IOTuple data{Molecule{n,0}, std::optional<Parameter>{}, DataList{}};
-        pyReader(py::cast(std::get<0>(data), py::return_value_policy::reference),
-                 filestring);
-        return data;
+        auto mol = py::cast<Molecule>(pyReader(name, filestring));
+        return IOTuple{mol, std::nullopt, DataList{}};
     }catch(const py::error_already_set& e){
         throw IOError{e.what()};
     }

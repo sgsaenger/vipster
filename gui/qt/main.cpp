@@ -7,6 +7,7 @@
 #include <QCommandLineParser>
 #include <QSurfaceFormat>
 #include <QOpenGLContext>
+#include <fmt/format.h>
 
 #ifdef USE_PYTHON
 #pragma push_macro("slots")
@@ -83,12 +84,17 @@ int main(int argc, char *argv[])
     for(auto& fmt: plugins){
         // parser
         if(!fmt->parser) continue;
-        auto opt = app.add_option("--" + fmt->command,
-                                  fmt_files[fmt],
-                                  fmt->name);
-        fmt_opts[opt] = fmt;
-        opt->group("Parse files");
-        opt->check(CLI::ExistingFile);
+        try{
+            auto opt = app.add_option("--" + fmt->command,
+                                      fmt_files[fmt],
+                                      fmt->name);
+            fmt_opts[opt] = fmt;
+            opt->group("Parse files");
+            opt->check(CLI::ExistingFile);
+        }catch(CLI::OptionAlreadyAdded &e){
+            std::cerr << fmt::format("Unable to activate plugin {}: {}",
+                                     fmt->name, e.what()) << std::endl;
+        }
     }
     app.callback([&](){
         if(!app.get_subcommands().empty()){
