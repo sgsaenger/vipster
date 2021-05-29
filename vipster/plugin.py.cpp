@@ -19,7 +19,13 @@ void Vipster::Py::Plugins(py::module& m, ConfigState &state){
         try{
             Plugin::try_create(plug(), state);
         }catch(const py::error_already_set &e){
-            std::cerr << fmt::format("Disabling plugin {}:\n{}", name, e.what()) << std::endl;
+            std::string errMsg = fmt::format("Disabling python-plugin {}:\n", name);
+            if(e.matches(PyExc_ModuleNotFoundError)){
+                errMsg += "Python module not found";
+            }else{
+                errMsg += e.what();
+            }
+            std::cerr << errMsg << '\n' << std::endl;
         }
     }
 
