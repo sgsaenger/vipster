@@ -57,7 +57,8 @@ using namespace Vipster;
 // register `convert` subcommand
 void addSubcommandConvert(CLI::App& app, const ConfigState& state){
     // create a CLI11 subcommand
-    auto convert = app.add_subcommand("convert", "Directly convert a file");
+    auto convert = app.add_subcommand("convert", "Convert a file from one format to another");
+    convert->set_help_all_flag();
 
     // storage for parsed options
     static struct{
@@ -324,6 +325,7 @@ int main(int argc, char *argv[])
 
     // main parser + data-targets
     CLI::App app{"Vipster v" VIPSTER_VERSION};
+    app.set_help_all_flag("-H,--help-all", "Print help for this and all subcommands");
     app.allow_extras(true);
     std::map<const Plugin*, std::vector<std::string>> fmt_files{};
     std::map<CLI::Option*, const Plugin*> fmt_opts{};
@@ -335,8 +337,7 @@ int main(int argc, char *argv[])
                                       fmt_files[fmt],
                                       fmt->name);
             fmt_opts[opt] = fmt;
-            opt->group("Parse files");
-            opt->check(CLI::ExistingFile);
+            opt->group("Parse file(s) or stdin ('-')");
         }catch(CLI::OptionAlreadyAdded &e){
             std::cerr << fmt::format("Unable to activate plugin {}: {}",
                                      fmt->name, e.what()) << std::endl;
@@ -349,6 +350,10 @@ int main(int argc, char *argv[])
         std::vector<IOTuple> data{};
         if(app.remaining_size()!=0){
             for(const auto& file: app.remaining()){
+                if(file == "-"){
+                    std::cout << "Cannot parse stdin without explicit format" << std::endl;
+                    throw CLI::RuntimeError{1};
+                }
                 if(const auto plug = guessFmt(file, std::get<2>(state))){
                     data.push_back(readFile(file, plug));
                 }else{
@@ -363,7 +368,11 @@ int main(int argc, char *argv[])
         for(auto& op_fmt: fmt_opts){
             for(const auto& fn: op_fmt.first->results()){
                 try{
-                    data.push_back(readFile(fn, op_fmt.second));
+                    if(fn == "-"){
+                        data.push_back(readCin(op_fmt.second));
+                    }else{
+                        data.push_back(readFile(fn, op_fmt.second));
+                    }
                 }catch(const Vipster::IOError &e){
                     std::cout << e.what() << std::endl;
                     throw CLI::RuntimeError{1};

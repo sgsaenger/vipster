@@ -52,9 +52,17 @@ const Plugin *Vipster::guessFmt(std::string fn, const PluginList &p)
 // read with explicit format
 IOTuple Vipster::readFile(const std::string &fn, const Plugin *plug)
 {
+    if(!plug){
+        throw Error{"readFile: no plugin provided"};
+    }
     // set locale to C to get consistent parsing
     std::string userLocale = setlocale(0, nullptr);
     setlocale(LC_ALL, "C");
+    // fail on write-only parser
+    if(!plug->parser){
+        setlocale(LC_ALL, userLocale.c_str());
+        throw IOError("Format is not readable");
+    }
     // check if file can be read
     std::ifstream file{fn};
     if(!file){
@@ -62,11 +70,31 @@ IOTuple Vipster::readFile(const std::string &fn, const Plugin *plug)
         throw IOError("Could not open \""+fn+'"');
     }
     // try to parse
+    auto tmp = plug->parser(fn, file);
+    if(!std::get<0>(tmp).getNstep()){
+        setlocale(LC_ALL, userLocale.c_str());
+        throw IOError("No Molecule could be parsed");
+    }
+    // return if successful
+    setlocale(LC_ALL, userLocale.c_str());
+    return tmp;
+}
+
+IOTuple Vipster::readCin(const Plugin *plug)
+{
+    if(!plug){
+        throw Error{"readCin: no plugin provided"};
+    }
+    // set locale to C to get consistent parsing
+    std::string userLocale = setlocale(0, nullptr);
+    setlocale(LC_ALL, "C");
+    // fail on write-only parser
     if(!plug->parser){
         setlocale(LC_ALL, userLocale.c_str());
         throw IOError("Format is not readable");
     }
-    auto tmp = plug->parser(fn, file);
+    // try to parse
+    auto tmp = plug->parser("Molecule", std::cin);
     if(!std::get<0>(tmp).getNstep()){
         setlocale(LC_ALL, userLocale.c_str());
         throw IOError("No Molecule could be parsed");
@@ -83,6 +111,9 @@ bool  Vipster::writeFile(const std::string &fn,
                          const std::optional<Parameter>& p,
                          const std::optional<Preset>& c)
 {
+    if(!plug){
+        throw Error{"writeFile: no plugin provided"};
+    }
     if(!idx){
         idx = m.getNstep()-1;
     }
