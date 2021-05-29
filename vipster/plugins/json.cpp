@@ -133,7 +133,7 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
                 parseStep(j, m);
             }
         }else{
-            throw IOError("JSON-Parser: invalid molecule data {}", mol.value());
+            throw IOError(fmt::format("JSON-Parser: invalid molecule data {}", mol.value()));
         }
     }catch(nlohmann::detail::exception& e){
         throw IOError(e.what());
@@ -151,7 +151,7 @@ void writeStep(json &j, const Step &s, NamedEnum fmt, bool write_cell, bool writ
     for (const auto &at: step) {
         atoms.push_back({
             {"name", at.name.c_str()},
-            {"coord", (const Vec&)at.coord}
+            {"coord", static_cast<const Vec&>(at.coord)}
         });
     }
     // store bonds

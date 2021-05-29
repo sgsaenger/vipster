@@ -1,6 +1,7 @@
 #include <map>
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
+#include <fmt/format.h>
 #include "fileio.py.h"
 #include "fileio.h"
 
@@ -10,30 +11,15 @@ void Vipster::Py::FileIO(py::module& m, const ConfigState& state, bool enableRea
          * read a file
          */
         m.def("readFile",[&state](std::string fn){
-            auto data = readFile(fn, std::get<2>(state));
-            return data;
-//            if(data.data.empty()){
-//                return py::make_tuple(data.mol, std::move(data.param), py::none());
-//            }else{
-//                py::list l{};
-//                for(auto& d: data.data){
-//                    l.append(d.release());
-//                }
-//                return py::make_tuple(data.mol, std::move(data.param), l);
-//            }
+            if(const auto plug = guessFmt(fn, std::get<2>(state))){
+                return readFile(fn, plug);
+            }else{
+                throw IOError{fmt::format("Could not deduce format of file \"{}\""
+                                          "\nPlease specify format explicitely", fn)};
+            }
         }, "filename"_a);
         m.def("readFile",[](std::string fn, const Plugin* plug){
-            auto data = readFile(fn, plug);
-            return data;
-//            if(data.data.empty()){
-//                return py::make_tuple(data.mol, std::move(data.param), py::none());
-//            }else{
-//                py::list l{};
-//                for(auto& d: data.data){
-//                    l.append(d.release());
-//                }
-//                return py::make_tuple(data.mol, std::move(data.param), l);
-//            }
+            return readFile(fn, plug);
         }, "filename"_a, "format"_a);
     }
 

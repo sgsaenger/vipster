@@ -13,9 +13,6 @@
 
 //TODO: check std::ios_base::sync_with_stdio(false)
 namespace Vipster{
-    // read with format guess
-    IOTuple readFile(const std::string &fn, const PluginList &p);
-    // read with explicit format
     IOTuple readFile(const std::string &fn, const Plugin* plug);
     bool    writeFile(const std::string &fn, const Plugin* plug, const Molecule &m,
                       std::optional<size_t> idx={},

@@ -349,28 +349,24 @@ void MainWindow::loadMol()
         if(files.empty()) return;
         // else try to read file
         const auto& file = files[0].toStdString();
-        try {
-            try {
-                // try to open file without explicit format
-                newData(readFile(file, plugins));
-            } catch (const IOError &e) {
-                // if error is not fatal, we just need the format, so request it
-                if(!e.fatal){
-                    bool got_fmt{false};
-                    auto fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
-                                                       formats, 0, false, &got_fmt);
-                    // if the user selected the format, read the file
-                    if(got_fmt){
-                        auto fmt = std::find_if(plugins.begin(), plugins.end(),
-                            [&](const auto& plug){return plug->name.c_str() == fmt_s;});
-                        if(fmt == plugins.end())
-                            throw Error{"Invalid format in loadMol occured"};
-                        newData(readFile(file, *fmt));
-                    }
-                }else{
-                    throw;
-                }
+        // guess format or request from user
+        auto plugin = guessFmt(file, std::get<2>(state));
+        if (!plugin){
+            bool got_fmt{false};
+            auto fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
+                                               formats, 0, false, &got_fmt);
+            // if the user selected the format, read the file
+            if(got_fmt){
+                auto fmt = std::find_if(plugins.begin(), plugins.end(),
+                    [&](const auto& plug){return plug->name.c_str() == fmt_s;});
+                if(fmt == plugins.end())
+                    throw Error{"Invalid format in loadMol occured"};
+                plugin = *fmt;
             }
+        }
+        try {
+            // try to open file
+            newData(readFile(file, plugin));
         }catch (const IOError &e){
             QMessageBox msg{this};
             msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());

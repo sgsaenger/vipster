@@ -54,81 +54,13 @@ using namespace Vipster;
     }
 }
 
-#ifdef USE_PYTHON
-// create embedded python module
-PYBIND11_EMBEDDED_MODULE(vipster, m) {}
-#endif
-
-// command-line handling
-int main(int argc, char *argv[])
-{
-    // read user-defined settings and make state known
-    auto state = Vipster::readConfig();
-    const PluginList    &plugins = std::get<2>(state);
-    const ParameterMap  &params = std::get<3>(state);
-    const PresetMap     &presets = std::get<4>(state);
-
-#ifdef USE_PYTHON
-    // instance the python-interpreter, keep it alive for the program's duration
-    pybind11::scoped_interpreter interp{};
-    auto vipster_module = py::module::import("vipster");
-    // register types and state in module
-    Py::setupVipster(vipster_module, state, false);
-#endif
-
-    // main parser + data-targets
-    CLI::App app{"Vipster v" VIPSTER_VERSION};
-    app.allow_extras(true);
-    std::map<const Plugin*, std::vector<std::string>> fmt_files{};
-    std::map<CLI::Option*, const Plugin*> fmt_opts{};
-    for(auto& fmt: plugins){
-        // parser
-        if(!fmt->parser) continue;
-        try{
-            auto opt = app.add_option("--" + fmt->command,
-                                      fmt_files[fmt],
-                                      fmt->name);
-            fmt_opts[opt] = fmt;
-            opt->group("Parse files");
-            opt->check(CLI::ExistingFile);
-        }catch(CLI::OptionAlreadyAdded &e){
-            std::cerr << fmt::format("Unable to activate plugin {}: {}",
-                                     fmt->name, e.what()) << std::endl;
-        }
-    }
-    app.callback([&](){
-        if(!app.get_subcommands().empty()){
-            return;
-        }
-        std::vector<IOTuple> data{};
-        if(app.remaining_size()!=0){
-            for(const auto& file: app.remaining()){
-                try{
-                    data.push_back(readFile(file, plugins));
-                }catch(const Vipster::IOError &e){
-                    std::cout << e.what() << std::endl;
-                    throw CLI::RuntimeError{1};
-                }
-            }
-        }
-        // parse files
-        for(auto& op_fmt: fmt_opts){
-            for(const auto& fn: op_fmt.first->results()){
-                try{
-                    data.push_back(readFile(fn, op_fmt.second));
-                }catch(const Vipster::IOError &e){
-                    std::cout << e.what() << std::endl;
-                    throw CLI::RuntimeError{1};
-                }
-            }
-        }
-        // launch GUI
-        launchVipster(argc, argv, std::move(data), std::move(state));
-    });
-
-    // conversion parser + data + options
+// register `convert` subcommand
+void addSubcommandConvert(CLI::App& app, const ConfigState& state){
+    // create a CLI11 subcommand
     auto convert = app.add_subcommand("convert", "Directly convert a file");
-    struct{
+
+    // storage for parsed options
+    static struct{
         std::string in_fmt;
         std::string in_fn;
         std::string out_fmt;
@@ -137,6 +69,11 @@ int main(int argc, char *argv[])
         std::string param;
         std::string preset;
     }conv_data;
+
+    // aliases for config state members
+    const PluginList    &plugins = std::get<2>(state);
+    const ParameterMap  &params = std::get<3>(state);
+    const PresetMap     &presets = std::get<4>(state);
 
     // formats
     convert->add_flag("--list-fmt",
@@ -223,7 +160,7 @@ int main(int argc, char *argv[])
                       },
                       "List available output-behavior-presets");
 
-    // main arguments
+    // main file arguments
     convert->add_option("in_fmt", conv_data.in_fmt,
                         "format of input file")->required(true);
     convert->add_option("in_fn", conv_data.in_fn,
@@ -266,9 +203,10 @@ int main(int argc, char *argv[])
         }else{
             fmt_out = pos_out->second;
         }
-        // read input
+        // read input file
         auto [mol, param, data] = readFile(conv_data.in_fn, fmt_in);
         std::optional<Preset> preset{};
+        // create Parameter set if requested/required
         if(fmt_out->makeParam){
             std::string par_name;
             if(!conv_data.param.empty()){
@@ -285,6 +223,7 @@ int main(int argc, char *argv[])
                 param = pos->second;
             }
         }
+        // create IO preset set if requested/required
         if(fmt_out->makePreset){
             std::string pres_name;
             if(!conv_data.preset.empty()){
@@ -299,6 +238,7 @@ int main(int argc, char *argv[])
             }
             preset = pos->second;
         }
+        // parse k-points
         if(!conv_data.kpoints.empty()){
             const auto& kpoints = conv_data.kpoints;
             if(kpoints[0] == "gamma"){
@@ -323,7 +263,6 @@ int main(int argc, char *argv[])
                 } catch (...) {
                     throw CLI::ParseError(mpg_err, 1);
                 }
-            //TODO: discrete
             }else if(kpoints[0] == "disc"){
                 mol.kpoints.active = KPoints::Fmt::Discrete;
                 if(kpoints.size() < 4){
@@ -358,6 +297,85 @@ int main(int argc, char *argv[])
         writeFile(conv_data.out_fn, fmt_out, mol, std::nullopt, param, preset);
         throw CLI::Success();
     });
+
+}
+
+#ifdef USE_PYTHON
+// create embedded python module
+PYBIND11_EMBEDDED_MODULE(vipster, m) {}
+#endif
+
+// command-line handling
+int main(int argc, char *argv[])
+{
+    // read user-defined settings and make state known
+    auto state = Vipster::readConfig();
+    const PluginList    &plugins = std::get<2>(state);
+    const ParameterMap  &params = std::get<3>(state);
+    const PresetMap     &presets = std::get<4>(state);
+
+#ifdef USE_PYTHON
+    // instance the python-interpreter, keep it alive for the program's duration
+    pybind11::scoped_interpreter interp{};
+    auto vipster_module = py::module::import("vipster");
+    // register types and state in module
+    Py::setupVipster(vipster_module, state, false);
+#endif
+
+    // main parser + data-targets
+    CLI::App app{"Vipster v" VIPSTER_VERSION};
+    app.allow_extras(true);
+    std::map<const Plugin*, std::vector<std::string>> fmt_files{};
+    std::map<CLI::Option*, const Plugin*> fmt_opts{};
+    for(auto& fmt: plugins){
+        // parser
+        if(!fmt->parser) continue;
+        try{
+            auto opt = app.add_option("--" + fmt->command,
+                                      fmt_files[fmt],
+                                      fmt->name);
+            fmt_opts[opt] = fmt;
+            opt->group("Parse files");
+            opt->check(CLI::ExistingFile);
+        }catch(CLI::OptionAlreadyAdded &e){
+            std::cerr << fmt::format("Unable to activate plugin {}: {}",
+                                     fmt->name, e.what()) << std::endl;
+        }
+    }
+    app.callback([&](){
+        if(!app.get_subcommands().empty()){
+            return;
+        }
+        std::vector<IOTuple> data{};
+        if(app.remaining_size()!=0){
+            for(const auto& file: app.remaining()){
+                if(const auto plug = guessFmt(file, std::get<2>(state))){
+                    data.push_back(readFile(file, plug));
+                }else{
+                    std::cout << fmt::format("Could not deduce format of file \"{}\""
+                                             "\nPlease specify format explicitely", file)
+                              << std::endl;
+                    throw CLI::RuntimeError{1};
+                }
+            }
+        }
+        // parse files
+        for(auto& op_fmt: fmt_opts){
+            for(const auto& fn: op_fmt.first->results()){
+                try{
+                    data.push_back(readFile(fn, op_fmt.second));
+                }catch(const Vipster::IOError &e){
+                    std::cout << e.what() << std::endl;
+                    throw CLI::RuntimeError{1};
+                }
+            }
+        }
+        // launch GUI
+        launchVipster(argc, argv, std::move(data), std::move(state));
+    });
+
+    // add `convert` subcommand
+    addSubcommandConvert(app, state);
 
 #if defined(USE_LAMMPS) && defined(USE_MPI)
     auto lmp = app.add_subcommand("lammps_mpi_slave");

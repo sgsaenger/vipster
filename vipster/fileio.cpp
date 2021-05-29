@@ -49,19 +49,6 @@ const Plugin *Vipster::guessFmt(std::string fn, const PluginList &p)
     }
 }
 
-// read with format guess
-IOTuple Vipster::readFile(const std::string &fn, const PluginList &p)
-{
-    // get format
-    auto plugin = guessFmt(fn, p);
-    if(!plugin){
-        throw IOError{"Could not deduce format of file \""+fn+
-                        "\"\nPlease specify format explicitely", false};
-    }
-    // read file
-    return readFile(fn, plugin);
-}
-
 // read with explicit format
 IOTuple Vipster::readFile(const std::string &fn, const Plugin *plug)
 {

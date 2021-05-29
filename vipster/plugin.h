@@ -34,7 +34,7 @@ PluginList defaultPlugins();
 class IOError: public std::runtime_error
 {
     public:
-        IOError(const std::string& reason, bool fatal=true)
+        IOError(const std::string& reason)
             : std::runtime_error{reason}, fatal{fatal}
         {}
         bool fatal;
