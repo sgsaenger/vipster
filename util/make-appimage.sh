@@ -16,7 +16,7 @@ export LD_LIBRARY_PATH=$(${PY_BIN} -c "from distutils import sysconfig as s; pri
 # bundle required libraries (Qt, Python)
 wget -q -c "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" -O linuxdeployqt
 chmod +x linuxdeployqt
-./linuxdeployqt AppDir/usr/share/applications/com.github.sgsaenger.vipster.desktop -bundle-non-qt-libs
+./linuxdeployqt AppDir/usr/share/applications/com.github.sgsaenger.vipster.desktop -bundle-non-qt-libs -unsupported-allow-new-glibc
 
 # copy python standard-library
 export PY_LIB_DIR=$(${PY_BIN} -c "from distutils import sysconfig as s; print(s.get_python_lib(standard_lib=True))")
