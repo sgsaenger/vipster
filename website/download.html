@@ -25,18 +25,20 @@
                 run.status == "completed" &&
                 run.conclusion == "success" &&
                 run.event != "pull_request"))
-        let get_artifacts = get_run.then(run => run === undefined ?
+        get_artifacts = get_run.then(run => run === undefined ?
                 Promise.reject("No valid CI-artifacts") :
                 fetch(run.artifacts_url))
                 .then(response => response.json())
+                .then(response => response.artifacts.filter(artifact => !artifact.expired))
         Promise.all([get_run, get_artifacts]).then(function([run, artifacts]){
             console.log(run);
             console.log(artifacts);
+            if (!artifacts.length) return;
             let par = document.getElementById('unstable');
             var list = `<h2>Development release (unstable):</h2>
                 These builds are generated automatically and are more up to date, but may contain more bugs:
                 <ul>`;
-            for(artifact of artifacts.artifacts){
+            for(artifact of artifacts){
                 list += `<li><a href=https://github.com/sgsaenger/vipster/suites/${run.check_suite_id}/artifacts/${artifact.id}>${artifact.name}</a></li>`;
             }
             list += "</ul>";
