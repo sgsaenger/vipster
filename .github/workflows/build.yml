@@ -3,13 +3,15 @@ on:
     push:
         branches-ignore:
             - gh-pages
+    schedule:
+      - cron: '0 0 * * 0'
     pull_request:
     workflow_dispatch:
 
 jobs:
     debug:
         name: 'Test & Debug (Linux)'
-        runs-on: ubuntu-16.04
+        runs-on: ubuntu-18.04
         env:
             CC: gcc-9
             CXX: g++-9
@@ -65,7 +67,7 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - os: ubuntu-16.04
+                    - os: ubuntu-18.04
                       script: make-appimage.sh
                       artifact: Vipster-Linux-x86_64.AppImage
                     - os: windows-latest
@@ -109,14 +111,14 @@ jobs:
           uses: actions/cache@v2
           with:
               path: MinGW
-              key: mingw-17.1
+              key: mingw-18.0
         - name: Install MinGW
           if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
           shell: bash
           run: |
               choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-17.1-without-git.exe
-              7z x mingw-17.1-without-git.exe
+              wget https://nuwen.net/files/mingw/mingw-18.0-without-git.exe
+              7z x mingw-18.0-without-git.exe
               MinGW/set_distro_paths.bat
         - name: Configure MinGW
           if: runner.os == 'Windows'
@@ -198,7 +200,7 @@ jobs:
         needs: [release, web]
         strategy:
             matrix:
-                python-version: [3.6, 3.7, 3.8, 3.9]
+                python-version: [3.7, 3.8, 3.9, 3.10]
 
         steps:
         - uses: actions/checkout@v2 
@@ -211,14 +213,14 @@ jobs:
           uses: actions/cache@v2
           with:
               path: MinGW
-              key: mingw-17.1
+              key: mingw-18.0
         - name: Install MinGW
           if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
           shell: bash
           run: |
               choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-17.1-without-git.exe
-              7z x mingw-17.1-without-git.exe
+              wget https://nuwen.net/files/mingw/mingw-18.0-without-git.exe
+              7z x mingw-18.0-without-git.exe
               MinGW/set_distro_paths.bat
         - name: Configure MinGW
           if: runner.os == 'Windows'
