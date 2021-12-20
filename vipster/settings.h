@@ -31,7 +31,7 @@ struct Settings{
     Setting<ColVec> negCol{"Negative-isovalue color", ColVec{0, 0, 255, 155}};
 };
 
-extern const Settings settings;
+inline const Settings settings{};
 
 }
 
