@@ -218,9 +218,9 @@ void ParamWidget::setupText(const QVector<QString> &vectors)
     if(vecSel){
         vecSel->addItems(QStringList::fromVector(vectors));
         layout->insertWidget(0, vecSel);
-        auto fillText = [&, text](const QString& s){
+        auto fillText = [&, text, vecSel](int i){//const QString& s){
             QSignalBlocker block{text};
-            curVec = s.toStdString();
+            curVec = vecSel->currentText().toStdString();
             auto &[value, doc] = curParam->at(curVec);
             text->clear();
             QStringList list{};
@@ -231,9 +231,8 @@ void ParamWidget::setupText(const QVector<QString> &vectors)
             text->setPlainText(list.join('\n'));
             text->setToolTip(doc.c_str());
         };
-        fillText(vectors[0]);
-        connect(vecSel, QOverload<const QString&>::of(&QComboBox::currentIndexChanged),
-                fillText);
+        fillText(0);
+        connect(vecSel, QOverload<int>::of(&QComboBox::currentIndexChanged), fillText);
     }else if(text){
         curVec = vectors[0].toStdString();
         auto label = new QLabel{QString::fromStdString(curVec)+':'};
