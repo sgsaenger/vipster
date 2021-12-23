@@ -33,8 +33,12 @@ cmake_dependent_option(VIPSTER_WEB "Build JS+WebGL GUI" ON "EMSCRIPTEN" OFF)
 mark_as_advanced(VIPSTER_WEB)
 
 # enable main GUI App if Qt is found
-find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
-cmake_dependent_option(VIPSTER_DESKTOP "Build QT-based desktop app" ${Qt5_FOUND} "NOT EMSCRIPTEN" OFF)
+find_package(Qt6 CONFIG QUIET COMPONENTS Widgets Gui OpenGLWidgets)
+if(NOT ${Qt6_FOUND})
+    find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
+endif()
+
+cmake_dependent_option(VIPSTER_DESKTOP "Build QT-based desktop app" ON "Qt6_FOUND OR Qt5_FOUND;NOT EMSCRIPTEN" OFF)
 
 # embedded LAMMPS widget
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
@@ -70,6 +74,7 @@ set_target_properties(libvipster
         OUTPUT_NAME "vipster"
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
+        WINDOWS_EXPORT_ALL_SYMBOLS TRUE
     )
 if(UNIX)
     # allow dynamic plugin loading
@@ -79,10 +84,8 @@ if(UNIX)
     if(BUILD_SHARED_LIBS AND NOT APPLE AND NOT VIPSTER_WEB)
         install(TARGETS libvipster
             EXPORT "Vipster"
-            LIBRARY
-            DESTINATION "lib"
-            FRAMEWORK
-            DESTINATION "lib"
+            LIBRARY DESTINATION "lib"
+            FRAMEWORK DESTINATION "lib"
             )
         install(DIRECTORY "vipster/"
             DESTINATION "include/vipster"
@@ -162,10 +165,12 @@ if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
     endif()
     add_library(bindings OBJECT ${PY_SOURCES})
-    target_compile_options(bindings PRIVATE "-fvisibility=hidden")
     target_link_libraries(bindings PUBLIC libvipster PRIVATE fmt::fmt pybind11::module)
     if(WIN32)
         add_definitions(-DHAVE_SNPRINTF)
+    endif()
+    if(NOT MSVC)
+        target_compile_options(bindings PRIVATE "-fvisibility=hidden")
     endif()
 endif()
 
@@ -190,7 +195,10 @@ if(VIPSTER_DESKTOP)
     # Qt-based desktop application
 
     # load and setup qt
-    find_package(Qt5 5.10 CONFIG REQUIRED COMPONENTS Widgets Gui)
+    find_package(Qt6 CONFIG COMPONENTS Widgets Gui OpenGLWidgets)
+    if (NOT ${Qt6_FOUND})
+        find_package(Qt5 CONFIG REQUIRED COMPONENTS Widgets Gui)
+    endif()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
@@ -232,7 +240,9 @@ if(VIPSTER_DESKTOP)
 
     # executable
     add_executable(vipster WIN32 MACOSX_BUNDLE ${QT_SOURCES} ${ICON_SOURCES})
-    target_compile_options(vipster PRIVATE "-fvisibility=hidden")
+    if(NOT MSVC)
+        target_compile_options(vipster PRIVATE "-fvisibility=hidden")
+    endif()
 
     # set rpath for local installations on linux
     if(UNIX AND BUILD_SHARED_LIBS AND NOT APPLE)
@@ -240,16 +250,19 @@ if(VIPSTER_DESKTOP)
     endif()
 
     # fix name-clash on import library when using mingw/gcc
-    if(WIN32)
+    if(WIN32 AND NOT MSVC)
         set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
     endif()
 
     # link QT, CLI11 and vipster
     target_link_libraries(vipster PRIVATE
-        Qt5::Gui Qt5::Widgets OpenGL::GL
+        Qt::Gui Qt::Widgets OpenGL::GL
         CLI11::CLI11
         fmt::fmt
         libvipster)
+    if(${Qt6_FOUND})
+        target_link_libraries(vipster PRIVATE Qt6::OpenGLWidgets)
+    endif()
     target_include_directories(vipster PRIVATE "gui/common" "gui/qt")
 
     # python-widget:
