@@ -9,8 +9,7 @@ using namespace Vipster;
 
 GLWidget::GLWidget(QWidget *parent, const Vipster::Settings& settings):
     QOpenGLWidget(parent),
-    GuiWrapper{settings},
-    settings{settings}
+    GuiWrapper{settings}
 {
     setTextureFormat(GL_RGBA16);
     setFocusPolicy(Qt::WheelFocus);

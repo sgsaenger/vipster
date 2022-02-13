@@ -38,7 +38,6 @@ public:
     void setMainSel(Step::selection* sel);
     void updateMainStep();
     void updateMainSelection();
-public:
     void resizeViewMat(long w, long h);
     void zoomViewMat(float i);
     void rotateViewMat(float x, float y, float z);
@@ -46,6 +45,7 @@ public:
     enum class alignDir{x,y,z,mx,my,mz};
     void alignViewMat(alignDir d);
     Mat getAxes();
+protected:
     // cpu-side data
     GUI::PBCVec mult{{1,1,1}};
     Step* curStep{nullptr};
@@ -54,12 +54,7 @@ public:
     GUI::SelData selection{nullptr};
     std::vector<std::weak_ptr<GUI::Data>> *stepExtras{nullptr};
     std::vector<std::weak_ptr<GUI::Data>> *vpExtras{nullptr};
-private:
     const Settings &settings;
-    void drawPre(void *context=nullptr);
-    void drawImpl(const Vec& pos, void *context=nullptr);
-    void updateViewUBO();
-    void updateViewUBOVR(const float* proj, const float* view);
     // gpu-side global data
     GLuint view_ubo;
     // cpu-side global data
@@ -67,6 +62,11 @@ private:
     bool vMatChanged, pMatChanged, rMatChanged;
     // state
     bool drawPerspective{false};
+private:
+    void drawPre(void *context=nullptr);
+    void drawImpl(const Vec& pos, void *context=nullptr);
+    void updateViewUBO();
+    void updateViewUBOVR(const float* proj, const float* view);
 };
 
 }

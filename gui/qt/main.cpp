@@ -40,6 +40,7 @@ using namespace Vipster;
         // or an es3.0 context on mobile
         format.setVersion(3,0);
     }
+    format.setAlphaBufferSize(8);
     format.setSamples(8);
     QSurfaceFormat::setDefaultFormat(format);
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});

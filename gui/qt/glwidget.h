@@ -30,7 +30,6 @@ public:
     void setCamera(int i);
 private:
     bool updateTriggered{false};
-    const Vipster::Settings &settings;
     // Input handling
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;

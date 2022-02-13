@@ -25,6 +25,7 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     registerSetting(master->settings.perspective);
     registerSetting(master->settings.rotCom);
     registerSetting(master->settings.animstep);
+    registerSetting(master->settings.bgCol);
     registerSetting(master->settings.selCol);
     registerSetting(master->settings.milCol);
     registerSetting(master->settings.posCol);
