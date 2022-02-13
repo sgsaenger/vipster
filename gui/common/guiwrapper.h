@@ -45,7 +45,6 @@ public:
     enum class alignDir{x,y,z,mx,my,mz};
     void alignViewMat(alignDir d);
     Mat getAxes();
-protected:
     // cpu-side data
     GUI::PBCVec mult{{1,1,1}};
     Step* curStep{nullptr};
