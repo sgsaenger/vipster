@@ -79,7 +79,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         s.newAtom("C", {0,0,0});
         SECTION( "Molecular bonds" ){
             s.newAtom("H", {1,0,0});
-            s.setBonds();
+            s.generateBonds();
             REQUIRE( s.getBonds().size() == 1 );
             const auto &bond = s.getBonds()[0];
             REQUIRE( bond.at1 == 0 );
@@ -92,7 +92,7 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
             s.setFmt(AtomFmt::Crystal);
             s.newAtom("C", {0.5,0.5,0.5});
             s.setCellDim(3, AtomFmt::Bohr, true);
-            s.setBonds();
+            s.generateBonds();
             REQUIRE( s.getBonds().size() == 8 );
             for(const auto &bond: s.getBonds()){
                 REQUIRE( bond.at1 == 0 );

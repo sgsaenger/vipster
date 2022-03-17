@@ -40,7 +40,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
     s.newAtom("C");
     s.newAtom("H", Vec{1,0,0});
     s.newAtom("O", Vec{2,2,2});
-    s.setBonds();
+    s.generateBonds();
     SECTION("by type"){
         auto selC = s.select("type C");
         CHECK(selC.getNat() == 1);

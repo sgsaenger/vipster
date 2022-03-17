@@ -440,7 +440,7 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
 
 void MolWidget::on_bondSetButton_clicked()
 {
-    ownStep->setBonds();
+    ownStep->generateBonds();
     bondModel.setStep(ownStep.get(), master->stepdata[curStep].automatic_bonds);
     triggerUpdate(GUI::Change::atoms);
 }

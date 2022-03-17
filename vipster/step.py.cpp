@@ -75,11 +75,11 @@ py::class_<S> bind_step(py::handle &m, std::string name){
     // BONDS
         .def("getBonds", [](const S& s, bool update){
                 if(update){
-                    s.setBonds();
+                    s.generateBonds();
                 }
                 return s.getBonds();
             }, "update"_a=true)
-        .def("setBonds", &S::setBonds, "overlap_only"_a=false)
+        .def("generateBonds", &S::generateBonds, "overlap_only"_a=false)
         .def("getOverlaps", &S::getOverlaps)
         .def("getTopology", &S::getTopology, "angles"_a=true, "dihedrals"_a=true, "impropers"_a=true)
     // SELECTION

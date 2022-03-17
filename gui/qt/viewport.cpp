@@ -68,7 +68,7 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
         if((change & GUI::Change::atoms) &&
            (master->stepdata[curStep].automatic_bonds ||
             master->settings.overlap.val)){
-            curStep->setBonds(!master->stepdata[curStep].automatic_bonds);
+            curStep->generateBonds(!master->stepdata[curStep].automatic_bonds);
         }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){

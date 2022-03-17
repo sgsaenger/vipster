@@ -147,7 +147,7 @@ void MainWindow::updateWidgets(GUI::change_t change)
     if((change & GUI::Change::atoms) &&
        (stepdata[curStep].automatic_bonds ||
         settings.overlap.val)){
-        curStep->setBonds(!stepdata[curStep].automatic_bonds);
+        curStep->generateBonds(!stepdata[curStep].automatic_bonds);
     }
     // notify widgets
     for(auto& w: viewports){
