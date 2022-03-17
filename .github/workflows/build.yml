@@ -23,7 +23,7 @@ jobs:
 
         - name: Cache Qt
           id: cache-qt
-          uses: actions/cache@v2
+          uses: actions/cache@v1
           with:
               path: ../Qt
               key: ${{ runner.os }}-QtCache-5.15.2
@@ -194,13 +194,19 @@ jobs:
               name: Web-Version
               path: ${{ env.ARTIFACT }}
 
-    python:
-        name: 'Python Wheels (Windows)'
-        runs-on: windows-latest
+    wheels:
+        name: 'Python Wheels'
+        runs-on: ${{ matrix.os }}
         needs: [release, web]
         strategy:
             matrix:
+                os: [windows-latest, ubuntu-20.04]
                 python-version: ['3.7', '3.8', '3.9', '3.10']
+                include:
+                  - os: windows-latest
+                    wheeldir: dist
+                  - os: ubuntu-20.04
+                    wheeldir: wheelhouse
 
         steps:
         - uses: actions/checkout@v2 
@@ -241,8 +247,15 @@ jobs:
               pip install setuptools wheel cmake
               python setup.py bdist_wheel
 
+        - name: Fix Manylinux
+          if: runner.os == 'Linux'
+          shell: bash
+          run: |
+              pip install auditwheel
+              auditwheel repair dist/*.whl --plat manylinux_2_31_x86_64
+
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
               name: Python${{ matrix.python-version }}-Windows
-              path: dist/*.whl
+              path: ${{ matrix.wheeldir }}/*.whl

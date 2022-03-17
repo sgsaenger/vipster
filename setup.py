@@ -13,8 +13,7 @@ import shlex
 import subprocess
 
 # CMake arguments
-cmake_defines = "-DVIPSTER_PYLIB=YES -DVIPSTER_PYPI=YES"\
-    " -DPYTHON_EXECUTABLE:FILEPATH=\""+sys.executable+'"'
+cmake_defines = "-DVIPSTER_PYLIB=YES"
 if os.name == 'nt':
     # force msys makefile generation
     cmake_defines += " -G \"MSYS Makefiles\""
