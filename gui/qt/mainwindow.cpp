@@ -491,7 +491,7 @@ void MainWindow::about()
     QMessageBox::about(this,QString("About Vipster"),
     QString("<h2>Vipster v" VIPSTER_VERSION "</h2>"
             "<p>"
-            "©Sebastian Gsänger, 2020"
+            "©Sebastian Gsänger, 2022"
             "<br>"
             "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
             "<br>"

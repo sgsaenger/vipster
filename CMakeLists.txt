@@ -118,7 +118,7 @@ function(init_submodule NAME PATH)
 endfunction()
 
 # find suitable json-library
-find_package(nlohmann_json 3.3.0 CONFIG QUIET)
+find_package(nlohmann_json 3.10.5 CONFIG QUIET)
 if(NOT nlohmann_json_FOUND)
     init_submodule("nlohmann/json" "nlohmann_json")
     set(JSON_BuildTests OFF CACHE INTERNAL "")
@@ -128,7 +128,7 @@ endif()
 target_link_libraries(libvipster PRIVATE nlohmann_json::nlohmann_json)
 
 # find suitable fmt-library
-find_package(fmt 6.1.2 CONFIG QUIET)
+find_package(fmt 8.1.1 CONFIG QUIET)
 if(NOT fmt_FOUND)
     init_submodule("{fmt}" "fmt")
     set(BUILD_SHARED_LIBS OFF)
@@ -143,7 +143,7 @@ if(BUILD_TESTING)
     add_executable(test_lib ${TEST_SOURCES})
 
     # find suitable catch2-installation
-    find_package(Catch2 2.4.1 CONFIG QUIET)
+    find_package(Catch2 2.13.8 CONFIG QUIET)
     if(NOT Catch2_FOUND)
         init_submodule("Catch2" "Catch2")
         set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
@@ -159,7 +159,7 @@ endif()
 # create python binding objects
 if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
     find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter Development)
-    find_package(pybind11 2.6.0 CONFIG QUIET)
+    find_package(pybind11 2.9.1 CONFIG QUIET)
     if(NOT pybind11_FOUND)
         init_submodule("Pybind11" "pybind11")
         add_subdirectory(external/pybind11 EXCLUDE_FROM_ALL)
@@ -204,7 +204,7 @@ if(VIPSTER_DESKTOP)
     set(CMAKE_AUTORCC ON)
 
     # find suitable cli11 installation
-    find_package(CLI11 1.7.1 CONFIG QUIET)
+    find_package(CLI11 2.1.2 CONFIG QUIET)
     if(NOT CLI11_FOUND)
         init_submodule("CLI11" "CLI11")
         set(CLI11_TESTING OFF CACHE INTERNAL "")
