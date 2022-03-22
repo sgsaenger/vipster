@@ -160,7 +160,7 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
-              name: ${{ runner.os }}
+              name: Vipster-${{ runner.os }}
               path: build/${{ matrix.artifact }}
 
     web:
@@ -191,7 +191,7 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
-              name: Web-Version
+              name: Vipster-Web
               path: ${{ env.ARTIFACT }}
 
     wheels:
@@ -257,5 +257,5 @@ jobs:
         - name: Upload artifact
           uses: actions/upload-artifact@v2
           with:
-              name: Python${{ matrix.python-version }}-Windows
+              name: Vipster-PyWheel-${{ runner.os }}
               path: ${{ matrix.wheeldir }}/*.whl
