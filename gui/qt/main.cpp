@@ -31,14 +31,16 @@ using namespace Vipster;
     QApplication::setApplicationName("Vipster");
     QApplication::setApplicationVersion(VIPSTER_VERSION);
     std::cout << "Vipster v" VIPSTER_VERSION << std::endl;
-    QSurfaceFormat format;
+    QSurfaceFormat format = QSurfaceFormat::defaultFormat();
     if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
         // try to get a 3.3core context on desktop
         format.setVersion(3,3);
         format.setProfile(QSurfaceFormat::CoreProfile);
+        format.setRenderableType(QSurfaceFormat::OpenGL);
     }else{
         // or an es3.0 context on mobile
         format.setVersion(3,0);
+        format.setRenderableType(QSurfaceFormat::OpenGLES);
     }
     format.setAlphaBufferSize(8);
     format.setSamples(8);

@@ -44,7 +44,8 @@ void GUI::Data::initGlobal(void *context)
     initializeOpenGLFunctions();
     const auto fmt = QOpenGLContext::currentContext()->format();
     bool newEnough = false;
-    if(QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL){
+    if(!QOpenGLContext::currentContext()->isOpenGLES()){
+        // desktop GL
         if(fmt.version() >= qMakePair(3,3)){
             glob.header = "# version 330\n";
             newEnough = true;
@@ -52,6 +53,7 @@ void GUI::Data::initGlobal(void *context)
             glob.header = "# version 140\n";
         }
     }else{
+        // GLES
         if(fmt.version() >= qMakePair(3,0)){
             glob.header = "# version 300 es\nprecision highp float;\n";
             newEnough = true;
