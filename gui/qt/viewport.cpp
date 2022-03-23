@@ -247,9 +247,21 @@ void ViewPort::setMultEnabled(bool b)
     ui->zMultBox->setEnabled(b);
 }
 
-void ViewPort::on_cameraGroup_buttonClicked(int i)
+void ViewPort::cameraBut(QAbstractButton *but)
 {
-    openGLWidget->setCamera(i);
+    if(but == ui->pxButton){
+        openGLWidget->setCamera(GuiWrapper::alignDir::x);
+    }else if(but == ui->pyButton){
+        openGLWidget->setCamera(GuiWrapper::alignDir::y);
+    }else if(but == ui->pzButton){
+        openGLWidget->setCamera(GuiWrapper::alignDir::z);
+    }else if(but == ui->mxButton){
+        openGLWidget->setCamera(GuiWrapper::alignDir::mx);
+    }else if(but == ui->myButton){
+        openGLWidget->setCamera(GuiWrapper::alignDir::my);
+    }else if(but == ui->mzButton){
+        openGLWidget->setCamera(GuiWrapper::alignDir::mz);
+    }
 }
 
 void ViewPort::setMouseMode(int i)

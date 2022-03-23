@@ -49,9 +49,6 @@
      </item>
      <item>
       <widget class="QComboBox" name="molList">
-       <property name="sizeAdjustPolicy">
-        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-       </property>
        <property name="minimumContentsLength">
         <number>20</number>
        </property>
@@ -622,6 +619,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>cameraGroup</sender>
+   <signal>buttonClicked(QAbstractButton*)</signal>
+   <receiver>ViewPort</receiver>
+   <slot>cameraBut(QAbstractButton*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>338</x>
+     <y>54</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>stepBut(QAbstractButton*)</slot>
@@ -629,6 +642,7 @@
   <slot>setMol(int)</slot>
   <slot>setStep(int)</slot>
   <slot>setMouseMode(int)</slot>
+  <slot>cameraBut(QAbstractButton*)</slot>
  </slots>
  <buttongroups>
   <buttongroup name="stepGroup"/>

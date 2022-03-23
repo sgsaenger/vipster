@@ -109,9 +109,9 @@ void GLWidget::setMult(GUI::PBCVec m)
     update();
 }
 
-void GLWidget::setCamera(int i)
+void GLWidget::setCamera(alignDir dir)
 {
-    alignViewMat(static_cast<alignDir>((-i)-2));
+    alignViewMat(dir);
     update();
 }
 

@@ -27,7 +27,7 @@ public:
     void updateWidget(Vipster::GUI::change_t change);
     void setMult(Vipster::GUI::PBCVec mult);
     void setMouseMode(MouseMode i);
-    void setCamera(int i);
+    void setCamera(alignDir dir);
 private:
     bool updateTriggered{false};
     // Input handling

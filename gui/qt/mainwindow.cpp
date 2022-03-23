@@ -233,7 +233,7 @@ void MainWindow::editAtoms(QAction* sender)
 {
     GUI::change_t change{};
     if ( sender == ui->actionNew_Atom){
-        curStep->newAtom();
+        curStep->newAtom("C");
         change = GUI::Change::atoms;
     }else if ( sender == ui->actionDelete_Atom_s){
         curStep->delAtoms(*curSel);
@@ -365,8 +365,10 @@ void MainWindow::loadMol()
             }
         }
         try {
-            // try to open file
-            newData(readFile(file, plugin));
+            if(plugin){
+                // try to open file
+                newData(readFile(file, plugin));
+            }
         }catch (const IOError &e){
             QMessageBox msg{this};
             msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
