@@ -204,12 +204,10 @@ bool JSONWriter(const Molecule &m, std::ostream &file,
     if(elements.value() != 0){
         auto pte = m.getPTE();
         if(elements.value() == 1){ // custom
-            if(pte.root == nullptr){
-                throw IOError("JSON-Writer: periodic table has invalid root");
-            }
             // remove types not in global PTE
+            const auto& root = pte.root ? *pte.root : Vipster::pte;
             for(auto it = pte.begin(); it != pte.end();){
-                if(pte.root->find(it->first) != pte.root->end()){
+                if(root.find(it->first) != root.end()){
                     it = pte.erase(it);
                 }else{
                     ++it;
