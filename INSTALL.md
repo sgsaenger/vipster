@@ -10,6 +10,7 @@ Vipster has four main components:
 ## Precompiled releases
 
 Binary releases of *QtVipster* are provided for Windows, Linux and (infrequently) macOS on [github](https://github.com/sgsaenger/vipster/releases).
+Preliminary builds are provided as artifacts in the [CI pipelines](https://github.com/sgsaenger/vipster/actions) (github login required).
 
 An exemplary implementation of *WebVipster* can be found [here](https://sgsaenger.github.io/vipster/emscripten).
 
@@ -41,24 +42,12 @@ Your C++ compiler should support C++17.
 Vipster is tested against GCC (>=8) and Clang (>=4).
 So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see e.g. [MSYS2](https://www.msys2.org)).
 
-### PyVipster
-
-To build the python library from source, execute the `setup.py` script in the root folder:
-
-```sh
-python setup.py install --user # will install into your home directory
-python setup.py bdist_wheel # will create a .wheel file for distribution
-```
-
-#### For package maintainers
-
-Installation via `setup.py` or `pip` will provide a statically linked library.
-To get bindings that dynamically link to a system-wide installation,
-use the CMake flag `-DVIPSTER_PYLIB=ON`.
-
 ### Dependencies
 
 *QtVipster* requires Qt in version >=5.10.
+For building from source, the Qt header files are required.
+On Windows, they are included with the default installation.
+On Linux, you may be required to install an additional package, e.g. `qtbase5-dev` or `qt6-base-dev` on Ubuntu.
 
 Other dependencies are listed in `external/README.md`.
 If they are not installed in your system,
@@ -119,6 +108,21 @@ List of common/vipster options, see [CMake documentation](https://cmake.org/cmak
 If you intend to debug this software, you can enable debug information and disable optimizations by specifying `-D CMAKE_BUILD_TYPE=Debug`.
 
 Unit tests are built by default (see `BUILD_TESTING`) and can be executed via `ctest`.
+
+### PyVipster
+
+To build the python library from source, execute the `setup.py` script in the root folder:
+
+```sh
+python setup.py install --user # will install into your home directory
+python setup.py bdist_wheel # will create a .wheel file for distribution
+```
+
+#### For package maintainers
+
+Installation via `setup.py` or `pip` will provide a statically linked library.
+To get bindings that dynamically link to a system-wide installation,
+use the CMake flag `-DVIPSTER_PYLIB=ON`.
 
 ### Web-Frontend
 

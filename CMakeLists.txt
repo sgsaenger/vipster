@@ -38,7 +38,11 @@ if(NOT ${Qt6_FOUND})
     find_package(Qt5 5.10 CONFIG QUIET COMPONENTS Widgets Gui)
 endif()
 
+set(tmp ${VIPSTER_DESKTOP})
 cmake_dependent_option(VIPSTER_DESKTOP "Build QT-based desktop app" ON "Qt6_FOUND OR Qt5_FOUND;NOT EMSCRIPTEN" OFF)
+if(tmp AND NOT ${VIPSTER_DESKTOP})
+    message(FATAL_ERROR "Requested to build the GUI, but no Qt installation was detected")
+endif()
 
 # embedded LAMMPS widget
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
@@ -250,8 +254,8 @@ if(VIPSTER_DESKTOP)
     endif()
 
     # fix name-clash on import library when using mingw/gcc
-    if(WIN32 AND NOT MSVC)
-        set_target_properties(vipster PROPERTIES IMPORT_PREFIX "")
+    if(WIN32)
+        set_target_properties(vipster PROPERTIES IMPORT_SUFFIX "")
     endif()
 
     # link QT, CLI11 and vipster

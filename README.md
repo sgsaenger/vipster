@@ -14,13 +14,14 @@
 [![GPL-3.0 licensed](https://img.shields.io/github/license/sgsaenger/vipster)](https://www.gnu.org/licenses/gpl-3.0.html)
 
 Fast and easy to use graphical editor for periodic atomistic simulations.
-For more information, please visit the [Homepage](https://sgsaenger.github.io/vipster).
+
+More information: [Homepage](https://sgsaenger.github.io/vipster),
+[Downloads](https://github.com/sgsaenger/vipster/releases),
+[Installation instructions](INSTALL.md)
+
+[Try the interactive browser version (not feature complete)!](https://sgsaenger.github.io/vipster/emscripten/index.html)
+
 ![Example screenshot](website/content/images/screenshot.png)
-
-Binary releases are available [here](https://github.com/sgsaenger/vipster/releases),
-installation instructions can be found [here](INSTALL.md).
-
-Last but not least, a (sadly, feature-reduced) browser version can be tried [here](https://sgsaenger.github.io/vipster/emscripten/index.html)!
 
 <table align="center">
   <tr>
