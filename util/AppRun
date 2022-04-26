@@ -9,8 +9,8 @@ exec="$PWD/bin/vipster"
 
 #find out if we can use system's python or need included
 
-if X_PYBIN_X -V &> /dev/null ; then
-    retval=$(X_PYBIN_X -c "
+if command -v X_PYBIN_X > /dev/null ; then
+retval=$(X_PYBIN_X -c "
 from distutils import sysconfig as s;
 from os import path as p;
 v = s.get_config_vars();
