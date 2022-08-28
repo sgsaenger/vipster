@@ -185,8 +185,7 @@ if(VIPSTER_PYLIB)
     target_link_libraries(pyvipster PRIVATE libvipster)
     if(VIPSTER_PYLIB OR (UNIX AND NOT APPLE))
         execute_process(COMMAND "${Python3_EXECUTABLE}" "-c"
-"from distutils import sysconfig as s;
-print(s.get_python_lib(plat_specific=True,standard_lib=False))"
+"import sysconfig as s; print(s.get_path('platlib'))"
             OUTPUT_VARIABLE PYTHON_SITE
             OUTPUT_STRIP_TRAILING_WHITESPACE)
         install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})

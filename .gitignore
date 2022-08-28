@@ -1,4 +1,5 @@
 # C++ build files
+build*/
 *.o
 *.so*
 # Emscripten
@@ -46,6 +47,5 @@ package-lock.json
 *.tgz
 
 # python dist-stuff
-build/
 dist/
 vipster.egg-info
