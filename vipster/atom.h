@@ -5,6 +5,7 @@
 #include <vector>
 #include <bitset>
 #include <memory>
+#include <functional>
 
 #include "vec.h"
 #include "periodictable.h"
