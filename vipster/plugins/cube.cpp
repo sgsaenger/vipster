@@ -47,7 +47,7 @@ IOTuple CubeParser(const std::string& name, std::istream &file){
         file >> tmp >> cell[i][0] >> cell[i][1] >> cell[i][2];
         extent[i] = static_cast<size_t>(std::abs(tmp));
         if(tmp<0){
-            cell[i] *= extent[i]*bohrrad;
+            cell[i] *= extent[i]*invbohr;
         }else{
             cell[i] *= extent[i];
         }
