@@ -36,7 +36,7 @@ chmod +x Vipster-Linux-x86_64.AppImage
 
 ## Build from source
 
-In order to compile Vipster, you need a working [CMake (>= 3.9)](https://cmake.org) installation.
+In order to compile Vipster, you need a working [CMake (>= 3.14)](https://cmake.org) installation.
 
 Your C++ compiler should support C++17.
 Vipster is tested against GCC (>=8) and Clang (>=4).

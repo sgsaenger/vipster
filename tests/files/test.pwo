@@ -1,0 +1,32 @@
+     number of atoms/cell      =           12
+     number of atomic types    =            1
+
+     celldm(1)=   5.000000  celldm(2)=   0.000000  celldm(3)=   0.000000
+     celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
+
+     crystal axes: (cart. coord. in units of alat)
+               a(1) = (   1.414200   0.000000   0.000000 )  
+               a(2) = (   0.000000   1.224700   0.000000 )  
+               a(3) = (   0.000000   0.000000   1.732000 )  
+
+     PseudoPot. # 1 for Ni read from file:
+     /home/user/potentials/Ni.uspp736.pbe.UPF
+
+     atomic species   valence    mass     pseudopotential
+        Ni            10.00    10.00790     Ni (10.00)
+
+     gamma-point
+
+     site n.     atom                  positions (alat units)
+         1          Ni   tau(   1) = (   0.0000000   0.0000000   0.0000000  )
+         2          Ni   tau(   2) = (   0.7071000   0.0000000   0.0000000  )
+         3          Ni   tau(   3) = (   0.3535500   0.6123500   0.0000000  )
+         4          Ni   tau(   4) = (   1.0606500   0.6123500   0.0000000  )
+         5          Ni   tau(   5) = (   0.3535500   0.2041090   0.5772760  )
+         6          Ni   tau(   6) = (   1.0606500   0.2041090   0.5772760  )
+         7          Ni   tau(   7) = (   0.0000000   0.8164590   0.5772760  )
+         8          Ni   tau(   8) = (   0.7071000   0.8164590   0.5772760  )
+         9          Ni   tau(   9) = (   0.0000000   0.4082290   1.1545500  )
+        10          Ni   tau(  10) = (   0.7071000   0.4082290   1.1545500  )
+        11          Ni   tau(  11) = (   0.3535500   1.0205800   1.1545500  )
+        12          Ni   tau(  12) = (   1.0606500   1.0205800   1.1545500  )

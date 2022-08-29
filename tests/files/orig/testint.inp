@@ -1,0 +1,21 @@
+% PAL NPROCS 64 END
+
+! DFT CAM-B3LYP D3BJ def2-TZVP def2/J TightSCF RIJCOSX
+
+%maxcore 2000
+%tddft
+ NRoots 25
+ MaxDim 5
+end
+
+* int 0 1
+C 0 0 0 0 0 0
+C 1 0 0 1.5202 0 0
+H 1 2 0 1.07 109.47 0
+H 1 2 3 1.07 109.47 240
+H 1 2 3 1.07 109.47 120
+H 2 1 3 1.07 109.47 60
+H 2 1 3 1.07 109.47 180
+H 2 1 3 1.07 109.47 300
+*
+

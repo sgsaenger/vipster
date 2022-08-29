@@ -21,11 +21,15 @@ gh-pages/
 *.pwi
 *.pwo
 *.png
-*.cub
+*.cube
 *.cpi
 *.emp
 *.sum
 *.lmp
+*.lammpstrj
+POSCAR
+*.xsf
+*.
 
 # vim swap files
 *.swp

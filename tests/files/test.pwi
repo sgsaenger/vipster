@@ -1,0 +1,62 @@
+&control
+ calculation='relax'
+ restart_mode='from_scratch'
+ pseudo_dir='/ccc160/bmeyer/pot.pwscf'
+ outdir='./'
+ prefix='graph'
+ wf_collect=.true.
+ tprnfor=.true.
+ nstep=500
+ etot_conv_thr=1.d-4
+ forc_conv_thr=2.d-4
+/
+
+&system
+ nat=12
+ ntyp=2
+ celldm(1)=5.0
+ ibrav=0
+ ecutwfc=30.0
+ ecutrho=120.0
+ occupations='smearing'
+ smearing='gauss'
+ degauss=0.01
+/
+
+&electrons
+ diagonalization='david'
+ electron_maxstep=100
+ conv_thr=1.0e-8
+ mixing_beta=0.3
+/
+
+&ions
+ ion_dynamics='bfgs'
+ trust_radius_ini=0.2
+/
+
+ATOMIC_SPECIES
+Ni    10.821   Ni.uspp736.pbe.UPF
+C    12.0107   C.uspp736.pbe.UPF
+
+ATOMIC_POSITIONS crystal
+Ni 0    0       0
+Ni 0.5  0       0
+Ni 0.25 0.5     0
+Ni 0.75 0.5     0
+Ni 0.25 0.16666 0.3333
+Ni 0.75 0.16666 0.3333
+Ni 0    0.66666 0.3333 0
+Ni 0.5  0.66666 0.3333 1
+Ni 0    0.33333 0.6666 1 0
+Ni 0.5  0.33333 0.6666 0 1
+Ni 0.25 0.83333 0.6666 1 1 1
+Ni 0.75 0.83333 0.6666 0 0 0
+
+K_POINTS automatic
+1 1 6 0 0 0
+
+CELL_PARAMETERS alat
+ 1.41420  0.00000  0.00000
+ 0.00000  1.22470  0.00000
+ 0.00000  0.00000  1.73200

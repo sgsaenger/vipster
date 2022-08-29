@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 
 project(Vipster VERSION 1.19.1)
 
@@ -140,25 +140,6 @@ if(NOT fmt_FOUND)
     set(BUILD_SHARED_LIBS IS_SHARED)
 endif()
 target_link_libraries(libvipster PRIVATE fmt::fmt)
-
-if(BUILD_TESTING)
-    # Tests, so far only for library
-    file(GLOB TEST_SOURCES "tests/*.cpp")
-    add_executable(test_lib ${TEST_SOURCES})
-
-    # find suitable catch2-installation
-    find_package(Catch2 2.13.8 CONFIG QUIET)
-    if(NOT Catch2_FOUND)
-        init_submodule("Catch2" "Catch2")
-        set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
-        add_subdirectory(external/Catch2 EXCLUDE_FROM_ALL)
-    endif()
-    target_link_libraries(test_lib PRIVATE libvipster Catch2::Catch2)
-
-    # enable testing via build system
-    enable_testing()
-    add_test(NAME test_lib COMMAND $<TARGET_FILE:test_lib>)
-endif()
 
 # create python binding objects
 if(VIPSTER_PYLIB OR VIPSTER_PYWIDGET)
@@ -351,4 +332,29 @@ if(VIPSTER_WEB)
     set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
     target_link_libraries(webvipster PRIVATE libvipster)
     target_include_directories(webvipster PRIVATE "gui/common")
+endif()
+
+if(BUILD_TESTING)
+    # enable testing via build system
+    enable_testing()
+
+    # Unit tests, so far only for library
+    file(GLOB TEST_SOURCES "tests/*.cpp")
+    add_executable(test_lib ${TEST_SOURCES})
+
+    # find suitable catch2-installation
+    find_package(Catch2 2.13.8 CONFIG QUIET)
+    if(NOT Catch2_FOUND)
+        init_submodule("Catch2" "Catch2")
+        set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
+        add_subdirectory(external/Catch2 EXCLUDE_FROM_ALL)
+    endif()
+    target_link_libraries(test_lib PRIVATE libvipster Catch2::Catch2)
+
+    add_test(NAME test_lib COMMAND $<TARGET_FILE:test_lib>)
+
+    # File I/O tests
+    if(VIPSTER_DESKTOP)
+        include(tests/file_tests.cmake)
+    endif()
 endif()
