@@ -116,7 +116,7 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
     json jj{};
     try{
         file >> jj;
-        if(!jj.is_object()) throw IOError("Json-Parser: not a valid json object");
+        if(!jj.is_object()) throw IOError("JSON-Parser: not a valid json object");
         auto pte = jj.find("elements");
         if(pte != jj.end() && pte->is_object()){
             auto &p = m.getPTE();

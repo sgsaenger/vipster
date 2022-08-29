@@ -137,9 +137,6 @@ bool  Vipster::writeFile(const std::string &fn,
             res = plug->writer(m, file, p, c, *idx);
         }
         if(use_temp){
-            if(fs::exists(fn)){
-                fs::remove(fn); // overwrite_existing not working on windows as of mingw-w64 gcc9
-            }
             fs::copy_file(filename, fn, fs::copy_options::overwrite_existing);
         }
         return res;
