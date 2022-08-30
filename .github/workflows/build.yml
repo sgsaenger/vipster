@@ -52,9 +52,9 @@ jobs:
               ctest --output-on-failure
 
         - name: Collect Coverage
-          run: |
-              cd build
-              bash <(curl -s https://codecov.io/bash -x ${GCOV})
+          uses: codecov/codecov-action@v3
+          with:
+            working-directory: build
 
     release:
         name: 'Build @ ${{ matrix.os }}'
