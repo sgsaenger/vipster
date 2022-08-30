@@ -55,50 +55,38 @@ IOTuple Vipster::readFile(const std::string &fn, const Plugin *plug)
     if(!plug){
         throw Error{"readFile: no plugin provided"};
     }
-    // set locale to C to get consistent parsing
-    std::string userLocale = setlocale(0, nullptr);
-    setlocale(LC_ALL, "C");
-    // fail on write-only parser
-    if(!plug->parser){
-        setlocale(LC_ALL, userLocale.c_str());
-        throw IOError("Format is not readable");
-    }
-    // check if file can be read
-    std::ifstream file{fn};
-    if(!file){
-        setlocale(LC_ALL, userLocale.c_str());
-        throw IOError("Could not open \""+fn+'"');
-    }
-    // try to parse
-    auto tmp = plug->parser(fn, file);
-    if(!std::get<0>(tmp).getNstep()){
-        setlocale(LC_ALL, userLocale.c_str());
-        throw IOError("No Molecule could be parsed");
-    }
-    // return if successful
-    setlocale(LC_ALL, userLocale.c_str());
-    return tmp;
-}
 
-IOTuple Vipster::readCin(const Plugin *plug)
-{
-    if(!plug){
-        throw Error{"readCin: no plugin provided"};
-    }
     // set locale to C to get consistent parsing
     std::string userLocale = setlocale(0, nullptr);
     setlocale(LC_ALL, "C");
+
     // fail on write-only parser
     if(!plug->parser){
         setlocale(LC_ALL, userLocale.c_str());
         throw IOError("Format is not readable");
     }
-    // try to parse
-    auto tmp = plug->parser("Molecule", std::cin);
+
+    IOTuple tmp;
+    if(fn == "-"){
+        // parse from stdin
+        tmp = plug->parser(fn, std::cin);
+    }else{
+        // check if file can be read
+        std::ifstream file{fn};
+        if(!file){
+            setlocale(LC_ALL, userLocale.c_str());
+            throw IOError("Could not open \""+fn+'"');
+        }
+        // parse from file
+        tmp = plug->parser(fn, file);
+    }
+
+    // always expect some atomic data
     if(!std::get<0>(tmp).getNstep()){
         setlocale(LC_ALL, userLocale.c_str());
         throw IOError("No Molecule could be parsed");
     }
+
     // return if successful
     setlocale(LC_ALL, userLocale.c_str());
     return tmp;
@@ -114,32 +102,46 @@ bool  Vipster::writeFile(const std::string &fn,
     if(!plug){
         throw Error{"writeFile: no plugin provided"};
     }
+    if(!plug->writer){
+        throw IOError{"Read-only format"};
+    }
+    // default to the last step
     if(!idx){
         idx = m.getNstep()-1;
     }
     try{
-        if(!plug->writer){
-            throw IOError{"Read-only format"};
-        }
-        bool use_temp = true;
-        bool res = false;
-        auto filename = getTempPath()/fs::path{fn}.filename();
-        {
-            // scoped writing so file is closed before copy
-            std::ofstream file{filename};
-            if(!file){
-                use_temp = false;
-                file = std::ofstream{fn};
+        if(fn == "-"){
+            // write to stdout
+            return plug->writer(m, std::cout, p, c, *idx);
+
+        }else{
+            // write to file
+            bool use_temp = true;
+            bool result = false;
+
+            // try to open a temporary file first
+            auto filename = getTempPath()/fs::path{fn}.filename();
+            {
+                // scoped writing so file is closed before copy
+                std::ofstream file{filename};
+
+                // if no temp could be opened, try to write directly to target
                 if(!file){
-                    throw IOError{"Could not open "+fn};
+                    use_temp = false;
+                    file = std::ofstream{fn};
+                    if(!file){
+                        throw IOError{"Could not open "+fn};
+                    }
                 }
+
+                // actual writing
+                result = plug->writer(m, file, p, c, *idx);
             }
-            res = plug->writer(m, file, p, c, *idx);
+            if(use_temp){
+                fs::copy_file(filename, fn, fs::copy_options::overwrite_existing);
+            }
+            return result;
         }
-        if(use_temp){
-            fs::copy_file(filename, fn, fs::copy_options::overwrite_existing);
-        }
-        return res;
     }
     catch(IOError &e){
         std::cout << e.what() << std::endl;

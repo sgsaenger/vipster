@@ -371,11 +371,7 @@ int main(int argc, char *argv[])
         for(auto& op_fmt: fmt_opts){
             for(const auto& fn: op_fmt.first->results()){
                 try{
-                    if(fn == "-"){
-                        data.push_back(readCin(op_fmt.second));
-                    }else{
-                        data.push_back(readFile(fn, op_fmt.second));
-                    }
+                    data.push_back(readFile(fn, op_fmt.second));
                 }catch(const Vipster::IOError &e){
                     std::cout << e.what() << std::endl;
                     throw CLI::RuntimeError{1};
