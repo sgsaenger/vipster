@@ -13,5 +13,5 @@ if [ -f "${retval}" ]; then
 else
     echo "Using bundled python"
     export PYTHONHOME=$(dirname "$0")X_PYROOT_X
-    export LD_LIBRARY_PATH="$PWD/optional/python":${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH="$PWD/usr/optional/python":${LD_LIBRARY_PATH}
 fi
