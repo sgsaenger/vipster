@@ -3,7 +3,7 @@
 
 echo "creating .AppImage"
 # install vipster into AppDir
-make DESTDIR=AppDir install
+DESTDIR=AppDir cmake --install .
 
 # extract build configuration from CMakeCache.txt
 SOURCE_DIR=$(grep Vipster_SOURCE_DIR CMakeCache.txt | cut -d "=" -f 2)

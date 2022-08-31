@@ -35,13 +35,16 @@ jobs:
           with:
               python-version: '3.10'
 
+        - name: Setup Ninja
+          uses: seanmiddleditch/gha-setup-ninja@master
+
         - name: Install dependencies
           run: |
               sudo apt-get update
               sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0 gcovr
 
         - name: Configure
-          run: cmake -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" -B build
+          run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" -B build
 
         - name: Build
           run: cmake --build build
@@ -104,6 +107,9 @@ jobs:
           shell: bash
           run: pip install numpy moltemplate
 
+        - name: Setup Ninja
+          uses: seanmiddleditch/gha-setup-ninja@master
+
         - name: Cache MinGW
           if: runner.os == 'Windows'
           id: cache-mingw
@@ -125,7 +131,7 @@ jobs:
           run: |
               echo $GITHUB_WORKSPACE/MinGW/bin >> $GITHUB_PATH
               echo CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH >> $GITHUB_ENV
-              echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
+              #echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
 
         - name: Configure Linux
           if: runner.os == 'Linux'
@@ -136,7 +142,7 @@ jobs:
 
         - name: Configure
           shell: bash
-          run: cmake -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
+          run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
 
         - name: Build
           shell: bash
