@@ -38,7 +38,7 @@ jobs:
         - name: Install dependencies
           run: |
               sudo apt-get update
-              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0
+              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0 gcovr
 
         - name: Configure
           run: cmake -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" -B build
@@ -51,10 +51,13 @@ jobs:
               cd build   
               ctest --output-on-failure
 
-        - name: Collect Coverage
+        - name: Generate XML Coverage
+          run: gcovr -f vipster -f gui -x -o coverage.xml
+
+        - name: Upload coverage to Codecov
           uses: codecov/codecov-action@v3
           with:
-            working-directory: build
+            files: coverage.xml
 
     release:
         name: 'Build @ ${{ matrix.os }}'

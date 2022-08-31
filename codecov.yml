@@ -1,6 +1,6 @@
 ignore:
-    - "vipster"
     - "tests"
     - "external"
     - "util"
     - "gh-pages"
+    - "website"
