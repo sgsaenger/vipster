@@ -55,7 +55,7 @@ jobs:
               ctest --output-on-failure
 
         - name: Generate XML Coverage
-          run: gcovr -f vipster -f gui -x -o coverage.xml
+          run: gcovr -f vipster -x -o coverage.xml
 
         - name: Upload coverage to Codecov
           uses: codecov/codecov-action@v3
