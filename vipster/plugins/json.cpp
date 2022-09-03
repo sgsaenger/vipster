@@ -143,9 +143,9 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
 
 void writeStep(json &j, const Step &s, NamedEnum fmt, bool write_cell, bool write_bonds){
     // get step in correct format
-    if(fmt.value() == 0) fmt = static_cast<int>(s.getFmt()+3);
+    if(fmt.value() == 0) fmt = static_cast<int>(s.getFmt()) + 3;
     j["fmt"] = fmt.name();
-    const auto& step = s.asFmt(static_cast<AtomFmt>(fmt.value()-3));
+    const auto& step = s.asFmt(static_cast<AtomFmt>(fmt.value() - 3));
     // store atoms
     auto &atoms = j["atoms"] = json::array();
     for (const auto &at: step) {

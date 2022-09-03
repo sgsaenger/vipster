@@ -98,7 +98,7 @@
                          <context>libvipster</context>
                          <name>Step</name>
                          <pos>x:570;y:145</pos>
-                         <rect>x:-40;y:-35;w:80;h:70</rect>
+                         <rect>x:-40;y:-30;w:80;h:60</rect>
                          <visual-role>0</visual-role>
                         </DObject>
                        </base-DObject>
@@ -431,7 +431,7 @@
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1582811015367</last-modified>
+                  <last-modified>1662220907000</last-modified>
                   <toolbarid>Components</toolbarid>
                  </MDiagram>
                 </base-MDiagram>
@@ -705,7 +705,7 @@
                                     <object>{a2ef0fb8-dcf1-4ddc-b8cc-59ca93a4c61d}</object>
                                     <name>StepConst</name>
                                     <pos>x:505;y:100</pos>
-                                    <rect>x:-90;y:-70;w:180;h:140</rect>
+                                    <rect>x:-85;y:-65;w:170;h:130</rect>
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
@@ -731,7 +731,7 @@
                                     <object>{1885847a-c497-4647-93ad-4437cc038fe6}</object>
                                     <name>StepMutable</name>
                                     <pos>x:505;y:280</pos>
-                                    <rect>x:-45;y:-30;w:90;h:60</rect>
+                                    <rect>x:-40;y:-30;w:80;h:60</rect>
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
@@ -1163,7 +1163,7 @@
                                                </stereotypes>
                                                <name>readFile</name>
                                                <pos>x:420;y:190</pos>
-                                               <rect>x:-45;y:-35;w:90;h:70</rect>
+                                               <rect>x:-40;y:-30;w:80;h:60</rect>
                                                <visual-role>0</visual-role>
                                               </DObject>
                                              </base-DObject>
@@ -1214,7 +1214,7 @@
                                                </stereotypes>
                                                <name>writeFile</name>
                                                <pos>x:420;y:630</pos>
-                                               <rect>x:-45;y:-35;w:90;h:70</rect>
+                                               <rect>x:-40;y:-30;w:80;h:60</rect>
                                                <visual-role>0</visual-role>
                                               </DObject>
                                              </base-DObject>
@@ -1235,7 +1235,7 @@
                                                <context>libvipster</context>
                                                <name>Molecule</name>
                                                <pos>x:205;y:355</pos>
-                                               <rect>x:-40;y:-35;w:80;h:70</rect>
+                                               <rect>x:-40;y:-30;w:80;h:60</rect>
                                                <visual-role>0</visual-role>
                                               </DObject>
                                              </base-DObject>
@@ -1992,28 +1992,28 @@
                                        <qlist>
                                         <item>
                                          <MClassMember>
-                                          <uid>{6241a3ce-d405-4354-8fe6-88b0342833da}</uid>
+                                          <uid>{5e7d9798-7713-4d21-b015-e61d04f24d74}</uid>
                                           <type>1</type>
                                           <declaration>parser</declaration>
                                          </MClassMember>
                                         </item>
                                         <item>
                                          <MClassMember>
-                                          <uid>{41f8b66b-e45b-4ec9-9d93-337c97cf3a57}</uid>
+                                          <uid>{1869d4cb-fa44-4117-b833-bebe2150ee45}</uid>
                                           <type>1</type>
                                           <declaration>writer</declaration>
                                          </MClassMember>
                                         </item>
                                         <item>
                                          <MClassMember>
-                                          <uid>{8eeed321-3ca7-451a-9970-5c8526b4ecd2}</uid>
+                                          <uid>{b48a4605-b273-4568-9cf0-83006a6758f0}</uid>
                                           <type>1</type>
                                           <declaration>makePreset</declaration>
                                          </MClassMember>
                                         </item>
                                         <item>
                                          <MClassMember>
-                                          <uid>{fee9a1df-0df3-46e5-9cf1-2533408be89d}</uid>
+                                          <uid>{03c793da-646f-4f39-ac0f-d5059a2e4875}</uid>
                                           <type>1</type>
                                           <declaration>makeParam</declaration>
                                          </MClassMember>
@@ -2061,35 +2061,35 @@
                             <qlist>
                              <item>
                               <MClassMember>
-                               <uid>{08301ac4-8874-491c-9315-625e7969ba10}</uid>
+                               <uid>{8c7e9ff3-8f23-4b6a-8825-f7b74f19cb5c}</uid>
                                <type>1</type>
                                <declaration>shared_ptr&lt;T&gt; atoms</declaration>
                               </MClassMember>
                              </item>
                              <item>
                               <MClassMember>
-                               <uid>{a1240c31-32cb-49bc-af42-f5e348066288}</uid>
+                               <uid>{ac96b143-23c0-4df9-8ab4-5dae7f5dbcb3}</uid>
                                <type>1</type>
                                <declaration>shared_ptr&lt;Bonds&gt; bonds</declaration>
                               </MClassMember>
                              </item>
                              <item>
                               <MClassMember>
-                               <uid>{995d2473-9106-4e8b-ac57-8fe84b88d163}</uid>
+                               <uid>{7fafef14-30cb-4baf-9ce5-eaadd706210c}</uid>
                                <type>1</type>
                                <declaration>shared_ptr&lt;Cell&gt; cell</declaration>
                               </MClassMember>
                              </item>
                              <item>
                               <MClassMember>
-                               <uid>{2bead37b-f8ab-4736-8fe9-cc68fb78d868}</uid>
+                               <uid>{62c72c14-a1b9-4f91-ad8e-be934c8324b8}</uid>
                                <type>1</type>
                                <declaration>shared_ptr&lt;string&gt; comment</declaration>
                               </MClassMember>
                              </item>
                              <item>
                               <MClassMember>
-                               <uid>{cbb524bd-0674-4701-a06e-934996fff8c9}</uid>
+                               <uid>{36d5526d-6e54-4b19-8284-e171cff77e90}</uid>
                                <type>1</type>
                                <declaration>shared_ptr&lt;PeriodicTable&gt; pte</declaration>
                               </MClassMember>
@@ -2242,78 +2242,6 @@
                              <item>A: AtomContainer</item>
                             </qlist>
                            </template>
-                          </MClass>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{671900a6-adb0-4cf2-a6a7-b7ff8baac6ee}</uid>
-                        <target>
-                         <instance type="MClass">
-                          <MClass>
-                           <base-MObject>
-                            <MObject>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{671900a6-adb0-4cf2-a6a7-b7ff8baac6ee}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <name>Neu Class</name>
-                             <relations>
-                              <handles>
-                               <handles>
-                                <qlist>
-                                 <item>
-                                  <handle>
-                                   <uid>{08f53d20-0eb2-4896-bffd-8bea43f59575}</uid>
-                                   <target>
-                                    <instance type="MInheritance">
-                                     <MInheritance>
-                                      <base-MRelation>
-                                       <MRelation>
-                                        <base-MElement>
-                                         <MElement>
-                                          <uid>{08f53d20-0eb2-4896-bffd-8bea43f59575}</uid>
-                                         </MElement>
-                                        </base-MElement>
-                                        <a>{671900a6-adb0-4cf2-a6a7-b7ff8baac6ee}</a>
-                                        <b>{daaeea82-025a-45f5-83d8-86c99b17af02}</b>
-                                       </MRelation>
-                                      </base-MRelation>
-                                     </MInheritance>
-                                    </instance>
-                                   </target>
-                                  </handle>
-                                 </item>
-                                </qlist>
-                               </handles>
-                              </handles>
-                             </relations>
-                            </MObject>
-                           </base-MObject>
-                          </MClass>
-                         </instance>
-                        </target>
-                       </handle>
-                      </item>
-                      <item>
-                       <handle>
-                        <uid>{daaeea82-025a-45f5-83d8-86c99b17af02}</uid>
-                        <target>
-                         <instance type="MClass">
-                          <MClass>
-                           <base-MObject>
-                            <MObject>
-                             <base-MElement>
-                              <MElement>
-                               <uid>{daaeea82-025a-45f5-83d8-86c99b17af02}</uid>
-                              </MElement>
-                             </base-MElement>
-                             <name>Neu Class</name>
-                            </MObject>
-                           </base-MObject>
                           </MClass>
                          </instance>
                         </target>

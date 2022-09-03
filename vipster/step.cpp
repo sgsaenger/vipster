@@ -163,7 +163,7 @@ void Step::setCellDim(double cdm, AtomFmt fmt, bool scale)
             c *= ratio;
         }
     }
-    atoms->ctxt.cell->dimension = cdm * detail::AtomContext::toAngstrom[fmt];
+    atoms->ctxt.cell->dimension = cdm * detail::toAngstrom[static_cast<size_t>(fmt)];
 }
 
 void Step::modWrap(){

@@ -9,14 +9,14 @@ bool Vipster::atomFmtRelative(AtomFmt f)
 
 bool Vipster::atomFmtAbsolute(AtomFmt f)
 {
-    return (f > AtomFmt::Alat) && (f < static_cast<AtomFmt>(detail::AtomContext::toAngstrom.size()));
+    return (f > AtomFmt::Alat) && (f < static_cast<AtomFmt>(detail::toAngstrom.size()));
 }
 
-bool Vipster::operator==(const AtomProperties &p1, const AtomProperties &p2)
+bool Vipster::AtomProperties::operator==(const AtomProperties &p) const
 {
-    return std::tie(p1.charge, p1.flags, p1.forces)
+    return std::tie(charge, flags, forces)
            ==
-           std::tie(p2.charge, p2.flags, p2.forces);
+           std::tie(p.charge, p.flags, p.forces);
 }
 
 detail::CoordConverter Vipster::detail::makeConverter(const AtomContext &source,
@@ -37,7 +37,7 @@ detail::CoordConverter Vipster::detail::makeConverter(const AtomContext &source,
                                               / target.cell->dimension;};
         default:
             return [&](const Vec &v){return v * (source.cell->matrix * source.cell->dimension)
-                                              * detail::AtomContext::fromAngstrom[target.fmt];};
+                                              * detail::fromAngstrom[static_cast<size_t>(target.fmt)];};
         }
     case AtomFmt::Alat:
         switch(target.fmt){
@@ -56,22 +56,22 @@ detail::CoordConverter Vipster::detail::makeConverter(const AtomContext &source,
             }
         default:
             return [&](const Vec &v){return v * source.cell->dimension
-                                              * detail::AtomContext::fromAngstrom[target.fmt];};
+                                              * detail::fromAngstrom[static_cast<size_t>(target.fmt)];};
         }
     default: // absolute coordinates
         switch(target.fmt){
         case AtomFmt::Crystal:
-            return [&](const Vec &v){return v * detail::AtomContext::toAngstrom[source.fmt]
+            return [&](const Vec &v){return v * detail::toAngstrom[static_cast<size_t>(source.fmt)]
                                               * (target.cell->inverse / target.cell->dimension);};
         case AtomFmt::Alat:
-            return [&](const Vec &v){return v * detail::AtomContext::toAngstrom[source.fmt]
+            return [&](const Vec &v){return v * detail::toAngstrom[static_cast<size_t>(source.fmt)]
                                               / target.cell->dimension;};
         default:
             if(source.fmt == target.fmt){
                 return [](const Vec &v){return v;};
             }else{
-                return [&](const Vec &v){return v * detail::AtomContext::toAngstrom[source.fmt]
-                                                  * detail::AtomContext::fromAngstrom[target.fmt];};
+                return [&](const Vec &v){return v * detail::toAngstrom[static_cast<size_t>(source.fmt)]
+                                                  * detail::fromAngstrom[static_cast<size_t>(target.fmt)];};
             }
         }
     }

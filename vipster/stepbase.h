@@ -1209,7 +1209,7 @@ double  StepConst<T>::getCellDim(AtomFmt fmt) const
     if(!atomFmtAbsolute(fmt)){
         throw Error{"StepConst::getCellDim: Invalid AtomFmt, needs to be absolute"};
     }
-    return atoms->ctxt.cell->dimension * detail::AtomContext::fromAngstrom[fmt];
+    return atoms->ctxt.cell->dimension * detail::fromAngstrom[static_cast<size_t>(fmt)];
 }
 
 template<typename T>
