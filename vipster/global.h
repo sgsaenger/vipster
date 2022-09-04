@@ -26,7 +26,7 @@ namespace Vipster {
 
     class Error:public std::logic_error{
     public:
-        Error(std::string reason):std::logic_error(reason){}
+        Error(const std::string &reason):std::logic_error(reason){}
     };
 }
 

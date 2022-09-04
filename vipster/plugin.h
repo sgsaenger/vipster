@@ -15,6 +15,10 @@
 
 namespace Vipster{
 
+using IOTuple = std::tuple<Molecule,
+                           std::optional<Parameter>,
+                           DataList>;
+
 struct Plugin{
     std::string name;
     std::string extension;
@@ -35,9 +39,8 @@ class IOError: public std::runtime_error
 {
     public:
         IOError(const std::string& reason)
-            : std::runtime_error{reason}, fatal{fatal}
+            : std::runtime_error{reason}
         {}
-        bool fatal;
 };
 
 }

@@ -326,17 +326,17 @@ public:
     void setFmt(AtomFmt fmt, bool scale=true);
 
     // Atoms
-    void    newAtom(std::string name="",
-                    Vec coord=Vec{},
-                    AtomProperties prop=AtomProperties{});
+    void newAtom(std::string name="",
+                 Vec coord=Vec{},
+                 AtomProperties prop=AtomProperties{});
     template<template<bool> typename T, bool B>
-    void    newAtom(const T<B>& at){
+    void newAtom(const T<B>& at){
         newAtom();
         back() = at;
     }
-    void    newAtoms(size_t i);
+    void newAtoms(size_t i);
     template<typename T>
-    void    newAtoms(const StepConst<T>& s)
+    void newAtoms(const StepConst<T>& s)
     {
         const size_t oldNat = this->getNat();
         newAtoms(s.getNat());
@@ -346,7 +346,7 @@ public:
             *tgt = *src;
         }
     }
-    void    delAtom(size_t i);
+    void delAtom(size_t i);
     template<typename T>
     void delAtoms(StepConst<detail::Selection<T>>& s)
     {

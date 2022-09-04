@@ -5,13 +5,13 @@
 
 using namespace Vipster;
 
+// Constructors
 template<typename T>
-StepConst<T>::StepConst(std::shared_ptr<atom_source> atoms, std::shared_ptr<BondList> bonds, std::shared_ptr<std::string> comment)
+StepConst<T>::StepConst(const std::shared_ptr<T> &atoms, const std::shared_ptr<BondList> &bonds, const std::shared_ptr<std::string> &comment)
 : atoms{atoms}, bonds{bonds}, comment{comment}
 {}
-
 template<typename T>
-StepMutable<T>::StepMutable(std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds, std::shared_ptr<std::string> comment)
+StepMutable<T>::StepMutable(const std::shared_ptr<T> &atoms, const std::shared_ptr<BondList> &bonds, const std::shared_ptr<std::string> &comment)
 : StepConst<T>{atoms, bonds, comment}
 {}
 

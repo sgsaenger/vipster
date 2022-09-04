@@ -143,8 +143,10 @@ namespace Vipster {
         Vec         getCenter(AtomFmt fmt, bool com=false) const;
 
     protected:
-        StepConst(std::shared_ptr<atom_source> atoms, std::shared_ptr<BondList> bonds,
-                  std::shared_ptr<std::string> comment);
+        // Should only be constructible by implementers
+        StepConst(const std::shared_ptr<atom_source> &atoms,
+                  const std::shared_ptr<BondList> &bonds,
+                  const std::shared_ptr<std::string> &comment);
         // Data
         std::shared_ptr<atom_source>    atoms;
         std::shared_ptr<BondList>       bonds;
@@ -181,17 +183,18 @@ namespace Vipster {
         atom        at(size_t i);
         atom        front();
         atom        back();
+
         // Atom-iterators
         using iterator = typename T::iterator;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using StepConst<T>::begin;
-        iterator    begin();
+        iterator            begin();
         using StepConst<T>::end;
-        iterator    end();
+        iterator            end();
         using StepConst<T>::rbegin;
-        reverse_iterator rbegin();
+        reverse_iterator    rbegin();
         using StepConst<T>::rend;
-        reverse_iterator rend();
+        reverse_iterator    rend();
 
         // Selection
         using StepConst<T>::select;
@@ -218,8 +221,10 @@ namespace Vipster {
         void modMirror(Vec ax1, Vec ax2, Vec shift={0,0,0});
 
     protected:
-        StepMutable(std::shared_ptr<T> atoms, std::shared_ptr<BondList> bonds,
-                    std::shared_ptr<std::string> comment);
+        // Should only be constructible by implementers
+        StepMutable(const std::shared_ptr<T> &atoms,
+                    const std::shared_ptr<BondList> &bonds,
+                    const std::shared_ptr<std::string> &comment);
 
     private:
         // generate non-periodic bonds/overlaps
