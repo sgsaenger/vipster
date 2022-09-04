@@ -3,7 +3,7 @@
 
 #include "filter.h"
 
-using namespace Vipster;
+namespace Vipster{
 
 template<typename T>
 static SelectionIndices evalType(const T& step, const SelectionFilter& filter)
@@ -186,6 +186,8 @@ SelectionIndices evalFilter(const T& step, SelectionFilter& filter)
     }
     filter.op &= ~filter.UPDATE;
     return tmp;
+}
+
 }
 
 #endif // LIBVIPSTER_FILTER_TPP

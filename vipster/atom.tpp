@@ -6,7 +6,7 @@
 
 #include "atom.h"
 
-using namespace Vipster::detail;
+namespace Vipster::detail{
 
 // Construction
 template<template<bool> typename AtomView, bool isConst>
@@ -154,6 +154,8 @@ template<template<bool> typename AtomView, bool isConst>
 AtomIterator<AtomView, isConst> AtomIterator<AtomView, isConst>:: operator-(difference_type i){
     auto copy = *this;
     return copy-=i;
+}
+
 }
 
 #endif // ATOM_TPP

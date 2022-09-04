@@ -3,7 +3,7 @@
 
 #include "stepbase.h"
 
-using namespace Vipster;
+namespace Vipster{
 
 // Constructors
 template<typename T>
@@ -1096,6 +1096,8 @@ void StepMutable<T>::modMirror(Vec ax1, Vec ax2, Vec shift){
             at.coord -= fromBohr(2*Vec_dot(toBohr(at.coord) - shift, normal) * normal);
         }
     }
+}
+
 }
 
 #endif // STEPBASE_TPP

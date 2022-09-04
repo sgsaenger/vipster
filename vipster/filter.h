@@ -91,8 +91,6 @@ std::istream& operator>>(std::istream& is, SelectionFilter& filter);
 template<typename T>
 SelectionIndices evalFilter(const T& step, SelectionFilter& filter);
 
-#include "filter.tpp"
-
 constexpr const char* FilterAbout =
 R"--(
 <html><head/><body>
@@ -139,5 +137,7 @@ R"--(
 <p>Furthermore, groupings can be put in parenthesis to simplify logical combinations.</p>
 </body></html>)--";
 }
+
+#include "filter.tpp"
 
 #endif // LIBVIPSTER_FILTER_H
