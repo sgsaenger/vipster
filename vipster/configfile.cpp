@@ -52,13 +52,18 @@ const Plugin* openPlugin(fs::path name)
 }
 
 fs::path Vipster::getConfigDir(){
-#if defined(__linux__) || defined(__FreeBSD__)
-    auto tmp = std::getenv("XDG_CONFIG_HOME");
-    return fs::path{tmp == nullptr ? std::string{std::getenv("HOME")}+"/.config" : tmp}/"vipster";
-#elif defined(_WIN32)
+#if defined(_WIN32)
     return fs::path{std::getenv("APPDATA")}/"vipster";
 #elif defined(__APPLE__)
     return fs::path{std::getenv("HOME")}/"Library/Application Support/vipster";
+#else
+    if(auto cfg = std::getenv("XDG_CONFIG_HOME")){
+        return fs::path(cfg)/"vipster";
+    }else if(auto home = std::getenv("HOME")){
+        return fs::path(home)/".config/vipster";
+    }else{
+        throw Error{"Could not determine HOME directory for config"};
+    }
 #endif
 }
 
