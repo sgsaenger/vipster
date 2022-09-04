@@ -41,6 +41,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
     s.newAtom("H", Vec{1,0,0});
     s.newAtom("O", Vec{2,2,2});
     s.generateBonds();
+
     SECTION("by type"){
         auto selC = s.select("type C");
         CHECK(selC.getNat() == 1);
@@ -57,6 +58,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         CHECK(selCHO[1] == s[1]);
         CHECK(selCHO[2] == s[2]);
     }
+
     SECTION("by index"){
         auto sel0 = s.select("index 0");
         CHECK(sel0.getNat() == 1);
@@ -88,6 +90,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         CHECK(selOverdefined[2] == s[1]);
         CHECK(selOverdefined[3] == s[2]);
     }
+
     SECTION("by pos"){
         s.setCellDim(2, AtomFmt::Bohr);
         s.setCellVec(Mat{Vec{1,1,0}, Vec{0,1,0}, Vec{0,0,1}});
@@ -100,6 +103,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         auto selLE = s.select("pos y <= 0");
         CHECK(selLE.getNat() == 2);
     }
+
     SECTION("by coord"){
         auto selEQ = s.select("coord =1");
         CHECK(selEQ.getNat() == 2);
@@ -108,6 +112,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         auto selLT = s.select("coord <1");
         CHECK(selLT.getNat() == 1);
     }
+
     SECTION("not"){
         auto notIdxList = s.select("not index [0 2]");
         CHECK(notIdxList.getNat() == 1);
@@ -118,6 +123,7 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         auto notPosB = s.select("not pos x>0");
         CHECK(notPosB.getNat() == 1);
     }
+
     SECTION("complex"){
         auto selOr = s.select("index 0 | type H");
         CHECK(selOr.getNat() == 2);
@@ -137,5 +143,12 @@ TEST_CASE("Vipster::detail::Selection", "[select]") {
         CHECK(leftgrouped.getNat() == 1);
         auto rightgrouped = s.select("index 0 | (index 0-2 & index 2)");
         CHECK(rightgrouped.getNat() == 2);
+    }
+
+    SECTION("from selection"){
+        auto sel = s.select("index [0 2]");
+        CHECK(sel.getNat() == 2);
+        auto selSel = sel.select("index 0");
+        CHECK(selSel.getNat() == 1);
     }
 }

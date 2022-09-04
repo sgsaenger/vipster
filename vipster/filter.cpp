@@ -2,6 +2,64 @@
 
 using namespace Vipster;
 
+// Filter implementation
+
+SelectionFilter::SelectionFilter(const SelectionFilter& f)
+{
+    // trigger implementation via string conversion
+    *this = f;
+}
+
+SelectionFilter::SelectionFilter(const char *s)
+{
+    std::stringstream ss{s};
+    ss >> *this;
+}
+
+SelectionFilter::SelectionFilter(const std::string &s)
+{
+    std::stringstream ss{s};
+    ss >> *this;
+}
+
+SelectionFilter& SelectionFilter::operator=(const SelectionFilter& f)
+{
+    mode = f.mode; op = f.op | Op::UPDATE;
+    pos = f.pos; posVal = f.posVal;
+    coord = f.coord; coordVal = f.coordVal;
+    indices = f.indices; types = f.types;
+    if(f.subfilter){
+        subfilter = std::make_unique<SelectionFilter>(*f.subfilter);
+    }
+    if(f.groupfilter){
+        groupfilter = std::make_unique<SelectionFilter>(*f.groupfilter);
+    }
+    return *this;
+}
+
+SelectionFilter& SelectionFilter::operator=(SelectionFilter&& f)
+{
+    mode = f.mode;
+    op = f.op | Op::UPDATE;
+    pos = f.pos;
+    posVal = f.posVal;
+    coord = f.coord;
+    coordVal = f.coordVal;
+    indices = std::move(f.indices);
+    types = std::move(f.types);
+    subfilter = std::move(f.subfilter);
+    groupfilter = std::move(f.groupfilter);
+    return *this;
+}
+
+SelectionFilter::operator std::string () const
+{
+    std::stringstream ss{};
+    ss << *this;
+    return ss.str();
+}
+
+// Decompile filter to string
 static void writeType(std::ostream& os, const SelectionFilter& filter){
     os << "type ";
     if(filter.types.size() == 1){
@@ -100,6 +158,7 @@ std::ostream& Vipster::operator<<(std::ostream& os, const SelectionFilter& filte
     return os;
 }
 
+// Compile filter from string
 static void parseType(std::istream& is, SelectionFilter& filter){
     std::string token;
     filter.mode = SelectionFilter::Mode::Type;

@@ -174,13 +174,13 @@ typename StepConst<T>::const_selection StepConst<T>::select(SelectionFilter filt
     if constexpr(detail::is_selection<T>){
         // create Selection<T> from Selection<T>
         return {std::make_shared<typename const_selection::atom_source>(
-                this->atoms->atoms, this->atoms->indices),
-            std::make_shared<BondList>(), this->comment};
+                    this->atoms->atoms, evalFilter(*this, filter)),
+                std::make_shared<BondList>(), this->comment};
     }else{
         // create Selection<T> from T
         return {std::make_shared<typename const_selection::atom_source>(
-                this->atoms, evalFilter(*this, filter)),
-            std::make_shared<BondList>(), this->comment};
+                    this->atoms, evalFilter(*this, filter)),
+                std::make_shared<BondList>(), this->comment};
     }
 }
 
@@ -190,12 +190,12 @@ typename StepMutable<T>::selection StepMutable<T>::select(SelectionFilter filter
     if constexpr(detail::is_selection<T>){
         // create Selection<T> from Selection<T>
         return {std::make_shared<typename selection::atom_source>(
-                        this->atoms->atoms, this->atoms->indices),
+                    this->atoms->atoms, evalFilter(*this, filter)),
                 std::make_shared<BondList>(), this->comment};
     }else{
         // create Selection<T> from T
         return {std::make_shared<typename selection::atom_source>(
-                        this->atoms, evalFilter(*this, filter)),
+                    this->atoms, evalFilter(*this, filter)),
                 std::make_shared<BondList>(), this->comment};
     }
 }
