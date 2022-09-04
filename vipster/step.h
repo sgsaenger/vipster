@@ -37,7 +37,13 @@ struct AtomList{
     size_t getNat() const noexcept {return elements.size();}
 
     AtomList(AtomFmt fmt)
-        : ctxt{fmt} {}
+        : ctxt{fmt} {
+        // reserve some space to avoid accessing invalid memory
+        // when creating an iterator on an empty AtomList
+        coordinates.reserve(10);
+        elements.reserve(10);
+        properties.reserve(10);
+    }
     // specialize copy constructor because AtomList is supposed to own its cell
     AtomList(const AtomList &rhs)
         : ctxt{rhs.ctxt.fmt,
@@ -104,9 +110,9 @@ public:
     std::conditional_t<isConst, const _Properties, _Properties> properties{*this};
 
     AtomView(AtomList &al, size_t i)
-        : v{&*(al.coordinates.begin()+i)},
-          elem{&*(al.elements.begin()+i)},
-          prop{&*(al.properties.begin()+i)},
+        : v{al.coordinates.data()+i},
+          elem{al.elements.data()+i},
+          prop{al.properties.data()+i},
           source{&al}
     {}
     virtual ~AtomView() = default;
