@@ -25,8 +25,8 @@ AtomIterator<AtomView, isConst>::AtomIterator(const AtomIterator &it)
 {}
 
 template<template<bool> typename AtomView, bool isConst>
-template<bool B, bool t, typename>
-AtomIterator<AtomView, isConst>::AtomIterator(const AtomIterator<AtomView, B> &it)
+template<bool t, typename>
+AtomIterator<AtomView, isConst>::AtomIterator(const AtomIterator<AtomView, false> &it)
     : value_type{it}, idx{it.idx}
 {}
 
@@ -39,8 +39,8 @@ AtomIterator<AtomView, isConst>& AtomIterator<AtomView, isConst>::operator=(cons
 }
 
 template<template<bool> typename AtomView, bool isConst>
-template<bool B, bool t, typename>
-AtomIterator<AtomView, isConst>& AtomIterator<AtomView, isConst>::operator=(const AtomIterator<AtomView, B> &it){
+template<bool t, typename>
+AtomIterator<AtomView, isConst>& AtomIterator<AtomView, isConst>::operator=(const AtomIterator<AtomView, false> &it){
     value_type::pointTo(it);
     idx = it.idx;
     return *this;

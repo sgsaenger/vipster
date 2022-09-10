@@ -1,17 +1,23 @@
-#include "vipster/plugins/pwinput.h"
-#include "vipster/vec.h"
+#include "vipster/plugin.h"
 #include <iostream>
 #include <sstream>
 
 #include <catch2/catch.hpp>
+
 
 using namespace Vipster;
 using namespace std::literals::string_literals;
 using NameList = std::map<std::string, std::string>;
 
 TEST_CASE("Vipster::Plugins::PWInput", "[IO][PWI]") {
+    const auto &plugins = Vipster::defaultPlugins();
+    const auto &found = std::find_if(plugins.begin(), plugins.end(),
+                                       [](const auto &p){return p->name == "PWScf Input File";});
+    REQUIRE(found != plugins.end());
+    const auto &PWInput = **found;
+
     SECTION("Preset") {
-        auto preset = Plugins::PWInput.makePreset();
+        auto preset = PWInput.makePreset();
 
         // check for default values (index()==1 for NamedEnum)
         REQUIRE(preset.size() == 2);
@@ -24,7 +30,7 @@ TEST_CASE("Vipster::Plugins::PWInput", "[IO][PWI]") {
     }
 
     SECTION("Parameter") {
-        auto param = Plugins::PWInput.makeParam();
+        auto param = PWInput.makeParam();
 
         // check for default values (index() == 0: string, == 2: NameList)
         REQUIRE(param.size() == 7);
@@ -76,7 +82,7 @@ TEST_CASE("Vipster::Plugins::PWInput", "[IO][PWI]") {
             0 0 1
         )--"};
 
-        auto [mol, param, data] = Plugins::PWInput.parser("test", testInput);
+        auto [mol, param, data] = PWInput.parser("test", testInput);
 
         REQUIRE(data.empty());
 
@@ -138,16 +144,16 @@ TEST_CASE("Vipster::Plugins::PWInput", "[IO][PWI]") {
         s[1].properties->flags[AtomProperties::FixZ] = true;
 
         // configure parameters
-        auto param = Plugins::PWInput.makeParam();
+        auto param = PWInput.makeParam();
 
         auto &control = std::get<NameList>(param.at("&CONTROL").first);
         control["calculation"] = "'vc-relax'";
         control["nstep"] = "17";
         std::get<std::string>(param.at("PPSuffix").first) = ".uspp.pbe.UPF";
 
-        auto preset = Plugins::PWInput.makePreset();
+        auto preset = PWInput.makePreset();
 
-        bool written = Plugins::PWInput.writer(mol, testOutput, param, preset, 0);
+        bool written = PWInput.writer(mol, testOutput, param, preset, 0);
 
         REQUIRE(written);
         REQUIRE(testOutput.str() ==

@@ -1,5 +1,4 @@
-#include "vipster/plugins/xyz.h"
-#include "vipster/vec.h"
+#include "vipster/plugin.h"
 #include <iostream>
 #include <sstream>
 
@@ -9,8 +8,14 @@ using namespace Vipster;
 using namespace std::literals::string_literals;
 
 TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
+    const auto &plugins = Vipster::defaultPlugins();
+    const auto &found = std::find_if(plugins.begin(), plugins.end(),
+                                       [](const auto &p){return p->name == "xyz";});
+    REQUIRE(found != plugins.end());
+    const auto &XYZ = **found;
+
     SECTION("Preset") {
-        auto preset = Plugins::XYZ.makePreset();
+        auto preset = XYZ.makePreset();
 
         // check for default values (index()==1 for NamedEnum)
         REQUIRE(preset.size() == 2);
@@ -27,7 +32,7 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
     SECTION("ParseEmpty") {
         std::stringstream testInput{""};
 
-        auto [mol, param, data] = Plugins::XYZ.parser("empty", testInput);
+        auto [mol, param, data] = XYZ.parser("empty", testInput);
 
         REQUIRE(!param.has_value());
         REQUIRE(data.empty());
@@ -44,7 +49,7 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
             "C 1.5 0 0\n"
         };
 
-        auto [mol, param, data] = Plugins::XYZ.parser("testname", testInput);
+        auto [mol, param, data] = XYZ.parser("testname", testInput);
         REQUIRE(!param.has_value());
         REQUIRE(data.empty());
 
@@ -69,7 +74,7 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
             "2\ncomment\nC 0 0 0\nC 1.5 0 0\n"
         };
 
-        auto [mol, param, data] = Plugins::XYZ.parser("testname", testInput);
+        auto [mol, param, data] = XYZ.parser("testname", testInput);
         REQUIRE(!param.has_value());
         REQUIRE(data.empty());
 
@@ -99,7 +104,7 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
             "0 0 3\n"
         };
 
-        auto [mol, param, data] = Plugins::XYZ.parser("testname", testInput);
+        auto [mol, param, data] = XYZ.parser("testname", testInput);
         REQUIRE(!param.has_value());
         REQUIRE(data.empty());
 
@@ -126,7 +131,7 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
         s.newAtom("C", {0,0,0});
         s.newAtom("C", {1.5,0,0});
 
-        bool written = Plugins::XYZ.writer(mol, testOutput, {}, Plugins::XYZ.makePreset(), 0);
+        bool written = XYZ.writer(mol, testOutput, {}, XYZ.makePreset(), 0);
 
         REQUIRE(written);
         REQUIRE(testOutput.str() ==
@@ -146,10 +151,10 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
             s.newAtom("C", {1.5,0,0});
         }
 
-        auto preset = Plugins::XYZ.makePreset();
+        auto preset = XYZ.makePreset();
         std::get<NamedEnum>(preset.at("filemode").first) = "Trajec";
 
-        bool written = Plugins::XYZ.writer(mol, testOutput, {}, preset, 0);
+        bool written = XYZ.writer(mol, testOutput, {}, preset, 0);
 
         REQUIRE(written);
         REQUIRE(testOutput.str() ==
@@ -168,10 +173,10 @@ TEST_CASE("Vipster::Plugins::XYZ", "[IO][XYZ]") {
         s.newAtom("C", {1.5,0,0});
         s.setCellVec(Mat{{{{3,0,0}}, {{0,3,0}}, {{0,0,3}}}});
 
-        auto preset = Plugins::XYZ.makePreset();
+        auto preset = XYZ.makePreset();
         std::get<NamedEnum>(preset.at("filemode").first) = "Cell";
 
-        bool written = Plugins::XYZ.writer(mol, testOutput, {}, preset, 0);
+        bool written = XYZ.writer(mol, testOutput, {}, preset, 0);
 
         REQUIRE(written);
         REQUIRE(testOutput.str() ==
