@@ -54,6 +54,7 @@ option(VIPSTER_PYLIB "Standalone Python library" OFF)
 mark_as_advanced(VIPSTER_PYLIB)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # include current dir so library can be accessed via "vipster/*.h"
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

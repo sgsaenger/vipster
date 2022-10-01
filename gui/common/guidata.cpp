@@ -184,9 +184,6 @@ GLuint GUI::Data::loadShader(const GlobalContext &globals, const std::string &ve
     return program;
 }
 
-//GUI::Data::Data()
-//{}
-
 GUI::Data::Data(GUI::Data&& dat)
 {
     std::swap(instance_map, dat.instance_map);

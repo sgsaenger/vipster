@@ -3,12 +3,12 @@
 
 #ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
-#include <string>
-#include <vector>
-#include <map>
 #else
 #include <QOpenGLExtraFunctions>
 #endif
+#include <string>
+#include <vector>
+#include <map>
 
 #include "vipster/vec.h"
 #include "guiglobals.h"

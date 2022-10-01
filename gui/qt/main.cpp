@@ -46,15 +46,10 @@ using namespace Vipster;
     format.setSamples(8);
     QSurfaceFormat::setDefaultFormat(format);
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});
-    if(!data.empty()){
-        MainWindow w{QDir::currentPath(), state, std::move(data)};
-        w.show();
-        throw CLI::RuntimeError(QApplication::exec());
-    }else{
-        MainWindow w{QDir::currentPath(), state};
-        w.show();
-        throw CLI::RuntimeError(QApplication::exec());
-    }
+
+    MainWindow w{QDir::currentPath(), state, std::move(data)};
+    w.show();
+    throw CLI::RuntimeError(QApplication::exec());
 }
 
 // register `convert` subcommand
