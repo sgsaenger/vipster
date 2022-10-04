@@ -1,5 +1,5 @@
-set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests/files)
-set(TEST_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tests/io_test_script.cmake)
+set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/files)
+set(TEST_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/io_test_script.cmake)
 set(TEST_FILES test.xyz
                test.pwi
                test.pwo

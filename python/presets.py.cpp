@@ -1,6 +1,6 @@
 #include "presets.py.h"
-#include "presets.h"
 #include "plugin.py.h"
+#include "vipster/presets.h"
 #include <fmt/format.h>
 
 using namespace Vipster;

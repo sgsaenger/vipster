@@ -1,5 +1,5 @@
 #include "bond.py.h"
-#include "bond.h"
+#include "vipster/bond.h"
 #include <pybind11/stl.h>
 
 PYBIND11_MAKE_OPAQUE(std::vector<Vipster::Bond>)

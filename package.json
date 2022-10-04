@@ -1,6 +1,6 @@
 {
   "name": "vipster",
-  "version": "1.19.3",
+  "version": "1.20.0",
   "description": "Molecular visualization and editing toolkit",
   "author": "Sebastian Gsänger",
   "license": "GPL-3.0-only",
@@ -19,7 +19,7 @@
     "visualization"
   ],
   "scripts": {
-    "prepare": "emcmake cmake -Bbuild/npm && cmake --build build/npm && mkdir -p dist && cp build/npm/vipster.js dist",
+    "prepare": "emcmake cmake -Bbuild/npm && cmake --build build/npm && mkdir -p dist && cp build/npm/gui/web/vipster.js dist",
     "clean": "rm -rf build/npm dist/vipster.js"
   },
   "main": "dist/vipster.js",

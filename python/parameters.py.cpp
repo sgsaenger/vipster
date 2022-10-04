@@ -1,6 +1,6 @@
 #include "parameters.py.h"
-#include "parameters.h"
 #include "plugin.py.h"
+#include "vipster/parameters.h"
 #include <fmt/format.h>
 
 using namespace Vipster;

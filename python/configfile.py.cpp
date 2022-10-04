@@ -3,7 +3,6 @@
 #include <fmt/format.h>
 
 #include "configfile.py.h"
-#include "configfile.h"
 #include "plugin.py.h"
 
 namespace fs = std::filesystem;

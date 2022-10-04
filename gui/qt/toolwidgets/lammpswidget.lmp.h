@@ -1,7 +1,7 @@
 #ifndef LAMMPSWIDGET_LMP_H
 #define LAMMPSWIDGET_LMP_H
 
-#include "basewidget.h"
+#include "../basewidget.h"
 #include "lammpswidget_aux/forcefield.lmp.h"
 
 #include <filesystem>

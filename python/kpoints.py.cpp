@@ -1,5 +1,5 @@
 #include "kpoints.py.h"
-#include "kpoints.h"
+#include "vipster/kpoints.h"
 
 void Vipster::Py::KPoints(py::module& m){
     auto k = py::class_<Vipster::KPoints>(m, "KPoints")

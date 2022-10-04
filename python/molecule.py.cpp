@@ -1,5 +1,5 @@
 #include "molecule.py.h"
-#include "molecule.h"
+#include "vipster/molecule.h"
 
 void Vipster::Py::Molecule(py::module& m, const Vipster::ConfigState &state){
     py::class_<Vipster::Molecule>(m, "Molecule")

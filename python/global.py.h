@@ -1,11 +1,11 @@
 #ifndef PYVIPSTER_H
 #define PYVIPSTER_H
 
-#include "pybind11/pybind11.h"
-#include "pybind11/operators.h"
-#include "pybind11/stl_bind.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl_bind.h>
 
-#include "configfile.h"
+#include "vipster/configfile.h"
 
 namespace py = pybind11;
 using namespace py::literals;

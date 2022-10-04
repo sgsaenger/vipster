@@ -3,7 +3,7 @@
 #include <pybind11/functional.h>
 #include <fmt/format.h>
 #include "fileio.py.h"
-#include "fileio.h"
+#include "vipster/fileio.h"
 
 void Vipster::Py::FileIO(py::module& m, const ConfigState& state, bool enableRead){
     if(enableRead){

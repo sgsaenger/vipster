@@ -22,11 +22,11 @@ jobs:
           uses: actions/cache@v1
           with:
               path: ../Qt
-              key: ${{ runner.os }}-QtCache-5.15.2
+              key: ${{ runner.os }}-QtCache-6.4.0
         - name: Install Qt
           uses: jurplel/install-qt-action@v2
           with:
-              version: '5.15.2'
+              version: '6.4.0'
               target: 'desktop'
               cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
@@ -89,13 +89,13 @@ jobs:
           uses: actions/cache@v2
           with:
               path: Qt
-              key: ${{ runner.os }}-QtCache-5.15.2
+              key: ${{ runner.os }}-QtCache-6.4.0
         - name: Install Qt
           uses: jurplel/install-qt-action@v2
           with:
-              version: '5.15.2'
+              version: '6.4.0'
               target: 'desktop'
-              arch: 'win64_mingw81'
+              arch: 'win64_mingw'
               dir: ${{ github.workspace }}
               cached: ${{ steps.cache-qt.outputs.cache-hit }}
 

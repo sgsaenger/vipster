@@ -2,7 +2,7 @@
 #define PLUG_PY_H
 
 #include "global.py.h"
-#include "plugin.h"
+#include "vipster/plugin.h"
 
 namespace Vipster{
 std::ostream& operator<<(std::ostream &os, const Plugin *p);

@@ -1,5 +1,5 @@
 #include "data.py.h"
-#include "data.h"
+#include "vipster/data.h"
 
 template <typename T>
 py::class_<T, Vipster::BaseData> bind_datagrid(py::module &m, std::string const &name){

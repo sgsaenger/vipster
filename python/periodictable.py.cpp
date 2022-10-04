@@ -1,5 +1,5 @@
 #include "periodictable.py.h"
-#include "periodictable.h"
+#include "vipster/periodictable.h"
 
 void Vipster::Py::Table(py::module& m){
     py::class_<PeriodicTable, std::shared_ptr<PeriodicTable>>(m, "__PeriodicTable")

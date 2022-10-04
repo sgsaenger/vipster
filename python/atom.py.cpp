@@ -1,5 +1,5 @@
 #include "atom.py.h"
-#include "atom.h"
+#include "vipster/atom.h"
 
 void Vipster::Py::Atom(py::module& m){
     py::enum_<AtomFmt>(m, "Fmt")

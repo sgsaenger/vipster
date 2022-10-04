@@ -13,7 +13,7 @@
 #pragma push_macro("slots")
 #undef slots
 #include <pybind11/embed.h>
-#include "vipster/global.py.h"
+#include "global.py.h"
 #pragma pop_macro("slots")
 #endif
 

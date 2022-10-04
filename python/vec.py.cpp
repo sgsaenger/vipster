@@ -1,5 +1,5 @@
 #include "vec.py.h"
-#include "vec.h"
+#include "vipster/vec.h"
 
 void Vipster::Py::Vec(py::module& m){
     bind_array<Vipster::Vec>(m, "Vec")
