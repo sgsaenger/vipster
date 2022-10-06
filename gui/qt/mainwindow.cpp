@@ -373,6 +373,10 @@ void MainWindow::loadMol()
             QMessageBox msg{this};
             msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
             msg.exec();
+        }catch (const Error &e){
+            QMessageBox msg{this};
+            msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
+            msg.exec();
         }
     }
 }
