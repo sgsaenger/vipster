@@ -12,7 +12,7 @@ GuiWrapper::GuiWrapper(const Settings &s)
 
 void GuiWrapper::initGL()
 {
-#ifndef __EMSCRIPTEN__
+#ifndef WEBVIPSTER
     initializeOpenGLFunctions();
 #endif
     // init ViewUBO

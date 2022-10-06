@@ -6,6 +6,8 @@ file(GLOB WEB_SOURCES
 
 add_executable(webvipster ${WEB_SOURCES})
 
+target_compile_definitions(webvipster PRIVATE WEBVIPSTER)
+
 set_target_properties(webvipster PROPERTIES OUTPUT_NAME vipster)
 
 target_include_directories(webvipster PRIVATE "../common")

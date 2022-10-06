@@ -13,7 +13,7 @@ GLWidget::GLWidget(QWidget *parent, const Vipster::Settings& settings):
 {
     if (QSurfaceFormat::defaultFormat().renderableType() == QSurfaceFormat::OpenGL){
         // set surface format required for the hacky selection algorithm
-        setTextureFormat(GL_RGBA16);
+        setTextureFormat(GL_RGBA16F);
     }
     setFocusPolicy(Qt::WheelFocus);
     vpExtras = &static_cast<ViewPort*>(parent)->vpdata.extras;
@@ -154,6 +154,7 @@ void GLWidget::keyPressEvent(QKeyEvent *e)
 
 SelectionIndices GLWidget::pickAtoms(QPoint from, QPoint to)
 {
+    // TODO: limited to 2^16 atoms per unit cell & 2^16 unit cells
     // return indices of atoms enclosed by rectangle
     // defined by `from` and `to`
     std::set<SelectionPair> idx;
@@ -161,7 +162,7 @@ SelectionIndices GLWidget::pickAtoms(QPoint from, QPoint to)
     drawSel(this);
     QOpenGLFramebufferObjectFormat format;
     format.setSamples(0);
-    format.setInternalTextureFormat(GL_RGBA16);
+    format.setInternalTextureFormat(GL_RGBA16F);
     // TODO: benchmark smaller framebuffer
 //    QOpenGLFramebufferObject fbo{QSize{w, h}, format};
     QOpenGLFramebufferObject fbo{size(), format};

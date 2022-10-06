@@ -2,7 +2,7 @@
 #define GLWRAPPER_H
 
 #include <string>
-#ifdef __EMSCRIPTEN__
+#ifdef WEBVIPSTER
 #include <GLES3/gl3.h>
 #else
 #include <QOpenGLExtraFunctions>
@@ -19,7 +19,7 @@
 
 namespace Vipster {
 
-#ifdef __EMSCRIPTEN__
+#ifdef WEBVIPSTER
 class GuiWrapper{
 #else
 class GuiWrapper: protected QOpenGLExtraFunctions{

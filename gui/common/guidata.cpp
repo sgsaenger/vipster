@@ -3,7 +3,7 @@
 #include "bond_model.h"
 #include <iostream>
 #include <vector>
-#ifndef __EMSCRIPTEN__
+#ifndef WEBVIPSTER
 #include <QOpenGLContext>
 #endif
 
@@ -11,7 +11,7 @@ using namespace Vipster;
 
 decltype (GUI::Data::global_map) GUI::Data::global_map;
 
-#ifdef __EMSCRIPTEN__
+#ifdef WEBVIPSTER
 #include <fstream>
 std::string readShader(const std::string &filePath)
 {
@@ -40,7 +40,7 @@ void GUI::Data::initGlobal(void *context)
 {
     auto &glob = global_map[context];
     if (glob.initialized) return;
-#ifndef __EMSCRIPTEN__
+#ifndef WEBVIPSTER
     initializeOpenGLFunctions();
     const auto fmt = QOpenGLContext::currentContext()->format();
     bool newEnough = false;
@@ -102,7 +102,7 @@ void GUI::Data::initGlobal(void *context)
 
 void GUI::Data::syncToGPU(void *context)
 {
-    #ifndef __EMSCRIPTEN__
+    #ifndef WEBVIPSTER
     if(!wrap_initialized){
         initializeOpenGLFunctions();
         wrap_initialized = true;
@@ -187,7 +187,7 @@ GLuint GUI::Data::loadShader(const GlobalContext &globals, const std::string &ve
 GUI::Data::Data(GUI::Data&& dat)
 {
     std::swap(instance_map, dat.instance_map);
-#ifndef __EMSCRIPTEN__
+#ifndef WEBVIPSTER
     std::swap(wrap_initialized, dat.wrap_initialized);
 #endif
 }

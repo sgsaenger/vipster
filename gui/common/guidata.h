@@ -1,7 +1,7 @@
 #ifndef GUIDATA_H
 #define GUIDATA_H
 
-#ifdef __EMSCRIPTEN__
+#ifdef WEBVIPSTER
 #include <GLES3/gl3.h>
 #else
 #include <QOpenGLExtraFunctions>
@@ -22,7 +22,7 @@ namespace GUI {
  * public interface for syncing data between cpu/gpu
  * manages global OpenGL state for a context
  */
-#ifdef __EMSCRIPTEN__
+#ifdef WEBVIPSTER
 class Data
 #else
 class Data: protected QOpenGLExtraFunctions
@@ -53,7 +53,7 @@ protected:
         bool synchronized{false};
     };
     std::map<void*, InstanceContext>  instance_map;
-#ifndef __EMSCRIPTEN__
+#ifndef WEBVIPSTER
     bool wrap_initialized{false};
 #endif
     void initGlobal(void *context);
