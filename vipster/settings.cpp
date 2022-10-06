@@ -23,6 +23,7 @@ void from_json(const nlohmann::json& j, Settings& s){
     readSetting(j, s.perspective);
     readSetting(j, s.rotCom);
     readSetting(j, s.animstep);
+    readSetting(j, s.bgCol);
     readSetting(j, s.selCol);
     readSetting(j, s.milCol);
     readSetting(j, s.posCol);
@@ -39,6 +40,7 @@ void to_json(nlohmann::json& j, const Settings& s){
     j[s.perspective.name] = s.perspective.val;
     j[s.rotCom.name] = s.rotCom.val;
     j[s.animstep.name] = s.animstep.val;
+    j[s.bgCol.name] = s.bgCol.val;
     j[s.selCol.name] = s.selCol.val;
     j[s.milCol.name] = s.milCol.val;
     j[s.posCol.name] = s.posCol.val;

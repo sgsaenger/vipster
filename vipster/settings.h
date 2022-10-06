@@ -2,7 +2,6 @@
 #define Settings_H
 
 #include "global.h"
-#include "bond.h"
 
 #include <string>
 
