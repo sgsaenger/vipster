@@ -81,6 +81,6 @@ FetchContent_Declare(
 FetchContent_Declare(
     lammps
     GIT_REPOSITORY https://github.com/lammps/lammps
-    GIT_TAG stable_23Jun2022
+    GIT_TAG stable_29Sep2021
     GIT_SHALLOW TRUE
 )

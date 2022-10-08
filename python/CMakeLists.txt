@@ -6,10 +6,8 @@ file(GLOB_RECURSE PY_SOURCES "*.py.h" "*.py.cpp")
 list(REMOVE_ITEM PY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/main.py.cpp")
 add_library(bindings OBJECT ${PY_SOURCES})
 
-set_target_properties(bindings PROPERTIES
-    POSITION_INDEPENDENT_CODE TRUE # make linkable into .so
-    EXCLUDE_FROM_ALL TRUE # only build when required by another target
-)
+# only build when required by another target
+set_target_properties(bindings PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 # dependencies
 FetchContent_MakeAvailable(pybind11 fmt)
