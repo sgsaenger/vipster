@@ -1,6 +1,6 @@
 # [![logo](util/vipster.png)](https://sgsaenger.github.io/vipster) VIsual Periodic STructure EditoR
 
-![Build status (master)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=master)
+[![Build status (master)](https://github.com/sgsaenger/vipster/workflows/Build/badge.svg?branch=master)](https://github.com/sgsaenger/vipster/actions)
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/sgsaenger/vipster)](https://github.com/sgsaenger/vipster/releases)
 [![PyPI version](https://img.shields.io/pypi/v/vipster)](https://pypi.org/project/vipster)
