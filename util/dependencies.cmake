@@ -10,7 +10,6 @@ FetchContent_Declare(
     tinyexpr
     GIT_REPOSITORY https://github.com/codeplea/tinyexpr
     GIT_TAG 373d2d3d5dc3344e3e2cb826717404064562a058
-    GIT_SHALLOW TRUE
 )
 
 # library: nlohmann_json
