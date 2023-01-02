@@ -32,7 +32,7 @@ if(VIPSTER_PYLIB)
 
     target_link_libraries(pyvipster PRIVATE bindings pybind11::module)
 
-    execute_process(COMMAND "${Python3_EXECUTABLE}" "-c"
+    execute_process(COMMAND "${Python_EXECUTABLE}" "-c"
 "import sysconfig as s; print(s.get_path('platlib'))"
         OUTPUT_VARIABLE PYTHON_SITE
         OUTPUT_STRIP_TRAILING_WHITESPACE)

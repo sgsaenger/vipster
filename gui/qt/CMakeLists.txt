@@ -79,7 +79,7 @@ if(VIPSTER_PYWIDGET)
     FetchContent_MakeAvailable(pybind11)
     add_definitions(-DUSE_PYTHON)
     target_sources(vipster PRIVATE ${QTPY_SOURCES})
-    target_link_libraries(vipster PRIVATE bindings pybind11::embed Python3::Python)
+    target_link_libraries(vipster PRIVATE bindings pybind11::embed Python::Python)
 endif()
 
 # lammps-widget:
@@ -112,6 +112,7 @@ if(VIPSTER_LAMMPS)
         set(LAMMPS_EXCEPTIONS ON CACHE INTERNAL "")
         # enable simple and regularly used packages
         set(PKG_MOLECULE ON CACHE BOOL "")
+        set(PKG_EXTRA-MOLECULE ON CACHE BOOL "")
         set(PKG_MANYBODY ON CACHE BOOL "")
         set(PKG_RIGID ON CACHE BOOL "")
         set(PKG_KSPACE ON CACHE BOOL "")

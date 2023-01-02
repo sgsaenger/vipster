@@ -32,8 +32,8 @@ else()
 endif()
 
 # VIPSTER_PYLIB - add python bindings for library, default to OFF
-find_package(Python3 3.7 QUIET COMPONENTS Interpreter Development)
-cmake_dependent_option(VIPSTER_PYLIB "Standalone Python library" OFF ${Python3_FOUND} OFF)
+find_package(Python 3.7 QUIET COMPONENTS Interpreter Development)
+cmake_dependent_option(VIPSTER_PYLIB "Standalone Python library" OFF ${Python_FOUND} OFF)
 
 # VIPSTER_DESKTOP - add Qt-GUI target, default to ON if Qt available
 find_package(Qt6 CONFIG QUIET COMPONENTS Widgets Gui OpenGLWidgets)
@@ -48,7 +48,7 @@ if(tmp AND NOT ${VIPSTER_DESKTOP})
 endif()
 
 # VIPSTER_PYWIDGET - optional python widget for Qt GUI, default to ON if possible
-cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${Python3_FOUND} "VIPSTER_DESKTOP" OFF)
+cmake_dependent_option(VIPSTER_PYWIDGET "Python shell in desktop app" ${Python_FOUND} "VIPSTER_DESKTOP" OFF)
 
 # VIPSTER_LAMMPS - optional widget for interactive simulations, default to OFF
 cmake_dependent_option(VIPSTER_LAMMPS "Interactive LAMMPS in desktop app" OFF "VIPSTER_DESKTOP" OFF)
