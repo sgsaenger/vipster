@@ -1,5 +1,6 @@
 #include "definewidget.h"
 #include "ui_definewidget.h"
+#include "mainwindow.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QColorDialog>
@@ -35,8 +36,8 @@ DefineWidget::~DefineWidget()
 void DefineWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        curStep = master->curStep;
-        defMap = &master->stepdata[curStep].definitions;
+        curStep = vApp.curStep;
+        defMap = &vApp.stepdata[curStep].definitions;
         curIt = defMap->end();
         fillTable();
     }else if(change & (GUI::Change::definitions)){
@@ -44,8 +45,8 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
     }else if(change & (GUI::Change::atoms | GUI::Change::settings)){
         for(auto& def: *defMap){
             std::get<2>(def.second)->update(&std::get<0>(def.second),
-                                            master->settings.atRadVdW.val,
-                                            master->settings.atRadFac.val);
+                                            vApp.config.settings.atRadVdW.val,
+                                            vApp.config.settings.atRadFac.val);
         }
     }
 }
@@ -118,7 +119,7 @@ void DefineWidget::on_newButton_clicked()
                 std::make_shared<GUI::SelData>()});
         curIt = it;
         curSelData()->update(&curSel(),
-            master->settings.atRadVdW.val, master->settings.atRadFac.val);
+            vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
         curSelData()->color = defaultColors[defMap->size()%5];
         master->curVP->addExtraData(curSelData(), false);
         triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
@@ -152,7 +153,7 @@ void DefineWidget::on_fromSelButton_clicked()
                                     ).toStdString();
     if(!ok) return;
     // convert selection to index filter
-    const auto& idx = master->curSel->getAtoms().indices;
+    const auto& idx = vApp.curSel->getAtoms().indices;
     std::string filter;
     std::stringstream ss{filter};
     ss << "[ ";
@@ -162,12 +163,12 @@ void DefineWidget::on_fromSelButton_clicked()
     ss << ']';
     // create new group
     auto [it, _] = defMap->insert_or_assign(tmp,
-        std::tuple{*master->curSel,
+        std::tuple{*vApp.curSel,
                    filter,
                    std::make_shared<GUI::SelData>()});
     curIt = it;
     curSelData()->update(&curSel(),
-        master->settings.atRadVdW.val, master->settings.atRadFac.val);
+        vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
     curSelData()->color = defaultColors[defMap->size()%5];
     master->curVP->addExtraData(curSelData(), false);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
@@ -178,7 +179,7 @@ void DefineWidget::toSelAction()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
-    *master->curSel = curSel();
+    *vApp.curSel = curSel();
     master->curVP->delExtraData(curSelData(), false);
     triggerUpdate(GUI::Change::selection | GUI::Change::extra);
 }
@@ -190,7 +191,7 @@ void DefineWidget::updateAction()
     }
     curSel() = curStep->select(curFilter());
     curSelData()->update(&curSel(),
-        master->settings.atRadVdW.val, master->settings.atRadFac.val);
+        vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
@@ -235,7 +236,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
             auto filter = cell->text().toStdString();
             curSel() = curStep->select(filter);
             curSelData()->update(&curSel(),
-                master->settings.atRadVdW.val, master->settings.atRadFac.val);
+                vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
             triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         }catch(const Error &e){
             QMessageBox msg{this};

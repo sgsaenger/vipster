@@ -5,10 +5,9 @@
 #include <QAction>
 #include <type_traits>
 
+#include "vipsterapplication.h"
 #include "vipster/molecule.h"
 #include "../basewidget.h"
-#include "../viewport.h"
-#include "../mainwindow.h"
 #include "seldata.h"
 
 namespace Ui {
@@ -43,7 +42,7 @@ private:
 
     Ui::DefineWidget *ui;
     Vipster::Step* curStep{nullptr};
-    decltype(MainWindow::StepState::definitions) *defMap{nullptr};
+    decltype(Vipster::GUI::Application::StepState::definitions) *defMap{nullptr};
     std::remove_pointer_t<decltype(defMap)>::iterator curIt;
     Vipster::Step::selection &curSel();
     Vipster::SelectionFilter &curFilter();

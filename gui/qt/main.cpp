@@ -70,9 +70,9 @@ void addSubcommandConvert(CLI::App& app, const ConfigState& state){
     }conv_data;
 
     // aliases for config state members
-    const PluginList    &plugins = std::get<2>(state);
-    const ParameterMap  &params = std::get<3>(state);
-    const PresetMap     &presets = std::get<4>(state);
+    const PluginList    &plugins = state.plugins;
+    const ParameterMap  &params = state.parameters;
+    const PresetMap     &presets = state.presets;
 
     // formats
     convert->add_flag("--list-fmt",
@@ -309,9 +309,9 @@ int main(int argc, char *argv[])
 {
     // read user-defined settings and make state known
     auto state = Vipster::readConfig();
-    const PluginList    &plugins = std::get<2>(state);
-    const ParameterMap  &params = std::get<3>(state);
-    const PresetMap     &presets = std::get<4>(state);
+    const PluginList    &plugins = state.plugins;
+    const ParameterMap  &params = state.parameters;
+    const PresetMap     &presets = state.presets;
 
 #ifdef USE_PYTHON
     // instance the python-interpreter, keep it alive for the program's duration
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
                     std::cout << "Cannot parse stdin without explicit format" << std::endl;
                     throw CLI::RuntimeError{1};
                 }
-                if(const auto plug = guessFmt(file, std::get<2>(state))){
+                if(const auto plug = guessFmt(file, plugins)){
                     data.push_back(readFile(file, plug));
                 }else{
                     std::cout << fmt::format("Could not deduce format of file \"{}\""

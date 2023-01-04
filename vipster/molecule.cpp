@@ -9,7 +9,7 @@ Molecule::Molecule(const std::string &name, size_t s):
     name{name},
     kpoints{}
 {
-    for(decltype(steps)::size_type i=0; i!=s; ++i){
+    for(size_t i=0; i!=s; ++i){
         steps.emplace_back();
         steps.back().setPTE(pte);
     }

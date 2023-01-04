@@ -23,6 +23,20 @@ static ostream& operator<<(ostream& os, const Step::atom& at)
 #include "catch2/catch.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
+    SECTION( "Construction" ) {
+        Step s1{};
+        auto sel1 = s1.select("type C");
+        auto fmt1 = s1.asFmt(AtomFmt::Bohr);
+
+        Step s2{s1};
+        Step s3{sel1};
+        Step s4{fmt1};
+
+//        StepMutable<AtomList> &r1 = s1;
+//        StepConst<AtomList> &r2 = s1;
+//        StepMutable<AtomList> &r3 = sel1;
+//        StepMutable<AtomList> &r4 = fmt1;
+    }
 
     SECTION( "Defaults" ) {
         Step s{};

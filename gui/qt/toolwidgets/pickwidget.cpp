@@ -1,6 +1,7 @@
 #include "../mainwindow.h"
 #include "pickwidget.h"
 #include "ui_pickwidget.h"
+#include "vipsterapplication.h"
 using namespace Vipster;
 
 PickWidget::PickWidget(QWidget *parent) :
@@ -47,14 +48,14 @@ void PickWidget::updateWidget(GUI::change_t change)
     if((change & (GUI::Change::atoms|GUI::Change::cell|GUI::Change::selection)) == 0u){
         return;
     }
-    const auto& curSel = master->curSel->asFmt(AtomFmt::Angstrom);
+    const auto& curSel = vApp.curSel->asFmt(AtomFmt::Angstrom);
     auto& text = *ui->PickText;
     text.setPlainText("Atoms:");
     const size_t nat = curSel.getNat();
     std::vector<QString> names;
     std::map<size_t, int> count;
     for(auto it = curSel.cbegin(); it != curSel.cend() ;++it){
-        names.push_back(QString::number(it->idx)+QString{count[it->idx]++,'\''});
+        names.push_back(QString::number(it->idx) + QString{count[it->idx]++, '\''});
         const SizeVec& off = it->off;
         if(off != SizeVec{}){
             text.appendPlainText(names.back()+'('+

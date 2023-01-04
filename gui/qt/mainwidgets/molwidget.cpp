@@ -4,6 +4,7 @@
 #include "molwidget_aux/bonddelegate.h"
 #include "molwidget_aux/doubledelegate.h"
 #include "molwidget_aux/newelement.h"
+#include "vipsterapplication.h"
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QMenu>
@@ -72,7 +73,7 @@ void MolWidget::updateWidget(GUI::change_t change)
 {
     if (!updateTriggered){
         if ((change & GUI::molChanged) == GUI::molChanged) {
-            curMol = master->curMol;
+            curMol = vApp.curMol;
         }
         if ((change & GUI::stepChanged) == GUI::stepChanged) {
             // reset old fmt-string
@@ -81,8 +82,8 @@ void MolWidget::updateWidget(GUI::change_t change)
                 ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
             }
             // assign StepFormatter to curStep, mark fmt as active
-            auto fmt = master->curStep->getFmt();
-            curStep = master->curStep;
+            auto fmt = vApp.curStep->getFmt();
+            curStep = vApp.curStep;
             ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
             atomModel.setStep(ownStep.get());
             setSelection();
@@ -92,7 +93,7 @@ void MolWidget::updateWidget(GUI::change_t change)
             ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
             // expose BondMode
             QSignalBlocker blockBondMode(ui->bondModeBox);
-            bool autobonds = master->stepdata[curStep].automatic_bonds;
+            bool autobonds = vApp.stepdata[curStep].automatic_bonds;
             ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
             if(autobonds){
                 ui->bondSetButton->setDisabled(true);
@@ -110,7 +111,7 @@ void MolWidget::updateWidget(GUI::change_t change)
     if (change & GUI::Change::atoms) {
         ui->typeWidget->setTable(&curMol->getPTE());
         checkOverlap();
-        bondModel.setStep(&*ownStep, master->stepdata[curStep].automatic_bonds);
+        bondModel.setStep(&*ownStep, vApp.stepdata[curStep].automatic_bonds);
     }
     if (change & GUI::Change::cell) {
         fillCell();
@@ -162,14 +163,14 @@ void MolWidget::on_cellTrajecButton_clicked()
         auto dim = ui->cellDimBox->value();
         auto fmt = static_cast<AtomFmt>(ui->cellFmt->currentIndex());
         Mat vec = cellModel.getVec();
-        for(auto& step: master->curMol->getSteps()){
-            if (&step == master->curStep) continue;
+        for(auto& step: vApp.curMol->getSteps()){
+            if (&step == vApp.curStep) continue;
             step.setCellDim(dim, fmt, scale);
             step.setCellVec(vec, scale);
         }
     }else{
-        for(auto& step: master->curMol->getSteps()){
-            if (&step == master->curStep) continue;
+        for(auto& step: vApp.curMol->getSteps()){
+            if (&step == vApp.curStep) continue;
             step.enableCell(false);
         }
     }
@@ -242,7 +243,7 @@ void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
 {
     ownStep = std::make_unique<Step::formatter>(curStep->asFmt(static_cast<AtomFmt>(index-2)));
     atomModel.setStep(ownStep.get());
-    bondModel.setStep(ownStep.get(), master->stepdata[curStep].automatic_bonds);
+    bondModel.setStep(ownStep.get(), vApp.stepdata[curStep].automatic_bonds);
     cellModel.setStep(curStep);
     setSelection();
 }
@@ -259,13 +260,13 @@ void MolWidget::on_atomFmtButton_clicked()
     ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
     // reset models
     atomModel.setStep(ownStep.get());
-    bondModel.setStep(ownStep.get(), master->stepdata[curStep].automatic_bonds);
+    bondModel.setStep(ownStep.get(), vApp.stepdata[curStep].automatic_bonds);
     cellModel.setStep(curStep);
     // reset selection
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
-    filter.indices = master->curSel->getAtoms().indices;
-    *master->curSel = curStep->select(filter);
+    filter.indices = vApp.curSel->getAtoms().indices;
+    *vApp.curSel = curStep->select(filter);
     if(atomFmtRelative(fmt)){
         ui->cellEnabledBox->setChecked(true);
     }
@@ -285,7 +286,7 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
     for(const auto& i: idx){
         filter.indices.emplace_back(static_cast<size_t>(i.row()), SizeVec{});
     }
-    *master->curSel = curStep->select(filter);
+    *vApp.curSel = curStep->select(filter);
     triggerUpdate(GUI::Change::selection);
 }
 
@@ -296,7 +297,7 @@ void MolWidget::setSelection()
             this, &MolWidget::atomSelectionChanged);
     table->clearSelection();
     table->setSelectionMode(QAbstractItemView::MultiSelection);
-    for(const auto& i:master->curSel->getAtoms().indices){
+    for(const auto& i: vApp.curSel->getAtoms().indices){
         table->selectRow(static_cast<int>(i.first));
     }
     connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -441,7 +442,7 @@ void MolWidget::on_discretetable_cellChanged(int row, int column)
 void MolWidget::on_bondSetButton_clicked()
 {
     ownStep->generateBonds();
-    bondModel.setStep(ownStep.get(), master->stepdata[curStep].automatic_bonds);
+    bondModel.setStep(ownStep.get(), vApp.stepdata[curStep].automatic_bonds);
     triggerUpdate(GUI::Change::atoms);
 }
 
@@ -452,7 +453,7 @@ void MolWidget::on_bondHelpButton_clicked()
 
 void MolWidget::on_bondModeBox_currentIndexChanged(int index)
 {
-    auto automatic = master->stepdata[curStep].automatic_bonds = static_cast<bool>(index);
+    auto automatic = vApp.stepdata[curStep].automatic_bonds = static_cast<bool>(index);
     if(automatic){
         ui->bondSetButton->setDisabled(true);
     }else{

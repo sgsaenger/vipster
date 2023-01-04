@@ -1,6 +1,7 @@
 #include "../mainwindow.h"
 #include "cellmodwidget.h"
 #include "ui_cellmodwidget.h"
+#include "vipsterapplication.h"
 #include <QMessageBox>
 
 using namespace Vipster;
@@ -20,7 +21,7 @@ CellModWidget::~CellModWidget()
 void CellModWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if(change & GUI::Change::cell){
-        setEnabled(master->curStep->hasCell());
+        setEnabled(vApp.curStep->hasCell());
     }
 }
 
@@ -28,12 +29,12 @@ void CellModWidget::on_wrapButton_clicked()
 {
     GUI::change_t change;
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
+        for(auto& step: vApp.curMol->getSteps()){
             step.modWrap();
         }
         change = GUI::Change::atoms | GUI::Change::trajec;
     }else{
-        master->curStep->modWrap();
+        vApp.curStep->modWrap();
         change = GUI::Change::atoms;
     }
     triggerUpdate(change);
@@ -43,12 +44,12 @@ void CellModWidget::on_cropButton_clicked()
 {
     GUI::change_t change;
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
+        for(auto& step: vApp.curMol->getSteps()){
             step.modCrop();
         }
         change = GUI::Change::atoms | GUI::Change::trajec;
     }else{
-        master->curStep->modCrop();
+        vApp.curStep->modCrop();
         change = GUI::Change::atoms;
     }
     triggerUpdate(change);
@@ -61,12 +62,12 @@ void CellModWidget::on_multButton_clicked()
     auto y = static_cast<size_t>(ui->yMultSel->value());
     auto z = static_cast<size_t>(ui->zMultSel->value());
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
+        for(auto& step: vApp.curMol->getSteps()){
             step.modMultiply(x, y, z);
         }
         change = GUI::Change::atoms | GUI::Change::cell | GUI::Change::trajec;
     }else{
-        master->curStep->modMultiply(x, y, z);
+        vApp.curStep->modMultiply(x, y, z);
         change = GUI::Change::atoms | GUI::Change::cell;
     }
     triggerUpdate(change);
@@ -78,12 +79,12 @@ void CellModWidget::on_alignButton_clicked()
     auto targetdir = static_cast<uint8_t>(ui->coordVecSel->currentIndex());
     GUI::change_t change;
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
+        for(auto& step: vApp.curMol->getSteps()){
             step.modAlign(stepdir, targetdir);
         }
         change = GUI::Change::atoms | GUI::Change::cell | GUI::Change::trajec;
     }else{
-        master->curStep->modAlign(stepdir, targetdir);
+        vApp.curStep->modAlign(stepdir, targetdir);
         change = GUI::Change::atoms | GUI::Change::cell;
     }
     triggerUpdate(change);
@@ -108,12 +109,12 @@ void CellModWidget::on_reshapeButton_clicked()
     auto cdm = ui->cdmSel->value();
     auto fmt = static_cast<AtomFmt>(ui->cdmFmtSel->currentIndex());
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: master->curMol->getSteps()){
+        for(auto& step: vApp.curMol->getSteps()){
             step.modReshape(newMat, cdm, fmt);
         }
         change = GUI::Change::atoms | GUI::Change::cell | GUI::Change::trajec;
     }else{
-        master->curStep->modReshape(newMat, cdm, fmt);
+        vApp.curStep->modReshape(newMat, cdm, fmt);
         change = GUI::Change::atoms | GUI::Change::cell;
     }
     triggerUpdate(change);

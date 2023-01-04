@@ -5,7 +5,7 @@ void Vipster::Py::Molecule(py::module& m, const Vipster::ConfigState &state){
     py::class_<Vipster::Molecule>(m, "Molecule")
         .def(py::init([&state](const std::string&name, size_t s){
             Vipster::Molecule m{name, s};
-            m.getPTE().root = &std::get<0>(state);
+            m.getPTE().root = &state.periodicTable;
             return m;
         }), "name"_a="New Molecule", "steps"_a=1)
         .def(py::init<const Vipster::Molecule&>())

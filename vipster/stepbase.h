@@ -237,6 +237,7 @@ namespace Vipster {
     };
 }
 
-#include "stepbase.tpp"
+// implementation
+#include "stepbase.tpp" // IWYU pragma: keep
 
 #endif // STEPBASE_H

@@ -2,6 +2,7 @@
 #include "glwidget.h"
 #include "mainwindow.h"
 #include "ui_viewport.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -15,7 +16,7 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     setFocusPolicy(Qt::StrongFocus);
     // try to create opengl-widget
     // TODO: catch error when no gl3.3 is available
-    openGLWidget = new GLWidget{this, master->settings};
+    openGLWidget = new GLWidget{this, vApp.config.settings};
     ui->verticalLayout->insertWidget(1, openGLWidget, 1);
     setFocusProxy(openGLWidget);
     // connect timer for animation
@@ -28,7 +29,7 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     ui->closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
     // fill mol-list
-    for(const auto& mol: master->molecules){
+    for(const auto& mol: vApp.molecules){
         ui->molList->addItem(mol.name.c_str());
     }
 }
@@ -58,7 +59,7 @@ ViewPort::~ViewPort()
 
 void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
 {
-    if(active || (curStep == master->curStep)){
+    if(active || (curStep == vApp.curStep)){
         // if we are the active viewport or display the same step,
         // trigger global update
         master->updateWidgets(change);
@@ -66,9 +67,9 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
         // short-circuit if rest of GUI does not need to be updated
         // if necessary, make sure that bonds/overlaps are up to date
         if((change & GUI::Change::atoms) &&
-           (master->stepdata[curStep].automatic_bonds ||
-            master->settings.overlap.val)){
-            curStep->generateBonds(!master->stepdata[curStep].automatic_bonds);
+           (vApp.stepdata[curStep].automatic_bonds ||
+            vApp.config.settings.overlap.val)){
+            curStep->generateBonds(!vApp.stepdata[curStep].automatic_bonds);
         }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){
@@ -144,7 +145,7 @@ void ViewPort::registerMol(const std::string &name)
 
 void ViewPort::setMol(int index)
 {
-    curMol = &*std::next(master->molecules.begin(), index);
+    curMol = &*std::next(vApp.molecules.begin(), index);
     int nstep = static_cast<int>(curMol->getNstep());
     auto &curData = moldata[curMol];
     if(curData.curStep == 0){
@@ -184,12 +185,12 @@ void ViewPort::setStep(int i, bool setMol)
     // ensure this step will be reused when mol is selected again
     moldata[curMol].curStep = i;
     // if step has not been accessed previously, set bonds to manual if bonds are already present
-    if((master->stepdata.find(curStep) == master->stepdata.end()) &&
+    if((vApp.stepdata.find(curStep) == vApp.stepdata.end()) &&
        !curStep->getBonds().empty()){
-        master->stepdata[curStep].automatic_bonds = false;
+        vApp.stepdata[curStep].automatic_bonds = false;
     }
     // set widget's bond mode accordingly
-    setBondMode(master->stepdata[curStep].automatic_bonds);
+    setBondMode(vApp.stepdata[curStep].automatic_bonds);
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
     // if no previous selection exists in this viewport, create one, afterwards assign it
@@ -297,7 +298,7 @@ void ViewPort::stepBut(QAbstractButton *but)
             playTimer.stop();
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
         }else{
-            playTimer.start(static_cast<int>(master->settings.animstep.val));
+            playTimer.start(static_cast<int>(vApp.config.settings.animstep.val));
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
         }
     }

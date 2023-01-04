@@ -7,7 +7,7 @@
 #include <QSpacerItem>
 #include "settingswidget.h"
 #include "ui_settingswidget.h"
-#include "../mainwindow.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -16,20 +16,20 @@ SettingsWidget::SettingsWidget(QWidget *parent) :
     ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
-    registerSetting(master->settings.overlap);
-    registerSetting(master->settings.atRadVdW);
-    registerSetting(master->settings.atRadFac);
-    registerSetting(master->settings.bondRad);
-    registerSetting(master->settings.showCell);
-    registerSetting(master->settings.antialias);
-    registerSetting(master->settings.perspective);
-    registerSetting(master->settings.rotCom);
-    registerSetting(master->settings.animstep);
-    registerSetting(master->settings.bgCol);
-    registerSetting(master->settings.selCol);
-    registerSetting(master->settings.milCol);
-    registerSetting(master->settings.posCol);
-    registerSetting(master->settings.negCol);
+    registerSetting(vApp.config.settings.overlap);
+    registerSetting(vApp.config.settings.atRadVdW);
+    registerSetting(vApp.config.settings.atRadFac);
+    registerSetting(vApp.config.settings.bondRad);
+    registerSetting(vApp.config.settings.showCell);
+    registerSetting(vApp.config.settings.antialias);
+    registerSetting(vApp.config.settings.perspective);
+    registerSetting(vApp.config.settings.rotCom);
+    registerSetting(vApp.config.settings.animstep);
+    registerSetting(vApp.config.settings.bgCol);
+    registerSetting(vApp.config.settings.selCol);
+    registerSetting(vApp.config.settings.milCol);
+    registerSetting(vApp.config.settings.posCol);
+    registerSetting(vApp.config.settings.negCol);
     ui->settingsLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Preferred, QSizePolicy::Expanding), labels.size(), 0, 1, -1);
 }
 

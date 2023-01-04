@@ -15,6 +15,7 @@
 #include "lammps.h"
 #include "info.h"
 #include "exceptions.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 using namespace Vipster::Lammps;
@@ -180,10 +181,10 @@ fs::path getLmpTmpDir()
 
 void LammpsWidget::on_runButton_clicked()
 {
-    if(!master->curStep->getNat()){
+    if(!vApp.curStep->getNat()){
         return;
     }
-    auto curStep = master->curStep->asFmt(AtomFmt::Angstrom);
+    auto curStep = vApp.curStep->asFmt(AtomFmt::Angstrom);
     // get forcefield
     const auto FFname = ui->ffSel->currentText().toStdString();
     if(FFname == "Custom"){
@@ -216,7 +217,7 @@ void LammpsWidget::on_runButton_clicked()
                                         ui->stepInput->text().toULong()};
         auto name = doMin ? fmt::format("(Min: {})", ui->minSel->currentText().toStdString())
                           : fmt::format("MD: {})", ui->mdSel->currentText().toStdString());
-        Molecule mol{*master->curStep, master->curMol->name + name};
+        Molecule mol{*vApp.curStep, vApp.curMol->name + name};
         auto result = runMaster(tempdir.string(), params, &mol);
         if(result.first < 0){
             QMessageBox::critical(this, "Error in LAMMPS run", QString::fromStdString(result.second)+
@@ -249,7 +250,7 @@ void LammpsWidget::on_ffPrepare_clicked()
     const auto& FF = forcefields.at(FFname);
     if(FF->prepareStep){
         try{
-            auto mol = FF->prepareStep(*master->curStep, master->curMol->name);
+            auto mol = FF->prepareStep(*vApp.curStep, vApp.curMol->name);
             master->newMol(std::move(mol));
         }catch(const Vipster::Error &e){
             QMessageBox::warning(this, "Could not prepare structure", e.what());
@@ -258,7 +259,7 @@ void LammpsWidget::on_ffPrepare_clicked()
             QMessageBox::critical(this, "Could not prepare structure", "Unrecognzied error when trying to prepare the structure.");
         }
     }else{
-        master->newMol({*master->curStep, master->curMol->name + " (" + FFname + ')'});
+        master->newMol({*vApp.curStep, vApp.curMol->name + " (" + FFname + ')'});
     }
 }
 
@@ -275,8 +276,8 @@ void LammpsWidget::mkGeom(const Step &curStep, const ForceField &FF, const fs::p
     // request parameter from FF
     auto param = FF.prepareParameters(curStep);
     // create input file
-    writeFile((tempdir/"geom.lmp").string(), &Plugins::LmpInput, *master->curMol,
-              master->curVP->moldata[master->curMol].curStep-1,
+    writeFile((tempdir/"geom.lmp").string(), &Plugins::LmpInput, *vApp.curMol,
+              master->curVP->moldata[vApp.curMol].curStep-1,
               param, preset);
 }
 

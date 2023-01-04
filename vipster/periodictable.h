@@ -42,7 +42,7 @@ constexpr const char* PeriodicTableAbout =
         "For unknown types, Vipster tries to make the best guess by trying to determine the base element. "
         "Integer types are interpreted as atomic numbers.";
 
-inline const Vipster::PeriodicTable pte = {
+inline const Vipster::PeriodicTable periodicTable = {
     //Type      PWPP, CPPP, CPNL,   Z,          m, bondcut, covr, vdwr, col
     {{"",      {  "",   "",   "",   0,        0.0,      -1, 1.46, 3.21, {   0,   0,   0, 255 } }},
      {"H",     {  "",   "",   "",   1,     1.0079,    0.72, 0.72, 2.27, { 190, 190, 190, 255 } }},

@@ -8,9 +8,9 @@
 namespace fs = std::filesystem;
 
 void Vipster::Py::config(py::module& m, ConfigState& state){
-    m.attr("PeriodicTable") = std::get<0>(state);
-    m.attr("Parameters") = py::cast(std::get<3>(state), py::return_value_policy::reference);
-    m.attr("Presets") = py::cast(std::get<4>(state), py::return_value_policy::reference);
+    m.attr("PeriodicTable") = state.periodicTable;
+    m.attr("Parameters") = py::cast(state.parameters, py::return_value_policy::reference);
+    m.attr("Presets") = py::cast(state.presets, py::return_value_policy::reference);
     // create import function that takes absolute paths
     py::exec("import importlib.util as __util\n"
              "def __importAbsolute(name, path):\n"
@@ -42,7 +42,7 @@ void Vipster::Py::config(py::module& m, ConfigState& state){
     }
     // expose plugins
     auto plug = m.def_submodule("Plugins");
-    for(const Vipster::Plugin* p: std::get<2>(state)){
+    for(const Vipster::Plugin* p: state.plugins){
         plug.attr(p->command.c_str()) = p;
     }
 }

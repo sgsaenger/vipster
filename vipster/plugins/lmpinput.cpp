@@ -395,9 +395,9 @@ IOTuple LmpInpParser(const std::string& name, std::istream &file)
                     // and try to guess type from mass
                     m.getPTE().insert_or_assign(name,
                         [&t1](){
-                        const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::pte.at("")};
+                        const Vipster::PeriodicTable::mapped_type* cur_guess{&Vipster::periodicTable.at("")};
                         double best_diff{5};
-                        for(const auto& [name, type]: Vipster::pte){
+                        for(const auto& [name, type]: Vipster::periodicTable){
                             double cur_diff = std::abs(t1-type.m);
                             if(cur_diff < best_diff){
                                 best_diff = cur_diff;

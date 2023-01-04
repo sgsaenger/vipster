@@ -13,12 +13,14 @@
 namespace Vipster{
 
 // call this functions to read user-defined settings
-using ConfigState = std::tuple<PeriodicTable,
-                               Settings,
-                               PluginList,
-                               ParameterMap,
-                               PresetMap
-                               >;
+struct ConfigState{
+    PeriodicTable   periodicTable;
+    Settings        settings;
+    PluginList      plugins;
+    ParameterMap    parameters;
+    PresetMap       presets;
+};
+
 ConfigState readConfig();
 void saveConfig(const ConfigState &);
 std::filesystem::path getConfigDir();

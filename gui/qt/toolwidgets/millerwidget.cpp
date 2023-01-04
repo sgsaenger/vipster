@@ -1,6 +1,7 @@
 #include "../mainwindow.h"
 #include "millerwidget.h"
 #include "ui_millerwidget.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -133,7 +134,7 @@ void MillerWidget::updateWidget(GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
         // set new pointers
-        curStep = master->curStep;
+        curStep = vApp.curStep;
         if(auto pos=planes.find(curStep); pos !=planes.end()){
             curPlane = pos->second;
         }else{
@@ -161,7 +162,7 @@ void MillerWidget::updateWidget(GUI::change_t change)
         }
     }else if(curPlane){
         if(change & GUI::Change::settings){
-            curPlane->update({{master->settings.milCol.val}, 1, 1});
+            curPlane->update({{vApp.config.settings.milCol.val}, 1, 1});
         }
         if(change & GUI::Change::cell){
             curPlane->update(curStep->getCellVec()*curStep->getCellDim(AtomFmt::Bohr));
@@ -221,7 +222,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
             std::make_shared<MillerPlane>(
                 mkFaces(hkl), off,
                 curStep->getCellVec()*curStep->getCellDim(AtomFmt::Bohr),
-                MillerPlane::Texture{{master->settings.milCol.val}, 1, 1}, hkl
+                MillerPlane::Texture{{vApp.config.settings.milCol.val}, 1, 1}, hkl
             ));
         curPlane = planes.at(curStep);
         master->curVP->addExtraData(curPlane, false);

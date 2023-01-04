@@ -11,7 +11,7 @@ void Vipster::Py::FileIO(py::module& m, const ConfigState& state, bool enableRea
          * read a file
          */
         m.def("readFile",[&state](std::string fn){
-            if(const auto plug = guessFmt(fn, std::get<2>(state))){
+            if(const auto plug = guessFmt(fn, state.plugins)){
                 return readFile(fn, plug);
             }else{
                 throw IOError{fmt::format("Could not deduce format of file \"{}\""

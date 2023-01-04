@@ -6,7 +6,7 @@
 #include <QMessageBox>
 #include "periodictablewidget.h"
 #include "ui_periodictablewidget.h"
-#include "../mainwindow.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -149,10 +149,10 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlobal) :
     //initialize table if global
     if(isGlobal){
         // ensure that all regular types are present, irregardless of user settings
-        for(const auto&[el, _]: Vipster::pte){
-            master->pte.find_or_fallback(el);
+        for(const auto&[el, _]: Vipster::periodicTable){
+            vApp.config.periodicTable.find_or_fallback(el);
         }
-        setTable(&master->pte);
+        setTable(&vApp.config.periodicTable);
     }
 }
 
@@ -170,13 +170,13 @@ void PeriodicTableWidget::setEntry(QListWidgetItem *item)
             currentName = &tmp->first;
             currentElement = &tmp->second;
             if(isGlobal){
-                bool defElem = pte.find(*currentName) != pte.end();
+                bool defElem = Vipster::periodicTable.find(*currentName) != Vipster::periodicTable.end();
                 ui->defaultBut->setEnabled(defElem);
                 ui->deleteBut->setEnabled(!defElem);
             }else{
                 ui->toGlobalBut->setEnabled(true);
-                ui->fromGlobalBut->setEnabled(master->pte.find(*currentName)
-                                              != master->pte.end());
+                ui->fromGlobalBut->setEnabled(vApp.config.periodicTable.find(*currentName)
+                                              != vApp.config.periodicTable.end());
             }
             emit(currentEntryChanged());
             return;
@@ -213,12 +213,12 @@ void PeriodicTableWidget::changeEntry()
 {
     GUI::change_t change = GUI::Change::settings;
     if(sender() == ui->toGlobalBut){
-        master->pte[*currentName] = *currentElement;
+        vApp.config.periodicTable[*currentName] = *currentElement;
     }else if(sender() == ui->fromGlobalBut){
-        *currentElement = master->pte.at(*currentName);
+        *currentElement = vApp.config.periodicTable.at(*currentName);
         change |= GUI::Change::atoms;
     }else if(sender() == ui->defaultBut){
-        *currentElement = Vipster::pte.at(*currentName);
+        *currentElement = Vipster::periodicTable.at(*currentName);
     }else if(sender() == ui->deleteBut){
         table->erase(table->find(*currentName));
     }else{

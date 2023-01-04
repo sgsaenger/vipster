@@ -84,29 +84,24 @@ void from_json(const nlohmann::json& j, Settings& s);
 ConfigState Vipster::readConfig()
 {
     // create state
-    ConfigState retVal{};
-    PeriodicTable &pte = std::get<0>(retVal);
-    Settings &settings = std::get<1>(retVal);
-    PluginList &plugins = std::get<2>(retVal);
-    ParameterMap &params = std::get<3>(retVal);
-    PresetMap &presets = std::get<4>(retVal);
+    ConfigState cs{};
     // load defaults as a minimum starting point
-    pte = Vipster::pte;
-    settings = Vipster::settings;
-    plugins = defaultPlugins();
-    for(const auto& plug: plugins){
+    cs.periodicTable = Vipster::periodicTable;
+    cs.settings = Vipster::settings;
+    cs.plugins = defaultPlugins();
+    for(const auto& plug: cs.plugins){
         if(plug->makeParam){
-            params[plug]["default"] = plug->makeParam();
+            cs.parameters[plug]["default"] = plug->makeParam();
         }
         if(plug->makePreset){
-            presets[plug]["default"] = plug->makePreset();
+            cs.presets[plug]["default"] = plug->makePreset();
         }
     }
     // make sure config dir is available
     auto dir = getConfigDir();
     if(!fs::exists(dir)){
         std::cerr << "Config directory at " << dir << " does not exist" << std::endl;
-        return retVal;
+        return cs;
     }
     // User-created plugins
     auto pluginDir = dir/"plugins";
@@ -116,7 +111,7 @@ ConfigState Vipster::readConfig()
             auto* plug = openPlugin(file);
             if(plug){
                 std::cerr << "Loading plugin " << file.path() << std::endl;
-                plugins.push_back(plug);
+                cs.plugins.push_back(plug);
             }
         }
     }
@@ -127,7 +122,7 @@ ConfigState Vipster::readConfig()
         try {
             json j;
             pte_file >> j;
-            pte = j;
+            cs.periodicTable = j;
         } catch (const json::exception& e) {
             std::cerr << "Error when reading Periodic table: " << e.what() << std::endl;
         }
@@ -139,7 +134,7 @@ ConfigState Vipster::readConfig()
         try {
             json j;
             settings_file >> j;
-            settings = j;
+            cs.settings = j;
         } catch (const json::exception& e) {
             std::cerr << "Error when reading settings: " << e.what() << std::endl;
         }
@@ -151,11 +146,11 @@ ConfigState Vipster::readConfig()
         try {
             json j;
             param_file >> j;
-            for(const auto& plugin: plugins){
+            for(const auto& plugin: cs.plugins){
                 if(!plugin->makeParam) continue;
                 auto pos = j.find(plugin->command);
                 if(pos != j.end()){
-                    auto& tmp = params[plugin];
+                    auto& tmp = cs.parameters[plugin];
                     for(auto param: pos->items()){
                         tmp.emplace(param.key(), plugin->makeParam());
                         param.value().get_to(tmp[param.key()]);
@@ -173,11 +168,11 @@ ConfigState Vipster::readConfig()
         try {
             json j;
             presets_file >> j;
-            for(const auto& plugin: plugins){
+            for(const auto& plugin: cs.plugins){
                 if(!plugin->makePreset) continue;
                 auto pos = j.find(plugin->command);
                 if(pos != j.end()){
-                    auto& tmp = presets[plugin];
+                    auto& tmp = cs.presets[plugin];
                     for(auto preset: pos->items()){
                         tmp.emplace(preset.key(), plugin->makePreset());
                         preset.value().get_to(tmp[preset.key()]);
@@ -188,16 +183,11 @@ ConfigState Vipster::readConfig()
             std::cerr << "Error when reading IO-presets: " << e.what() << std::endl;
         }
     }
-    return retVal;
+    return cs;
 }
 
 void Vipster::saveConfig(const ConfigState& cs)
 {
-    // convenience refs
-    const PeriodicTable &pte = std::get<0>(cs);
-    const Settings &settings = std::get<1>(cs);
-    const ParameterMap &params = std::get<3>(cs);
-    const PresetMap &presets = std::get<4>(cs);
     // check dir, try to create if it doesn't exist
     auto dir = getConfigDir();
     json j;
@@ -216,7 +206,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     if(!pte_file){
         std::cerr << "Can not open file at " << pte_path << " for writing Periodic Table" << std::endl;
     }else{
-        j = pte;
+        j = cs.periodicTable;
         pte_file << j.dump(2);
     }
     // Settings
@@ -225,7 +215,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     if(!settings_file){
         std::cerr << "Can not open file at " << settings_path << " for writing settings";
     }else{
-        j = settings;
+        j = cs.settings;
         settings_file << j.dump(2);
     }
     // Parameters
@@ -235,7 +225,7 @@ void Vipster::saveConfig(const ConfigState& cs)
         std::cerr << "Can not open file at " << param_path << " for writing parameter sets";
     }else{
         j = json{};
-        for(const auto& pair: params){
+        for(const auto& pair: cs.parameters){
             const auto& plugin = pair.first;
             if(!plugin->makeParam) continue;
             const auto& com = plugin->command;
@@ -254,7 +244,7 @@ void Vipster::saveConfig(const ConfigState& cs)
         std::cerr << "Can not open file at " << preset_path << " for writing IO-presets";
     }else{
         j = json{};
-        for(const auto& pair: presets){
+        for(const auto& pair: cs.presets){
             const auto& plugin = pair.first;
             if(!plugin->makePreset) continue;
             const auto& com = plugin->command;

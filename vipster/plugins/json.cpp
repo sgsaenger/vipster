@@ -205,7 +205,7 @@ bool JSONWriter(const Molecule &m, std::ostream &file,
         auto pte = m.getPTE();
         if(elements.value() == 1){ // custom
             // remove types not in global PTE
-            const auto& root = pte.root ? *pte.root : Vipster::pte;
+            const auto& root = pte.root ? *pte.root : Vipster::periodicTable;
             for(auto it = pte.begin(); it != pte.end();){
                 if(root.find(it->first) != root.end()){
                     it = pte.erase(it);

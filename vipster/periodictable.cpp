@@ -22,15 +22,22 @@ PeriodicTable::PeriodicTable(std::initializer_list<PeriodicTable::value_type> il
 PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
 {
     // send lookup either to specific root or hard-coded fallback-table
-    const PeriodicTable& root = this->root? *this->root : Vipster::pte;
+    const PeriodicTable& root = this->root? *this->root : Vipster::periodicTable;
     auto entry = find(k);
     if(entry != end()){
         return entry;
     }else{
-        // if key is ONLY a number, interpret as atomic number
         char *p;
         std::size_t Z = std::strtoul(k.c_str(), &p, 10);
-        if(*p){
+        if(!*p){
+            // if key is ONLY a number, i.e. p points to terminating \0 byte,
+            // interpret as atomic number
+            for(const auto& pair: root){
+                if(pair.second.Z == Z){
+                    return emplace(k, pair.second).first;
+                }
+            }
+        }else{
             // found a derived/custom name, try to guess base-name
             bool islower = std::islower(k[0]);
             // gradually ignore appended letters until we reach a matching atom type
@@ -62,13 +69,6 @@ PeriodicTable::iterator PeriodicTable::find_or_fallback(const std::string &k)
                 auto test = search(tmp);
                 if(test){
                     return emplace(k, test.value()).first;
-                }
-            }
-        }else{
-            // interpret atomic number
-            for(const auto& pair: root){
-                if(pair.second.Z == Z){
-                    return emplace(k, pair.second).first;
                 }
             }
         }

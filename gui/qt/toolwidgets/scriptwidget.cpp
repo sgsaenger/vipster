@@ -2,6 +2,7 @@
 #include "ui_scriptwidget.h"
 #include "ui_scripthelp.h"
 #include "../mainwindow.h"
+#include "vipsterapplication.h"
 #include <QPlainTextEdit>
 #include <QMessageBox>
 
@@ -65,14 +66,14 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             break;
         case ScriptOp::Mode::Define:
         {
-            auto &defMap = master->stepdata[&step].definitions;
+            auto &defMap = vApp.stepdata[&step].definitions;
             auto [it, _] = defMap.insert_or_assign(op.s1,
                 std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>()});
-            auto& seldata = std::get<2>(it->second);
-            seldata->update(&std::get<0>(it->second),
-                            master->settings.atRadVdW.val,
-                            master->settings.atRadFac.val);
-            seldata->color = defaultColors[defMap.size()%5];
+            auto& seldata = *std::get<2>(it->second);
+            seldata.update(&std::get<0>(it->second),
+                            vApp.config.settings.atRadVdW.val,
+                            vApp.config.settings.atRadFac.val);
+            seldata.color = defaultColors[defMap.size()%5];
             change |= GUI::Change::definitions;
         }
             break;
@@ -87,7 +88,7 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             }else if(op.target == "sel"){
                 execOp(*data.sel, op);
             }else{
-                auto &defMap = master->stepdata[&step].definitions;
+                auto &defMap = vApp.stepdata[&step].definitions;
                 auto def = defMap.find(op.target);
                 if(def == defMap.end()){
                     throw Error("Unknown target: "+op.target);
@@ -264,7 +265,7 @@ void ScriptWidget::evalScript()
     auto operations = parse();
     GUI::change_t change{};
     if(ui->trajecCheck->isChecked()){
-        for(auto& s: master->curMol->getSteps()){
+        for(auto& s: vApp.curMol->getSteps()){
             auto& dat = master->curVP->stepdata[&s];
             if(!dat.sel){
                 // if step hasn't been loaded before, need to create selection
@@ -272,7 +273,7 @@ void ScriptWidget::evalScript()
             }
             auto [success, curChange] = execute(operations, s, dat);
             // for current step, save curChange
-            if(&s == master->curStep){
+            if(&s == vApp.curStep){
                 change = curChange;
             }
             // on failure, exit early
@@ -282,8 +283,8 @@ void ScriptWidget::evalScript()
         }
         if(change) change |= GUI::Change::trajec;
     }else{
-        auto [_, curChange] = execute(operations, *master->curStep,
-                master->curVP->stepdata[master->curStep]);
+        auto [_, curChange] = execute(operations, *vApp.curStep,
+                master->curVP->stepdata[vApp.curStep]);
         change = curChange;
     }
     triggerUpdate(change);

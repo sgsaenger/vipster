@@ -1,6 +1,7 @@
 #include "../mainwindow.h"
 #include "pinwidget.h"
 #include "ui_pinwidget.h"
+#include "vipsterapplication.h"
 #include <QMessageBox>
 
 using namespace Vipster;
@@ -25,7 +26,7 @@ void PinWidget::updateWidget(GUI::change_t change)
         on_stepList_currentRowChanged(ui->stepList->currentRow());
         // update GPU data
         for(auto &dat: pinnedSteps){
-            const auto& settings = master->settings;
+            const auto& settings = vApp.config.settings;
             dat->update(dat->curStep, settings.atRadVdW.val,
                         settings.atRadFac.val, settings.bondRad.val);
         }
@@ -33,7 +34,7 @@ void PinWidget::updateWidget(GUI::change_t change)
     if((change & GUI::stepChanged) == GUI::stepChanged){
         // disable add-button when already pinned
         for(auto &dat: pinnedSteps){
-            if(dat->curStep == master->curStep){
+            if(dat->curStep == vApp.curStep){
                 ui->addStep->setDisabled(true);
                 return;
             }
@@ -116,7 +117,7 @@ void PinWidget::on_delStep_clicked()
 {
     // remove local infos
     ui->insertStep->setDisabled(true);
-    if(curPin->curStep == master->curStep){
+    if(curPin->curStep == vApp.curStep){
         ui->addStep->setEnabled(true);
     }
     auto pos2 = std::find(pinnedSteps.begin(), pinnedSteps.end(), curPin);
@@ -129,13 +130,13 @@ void PinWidget::on_addStep_clicked()
 {
     ui->addStep->setDisabled(true);
     // add to list of steps
-    pinnedSteps.push_back(std::make_shared<PinnedStep>(master->curStep,
-        master->curMol->name + " (Step "
-            + std::to_string(master->curVP->moldata[master->curMol].curStep) + ')',
+    pinnedSteps.push_back(std::make_shared<PinnedStep>(vApp.curStep,
+        vApp.curMol->name + " (Step "
+            + std::to_string(master->curVP->moldata[vApp.curMol].curStep) + ')',
         GUI::PBCVec{1,1,1}));
     pinnedSteps.back()->update(pinnedSteps.back()->curStep,
-                               master->settings.atRadVdW.val, master->settings.atRadFac.val,
-                               master->settings.bondRad.val);
+                               vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val,
+                               vApp.config.settings.bondRad.val);
     ui->stepList->addItem(QString::fromStdString(pinnedSteps.back()->name));
     // enable in current viewport
     master->curVP->addExtraData(pinnedSteps.back(), true);
@@ -147,7 +148,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
     curPin = currentRow < 0 ? nullptr : pinnedSteps[currentRow];
     auto hasPin = static_cast<bool>(curPin);
     auto hasCell = hasPin ? curPin->curStep->hasCell() : false;
-    ui->insertStep->setEnabled(hasPin ? curPin->curStep != master->curStep : false);
+    ui->insertStep->setEnabled(hasPin ? curPin->curStep != vApp.curStep : false);
     ui->delStep->setEnabled(hasPin);
     ui->showStep->setEnabled(hasPin);
     ui->repeatStep->setEnabled(hasPin);
@@ -185,7 +186,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
 
 void PinWidget::on_insertStep_clicked()
 {
-    if (!curPin || (curPin->curStep == master->curStep)) return;
+    if (!curPin || (curPin->curStep == vApp.curStep)) return;
     Step s = *curPin->curStep;
     s.asFmt(AtomFmt::Bohr).modShift(curPin->offset);
     std::array<bool,3> fit = {ui->xFit->isChecked(),
@@ -196,16 +197,16 @@ void PinWidget::on_insertStep_clicked()
         s.modMultiply(m[0], m[1], m[2]);
     }
     if (s.hasCell() && (fit != std::array<bool,3>{{false, false, false}})){
-        auto fac = master->curStep->getCellDim(AtomFmt::Bohr) /
+        auto fac = vApp.curStep->getCellDim(AtomFmt::Bohr) /
                 s.getCellDim(AtomFmt::Bohr);
         auto cell = s.getCellVec();
-        const auto& target = master->curStep->getCellVec();
+        const auto& target = vApp.curStep->getCellVec();
         if (fit[0]) cell[0] = target[0] * fac;
         if (fit[1]) cell[1] = target[1] * fac;
         if (fit[2]) cell[2] = target[2] * fac;
         s.setCellVec(cell, true);
     }
-    master->curStep->newAtoms(s);
+    vApp.curStep->newAtoms(s);
     // immediately hide pinned step
     master->curVP->delExtraData(curPin, true);
     triggerUpdate(GUI::Change::atoms);

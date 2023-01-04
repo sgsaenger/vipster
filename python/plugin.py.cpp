@@ -168,7 +168,7 @@ bool Py::Plugin::try_create(const py::object &pyplug, ConfigState &state){
         return false;
     }
     // register plugin with `state`'s list of plugins
-    auto &plugins = std::get<2>(state);
+    auto &plugins = state.plugins;
     plugins.push_back(plug);
     // Optional: Parameter-set definition
     if(py::hasattr(pyplug, "parameters") &&
@@ -209,8 +209,7 @@ bool Py::Plugin::try_create(const py::object &pyplug, ConfigState &state){
             // found a valid parameter template, register with plugin and state
             plug->param = {tmp.begin(), tmp.end()};
             plug->makeParam = std::bind(&Py::Plugin::makeParam_impl, plug);
-            auto &params = std::get<3>(state);
-            params[plug]["default"] = plug->makeParam();
+            state.parameters[plug]["default"] = plug->makeParam();
         }
     }
     // Optional: IO-Preset definition
@@ -250,8 +249,7 @@ bool Py::Plugin::try_create(const py::object &pyplug, ConfigState &state){
             // found a valid IO-Preset template, register with plugin and state
             plug->preset = {tmp.begin(), tmp.end()};
             plug->makePreset = std::bind(&Py::Plugin::makePreset_impl, plug);
-            auto &presets = std::get<4>(state);
-            presets[plug]["default"] = plug->makePreset();
+            state.presets[plug]["default"] = plug->makePreset();
         }
     }
     return true;

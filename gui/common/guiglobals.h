@@ -1,6 +1,7 @@
 #ifndef GUIGLOBALS_H
 #define GUIGLOBALS_H
 
+#include <cstdint>
 #include <type_traits>
 #include <array>
 

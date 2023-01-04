@@ -1,6 +1,7 @@
 #include "datawidget.h"
 #include "ui_datawidget.h"
 #include "../mainwindow.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -23,8 +24,8 @@ DataWidget::~DataWidget()
 void DataWidget::updateWidget(GUI::change_t change)
 {
     if(change & GUI::Change::data){
-        if(static_cast<int>(master->data.size()) > ui->DataSel->count()){
-            const BaseData& dat = *master->data.back();
+        if(static_cast<int>(vApp.data.size()) > ui->DataSel->count()){
+            const BaseData& dat = *vApp.data.back();
             ui->DataSel->addItem(dat.name.c_str());
             ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
         }
@@ -36,7 +37,7 @@ void DataWidget::updateWidget(GUI::change_t change)
 
 void DataWidget::on_DataSel_currentIndexChanged(int index)
 {
-    curData = std::next(master->data.begin(), index)->get();
+    curData = std::next(vApp.data.begin(), index)->get();
     if(dynamic_cast<const DataGrid3D_f*>(curData) != nullptr){
         ui->DataStack->setCurrentWidget(ui->ThreeDWidget);
         ui->ThreeDWidget->setData(curData);
