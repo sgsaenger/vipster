@@ -24,7 +24,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QString path,
                         Vipster::ConfigState& state, // TODO: remove this
-                        std::vector<Vipster::IOTuple> &&d={},
                         QWidget *parent = nullptr);
     ~MainWindow() override;
 
@@ -46,7 +45,6 @@ public:
     PresetWidget* presetWidget;
     const decltype (PresetWidget::presets)& getPresets() const noexcept;
 
-    void newMol(Vipster::Molecule &&mol);
     void saveScreenshot(QString fn);
 
 public slots:

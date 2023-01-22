@@ -1,4 +1,5 @@
 #include "version.h"
+#include "vipsterapplication.h"
 #include "mainwindow.h"
 #include "vipster/fileio.h"
 #include "vipster/configfile.h"
@@ -47,7 +48,14 @@ using namespace Vipster;
     QSurfaceFormat::setDefaultFormat(format);
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});
 
-    MainWindow w{QDir::currentPath(), state, std::move(data)};
+    MainWindow w{QDir::currentPath(), state};
+    if (data.empty()) {
+        vApp.newMol(Molecule{});
+    } else {
+        for(auto &d: data){
+            vApp.newIOData(std::move(d));
+        }
+    }
     w.show();
     throw CLI::RuntimeError(QApplication::exec());
 }

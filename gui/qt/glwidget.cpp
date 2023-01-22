@@ -1,5 +1,6 @@
 #include "glwidget.h"
 #include "mainwindow.h"
+#include "viewport.h"
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
 #include <QApplication>

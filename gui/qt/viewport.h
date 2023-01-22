@@ -64,6 +64,7 @@ private slots:
     void on_closeButton_clicked();
     void on_vSplitButton_clicked();
     void on_hSplitButton_clicked();
+    void updateMoleculeList(const std::list<Vipster::Molecule> &molecules);
 
 public:
     Ui::ViewPort *ui;

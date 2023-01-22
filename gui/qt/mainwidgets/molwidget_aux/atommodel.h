@@ -1,5 +1,4 @@
-#ifndef MOLMODEL_H
-#define MOLMODEL_H
+#pragma once
 
 #include <QAbstractTableModel>
 #include "vipster/molecule.h"
@@ -37,5 +36,3 @@ private:
                             "Hide", "fix x", "fix y", "fix z"};
     std::vector<int> colMap = {0,1,2,3};
 };
-
-#endif // MOLMODEL_H

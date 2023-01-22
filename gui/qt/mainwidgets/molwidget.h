@@ -27,6 +27,7 @@ private slots:
     void on_atomFmtBox_currentIndexChanged(int index);
     void on_atomFmtButton_clicked();
     void atomSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+    void on_atomHelpButton_clicked();
 
     // cell slots
     void on_cellEnabledBox_toggled(bool checked);
@@ -44,21 +45,18 @@ private slots:
     void on_discretetable_itemSelectionChanged();
     void on_discretetable_cellChanged(int row, int column);
 
+    // bond slots
     void on_bondSetButton_clicked();
-
     void on_bondHelpButton_clicked();
-
     void on_bondModeBox_currentIndexChanged(int index);
-
-    void on_atomHelpButton_clicked();
-
     void on_ovlpTable_itemSelectionChanged();
 
+    // pte slots
     void on_clearTableButton_clicked();
-
     void on_newElemButton_clicked();
 
 private:
+    void setActiveStep(Vipster::Step &step, Vipster::Step::selection &sel);
     bool scale();
     void checkOverlap(void);
     void fillCell(void);

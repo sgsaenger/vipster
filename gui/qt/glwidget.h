@@ -2,8 +2,7 @@
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
-#include "vipster/step.h"
-#include "viewport.h"
+#include "vipster/settings.h"
 #include "guiwrapper.h"
 
 class GLWidget: public QOpenGLWidget, public Vipster::GuiWrapper

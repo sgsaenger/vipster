@@ -62,11 +62,41 @@ MolWidget::MolWidget(QWidget *parent) :
     ui->bondTable->setModel(&bondModel);
     ui->bondTable->setItemDelegateForColumn(3, new BondDelegate{});
     ui->bondContainer->setVisible(ui->bondButton->isChecked());
+
+    connect(&vApp, &Vipster::Application::activeStepChanged, this, &MolWidget::setActiveStep);
 }
 
 MolWidget::~MolWidget()
 {
     delete ui;
+}
+
+void MolWidget::setActiveStep(Step &step, Step::selection &sel){
+    // reset old fmt-string
+    if(ownStep){
+        auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
+        ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
+    }
+    // assign StepFormatter to curStep, mark fmt as active
+    auto fmt = step.getFmt();
+    curStep = &step;
+    ownStep = std::make_unique<Step::formatter>(step.asFmt(fmt));
+    atomModel.setStep(ownStep.get());
+    setSelection();
+    auto ifmt = static_cast<int>(fmt)+2;
+    QSignalBlocker blockAtFmt(ui->atomFmtBox);
+    ui->atomFmtBox->setCurrentIndex(ifmt);
+    ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
+    // expose BondMode
+    QSignalBlocker blockBondMode(ui->bondModeBox);
+    bool autobonds = vApp.stepdata[curStep].automatic_bonds;
+    ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
+    if(autobonds){
+        ui->bondSetButton->setDisabled(true);
+    }else{
+        ui->bondButton->setChecked(true);
+        ui->bondSetButton->setEnabled(true);
+    }
 }
 
 void MolWidget::updateWidget(GUI::change_t change)
@@ -76,31 +106,7 @@ void MolWidget::updateWidget(GUI::change_t change)
             curMol = vApp.curMol;
         }
         if ((change & GUI::stepChanged) == GUI::stepChanged) {
-            // reset old fmt-string
-            if(ownStep){
-                auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
-                ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
-            }
-            // assign StepFormatter to curStep, mark fmt as active
-            auto fmt = vApp.curStep->getFmt();
-            curStep = vApp.curStep;
-            ownStep = std::make_unique<Step::formatter>(curStep->asFmt(fmt));
-            atomModel.setStep(ownStep.get());
-            setSelection();
-            auto ifmt = static_cast<int>(fmt)+2;
-            QSignalBlocker blockAtFmt(ui->atomFmtBox);
-            ui->atomFmtBox->setCurrentIndex(ifmt);
-            ui->atomFmtBox->setItemText(ifmt, activeFmt[ifmt]);
-            // expose BondMode
-            QSignalBlocker blockBondMode(ui->bondModeBox);
-            bool autobonds = vApp.stepdata[curStep].automatic_bonds;
-            ui->bondModeBox->setCurrentIndex(autobonds ? 1 : 0);
-            if(autobonds){
-                ui->bondSetButton->setDisabled(true);
-            }else{
-                ui->bondButton->setChecked(true);
-                ui->bondSetButton->setEnabled(true);
-            }
+//            setActiveStep(*vApp.curStep);
         }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
             atomModel.setStep(ownStep.get());
             setSelection();

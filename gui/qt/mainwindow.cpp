@@ -22,7 +22,7 @@ using namespace Vipster;
 namespace fs = std::filesystem;
 
 MainWindow::MainWindow(QString path, ConfigState& state,
-                       std::vector<IOTuple> &&d, QWidget *parent):
+                       QWidget *parent):
     QMainWindow{parent},
     ui{new Ui::MainWindow},
     path{path}
@@ -46,14 +46,6 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     curVP = viewports.front();
     curVP->makeActive(true);
     curVP->ui->closeButton->setDisabled(true);
-    // load molecules
-    if(d.empty()){
-        newMol();
-    }else{
-        for(auto&& mol: d){
-            newData(std::move(mol));
-        }
-    }
 }
 
 MainWindow::~MainWindow()
@@ -285,15 +277,7 @@ void MainWindow::registerMol(const std::string& name)
 
 void MainWindow::newMol()
 {
-    newMol(Molecule{});
-}
-
-void MainWindow::newMol(Molecule&& mol)
-{
-    auto& molecules = vApp.molecules;
-    molecules.emplace_back(std::move(mol));
-    molecules.back().getPTE().root = &vApp.config.periodicTable;
-    registerMol(molecules.back().name);
+    vApp.newMol(Molecule{});
 }
 
 void MainWindow::newMol(QAction* sender)
@@ -321,7 +305,7 @@ void MainWindow::newMol(QAction* sender)
 
 void MainWindow::newData(IOTuple &&d)
 {
-    newMol(std::move(std::get<0>(d)));
+    vApp.newMol(std::move(std::get<0>(d)));
     const auto& name = vApp.molecules.back().name;
     if(auto &param = std::get<1>(d)){
         paramWidget->registerParam(name, std::move(*param));

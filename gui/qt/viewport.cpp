@@ -19,8 +19,6 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     openGLWidget = new GLWidget{this, vApp.config.settings};
     ui->verticalLayout->insertWidget(1, openGLWidget, 1);
     setFocusProxy(openGLWidget);
-    // connect timer for animation
-    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
     // style buttons
     ui->firstStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
     ui->preStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekBackward));
@@ -28,10 +26,9 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     ui->nextStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSeekForward));
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     ui->closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
-    // fill mol-list
-    for(const auto& mol: vApp.molecules){
-        ui->molList->addItem(mol.name.c_str());
-    }
+    // connect events
+    connect(&vApp, &Vipster::Application::molListChanged, this, &ViewPort::updateMoleculeList); // molecule drop-down list
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp); // animation timer
 }
 
 ViewPort::ViewPort(const ViewPort &vp) :
@@ -55,6 +52,13 @@ ViewPort::ViewPort(const ViewPort &vp) :
 ViewPort::~ViewPort()
 {
     delete ui;
+}
+
+void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
+    ui->molList->clear();
+    for (const auto &mol: molecules){
+        ui->molList->addItem(mol.name.c_str());
+    }
 }
 
 void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
@@ -221,6 +225,9 @@ void ViewPort::setStep(int i, bool setMol)
     }else{
         ui->nextStepButton->setEnabled(true);
         ui->lastStepButton->setEnabled(true);
+    }
+    if(this == master->curVP){
+        vApp.setActiveStep(*curStep, *curSel);
     }
     if(setMol){
         triggerUpdate(GUI::molChanged);
