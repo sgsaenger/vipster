@@ -326,9 +326,9 @@ public:
     void setFmt(AtomFmt fmt, bool scale=true);
 
     // Atoms
-    void newAtom(std::string name="",
-                 Vec coord=Vec{},
-                 AtomProperties prop=AtomProperties{});
+    void newAtom(const std::string &name="",
+                 const Vec &coord=Vec{},
+                 const AtomProperties &prop=AtomProperties{});
     template<template<bool> typename T, bool B>
     void newAtom(const T<B>& at){
         newAtom();
@@ -347,6 +347,7 @@ public:
         }
     }
     void delAtom(size_t i);
+    // TODO: this is a weird interface - either ensure that it is a selection object refering to own instance, or create a more abstract i.e. index based interface
     template<typename T>
     void delAtoms(StepConst<detail::Selection<T>>& s)
     {

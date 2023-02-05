@@ -112,7 +112,7 @@ namespace Vipster {
         const_reverse_iterator  crend()   const;
 
         // Selection
-        using const_selection = StepConst<detail::make_selection<T>>;
+        using const_selection = StepConst<detail::make_selection_t<T>>;
         const_selection select(SelectionFilter filter) const;
 
         // Comment

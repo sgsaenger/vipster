@@ -33,7 +33,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuVipster">
@@ -88,16 +88,8 @@
     <addaction name="actionHide_Atom_s"/>
     <addaction name="actionShow_Atom_s"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>&amp;Help</string>
-    </property>
-    <addaction name="actionAbout_Vipster"/>
-    <addaction name="actionAbout_Qt"/>
-   </widget>
    <addaction name="menuVipster"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -288,22 +280,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionAbout_Vipster</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>about()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>558</x>
-     <y>313</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionLoad_Molecule</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -434,15 +410,13 @@
  </connections>
  <slots>
   <slot>editAtoms(QAction*)</slot>
-  <slot>about()</slot>
-  <slot>newMol()</slot>
   <slot>stepBut(QAbstractButton*)</slot>
   <slot>loadMol()</slot>
   <slot>saveMol()</slot>
   <slot>savePreset()</slot>
   <slot>saveParam()</slot>
   <slot>saveScreenshot()</slot>
-  <slot>newMol(QAction*)</slot>
+  <slot>newMol()</slot>
   <slot>setMult(int)</slot>
   <slot>saveScreenshots()</slot>
  </slots>

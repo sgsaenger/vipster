@@ -48,9 +48,7 @@ public:
     void saveScreenshot(QString fn);
 
 public slots:
-    void about();
     void newMol();
-    void newMol(QAction *sender);
     void loadMol();
     void saveMol();
     void editAtoms(QAction *sender);
@@ -62,14 +60,18 @@ public slots:
     void saveScreenshots();
 
 private:
-    void setupUI(void);
-    void registerMol(const std::string& name);
+    void setupUI();
+    void setupMainWidgets();
+    void setupToolWidgets();
+    void setupFileMenu();
+    void setupEditMenu();
+    void setupHelpMenu();
 
     Ui::MainWindow *ui;
     QDir path{};
     QSplitter *vsplit;
     std::vector<QSplitter*> hsplits;
-    std::vector<BaseWidget*> mainWidgets;
+//    std::vector<BaseWidget*> mainWidgets;
     std::vector<BaseWidget*> toolWidgets;
 };
 #endif // MAINWINDOW_H

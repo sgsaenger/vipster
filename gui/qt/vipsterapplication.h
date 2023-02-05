@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include <type_traits>
 #include <QAction>
 #include <QObject>
 
@@ -41,6 +42,10 @@ class Application: public QObject
     Q_OBJECT
 
 public:
+    /* Accessor function
+     * returns single program-wide instance
+     * static instance is created before first access, has life-time of whole program
+     */
     static Application& instance() {
         static Application app{};
         return app;
@@ -91,6 +96,18 @@ public:
     Step *curStep{nullptr};
     Step::selection *curSel{nullptr};
     void setActiveStep(Step &step, Step::selection &sel);
+    template< class F, class... Args>
+    std::invoke_result_t<F, Vipster::Step, Args...> editStep(F &&f, Args &&...args)
+    {
+        if constexpr (!std::is_void_v<std::invoke_result_t<F, Vipster::Step, Args...>>) {
+            auto tmp = std::invoke(f, *curStep, args...);
+            emit stepChanged(*curStep);
+            return tmp;
+        } else {
+            std::invoke(f, *curStep, args...);
+            emit stepChanged(*curStep);
+        }
+    }
 signals:
     void activeStepChanged(Vipster::Step &step, Vipster::Step::selection &sel);
     void stepChanged(Vipster::Step &step);

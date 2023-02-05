@@ -12,7 +12,7 @@ inline std::vector<std::pair<BaseWidget*, QString>> makeMainWidgets(QWidget* par
 {
     return {
         {new MolWidget(parent), "Molecule"},
-        {new ParamWidget(parent), "Parameter"},
+        {new ParamWidget(parent), "Parameters"},
         {new PresetWidget(parent), "IO-Presets"},
         {new SettingsWidget(parent), "Settings"},
         {new PeriodicTableWidget(parent, true), "Periodic Table"},

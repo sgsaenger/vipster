@@ -50,3 +50,7 @@ void Application::newIOData(IOTuple &&t){
         newData(std::move(extra));
     }
 }
+
+void Application::selectionToCopy(){
+    copyBuf = std::make_unique<Step::selection>(*curSel);
+}

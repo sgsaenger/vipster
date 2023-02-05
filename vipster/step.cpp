@@ -45,7 +45,9 @@ Step& Step::operator=(Step&& s)
     return *this;
 }
 
-void Step::newAtom(std::string name, Vec coord, AtomProperties prop)
+void Step::newAtom(const std::string &name,
+                   const Vec &coord,
+                   const AtomProperties &prop)
 {
     atom_source& al = *atoms;
     al.coordinates.emplace_back(coord);

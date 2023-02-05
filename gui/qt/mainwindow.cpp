@@ -14,6 +14,7 @@
 #include <QInputDialog>
 #include <QApplication>
 #include <QStyle>
+#include <QToolBar>
 
 #include <filesystem>
 #include <fmt/format.h>
@@ -33,7 +34,6 @@ MainWindow::MainWindow(QString path, ConfigState& state,
 
     ui->setupUi(this);
     setupUI();
-    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
     // create first level of splitters and main viewport
     viewports.push_back(new ViewPort{this, true});
     vsplit = new QSplitter{this};
@@ -55,46 +55,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUI()
 {
-#ifdef Q_OS_MACOS
-    setDockOptions(dockOptions()^VerticalTabs);
-#endif
-    // setup left dock-area
-    QDockWidget* firstDock{nullptr};
-    for(const auto& pair: makeMainWidgets(this)){
-        auto *tmp = new QDockWidget(this);
-        mainWidgets.push_back(pair.first);
-        tmp->setWidget(pair.first);
-        tmp->setAllowedAreas(Qt::LeftDockWidgetArea);
-        tmp->setFeatures(QDockWidget::DockWidgetMovable |
-                         QDockWidget::DockWidgetFloatable);
-        tmp->setWindowTitle(pair.second);
-        addDockWidget(Qt::LeftDockWidgetArea, tmp);
-        if(!firstDock){
-            firstDock = tmp;
-        }else{
-            tabifyDockWidget(firstDock, tmp);
-        }
-        auto p = dynamic_cast<ParamWidget*>(pair.first);
-        if (p) paramWidget = p;
-        auto c = dynamic_cast<PresetWidget*>(pair.first);
-        if (c) presetWidget = c;
-    }
-    firstDock->raise();
-    // setup right dock-area
-    for(const auto& pair: makeToolWidgets(this)){
-        auto *tmp = new QDockWidget(this);
-        toolWidgets.push_back(pair.first);
-        tmp->setWidget(pair.first);
-        tmp->setAllowedAreas(Qt::BottomDockWidgetArea|
-                             Qt::RightDockWidgetArea|
-                             Qt::TopDockWidgetArea);
-        tmp->setWindowTitle(pair.second);
-        addDockWidget(Qt::RightDockWidgetArea, tmp);
-        auto action = ui->toolBar->addAction(pair.second);
-        action->setCheckable(true);
-        connect(action, &QAction::toggled, tmp, &QWidget::setVisible);
-        tmp->hide();
-    }
+    setupMainWidgets();
+
+    setupToolWidgets();
+
+    setupEditMenu();
+
+    setupHelpMenu();
+
     // fill in menu-options
     for(const auto& plug: vApp.config.plugins){
         if(plug->makeParam){
@@ -124,6 +92,128 @@ void MainWindow::setupUI()
     }
 }
 
+/* Main widgets
+ * Core functionality (Molecule-Properties, Auxiliary data)
+ * Always open, stacked in left dock-area
+ */
+void MainWindow::setupMainWidgets()
+{
+#ifdef Q_OS_MACOS
+    setDockOptions(dockOptions()^VerticalTabs);
+#endif
+    QDockWidget* firstDock{nullptr};
+    for(const auto& pair: makeMainWidgets(this)){
+        auto *tmp = new QDockWidget(this);
+//        mainWidgets.push_back(pair.first);
+        tmp->setWidget(pair.first);
+        tmp->setAllowedAreas(Qt::LeftDockWidgetArea);
+        tmp->setFeatures(QDockWidget::DockWidgetMovable |
+                         QDockWidget::DockWidgetFloatable);
+        tmp->setWindowTitle(pair.second);
+        addDockWidget(Qt::LeftDockWidgetArea, tmp);
+        if(!firstDock){
+            firstDock = tmp;
+        }else{
+            tabifyDockWidget(firstDock, tmp);
+        }
+        auto p = dynamic_cast<ParamWidget*>(pair.first);
+        if (p) paramWidget = p;
+        auto c = dynamic_cast<PresetWidget*>(pair.first);
+        if (c) presetWidget = c;
+    }
+    firstDock->raise();
+}
+
+/* Tool widgets
+ * Optional widgets with auxiliary functionality
+ * Can be docked everywhere but left, opened&closed
+ * Accessed via toolbar
+ */
+void MainWindow::setupToolWidgets()
+{
+    auto &toolBar = *addToolBar("toolBar");
+    for(const auto& pair: makeToolWidgets(this)){
+        auto *tmp = new QDockWidget(this);
+        toolWidgets.push_back(pair.first);
+        tmp->setWidget(pair.first);
+        tmp->setAllowedAreas(Qt::BottomDockWidgetArea|
+                             Qt::RightDockWidgetArea|
+                             Qt::TopDockWidgetArea);
+        tmp->setWindowTitle(pair.second);
+        addDockWidget(Qt::RightDockWidgetArea, tmp);
+        auto action = toolBar.addAction(pair.second);
+        action->setCheckable(true);
+        connect(action, &QAction::toggled, tmp, &QWidget::setVisible);
+        tmp->hide();
+    }
+}
+
+/* Edit-Menu
+ * Modify the currently selected Molecule/Step
+ */
+void MainWindow::setupEditMenu()
+{
+    auto &editMenu = *menuBar()->addMenu("Edit");
+
+    // Create a new Atom
+    auto *newAtomAction = editMenu.addAction("&New Atom",
+        [](){
+            vApp.editStep(static_cast<void(Step::*)(const std::string &, const Vec&, const AtomProperties&)>(&Step::newAtom),
+                          "C", Vec{}, AtomProperties{});
+        },
+        Qt::Key_N);
+
+    // Delete selected Atom(s)
+    auto *delAtomAction = editMenu.addAction("&Delete Atom(s)",
+        [](){
+            vApp.editStep(static_cast<void(Step::*)(Step::const_selection&)>(&Step::delAtoms), *vApp.curSel);
+        },
+        Qt::Key_Delete);
+
+    // Cut
+    auto *cutAtomAction = editMenu.addAction("Cut Atom(s)",
+        [](){
+//            vApp.editStep();
+        },
+        QKeySequence::Cut);
+    // Copy
+    // Paste
+    // Separator
+    // Rename
+    // Hide
+    // Show
+}
+
+void MainWindow::setupHelpMenu()
+{
+    auto &helpMenu = *menuBar()->addMenu("Help");
+    helpMenu.addAction("About Vipster", [&](){
+        QMessageBox::about(this,
+            QString("About Vipster"),
+            QString("<h1>Vipster v" VIPSTER_VERSION "</h1>"
+                    "<h3>(" VIPSTER_PLATFORM " " VIPSTER_ARCH ")</h3>"
+                    "<p>"
+                    "©Sebastian Gsänger, 2023"
+                    "<br>"
+                    "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
+                    "<br>"
+                    "<a href='https://github.com/sgsaenger/vipster'>Source</a>"
+                    "</p>"
+                    "<p>"
+                    "This program is provided under the GPLv3."
+                    "<br>"
+                    "It uses<br>"
+                    "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>,<br>"
+                    "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,<br>"
+                    "<a href='https://github.com/codeplea/tinyexpr'>TinyExpr</a>,<br>"
+                    "<a href='https://github.com/fmtlib/fmt'>{fmt}</a>,<br>"
+                    "<a href='https://github.com/catchorg/catch2'>Catch2</a><br>"
+                    "and <a href='https://github.com/pybind/pybind11'>pybind11</a>."
+                    "</p>"));
+    });
+    helpMenu.addAction("About Qt", &QApplication::aboutQt);
+}
+
 void MainWindow::updateWidgets(GUI::change_t change)
 {
     // pull in mol/step selection from active viewport
@@ -142,9 +232,6 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
     // notify widgets
     for(auto& w: viewports){
-        w->updateWidget(change);
-    }
-    for(auto& w: mainWidgets){
         w->updateWidget(change);
     }
     for(auto& w: toolWidgets){
@@ -268,37 +355,26 @@ void MainWindow::editAtoms(QAction* sender)
     }
 }
 
-void MainWindow::registerMol(const std::string& name)
-{
-    for(auto& w: viewports){
-        w->registerMol(name);
-    }
-}
-
 void MainWindow::newMol()
 {
-    vApp.newMol(Molecule{});
-}
-
-void MainWindow::newMol(QAction* sender)
-{
-    auto& molecules = vApp.molecules;
-    if(sender == ui->actionCopy_Trajector){
-        molecules.emplace_back(*vApp.curMol);
-        molecules.back().name += " (copy)";
-        molecules.back().getPTE().root = &vApp.config.periodicTable;
-        registerMol(molecules.back().name);
-    }else if( sender == ui->actionCopy_single_Step){
-        molecules.emplace_back(*vApp.curStep, vApp.curMol->name + " (copy of step " +
-                               std::to_string(curVP->moldata[vApp.curMol].curStep) + ')');
-        molecules.back().getPTE().root = &vApp.config.periodicTable;
-        registerMol(molecules.back().name);
-    }else if( sender == ui->actionCopy_current_Selection){
-        molecules.emplace_back(*vApp.curSel, vApp.curMol->name + " (copy of selection of step " +
-                               std::to_string(curVP->moldata[vApp.curMol].curStep) + ')');
-        molecules.back().getPTE().root = &vApp.config.periodicTable;
-        registerMol(molecules.back().name);
-    }else{
+    auto sender = QObject::sender();
+    if (sender == ui->actionNew_Molecule){
+        vApp.newMol(std::move(Molecule{}));
+    } else if (sender == ui->actionCopy_Trajector){
+        auto tmpMol = *vApp.curMol;
+        tmpMol.name += " (copy)";
+        vApp.newMol(std::move(tmpMol));
+    } else if (sender == ui->actionCopy_single_Step){
+        auto tmpMol = *vApp.curMol;
+        tmpMol.name += " (copy of step " +
+                       std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
+        vApp.newMol(std::move(tmpMol));
+    } else if (sender == ui->actionCopy_current_Selection){
+        auto tmpMol = *vApp.curMol;
+        tmpMol.name += " (copy of selection of step " +
+                       std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
+        vApp.newMol(std::move(tmpMol));
+    } else {
         throw Error{"Invalid sender for newMol"};
     }
 }
@@ -477,30 +553,6 @@ void MainWindow::savePreset()
         // save preset
         map[name] = *curPreset;
     }
-}
-
-void MainWindow::about()
-{
-    QMessageBox::about(this,QString("About Vipster"),
-    QString("<h2>Vipster v" VIPSTER_VERSION " (" VIPSTER_PLATFORM " " VIPSTER_ARCH ")</h2>"
-            "<p>"
-            "©Sebastian Gsänger, 2023"
-            "<br>"
-            "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
-            "<br>"
-            "<a href='https://github.com/sgsaenger/vipster'>Source</a>"
-            "</p>"
-            "<p>"
-            "This program is provided under the GPLv3."
-            "<br>"
-            "It uses<br>"
-            "<a href='https://github.com/nlohmann/json'>JSON for Modern C++</a>,<br>"
-            "<a href='https://github.com/CLIUtils/CLI11'>CLI11</a>,<br>"
-            "<a href='https://github.com/codeplea/tinyexpr'>TinyExpr</a>,<br>"
-            "<a href='https://github.com/fmtlib/fmt'>{fmt}</a>,<br>"
-            "<a href='https://github.com/catchorg/catch2'>Catch2</a><br>"
-            "and <a href='https://github.com/pybind/pybind11'>pybind11</a>."
-            "</p>"));
 }
 
 void MainWindow::saveScreenshot()
