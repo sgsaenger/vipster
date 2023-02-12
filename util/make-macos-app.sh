@@ -2,6 +2,8 @@
 # create a dmg file from a pre-built tree
 
 echo "creating .dmg"
+brew install tree
+tree
 mkdir -p vipster.app/Contents/Frameworks
 cp -a gui/qt/vipster.framework vipster.app/Contents/Frameworks
 # fix rpath
