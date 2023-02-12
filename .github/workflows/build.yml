@@ -72,12 +72,15 @@ jobs:
                     - os: ubuntu-20.04
                       script: make-appimage.sh
                       artifact: Vipster-Linux-x86_64.AppImage
+                      lammps: ON
                     - os: windows-latest
                       script: make-win-archive.sh
                       artifact: Vipster-Win-x86_64.zip
+                      lammps: OFF
                     - os: macOS-latest
                       script: make-macos-app.sh
                       artifact: Vipster-macOS-x86_64.dmg
+                      lammps: ON
         needs: debug
         steps:
         - uses: actions/checkout@v2
@@ -142,7 +145,7 @@ jobs:
 
         - name: Configure
           shell: bash
-          run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
+          run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=${{ matrix.lammps }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
 
         - name: Build
           shell: bash
