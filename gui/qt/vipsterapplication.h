@@ -79,7 +79,6 @@ public:
     std::list<Preset> presets{};
     std::list<Parameter> parameters{};
     std::list<std::unique_ptr<const BaseData>> data{};
-    std::unique_ptr<Step::selection> copyBuf{};
 public:
     void newPreset(Preset &&p);
     void newParameter(Parameter &&p);
@@ -91,27 +90,41 @@ signals:
     void dataListChanged(void);
 
     // Currently active state
-private:
 public:
-    Step *curStep{nullptr};
-    Step::selection *curSel{nullptr};
-    void setActiveStep(Step &step, Step::selection &sel);
-    template< class F, class... Args>
-    std::invoke_result_t<F, Vipster::Step, Args...> editStep(F &&f, Args &&...args)
+    template<class S, class F, class... Args>
+    std::invoke_result_t<F&&, S&, Args&&...> invokeImpl(S &s, F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<std::invoke_result_t<F, Vipster::Step, Args...>>) {
-            auto tmp = std::invoke(f, *curStep, args...);
+        if constexpr (!std::is_void_v<std::invoke_result_t<F&&, S&, Args&&...>>) {
+            auto tmp = std::invoke(f, s, args...);
             emit stepChanged(*curStep);
             return tmp;
         } else {
-            std::invoke(f, *curStep, args...);
+            std::invoke(f, s, args...);
             emit stepChanged(*curStep);
         }
     }
+public:
+    Step *curStep{nullptr};
+    Step::selection *curSel{nullptr};
+    std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient??
+    void setActiveStep(Step &step, Step::selection &sel);
+    void selectionToCopy();
+
+    template<class F, class... Args>
+    std::invoke_result_t<F&&, Step&, Args&&...> invokeOnStep(F &&f, Args &&...args)
+    {
+        return invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...);
+    }
+    template<class F, class... Args>
+    std::invoke_result_t<F&&, Step::selection&, Args&&...> invokeOnSel(F &&f, Args &&...args)
+    {
+        return invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...);
+    }
 signals:
     void activeStepChanged(Vipster::Step &step, Vipster::Step::selection &sel);
-    void stepChanged(Vipster::Step &step);
-    void selChanged(Vipster::Step::selection &sel);
+    void stepChanged(Step &step);
+    void selChanged(Step::selection &sel);
+    void copyBufChanged(Step::selection &buf);
 
 public:
     // Data related to a loaded Step

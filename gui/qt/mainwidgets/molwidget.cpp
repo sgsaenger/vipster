@@ -63,7 +63,12 @@ MolWidget::MolWidget(QWidget *parent) :
     ui->bondTable->setItemDelegateForColumn(3, new BondDelegate{});
     ui->bondContainer->setVisible(ui->bondButton->isChecked());
 
-    connect(&vApp, &Vipster::Application::activeStepChanged, this, &MolWidget::setActiveStep);
+    // Connect to app state changes
+    connect(&vApp, &Application::activeStepChanged, this, &MolWidget::setActiveStep);
+    connect(&vApp, &Application::stepChanged, this, &MolWidget::updateStep);
+    connect(&vApp, &Application::selChanged, this, &MolWidget::updateSelection);
+
+    connect(&vApp, &Application::activeMolChanged, this, &MolWidget::setActiveMol);
 }
 
 MolWidget::~MolWidget()
@@ -77,12 +82,14 @@ void MolWidget::setActiveStep(Step &step, Step::selection &sel){
         auto oldFmt = static_cast<int>(ownStep->getFmt())+2;
         ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
     }
+
     // assign StepFormatter to curStep, mark fmt as active
     auto fmt = step.getFmt();
     curStep = &step;
     ownStep = std::make_unique<Step::formatter>(step.asFmt(fmt));
-    atomModel.setStep(ownStep.get());
-    setSelection();
+    updateStep(step);
+
+
     auto ifmt = static_cast<int>(fmt)+2;
     QSignalBlocker blockAtFmt(ui->atomFmtBox);
     ui->atomFmtBox->setCurrentIndex(ifmt);
@@ -97,6 +104,41 @@ void MolWidget::setActiveStep(Step &step, Step::selection &sel){
         ui->bondButton->setChecked(true);
         ui->bondSetButton->setEnabled(true);
     }
+
+    curSel = &sel;
+    updateSelection(sel);
+}
+
+void MolWidget::updateStep(Step &step)
+{
+    // only update active step
+    if (&step != curStep) return;
+
+    atomModel.setStep(ownStep.get());
+}
+
+void MolWidget::updateSelection(Step::selection &sel)
+{
+    // only update selection of active step
+    if (&sel != curSel) return;
+
+    auto& table = ui->atomTable;
+    disconnect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MolWidget::atomSelectionChanged);
+    table->clearSelection();
+    table->setSelectionMode(QAbstractItemView::MultiSelection);
+    for(const auto& i: sel.getAtoms().indices){
+        table->selectRow(static_cast<int>(i.first));
+    }
+    connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MolWidget::atomSelectionChanged);
+    update(); // TODO: necessary?
+    table->setSelectionMode(QAbstractItemView::ExtendedSelection);
+}
+
+void MolWidget::setActiveMol(Molecule &mol)
+{
+    curMol = &mol;
 }
 
 void MolWidget::updateWidget(GUI::change_t change)
@@ -108,10 +150,10 @@ void MolWidget::updateWidget(GUI::change_t change)
         if ((change & GUI::stepChanged) == GUI::stepChanged) {
 //            setActiveStep(*vApp.curStep);
         }else if (change & (GUI::Change::atoms | GUI::Change::fmt)) {
-            atomModel.setStep(ownStep.get());
-            setSelection();
+//            atomModel.setStep(ownStep.get());
+//            setSelection();
         }else if (change & (GUI::Change::selection)){
-            setSelection();
+//            setSelection();
         }
     }
     if (change & GUI::Change::atoms) {
@@ -235,7 +277,8 @@ void MolWidget::on_cellDimBox_valueChanged(double cdm)
     // short-circuit resetting the molModel
     if(scale == atomFmtAbsolute(ownStep->getFmt())){
         atomModel.setStep(ownStep.get());
-        setSelection();
+        // TODO
+//        setSelection();
     }
     triggerUpdate(change);
 }
@@ -251,7 +294,8 @@ void MolWidget::on_atomFmtBox_currentIndexChanged(int index)
     atomModel.setStep(ownStep.get());
     bondModel.setStep(ownStep.get(), vApp.stepdata[curStep].automatic_bonds);
     cellModel.setStep(curStep);
-    setSelection();
+    // TODO
+//    updateSelection();
 }
 
 void MolWidget::on_atomFmtButton_clicked()
@@ -294,22 +338,6 @@ void MolWidget::atomSelectionChanged(const QItemSelection &, const QItemSelectio
     }
     *vApp.curSel = curStep->select(filter);
     triggerUpdate(GUI::Change::selection);
-}
-
-void MolWidget::setSelection()
-{
-    auto& table = ui->atomTable;
-    disconnect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
-            this, &MolWidget::atomSelectionChanged);
-    table->clearSelection();
-    table->setSelectionMode(QAbstractItemView::MultiSelection);
-    for(const auto& i: vApp.curSel->getAtoms().indices){
-        table->selectRow(static_cast<int>(i.first));
-    }
-    connect(ui->atomTable->selectionModel(), &QItemSelectionModel::selectionChanged,
-            this, &MolWidget::atomSelectionChanged);
-    update();
-    table->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }
 
 void MolWidget::fillKPoints()

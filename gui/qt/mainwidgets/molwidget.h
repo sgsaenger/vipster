@@ -57,13 +57,18 @@ private slots:
 
 private:
     void setActiveStep(Vipster::Step &step, Vipster::Step::selection &sel);
+    void updateStep(Vipster::Step &step);
+    void updateSelection(Vipster::Step::selection &sel);
+
+    void setActiveMol(Vipster::Molecule &mol);
+
     bool scale();
     void checkOverlap(void);
     void fillCell(void);
     void fillKPoints(void);
-    void setSelection(void);
     Ui::MolWidget *ui;
     Vipster::Step *curStep;
+    Vipster::Step::selection *curSel;
     std::unique_ptr<Vipster::Step::formatter> ownStep;
     Vipster::Molecule* curMol;
     AtomModel atomModel{this};

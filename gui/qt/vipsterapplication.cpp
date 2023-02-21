@@ -53,4 +53,5 @@ void Application::newIOData(IOTuple &&t){
 
 void Application::selectionToCopy(){
     copyBuf = std::make_unique<Step::selection>(*curSel);
+    emit copyBufChanged(*copyBuf);
 }

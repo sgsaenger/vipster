@@ -1,6 +1,5 @@
 #include "version.h"
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include "ui_viewport.h"
 #include "savefmtdialog.h"
 #include "mainwidgets.h"
@@ -10,6 +9,7 @@
 
 #include <QDockWidget>
 #include <QMessageBox>
+#include <QMenuBar>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QApplication>
@@ -25,15 +25,29 @@ namespace fs = std::filesystem;
 MainWindow::MainWindow(QString path, ConfigState& state,
                        QWidget *parent):
     QMainWindow{parent},
-    ui{new Ui::MainWindow},
     path{path}
 {
     // TODO
     vApp.config = state; // TODO: move this to a more logic place
     // TODO
 
-    ui->setupUi(this);
-    setupUI();
+    setWindowIcon(QIcon{":/images/vipster.png"});
+
+    setupFileMenu();
+
+    setupEditMenu();
+
+    setupHelpMenu();
+
+    setupMainWidgets();
+
+    setupToolWidgets();
+
+    setupViewports();
+}
+
+void MainWindow::setupViewports()
+{
     // create first level of splitters and main viewport
     viewports.push_back(new ViewPort{this, true});
     vsplit = new QSplitter{this};
@@ -48,59 +62,17 @@ MainWindow::MainWindow(QString path, ConfigState& state,
     curVP->ui->closeButton->setDisabled(true);
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::setupUI()
-{
-    setupMainWidgets();
-
-    setupToolWidgets();
-
-    setupEditMenu();
-
-    setupHelpMenu();
-
-    // fill in menu-options
-    for(const auto& plug: vApp.config.plugins){
-        if(plug->makeParam){
-            auto* param_menu = ui->menuLoad_Parameter_set->addMenu(
-                        QString::fromStdString(plug->name));
-            paramMenus[plug] = param_menu;
-            const auto& param_map = vApp.config.parameters[plug];
-            if(!param_map.empty()){
-                for(const auto& p: param_map){
-                    param_menu->addAction(QString::fromStdString(p.first),
-                                          this, &MainWindow::loadParam);
-                }
-            }
-        }
-        if(plug->makePreset){
-            auto* conf_menu = ui->menuLoad_IO_Preset->addMenu(
-                        QString::fromStdString(plug->name));
-            presetMenus[plug] = conf_menu;
-            const auto& conf_map = vApp.config.presets[plug];
-            if(!conf_map.empty()){
-                for(const auto& p: conf_map){
-                    conf_menu->addAction(QString::fromStdString(p.first),
-                                         this, &MainWindow::loadPreset);
-                }
-            }
-        }
-    }
-}
-
 /* Main widgets
  * Core functionality (Molecule-Properties, Auxiliary data)
  * Always open, stacked in left dock-area
  */
 void MainWindow::setupMainWidgets()
 {
+    setDockOptions(QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::VerticalTabs);
 #ifdef Q_OS_MACOS
     setDockOptions(dockOptions()^VerticalTabs);
 #endif
+
     QDockWidget* firstDock{nullptr};
     for(const auto& pair: makeMainWidgets(this)){
         auto *tmp = new QDockWidget(this);
@@ -148,45 +120,195 @@ void MainWindow::setupToolWidgets()
     }
 }
 
-/* Edit-Menu
- * Modify the currently selected Molecule/Step
+/* File menu
+ * Load/save molecular and auxiliary data
+ */
+void MainWindow::setupFileMenu()
+{
+    auto &fileMenu = *menuBar()->addMenu("&File");
+
+    // Create an empty, new molecule
+    fileMenu.addAction("&New molecule",
+                       [](){vApp.newMol({});},
+                       QKeySequence::New);
+
+    // create a copy of existing data
+    auto &copyMenu = *fileMenu.addMenu("&From existing molecule");
+    copyMenu.addAction("Copy single &step",
+                       [this](){
+                           auto tmpMol = Molecule{*vApp.curStep};
+                           tmpMol.name += " (copy of step " +
+                                          std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
+                           vApp.newMol(std::move(tmpMol));
+                       });
+    copyMenu.addAction("Copy &current selection",
+                       [this](){
+                           auto tmpMol = Molecule{*vApp.curSel};
+                           tmpMol.name += " (copy of selection of step " +
+                                          std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
+                           vApp.newMol(std::move(tmpMol));
+                       });
+    copyMenu.addAction("Copy &trajectory",
+                       [](){
+                           auto tmpMol = *vApp.curMol;
+                           tmpMol.name += " (copy)";
+                           vApp.newMol(std::move(tmpMol));
+                       });
+
+    // load molecular data from file
+    fileMenu.addAction("&Load molecule",
+                       [this](){loadMol();},
+                       QKeySequence::Open);
+    // store molecular data to file
+    fileMenu.addAction("&Save molecule",
+                       [this](){saveMol();},
+                       QKeySequence::Save);
+
+    // Separator
+    fileMenu.addSeparator();
+    // Create a nested menu that exposes all parameter presets per filetype plugin
+    auto &paramMenu = *fileMenu.addMenu("Load parameter set");
+    auto &presetMenu = *fileMenu.addMenu("Load IO preset");
+    for(const auto& plug: vApp.config.plugins){
+        if(plug->makeParam){
+            // create a sub-menu for each param-enabled plugin
+            auto* plug_menu = paramMenu.addMenu(QString::fromStdString(plug->name));
+            // register each parameter preset as a separate action
+            const auto& param_map = vApp.config.parameters[plug];
+            for(const auto& p: param_map){
+                plug_menu->addAction(QString::fromStdString(p.first),
+                                     this, &MainWindow::loadParam);
+            }
+        }
+        if(plug->makePreset){
+            // create a sub-menu for each IO-preset enabled plugin
+            auto* plug_menu = presetMenu.addMenu(QString::fromStdString(plug->name));
+            // register each IO preset as a separate action
+            const auto& conf_map = vApp.config.presets[plug];
+            for(const auto& p: conf_map){
+                plug_menu->addAction(QString::fromStdString(p.first),
+                                     this, &MainWindow::loadPreset);
+            }
+        }
+    }
+
+    // Separator
+    fileMenu.addSeparator();
+    fileMenu.addAction("Screenshot (current Step)",
+                       [this](){saveScreenshot();},
+                       QKeySequence::Print);
+    fileMenu.addAction("Screenshot (trajectory)",
+                       [this](){saveScreenshots();});
+
+    // Separator
+    fileMenu.addSeparator();
+    fileMenu.addAction("Exit Vipster",
+                       [this](){close();},
+                       Qt::ControlModifier|Qt::Key_Q);
+}
+
+/* Edit menu
+ * Modify the currently selected Molecule/Step/Atoms
  */
 void MainWindow::setupEditMenu()
 {
-    auto &editMenu = *menuBar()->addMenu("Edit");
+    auto &editMenu = *menuBar()->addMenu("&Edit");
 
     // Create a new Atom
-    auto *newAtomAction = editMenu.addAction("&New Atom",
+    auto *newAction = editMenu.addAction("&New atom",
         [](){
-            vApp.editStep(static_cast<void(Step::*)(const std::string &, const Vec&, const AtomProperties&)>(&Step::newAtom),
+            vApp.invokeOnStep(static_cast<void(Step::*)(const std::string &, const Vec&, const AtomProperties&)>(&Step::newAtom),
                           "C", Vec{}, AtomProperties{});
         },
         Qt::Key_N);
 
     // Delete selected Atom(s)
-    auto *delAtomAction = editMenu.addAction("&Delete Atom(s)",
+    auto *delAction = editMenu.addAction("&Delete atom(s)",
         [](){
-            vApp.editStep(static_cast<void(Step::*)(Step::const_selection&)>(&Step::delAtoms), *vApp.curSel);
+            vApp.invokeOnStep(static_cast<void(Step::*)(Step::const_selection&)>(&Step::delAtoms), *vApp.curSel);
         },
         Qt::Key_Delete);
 
-    // Cut
-    auto *cutAtomAction = editMenu.addAction("Cut Atom(s)",
+    // Cut atoms
+    auto *cutAction = editMenu.addAction("C&ut atom(s)",
         [](){
-//            vApp.editStep();
+            vApp.selectionToCopy();
+            vApp.invokeOnStep(static_cast<void(Step::*)(Step::const_selection&)>(&Step::delAtoms), *vApp.curSel);
         },
         QKeySequence::Cut);
-    // Copy
-    // Paste
+    cutAction->setEnabled(false);
+    connect(&vApp, &Application::selChanged,
+            cutAction, [&](Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
+
+    // Copy atoms
+    auto *copyAction = editMenu.addAction("&Copy atom(s)",
+        [](){
+            vApp.selectionToCopy();
+        },
+        QKeySequence::Copy);
+    copyAction->setEnabled(false);
+    connect(&vApp, &Application::selChanged,
+            copyAction, [&](Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
+
+    // Paste atoms
+    auto *pasteAction = editMenu.addAction("&Paste atom(s)",
+        [](){
+            vApp.invokeOnStep(static_cast<void(Step::*)(const Step::const_selection& s)>(&Step::newAtoms), *vApp.copyBuf);
+        },
+        QKeySequence::Paste);
+    pasteAction->setEnabled(false);
+    connect(&vApp, &Application::copyBufChanged,
+            pasteAction, [&](Step::selection &buf){pasteAction->setEnabled(buf.getNat() > 0);});
+
     // Separator
+    editMenu.addSeparator();
+
     // Rename
+    auto *renameAction = editMenu.addAction("&Rename atom(s)",
+        [this](){
+            auto tmp = QInputDialog::getText(this, "Rename atoms",
+                                             "Enter new Atom-type for selected atoms:")
+                       .toStdString();
+            auto f = [](Step::selection &sel, const std::string &name){
+                for(auto& at: sel){
+                    at.name = name;
+                }
+            };
+            vApp.invokeOnSel(f, tmp);
+        });
+    connect(&vApp, &Application::selChanged,
+            renameAction, [&](Step::selection &sel){renameAction->setEnabled(sel.getNat() > 0);});
+
     // Hide
+    auto *hideAction = editMenu.addAction("&Hide atom(s)",
+          [](){
+              auto f = [](Step::selection &sel){
+                  for(auto& at: sel){
+                      at.properties->flags[AtomProperties::Hidden] = true;
+                  }
+              };
+              vApp.invokeOnSel(f);
+          });
+      connect(&vApp, &Application::selChanged,
+              hideAction, [&](Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
+
     // Show
+    auto *showAction = editMenu.addAction("&Show atom(s)",
+        [](){
+            auto f = [](Step::selection &sel){
+                for(auto& at: sel){
+                    at.properties->flags[AtomProperties::Hidden] = false;
+                }
+            };
+            vApp.invokeOnSel(f);
+        });
+    connect(&vApp, &Application::selChanged,
+            showAction, [&](Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
 }
 
 void MainWindow::setupHelpMenu()
 {
-    auto &helpMenu = *menuBar()->addMenu("Help");
+    auto &helpMenu = *menuBar()->addMenu("&Help");
     helpMenu.addAction("About Vipster", [&](){
         QMessageBox::about(this,
             QString("About Vipster"),
@@ -304,78 +426,6 @@ void MainWindow::changeViewports(ViewPort *sender, VPChange change)
         }
     }catch(const Error& e){
         QMessageBox::information(this, "ViewPort Error", e.what());
-    }
-}
-
-void MainWindow::editAtoms(QAction* sender)
-{
-    GUI::change_t change{};
-    if ( sender == ui->actionNew_Atom){
-        vApp.curStep->newAtom("C");
-        change = GUI::Change::atoms;
-    }else if ( sender == ui->actionDelete_Atom_s){
-        vApp.curStep->delAtoms(*vApp.curSel);
-        *vApp.curSel = vApp.curStep->select({});
-        change = GUI::Change::atoms | GUI::Change::selection;
-    }else if ( sender == ui->actionHide_Atom_s){
-        for(auto& at: *vApp.curSel){
-            at.properties->flags[AtomProperties::Hidden] = 1;
-        }
-        change = GUI::Change::atoms;
-    }else if ( sender == ui->actionShow_Atom_s){
-        for(auto& at: *vApp.curSel){
-            at.properties->flags[AtomProperties::Hidden] = 0;
-        }
-        change = GUI::Change::atoms;
-    }else if ( sender == ui->actionRename_Atom_s){
-        auto tmp = QInputDialog::getText(this, "Rename atoms",
-                                         "Enter new Atom-type for selected atoms:")
-                   .toStdString();
-        for(auto& at: *vApp.curSel){
-            at.name = tmp;
-        }
-        change = GUI::Change::atoms;
-    }else if ( sender == ui->actionCopy_Atom_s){
-        vApp.copyBuf = std::make_unique<Step::selection>(*vApp.curSel);
-    }else if ( sender == ui->actionCut_Atom_s){
-        vApp.copyBuf = std::make_unique<Step::selection>(*vApp.curSel);
-        vApp.curStep->delAtoms(*vApp.curSel);
-        *vApp.curSel = vApp.curStep->select({});
-        change = GUI::Change::atoms | GUI::Change::selection;
-    }else if ( sender == ui->actionPaste_Atom_s){
-        if(!vApp.copyBuf) return;
-        auto oldNat = vApp.curStep->getNat();
-        vApp.curStep->newAtoms(*vApp.copyBuf);
-        *curVP->stepdata[vApp.curStep].sel = vApp.curStep->select(
-            "index " + std::to_string(oldNat)+'-' + std::to_string(vApp.curStep->getNat()-1));
-        change = GUI::Change::atoms | GUI::Change::selection;
-    }
-    if(change){
-        updateWidgets(change);
-    }
-}
-
-void MainWindow::newMol()
-{
-    auto sender = QObject::sender();
-    if (sender == ui->actionNew_Molecule){
-        vApp.newMol(std::move(Molecule{}));
-    } else if (sender == ui->actionCopy_Trajector){
-        auto tmpMol = *vApp.curMol;
-        tmpMol.name += " (copy)";
-        vApp.newMol(std::move(tmpMol));
-    } else if (sender == ui->actionCopy_single_Step){
-        auto tmpMol = *vApp.curMol;
-        tmpMol.name += " (copy of step " +
-                       std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
-        vApp.newMol(std::move(tmpMol));
-    } else if (sender == ui->actionCopy_current_Selection){
-        auto tmpMol = *vApp.curMol;
-        tmpMol.name += " (copy of selection of step " +
-                       std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
-        vApp.newMol(std::move(tmpMol));
-    } else {
-        throw Error{"Invalid sender for newMol"};
     }
 }
 

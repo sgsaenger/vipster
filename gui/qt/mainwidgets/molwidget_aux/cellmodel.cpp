@@ -75,7 +75,8 @@ bool CellModel::setData(const QModelIndex &index, const QVariant &value, int rol
             // short-circuit resetting the molModel on parent
             if(scale != (parent->ownStep->getFmt() == AtomFmt::Crystal)){
                 parent->atomModel.setStep(parent->ownStep.get());
-                parent->setSelection();
+                // TODO
+//                parent->setSelection();
             }
             parent->triggerUpdate(change);
             return true;

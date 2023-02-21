@@ -13,10 +13,6 @@
 #include "mainwidgets/paramwidget.h"
 #include "mainwidgets/presetwidget.h"
 
-namespace Ui {
-class MainWindow;
-}
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -25,7 +21,6 @@ public:
     explicit MainWindow(QString path,
                         Vipster::ConfigState& state, // TODO: remove this
                         QWidget *parent = nullptr);
-    ~MainWindow() override;
 
     // Viewports
     std::vector<ViewPort*> viewports;
@@ -48,10 +43,8 @@ public:
     void saveScreenshot(QString fn);
 
 public slots:
-    void newMol();
     void loadMol();
     void saveMol();
-    void editAtoms(QAction *sender);
     void loadParam();
     void saveParam();
     void loadPreset();
@@ -60,18 +53,16 @@ public slots:
     void saveScreenshots();
 
 private:
-    void setupUI();
     void setupMainWidgets();
     void setupToolWidgets();
     void setupFileMenu();
     void setupEditMenu();
     void setupHelpMenu();
+    void setupViewports();
 
-    Ui::MainWindow *ui;
     QDir path{};
     QSplitter *vsplit;
     std::vector<QSplitter*> hsplits;
-//    std::vector<BaseWidget*> mainWidgets;
     std::vector<BaseWidget*> toolWidgets;
 };
 #endif // MAINWINDOW_H

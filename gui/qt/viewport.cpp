@@ -27,8 +27,18 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     ui->lastStepButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
     ui->closeButton->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
     // connect events
-    connect(&vApp, &Vipster::Application::molListChanged, this, &ViewPort::updateMoleculeList); // molecule drop-down list
-    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp); // animation timer
+    // animation timer
+    connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
+
+    // molecule drop-down list
+    connect(&vApp, &Vipster::Application::molListChanged, this, &ViewPort::updateMoleculeList);
+
+    // update rendering if active step has changed
+    connect(&vApp, &Vipster::Application::stepChanged, this,
+            [&](Step &s){if (&s == curStep) {
+            // TODO: use explicit calls or a better abstraction
+                openGLWidget->updateWidget(GUI::stepChanged);
+            }});
 }
 
 ViewPort::ViewPort(const ViewPort &vp) :
