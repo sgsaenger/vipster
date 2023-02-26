@@ -22,15 +22,10 @@
 using namespace Vipster;
 namespace fs = std::filesystem;
 
-MainWindow::MainWindow(QString path, ConfigState& state,
-                       QWidget *parent):
-    QMainWindow{parent},
+MainWindow::MainWindow(QString path):
+    QMainWindow{},
     path{path}
 {
-    // TODO
-    vApp.config = state; // TODO: move this to a more logic place
-    // TODO
-
     setWindowIcon(QIcon{":/images/vipster.png"});
 
     setupFileMenu();

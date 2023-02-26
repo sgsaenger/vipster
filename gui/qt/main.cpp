@@ -28,6 +28,7 @@ using namespace Vipster;
 [[noreturn]] void launchVipster(int argc, char *argv[],
                                 std::vector<IOTuple>&& data,
                                 ConfigState&& state){
+    // Configure QApplication + OpenGL defaults
     QApplication qapp(argc, argv);
     QApplication::setApplicationName("Vipster");
     QApplication::setApplicationVersion(VIPSTER_VERSION);
@@ -48,7 +49,10 @@ using namespace Vipster;
     QSurfaceFormat::setDefaultFormat(format);
     QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});
 
-    MainWindow w{QDir::currentPath(), state};
+    // Configure Vipster application and open Window
+    // TODO: currently operations need to happen in this order so GUI is configure correctly
+    vApp.config = state;
+    MainWindow w{QDir::currentPath()};
     if (data.empty()) {
         vApp.newMol(Molecule{});
     } else {

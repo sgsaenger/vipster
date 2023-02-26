@@ -18,9 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QString path,
-                        Vipster::ConfigState& state, // TODO: remove this
-                        QWidget *parent = nullptr);
+    explicit MainWindow(QString path);
 
     // Viewports
     std::vector<ViewPort*> viewports;
