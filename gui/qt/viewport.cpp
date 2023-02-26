@@ -65,10 +65,12 @@ ViewPort::~ViewPort()
 }
 
 void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
+    QSignalBlocker block{ui->molList};
     ui->molList->clear();
     for (const auto &mol: molecules){
         ui->molList->addItem(mol.name.c_str());
     }
+    setMol(molecules.size()-1);
 }
 
 void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
@@ -145,16 +147,6 @@ bool ViewPort::hasExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
 {
     auto &extras = global ? vpdata.extras : stepdata[curStep].extras;
     return std::find_if(extras.begin(), extras.end(), cmpExtraData(dat)) != extras.end();
-}
-
-void ViewPort::registerMol(const std::string &name)
-{
-    ui->molList->addItem(name.c_str());
-    if(active){
-        // if we are the main viewport,
-        // display new Molecule and make it active
-        ui->molList->setCurrentIndex(ui->molList->count()-1);
-    }
 }
 
 void ViewPort::setMol(int index)

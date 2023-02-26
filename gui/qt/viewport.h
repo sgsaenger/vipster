@@ -30,7 +30,6 @@ public:
     ~ViewPort() override;
     void triggerUpdate(Vipster::GUI::change_t change);
     void updateWidget(Vipster::GUI::change_t change);
-    void registerMol(const std::string& name);
     void makeActive(bool active);
     void addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     void delExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
