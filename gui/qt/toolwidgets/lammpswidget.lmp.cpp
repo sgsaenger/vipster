@@ -8,7 +8,6 @@
 #include <thread>
 
 #include <fmt/format.h>
-#include <fmt/ostream.h>
 
 #include <QMessageBox>
 
@@ -202,7 +201,7 @@ void LammpsWidget::on_runButton_clicked()
         mkGeom(curStep, *FF, tempdir);
         mkScript(curStep, *FF, tempdir);
         bool doMin = ui->calcStack->currentIndex() == 0;
-        auto params = doMin ? runParams{Lammps::runParams::Min,
+        auto params = doMin ? runParams{Lammps::runParams::Mode::Min,
                                         ui->MPISpin->value(),
                                         ui->OMPSpin->value(),
                                         ui->GPUSpin->value(),
@@ -210,7 +209,7 @@ void LammpsWidget::on_runButton_clicked()
                                         ui->maxevalInput->text().toULong(),
                                         ui->etolInput->text().toDouble(),
                                         ui->ftolInput->text().toDouble()}
-                            : runParams{Lammps::runParams::MD,
+                            : runParams{Lammps::runParams::Mode::MD,
                                         ui->MPISpin->value(),
                                         ui->OMPSpin->value(),
                                         ui->GPUSpin->value(),
@@ -228,7 +227,7 @@ void LammpsWidget::on_runButton_clicked()
             QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(result.second));
         }
         // notify vipster of new mol
-        master->newMol(std::move(mol));
+        vApp.newMol(std::move(mol));
     }catch(std::exception &e){
         QMessageBox::warning(this, "Error in LAMMPS run", QString::fromStdString(e.what()));
     }
@@ -251,7 +250,7 @@ void LammpsWidget::on_ffPrepare_clicked()
     if(FF->prepareStep){
         try{
             auto mol = FF->prepareStep(*vApp.curStep, vApp.curMol->name);
-            master->newMol(std::move(mol));
+            vApp.newMol(std::move(mol));
         }catch(const Vipster::Error &e){
             QMessageBox::warning(this, "Could not prepare structure", e.what());
             return;
@@ -259,7 +258,7 @@ void LammpsWidget::on_ffPrepare_clicked()
             QMessageBox::critical(this, "Could not prepare structure", "Unrecognzied error when trying to prepare the structure.");
         }
     }else{
-        master->newMol({*vApp.curStep, vApp.curMol->name + " (" + FFname + ')'});
+        vApp.newMol({*vApp.curStep, vApp.curMol->name + " (" + FFname + ')'});
     }
 }
 
@@ -288,7 +287,7 @@ void LammpsWidget::mkScript(const Step &curStep, const ForceField &FF, const fs:
         throw IOError{"Could not write input script at "+tempdir.string()+"/input"};
     }
     // common block: setup FF and cell
-    fmt::print(script,
+    script << fmt::format(
         "units real\n"
         "atom_style full\n"
         "boundary {box} {box} {box}\n"
@@ -311,7 +310,7 @@ void LammpsWidget::mkScript(const Step &curStep, const ForceField &FF, const fs:
     // run
     if(ui->calcStack->currentIndex() == 0){
         // Minimization
-        fmt::print(script,
+        script << fmt::format(
             "thermo 1\n"
             "fix vipster all vipster 1\n"
             "min_style {}\n",
@@ -334,7 +333,7 @@ void LammpsWidget::mkScript(const Step &curStep, const ForceField &FF, const fs:
             {"nph", "fix integrate all nph iso {1} {1} 100.0"},
             {"npt", "fix integrate all npt temp {0} {0} 100.0 iso {1} {1} 100.0"},
         };
-        fmt::print(script,
+        script << fmt::format(
             "timestep {timestep}\n"
             "#init velocities:\n{velocities}\n"
             "{fix_integrate}\n"

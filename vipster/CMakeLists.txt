@@ -2,7 +2,13 @@
 # main library providing containers and file format support
 
 # Dependencies
-FetchContent_MakeAvailable(nlohmann_json fmt tinyexpr)
+FetchContent_MakeAvailable(nlohmann_json tinyexpr)
+# if vendored fmt-lib is used, enforce static lib
+# required to maintain LAMMPS compatibility
+set(IS_SHARED BUILD_SHARED_LIBS)
+set(BUILD_SHARED_LIBS OFF)
+FetchContent_MakeAvailable(fmt)
+set(BUILD_SHARED_LIBS IS_SHARED)
 
 file(GLOB_RECURSE LIB_HEADERS "*.h")
 configure_file("version.h.in" "version.h")
@@ -30,7 +36,7 @@ target_include_directories(libvipster PUBLIC
 target_link_libraries(libvipster PRIVATE
     ${CMAKE_DL_LIBS}
     nlohmann_json::nlohmann_json
-    fmt::fmt-header-only
+    fmt::fmt
 )
 
 if(NOT EMSCRIPTEN)

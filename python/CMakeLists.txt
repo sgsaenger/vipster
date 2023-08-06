@@ -11,7 +11,7 @@ set_target_properties(bindings PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 # dependencies
 FetchContent_MakeAvailable(pybind11 fmt)
-target_link_libraries(bindings PUBLIC libvipster pybind11::pybind11 PRIVATE fmt::fmt-header-only)
+target_link_libraries(bindings PUBLIC libvipster pybind11::pybind11 PRIVATE fmt::fmt)
 
 target_include_directories(bindings PUBLIC ".")
 

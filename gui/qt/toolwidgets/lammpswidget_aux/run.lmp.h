@@ -10,7 +10,7 @@
 
 namespace Vipster::Lammps{
 struct runParams{
-    enum Mode{Min, MD};
+    enum class Mode{Min, MD};
     Mode mode;
     // Parallelization
     int MPI{1}, OMP{0}, GPU{0};

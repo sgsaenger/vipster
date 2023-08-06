@@ -28,13 +28,12 @@ FetchContent_Declare(
 # purpose: string formatting
 # users:   library + GUI
 # license: MIT
-# NOTE: LAMMPS has a dependency on fmt<9
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt
-    GIT_TAG 8.1.1
+    GIT_TAG 10.0.0
     GIT_SHALLOW TRUE
-    FIND_PACKAGE_ARGS 8.1.1
+    FIND_PACKAGE_ARGS 10.0.0
 )
 
 # library: pybind11
@@ -80,6 +79,6 @@ FetchContent_Declare(
 FetchContent_Declare(
     lammps
     GIT_REPOSITORY https://github.com/lammps/lammps
-    GIT_TAG stable_29Sep2021
+    GIT_TAG stable_2Aug2023
     GIT_SHALLOW TRUE
 )

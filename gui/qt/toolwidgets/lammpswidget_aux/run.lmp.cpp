@@ -207,15 +207,16 @@ void Lammps::run(const std::string& dir, runParams params, MPI_Comm intercomm, M
     // register callback
     fix_vipster->mol = mol;
     fix_vipster->intercomm = intercomm;
-    if(params.mode == runParams::Mode::MD){
+    switch(params.mode){
+    case runParams::Mode::MD:
         lmp.input->one(fmt::format("run {}", params.nstep).c_str());
-    }else if(params.mode == runParams::Mode::Min){
+        break;
+    case runParams::Mode::Min:
         lmp.input->one(fmt::format("minimize {} {} {} {}",
                                    params.etol,
                                    params.ftol,
                                    params.nstep,
                                    params.neval).c_str());
-    }else{
-        throw Vipster::Error{fmt::format("Invalid Lammps run mode {} on proc {}.", params.mode, lmp.comm->me)};
+        break;
     }
 }
