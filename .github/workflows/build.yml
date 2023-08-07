@@ -13,30 +13,24 @@ jobs:
         name: 'Test & Debug (Linux)'
         runs-on: ubuntu-20.04
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
           with:
               submodules: true
 
-        - name: Cache Qt
-          id: cache-qt
-          uses: actions/cache@v1
-          with:
-              path: ../Qt
-              key: ${{ runner.os }}-QtCache-6.4.0
-        - name: Install Qt
-          uses: jurplel/install-qt-action@v2
-          with:
-              version: '6.4.0'
-              target: 'desktop'
-              cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        - name: Setup Ninja
+          uses: seanmiddleditch/gha-setup-ninja@master
 
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@v4
           with:
               python-version: '3.10'
 
-        - name: Setup Ninja
-          uses: seanmiddleditch/gha-setup-ninja@master
+        - name: Install Qt
+          uses: jurplel/install-qt-action@v3
+          with:
+              version: '6.4.0'
+              target: 'desktop'
+              cached: true
 
         - name: Install dependencies
           run: |
@@ -72,48 +66,45 @@ jobs:
                     - os: ubuntu-20.04
                       script: make-appimage.sh
                       artifact: Vipster-Linux-x86_64.AppImage
+                      qt_arch: gcc_64
                     - os: windows-latest
                       script: make-win-archive.sh
                       artifact: Vipster-Win-x86_64.zip
-                    - os: macOS-latest
-                      script: make-macos-app.sh
-                      artifact: Vipster-macOS-x86_64.dmg
+                      qt_arch: win64_mingw
+                    #- os: macOS-latest
+                    #  script: make-macos-app.sh
+                    #  artifact: Vipster-macOS-x86_64.dmg
+                    #  qt_arch: clang_64
         needs: debug
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
           with:
               submodules: true
 
-        - name: Cache Qt
-          id: cache-qt
-          uses: actions/cache@v2
-          with:
-              path: Qt
-              key: ${{ runner.os }}-QtCache-6.4.0
-        - name: Install Qt
-          uses: jurplel/install-qt-action@v2
-          with:
-              version: '6.4.0'
-              target: 'desktop'
-              arch: 'win64_mingw'
-              dir: ${{ github.workspace }}
-              cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        - name: Setup Ninja
+          uses: seanmiddleditch/gha-setup-ninja@master
 
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@v4
           with:
               python-version: '3.10'
         - name: Add Python libraries
           shell: bash
           run: pip install numpy moltemplate
 
-        - name: Setup Ninja
-          uses: seanmiddleditch/gha-setup-ninja@master
+        - name: Install Qt
+          uses: jurplel/install-qt-action@v3
+          with:
+              version: '6.4.0'
+              target: 'desktop'
+              arch: ${{ matrix.qt_arch }}
+              dir: ${{ github.workspace }}
+              cached: true
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
           id: cache-mingw
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           with:
               path: MinGW
               key: mingw-18.0
@@ -131,7 +122,6 @@ jobs:
           run: |
               echo $GITHUB_WORKSPACE/MinGW/bin >> $GITHUB_PATH
               echo CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH >> $GITHUB_ENV
-              #echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
 
         - name: Configure Linux
           if: runner.os == 'Linux'
@@ -161,7 +151,7 @@ jobs:
             . ../util/${{ matrix.script }}
 
         - name: Upload artifact
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: Vipster-${{ runner.os }}
               path: build/${{ matrix.artifact }}
@@ -171,11 +161,11 @@ jobs:
         runs-on: ubuntu-latest
         needs: debug
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
           with:
               submodules: true
 
-        - uses: actions/setup-python@v2
+        - uses: actions/setup-python@v4
           with:
               python-version: '3.10'
 
@@ -192,7 +182,7 @@ jobs:
               echo "ARTIFACT=$ARTIFACT" >> $GITHUB_ENV
 
         - name: Upload artifact
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: Vipster-Web
               path: ${{ env.ARTIFACT }}
@@ -204,7 +194,7 @@ jobs:
         strategy:
             matrix:
                 os: [windows-latest, ubuntu-20.04]
-                python-version: ['3.7', '3.8', '3.9', '3.10']
+                python-version: ['3.8', '3.9', '3.10', '3.11']
                 include:
                   - os: windows-latest
                     wheeldir: dist
@@ -212,14 +202,14 @@ jobs:
                     wheeldir: wheelhouse
 
         steps:
-        - uses: actions/checkout@v2 
+        - uses: actions/checkout@v3
           with:
               submodules: true
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
           id: cache-mingw
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           with:
               path: MinGW
               key: mingw-18.0
@@ -240,7 +230,7 @@ jobs:
               echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
 
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@v4
           with:
               python-version: ${{ matrix.python-version }}
 
@@ -254,11 +244,11 @@ jobs:
           if: runner.os == 'Linux'
           shell: bash
           run: |
-              pip install auditwheel
+              pip install auditwheel==5.1.2
               auditwheel repair dist/*.whl --plat manylinux_2_31_x86_64
 
         - name: Upload artifact
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: Vipster-PyWheel-${{ runner.os }}
               path: ${{ matrix.wheeldir }}/*.whl

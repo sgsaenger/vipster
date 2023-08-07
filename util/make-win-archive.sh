@@ -2,19 +2,24 @@
 # create a zip file from a pre-built tree
 
 echo "creating zip-Archive"
-mkdir Vipster
+TMPDIR=deploy
+mkdir ${TMPDIR}
 
 # Vipster itself
-cp vipster.exe Vipster
-cp libvipster.dll Vipster
+echo "Copying vipster"
+cp gui/qt/vipster.exe ${TMPDIR}
+cp vipster/libvipster.dll ${TMPDIR}
 
 # copy the local python installation
-PY_LIB=$(grep "Python3_LIBRARY_RELEASE" CMakeCache.txt | cut -d "=" -f 2)
-cp $PY_LIB Vipster
-cp -r $pythonLocation/Lib $pythonLocation/DLLs Vipster
+echo "Obtain python"
+PY_LIB=$(grep "Python_LIBRARY_RELEASE" CMakeCache.txt | cut -d "=" -f 2)
+cp $PY_LIB ${TMPDIR}
+cp -r $pythonLocation/Lib $pythonLocation/DLLs ${TMPDIR}
 
 # prepare Qt and other libraries
-windeployqt --compiler-runtime --no-translations Vipster/vipster.exe
-cp $Qt5_Dir/bin/lib{gcc_s_seh-1,stdc++-6,winpthread-1}.dll Vipster
+echo "Run windeployqt"
+windeployqt --compiler-runtime --no-translations ${TMPDIR}/vipster.exe
+cp $Qt6_DIR/bin/lib{gcc_s_seh-1,stdc++-6,winpthread-1}.dll deploy
 
-7z a Vipster-Win-x86_64.zip Vipster
+echo "Create zip archive"
+7z a Vipster-Win-x86_64.zip ${TMPDIR}/*
