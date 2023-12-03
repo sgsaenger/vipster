@@ -4,13 +4,11 @@
 #include <QAbstractTableModel>
 #include "vipster/step.h"
 
-class MolWidget;
 class BondModel: public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit BondModel(MolWidget* parent=nullptr);
-    void setStep(Vipster::Step::formatter *curStep, bool automatic_bonds);
+    void reset();
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation,
@@ -28,8 +26,7 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 private:
-    MolWidget *parent;
-    Vipster::Step::formatter *curStep{nullptr};
+    // Store some state to reduce requests, optimization only
     bool automatic_bonds{true};
     const std::vector<Vipster::Bond> *curBonds{nullptr};
     QStringList colNames = {"Atoms", "Length / Å", "Type", "Color"};

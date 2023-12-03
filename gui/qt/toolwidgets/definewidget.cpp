@@ -37,7 +37,7 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
         curStep = vApp.curStep;
-        defMap = &vApp.stepdata[curStep].definitions;
+        defMap = &vApp.getState(*curStep).definitions;
         curIt = defMap->end();
         fillTable();
     }else if(change & (GUI::Change::definitions)){

@@ -2,411 +2,24 @@
 <ui version="4.0">
  <class>MolWidget</class>
  <widget class="QWidget" name="MolWidget">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>373</width>
-    <height>931</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,0,0,1,0,0,0,1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QPushButton" name="atomTableButton">
-     <property name="text">
-      <string>Atoms</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="AtomList" name="atomContainer"/>
    </item>
    <item>
-    <widget class="QWidget" name="atomContainer" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <layout class="QHBoxLayout" name="atomFmtLabel_2">
-        <item>
-         <widget class="QLabel" name="atomFmtLabel">
-          <property name="text">
-           <string>Coordinate format:</string>
-          </property>
-          <property name="buddy">
-           <cstring>atomFmtBox</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="atomFmtBox">
-          <item>
-           <property name="text">
-            <string>Crystal</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Alat</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Ångström</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Bohr</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="atomFmtButton">
-          <property name="text">
-           <string>Set Format</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="atomHelpButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>25</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>?</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QTableView" name="atomTable">
-        <property name="alternatingRowColors">
-         <bool>true</bool>
-        </property>
-        <property name="selectionBehavior">
-         <enum>QAbstractItemView::SelectRows</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <widget class="BondWidget" name="bondContainer"/>
    </item>
    <item>
-    <widget class="QPushButton" name="bondButton">
-     <property name="text">
-      <string>Bonds</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="bondContainer" native="true">
-     <property name="checked" stdset="0">
-      <bool>false</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item row="5" column="0" colspan="3">
-       <widget class="QTableWidget" name="ovlpTable">
-        <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
-        </property>
-        <property name="alternatingRowColors">
-         <bool>true</bool>
-        </property>
-        <property name="selectionMode">
-         <enum>QAbstractItemView::SingleSelection</enum>
-        </property>
-        <column>
-         <property name="text">
-          <string>Atom 1</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Atom2</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QPushButton" name="bondSetButton">
-        <property name="text">
-         <string>(Re-)calculate bonds</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QLabel" name="ovlpLabel">
-        <property name="text">
-         <string>Overlapping atoms:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="3">
-       <widget class="QTableView" name="bondTable">
-        <property name="alternatingRowColors">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="bondModeLabel">
-        <property name="text">
-         <string>Mode:</string>
-        </property>
-        <property name="buddy">
-         <cstring>bondModeBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="bondModeBox">
-        <item>
-         <property name="text">
-          <string>Manual</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Automatic</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="bondHelpButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>25</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>?</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="cellWidgetButton">
-     <property name="text">
-      <string>Cell Geometry</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QFrame" name="cellContainer">
+    <widget class="CellWidget" name="cellContainer" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="frameShape">
-      <enum>QFrame::Box</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <layout class="QHBoxLayout" name="cellFmtLayout">
-        <item>
-         <widget class="QLabel" name="cellEnabledLabel">
-          <property name="text">
-           <string>Enabled</string>
-          </property>
-          <property name="buddy">
-           <cstring>cellEnabledBox</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cellEnabledBox">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="cellHorSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="cellScaleLabel">
-          <property name="text">
-           <string>Scale coordinates with cell</string>
-          </property>
-          <property name="buddy">
-           <cstring>cellScaleBox</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cellScaleBox">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="cellEditLayout">
-        <item>
-         <widget class="QLabel" name="cellDimLabel">
-          <property name="text">
-           <string>Lattice constant:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="cellDimSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="cellDimBox">
-          <property name="decimals">
-           <number>4</number>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="cellFmt">
-          <item>
-           <property name="text">
-            <string>Angstrom</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Bohr</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="cellVecLabel">
-        <property name="text">
-         <string>Cell vectors:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTableView" name="cellVecTable">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>110</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="cellTrajecButton">
-        <property name="text">
-         <string>Apply to trajectory</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
    <item>
@@ -743,41 +356,27 @@
    <header>mainwidgets/periodictablewidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>AtomList</class>
+   <extends>QWidget</extends>
+   <header>mainwidgets/molwidget_aux/atomlist.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BondWidget</class>
+   <extends>QWidget</extends>
+   <header>mainwidgets/molwidget_aux/bondwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CellWidget</class>
+   <extends>QWidget</extends>
+   <header>mainwidgets/molwidget_aux/cellwidget.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>cellWidgetButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>cellContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>174</x>
-     <y>389</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>174</x>
-     <y>461</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>kpointButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>kpointContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>212</x>
-     <y>736</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>204</x>
-     <y>914</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>activeKpoint</sender>
    <signal>currentIndexChanged(int)</signal>
@@ -887,54 +486,6 @@
     <hint type="destinationlabel">
      <x>369</x>
      <y>595</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>atomTableButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>atomContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>148</x>
-     <y>34</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>121</x>
-     <y>63</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>bondButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>bondContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>204</x>
-     <y>176</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>186</x>
-     <y>223</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>typeButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>typeContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>353</x>
-     <y>587</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>360</x>
-     <y>641</y>
     </hint>
    </hints>
   </connection>

@@ -4,14 +4,38 @@ using namespace Vipster;
 
 Application::Application()
 {
+    auto updateBonds = [&](){
+        getCurStep().generateBonds(!getState(getCurStep()).automatic_bonds);
+    };
+    connect(this, &Application::stepChanged, updateBonds);
+}
 
+const Step& Application::getCurStep()
+{
+    return *curStep;
 }
 
 void Application::setActiveStep(Step &step, Step::selection &sel)
 {
     curStep = &step;
     curSel = &sel;
+
+    getState(step);
     emit activeStepChanged(step, sel);
+}
+
+Application::StepState& Application::getState(const Step &step)
+{
+    // initialize state if required
+    if (stepdata.find(&step) == stepdata.end()) {
+        stepdata.emplace(&step, StepState{
+            // when bonds are present (e.g. in file), use manual mode
+            step.getBonds().empty(),
+            // default formatter is passthrough
+            const_cast<Step&>(step).asFmt(step.getFmt())
+        });
+    }
+    return stepdata.at(&step);
 }
 
 void Application::newMol(Molecule &&mol){

@@ -71,7 +71,6 @@ void MainWindow::setupMainWidgets()
     QDockWidget* firstDock{nullptr};
     for(const auto& pair: makeMainWidgets(this)){
         auto *tmp = new QDockWidget(this);
-//        mainWidgets.push_back(pair.first);
         tmp->setWidget(pair.first);
         tmp->setAllowedAreas(Qt::LeftDockWidgetArea);
         tmp->setFeatures(QDockWidget::DockWidgetMovable |
@@ -233,7 +232,7 @@ void MainWindow::setupEditMenu()
         QKeySequence::Cut);
     cutAction->setEnabled(false);
     connect(&vApp, &Application::selChanged,
-            cutAction, [&](Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
+            cutAction, [=](Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
 
     // Copy atoms
     auto *copyAction = editMenu.addAction("&Copy atom(s)",
@@ -243,7 +242,7 @@ void MainWindow::setupEditMenu()
         QKeySequence::Copy);
     copyAction->setEnabled(false);
     connect(&vApp, &Application::selChanged,
-            copyAction, [&](Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
+            copyAction, [=](Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
 
     // Paste atoms
     auto *pasteAction = editMenu.addAction("&Paste atom(s)",
@@ -253,7 +252,7 @@ void MainWindow::setupEditMenu()
         QKeySequence::Paste);
     pasteAction->setEnabled(false);
     connect(&vApp, &Application::copyBufChanged,
-            pasteAction, [&](Step::selection &buf){pasteAction->setEnabled(buf.getNat() > 0);});
+            pasteAction, [=](Step::selection &buf){pasteAction->setEnabled(buf.getNat() > 0);});
 
     // Separator
     editMenu.addSeparator();
@@ -261,7 +260,7 @@ void MainWindow::setupEditMenu()
     // Rename
     auto *renameAction = editMenu.addAction("&Rename atom(s)",
         [this](){
-            auto tmp = QInputDialog::getText(this, "Rename atoms",
+            auto newName = QInputDialog::getText(this, "Rename atoms",
                                              "Enter new Atom-type for selected atoms:")
                        .toStdString();
             auto f = [](Step::selection &sel, const std::string &name){
@@ -269,10 +268,10 @@ void MainWindow::setupEditMenu()
                     at.name = name;
                 }
             };
-            vApp.invokeOnSel(f, tmp);
+            vApp.invokeOnSel(f, newName);
         });
     connect(&vApp, &Application::selChanged,
-            renameAction, [&](Step::selection &sel){renameAction->setEnabled(sel.getNat() > 0);});
+            renameAction, [=](Step::selection &sel){renameAction->setEnabled(sel.getNat() > 0);});
 
     // Hide
     auto *hideAction = editMenu.addAction("&Hide atom(s)",
@@ -285,7 +284,7 @@ void MainWindow::setupEditMenu()
               vApp.invokeOnSel(f);
           });
       connect(&vApp, &Application::selChanged,
-              hideAction, [&](Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
+              hideAction, [=](Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
 
     // Show
     auto *showAction = editMenu.addAction("&Show atom(s)",
@@ -298,7 +297,7 @@ void MainWindow::setupEditMenu()
             vApp.invokeOnSel(f);
         });
     connect(&vApp, &Application::selChanged,
-            showAction, [&](Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
+            showAction, [=](Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
 }
 
 void MainWindow::setupHelpMenu()
@@ -343,9 +342,9 @@ void MainWindow::updateWidgets(GUI::change_t change)
     }
     // if necessary, make sure that bonds/overlaps are up to date
     if((change & GUI::Change::atoms) &&
-       (vApp.stepdata[vApp.curStep].automatic_bonds ||
+       (vApp.getState(*vApp.curStep).automatic_bonds ||
         vApp.config.settings.overlap.val)){
-        vApp.curStep->generateBonds(!vApp.stepdata[vApp.curStep].automatic_bonds);
+        vApp.curStep->generateBonds(!vApp.getState(*vApp.curStep).automatic_bonds);
     }
     // notify widgets
     for(auto& w: viewports){

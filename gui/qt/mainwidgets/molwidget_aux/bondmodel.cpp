@@ -1,19 +1,14 @@
-#include "bondmodel.h"
-#include "../molwidget.h"
 #include <QBrush>
+#include "bondmodel.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
-BondModel::BondModel(MolWidget *parent)
-    :parent{parent}
-{}
-
-void BondModel::setStep(Step::formatter *curStep, bool automatic_bonds)
+void BondModel::reset()
 {
     beginResetModel();
-    this->curStep = curStep;
-    this->automatic_bonds = automatic_bonds;
-    curBonds =  &curStep->getBonds();
+    curBonds = &vApp.getCurStep().getBonds();
+    automatic_bonds = vApp.getState(vApp.getCurStep()).automatic_bonds;
     endResetModel();
 }
 
@@ -36,7 +31,7 @@ int BondModel::rowCount(const QModelIndex &parent) const
 
 int BondModel::columnCount(const QModelIndex &parent) const
 {
-    if (parent.isValid() || !curStep)
+    if (parent.isValid())
         return 0;
 
     if(automatic_bonds){
@@ -67,8 +62,9 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
             if (bond.type) {
                 return bond.type->first.c_str();
             } else {
-                const std::string& n1 = (*curStep)[bond.at1].name;
-                const std::string& n2 = (*curStep)[bond.at2].name;
+                const auto& curStep = vApp.getCurStep();
+                const std::string& n1 = curStep[bond.at1].name;
+                const std::string& n2 = curStep[bond.at2].name;
                 return QStringLiteral("%1-%2").arg(std::min(n1, n2).c_str())
                                               .arg(std::max(n1, n2).c_str());
             }
@@ -111,19 +107,19 @@ bool BondModel::setData(const QModelIndex &index, const QVariant &value, int rol
     if(role == Qt::EditRole){
         if(data(index, role) != value){
             if(index.column() == 2){
-                curStep->setBondType(index.row(), value.toString().toStdString());
-                parent->triggerUpdate(GUI::Change::atoms);
+                vApp.invokeOnStep(&Step::setBondType, index.row(), value.toString().toStdString());
                 return true;
             }
         }
     }else if(role == Qt::UserRole){
+        // TODO: offload to vApp
         const auto& color = value.value<QColor>();
         (*curBonds)[index.row()].type->second = {
                 static_cast<uint8_t>(color.red()),
                 static_cast<uint8_t>(color.green()),
                 static_cast<uint8_t>(color.blue()),
                 static_cast<uint8_t>(color.alpha())};
-        parent->triggerUpdate(GUI::Change::atoms);
+        emit vApp.stepChanged(*vApp.curStep);
         return true;
     }
     return false;
@@ -131,7 +127,7 @@ bool BondModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
 Qt::ItemFlags BondModel::flags(const QModelIndex& index) const
 {
-    if (!index.isValid() || !curStep)
+    if (!index.isValid())
         return Qt::NoItemFlags;
 
     if(index.column() == 2){

@@ -35,11 +35,26 @@ namespace Vipster{
  *   - selecting a different step
  *   - providing a new step
  */
+// TODO: hide state (curMol, curStep etc.) behind invoke interface
+// TODO: provide const ref only via signals
 
 // Singleton to manage process state
 class Application: public QObject
 {
     Q_OBJECT
+private:
+    // Functional abstraction for managed state
+    // TODO: provide undo-mechanism via this function
+    template<typename S, typename F, typename... Args>
+    std::invoke_result_t<F&&, S&, Args&&...> invokeImpl(S &s, F &&f, Args &&...args)
+    {
+        // TODO: if not required unless other functionality is introduced
+        if constexpr (!std::is_void_v<std::invoke_result_t<F&&, S&, Args&&...>>) {
+            return std::invoke(f, s, args...);
+        } else {
+            std::invoke(f, s, args...);
+        }
+    }
 
 public:
     /* Accessor function
@@ -50,8 +65,6 @@ public:
         static Application app{};
         return app;
     }
-
-    // TODO: use weak_ptr for dependent state data
 
     // expose config read from file
 private:
@@ -68,9 +81,30 @@ public:
     Molecule *curMol{nullptr};
 public:
     void newMol(Molecule &&mol);
+    template<typename F, typename... Args>
+    std::invoke_result<F&&, Molecule&, Args&&...> invokeOnMol(F &&f, Args &&...args)
+    {
+        if constexpr (!std::is_void_v<decltype(invokeImpl(*curMol, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(*curMol, std::forward<F>(f), std::forward<Args>(args)...);
+            emit molChanged(*curMol);
+            return tmp;
+        } else {
+            invokeImpl(*curMol, std::forward<F>(f), std::forward<Args>(args)...);
+            emit molChanged(*curMol);
+        }
+    }
+    template<typename F, typename... Args>
+    void invokeOnTrajec(F &&f, Args &&...args)
+    {
+        static_assert(std::is_void_v<decltype(invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...))>);
+        for (auto &step: curMol->getSteps()) {
+            invokeImpl(step, std::forward<F>(f), std::forward<Args>(args)...);
+            emit stepChanged(step);
+        }
+    }
 signals:
     void molListChanged(const std::list<Vipster::Molecule> &molecules);
-    void molChanged(int idx, Vipster::Molecule &mol);
+    void molChanged(Vipster::Molecule &mol);
     void activeMolChanged(Vipster::Molecule &mol);
 
     // Additional data
@@ -91,51 +125,59 @@ signals:
 
     // Currently active state
 public:
-    template<class S, class F, class... Args>
-    std::invoke_result_t<F&&, S&, Args&&...> invokeImpl(S &s, F &&f, Args &&...args)
+    Step *curStep{nullptr};
+    Step::selection *curSel{nullptr};
+    std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient?? convert to optional instead
+    const Step& getCurStep();
+    void setActiveStep(Step &step, Step::selection &sel); // TODO: prefer an index based interface?
+    void selectionToCopy();
+
+    template<typename F, typename... Args>
+    auto invokeOnStep(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<std::invoke_result_t<F&&, S&, Args&&...>>) {
-            auto tmp = std::invoke(f, s, args...);
+        if constexpr (!std::is_void_v<decltype(invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...);
             emit stepChanged(*curStep);
             return tmp;
         } else {
-            std::invoke(f, s, args...);
+            invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...);
             emit stepChanged(*curStep);
         }
     }
-public:
-    Step *curStep{nullptr};
-    Step::selection *curSel{nullptr};
-    std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient??
-    void setActiveStep(Step &step, Step::selection &sel);
-    void selectionToCopy();
-
-    template<class F, class... Args>
-    std::invoke_result_t<F&&, Step&, Args&&...> invokeOnStep(F &&f, Args &&...args)
+    template<typename F, typename... Args>
+    auto invokeOnSel(F &&f, Args &&...args)
     {
-        return invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...);
-    }
-    template<class F, class... Args>
-    std::invoke_result_t<F&&, Step::selection&, Args&&...> invokeOnSel(F &&f, Args &&...args)
-    {
-        return invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...);
+        if constexpr (!std::is_void_v<decltype(invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...);
+            emit selChanged(*curSel);
+            return tmp;
+        } else {
+            invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...);
+            emit selChanged(*curSel);
+        }
     }
 signals:
     void activeStepChanged(Vipster::Step &step, Vipster::Step::selection &sel);
-    void stepChanged(Step &step);
-    void selChanged(Step::selection &sel);
-    void copyBufChanged(Step::selection &buf);
+    void stepChanged(Vipster::Step &step);
+    void selChanged(Vipster::Step::selection &sel);
+    void copyBufChanged(Vipster::Step::selection &buf);
 
 public:
     // Data related to a loaded Step
     struct StepState{
-        bool automatic_bonds{true};
+        bool automatic_bonds;
+        Step::formatter formatter;
+        std::map<QWidget *, std::tuple<Step::selection, std::shared_ptr<GUI::SelData>>> selections;
         std::map<std::string,
                  std::tuple<Step::selection,
                             SelectionFilter,
                             std::shared_ptr<GUI::SelData>>> definitions;
     };
-    std::map<Step*, StepState> stepdata{};
+    // TODO: should return const ref
+    StepState& getState(const Step &s);
+private:
+    // TODO: use weak_ptr
+    std::map<const Step*, StepState> stepdata{};
 
 private:
     // don't allow user-side construction

@@ -3,14 +3,13 @@
 #include <QAbstractTableModel>
 #include "vipster/molecule.h"
 
-class MolWidget;
 class AtomModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit AtomModel(MolWidget *parent = nullptr);
-    void setStep(Vipster::Step::formatter* curStep);
+    void setStep(Vipster::Step::formatter &&curStep);
+    void update();
     void setColumns(int cols);
 
     // Header:
@@ -30,8 +29,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
 private:
-    MolWidget *parent;
-    Vipster::Step::formatter* curStep{nullptr};
+    std::optional<Vipster::Step::formatter> curStep{};
     QStringList colNames = {"Type" , "x", "y", "z", "Charge", "fx", "fy", "fz",
                             "Hide", "fix x", "fix y", "fix z"};
     std::vector<int> colMap = {0,1,2,3};

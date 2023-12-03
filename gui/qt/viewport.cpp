@@ -33,6 +33,7 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     // molecule drop-down list
     connect(&vApp, &Vipster::Application::molListChanged, this, &ViewPort::updateMoleculeList);
 
+    // TODO: what else to react on? at least selChanged!
     // update rendering if active step has changed
     connect(&vApp, &Vipster::Application::stepChanged, this,
             [&](Step &s){if (&s == curStep) {
@@ -82,10 +83,11 @@ void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
     }else{
         // short-circuit if rest of GUI does not need to be updated
         // if necessary, make sure that bonds/overlaps are up to date
+        // TODO: VP should not be responsible for this
         if((change & GUI::Change::atoms) &&
-           (vApp.stepdata[curStep].automatic_bonds ||
+           (vApp.getState(*curStep).automatic_bonds ||
             vApp.config.settings.overlap.val)){
-            curStep->generateBonds(!vApp.stepdata[curStep].automatic_bonds);
+            curStep->generateBonds(!vApp.getState(*curStep).automatic_bonds);
         }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){
@@ -190,13 +192,8 @@ void ViewPort::setStep(int i, bool setMol)
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
     // ensure this step will be reused when mol is selected again
     moldata[curMol].curStep = i;
-    // if step has not been accessed previously, set bonds to manual if bonds are already present
-    if((vApp.stepdata.find(curStep) == vApp.stepdata.end()) &&
-       !curStep->getBonds().empty()){
-        vApp.stepdata[curStep].automatic_bonds = false;
-    }
     // set widget's bond mode accordingly
-    setBondMode(vApp.stepdata[curStep].automatic_bonds);
+    setBondMode(vApp.getState(*curStep).automatic_bonds);
     // if no cell exists, disable mult-selectors
     setMultEnabled(curStep->hasCell());
     // if no previous selection exists in this viewport, create one, afterwards assign it

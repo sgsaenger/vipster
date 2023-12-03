@@ -14,7 +14,8 @@ using OpVec = ScriptWidget::OpVec;
 
 std::pair<bool, GUI::change_t> ScriptWidget::execute(
         const std::vector<ScriptOp>& operations,
-        Step& step, ViewPort::StepState& data)
+        Step& step,
+        ViewPort::StepState& data)
 {
     auto change = GUI::change_t{};
     auto mkVec = [&](const OpVec& in)->Vec{
@@ -66,7 +67,7 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             break;
         case ScriptOp::Mode::Define:
         {
-            auto &defMap = vApp.stepdata[&step].definitions;
+            auto &defMap = vApp.getState(step).definitions;
             auto [it, _] = defMap.insert_or_assign(op.s1,
                 std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>()});
             auto& seldata = *std::get<2>(it->second);
@@ -88,7 +89,7 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             }else if(op.target == "sel"){
                 execOp(*data.sel, op);
             }else{
-                auto &defMap = vApp.stepdata[&step].definitions;
+                auto &defMap = vApp.getState(step).definitions;
                 auto def = defMap.find(op.target);
                 if(def == defMap.end()){
                     throw Error("Unknown target: "+op.target);

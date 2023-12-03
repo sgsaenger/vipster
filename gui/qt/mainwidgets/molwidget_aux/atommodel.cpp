@@ -1,17 +1,26 @@
 #include "atommodel.h"
-#include "../molwidget.h"
+#include "vipsterapplication.h"
 
 using namespace Vipster;
 
-AtomModel::AtomModel(MolWidget *parent)
-    : QAbstractTableModel(parent), parent{parent}
-{
-}
+enum colIds{
+    c_name,
+    c_x, c_y, c_z,
+    c_charge,
+    c_fx, c_fy, c_fz,
+    c_hidden,
+    c_fixx, c_fixy, c_fixz
+};
 
-void AtomModel::setStep(Step::formatter *step)
+void AtomModel::setStep(Step::formatter &&step)
 {
     beginResetModel();
     curStep = step;
+    endResetModel();
+}
+
+void AtomModel::update()
+{
     endResetModel();
 }
 
@@ -21,28 +30,28 @@ void AtomModel::setColumns(int cols)
     if(cols){
         colMap.clear();
         if(cols & 0x10){
-            colMap.push_back(8);
+            colMap.push_back(c_hidden);
         }
         if(cols & 0x1){
-            colMap.push_back(0);
+            colMap.push_back(c_name);
         }
         if(cols & 0x2){
-            colMap.push_back(1);
-            colMap.push_back(2);
-            colMap.push_back(3);
+            colMap.push_back(c_x);
+            colMap.push_back(c_y);
+            colMap.push_back(c_z);
         }
         if(cols & 0x4){
-            colMap.push_back(4);
+            colMap.push_back(c_charge);
         }
         if(cols & 0x8){
-            colMap.push_back(5);
-            colMap.push_back(6);
-            colMap.push_back(7);
+            colMap.push_back(c_fx);
+            colMap.push_back(c_fy);
+            colMap.push_back(c_fz);
         }
         if(cols & 0x20){
-            colMap.push_back(9);
-            colMap.push_back(10);
-            colMap.push_back(11);
+            colMap.push_back(c_fixx);
+            colMap.push_back(c_fixy);
+            colMap.push_back(c_fixz);
         }
     }
     endResetModel();
@@ -83,17 +92,17 @@ QVariant AtomModel::data(const QModelIndex &index, int role) const
         int col = colMap[index.column()];
         const auto& atom = curStep->at(index.row());
         switch(col){
-        case 0:
+        case c_name:
             return atom.name.c_str();
-        case 1:
-        case 2:
-        case 3:
+        case c_x:
+        case c_y:
+        case c_z:
             return atom.coord[col-1];
-        case 4:
+        case c_charge:
             return atom.properties->charge;
-        case 5:
-        case 6:
-        case 7:
+        case c_fx:
+        case c_fy:
+        case c_fz:
             return atom.properties->forces[col-5];
         }
     }else if(role == Qt::CheckStateRole){
@@ -101,13 +110,13 @@ QVariant AtomModel::data(const QModelIndex &index, int role) const
         const auto& atom = curStep->at(index.row());
         // return bool*2 so true becomes CheckState::Checked
         switch(col){
-        case 8:
+        case c_hidden:
             return 2*atom.properties->flags[AtomProperties::Hidden];
-        case 9:
+        case c_fixx:
             return 2*atom.properties->flags[AtomProperties::FixX];
-        case 10:
+        case c_fixy:
             return 2*atom.properties->flags[AtomProperties::FixY];
-        case 11:
+        case c_fixz:
             return 2*atom.properties->flags[AtomProperties::FixZ];
         }
     }
@@ -121,45 +130,60 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             int col = colMap[index.column()];
             auto atom = curStep->at(index.row());
             switch(col){
-            case 0:
-                atom.name = value.toString().toStdString();
+            case c_name:
+                vApp.invokeOnStep([](Step &s, int i, const std::string &name){
+                    s.at(i).name = name;
+                }, index.row(), value.toString().toStdString());
                 break;
-            case 1:
-            case 2:
-            case 3:
+            case c_x:
+            case c_y:
+            case c_z:
+                // TODO: offload to vApp
                 atom.coord[col-1] = value.toDouble();
+                emit vApp.stepChanged(*vApp.curStep);
                 break;
-            case 4:
-                atom.properties->charge = value.toDouble();
+            case c_charge:
+                vApp.invokeOnStep([](Step &s, int i, double charge){
+                    s.at(i).properties->charge = charge;
+                }, index.row(), value.toDouble());
                 break;
-            case 5:
-            case 6:
-            case 7:
-                atom.properties->forces[col-5] = value.toDouble();
+            case c_fx:
+            case c_fy:
+            case c_fz:
+                vApp.invokeOnStep([](Step &s, int i, int dir, double charge){
+                    s.at(i).properties->forces[dir] = charge;
+                }, index.row(), col-c_fx, value.toDouble());
                 break;
             }
         }else if(role == Qt::CheckStateRole){
             int col = colMap[index.column()];
             auto atom = curStep->at(index.row());
             switch(col){
-            case 8:
-                atom.properties->flags[AtomProperties::Hidden] = value==Qt::Checked;
+            case c_hidden:
+                vApp.invokeOnStep([](Step &s, int i, bool val){
+                    s.at(i).properties->flags[AtomProperties::Hidden] = val;
+                }, index.row(), value == Qt::Checked);
                 break;
-            case 9:
-                atom.properties->flags[AtomProperties::FixX] = value==Qt::Checked;
+            case c_fixx:
+                vApp.invokeOnStep([](Step &s, int i, bool val){
+                    s.at(i).properties->flags[AtomProperties::FixX] = val;
+                }, index.row(), value == Qt::Checked);
                 break;
-            case 10:
-                atom.properties->flags[AtomProperties::FixY] = value==Qt::Checked;
+            case c_fixy:
+                vApp.invokeOnStep([](Step &s, int i, bool val){
+                    s.at(i).properties->flags[AtomProperties::FixY] = val;
+                }, index.row(), value == Qt::Checked);
                 break;
-            case 11:
-                atom.properties->flags[AtomProperties::FixZ] = value==Qt::Checked;
+            case c_fixz:
+                vApp.invokeOnStep([](Step &s, int i, bool val){
+                    s.at(i).properties->flags[AtomProperties::FixZ] = val;
+                }, index.row(), value == Qt::Checked);
                 break;
             }
         }else{
             return false;
         }
         emit dataChanged(index, index, QVector<int>() << role);
-        parent->triggerUpdate(GUI::Change::atoms);
         return true;
     }
     return false;
