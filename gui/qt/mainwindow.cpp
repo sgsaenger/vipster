@@ -309,7 +309,7 @@ void MainWindow::setupHelpMenu()
             QString("<h1>Vipster v" VIPSTER_VERSION "</h1>"
                     "<h3>(" VIPSTER_PLATFORM " " VIPSTER_ARCH ")</h3>"
                     "<p>"
-                    "©Sebastian Gsänger, 2023"
+                    "©Sebastian Gsänger, 2014 - " VIPSTER_YEAR
                     "<br>"
                     "<a href='https://sgsaenger.github.io/vipster'>Homepage</a>"
                     "<br>"

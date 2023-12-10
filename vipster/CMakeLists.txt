@@ -11,6 +11,7 @@ FetchContent_MakeAvailable(fmt)
 set(BUILD_SHARED_LIBS IS_SHARED)
 
 file(GLOB_RECURSE LIB_HEADERS "*.h")
+string(TIMESTAMP PROJECT_YEAR "%Y")
 configure_file("version.h.in" "version.h")
 
 file(GLOB_RECURSE LIB_SOURCES "*.tpp" "*.cpp" "${tinyexpr_SOURCE_DIR}/tinyexpr.c")
