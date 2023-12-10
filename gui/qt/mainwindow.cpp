@@ -130,14 +130,14 @@ void MainWindow::setupFileMenu()
     auto &copyMenu = *fileMenu.addMenu("&From existing molecule");
     copyMenu.addAction("Copy single &step",
                        [this](){
-                           auto tmpMol = Molecule{*vApp.curStep};
+                           auto tmpMol = Molecule{vApp.curStep()};
                            tmpMol.name += " (copy of step " +
                                           std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
                            vApp.newMol(std::move(tmpMol));
                        });
     copyMenu.addAction("Copy &current selection",
                        [this](){
-                           auto tmpMol = Molecule{*vApp.curSel};
+                           auto tmpMol = Molecule{vApp.curSel()};
                            tmpMol.name += " (copy of selection of step " +
                                           std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
                            vApp.newMol(std::move(tmpMol));
@@ -219,7 +219,9 @@ void MainWindow::setupEditMenu()
     // Delete selected Atom(s)
     auto *delAction = editMenu.addAction("&Delete atom(s)",
         [](){
-            vApp.invokeOnStep(static_cast<void(Step::*)(Step::const_selection&)>(&Step::delAtoms), *vApp.curSel);
+            // TODO: figure out const-correctness
+            // BUG: this clears selection but does not trigger signal
+            vApp.invokeOnStep(&Step::delAtoms<Step::atom_source>, const_cast<Step::selection&>(vApp.curSel()));
         },
         Qt::Key_Delete);
 
@@ -227,7 +229,9 @@ void MainWindow::setupEditMenu()
     auto *cutAction = editMenu.addAction("C&ut atom(s)",
         [](){
             vApp.selectionToCopy();
-            vApp.invokeOnStep(static_cast<void(Step::*)(Step::const_selection&)>(&Step::delAtoms), *vApp.curSel);
+            // TODO: figure out const-correctness
+            // BUG: this clears selection but does not trigger signal
+            vApp.invokeOnStep(&Step::delAtoms<Step::atom_source>, const_cast<Step::selection&>(vApp.curSel()));
         },
         QKeySequence::Cut);
     cutAction->setEnabled(false);
@@ -337,14 +341,7 @@ void MainWindow::updateWidgets(GUI::change_t change)
         vApp.curMol = curVP->curMol;
     }
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        vApp.curStep = curVP->curStep;
-        vApp.curSel = curVP->curSel;
-    }
-    // if necessary, make sure that bonds/overlaps are up to date
-    if((change & GUI::Change::atoms) &&
-       (vApp.getState(*vApp.curStep).automatic_bonds ||
-        vApp.config.settings.overlap.val)){
-        vApp.curStep->generateBonds(!vApp.getState(*vApp.curStep).automatic_bonds);
+        vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
     }
     // notify widgets
     for(auto& w: viewports){

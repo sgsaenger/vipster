@@ -264,7 +264,6 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
 void ScriptWidget::evalScript()
 {
     auto operations = parse();
-    GUI::change_t change{};
     if(ui->trajecCheck->isChecked()){
         for(auto& s: vApp.curMol->getSteps()){
             auto& dat = master->curVP->stepdata[&s];
@@ -273,22 +272,16 @@ void ScriptWidget::evalScript()
                 dat.sel = std::make_unique<Step::selection>(s.select(SelectionFilter{}));
             }
             auto [success, curChange] = execute(operations, s, dat);
-            // for current step, save curChange
-            if(&s == vApp.curStep){
-                change = curChange;
-            }
             // on failure, exit early
             if(!success){
                 break;
             }
         }
-        if(change) change |= GUI::Change::trajec;
     }else{
-        auto [_, curChange] = execute(operations, *vApp.curStep,
-                master->curVP->stepdata[vApp.curStep]);
-        change = curChange;
+        // TODO: sort out const-correctness
+        auto [_, curChange] = execute(operations, const_cast<Step&>(vApp.curStep()),
+                master->curVP->stepdata[&vApp.curStep()]);
     }
-    triggerUpdate(change);
 }
 
 void ScriptWidget::on_helpButton_clicked()

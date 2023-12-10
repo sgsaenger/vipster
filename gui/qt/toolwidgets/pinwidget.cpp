@@ -34,7 +34,7 @@ void PinWidget::updateWidget(GUI::change_t change)
     if((change & GUI::stepChanged) == GUI::stepChanged){
         // disable add-button when already pinned
         for(auto &dat: pinnedSteps){
-            if(dat->curStep == vApp.curStep){
+            if(dat->curStep == &vApp.curStep()){
                 ui->addStep->setDisabled(true);
                 return;
             }
@@ -43,7 +43,7 @@ void PinWidget::updateWidget(GUI::change_t change)
     }
 }
 
-PinWidget::PinnedStep::PinnedStep(Step *step, const std::string& name,
+PinWidget::PinnedStep::PinnedStep(const Step *step, const std::string& name,
                                   GUI::PBCVec mult)
     : GUI::StepData{step},
       name{name},
@@ -117,7 +117,7 @@ void PinWidget::on_delStep_clicked()
 {
     // remove local infos
     ui->insertStep->setDisabled(true);
-    if(curPin->curStep == vApp.curStep){
+    if(curPin->curStep == &vApp.curStep()){
         ui->addStep->setEnabled(true);
     }
     auto pos2 = std::find(pinnedSteps.begin(), pinnedSteps.end(), curPin);
@@ -130,7 +130,7 @@ void PinWidget::on_addStep_clicked()
 {
     ui->addStep->setDisabled(true);
     // add to list of steps
-    pinnedSteps.push_back(std::make_shared<PinnedStep>(vApp.curStep,
+    pinnedSteps.push_back(std::make_shared<PinnedStep>(&vApp.curStep(),
         vApp.curMol->name + " (Step "
             + std::to_string(master->curVP->moldata[vApp.curMol].curStep) + ')',
         GUI::PBCVec{1,1,1}));
@@ -148,7 +148,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
     curPin = currentRow < 0 ? nullptr : pinnedSteps[currentRow];
     auto hasPin = static_cast<bool>(curPin);
     auto hasCell = hasPin ? curPin->curStep->hasCell() : false;
-    ui->insertStep->setEnabled(hasPin ? curPin->curStep != vApp.curStep : false);
+    ui->insertStep->setEnabled(hasPin ? curPin->curStep != &vApp.curStep() : false);
     ui->delStep->setEnabled(hasPin);
     ui->showStep->setEnabled(hasPin);
     ui->repeatStep->setEnabled(hasPin);
@@ -186,7 +186,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
 
 void PinWidget::on_insertStep_clicked()
 {
-    if (!curPin || (curPin->curStep == vApp.curStep)) return;
+    if (!curPin || (curPin->curStep == &vApp.curStep())) return;
     Step s = *curPin->curStep;
     s.asFmt(AtomFmt::Bohr).modShift(curPin->offset);
     std::array<bool,3> fit = {ui->xFit->isChecked(),
@@ -197,18 +197,18 @@ void PinWidget::on_insertStep_clicked()
         s.modMultiply(m[0], m[1], m[2]);
     }
     if (s.hasCell() && (fit != std::array<bool,3>{{false, false, false}})){
-        auto fac = vApp.curStep->getCellDim(AtomFmt::Bohr) /
+        auto fac = vApp.curStep().getCellDim(AtomFmt::Bohr) /
                 s.getCellDim(AtomFmt::Bohr);
         auto cell = s.getCellVec();
-        const auto& target = vApp.curStep->getCellVec();
+        const auto& target = vApp.curStep().getCellVec();
         if (fit[0]) cell[0] = target[0] * fac;
         if (fit[1]) cell[1] = target[1] * fac;
         if (fit[2]) cell[2] = target[2] * fac;
         s.setCellVec(cell, true);
     }
-    vApp.curStep->newAtoms(s);
     // immediately hide pinned step
     master->curVP->delExtraData(curPin, true);
+    vApp.invokeOnStep(&Step::newAtoms<Step::atom_source>, s);
     triggerUpdate(GUI::Change::atoms);
 }
 

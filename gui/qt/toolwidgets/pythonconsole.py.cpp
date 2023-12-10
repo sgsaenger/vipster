@@ -39,7 +39,7 @@ PythonConsole::PythonConsole(QWidget *parent) :
         master->curVP->openGLWidget->zoomViewMat(f);
     });
     // Step-access
-    vip.def("curStep", [this](){return vApp.curStep;}, py::return_value_policy::reference);
+    vip.def("curStep", [this](){return vApp.curStep();}, py::return_value_policy::reference);
     vip.def("getStep", [this](size_t i){
         if(i >= vApp.curMol->getNstep())
             throw std::range_error("Step-id out of range");
@@ -51,7 +51,7 @@ PythonConsole::PythonConsole(QWidget *parent) :
         master->curVP->setStep(i+1);
     });
     vip.def("numStep", [this](){return vApp.curMol->getNstep();});
-    vip.def("curSel", [this](){return vApp.curSel;}, py::return_value_policy::reference);
+    vip.def("curSel", [this](){return vApp.curSel();}, py::return_value_policy::reference);
     // Molecule-access
     vip.def("curMol", [this](){return vApp.curMol;}, py::return_value_policy::reference);
     vip.def("getMol", [this](size_t i){

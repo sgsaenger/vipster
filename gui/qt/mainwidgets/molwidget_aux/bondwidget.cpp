@@ -60,7 +60,7 @@ void BondWidget::setActiveStep(Step &step, Step::selection &)
 void BondWidget::updateStep(Step &step)
 {
     // only update active step
-    if (&step != &vApp.getCurStep()) return;
+    if (&step != &vApp.curStep()) return;
 
     // reset table model
     bondModel.reset();
@@ -76,7 +76,7 @@ void BondWidget::recalculateBonds()
 void BondWidget::bondModeHandler(int index)
 {
     auto is_automatic = static_cast<bool>(index);
-    vApp.getState(vApp.getCurStep()).automatic_bonds = is_automatic;
+    vApp.getState(vApp.curStep()).automatic_bonds = is_automatic;
     ui->bondSetButton->setDisabled(is_automatic);
 }
 
@@ -85,20 +85,21 @@ void BondWidget::ovlpTableSelectionHandler()
     auto selection = ui->ovlpTable->selectedItems();
     if(!selection.empty()){
         const auto& sel = *selection[0];
-        const auto& ovlp = vApp.curStep->getOverlaps()[sel.row()];
+        const auto& ovlp = vApp.curStep().getOverlaps()[sel.row()];
         const auto idx = sel.column() == 0 ? ovlp.at1 : ovlp.at2;
         vApp.invokeOnSel([](Step::selection &sel, size_t idx){
             SelectionFilter filter{};
             filter.mode = SelectionFilter::Mode::Index;
             filter.indices.emplace_back(idx, SizeVec{});
-            sel = vApp.curStep->select(filter);
+            // TODO: sort out const-correctness
+            sel = const_cast<Step&>(vApp.curStep()).select(filter);
         }, idx);
     }
 }
 
 void BondWidget::updateOverlap()
 {
-    const auto& ovlp = vApp.curStep->getOverlaps();
+    const auto& ovlp = vApp.curStep().getOverlaps();
     if(ovlp.empty()){
         ui->ovlpTable->hide();
         ui->ovlpLabel->hide();

@@ -96,7 +96,7 @@ public:
     template<typename F, typename... Args>
     void invokeOnTrajec(F &&f, Args &&...args)
     {
-        static_assert(std::is_void_v<decltype(invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...))>);
+        static_assert(std::is_void_v<decltype(invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...))>);
         for (auto &step: curMol->getSteps()) {
             invokeImpl(step, std::forward<F>(f), std::forward<Args>(args)...);
             emit stepChanged(step);
@@ -124,39 +124,42 @@ signals:
     void dataListChanged(void);
 
     // Currently active state
+private:
+    Step *pCurStep{nullptr};
+    Step::selection *pCurSel{nullptr};
 public:
-    Step *curStep{nullptr};
-    Step::selection *curSel{nullptr};
     std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient?? convert to optional instead
-    const Step& getCurStep();
+    const Step& curStep();
+    const Step::selection& curSel();
     void setActiveStep(Step &step, Step::selection &sel); // TODO: prefer an index based interface?
     void selectionToCopy();
 
     template<typename F, typename... Args>
     auto invokeOnStep(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...);
-            emit stepChanged(*curStep);
+        if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...);
+            emit stepChanged(*pCurStep);
             return tmp;
         } else {
-            invokeImpl(*curStep, std::forward<F>(f), std::forward<Args>(args)...);
-            emit stepChanged(*curStep);
+            invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...);
+            emit stepChanged(*pCurStep);
         }
     }
     template<typename F, typename... Args>
     auto invokeOnSel(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...);
-            emit selChanged(*curSel);
+        if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...);
+            emit selChanged(*pCurSel);
             return tmp;
         } else {
-            invokeImpl(*curSel, std::forward<F>(f), std::forward<Args>(args)...);
-            emit selChanged(*curSel);
+            invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...);
+            emit selChanged(*pCurSel);
         }
     }
 signals:
+    // TODO: const-correctness
     void activeStepChanged(Vipster::Step &step, Vipster::Step::selection &sel);
     void stepChanged(Vipster::Step &step);
     void selChanged(Vipster::Step::selection &sel);

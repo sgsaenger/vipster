@@ -33,8 +33,8 @@ private:
                     const std::array<int8_t, 3> &hkl);
         std::array<int8_t, 3> hkl;
     };
-    std::map<Vipster::Step*, std::shared_ptr<MillerPlane>> planes;
-    Vipster::Step* curStep{nullptr};
+    // TODO: use weak_ptr
+    std::map<const Vipster::Step*, std::shared_ptr<MillerPlane>> planes;
     std::shared_ptr<MillerPlane> curPlane{nullptr};
 };
 

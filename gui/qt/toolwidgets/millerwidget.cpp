@@ -134,8 +134,7 @@ void MillerWidget::updateWidget(GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
         // set new pointers
-        curStep = vApp.curStep;
-        if(auto pos=planes.find(curStep); pos !=planes.end()){
+        if(auto pos=planes.find(&vApp.curStep()); pos !=planes.end()){
             curPlane = pos->second;
         }else{
             curPlane = nullptr;
@@ -165,7 +164,7 @@ void MillerWidget::updateWidget(GUI::change_t change)
             curPlane->update({{vApp.config.settings.milCol.val}, 1, 1});
         }
         if(change & GUI::Change::cell){
-            curPlane->update(curStep->getCellVec()*curStep->getCellDim(AtomFmt::Bohr));
+            curPlane->update(vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr));
             curPlane->update(mkFaces(curPlane->hkl));
         }
     }
@@ -218,13 +217,14 @@ void MillerWidget::on_pushButton_toggled(bool checked)
         auto off = Vec{ui->xOff->value(),
                        ui->yOff->value(),
                        ui->zOff->value()};
-        planes.insert_or_assign(curStep,
+        planes.insert_or_assign(&vApp.curStep(),
             std::make_shared<MillerPlane>(
                 mkFaces(hkl), off,
-                curStep->getCellVec()*curStep->getCellDim(AtomFmt::Bohr),
-                MillerPlane::Texture{{vApp.config.settings.milCol.val}, 1, 1}, hkl
+                vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr),
+                MillerPlane::Texture{{vApp.config.settings.milCol.val}, 1, 1},
+                hkl
             ));
-        curPlane = planes.at(curStep);
+        curPlane = planes.at(&vApp.curStep());
         master->curVP->addExtraData(curPlane, false);
     }else{
         // delete Plane

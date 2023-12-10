@@ -7,7 +7,7 @@ using namespace Vipster;
 decltype (GUI::StepData::shader_map) GUI::StepData::shader_map;
 
 // TODO: update itself if applicable if scaling can be moved to shader
-GUI::StepData::StepData(Step* step)
+GUI::StepData::StepData(const Step* step)
     : curStep{step}
 {}
 
@@ -414,7 +414,7 @@ void GUI::StepData::updateGL(void *context)
 }
 
 // TODO: radii should probably be factored in in shader
-void GUI::StepData::update(Step* step,
+void GUI::StepData::update(const Step* step,
                            bool useVdW, float atRadFac,
                            float bondRad)
 {

@@ -41,7 +41,6 @@ private:
     void fillTable();
 
     Ui::DefineWidget *ui;
-    Vipster::Step* curStep{nullptr};
     decltype(Vipster::Application::StepState::definitions) *defMap{nullptr};
     std::remove_pointer_t<decltype(defMap)>::iterator curIt;
     Vipster::Step::selection &curSel();

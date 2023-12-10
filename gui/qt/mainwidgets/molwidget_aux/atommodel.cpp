@@ -138,9 +138,9 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             case c_x:
             case c_y:
             case c_z:
-                // TODO: offload to vApp
-                atom.coord[col-1] = value.toDouble();
-                emit vApp.stepChanged(*vApp.curStep);
+                vApp.invokeOnStep([](Step &s, int i, int c, double d){
+                    s.at(i).coord[c] = d;
+                }, index.row(), col-c_x, value.toDouble());
                 break;
             case c_charge:
                 vApp.invokeOnStep([](Step &s, int i, double charge){
@@ -157,7 +157,6 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             }
         }else if(role == Qt::CheckStateRole){
             int col = colMap[index.column()];
-            auto atom = curStep->at(index.row());
             switch(col){
             case c_hidden:
                 vApp.invokeOnStep([](Step &s, int i, bool val){

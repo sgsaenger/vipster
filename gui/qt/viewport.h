@@ -41,12 +41,12 @@ public:
         size_t curStep{0};
         Vipster::GUI::PBCVec mult{1,1,1};
     };
-    std::map<Vipster::Molecule*, MolState> moldata{};
+    std::map<const Vipster::Molecule*, MolState> moldata{};
     struct StepState{
         std::unique_ptr<Vipster::Step::selection> sel{nullptr};
         std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};
     };
-    std::map<Vipster::Step*, StepState> stepdata{};
+    std::map<const Vipster::Step*, StepState> stepdata{};
 
 public slots:
     void setMol(int i);

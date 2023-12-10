@@ -26,7 +26,7 @@ struct StepData: public Data{
     std::vector<BondProp> bond_buffer{};
     std::array<float, 24> cell_buffer{};
     std::array<float, 9>  cell_mat{};
-    Step* curStep;
+    const Step* curStep;
     // CPU-State:
     float atRadFac{0};
     // GPU-State+Data (stored per instance and per context):
@@ -67,7 +67,7 @@ struct StepData: public Data{
     };
     static std::map<void*, ShaderContext> shader_map;
     // Methods:
-    StepData(Step* step=nullptr);
+    StepData(const Step* step=nullptr);
     ~StepData() override;
     StepData(StepData&& s);
     StepData(const StepData& s)=delete;
@@ -75,7 +75,7 @@ struct StepData: public Data{
     StepData& operator=(StepData&& s)=delete;
     void draw(const Vec &off, const PBCVec &mult, const Mat &cv,
               bool drawCell, void *context) override;
-    void update(Step* step, bool useVdW, float atRadFac, float bondRad);
+    void update(const Step* step, bool useVdW, float atRadFac, float bondRad);
     void drawSel(Vec off, const PBCVec &mult, void *context);
 private:
     void updateGL(void *context) override;

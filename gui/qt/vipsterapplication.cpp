@@ -4,21 +4,30 @@ using namespace Vipster;
 
 Application::Application()
 {
-    auto updateBonds = [&](){
-        getCurStep().generateBonds(!getState(getCurStep()).automatic_bonds);
+    // Ensure bonds and overlap information is up to date
+    auto updateBonds = [&](Step &step){
+        if (getState(step).automatic_bonds ||
+            config.settings.overlap.val) {
+            step.generateBonds(!getState(step).automatic_bonds);
+        }
     };
     connect(this, &Application::stepChanged, updateBonds);
 }
 
-const Step& Application::getCurStep()
+const Step& Application::curStep()
 {
-    return *curStep;
+    return *pCurStep;
+}
+
+const Step::selection& Application::curSel()
+{
+    return *pCurSel;
 }
 
 void Application::setActiveStep(Step &step, Step::selection &sel)
 {
-    curStep = &step;
-    curSel = &sel;
+    pCurStep = &step;
+    pCurSel = &sel;
 
     getState(step);
     emit activeStepChanged(step, sel);
@@ -76,6 +85,6 @@ void Application::newIOData(IOTuple &&t){
 }
 
 void Application::selectionToCopy(){
-    copyBuf = std::make_unique<Step::selection>(*curSel);
+    copyBuf = std::make_unique<Step::selection>(*pCurSel);
     emit copyBufChanged(*copyBuf);
 }

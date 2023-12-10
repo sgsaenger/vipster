@@ -44,7 +44,7 @@ CellWidget::~CellWidget()
 void CellWidget::updateStep(Step &step)
 {
     // only update active step
-    if (&step != &vApp.getCurStep()) return;
+    if (&step != &vApp.curStep()) return;
 
     QSignalBlocker blockEnabled(ui->cellEnabledBox);
     ui->cellEnabledBox->setChecked(step.hasCell());
@@ -115,7 +115,7 @@ void CellWidget::enableCell(bool enabled)
 void CellWidget::cellFmtChanged(int idx)
 {
     QSignalBlocker blockCDB(ui->cellDimBox);
-    ui->cellDimBox->setValue(static_cast<double>(vApp.getCurStep().getCellDim(static_cast<AtomFmt>(idx))));
+    ui->cellDimBox->setValue(static_cast<double>(vApp.curStep().getCellDim(static_cast<AtomFmt>(idx))));
 }
 
 void CellWidget::cellDimChanged(double dim)
@@ -139,7 +139,7 @@ void CellWidget::cellVecChanged(int row, int col)
 
     const auto scale = ui->cellScaleBox->isChecked();
     const auto val = ui->cellVecTable->item(row, col)->text().toDouble();
-    Mat cell = vApp.getCurStep().getCellVec();
+    Mat cell = vApp.curStep().getCellVec();
     const auto origVal = cell[row][col];
     cell[row][col] = val;
     try {
@@ -157,7 +157,7 @@ void CellWidget::applyToTrajectory()
         const auto scale = ui->cellScaleBox->isChecked();
         const auto dim = ui->cellDimBox->value();
         const auto fmt = static_cast<AtomFmt>(ui->cellFmt->currentIndex());
-        const auto cell = vApp.getCurStep().getCellVec();
+        const auto cell = vApp.curStep().getCellVec();
         vApp.invokeOnTrajec(
             [](Step &step, const Mat &cell, const double &dim, AtomFmt fmt, bool scale){
                 step.setCellVec(cell, scale);

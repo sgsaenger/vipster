@@ -7,8 +7,8 @@ using namespace Vipster;
 void BondModel::reset()
 {
     beginResetModel();
-    curBonds = &vApp.getCurStep().getBonds();
-    automatic_bonds = vApp.getState(vApp.getCurStep()).automatic_bonds;
+    curBonds = &vApp.curStep().getBonds();
+    automatic_bonds = vApp.getState(vApp.curStep()).automatic_bonds;
     endResetModel();
 }
 
@@ -62,7 +62,7 @@ QVariant BondModel::data(const QModelIndex &index, int role) const
             if (bond.type) {
                 return bond.type->first.c_str();
             } else {
-                const auto& curStep = vApp.getCurStep();
+                const auto& curStep = vApp.curStep();
                 const std::string& n1 = curStep[bond.at1].name;
                 const std::string& n2 = curStep[bond.at2].name;
                 return QStringLiteral("%1-%2").arg(std::min(n1, n2).c_str())
@@ -112,14 +112,13 @@ bool BondModel::setData(const QModelIndex &index, const QVariant &value, int rol
             }
         }
     }else if(role == Qt::UserRole){
-        // TODO: offload to vApp
-        const auto& color = value.value<QColor>();
-        (*curBonds)[index.row()].type->second = {
-                static_cast<uint8_t>(color.red()),
-                static_cast<uint8_t>(color.green()),
-                static_cast<uint8_t>(color.blue()),
-                static_cast<uint8_t>(color.alpha())};
-        emit vApp.stepChanged(*vApp.curStep);
+        vApp.invokeOnStep([](Step &s, int i, const QColor &c){
+            s.getBonds()[i].type->second = {
+                static_cast<uint8_t>(c.red()),
+                static_cast<uint8_t>(c.green()),
+                static_cast<uint8_t>(c.blue()),
+                static_cast<uint8_t>(c.alpha())};
+        }, index.row(), value.value<QColor>());
         return true;
     }
     return false;

@@ -48,7 +48,7 @@ void PickWidget::updateWidget(GUI::change_t change)
     if((change & (GUI::Change::atoms|GUI::Change::cell|GUI::Change::selection)) == 0u){
         return;
     }
-    const auto& curSel = vApp.curSel->asFmt(AtomFmt::Angstrom);
+    const auto& curSel = vApp.curSel().asFmt(AtomFmt::Angstrom);
     auto& text = *ui->PickText;
     text.setPlainText("Atoms:");
     const size_t nat = curSel.getNat();

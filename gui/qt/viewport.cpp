@@ -36,10 +36,18 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     // TODO: what else to react on? at least selChanged!
     // update rendering if active step has changed
     connect(&vApp, &Vipster::Application::stepChanged, this,
-            [&](Step &s){if (&s == curStep) {
-            // TODO: use explicit calls or a better abstraction
-                openGLWidget->updateWidget(GUI::stepChanged);
-            }});
+            [&](Step &s){
+                // TODO: use explicit calls or a better abstraction
+                if (&s == curStep) {
+                    openGLWidget->updateWidget(GUI::stepChanged);
+                }
+            });
+    connect(&vApp, &Vipster::Application::selChanged, this,
+            [&](Step::selection &sel){
+                if (&sel == curSel) {
+                    openGLWidget->updateWidget(GUI::Change::selection);
+                }
+            });
 }
 
 ViewPort::ViewPort(const ViewPort &vp) :
@@ -71,24 +79,17 @@ void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
     for (const auto &mol: molecules){
         ui->molList->addItem(mol.name.c_str());
     }
+    // TODO: only act if this viewport is the active one?
     setMol(molecules.size()-1);
 }
 
 void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
 {
-    if(active || (curStep == vApp.curStep)){
+    if(active || (curStep == &vApp.curStep())){
         // if we are the active viewport or display the same step,
         // trigger global update
         master->updateWidgets(change);
     }else{
-        // short-circuit if rest of GUI does not need to be updated
-        // if necessary, make sure that bonds/overlaps are up to date
-        // TODO: VP should not be responsible for this
-        if((change & GUI::Change::atoms) &&
-           (vApp.getState(*curStep).automatic_bonds ||
-            vApp.config.settings.overlap.val)){
-            curStep->generateBonds(!vApp.getState(*curStep).automatic_bonds);
-        }
         // trigger update in viewports that display the same step
         for(auto& vp: master->viewports){
             if(curStep == vp->curStep){

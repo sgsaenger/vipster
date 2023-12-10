@@ -93,7 +93,7 @@ void AtomList::setActiveStep(Step &step, Step::selection &sel)
 void AtomList::updateStep(Step &step)
 {
     // only update active step
-    if (&step != &vApp.getCurStep()) return;
+    if (&step != &vApp.curStep()) return;
 
     atomModel.update();
 }
@@ -101,7 +101,7 @@ void AtomList::updateStep(Step &step)
 void AtomList::updateSelection(Step::selection &sel)
 {
     // only update selection of active step
-    if (&sel != vApp.curSel) return;
+    if (&sel != &vApp.curSel()) return;
 
     auto& table = *ui->atomTable;
     QSignalBlocker blockTable{table.selectionModel()};
@@ -124,20 +124,22 @@ void AtomList::selectionChanged()
         filter.indices.emplace_back(static_cast<size_t>(i.row()), SizeVec{});
     }
     vApp.invokeOnSel([](Step::selection &sel, const SelectionFilter &filter){
-        sel = vApp.curStep->select(filter);
+        // TODO: sort out const-correctness
+        sel = const_cast<Step&>(vApp.curStep()).select(filter);
     }, filter);
 }
 
 void AtomList::fmtSelectionHandler(int index)
 {
-    atomModel.setStep(vApp.curStep->asFmt(static_cast<AtomFmt>(index-2)));
+    // TODO: sort out const-correctness
+    atomModel.setStep(const_cast<Step&>(vApp.curStep()).asFmt(static_cast<AtomFmt>(index-2)));
 }
 
 void AtomList::fmtButtonHandler()
 {
     QSignalBlocker blockFmtBox{ui->atomFmtBox};
     // reset old format string
-    auto oldFmt = static_cast<int>(vApp.curStep->getFmt())+2;
+    auto oldFmt = static_cast<int>(vApp.curStep().getFmt())+2;
     ui->atomFmtBox->setItemText(oldFmt, inactiveFmt[oldFmt]);
 
     // set new active format string
@@ -147,11 +149,15 @@ void AtomList::fmtButtonHandler()
     // modify actual Step
     auto fmt = static_cast<AtomFmt>(ifmt-2);
     vApp.invokeOnStep(&Step::setFmt, fmt, true);
-    ownStep = vApp.curStep->asFmt(fmt);
+    // TODO: sort out const-correctness
+    ownStep = const_cast<Step&>(vApp.curStep()).asFmt(fmt);
 
     // reset selection
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
-    filter.indices = vApp.curSel->getAtoms().indices;
-    *vApp.curSel = vApp.curStep->select(filter);
+    filter.indices = vApp.curSel().getAtoms().indices;
+    vApp.invokeOnSel([](Step::selection &sel, const SelectionFilter &filter){
+        // TODO: sort out const-correctness
+        sel = const_cast<Step&>(vApp.curStep()).select(filter);
+    }, filter);
 }

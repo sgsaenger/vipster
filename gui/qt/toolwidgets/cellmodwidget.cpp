@@ -21,79 +21,54 @@ CellModWidget::~CellModWidget()
 void CellModWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if(change & GUI::Change::cell){
-        setEnabled(vApp.curStep->hasCell());
+        setEnabled(vApp.curStep().hasCell());
     }
 }
 
 void CellModWidget::on_wrapButton_clicked()
 {
-    GUI::change_t change;
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: vApp.curMol->getSteps()){
-            step.modWrap();
-        }
-        change = GUI::Change::atoms | GUI::Change::trajec;
+        vApp.invokeOnTrajec(&Step::modWrap);
     }else{
-        vApp.curStep->modWrap();
-        change = GUI::Change::atoms;
+        vApp.invokeOnStep(&Step::modWrap);
     }
-    triggerUpdate(change);
 }
 
 void CellModWidget::on_cropButton_clicked()
 {
-    GUI::change_t change;
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: vApp.curMol->getSteps()){
-            step.modCrop();
-        }
-        change = GUI::Change::atoms | GUI::Change::trajec;
+        vApp.invokeOnTrajec(&Step::modCrop);
     }else{
-        vApp.curStep->modCrop();
-        change = GUI::Change::atoms;
+        vApp.invokeOnStep(&Step::modCrop);
     }
-    triggerUpdate(change);
 }
 
 void CellModWidget::on_multButton_clicked()
 {
-    GUI::change_t change;
-    auto x = static_cast<size_t>(ui->xMultSel->value());
-    auto y = static_cast<size_t>(ui->yMultSel->value());
-    auto z = static_cast<size_t>(ui->zMultSel->value());
+    const auto x = static_cast<size_t>(ui->xMultSel->value());
+    const auto y = static_cast<size_t>(ui->yMultSel->value());
+    const auto z = static_cast<size_t>(ui->zMultSel->value());
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: vApp.curMol->getSteps()){
-            step.modMultiply(x, y, z);
-        }
-        change = GUI::Change::atoms | GUI::Change::cell | GUI::Change::trajec;
+        vApp.invokeOnTrajec(&Step::modMultiply, x, y, z);
     }else{
-        vApp.curStep->modMultiply(x, y, z);
-        change = GUI::Change::atoms | GUI::Change::cell;
+        vApp.invokeOnStep(&Step::modMultiply, x, y, z);
     }
-    triggerUpdate(change);
 }
 
 void CellModWidget::on_alignButton_clicked()
 {
-    auto stepdir = static_cast<uint8_t>(ui->stepVecSel->currentIndex());
-    auto targetdir = static_cast<uint8_t>(ui->coordVecSel->currentIndex());
-    GUI::change_t change;
+    const auto stepdir = static_cast<uint8_t>(ui->stepVecSel->currentIndex());
+    const auto targetdir = static_cast<uint8_t>(ui->coordVecSel->currentIndex());
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: vApp.curMol->getSteps()){
-            step.modAlign(stepdir, targetdir);
-        }
-        change = GUI::Change::atoms | GUI::Change::cell | GUI::Change::trajec;
+        vApp.invokeOnTrajec(&Step::modAlign, stepdir, targetdir);
     }else{
-        vApp.curStep->modAlign(stepdir, targetdir);
-        change = GUI::Change::atoms | GUI::Change::cell;
+        vApp.invokeOnStep(&Step::modAlign, stepdir, targetdir);
     }
-    triggerUpdate(change);
 }
 
 void CellModWidget::on_reshapeButton_clicked()
 {
-    GUI::change_t change;
-    auto* table = ui->reshapeTable;
+    const auto* table = ui->reshapeTable;
     Mat newMat;
     for(int i=0; i<3; ++i){
         for(int j=0; j<3; ++j){
@@ -106,16 +81,11 @@ void CellModWidget::on_reshapeButton_clicked()
         QMessageBox::critical(this, "Could not reshape cell", e.what());
         return;
     }
-    auto cdm = ui->cdmSel->value();
-    auto fmt = static_cast<AtomFmt>(ui->cdmFmtSel->currentIndex());
+    const auto cdm = ui->cdmSel->value();
+    const auto fmt = static_cast<AtomFmt>(ui->cdmFmtSel->currentIndex());
     if(ui->trajecCheck->isChecked()){
-        for(auto& step: vApp.curMol->getSteps()){
-            step.modReshape(newMat, cdm, fmt);
-        }
-        change = GUI::Change::atoms | GUI::Change::cell | GUI::Change::trajec;
+        vApp.invokeOnTrajec(&Step::modReshape, newMat, cdm, fmt);
     }else{
-        vApp.curStep->modReshape(newMat, cdm, fmt);
-        change = GUI::Change::atoms | GUI::Change::cell;
+        vApp.invokeOnStep(&Step::modReshape, newMat, cdm, fmt);
     }
-    triggerUpdate(change);
 }

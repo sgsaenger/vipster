@@ -36,8 +36,7 @@ DefineWidget::~DefineWidget()
 void DefineWidget::updateWidget(Vipster::GUI::change_t change)
 {
     if((change & GUI::stepChanged) == GUI::stepChanged){
-        curStep = vApp.curStep;
-        defMap = &vApp.getState(*curStep).definitions;
+        defMap = &vApp.getState(vApp.curStep()).definitions;
         curIt = defMap->end();
         fillTable();
     }else if(change & (GUI::Change::definitions)){
@@ -107,7 +106,8 @@ void DefineWidget::on_newButton_clicked()
                                        ).toStdString();
     if(!ok) return;
     try {
-        auto sel = curStep->select(filter);
+        // TODO: sort out const-correctness
+        auto sel = const_cast<Step&>(vApp.curStep()).select(filter);
         auto name = QInputDialog::getText(this, "Create new filtered group",
                                           "Enter name for new group:",
                                           QLineEdit::Normal, QString(), &ok
@@ -153,7 +153,7 @@ void DefineWidget::on_fromSelButton_clicked()
                                     ).toStdString();
     if(!ok) return;
     // convert selection to index filter
-    const auto& idx = vApp.curSel->getAtoms().indices;
+    const auto& idx = vApp.curSel().getAtoms().indices;
     std::string filter;
     std::stringstream ss{filter};
     ss << "[ ";
@@ -163,7 +163,7 @@ void DefineWidget::on_fromSelButton_clicked()
     ss << ']';
     // create new group
     auto [it, _] = defMap->insert_or_assign(tmp,
-        std::tuple{*vApp.curSel,
+        std::tuple{vApp.curSel(),
                    filter,
                    std::make_shared<GUI::SelData>()});
     curIt = it;
@@ -179,9 +179,13 @@ void DefineWidget::toSelAction()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
-    *vApp.curSel = curSel();
+    // copy selection to definition
+    vApp.invokeOnSel([](Step::selection &sel, const Step::selection &curSel){
+        sel = curSel;
+    }, curSel());
+    // hide definition
     master->curVP->delExtraData(curSelData(), false);
-    triggerUpdate(GUI::Change::selection | GUI::Change::extra);
+    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
 void DefineWidget::updateAction()
@@ -189,7 +193,8 @@ void DefineWidget::updateAction()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"update group\" triggered with invalid selection"};
     }
-    curSel() = curStep->select(curFilter());
+    // TODO: sort out const-correctness
+    curSel() = const_cast<Step&>(vApp.curStep()).select(curFilter());
     curSelData()->update(&curSel(),
         vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
@@ -234,7 +239,8 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
         // change filter
         try{
             auto filter = cell->text().toStdString();
-            curSel() = curStep->select(filter);
+            // TODO: sourt out const-correctness
+            curSel() = const_cast<Step&>(vApp.curStep()).select(filter);
             curSelData()->update(&curSel(),
                 vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
             triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
