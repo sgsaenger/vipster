@@ -68,7 +68,7 @@ void parseStep(const json &j, Molecule &m)
             }
             auto coord = at.find("coord");
             if(coord == at.end() || !coord->is_array() || !(coord->size() == 3)){
-                throw IOError(fmt::format("JSON-Parser: Invalid atom (missing or invalid \"coord\"): {}", at));
+                throw IOError(fmt::format("JSON-Parser: Invalid atom (missing or invalid \"coord\"): {}", at.dump()));
             }
             s.newAtom(name->get<std::string>(), {(*coord)[0].get<double>(), (*coord)[1].get<double>(), (*coord)[2].get<double>()});
         }
@@ -78,13 +78,13 @@ void parseStep(const json &j, Molecule &m)
                 // check if atoms are valid
                 auto at_pos = bond.find("atoms");
                 if(at_pos == bond.end()){
-                    throw IOError(fmt::format("JSON-Parser: Missing atom ids in bond {}", bond));
+                    throw IOError(fmt::format("JSON-Parser: Missing atom ids in bond {}", bond.dump()));
                 }
                 const auto &atoms = at_pos.value();
                 if(!(atoms.is_array() && (atoms.size() == 2) &&
                      atoms[0].is_number_unsigned() && atoms[1].is_number_unsigned() &&
                      (atoms[0].get<size_t>() < s.getNat()) && (atoms[1].get<size_t>() < s.getNat()))){
-                    throw IOError(fmt::format("JSON-Parser: Invalid atom ids in bond {}", bond));
+                    throw IOError(fmt::format("JSON-Parser: Invalid atom ids in bond {}", bond.dump()));
                 }
                 // parse optional pbc information
                 DiffVec diff{};
@@ -93,7 +93,7 @@ void parseStep(const json &j, Molecule &m)
                     const auto &pbc = pbc_pos.value();
                     if(!(pbc.is_array() && pbc.size() == 3 &&
                          pbc[0].is_number() && pbc[1].is_number() && pbc[2].is_number())){
-                        throw IOError(fmt::format("JSON-Parser: Invalid periodic bond {}", bond));
+                        throw IOError(fmt::format("JSON-Parser: Invalid periodic bond {}", bond.dump()));
                     }
                     diff = {pbc[0].get<int>(), pbc[1].get<int>(), pbc[2].get<int>()};
                 }
@@ -133,7 +133,7 @@ IOTuple JSONParser(const std::string& name, std::istream &file)
                 parseStep(j, m);
             }
         }else{
-            throw IOError("JSON-Parser: invalid molecule data {}", mol.value());
+            throw IOError(fmt::format("JSON-Parser: invalid molecule data {}", mol->dump()));
         }
     }catch(nlohmann::detail::exception& e){
         throw IOError(e.what());
