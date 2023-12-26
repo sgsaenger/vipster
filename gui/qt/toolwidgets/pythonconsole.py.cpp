@@ -39,22 +39,22 @@ PythonConsole::PythonConsole(QWidget *parent) :
         master->curVP->openGLWidget->zoomViewMat(f);
     });
     // Step-access
-    vip.def("curStep", [this](){return vApp.curStep();}, py::return_value_policy::reference);
-    vip.def("getStep", [this](size_t i){
-        if(i >= vApp.curMol->getNstep())
+    vip.def("curStep", [](){return vApp.curStep();}, py::return_value_policy::reference);
+    vip.def("getStep", [](size_t i){
+        if(i >= vApp.curMol().getNstep())
             throw std::range_error("Step-id out of range");
-        return vApp.curMol->getStep(i+1);
+        return vApp.curMol().getStep(i+1);
     });
     vip.def("setStep", [this](size_t i){
-        if(i >= vApp.curMol->getNstep())
+        if(i >= vApp.curMol().getNstep())
             throw std::range_error("Step-id out of range");
         master->curVP->setStep(i+1);
     });
-    vip.def("numStep", [this](){return vApp.curMol->getNstep();});
-    vip.def("curSel", [this](){return vApp.curSel();}, py::return_value_policy::reference);
+    vip.def("numStep", [](){return vApp.curMol().getNstep();});
+    vip.def("curSel", [](){return vApp.curSel();}, py::return_value_policy::reference);
     // Molecule-access
-    vip.def("curMol", [this](){return vApp.curMol;}, py::return_value_policy::reference);
-    vip.def("getMol", [this](size_t i){
+    vip.def("curMol", [](){return vApp.curMol();}, py::return_value_policy::reference);
+    vip.def("getMol", [](size_t i){
         if(i>=vApp.molecules.size())
             throw std::range_error("Molecule-id out of range");
         return &*std::next(vApp.molecules.begin(), i);
@@ -64,10 +64,10 @@ PythonConsole::PythonConsole(QWidget *parent) :
             throw std::range_error("Molecule-id out of range");
         master->curVP->setMol(i);
     });
-    vip.def("numMol", [this](){return vApp.molecules.size();});
+    vip.def("numMol", [](){return vApp.molecules.size();});
     // Data-access
-    vip.def("numData", [this](){return vApp.data.size();});
-    vip.def("getData", [this](size_t i){
+    vip.def("numData", [](){return vApp.data.size();});
+    vip.def("getData", [](size_t i){
         if(i >= vApp.data.size())
             throw std::range_error("Data-id out of range");
         return std::next(vApp.data.begin(), i)->get();

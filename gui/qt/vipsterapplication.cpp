@@ -14,6 +14,18 @@ Application::Application()
     connect(this, &Application::stepChanged, updateBonds);
 }
 
+Molecule& Application::curMol()
+{
+    return *pCurMol;
+}
+
+void Application::setActiveMol(Molecule &m)
+{
+    pCurMol = &m;
+
+    emit activeMolChanged(m);
+}
+
 const Step& Application::curStep()
 {
     return *pCurStep;

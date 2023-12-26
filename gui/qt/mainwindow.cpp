@@ -132,19 +132,19 @@ void MainWindow::setupFileMenu()
                        [this](){
                            auto tmpMol = Molecule{vApp.curStep()};
                            tmpMol.name += " (copy of step " +
-                                          std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
+                                          std::to_string(curVP->moldata[&vApp.curMol()].curStep) + ")";
                            vApp.newMol(std::move(tmpMol));
                        });
     copyMenu.addAction("Copy &current selection",
                        [this](){
                            auto tmpMol = Molecule{vApp.curSel()};
                            tmpMol.name += " (copy of selection of step " +
-                                          std::to_string(curVP->moldata[vApp.curMol].curStep) + ")";
+                                          std::to_string(curVP->moldata[&vApp.curMol()].curStep) + ")";
                            vApp.newMol(std::move(tmpMol));
                        });
     copyMenu.addAction("Copy &trajectory",
                        [](){
-                           auto tmpMol = *vApp.curMol;
+                           Molecule tmpMol = vApp.curMol();
                            tmpMol.name += " (copy)";
                            vApp.newMol(std::move(tmpMol));
                        });
@@ -338,7 +338,8 @@ void MainWindow::updateWidgets(GUI::change_t change)
 {
     // pull in mol/step selection from active viewport
     if((change & GUI::molChanged) == GUI::molChanged){
-        vApp.curMol = curVP->curMol;
+//        vApp.curMol = curVP->curMol;
+        vApp.setActiveMol(*curVP->curMol);
     }
     if((change & GUI::stepChanged) == GUI::stepChanged){
         vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
@@ -496,8 +497,8 @@ void MainWindow::saveMol()
         SaveFmtDialog sfd{vApp.config.plugins, this};
         if(sfd.exec() == QDialog::Accepted){
             try{
-                writeFile(target, sfd.plugin, *vApp.curMol,
-                          curVP->moldata[vApp.curMol].curStep-1,
+                writeFile(target, sfd.plugin, vApp.curMol(),
+                          curVP->moldata[&vApp.curMol()].curStep-1,
                           sfd.getParam(), sfd.getPreset());
             }catch(const IOError& e){
                 QMessageBox msg{this};
@@ -620,9 +621,9 @@ void MainWindow::saveScreenshots()
     diag.setOption(QFileDialog::ShowDirsOnly, false);
     if(diag.exec() == QDialog::Accepted){
         path = diag.directory();
-        size_t curStep = curVP->moldata[vApp.curMol].curStep;
-        int width = std::log10(static_cast<double>(vApp.curMol->getNstep()))+1;
-        for(size_t i=1; i<=vApp.curMol->getNstep(); ++i){
+        size_t curStep = curVP->moldata[&vApp.curMol()].curStep;
+        int width = std::log10(static_cast<double>(vApp.curMol().getNstep()))+1;
+        for(size_t i=1; i <= vApp.curMol().getNstep(); ++i){
             curVP->setStep(i);
             saveScreenshot(fmt::format("{}/Step-{:0{}}.png", path.path().toStdString(), i, width).c_str());
         }

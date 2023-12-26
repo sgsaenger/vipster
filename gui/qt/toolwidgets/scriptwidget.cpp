@@ -265,7 +265,7 @@ void ScriptWidget::evalScript()
 {
     auto operations = parse();
     if(ui->trajecCheck->isChecked()){
-        for(auto& s: vApp.curMol->getSteps()){
+        for(auto& s: vApp.curMol().getSteps()){
             auto& dat = master->curVP->stepdata[&s];
             if(!dat.sel){
                 // if step hasn't been loaded before, need to create selection

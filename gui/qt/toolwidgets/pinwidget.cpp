@@ -131,8 +131,8 @@ void PinWidget::on_addStep_clicked()
     ui->addStep->setDisabled(true);
     // add to list of steps
     pinnedSteps.push_back(std::make_shared<PinnedStep>(&vApp.curStep(),
-        vApp.curMol->name + " (Step "
-            + std::to_string(master->curVP->moldata[vApp.curMol].curStep) + ')',
+        vApp.curMol().name + " (Step "
+            + std::to_string(master->curVP->moldata[&vApp.curMol()].curStep) + ')',
         GUI::PBCVec{1,1,1}));
     pinnedSteps.back()->update(pinnedSteps.back()->curStep,
                                vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val,

@@ -77,27 +77,30 @@ signals:
 private:
 public:
     std::list<Molecule> molecules{};
-    MolModel molModel{};
-    Molecule *curMol{nullptr};
+    MolModel molModel{}; // TODO: what should this be used for?
+    Molecule &curMol(); // TODO: return const
+    void setActiveMol(Molecule &m);
+private:
+    Molecule *pCurMol{nullptr};
 public:
     void newMol(Molecule &&mol);
     template<typename F, typename... Args>
     std::invoke_result<F&&, Molecule&, Args&&...> invokeOnMol(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(*curMol, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(*curMol, std::forward<F>(f), std::forward<Args>(args)...);
-            emit molChanged(*curMol);
+        if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...);
+            emit molChanged(*pCurMol);
             return tmp;
         } else {
-            invokeImpl(*curMol, std::forward<F>(f), std::forward<Args>(args)...);
-            emit molChanged(*curMol);
+            invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...);
+            emit molChanged(*pCurMol);
         }
     }
     template<typename F, typename... Args>
     void invokeOnTrajec(F &&f, Args &&...args)
     {
         static_assert(std::is_void_v<decltype(invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...))>);
-        for (auto &step: curMol->getSteps()) {
+        for (auto &step: pCurMol->getSteps()) {
             invokeImpl(step, std::forward<F>(f), std::forward<Args>(args)...);
             emit stepChanged(step);
         }
