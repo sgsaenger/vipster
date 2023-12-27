@@ -5,28 +5,35 @@
 using namespace Vipster;
 namespace fs = std::filesystem;
 
-detail::TempWrap::TempWrap()
-    : tmppath{fs::temp_directory_path()/"vipster"}
-{
-    if(!fs::exists(tmppath)){
-        fs::create_directory(tmppath);
-    }else if(!fs::is_directory(tmppath)){
-        fs::remove(tmppath);
-        fs::create_directory(tmppath);
-    }
-}
-
-const fs::path& detail::TempWrap::getPath() const
-{
-    return tmppath;
+// RAII wrapper singleton for temp folder
+namespace Vipster::detail {
+    class TempWrap{
+    public:
+        static const std::filesystem::path& getPath()
+        {
+            static TempWrap tw{};
+            return tw.tmppath;
+        }
+    private:
+        TempWrap()
+        : tmppath{fs::temp_directory_path()/"vipster"}
+        {
+            if(!fs::exists(tmppath)){
+                fs::create_directory(tmppath);
+            }else if(!fs::is_directory(tmppath)){
+                fs::remove(tmppath);
+                fs::create_directory(tmppath);
+            }
+        }
+        TempWrap(const TempWrap&) = delete;
+        std::filesystem::path tmppath;
+    };
 }
 
 const fs::path& Vipster::getTempPath()
 {
-    return detail::tempwrap.getPath();
+    return detail::TempWrap::getPath();
 }
-
-const detail::TempWrap detail::tempwrap{};
 
 const Plugin *Vipster::guessFmt(std::string fn, const PluginList &p)
 {

@@ -19,18 +19,7 @@ namespace Vipster{
                       const std::optional<Parameter>& p=std::nullopt,
                       const std::optional<Preset>& c=std::nullopt);
     const Plugin* guessFmt(std::string fn, const PluginList &p);
-    // RAII wrapper for temp folder
-    namespace detail {
-        class TempWrap{
-        public:
-            TempWrap();
-            const std::filesystem::path& getPath() const;
-        private:
-            TempWrap(const TempWrap&) = delete;
-            std::filesystem::path tmppath;
-        };
-        extern const TempWrap tempwrap;
-    }
+
     const std::filesystem::path& getTempPath();
 }
 
