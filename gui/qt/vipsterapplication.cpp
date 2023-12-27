@@ -7,16 +7,16 @@ Application::Application()
     // Ensure bonds and overlap information is up to date
     auto updateBonds = [&](Step &step){
         if (getState(step).automatic_bonds ||
-            config.settings.overlap.val) {
+            config_val.settings.overlap.val) {
             step.generateBonds(!getState(step).automatic_bonds);
         }
     };
     connect(this, &Application::stepChanged, updateBonds);
 }
 
-const ConfigState& Application::getConfig()
+const ConfigState& Application::config()
 {
-    return config;
+    return config_val;
 }
 
 Molecule& Application::curMol()
@@ -66,7 +66,7 @@ Application::StepState& Application::getState(const Step &step)
 
 void Application::newMol(Molecule &&mol){
     molecules.emplace_back(std::move(mol));
-    molecules.back().getPTE().root = &config.periodicTable;
+    molecules.back().getPTE().root = &config_val.periodicTable;
 
     emit molListChanged(molecules);
 }

@@ -37,7 +37,7 @@ void SaveFmtDialog::enableParamWidget(bool on)
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(const auto& p: vApp.config.parameters.at(plugin)){
+        for(const auto& p: vApp.config().parameters.at(plugin)){
             widget->registerParam(p.first, p.second);
         }
         for(auto& p: mw.getParams()){
@@ -57,7 +57,7 @@ void SaveFmtDialog::enablePresetWidget(bool on)
     if(on){
         widget->setEnabled(true);
         const auto& mw = *static_cast<MainWindow*>(parentWidget());
-        for(const auto& p: vApp.config.presets.at(plugin)){
+        for(const auto& p: vApp.config().presets.at(plugin)){
             widget->registerPreset(p.first, p.second);
         }
         for(auto& p: mw.getPresets()){

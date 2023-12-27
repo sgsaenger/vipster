@@ -44,8 +44,8 @@ void DefineWidget::updateWidget(Vipster::GUI::change_t change)
     }else if(change & (GUI::Change::atoms | GUI::Change::settings)){
         for(auto& def: *defMap){
             std::get<2>(def.second)->update(&std::get<0>(def.second),
-                                            vApp.config.settings.atRadVdW.val,
-                                            vApp.config.settings.atRadFac.val);
+                                            vApp.config().settings.atRadVdW.val,
+                                            vApp.config().settings.atRadFac.val);
         }
     }
 }
@@ -119,7 +119,7 @@ void DefineWidget::on_newButton_clicked()
                 std::make_shared<GUI::SelData>()});
         curIt = it;
         curSelData()->update(&curSel(),
-            vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
+            vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
         curSelData()->color = defaultColors[defMap->size()%5];
         master->curVP->addExtraData(curSelData(), false);
         triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
@@ -168,7 +168,7 @@ void DefineWidget::on_fromSelButton_clicked()
                    std::make_shared<GUI::SelData>()});
     curIt = it;
     curSelData()->update(&curSel(),
-        vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
+        vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
     curSelData()->color = defaultColors[defMap->size()%5];
     master->curVP->addExtraData(curSelData(), false);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
@@ -196,7 +196,7 @@ void DefineWidget::updateAction()
     // TODO: sort out const-correctness
     curSel() = const_cast<Step&>(vApp.curStep()).select(curFilter());
     curSelData()->update(&curSel(),
-        vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
+        vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
     triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
 }
 
@@ -242,7 +242,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
             // TODO: sourt out const-correctness
             curSel() = const_cast<Step&>(vApp.curStep()).select(filter);
             curSelData()->update(&curSel(),
-                vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val);
+                vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
             triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         }catch(const Error &e){
             QMessageBox msg{this};

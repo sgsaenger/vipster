@@ -14,10 +14,6 @@
 
 using namespace Vipster;
 
-template<typename T>
-void PeriodicTableWidget::registerProperty(QWidget*, T Element::*)
-{}
-
 template<>
 void PeriodicTableWidget::registerProperty(QWidget* w, double Element::* prop)
 {
@@ -25,7 +21,9 @@ void PeriodicTableWidget::registerProperty(QWidget* w, double Element::* prop)
             qOverload<double>(&QDoubleSpinBox::valueChanged), this,
             [prop, this](double newVal){
                 if(isGlobal){
-                    vApp.config.periodicTable.at(*currentName).*prop = newVal;
+                    vApp.invokeOnConfig([prop, this](ConfigState &s, double newVal){
+                        s.periodicTable.at(*currentName).*prop = newVal;
+                    }, newVal);
                 }else{
                     vApp.invokeOnStep([prop, this](Step &s, double newVal){
                         s.getPTE().at(*currentName).*prop = newVal;
@@ -54,7 +52,9 @@ void PeriodicTableWidget::registerProperty(QWidget* w, unsigned int Element::* p
             qOverload<int>(&QSpinBox::valueChanged), this,
             [prop, this](int newVal){
                 if(isGlobal){
-                    vApp.config.periodicTable.at(*currentName).*prop = newVal;
+                    vApp.invokeOnConfig([prop, this](ConfigState &s, int newVal){
+                        s.periodicTable.at(*currentName).*prop = newVal;
+                    }, newVal);
                 }else{
                     vApp.invokeOnStep([prop, this](Step &s, int newVal){
                         s.getPTE().at(*currentName).*prop = newVal;
@@ -84,9 +84,11 @@ void PeriodicTableWidget::registerProperty(QWidget* w, std::string Element::* pr
             [prop, w, this](){
                 auto newVal = static_cast<QLineEdit*>(w)->text().toStdString();
                 if(isGlobal){
-                    vApp.config.periodicTable.at(*currentName).*prop = newVal;
+                    vApp.invokeOnConfig([prop, this](ConfigState &s, const std::string &newVal){
+                        s.periodicTable.at(*currentName).*prop = newVal;
+                    }, newVal);
                 }else{
-                    vApp.invokeOnStep([prop, this](Step &s, const std::string& newVal){
+                    vApp.invokeOnStep([prop, this](Step &s, const std::string &newVal){
                         s.getPTE().at(*currentName).*prop = newVal;
                     }, newVal);
                 }
@@ -112,7 +114,7 @@ void PeriodicTableWidget::registerProperty(QWidget* w, ColVec Element::* prop)
     connect(static_cast<QPushButton*>(w),
             &QPushButton::clicked, this,
             [prop, w, this](){
-                ColVec& col = currentElement->*prop;
+                const ColVec& col = currentElement->*prop;
                 auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
                 auto newCol = QColorDialog::getColor(oldCol, this, QString{},
                                                      QColorDialog::ShowAlphaChannel);
@@ -124,9 +126,11 @@ void PeriodicTableWidget::registerProperty(QWidget* w, ColVec Element::* prop)
                                  static_cast<uint8_t>(newCol.blue()),
                                  static_cast<uint8_t>(newCol.alpha())};
                 if(isGlobal){
-                    vApp.config.periodicTable.at(*currentName).*prop = newVal;
+                    vApp.invokeOnConfig([prop, this](ConfigState &s, const ColVec &newVal){
+                        s.periodicTable.at(*currentName).*prop = newVal;
+                    }, newVal);
                 }else{
-                    vApp.invokeOnStep([prop, this](Step &s, const ColVec& newVal){
+                    vApp.invokeOnStep([prop, this](Step &s, const ColVec &newVal){
                         s.getPTE().at(*currentName).*prop = newVal;
                     }, newVal);
                 }
@@ -169,7 +173,7 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlob) :
 
     //initialize table
     if(isGlobal){
-        connect(&vApp, &Application::configChanged, this, [this](ConfigState &cfg){
+        connect(&vApp, &Application::configChanged, this, [this](const ConfigState &cfg){
             setTable(&cfg.periodicTable);
         });
 
@@ -224,7 +228,7 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlob) :
     connect(ui->fromGlobalButton, &QPushButton::clicked, this, [this](){
         vApp.invokeOnStep([](Step &s, const std::string &curName){
             auto &table = s.getPTE();
-            table[curName] = vApp.getConfig().periodicTable.at(curName);
+            table[curName] = vApp.config().periodicTable.at(curName);
         }, *currentName);
     });
 
@@ -273,7 +277,7 @@ void PeriodicTableWidget::setElement(QListWidgetItem *item)
                 ui->deleteButton->setEnabled(!defElem);
             }else{
                 ui->toGlobalButton->setEnabled(true);
-                const auto &globTable = vApp.getConfig().periodicTable;
+                const auto &globTable = vApp.config().periodicTable;
                 ui->fromGlobalButton->setEnabled(globTable.find(*currentName)
                                               != globTable.end());
             }
@@ -294,7 +298,7 @@ void PeriodicTableWidget::setElement(QListWidgetItem *item)
     emit(currentElementChanged());
 }
 
-void PeriodicTableWidget::setTable(PeriodicTable* pte)
+void PeriodicTableWidget::setTable(const PeriodicTable* pte)
 {
     table = pte;
     auto row = ui->pteList->currentRow();

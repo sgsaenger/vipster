@@ -26,7 +26,7 @@ void PinWidget::updateWidget(GUI::change_t change)
         on_stepList_currentRowChanged(ui->stepList->currentRow());
         // update GPU data
         for(auto &dat: pinnedSteps){
-            const auto& settings = vApp.config.settings;
+            const auto& settings = vApp.config().settings;
             dat->update(dat->curStep, settings.atRadVdW.val,
                         settings.atRadFac.val, settings.bondRad.val);
         }
@@ -134,9 +134,10 @@ void PinWidget::on_addStep_clicked()
         vApp.curMol().name + " (Step "
             + std::to_string(master->curVP->moldata[&vApp.curMol()].curStep) + ')',
         GUI::PBCVec{1,1,1}));
+    const auto settings = vApp.config().settings;
     pinnedSteps.back()->update(pinnedSteps.back()->curStep,
-                               vApp.config.settings.atRadVdW.val, vApp.config.settings.atRadFac.val,
-                               vApp.config.settings.bondRad.val);
+                               settings.atRadVdW.val, settings.atRadFac.val,
+                               settings.bondRad.val);
     ui->stepList->addItem(QString::fromStdString(pinnedSteps.back()->name));
     // enable in current viewport
     master->curVP->addExtraData(pinnedSteps.back(), true);

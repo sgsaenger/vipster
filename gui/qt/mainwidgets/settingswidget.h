@@ -20,9 +20,9 @@ public:
 
 private:
     template<typename T>
-    void registerSetting(Vipster::Setting<T>& setting);
+    void registerSetting(Vipster::Setting<T> Vipster::Settings::* setting);
     template<typename T>
-    QWidget* makeWidget(T& setting);
+    QWidget* makeWidget(Vipster::Setting<T> Vipster::Settings::* setting);
     std::vector<QLabel*> labels;
     std::vector<QWidget*> widgets;
     Ui::SettingsWidget *ui;

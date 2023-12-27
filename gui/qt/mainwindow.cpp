@@ -163,12 +163,12 @@ void MainWindow::setupFileMenu()
     // Create a nested menu that exposes all parameter presets per filetype plugin
     auto &paramMenu = *fileMenu.addMenu("Load parameter set");
     auto &presetMenu = *fileMenu.addMenu("Load IO preset");
-    for(const auto& plug: vApp.config.plugins){
+    for(const auto& plug: vApp.config().plugins){
         if(plug->makeParam){
             // create a sub-menu for each param-enabled plugin
             auto* plug_menu = paramMenu.addMenu(QString::fromStdString(plug->name));
             // register each parameter preset as a separate action
-            const auto& param_map = vApp.config.parameters[plug];
+            const auto& param_map = vApp.config().parameters.at(plug);
             for(const auto& p: param_map){
                 plug_menu->addAction(QString::fromStdString(p.first),
                                      this, &MainWindow::loadParam);
@@ -178,7 +178,7 @@ void MainWindow::setupFileMenu()
             // create a sub-menu for each IO-preset enabled plugin
             auto* plug_menu = presetMenu.addMenu(QString::fromStdString(plug->name));
             // register each IO preset as a separate action
-            const auto& conf_map = vApp.config.presets[plug];
+            const auto& conf_map = vApp.config().presets.at(plug);
             for(const auto& p: conf_map){
                 plug_menu->addAction(QString::fromStdString(p.first),
                                      this, &MainWindow::loadPreset);
@@ -443,7 +443,7 @@ void MainWindow::loadMol()
     fileDiag.setFileMode(QFileDialog::ExistingFile);
     // Format dialog
     QStringList formats{};
-    for(const auto plug: vApp.config.plugins){
+    for(const auto plug: vApp.config().plugins){
         if(plug->parser)
             formats << QString::fromStdString(plug->name);
     }
@@ -455,16 +455,16 @@ void MainWindow::loadMol()
         // else try to read file
         const auto& file = files[0].toStdString();
         // guess format or request from user
-        auto plugin = guessFmt(file, vApp.config.plugins);
+        auto plugin = guessFmt(file, vApp.config().plugins);
         if (!plugin){
             bool got_fmt{false};
             auto fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
                                                formats, 0, false, &got_fmt);
             // if the user selected the format, read the file
             if(got_fmt){
-                auto fmt = std::find_if(vApp.config.plugins.begin(), vApp.config.plugins.end(),
+                auto fmt = std::find_if(vApp.config().plugins.begin(), vApp.config().plugins.end(),
                     [&](const auto& plug){return plug->name.c_str() == fmt_s;});
-                if(fmt == vApp.config.plugins.end())
+                if(fmt == vApp.config().plugins.end())
                     throw Error{"Invalid format in loadMol occured"};
                 plugin = *fmt;
             }
@@ -494,7 +494,7 @@ void MainWindow::saveMol()
     if(fileDiag.exec() == QDialog::Accepted){
         auto target = fileDiag.selectedFiles()[0].toStdString();
         path = fileDiag.directory();
-        SaveFmtDialog sfd{vApp.config.plugins, this};
+        SaveFmtDialog sfd{vApp.config().plugins, this};
         if(sfd.exec() == QDialog::Accepted){
             try{
                 writeFile(target, sfd.plugin, vApp.curMol(),
@@ -523,14 +523,14 @@ void MainWindow::loadParam()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    auto fmt = std::find_if(vApp.config.plugins.begin(), vApp.config.plugins.end(),
+    auto fmt = std::find_if(vApp.config().plugins.begin(), vApp.config().plugins.end(),
                  [&](const auto& plug){return plug->name.c_str() == p->title();});
-    if(fmt == vApp.config.plugins.end()){
+    if(fmt == vApp.config().plugins.end()){
         throw Error{"Invalid parameter set"};
     }
     auto name = s->text().toStdString();
-    auto pos = vApp.config.parameters[*fmt].find(name);
-    if(pos != vApp.config.parameters[*fmt].end()){
+    auto pos = vApp.config().parameters.at(*fmt).find(name);
+    if(pos != vApp.config().parameters.at(*fmt).end()){
         paramWidget->registerParam(name, pos->second);
     }else{
         throw Error("Invalid parameter set");
@@ -541,14 +541,14 @@ void MainWindow::loadPreset()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    auto fmt = std::find_if(vApp.config.plugins.begin(), vApp.config.plugins.end(),
+    auto fmt = std::find_if(vApp.config().plugins.begin(), vApp.config().plugins.end(),
                  [&](const auto& plug){return plug->name.c_str() == p->title();});
-    if(fmt == vApp.config.plugins.end()){
+    if(fmt == vApp.config().plugins.end()){
         throw Error{"Invalid IO-preset"};
     }
     auto name = s->text().toStdString();
-    auto pos = vApp.config.presets[*fmt].find(name);
-    if(pos != vApp.config.presets[*fmt].end()){
+    auto pos = vApp.config().presets.at(*fmt).find(name);
+    if(pos != vApp.config().presets.at(*fmt).end()){
         presetWidget->registerPreset(name, pos->second);
     }else{
         throw Error("Invalid IO preset");
@@ -565,14 +565,16 @@ void MainWindow::saveParam()
     auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        auto& map = vApp.config.parameters[curParam->getFmt()];
-        if(map.find(name) == map.end()){
-            // register new name in menu
-            auto* fmtMenu = paramMenus.at(curParam->getFmt());
-            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadParam);
-        }
-        // save parameter
-        map[name] = *curParam;
+        vApp.invokeOnConfig([this](ConfigState &c, const Plugin *plugin, const std::string &name, const Parameter &newParam){
+            auto& map = c.parameters.at(plugin);
+            if(map.find(name) == map.end()){
+                // register new name in menu
+                auto* fmtMenu = paramMenus.at(plugin);
+                fmtMenu->addAction(name.c_str(), this, &MainWindow::loadParam);
+            }
+            // save parameter
+            map[name] = newParam;
+        }, curParam->getFmt(), name, *curParam);
     }
 }
 
@@ -586,14 +588,16 @@ void MainWindow::savePreset()
     auto name = QInputDialog::getText(this, "Save IO preset", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        auto& map = vApp.config.presets[curPreset->getFmt()];
-        if(map.find(name) == map.end()){
-            // register new name in menu
-            auto* fmtMenu = presetMenus.at(curPreset->getFmt());
-            fmtMenu->addAction(name.c_str(), this, &MainWindow::loadPreset);
-        }
-        // save preset
-        map[name] = *curPreset;
+        vApp.invokeOnConfig([this](ConfigState &c, const Plugin *plugin, const std::string &name, const Preset &newPreset){
+            auto& map = c.presets.at(plugin);
+            if(map.find(name) == map.end()){
+                // register new name in menu
+                auto* fmtMenu = presetMenus.at(plugin);
+                fmtMenu->addAction(name.c_str(), this, &MainWindow::loadPreset);
+            }
+            // save preset
+            map[name] = newPreset;
+        }, curPreset->getFmt(), name, *curPreset);
     }
 }
 
@@ -636,10 +640,11 @@ void MainWindow::saveScreenshot(QString fn)
     if(!fn.endsWith(".png", Qt::CaseInsensitive)){
         fn += ".png";
     }
-    auto aa = vApp.config.settings.antialias.val;
-    vApp.config.settings.antialias.val = false;
+    // TODO: de-antialias for screenshot?
+//    auto aa = vApp.config().settings.antialias.val;
+//    vApp.config.settings.antialias.val = false;
     auto img = curVP->openGLWidget->grabFramebuffer();
     img.save(fn);
-    vApp.config.settings.antialias.val = aa;
-    updateWidgets(0);
+//    vApp.config.settings.antialias.val = aa;
+//    updateWidgets(0);
 }

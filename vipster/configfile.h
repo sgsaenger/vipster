@@ -12,7 +12,14 @@
 
 namespace Vipster{
 
-// call this functions to read user-defined settings
+/* obtain platform-specific path for config
+ * Windows: %APPDATA%/vipster
+ * macOS: $HOME/Library/Application Support/vipster
+ * Linux/other: $XDG_CONFIG_HOME/vipster or $HOME/.config/vipster
+ */
+std::filesystem::path getConfigDir();
+
+// Read user-specified settings or defaults (call this on app-start)
 struct ConfigState{
     PeriodicTable   periodicTable;
     Settings        settings;
@@ -20,10 +27,10 @@ struct ConfigState{
     ParameterMap    parameters;
     PresetMap       presets;
 };
-
 ConfigState readConfig();
+
+// Store user-specified settings (call this on app-shutdown)
 void saveConfig(const ConfigState &);
-std::filesystem::path getConfigDir();
 
 }
 

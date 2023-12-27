@@ -47,11 +47,11 @@ using namespace Vipster;
     format.setAlphaBufferSize(8);
     format.setSamples(8);
     QSurfaceFormat::setDefaultFormat(format);
-    QObject::connect(&qapp, &QApplication::aboutToQuit, &qapp, [&](){saveConfig(state);});
+    QObject::connect(&qapp, &QApplication::aboutToQuit, [](){saveConfig(vApp.config());});
 
     // Configure Vipster application and open Window
     // TODO: currently operations need to happen in this order so GUI is configure correctly
-    vApp.config = state;
+    vApp.invokeOnConfig([](ConfigState &lhs, ConfigState &&rhs){lhs = std::move(rhs);}, std::move(state));
     MainWindow w{QDir::currentPath()};
     if (data.empty()) {
         vApp.newMol(Molecule{});

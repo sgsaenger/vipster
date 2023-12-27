@@ -190,7 +190,6 @@ void Vipster::saveConfig(const ConfigState& cs)
 {
     // check dir, try to create if it doesn't exist
     auto dir = getConfigDir();
-    json j;
     if(!fs::exists(dir)){
         std::error_code error;
         fs::create_directories(dir, error);
@@ -206,7 +205,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     if(!pte_file){
         std::cerr << "Can not open file at " << pte_path << " for writing Periodic Table" << std::endl;
     }else{
-        j = cs.periodicTable;
+        json j = cs.periodicTable;
         pte_file << j.dump(2);
     }
     // Settings
@@ -215,7 +214,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     if(!settings_file){
         std::cerr << "Can not open file at " << settings_path << " for writing settings";
     }else{
-        j = cs.settings;
+        json j = cs.settings;
         settings_file << j.dump(2);
     }
     // Parameters
@@ -224,7 +223,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     if(!param_file){
         std::cerr << "Can not open file at " << param_path << " for writing parameter sets";
     }else{
-        j = json{};
+        json j{};
         for(const auto& pair: cs.parameters){
             const auto& plugin = pair.first;
             if(!plugin->makeParam) continue;
@@ -243,7 +242,7 @@ void Vipster::saveConfig(const ConfigState& cs)
     if(!preset_file){
         std::cerr << "Can not open file at " << preset_path << " for writing IO-presets";
     }else{
-        j = json{};
+        json j{};
         for(const auto& pair: cs.presets){
             const auto& plugin = pair.first;
             if(!plugin->makePreset) continue;

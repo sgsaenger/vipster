@@ -72,8 +72,8 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
                 std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>()});
             auto& seldata = *std::get<2>(it->second);
             seldata.update(&std::get<0>(it->second),
-                            vApp.config.settings.atRadVdW.val,
-                            vApp.config.settings.atRadFac.val);
+                            vApp.config().settings.atRadVdW.val,
+                            vApp.config().settings.atRadFac.val);
             seldata.color = defaultColors[defMap.size()%5];
             change |= GUI::Change::definitions;
         }

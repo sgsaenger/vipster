@@ -47,8 +47,8 @@ void Data3DWidget::updateWidget(GUI::change_t change)
     // change isosurface colors
     if(change & GUI::Change::settings){
         for(auto& p: surfaces){
-            p.second->update({{vApp.config.settings.posCol.val,
-                               vApp.config.settings.negCol.val}, 2, 1});
+            p.second->update({{vApp.config().settings.posCol.val,
+                               vApp.config().settings.negCol.val}, 2, 1});
         }
     }
 }
@@ -753,8 +753,8 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                     mkSurf(isoval, pm),
                     curData->origin,
                     curData->cell,
-                    GUI::MeshData::Texture{{vApp.config.settings.posCol.val,
-                      vApp.config.settings.negCol.val}, 2, 1},
+                    GUI::MeshData::Texture{{vApp.config().settings.posCol.val,
+                      vApp.config().settings.negCol.val}, 2, 1},
                     pm, isoval
                     );
         surfaces.emplace(curData, curSurf);

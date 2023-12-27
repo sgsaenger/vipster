@@ -161,7 +161,7 @@ void MillerWidget::updateWidget(GUI::change_t change)
         }
     }else if(curPlane){
         if(change & GUI::Change::settings){
-            curPlane->update({{vApp.config.settings.milCol.val}, 1, 1});
+            curPlane->update({{vApp.config().settings.milCol.val}, 1, 1});
         }
         if(change & GUI::Change::cell){
             curPlane->update(vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr));
@@ -221,7 +221,7 @@ void MillerWidget::on_pushButton_toggled(bool checked)
             std::make_shared<MillerPlane>(
                 mkFaces(hkl), off,
                 vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr),
-                MillerPlane::Texture{{vApp.config.settings.milCol.val}, 1, 1},
+                MillerPlane::Texture{{vApp.config().settings.milCol.val}, 1, 1},
                 hkl
             ));
         curPlane = planes.at(&vApp.curStep());

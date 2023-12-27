@@ -50,9 +50,9 @@ private:
     {
         // TODO: if not required unless other functionality is introduced
         if constexpr (!std::is_void_v<std::invoke_result_t<F&&, S&, Args&&...>>) {
-            return std::invoke(f, s, args...);
+            return std::invoke(std::forward<F>(f), s, std::forward<Args>(args)...);
         } else {
-            std::invoke(f, s, args...);
+            std::invoke(std::forward<F>(f), s, std::forward<Args>(args)...);
         }
     }
 
@@ -69,23 +69,23 @@ public:
     // expose config read from file
     // TODO: split into multiple parts -> better signalling
 private:
+    ConfigState config_val{};
 public:
-    ConfigState config{};
-    const ConfigState &getConfig();
+    const ConfigState &config();
     template<typename F, typename... Args>
-    std::invoke_result<F&&, ConfigState&, Args&&...> invokeOnConfig(F &&f, Args &&...args)
+    auto invokeOnConfig(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(config, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(config, std::forward<F>(f), std::forward<Args>(args)...);
-            emit configChanged(config);
+        if constexpr (!std::is_void_v<decltype(invokeImpl(config_val, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(config_val, std::forward<F>(f), std::forward<Args>(args)...);
+            emit configChanged(config_val);
             return tmp;
         } else {
-            invokeImpl(config, std::forward<F>(f), std::forward<Args>(args)...);
-            emit configChanged(config);
+            invokeImpl(config_val, std::forward<F>(f), std::forward<Args>(args)...);
+            emit configChanged(config_val);
         }
     }
 signals:
-    void configChanged(Vipster::ConfigState &cfg);
+    void configChanged(const Vipster::ConfigState &cfg);
 
     // Molecule state
 private:
@@ -99,7 +99,7 @@ private:
 public:
     void newMol(Molecule &&mol);
     template<typename F, typename... Args>
-    std::invoke_result<F&&, Molecule&, Args&&...> invokeOnMol(F &&f, Args &&...args)
+    auto invokeOnMol(F &&f, Args &&...args)
     {
         if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...))>) {
             auto tmp = invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...);

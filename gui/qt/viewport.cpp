@@ -16,7 +16,7 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     setFocusPolicy(Qt::StrongFocus);
     // try to create opengl-widget
     // TODO: catch error when no gl3.3 is available
-    openGLWidget = new GLWidget{this, vApp.config.settings};
+    openGLWidget = new GLWidget{this, vApp.config().settings};
     ui->verticalLayout->insertWidget(1, openGLWidget, 1);
     setFocusProxy(openGLWidget);
     // style buttons
@@ -305,7 +305,7 @@ void ViewPort::stepBut(QAbstractButton *but)
             playTimer.stop();
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
         }else{
-            playTimer.start(static_cast<int>(vApp.config.settings.animstep.val));
+            playTimer.start(static_cast<int>(vApp.config().settings.animstep.val));
             ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
         }
     }
