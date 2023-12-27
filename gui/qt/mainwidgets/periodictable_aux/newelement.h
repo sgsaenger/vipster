@@ -2,7 +2,6 @@
 #define NEWELEMENT_H
 
 #include <QDialog>
-#include "vipster/periodictable.h"
 
 namespace Ui {
 class newelement;
@@ -13,7 +12,7 @@ class newelement : public QDialog
     Q_OBJECT
 
 public:
-    explicit newelement(Vipster::PeriodicTable& table, QWidget *parent = nullptr);
+    explicit newelement(bool isGlobal, QWidget *parent = nullptr);
     ~newelement();
 
 private slots:
@@ -21,7 +20,7 @@ private slots:
 
 private:
     Ui::newelement *ui;
-    Vipster::PeriodicTable &table;
+    bool isGlobal;
 };
 
 #endif // NEWELEMENT_H

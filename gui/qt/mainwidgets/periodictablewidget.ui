@@ -20,147 +20,25 @@
    <item>
     <widget class="QWidget" name="pteContainer" native="true">
      <layout class="QGridLayout" name="gridLayout">
-      <item row="7" column="0">
-       <widget class="QLabel" name="colLabel">
-        <property name="text">
-         <string>Display color:</string>
-        </property>
-        <property name="buddy">
-         <cstring>colSel</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="14" column="0" colspan="3">
-       <widget class="QPushButton" name="defaultBut">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Reset to Element defaults</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1" colspan="2">
-       <widget class="QLineEdit" name="pwppSel"/>
-      </item>
-      <item row="9" column="1" colspan="2">
-       <widget class="QLineEdit" name="cpppSel"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="cutLabel">
-        <property name="text">
-         <string>Bo&amp;nd cutoff radius:</string>
-        </property>
-        <property name="buddy">
-         <cstring>cutSel</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1" colspan="2">
-       <widget class="QDoubleSpinBox" name="vdwSel">
-        <property name="decimals">
-         <number>4</number>
-        </property>
-       </widget>
-      </item>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item row="13" column="0" colspan="3">
-       <widget class="QPushButton" name="fromGlobalBut">
+       <widget class="QPushButton" name="toGlobalButton">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Load from global table</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QSpinBox" name="zSel">
-        <property name="maximum">
-         <number>200</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="QDoubleSpinBox" name="mSel">
-        <property name="decimals">
-         <number>4</number>
-        </property>
-        <property name="maximum">
-         <double>1000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QDoubleSpinBox" name="cutSel">
-        <property name="decimals">
-         <number>4</number>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="zLabel">
-        <property name="text">
-         <string>Ato&amp;mic number:</string>
-        </property>
-        <property name="buddy">
-         <cstring>zSel</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="1" colspan="2">
-       <widget class="QLineEdit" name="cpnlSel"/>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="mLabel">
-        <property name="text">
-         <string>Mass:</string>
-        </property>
-        <property name="buddy">
-         <cstring>mSel</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="vdwLabel">
-        <property name="text">
-         <string>Van-der-Waals radius:</string>
-        </property>
-        <property name="buddy">
-         <cstring>vdwSel</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QLabel" name="pwppLabel">
-        <property name="text">
-         <string>PWScf PP-File:</string>
-        </property>
-        <property name="buddy">
-         <cstring>pwppSel</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1" colspan="2">
-       <widget class="QPushButton" name="colSel">
-        <property name="text">
-         <string>Select</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QDoubleSpinBox" name="covSel">
-        <property name="decimals">
-         <number>4</number>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0">
-       <widget class="QLabel" name="cpppLabel">
-        <property name="text">
-         <string>CPMD PP-File:</string>
-        </property>
-        <property name="buddy">
-         <cstring>cpppSel</cstring>
+         <string>Save element to global table</string>
         </property>
        </widget>
       </item>
@@ -177,6 +55,147 @@
         </property>
        </spacer>
       </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="covLabel">
+        <property name="text">
+         <string>Co&amp;valent radius:</string>
+        </property>
+        <property name="buddy">
+         <cstring>covSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="mLabel">
+        <property name="text">
+         <string>Mass:</string>
+        </property>
+        <property name="buddy">
+         <cstring>mSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="QSpinBox" name="zSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="maximum">
+         <number>200</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1" colspan="2">
+       <widget class="QPushButton" name="colSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Select</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="3">
+       <widget class="QPushButton" name="newElemButton">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Create/replace element</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="vdwSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="covSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="colLabel">
+        <property name="text">
+         <string>Display color:</string>
+        </property>
+        <property name="buddy">
+         <cstring>colSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="cutSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="pwppLabel">
+        <property name="text">
+         <string>PWScf PP-File:</string>
+        </property>
+        <property name="buddy">
+         <cstring>pwppSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1" colspan="2">
+       <widget class="QLineEdit" name="pwppSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1" colspan="2">
+       <widget class="QLineEdit" name="cpnlSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1" colspan="2">
+       <widget class="QLineEdit" name="cpppSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="cutLabel">
+        <property name="text">
+         <string>Bo&amp;nd cutoff radius:</string>
+        </property>
+        <property name="buddy">
+         <cstring>cutSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="0" colspan="3">
+       <widget class="QPushButton" name="fromGlobalButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Load element from global table</string>
+        </property>
+       </widget>
+      </item>
       <item row="10" column="0">
        <widget class="QLabel" name="cpnlLabel">
         <property name="text">
@@ -187,13 +206,66 @@
         </property>
        </widget>
       </item>
-      <item row="12" column="0" colspan="3">
-       <widget class="QPushButton" name="toGlobalBut">
+      <item row="18" column="0" colspan="3">
+       <widget class="QPushButton" name="defaultButton">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Save to global table</string>
+         <string>Reset to element defaults</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="vdwLabel">
+        <property name="text">
+         <string>Van-der-Waals radius:</string>
+        </property>
+        <property name="buddy">
+         <cstring>vdwSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1" colspan="2">
+       <widget class="QDoubleSpinBox" name="mSel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="cpppLabel">
+        <property name="text">
+         <string>CPMD PP-File:</string>
+        </property>
+        <property name="buddy">
+         <cstring>cpppSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="zLabel">
+        <property name="text">
+         <string>Ato&amp;mic number:</string>
+        </property>
+        <property name="buddy">
+         <cstring>zSel</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="19" column="0" colspan="3">
+       <widget class="QPushButton" name="deleteButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Delete custom element</string>
         </property>
        </widget>
       </item>
@@ -216,23 +288,13 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="covLabel">
-        <property name="text">
-         <string>Co&amp;valent radius:</string>
-        </property>
-        <property name="buddy">
-         <cstring>covSel</cstring>
-        </property>
-       </widget>
-      </item>
       <item row="15" column="0" colspan="3">
-       <widget class="QPushButton" name="deleteBut">
+       <widget class="QPushButton" name="cleanButton">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
-         <string>Delete custom Element</string>
+         <string>Remove unused elements</string>
         </property>
        </widget>
       </item>
@@ -242,88 +304,7 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>pteList</sender>
-   <signal>currentItemChanged(QListWidgetItem*,QListWidgetItem*)</signal>
-   <receiver>PeriodicTableWidget</receiver>
-   <slot>setEntry(QListWidgetItem*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>107</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>175</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toGlobalBut</sender>
-   <signal>clicked()</signal>
-   <receiver>PeriodicTableWidget</receiver>
-   <slot>changeEntry()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>375</x>
-     <y>374</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>266</x>
-     <y>318</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>fromGlobalBut</sender>
-   <signal>clicked()</signal>
-   <receiver>PeriodicTableWidget</receiver>
-   <slot>changeEntry()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>381</x>
-     <y>406</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>291</x>
-     <y>276</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>defaultBut</sender>
-   <signal>clicked()</signal>
-   <receiver>PeriodicTableWidget</receiver>
-   <slot>changeEntry()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>381</x>
-     <y>438</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>281</x>
-     <y>294</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>deleteBut</sender>
-   <signal>clicked()</signal>
-   <receiver>PeriodicTableWidget</receiver>
-   <slot>changeEntry()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>381</x>
-     <y>470</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>370</x>
-     <y>312</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>setEntry(QListWidgetItem*)</slot>
   <slot>changeEntry()</slot>

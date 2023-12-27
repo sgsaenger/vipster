@@ -16,26 +16,22 @@ class PeriodicTableWidget : public BaseWidget
 
 public:
     explicit PeriodicTableWidget(QWidget *parent = nullptr, bool isGlobal=false);
-    ~PeriodicTableWidget() override;
-    void updateWidget(Vipster::GUI::change_t) override;
+    ~PeriodicTableWidget();
     void setTable(Vipster::PeriodicTable* table);
 
-public slots:
-    void setEntry(QListWidgetItem* item);
-    void changeEntry();
-
 signals:
-    void currentEntryChanged();
+    void currentElementChanged();
 
-private slots:
-    void on_helpButton_clicked();
+private:
+    void setElement(QListWidgetItem* item);
 
 private:
     const std::string* currentName{nullptr};
     Vipster::Element* currentElement{nullptr};
-    Vipster::PeriodicTable* table{nullptr};
-    Ui::PeriodicTableWidget *ui;
-    bool isGlobal{false};
+    Vipster::PeriodicTable *table{};
+    Ui::PeriodicTableWidget *ui{};
+    const bool isGlobal;
+
     template<typename T>
     void registerProperty(QWidget* w, T Vipster::Element::* prop);
 };

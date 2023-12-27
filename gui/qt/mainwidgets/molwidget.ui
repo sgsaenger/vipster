@@ -44,20 +44,6 @@
       <item>
        <widget class="PeriodicTableWidget" name="typeWidget" native="true"/>
       </item>
-      <item>
-       <widget class="QPushButton" name="newElemButton">
-        <property name="text">
-         <string>Create/replace Element</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="clearTableButton">
-        <property name="text">
-         <string>Remove unused Elements</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>

@@ -14,6 +14,11 @@ Application::Application()
     connect(this, &Application::stepChanged, updateBonds);
 }
 
+const ConfigState& Application::getConfig()
+{
+    return config;
+}
+
 Molecule& Application::curMol()
 {
     return *pCurMol;

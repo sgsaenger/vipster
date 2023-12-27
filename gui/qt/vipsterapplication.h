@@ -67,9 +67,23 @@ public:
     }
 
     // expose config read from file
+    // TODO: split into multiple parts -> better signalling
 private:
 public:
     ConfigState config{};
+    const ConfigState &getConfig();
+    template<typename F, typename... Args>
+    std::invoke_result<F&&, ConfigState&, Args&&...> invokeOnConfig(F &&f, Args &&...args)
+    {
+        if constexpr (!std::is_void_v<decltype(invokeImpl(config, std::forward<F>(f), std::forward<Args>(args)...))>) {
+            auto tmp = invokeImpl(config, std::forward<F>(f), std::forward<Args>(args)...);
+            emit configChanged(config);
+            return tmp;
+        } else {
+            invokeImpl(config, std::forward<F>(f), std::forward<Args>(args)...);
+            emit configChanged(config);
+        }
+    }
 signals:
     void configChanged(Vipster::ConfigState &cfg);
 
