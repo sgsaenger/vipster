@@ -2,20 +2,21 @@
 #define PICKWIDGET_H
 
 #include <QWidget>
-#include "../basewidget.h"
+
+#include "vipster/molecule.h"
 
 namespace Ui {
 class PickWidget;
 }
 
-class PickWidget : public BaseWidget
+class PickWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit PickWidget(QWidget *parent = nullptr);
     ~PickWidget() override;
-    void updateWidget(Vipster::GUI::change_t) override;
+    void updateSelection(const Vipster::Step::selection &);
 
 private:
     Ui::PickWidget *ui;

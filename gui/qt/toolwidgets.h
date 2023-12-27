@@ -1,8 +1,6 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include "basewidget.h"
-
 #include "toolwidgets/cellmodwidget.h"
 #include "toolwidgets/definewidget.h"
 #include "toolwidgets/millerwidget.h"
@@ -16,7 +14,7 @@
 #include "toolwidgets/lammpswidget.lmp.h"
 #endif
 
-inline std::vector<std::pair<BaseWidget*, QString>> makeToolWidgets(QWidget* parent)
+inline std::vector<std::pair<QWidget*, QString>> makeToolWidgets(QWidget* parent)
 {
     return {
         {new PickWidget(parent), "Selected Atoms"},
