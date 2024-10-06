@@ -15,10 +15,6 @@
 
 namespace Vipster{
 
-using IOTuple = std::tuple<Molecule,
-                           std::optional<Parameter>,
-                           DataList>;
-
 struct Plugin{
     std::string name;
     std::string extension;

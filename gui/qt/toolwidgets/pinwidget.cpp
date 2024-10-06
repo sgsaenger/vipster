@@ -1,7 +1,7 @@
 #include "../mainwindow.h"
 #include "pinwidget.h"
 #include "ui_pinwidget.h"
-#include "vipsterapplication.h"
+#include "../vipsterapplication.h"
 #include <QMessageBox>
 
 using namespace Vipster;

@@ -61,7 +61,7 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
 
     SECTION( "Linear algebra ops" ) {
         REQUIRE( float_comp(Vec_dot(v1,v2), 4.5) );
-        REQUIRE( float_comp(Vec_length(v1), sqrt(3)) );
+        REQUIRE( float_comp(Vec_length(v1), sqrt(3.)) );
         REQUIRE( Vec_cross(v1, v2) == Vec{{0,0,0}} );
         Vec v3{{1,0,0}};
         REQUIRE( Vec_cross(v1, v3) == Vec{{0,1,-1}} );

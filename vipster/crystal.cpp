@@ -29,26 +29,26 @@ Mat Vipster::makeBravais(int ibrav, Vec axes, Vec angles)
     case 4:
         // hexagonal/trigonal
         if(float_comp(axes[2], 0.)) throw Error("makeBravais: axes[2] not provided");
-        return {{{{ 1.0,          0.0, 0.0}},
-                 {{-0.5, sqrt(3)*0.5, 0.0}},
-                 {{ 0.0,          0.0, axes[2]}}}};
+        return {{{{ 1.0,              0.0, 0.0}},
+                 {{-0.5, std::sqrt(3)*0.5, 0.0}},
+                 {{ 0.0,              0.0, axes[2]}}}};
     case 5:
         // trigonal, 3fold axis z
         if(std::abs(angles[0]) >=1) throw Error("makeBravais: angles[0] is invalid");
         {
-        auto tx = sqrt((1.-angles[0])/2.);
-        auto ty = sqrt((1.-angles[0])/6.);
-        auto tz = sqrt((1.+2*angles[0])/3.);
+        auto tx = std::sqrt((1.-angles[0])/2.);
+        auto ty = std::sqrt((1.-angles[0])/6.);
+        auto tz = std::sqrt((1.+2*angles[0])/3.);
         return {{{{tx, -ty, tz}}, {{0, 2*ty, tz}},{{-tx, -ty, tz}}}};
         }
     case -5:
         // trigonal, 3fold axis <111>
         if(std::abs(angles[0]) >=1) throw Error("makeBravais: angles[0] is invalid");
         {
-        auto ty = sqrt((1.-angles[0])/6.);
-        auto tz = sqrt((1.+2*angles[0])/3.);
-        auto u = (tz - 2*sqrt(2)*ty)/sqrt(3);
-        auto v = (tz + sqrt(2)*ty)/sqrt(3);
+        auto ty = std::sqrt((1.-angles[0])/6.);
+        auto tz = std::sqrt((1.+2*angles[0])/3.);
+        auto u = (tz - 2*std::sqrt(2)*ty)/std::sqrt(3);
+        auto v = (tz + std::sqrt(2)*ty)/std::sqrt(3);
         return {{{{u,v,v}}, {{v,u,v}}, {{v,v,u}}}};
         }
     case 6:
@@ -107,7 +107,7 @@ Mat Vipster::makeBravais(int ibrav, Vec axes, Vec angles)
         if(float_comp(axes[2], 0.)) throw Error("makeBravais: axes[2] not provided");
         if(std::abs(angles[0]) >=1) throw Error("makeBravais: angles[0] is invalid");
         return {{{{ 1, 0, 0}},
-                 {{ axes[1]*angles[0], axes[1]*sqrt(1.-pow(angles[1],2)), 0}},
+                 {{ axes[1]*angles[0], axes[1]*std::sqrt(1.-pow(angles[1],2)), 0}},
                  {{ 0, 0, axes[2]}}}};
     case -12:
         // monoclinic, unique axis y
@@ -116,23 +116,23 @@ Mat Vipster::makeBravais(int ibrav, Vec axes, Vec angles)
         if(std::abs(angles[1]) >=1) throw Error("makeBravais: angles[1] is invalid");
         return {{{{ 1, 0, 0}},
                  {{ 0, axes[1], 0}},
-                 {{ axes[2]*angles[1], 0, axes[2]*sqrt(1.-pow(angles[1],2))}}}};
+                 {{ axes[2]*angles[1], 0, axes[2]*std::sqrt(1.-pow(angles[1],2))}}}};
     case 13:
         // bcm, unique axis z
         if(float_comp(axes[1], 0.)) throw Error("makeBravais: axes[1] not provided");
         if(float_comp(axes[2], 0.)) throw Error("makeBravais: axes[2] not provided");
         if(std::abs(angles[0]) >=1) throw Error("makeBravais: angles[0] is invalid");
-        return {{{{0.5, 0, -0.5*axes[2]}},
-                 {{axes[1]*angles[1], 0, axes[1]*sqrt(1.-pow(angles[1],2))}},
-                 {{0.5, 0, 0.5*axes[2]}}}};
+        return {{{{0.5, 0, -0.5 * axes[2]}},
+                 {{axes[1] * angles[1], 0, axes[1] * std::sqrt(1. - pow(angles[1], 2))}},
+                 {{0.5, 0, 0.5 * axes[2]}}}};
     case -13:
         // bcm, unique axis y
         if(float_comp(axes[1], 0.)) throw Error("makeBravais: axes[1] not provided");
         if(float_comp(axes[2], 0.)) throw Error("makeBravais: axes[2] not provided");
         if(std::abs(angles[1]) >=1) throw Error("makeBravais: angles[1] is invalid");
-        return {{{{0.5, -0.5*axes[1], 0}},
-                 {{0.5, 0.5*axes[1], 0}},
-                 {{axes[2]*angles[2], 0, axes[2]*sqrt(1.-pow(angles[2],2))}}}};
+        return {{{{0.5, -0.5 * axes[1], 0}},
+                 {{0.5,  0.5 * axes[1], 0}},
+                 {{axes[2] * angles[2], 0, axes[2] * std::sqrt(1. - pow(angles[2], 2))}}}};
     case 14:
         // triclinic
         if(float_comp(axes[1], 0.)) throw Error("makeBravais: axes[1] not provided");
@@ -141,13 +141,13 @@ Mat Vipster::makeBravais(int ibrav, Vec axes, Vec angles)
         if(std::abs(angles[1]) >=1) throw Error("makeBravais: angles[1] is invalid");
         if(std::abs(angles[2]) >=1) throw Error("makeBravais: angles[2] is invalid");
         {
-        auto singam = sqrt(1.-pow(angles[2],2));
+        auto singam = std::sqrt(1. - pow(angles[2],2));
         return {{{{ 1, 0, 0}},
-                 {{axes[1]*angles[2], axes[2]*singam, 0}},
-                 {{axes[2]*angles[1], axes[2]*(angles[0]-angles[1]*angles[2])/singam,
-                   axes[2]*sqrt(1+2*angles[0]*angles[1]*angles[2]-
-                                 pow(angles[0],2)-pow(angles[1],2)-
-                                 pow(angles[2],2))/singam}}}};
+                 {{axes[1] * angles[2], axes[2] * singam, 0}},
+                 {{axes[2] * angles[1], axes[2] * (angles[0] - angles[1] * angles[2]) / singam,
+                   axes[2] * sqrt(1 + 2 * angles[0] * angles[1] * angles[2] -
+                                  pow(angles[0],2) - pow(angles[1], 2) -
+                                  pow(angles[2],2)) / singam}}}};
         }
     default:
         throw Error("makeBravais unknown ibrav");

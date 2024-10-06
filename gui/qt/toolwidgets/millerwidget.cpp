@@ -1,7 +1,7 @@
 #include "../mainwindow.h"
 #include "millerwidget.h"
 #include "ui_millerwidget.h"
-#include "vipsterapplication.h"
+#include "../vipsterapplication.h"
 
 using namespace Vipster;
 

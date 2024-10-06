@@ -1,7 +1,7 @@
 #include "../mainwindow.h"
 #include "pickwidget.h"
 #include "ui_pickwidget.h"
-#include "vipsterapplication.h"
+#include "../vipsterapplication.h"
 using namespace Vipster;
 
 PickWidget::PickWidget(QWidget *parent) :

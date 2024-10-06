@@ -5,8 +5,8 @@
 #include <QAction>
 #include <type_traits>
 
-#include "vipsterapplication.h"
 #include "vipster/molecule.h"
+#include "../vipsterapplication.h"
 #include "../basewidget.h"
 #include "seldata.h"
 

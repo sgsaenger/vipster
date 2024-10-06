@@ -106,7 +106,7 @@ static Mat makeCell(int ibrav, double b, double c,
     case 4:
         // hexagonal
         return {Vec{   1, 0.0,           0},
-                Vec{-0.5, 0.5*sqrt(3), 0},
+                Vec{-0.5, 0.5*sqrt(3.), 0},
                 Vec{   0, 0,             c}};
     case 5:
         // trigonal
