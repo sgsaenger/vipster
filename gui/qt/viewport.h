@@ -28,7 +28,6 @@ public:
     explicit ViewPort(MainWindow *parent, bool active=false);
     explicit ViewPort(const ViewPort &vp);
     ~ViewPort() override;
-    void triggerUpdate(Vipster::GUI::change_t change);
     void updateWidget(Vipster::GUI::change_t change);
     void makeActive(bool active);
     void addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
@@ -66,6 +65,8 @@ private slots:
     void updateMoleculeList(const std::list<Vipster::Molecule> &molecules);
 
 public:
+    void updateState();
+
     Ui::ViewPort *ui;
     MainWindow *master;
     GLWidget *openGLWidget{nullptr};

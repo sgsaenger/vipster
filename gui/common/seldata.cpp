@@ -5,7 +5,7 @@ using namespace Vipster;
 
 decltype(GUI::SelData::shader_map) GUI::SelData::shader_map;
 
-GUI::SelData::SelData(Step::selection *sel)
+GUI::SelData::SelData(Step::const_selection const* sel)
     : curSel{sel}
 {}
 
@@ -129,7 +129,7 @@ void GUI::SelData::updateGL(void *context)
     }
 }
 
-void GUI::SelData::update(Step::selection* sel, bool useVdW, float atRadFac)
+void GUI::SelData::update(Step::const_selection const* sel, bool useVdW, float atRadFac)
 {
     this->atRadFac = atRadFac;
     curSel = sel;

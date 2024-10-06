@@ -33,20 +33,22 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
     // molecule drop-down list
     connect(&vApp, &Vipster::Application::molListChanged, this, &ViewPort::updateMoleculeList);
 
-    // TODO: what else to react on? at least selChanged!
     // update rendering if active step has changed
     connect(&vApp, &Vipster::Application::stepChanged, this,
-            [&](Step &s){
-                // TODO: use explicit calls or a better abstraction
+            [&](const Step &s){
                 if (&s == curStep) {
-                    openGLWidget->updateWidget(GUI::stepChanged);
+                    updateState();
                 }
             });
     connect(&vApp, &Vipster::Application::selChanged, this,
-            [&](Step::selection &sel){
+            [&](const Step::selection &sel){
                 if (&sel == curSel) {
-                    openGLWidget->updateWidget(GUI::Change::selection);
+                    updateState();
                 }
+            });
+    connect(&vApp, &Vipster::Application::configChanged, this,
+            [&](const Vipster::ConfigState &){
+                updateState();
             });
 }
 
@@ -73,37 +75,41 @@ ViewPort::~ViewPort()
     delete ui;
 }
 
+void ViewPort::updateState() {
+    // set widget's bond mode accordingly
+    setBondMode(vApp.getState(*curStep).automatic_bonds);
+    // if no cell exists, disable mult-selectors
+    setMultEnabled(curStep->hasCell());
+
+    // update color of selection
+    openGLWidget->selection.color = vApp.config().settings.selCol.val;
+
+    // update GL Widget
+    openGLWidget->setMainStep(curStep);
+    openGLWidget->stepExtras = &stepdata[curStep].extras;
+    openGLWidget->setMainSel(curSel);
+    openGLWidget->update();
+}
+
 void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
     QSignalBlocker block{ui->molList};
+
+    // TODO: dummy mechanism to not access beyond last mol.
+    //       should rather determine if curMol is still valid (weak_ptr?)
+    bool shrunk = molecules.size() < ui->molList->count();
+
     ui->molList->clear();
     for (const auto &mol: molecules){
         ui->molList->addItem(mol.name.c_str());
     }
-    // TODO: only act if this viewport is the active one?
-    setMol(molecules.size()-1);
-}
 
-void ViewPort::triggerUpdate(Vipster::GUI::change_t change)
-{
-    if(active || (curStep == &vApp.curStep())){
-        // if we are the active viewport or display the same step,
-        // trigger global update
-        master->updateWidgets(change);
-    }else{
-        // trigger update in viewports that display the same step
-        for(auto& vp: master->viewports){
-            if(curStep == vp->curStep){
-                vp->updateWidget(change);
-            }
-        }
+    if (active || shrunk) {
+        setMol(molecules.size()-1);
     }
 }
 
 void ViewPort::updateWidget(GUI::change_t change)
 {
-    if(change & GUI::Change::cell){
-        setMultEnabled(curStep->hasCell());
-    }
     if(change & GUI::Change::extra){
         // remove extra-data that has been erased
         vpdata.extras.erase(
@@ -118,7 +124,6 @@ void ViewPort::updateWidget(GUI::change_t change)
                 sd.second.extras.end());
         }
     }
-    openGLWidget->updateWidget(change);
 }
 
 auto cmpExtraData(const std::shared_ptr<GUI::Data>& sp)
@@ -160,9 +165,11 @@ void ViewPort::setMol(int index)
     if(curData.curStep == 0){
         curData.curStep = nstep;
     }
+
     // set mol-selector
     QSignalBlocker selBlock{ui->molList};
     ui->molList->setCurrentIndex(index);
+
     // set mult manually
     QSignalBlocker xBlock{ui->xMultBox};
     ui->xMultBox->setValue(curData.mult[0]);
@@ -171,7 +178,8 @@ void ViewPort::setMol(int index)
     QSignalBlocker zBlock{ui->zMultBox};
     ui->zMultBox->setValue(curData.mult[2]);
     openGLWidget->setMult(curData.mult);
-    //Step-control
+
+    // Step-control
     ui->stepLabel->setText(QString::number(nstep));
     QSignalBlocker boxBlocker(ui->stepEdit);
     QSignalBlocker slideBlocker(ui->stepSlider);
@@ -184,8 +192,14 @@ void ViewPort::setMol(int index)
         ui->stepEdit->setEnabled(true);
         ui->stepSlider->setEnabled(true);
     }
+
     // setStep will load the step and trigger the needed updates
     setStep(moldata[curMol].curStep, true);
+
+    // update app state if required
+    if (active) {
+        vApp.setActiveMol(*curMol);
+    }
 }
 
 void ViewPort::setStep(int i, bool setMol)
@@ -193,16 +207,14 @@ void ViewPort::setStep(int i, bool setMol)
     curStep = &curMol->getStep(static_cast<size_t>(i-1));
     // ensure this step will be reused when mol is selected again
     moldata[curMol].curStep = i;
-    // set widget's bond mode accordingly
-    setBondMode(vApp.getState(*curStep).automatic_bonds);
-    // if no cell exists, disable mult-selectors
-    setMultEnabled(curStep->hasCell());
+
     // if no previous selection exists in this viewport, create one, afterwards assign it
     auto& selRef = stepdata[curStep].sel;
     if(!selRef && curStep){
         selRef = std::make_unique<Step::selection>(curStep->select(SelectionFilter{}));
     }
     curSel = selRef.get();
+
     //Handle control-elements
     if(playTimer.isActive() && (i == static_cast<int>(curMol->getNstep()))){
         playTimer.stop();
@@ -226,13 +238,13 @@ void ViewPort::setStep(int i, bool setMol)
         ui->nextStepButton->setEnabled(true);
         ui->lastStepButton->setEnabled(true);
     }
-    if(this == master->curVP){
+
+    // Update Viewport and GL Widget
+    updateState();
+
+    // Update application state
+    if(active){
         vApp.setActiveStep(*curStep, *curSel);
-    }
-    if(setMol){
-        triggerUpdate(GUI::molChanged);
-    }else{
-        triggerUpdate(GUI::stepChanged);
     }
 }
 

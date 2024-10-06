@@ -16,7 +16,7 @@ namespace GUI {
         // CPU-Data:
         std::vector<SelProp> sel_buffer{};
         std::array<float, 9>  cell_mat{};
-        Step::selection* curSel{nullptr};
+        Step::const_selection const* curSel{nullptr};
         float atRadFac{};
         // GPU-State/Data:
         struct ObjectContext{
@@ -37,7 +37,7 @@ namespace GUI {
         void initGL(void *context) override;
     public:
         ColVec color{};
-        SelData(Step::selection* sel=nullptr);
+        SelData(Step::const_selection const* sel=nullptr);
         SelData(SelData&& dat);
         SelData& operator=(SelData&& dat)=delete;
         SelData(const SelData& dat)=delete;
@@ -45,7 +45,7 @@ namespace GUI {
         ~SelData() override;
         void draw(const Vec &off, const PBCVec &mult, const Mat &cv,
                   bool drawCell, void *context) override;
-        void update(Step::selection* sel, bool useVdW, float atRadFac);
+        void update(Step::const_selection const* sel, bool useVdW, float atRadFac);
         void initShader(GlobalContext& globals, shader& shader);
         void initVAO(GlobalContext& globals, ObjectContext& objects, shader& shader);
     };

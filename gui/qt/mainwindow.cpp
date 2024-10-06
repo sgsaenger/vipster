@@ -338,7 +338,6 @@ void MainWindow::updateWidgets(GUI::change_t change)
 {
     // pull in mol/step selection from active viewport
     if((change & GUI::molChanged) == GUI::molChanged){
-//        vApp.curMol = curVP->curMol;
         vApp.setActiveMol(*curVP->curMol);
     }
     if((change & GUI::stepChanged) == GUI::stepChanged){

@@ -28,32 +28,6 @@ GLWidget::~GLWidget()
     doneCurrent();
 }
 
-void GLWidget::triggerUpdate(GUI::change_t change){
-    updateTriggered = true;
-    static_cast<ViewPort*>(parent())->triggerUpdate(change);
-}
-
-void GLWidget::updateWidget(GUI::change_t change)
-{
-    if((change & GUI::stepChanged) == GUI::stepChanged ){
-        setMainStep(static_cast<ViewPort*>(parent())->curStep);
-        setMainSel(static_cast<ViewPort*>(parent())->curSel);
-        stepExtras = &static_cast<ViewPort*>(parent())->stepdata[curStep].extras;
-    }else{
-        if(change & GUI::Change::settings){
-            selection.color = settings.selCol.val;
-        }
-        if(change & (GUI::Change::atoms | GUI::Change::cell | GUI::Change::fmt |
-                     GUI::Change::settings)) {
-            updateMainStep();
-            updateMainSelection();
-        }else if(change & GUI::Change::selection){
-            updateMainSelection();
-        }
-    }
-    update();
-}
-
 void GLWidget::initializeGL()
 {
     makeCurrent();
@@ -62,6 +36,10 @@ void GLWidget::initializeGL()
 
 void GLWidget::paintGL()
 {
+    // TODO: find better way to assert this
+    if (!curStep || !curSel) {
+        return;
+    }
     QPainter painter{this};
     painter.beginNativePainting();
     draw(this);
@@ -212,11 +190,16 @@ void GLWidget::rotAtoms(QPoint delta)
     auto axes = getAxes();
     Vec axis = delta.y() * axes[0] + -delta.x() * axes[1];
     if(curSel->getNat()){
-        curSel->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnSel([](Step::selection &s, double angle, const Vec &axis, const Vec &shift){
+            s.asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
+        }, angle, axis, shift);
     }else{
-        curStep->asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnStep([](Step &s, double angle, const Vec &axis, const Vec &shift){
+            s.asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
+        }, angle, axis, shift);
     }
-    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::shiftAtomsXY(QPoint delta)
@@ -224,11 +207,16 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
     if(curSel->getNat()){
-        curSel->asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnSel([](Step::selection &s, const Vec &axis){
+            s.asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
+        }, axis);
     }else{
-        curStep->asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnStep([](Step &s, const Vec &axis){
+            s.asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
+        }, axis);
     }
-    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::shiftAtomsZ(QPoint delta)
@@ -236,11 +224,16 @@ void GLWidget::shiftAtomsZ(QPoint delta)
     auto axes = Mat_trans(Mat_inv(getAxes()));
     double fac = 0.01 * (delta.x() + delta.y());
     if(curSel->getNat()){
-        curSel->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnSel([](Step::selection &s, const Vec &axis, double fac){
+            s.asFmt(AtomFmt::Bohr).modShift(axis, fac);
+        }, axes[2], fac);
     }else{
-        curStep->asFmt(AtomFmt::Bohr).modShift(axes[2], fac);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnStep([](Step &s, const Vec &axis, double fac){
+            s.asFmt(AtomFmt::Bohr).modShift(axis, fac);
+        }, axes[2], fac);
     }
-    triggerUpdate(GUI::Change::atoms);
 }
 
 void GLWidget::wheelEvent(QWheelEvent *e)
@@ -266,8 +259,11 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            *curSel = curStep->select(SelectionFilter{});
-            triggerUpdate(GUI::Change::selection);
+            // TODO: this assumes viewport is active -> use viewport over vApp?
+            vApp.invokeOnSel([](Step::selection &sel){
+                // TODO: sort out const-correctness
+                sel = const_cast<Step&>(vApp.curStep()).select(SelectionFilter{});
+            });
         }
         break;
     case MouseMode::Modify:
@@ -381,9 +377,12 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             filter.mode = SelectionFilter::Mode::Index;
             filter.indices = std::move(pick);
             // create new selection from filter
-            *curSel = curStep->select(filter);
+            // TODO: this assumes viewport is active -> use viewport over vApp?
+            vApp.invokeOnSel([](Step::selection &sel, const SelectionFilter &filter){
+                // TODO: sort out const-correctness
+                sel = const_cast<Step&>(vApp.curStep()).select(filter);
+            }, filter);
             rectPos = mousePos;
-            triggerUpdate(GUI::Change::selection);
         }
         break;
     case MouseMode::Modify:
@@ -407,18 +406,22 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             break;
         const auto& bonds = curStep->getBonds();
         // if bond is already present, delete it and return
-        for(size_t i=0; i<bonds.size(); ++i){
-            const auto& b = bonds[i];
-            if(((b.at1 == at1.first) && (b.at2 == at2.first) && (b.diff == off_r)) ||
-               ((b.at1 == at2.first) && (b.at2 == at1.first) && (b.diff == off_l))){
-                curStep->delBond(i);
-                triggerUpdate(GUI::Change::atoms);
-                return;
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnStep([&](Step &s){
+            for(size_t i=0; i<bonds.size(); ++i){
+                const auto& b = bonds[i];
+                if(((b.at1 == at1.first) && (b.at2 == at2.first) && (b.diff == off_r)) ||
+                   ((b.at1 == at2.first) && (b.at2 == at1.first) && (b.diff == off_l))){
+                    s.delBond(i);
+                    return;
+                }
             }
-        }
+        });
         // create new bond
-        curStep->addBond(at1.first, at2.first, off_r);
-        triggerUpdate(GUI::Change::atoms);
+        // TODO: this assumes viewport is active -> use viewport over vApp?
+        vApp.invokeOnStep([&](Step &s){
+            s.addBond(at1.first, at2.first, off_r);
+        });
         break;
     }
 }

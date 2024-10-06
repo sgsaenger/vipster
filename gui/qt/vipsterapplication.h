@@ -145,11 +145,13 @@ private:
     Step *pCurStep{nullptr};
     Step::selection *pCurSel{nullptr};
 public:
-    std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient?? convert to optional instead
     const Step& curStep();
     const Step::selection& curSel();
     void setActiveStep(Step &step, Step::selection &sel); // TODO: prefer an index based interface?
+
+    // TODO: integrate with OS-specific copy-paste functionality instead
     void selectionToCopy();
+    std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient?? convert to optional instead
 
     template<typename F, typename... Args>
     auto invokeOnStep(F &&f, Args &&...args)
@@ -183,7 +185,7 @@ signals:
     void copyBufChanged(Vipster::Step::selection &buf);
 
 public:
-    // Data related to a loaded Step
+    // GUI-Data related to a loaded Step
     struct StepState{
         bool automatic_bonds;
         Step::formatter formatter;

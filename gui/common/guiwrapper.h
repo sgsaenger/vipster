@@ -47,8 +47,8 @@ public:
     Mat getAxes();
     // cpu-side data
     GUI::PBCVec mult{{1,1,1}};
-    Step* curStep{nullptr};
-    Step::selection* curSel{nullptr};
+    Step const* curStep{nullptr};
+    Step::const_selection const* curSel{nullptr};
     GUI::StepData mainStep{nullptr};
     GUI::SelData selection{nullptr};
     std::vector<std::weak_ptr<GUI::Data>> *stepExtras{nullptr};

@@ -76,8 +76,11 @@ void BondWidget::recalculateBonds()
 void BondWidget::bondModeHandler(int index)
 {
     auto is_automatic = static_cast<bool>(index);
-    vApp.getState(vApp.curStep()).automatic_bonds = is_automatic;
     ui->bondSetButton->setDisabled(is_automatic);
+    // TODO: this is a workaround to update app state, invoke on StepState instead of Step?
+    vApp.invokeOnStep([](Step &s, bool is_automatic){
+        vApp.getState(s).automatic_bonds = is_automatic;
+    }, is_automatic);
 }
 
 void BondWidget::ovlpTableSelectionHandler()

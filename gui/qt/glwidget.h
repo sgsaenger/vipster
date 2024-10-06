@@ -22,13 +22,10 @@ public:
     void mouseMoveEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
     void focusInEvent(QFocusEvent *e) override;
-    void triggerUpdate(Vipster::GUI::change_t change);
-    void updateWidget(Vipster::GUI::change_t change);
     void setMult(Vipster::GUI::PBCVec mult);
     void setMouseMode(MouseMode i);
     void setCamera(alignDir dir);
 private:
-    bool updateTriggered{false};
     // Input handling
     MouseMode mouseMode{MouseMode::Camera};
     QPoint mousePos, rectPos;
