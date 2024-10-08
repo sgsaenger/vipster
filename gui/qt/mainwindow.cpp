@@ -217,21 +217,32 @@ void MainWindow::setupEditMenu()
         Qt::Key_N);
 
     // Delete selected Atom(s)
+    auto delAtoms = [](Step &s, const Step::const_selection &sel)
+    {
+        std::set<size_t> indices{};
+        for(const auto [idx, _]: sel.getAtoms().indices){
+            indices.insert(idx);
+        }
+        for(auto it = indices.rbegin(); it != indices.rend(); ++it)
+        {
+            if(*it < s.getNat()){
+                s.delAtom(*it);
+            }
+        }
+    };
     auto *delAction = editMenu.addAction("&Delete atom(s)",
-        [](){
-            // TODO: figure out const-correctness
-            // BUG: this clears selection but does not trigger signal
-            vApp.invokeOnStep(&Step::delAtoms<Step::atom_source>, const_cast<Step::selection&>(vApp.curSel()));
+        [&](){
+            vApp.invokeOnStep(delAtoms, vApp.curSel());
+            vApp.updateSelection({});
         },
         Qt::Key_Delete);
 
     // Cut atoms
     auto *cutAction = editMenu.addAction("C&ut atom(s)",
-        [](){
+        [&](){
             vApp.selectionToCopy();
-            // TODO: figure out const-correctness
-            // BUG: this clears selection but does not trigger signal
-            vApp.invokeOnStep(&Step::delAtoms<Step::atom_source>, const_cast<Step::selection&>(vApp.curSel()));
+            vApp.invokeOnStep(delAtoms, vApp.curSel());
+            vApp.updateSelection({});
         },
         QKeySequence::Cut);
     cutAction->setEnabled(false);
@@ -251,12 +262,16 @@ void MainWindow::setupEditMenu()
     // Paste atoms
     auto *pasteAction = editMenu.addAction("&Paste atom(s)",
         [](){
-            vApp.invokeOnStep(static_cast<void(Step::*)(const Step::const_selection& s)>(&Step::newAtoms), *vApp.copyBuf);
+            vApp.invokeOnStep([](Step &s){
+                if (vApp.copyBuf.getNat() > 0) {
+                    s.newAtoms(vApp.copyBuf);
+                }
+            });
         },
         QKeySequence::Paste);
     pasteAction->setEnabled(false);
     connect(&vApp, &Application::copyBufChanged,
-            pasteAction, [=](const Step::selection &buf){pasteAction->setEnabled(buf.getNat() > 0);});
+            pasteAction, [=](const std::optional<Step> &buf){pasteAction->setEnabled(buf->getNat() > 0);});
 
     // Separator
     editMenu.addSeparator();

@@ -37,7 +37,7 @@ template <typename S>
 py::class_<S> bind_step(py::handle &m, std::string name){
     py::class_<StepConst<typename S::atom_source>>(m, ("__"+name+"Base").c_str());
     auto s = py::class_<S, StepConst<typename S::atom_source>>(m, name.c_str())
-        .def("getPTE", &S::getPTE)
+        .def("getPTE", py::overload_cast<>(&S::getPTE))
         .def_property("comment", &S::getComment, &S::setComment)
     // Atoms
         .def("__getitem__", [](S& s, int i){

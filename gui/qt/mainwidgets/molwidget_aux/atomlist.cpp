@@ -123,16 +123,12 @@ void AtomList::selectionChanged()
     for(const auto& i: idx){
         filter.indices.emplace_back(static_cast<size_t>(i.row()), SizeVec{});
     }
-    vApp.invokeOnSel([](Step::selection &sel, const SelectionFilter &filter){
-        // TODO: sort out const-correctness
-        sel = const_cast<Step&>(vApp.curStep()).select(filter);
-    }, filter);
+    vApp.updateSelection(filter);
 }
 
 void AtomList::fmtSelectionHandler(int index)
 {
-    // TODO: sort out const-correctness
-    atomModel.setStep(const_cast<Step&>(vApp.curStep()).asFmt(static_cast<AtomFmt>(index-2)));
+    atomModel.setStep(vApp.curStep().asFmt(static_cast<AtomFmt>(index-2)));
 }
 
 void AtomList::fmtButtonHandler()
@@ -149,15 +145,10 @@ void AtomList::fmtButtonHandler()
     // modify actual Step
     auto fmt = static_cast<AtomFmt>(ifmt-2);
     vApp.invokeOnStep(&Step::setFmt, fmt, true);
-    // TODO: sort out const-correctness
-    ownStep = const_cast<Step&>(vApp.curStep()).asFmt(fmt);
 
     // reset selection
     SelectionFilter filter{};
     filter.mode = SelectionFilter::Mode::Index;
     filter.indices = vApp.curSel().getAtoms().indices;
-    vApp.invokeOnSel([](Step::selection &sel, const SelectionFilter &filter){
-        // TODO: sort out const-correctness
-        sel = const_cast<Step&>(vApp.curStep()).select(filter);
-    }, filter);
+    vApp.updateSelection(filter);
 }

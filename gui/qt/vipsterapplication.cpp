@@ -50,6 +50,12 @@ void Application::setActiveStep(Step &step, Step::selection &sel)
     emit activeStepChanged(step, sel);
 }
 
+void Application::updateSelection(SelectionFilter filter)
+{
+    *pCurSel = pCurStep->select(filter);
+    emit selChanged(*pCurSel);
+}
+
 Application::StepState& Application::getState(const Step &step)
 {
     // initialize state if required
@@ -102,6 +108,6 @@ void Application::newIOData(IOTuple &&t){
 }
 
 void Application::selectionToCopy(){
-    copyBuf = std::make_unique<Step::selection>(*pCurSel);
-    emit copyBufChanged(*copyBuf);
+    copyBuf = *pCurSel;
+    emit copyBufChanged(copyBuf);
 }

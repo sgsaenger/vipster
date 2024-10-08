@@ -2,6 +2,7 @@
 #include "plugin.py.h"
 #include "vipster/presets.h"
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 using namespace Vipster;
 
@@ -92,9 +93,10 @@ void Vipster::Py::Presets(py::module &m){
                         std::find_if(enum_.begin(), enum_.end(), [val](const auto &e){return e.second==std::string(py::str(val));})
                              == enum_.end())
                      {
+                         std::vector<std::string> test;
                          throw py::type_error(fmt::format("{} is not one of the valid values {{'{}'}}",
                                                           std::string(py::str(val)),
-                                                          fmt::join(enum_.names(),"', '")));
+                                                          fmt::join(enum_.names(), "', '")));
                      }
                      std::get<Preset::i_enum>(tgt) = py::str(val);
                      break;

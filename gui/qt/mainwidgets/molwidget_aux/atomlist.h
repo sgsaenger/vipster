@@ -32,7 +32,6 @@ private:
 
     Ui::AtomList *ui;
 
-    std::optional<Vipster::Step::formatter> ownStep{};
     AtomModel atomModel{};
     QList<QAction*> headerActions;
 };

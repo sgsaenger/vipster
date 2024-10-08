@@ -151,7 +151,7 @@ public:
 
     // TODO: integrate with OS-specific copy-paste functionality instead
     void selectionToCopy();
-    std::unique_ptr<Step::selection> copyBuf{}; // TODO: are lifetime semantics of selection sufficient?? convert to optional instead
+    Step copyBuf{};
 
     template<typename F, typename... Args>
     auto invokeOnStep(F &&f, Args &&...args)
@@ -170,18 +170,19 @@ public:
     {
         if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...))>) {
             auto tmp = invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...);
-            emit selChanged(*pCurSel);
+            emit stepChanged(*pCurStep);
             return tmp;
         } else {
             invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...);
-            emit selChanged(*pCurSel);
+            emit stepChanged(*pCurStep);
         }
     }
+    void updateSelection(SelectionFilter filter);
 signals:
     void activeStepChanged(const Vipster::Step &step, const Vipster::Step::selection &sel);
     void stepChanged(const Vipster::Step &step);
     void selChanged(const Vipster::Step::selection &sel);
-    void copyBufChanged(const Vipster::Step::selection &buf);
+    void copyBufChanged(const Vipster::Step &buf);
 
 public:
     // GUI-Data related to a loaded Step

@@ -259,11 +259,8 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
         break;
     case MouseMode::Select:
         if(e->button() == Qt::MouseButton::RightButton){
-            // TODO: this assumes viewport is active -> use viewport over vApp?
-            vApp.invokeOnSel([](Step::selection &sel){
-                // TODO: sort out const-correctness
-                sel = const_cast<Step&>(vApp.curStep()).select(SelectionFilter{});
-            });
+            // clear selection
+            vApp.updateSelection({});
         }
         break;
     case MouseMode::Modify:
@@ -378,10 +375,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
             filter.indices = std::move(pick);
             // create new selection from filter
             // TODO: this assumes viewport is active -> use viewport over vApp?
-            vApp.invokeOnSel([](Step::selection &sel, const SelectionFilter &filter){
-                // TODO: sort out const-correctness
-                sel = const_cast<Step&>(vApp.curStep()).select(filter);
-            }, filter);
+            vApp.updateSelection(filter);
             rectPos = mousePos;
         }
         break;

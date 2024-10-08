@@ -138,9 +138,9 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             case c_x:
             case c_y:
             case c_z:
-                vApp.invokeOnStep([](Step &s, int i, int c, double d){
-                    s.at(i).coord[c] = d;
-                }, index.row(), col-c_x, value.toDouble());
+                vApp.invokeOnStep([](Step &s, AtomFmt fmt, int i, int c, double d){
+                    s.asFmt(fmt).at(i).coord[c] = d;
+                }, curStep->getFmt(), index.row(), col-c_x, value.toDouble());
                 break;
             case c_charge:
                 vApp.invokeOnStep([](Step &s, int i, double charge){
@@ -150,8 +150,8 @@ bool AtomModel::setData(const QModelIndex &index, const QVariant &value, int rol
             case c_fx:
             case c_fy:
             case c_fz:
-                vApp.invokeOnStep([](Step &s, int i, int dir, double charge){
-                    s.at(i).properties->forces[dir] = charge;
+                vApp.invokeOnStep([](Step &s, int i, int dir, double force){
+                    s.at(i).properties->forces[dir] = force;
                 }, index.row(), col-c_fx, value.toDouble());
                 break;
             }

@@ -347,22 +347,6 @@ public:
         }
     }
     void delAtom(size_t i);
-    // TODO: this is a weird interface - either ensure that it is a selection object refering to own instance, or create a more abstract i.e. index based interface
-    template<typename T>
-    void delAtoms(StepConst<detail::Selection<T>>& s)
-    {
-        std::set<size_t> indices{};
-        for(const auto [idx, _]: s.getAtoms().indices){
-            indices.insert(idx);
-        }
-        for(auto it = indices.rbegin(); it != indices.rend(); ++it)
-        {
-            if(*it < getNat()){
-                delAtom(*it);
-            }
-        }
-        s = select({});
-    }
 
     // Cell
     void enableCell(bool val) noexcept;
