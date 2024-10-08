@@ -40,7 +40,7 @@ BondWidget::~BondWidget()
     delete ui;
 }
 
-void BondWidget::setActiveStep(Step &step, Step::selection &)
+void BondWidget::setActiveStep(const Step &step, const Step::selection &)
 {
     // expose BondMode
     QSignalBlocker blockBondMode(ui->bondModeBox);
@@ -57,7 +57,7 @@ void BondWidget::setActiveStep(Step &step, Step::selection &)
     bondModel.reset();
 }
 
-void BondWidget::updateStep(Step &step)
+void BondWidget::updateStep(const Step &step)
 {
     // only update active step
     if (&step != &vApp.curStep()) return;

@@ -41,7 +41,7 @@ CellWidget::~CellWidget()
     delete ui;
 }
 
-void CellWidget::updateStep(Step &step)
+void CellWidget::updateStep(const Step &step)
 {
     // only update active step
     if (&step != &vApp.curStep()) return;

@@ -236,7 +236,7 @@ void MainWindow::setupEditMenu()
         QKeySequence::Cut);
     cutAction->setEnabled(false);
     connect(&vApp, &Application::selChanged,
-            cutAction, [=](Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
+            cutAction, [=](const Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
 
     // Copy atoms
     auto *copyAction = editMenu.addAction("&Copy atom(s)",
@@ -246,7 +246,7 @@ void MainWindow::setupEditMenu()
         QKeySequence::Copy);
     copyAction->setEnabled(false);
     connect(&vApp, &Application::selChanged,
-            copyAction, [=](Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
+            copyAction, [=](const Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
 
     // Paste atoms
     auto *pasteAction = editMenu.addAction("&Paste atom(s)",
@@ -256,7 +256,7 @@ void MainWindow::setupEditMenu()
         QKeySequence::Paste);
     pasteAction->setEnabled(false);
     connect(&vApp, &Application::copyBufChanged,
-            pasteAction, [=](Step::selection &buf){pasteAction->setEnabled(buf.getNat() > 0);});
+            pasteAction, [=](const Step::selection &buf){pasteAction->setEnabled(buf.getNat() > 0);});
 
     // Separator
     editMenu.addSeparator();
@@ -275,7 +275,7 @@ void MainWindow::setupEditMenu()
             vApp.invokeOnSel(f, newName);
         });
     connect(&vApp, &Application::selChanged,
-            renameAction, [=](Step::selection &sel){renameAction->setEnabled(sel.getNat() > 0);});
+            renameAction, [=](const Step::selection &sel){renameAction->setEnabled(sel.getNat() > 0);});
 
     // Hide
     auto *hideAction = editMenu.addAction("&Hide atom(s)",
@@ -288,7 +288,7 @@ void MainWindow::setupEditMenu()
               vApp.invokeOnSel(f);
           });
       connect(&vApp, &Application::selChanged,
-              hideAction, [=](Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
+              hideAction, [=](const Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
 
     // Show
     auto *showAction = editMenu.addAction("&Show atom(s)",
@@ -301,7 +301,7 @@ void MainWindow::setupEditMenu()
             vApp.invokeOnSel(f);
         });
     connect(&vApp, &Application::selChanged,
-            showAction, [=](Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
+            showAction, [=](const Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
 }
 
 void MainWindow::setupHelpMenu()

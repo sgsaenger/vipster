@@ -5,10 +5,10 @@ using namespace Vipster;
 Application::Application()
 {
     // Ensure bonds and overlap information is up to date
-    auto updateBonds = [&](Step &step){
+    auto updateBonds = [&](const Step &step){
         if (getState(step).automatic_bonds ||
             config_val.settings.overlap.val) {
-            step.generateBonds(!getState(step).automatic_bonds);
+            const_cast<Step&>(step).generateBonds(!getState(step).automatic_bonds);
         }
     };
     connect(this, &Application::stepChanged, updateBonds);

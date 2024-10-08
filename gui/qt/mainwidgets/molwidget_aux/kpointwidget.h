@@ -17,8 +17,8 @@ public:
     ~KPointWidget();
 
 private:
-    void setActiveMol(Vipster::Molecule &mol);
-    void updateMol(Vipster::Molecule &mol);
+    void setActiveMol(const Vipster::Molecule &mol);
+    void updateMol(const Vipster::Molecule &mol);
 
     Ui::KPointWidget *ui;
 };

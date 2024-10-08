@@ -165,13 +165,14 @@ namespace Vipster {
     {
         template<typename U> friend class StepMutable;
     public:
-        virtual ~StepMutable() = default;
+        ~StepMutable() override = default;
         StepMutable(const StepMutable &) = default;
         StepMutable(StepMutable &&) = default;
         StepMutable& operator=(const StepMutable&) = default;
         StepMutable& operator=(StepMutable&&) = default;
 
         // Periodic table
+        using StepConst<T>::getPTE;
         PeriodicTable& getPTE();
 
         // Atoms

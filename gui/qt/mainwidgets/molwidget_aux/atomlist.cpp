@@ -67,7 +67,7 @@ AtomList::~AtomList()
     delete ui;
 }
 
-void AtomList::setActiveStep(Step &step, Step::selection &sel)
+void AtomList::setActiveStep(const Step &step, const Step::selection &sel)
 {
     QSignalBlocker blockAtomFmt(ui->atomFmtBox);
     auto &fmtBox = *ui->atomFmtBox;
@@ -90,7 +90,7 @@ void AtomList::setActiveStep(Step &step, Step::selection &sel)
     updateSelection(sel);
 }
 
-void AtomList::updateStep(Step &step)
+void AtomList::updateStep(const Step &step)
 {
     // only update active step
     if (&step != &vApp.curStep()) return;
@@ -98,7 +98,7 @@ void AtomList::updateStep(Step &step)
     atomModel.update();
 }
 
-void AtomList::updateSelection(Step::selection &sel)
+void AtomList::updateSelection(const Step::selection &sel)
 {
     // only update selection of active step
     if (&sel != &vApp.curSel()) return;

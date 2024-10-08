@@ -8,7 +8,7 @@ class AtomModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    void setStep(Vipster::Step::formatter &&curStep);
+    void setStep(Vipster::Step::const_formatter &&curStep);
     void update();
     void setColumns(int cols);
 
@@ -29,7 +29,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
 private:
-    std::optional<Vipster::Step::formatter> curStep{};
+    std::optional<Vipster::Step::const_formatter> curStep{};
     QStringList colNames = {"Type" , "x", "y", "z", "Charge", "fx", "fy", "fz",
                             "Hide", "fix x", "fix y", "fix z"};
     std::vector<int> colMap = {0,1,2,3};

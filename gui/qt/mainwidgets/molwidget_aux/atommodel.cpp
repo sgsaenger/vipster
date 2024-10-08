@@ -12,7 +12,7 @@ enum colIds{
     c_fixx, c_fixy, c_fixz
 };
 
-void AtomModel::setStep(Step::formatter &&step)
+void AtomModel::setStep(Step::const_formatter &&step)
 {
     beginResetModel();
     curStep = step;

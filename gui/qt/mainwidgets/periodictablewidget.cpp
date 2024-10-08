@@ -184,18 +184,18 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlob) :
             }
         });
     } else {
-        connect(&vApp, &Application::activeMolChanged, this, [this](Molecule &m){
+        connect(&vApp, &Application::activeMolChanged, this, [this](const Molecule &m){
             setTable(&m.getPTE());
         });
-        connect(&vApp, &Application::activeStepChanged, this, [this](Step &s){
+        connect(&vApp, &Application::activeStepChanged, this, [this](const Step &s){
             setTable(&s.getPTE());
         });
-        connect(&vApp, &Application::molChanged, this, [this](Molecule &m){
+        connect(&vApp, &Application::molChanged, this, [this](const Molecule &m){
             if (&m == &vApp.curMol()) {
                 setTable(&m.getPTE());
             }
         });
-        connect(&vApp, &Application::stepChanged, this, [this](Step &s){
+        connect(&vApp, &Application::stepChanged, this, [this](const Step &s){
             if (&s == &vApp.curStep()) {
                 setTable(&s.getPTE());
             }

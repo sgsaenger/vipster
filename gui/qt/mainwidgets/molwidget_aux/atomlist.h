@@ -21,9 +21,9 @@ public:
     ~AtomList();
 
 private slots:
-    void setActiveStep(Vipster::Step &step, Vipster::Step::selection &sel);
-    void updateStep(Vipster::Step &step);
-    void updateSelection(Vipster::Step::selection &sel);
+    void setActiveStep(const Vipster::Step &step, const Vipster::Step::selection &sel);
+    void updateStep(const Vipster::Step &step);
+    void updateSelection(const Vipster::Step::selection &sel);
 
 private:
     void selectionChanged();

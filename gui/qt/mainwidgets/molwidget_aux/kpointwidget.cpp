@@ -103,7 +103,7 @@ KPointWidget::~KPointWidget()
     delete ui;
 }
 
-void KPointWidget::setActiveMol(Molecule &m)
+void KPointWidget::setActiveMol(const Molecule &m)
 {
     // show active format
     ui->activeKpoint->setCurrentIndex(static_cast<int>(m.kpoints.active));
@@ -112,7 +112,7 @@ void KPointWidget::setActiveMol(Molecule &m)
     updateMol(m);
 }
 
-void KPointWidget::updateMol(Molecule &m)
+void KPointWidget::updateMol(const Molecule &m)
 {
     // Only act on active molecule
     if (&m != &vApp.curMol()) return;

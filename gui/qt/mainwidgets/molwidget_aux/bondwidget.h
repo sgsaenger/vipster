@@ -18,8 +18,8 @@ public:
     ~BondWidget();
 
 private:
-    void setActiveStep(Vipster::Step &step, Vipster::Step::selection &sel);
-    void updateStep(Vipster::Step &step);
+    void setActiveStep(const Vipster::Step &step, const Vipster::Step::selection &sel);
+    void updateStep(const Vipster::Step &step);
     void recalculateBonds();
     void bondModeHandler(int index);
     void updateOverlap();

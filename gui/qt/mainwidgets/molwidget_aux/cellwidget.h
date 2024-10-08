@@ -17,7 +17,7 @@ public:
     ~CellWidget();
 
 private:
-    void updateStep(Vipster::Step &step);
+    void updateStep(const Vipster::Step &step);
     void enableCell(bool enable);
     void cellFmtChanged(int idx);
     void cellDimChanged(double dim);

@@ -121,8 +121,8 @@ public:
     }
 signals:
     void molListChanged(const std::list<Vipster::Molecule> &molecules);
-    void molChanged(Vipster::Molecule &mol);
-    void activeMolChanged(Vipster::Molecule &mol);
+    void molChanged(const Vipster::Molecule &mol);
+    void activeMolChanged(const Vipster::Molecule &mol);
 
     // Additional data
 private:
@@ -178,11 +178,10 @@ public:
         }
     }
 signals:
-    // TODO: const-correctness
-    void activeStepChanged(Vipster::Step &step, Vipster::Step::selection &sel);
-    void stepChanged(Vipster::Step &step);
-    void selChanged(Vipster::Step::selection &sel);
-    void copyBufChanged(Vipster::Step::selection &buf);
+    void activeStepChanged(const Vipster::Step &step, const Vipster::Step::selection &sel);
+    void stepChanged(const Vipster::Step &step);
+    void selChanged(const Vipster::Step::selection &sel);
+    void copyBufChanged(const Vipster::Step::selection &buf);
 
 public:
     // GUI-Data related to a loaded Step
