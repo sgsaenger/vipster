@@ -11,9 +11,9 @@ on:
 jobs:
     debug:
         name: 'Test & Debug (Linux)'
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
           with:
               submodules: true
 
@@ -21,21 +21,21 @@ jobs:
           uses: seanmiddleditch/gha-setup-ninja@master
 
         - name: Setup Python
-          uses: actions/setup-python@v4
+          uses: actions/setup-python@v5
           with:
-              python-version: '3.10'
+              python-version: '3.13'
 
         - name: Install Qt
-          uses: jurplel/install-qt-action@v3
+          uses: jurplel/install-qt-action@v4
           with:
-              version: '6.4.0'
+              version: '6.8.0'
               target: 'desktop'
-              cached: true
+              cache: true
 
         - name: Install dependencies
           run: |
               sudo apt-get update
-              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0 gcovr
+              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0 libxcb-cursor0 gcovr
 
         - name: Configure
           run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -O0 -fprofile-arcs -ftest-coverage" -B build
@@ -63,10 +63,10 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - os: ubuntu-20.04
+                    - os: ubuntu-22.04
                       script: make-appimage.sh
                       artifact: Vipster-Linux-x86_64.AppImage
-                      qt_arch: gcc_64
+                      qt_arch: linux_gcc_64
                     - os: windows-latest
                       script: make-win-archive.sh
                       artifact: Vipster-Win-x86_64.zip
@@ -77,7 +77,7 @@ jobs:
                     #  qt_arch: clang_64
         needs: debug
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
           with:
               submodules: true
 
@@ -85,36 +85,36 @@ jobs:
           uses: seanmiddleditch/gha-setup-ninja@master
 
         - name: Setup Python
-          uses: actions/setup-python@v4
+          uses: actions/setup-python@v5
           with:
-              python-version: '3.10'
+              python-version: '3.13'
         - name: Add Python libraries
           shell: bash
           run: pip install numpy moltemplate
 
         - name: Install Qt
-          uses: jurplel/install-qt-action@v3
+          uses: jurplel/install-qt-action@v4
           with:
-              version: '6.4.0'
+              version: '6.8.0'
               target: 'desktop'
               arch: ${{ matrix.qt_arch }}
               dir: ${{ github.workspace }}
-              cached: true
+              cache: true
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
           id: cache-mingw
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
               path: MinGW
-              key: mingw-18.0
+              key: mingw-19.0
         - name: Install MinGW
           if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
           shell: bash
           run: |
               choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-18.0-without-git.exe
-              7z x mingw-18.0-without-git.exe
+              wget https://nuwen.net/files/mingw/mingw-19.0.exe
+              7z x mingw-19.0.exe
               MinGW/set_distro_paths.bat
         - name: Configure MinGW
           if: runner.os == 'Windows'
@@ -128,7 +128,7 @@ jobs:
           shell: bash
           run: |
               sudo apt-get update
-              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0
+              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0 libxcb-cursor0 fuse
 
         - name: Configure
           shell: bash
@@ -151,7 +151,7 @@ jobs:
             . ../util/${{ matrix.script }}
 
         - name: Upload artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: Vipster-${{ runner.os }}
               path: build/${{ matrix.artifact }}
@@ -161,15 +161,15 @@ jobs:
         runs-on: ubuntu-latest
         needs: debug
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
           with:
               submodules: true
 
-        - uses: actions/setup-python@v4
+        - uses: actions/setup-python@v5
           with:
-              python-version: '3.10'
+              python-version: '3.13'
 
-        - uses: mymindstorm/setup-emsdk@v7
+        - uses: mymindstorm/setup-emsdk@v14
           with:
               version: latest
 
@@ -182,7 +182,7 @@ jobs:
               echo "ARTIFACT=$ARTIFACT" >> $GITHUB_ENV
 
         - name: Upload artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: Vipster-Web
               path: ${{ env.ARTIFACT }}
@@ -193,33 +193,33 @@ jobs:
         needs: [release, web]
         strategy:
             matrix:
-                os: [windows-latest, ubuntu-20.04]
-                python-version: ['3.8', '3.9', '3.10', '3.11']
+                os: [windows-latest, ubuntu-22.04]
+                python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
                 include:
                   - os: windows-latest
                     wheeldir: dist
-                  - os: ubuntu-20.04
+                  - os: ubuntu-22.04
                     wheeldir: wheelhouse
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
           with:
               submodules: true
 
         - name: Cache MinGW
           if: runner.os == 'Windows'
           id: cache-mingw
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
               path: MinGW
-              key: mingw-18.0
+              key: mingw-19.0
         - name: Install MinGW
           if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
           shell: bash
           run: |
               choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-18.0-without-git.exe
-              7z x mingw-18.0-without-git.exe
+              wget https://nuwen.net/files/mingw/mingw-19.0.exe
+              7z x mingw-19.0.exe
               MinGW/set_distro_paths.bat
         - name: Configure MinGW
           if: runner.os == 'Windows'
@@ -230,7 +230,7 @@ jobs:
               echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
 
         - name: Setup Python
-          uses: actions/setup-python@v4
+          uses: actions/setup-python@v5
           with:
               python-version: ${{ matrix.python-version }}
 
@@ -244,11 +244,11 @@ jobs:
           if: runner.os == 'Linux'
           shell: bash
           run: |
-              pip install auditwheel==5.1.2
-              auditwheel repair dist/*.whl --plat manylinux_2_31_x86_64
+              pip install auditwheel
+              auditwheel repair dist/*.whl --plat manylinux_2_35_x86_64
 
         - name: Upload artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
-              name: Vipster-PyWheel-${{ runner.os }}
+              name: Vipster-Python-${{ matrix.python-version }}-${{ runner.os }}
               path: ${{ matrix.wheeldir }}/*.whl

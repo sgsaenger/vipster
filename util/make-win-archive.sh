@@ -19,7 +19,7 @@ cp -r $pythonLocation/Lib $pythonLocation/DLLs ${TMPDIR}
 # prepare Qt and other libraries
 echo "Run windeployqt"
 windeployqt --compiler-runtime --no-translations ${TMPDIR}/vipster.exe
-cp $Qt6_DIR/bin/lib{gcc_s_seh-1,stdc++-6,winpthread-1}.dll deploy
+cp ${QT_ROOT_DIR}/bin/lib{gcc_s_seh-1,stdc++-6,winpthread-1}.dll deploy
 
 echo "Create zip archive"
 7z a Vipster-Win-x86_64.zip ${TMPDIR}/*
