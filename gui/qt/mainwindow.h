@@ -61,6 +61,6 @@ private:
     QDir path{};
     QSplitter *vsplit;
     std::vector<QSplitter*> hsplits;
-    std::vector<BaseWidget*> toolWidgets;
+    std::vector<QWidget*> toolWidgets;
 };
 #endif // MAINWINDOW_H

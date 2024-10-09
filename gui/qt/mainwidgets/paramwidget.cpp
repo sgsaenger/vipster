@@ -11,7 +11,7 @@ using namespace Vipster;
 using NameList = std::map<std::string, std::string>;
 
 ParamWidget::ParamWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::ParamWidget)
 {
     ui->setupUi(this);

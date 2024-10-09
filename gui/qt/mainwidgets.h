@@ -8,7 +8,7 @@
 #include "mainwidgets/settingswidget.h"
 #include "mainwidgets/datawidget.h"
 
-inline std::vector<std::pair<BaseWidget*, QString>> makeMainWidgets(QWidget* parent)
+inline std::vector<std::pair<QWidget*, QString>> makeMainWidgets(QWidget* parent)
 {
     return {
         {new MolWidget(parent), "Molecule"},

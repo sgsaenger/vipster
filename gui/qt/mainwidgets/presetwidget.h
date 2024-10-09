@@ -3,14 +3,13 @@
 
 #include <QWidget>
 #include <QHBoxLayout>
-#include "../basewidget.h"
 #include "vipster/fileio.h"
 
 namespace Ui {
 class PresetWidget;
 }
 
-class PresetWidget : public BaseWidget
+class PresetWidget : public QWidget
 {
     Q_OBJECT
 

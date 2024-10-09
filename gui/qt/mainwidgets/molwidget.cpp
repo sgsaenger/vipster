@@ -1,20 +1,10 @@
 #include "molwidget.h"
 #include "ui_molwidget.h"
-#include "vipsterapplication.h"
-#include <QTableWidgetItem>
-#include <QMessageBox>
-#include <QMenu>
 
 using namespace Vipster;
 
-
-constexpr const char* inactiveKpoints[] = {"Gamma", "Monkhorst-Pack grid", "Discrete"};
-constexpr const char* activeKpoints[] = {"Gamma (active)",
-                                         "Monkhorst-Pack grid (active)",
-                                         "Discrete (active)"};
-
 MolWidget::MolWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QScrollArea(parent),
     ui(new Ui::MolWidget)
 {
     ui->setupUi(this);

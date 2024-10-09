@@ -362,9 +362,9 @@ void MainWindow::updateWidgets(GUI::change_t change)
     for(auto& w: viewports){
         w->updateWidget(change);
     }
-    for(auto& w: toolWidgets){
-        w->updateWidget(change);
-    }
+    // for(auto& w: toolWidgets){
+        // w->updateWidget(change);
+    // }
 }
 
 void MainWindow::changeViewports(ViewPort *sender, VPChange change)

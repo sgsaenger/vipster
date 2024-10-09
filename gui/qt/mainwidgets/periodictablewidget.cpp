@@ -153,6 +153,7 @@ void PeriodicTableWidget::registerProperty(QWidget* w, ColVec Element::* prop)
 }
 
 PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlob) :
+    QWidget{parent},
     ui(new Ui::PeriodicTableWidget),
     isGlobal{isGlob}
 {

@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>317</width>
-    <height>275</height>
+    <height>299</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
@@ -45,12 +51,12 @@
       </sizepolicy>
      </property>
      <property name="frameShape">
-      <enum>QFrame::Box</enum>
+      <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
+      <enum>QFrame::Shadow::Sunken</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,1,0">
       <item>
        <layout class="QHBoxLayout" name="cellFmtLayout">
         <item>
@@ -73,7 +79,7 @@
         <item>
          <spacer name="cellHorSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -114,7 +120,7 @@
         <item>
          <spacer name="cellDimSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -171,7 +177,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>110</height>
+          <height>130</height>
          </size>
         </property>
         <row>

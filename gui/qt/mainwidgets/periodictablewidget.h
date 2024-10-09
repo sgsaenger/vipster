@@ -3,14 +3,13 @@
 
 #include <QWidget>
 #include <QListWidgetItem>
-#include "../basewidget.h"
 #include "vipster/periodictable.h"
 
 namespace Ui {
 class PeriodicTableWidget;
 }
 
-class PeriodicTableWidget : public BaseWidget
+class PeriodicTableWidget : public QWidget
 {
     Q_OBJECT
 

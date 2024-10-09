@@ -1,7 +1,6 @@
 #ifndef PARAMWIDGET_H
 #define PARAMWIDGET_H
 
-#include "../basewidget.h"
 #include "vipster/fileio.h"
 
 #include <QTreeWidget>
@@ -10,7 +9,7 @@ namespace Ui {
 class ParamWidget;
 }
 
-class ParamWidget : public BaseWidget
+class ParamWidget : public QWidget
 {
     Q_OBJECT
 

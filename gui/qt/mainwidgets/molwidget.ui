@@ -1,84 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MolWidget</class>
- <widget class="QWidget" name="MolWidget">
-  <property name="windowTitle">
-   <string>Form</string>
+ <widget class="QScrollArea" name="MolWidget">
+  <property name="frameShape">
+   <enum>QFrame::Shape::NoFrame</enum>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="AtomList" name="atomContainer" native="true"/>
-   </item>
-   <item>
-    <widget class="BondWidget" name="bondContainer" native="true"/>
-   </item>
-   <item>
-    <widget class="CellWidget" name="cellContainer" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="typeButton">
-     <property name="text">
-      <string>Types</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QFrame" name="typeContainer">
-     <property name="frameShape">
-      <enum>QFrame::Box</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <property name="leftMargin">
-       <number>0</number>
+  <property name="widgetResizable">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="scrollAreaWidgetContents">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>551</width>
+     <height>576</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="AtomList" name="atomContainer" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
       </property>
-      <property name="topMargin">
-       <number>0</number>
+     </widget>
+    </item>
+    <item>
+     <widget class="BondWidget" name="bondContainer" native="true"/>
+    </item>
+    <item>
+     <widget class="CellWidget" name="cellContainer" native="true"/>
+    </item>
+    <item>
+     <widget class="QPushButton" name="typeButton">
+      <property name="text">
+       <string>Types</string>
       </property>
-      <property name="rightMargin">
-       <number>0</number>
+      <property name="checkable">
+       <bool>true</bool>
       </property>
-      <property name="bottomMargin">
-       <number>0</number>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="typeContainer">
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
       </property>
-      <item>
-       <widget class="PeriodicTableWidget" name="typeWidget" native="true"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="KPointWidget" name="molContainer" native="true"/>
-   </item>
-   <item>
-    <spacer name="verticalSpacer_3">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::MinimumExpanding</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-  </layout>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Sunken</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="PeriodicTableWidget" name="typeWidget" native="true"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="KPointWidget" name="molContainer" native="true"/>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Policy::Expanding</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>0</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

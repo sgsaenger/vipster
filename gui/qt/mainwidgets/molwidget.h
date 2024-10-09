@@ -1,15 +1,13 @@
 #ifndef MOLWIDGET_H
 #define MOLWIDGET_H
 
-#include <QWidget>
-#include <QItemSelection>
-#include "../basewidget.h"
+#include <QScrollArea>
 
 namespace Ui {
 class MolWidget;
 }
 
-class MolWidget : public BaseWidget
+class MolWidget : public QScrollArea
 {
     Q_OBJECT
 

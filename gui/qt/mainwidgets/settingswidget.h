@@ -3,14 +3,13 @@
 
 #include <QWidget>
 #include <QLabel>
-#include "../basewidget.h"
 #include "vipster/settings.h"
 
 namespace Ui {
 class SettingsWidget;
 }
 
-class SettingsWidget : public BaseWidget
+class SettingsWidget : public QWidget
 {
     Q_OBJECT
 

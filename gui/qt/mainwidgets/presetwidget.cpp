@@ -1,6 +1,5 @@
 #include "presetwidget.h"
 #include "ui_presetwidget.h"
-#include "vipster/fileio.h"
 
 #include <QMessageBox>
 #include <QCheckBox>
@@ -9,7 +8,7 @@
 using namespace Vipster;
 
 PresetWidget::PresetWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::PresetWidget)
 {
     ui->setupUi(this);

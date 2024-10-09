@@ -29,7 +29,12 @@ CellWidget::CellWidget(QWidget *parent) :
     connect(ui->cellTrajecButton, &QPushButton::clicked, this, &CellWidget::applyToTrajectory);
 
     // Connect to app state changes
-    connect(&vApp, &Application::activeStepChanged, this, &CellWidget::updateStep);
+    connect(&vApp, &Application::activeStepChanged, this, [&](const Step &step){
+        if (step.hasCell()) {
+            ui->displayButton->setChecked(true);
+        }
+        CellWidget::updateStep(step);
+    });
     connect(&vApp, &Application::stepChanged, this, &CellWidget::updateStep);
 
     // hide ui until requested
@@ -48,9 +53,6 @@ void CellWidget::updateStep(const Step &step)
 
     QSignalBlocker blockEnabled(ui->cellEnabledBox);
     ui->cellEnabledBox->setChecked(step.hasCell());
-    if(step.hasCell()){
-        ui->displayButton->setChecked(true);
-    }
 
     QSignalBlocker blockDim(ui->cellDimBox);
     ui->cellDimBox->setValue(static_cast<double>(
