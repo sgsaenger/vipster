@@ -125,7 +125,7 @@ void Py::Parameters(py::module &m){
                  auto it = p.find(k);
                  return it != p.end();
              })
-        .def("__len__", &Parameter::size)
+        .def("__len__", [](Parameter const &p){return p.size();})
         .def("doc", [](Parameter &p, const std::string &k){
                  auto it = p.find(k);
                  if (it == p.end())

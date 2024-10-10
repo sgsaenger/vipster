@@ -70,7 +70,7 @@ jobs:
                     - os: windows-latest
                       script: make-win-archive.sh
                       artifact: Vipster-Win-x86_64.zip
-                      qt_arch: win64_mingw
+                      qt_arch: win64_msvc2022_64
                     #- os: macOS-latest
                     #  script: make-macos-app.sh
                     #  artifact: Vipster-macOS-x86_64.dmg
@@ -81,6 +81,8 @@ jobs:
           with:
               submodules: true
 
+        - uses: ilammy/msvc-dev-cmd@v1
+
         - name: Setup Ninja
           uses: seanmiddleditch/gha-setup-ninja@master
 
@@ -89,7 +91,6 @@ jobs:
           with:
               python-version: '3.13'
         - name: Add Python libraries
-          shell: bash
           run: pip install numpy moltemplate
 
         - name: Install Qt
@@ -101,45 +102,20 @@ jobs:
               dir: ${{ github.workspace }}
               cache: true
 
-        - name: Cache MinGW
-          if: runner.os == 'Windows'
-          id: cache-mingw
-          uses: actions/cache@v4
-          with:
-              path: MinGW
-              key: mingw-19.0
-        - name: Install MinGW
-          if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
-          shell: bash
-          run: |
-              choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-19.0.exe
-              7z x mingw-19.0.exe
-              MinGW/set_distro_paths.bat
-        - name: Configure MinGW
-          if: runner.os == 'Windows'
-          shell: bash
-          run: |
-              echo $GITHUB_WORKSPACE/MinGW/bin >> $GITHUB_PATH
-              echo CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH >> $GITHUB_ENV
-
         - name: Configure Linux
           if: runner.os == 'Linux'
-          shell: bash
           run: |
               sudo apt-get update
               sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-xinerama0 libxcb-xkb1 libxcb-render-util0 libxcb-keysyms1 libxcb-image0 libxcb-cursor0 fuse
 
         - name: Configure
           shell: bash
-          run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=${pythonLocation} -DVIPSTER_PYWIDGET=ON -DVIPSTER_LAMMPS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
+          run: cmake -GNinja -DVIPSTER_DESKTOP=ON -DPython3_ROOT_DIR=pythonLocation -DVIPSTER_PYWIDGET=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -B build
 
         - name: Build
-          shell: bash
           run: cmake --build build
 
         - name: Test
-          shell: bash
           run: |
               cd build   
               ctest --output-on-failure
@@ -206,43 +182,18 @@ jobs:
           with:
               submodules: true
 
-        - name: Cache MinGW
-          if: runner.os == 'Windows'
-          id: cache-mingw
-          uses: actions/cache@v4
-          with:
-              path: MinGW
-              key: mingw-19.0
-        - name: Install MinGW
-          if: (runner.os == 'Windows') && (steps.cache-mingw.outputs.cache-hit != 'true')
-          shell: bash
-          run: |
-              choco install wget -y --no-progress
-              wget https://nuwen.net/files/mingw/mingw-19.0.exe
-              7z x mingw-19.0.exe
-              MinGW/set_distro_paths.bat
-        - name: Configure MinGW
-          if: runner.os == 'Windows'
-          shell: bash
-          run: |
-              echo $GITHUB_WORKSPACE/MinGW/bin >> $GITHUB_PATH
-              echo CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/MinGW:$CMAKE_PREFIX_PATH >> $GITHUB_ENV
-              echo CMAKE_GENERATOR="MSYS Makefiles" >> $GITHUB_ENV
-
         - name: Setup Python
           uses: actions/setup-python@v5
           with:
               python-version: ${{ matrix.python-version }}
 
         - name: Build wheel
-          shell: bash
           run: |
               pip install setuptools wheel cmake
               python setup.py bdist_wheel
 
         - name: Fix Manylinux
           if: runner.os == 'Linux'
-          shell: bash
           run: |
               pip install auditwheel
               auditwheel repair dist/*.whl --plat manylinux_2_35_x86_64

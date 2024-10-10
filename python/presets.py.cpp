@@ -108,7 +108,7 @@ void Vipster::Py::Presets(py::module &m){
                  auto it = p.find(k);
                  return it != p.end();
              })
-        .def("__len__", &Preset::size)
+        .def("__len__", [](Preset const &p){return p.size();})
         .def("doc", [](Preset &p, const std::string &k){
                  auto it = p.find(k);
                  if (it == p.end())

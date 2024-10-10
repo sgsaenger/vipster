@@ -240,8 +240,8 @@ void createCell(Molecule &m, Parameter &p, CellInp &cell)
     if(ibr == sys.end()){
         throw IOError("PWScf Input: ibrav needs to be specified");
     }
-    sys.erase(ibr);
     auto ibrav = std::stoi(ibr->second);
+    sys.erase(ibr);
     if(ibrav == 0){
         bool scale = atomFmtRelative(s.getFmt());
         switch (cell.fmt) {
