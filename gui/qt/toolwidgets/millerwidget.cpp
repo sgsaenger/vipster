@@ -2,29 +2,11 @@
 #include "millerwidget.h"
 #include "ui_millerwidget.h"
 #include "../vipsterapplication.h"
+#include <QWindow>
 
 using namespace Vipster;
 
-MillerWidget::MillerWidget(QWidget *parent) :
-    BaseWidget(parent),
-    ui(new Ui::MillerWidget)
-{
-    ui->setupUi(this);
-}
-
-MillerWidget::~MillerWidget()
-{
-    delete ui;
-}
-
-MillerWidget::MillerPlane::MillerPlane(std::vector<Face>&& faces,
-        Vipster::Vec off, Vipster::Mat cell, Texture texture,
-        const std::array<int8_t, 3> &hkl) :
-    GUI::MeshData{std::move(faces), off, cell, texture},
-    hkl{hkl}
-{}
-
-std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl)
+static std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t, 3>& hkl)
 {
     std::vector<GUI::MeshData::Face> faces{};
     auto hasH = hkl[0] != 0;
@@ -130,9 +112,14 @@ std::vector<GUI::MeshData::Face> mkFaces(const std::array<int8_t,3>& hkl)
     return faces;
 }
 
-void MillerWidget::updateWidget(GUI::change_t change)
+
+MillerWidget::MillerWidget(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::MillerWidget)
 {
-    if((change & GUI::stepChanged) == GUI::stepChanged){
+    ui->setupUi(this);
+
+    connect(&vApp, &Application::activeStepChanged, this, [&](const Step &step){
         // set new pointers
         if(auto pos=planes.find(&vApp.curStep()); pos !=planes.end()){
             curPlane = pos->second;
@@ -159,16 +146,66 @@ void MillerWidget::updateWidget(GUI::change_t change)
             auto block = QSignalBlocker{ui->pushButton};
             ui->pushButton->setChecked(false);
         }
-    }else if(curPlane){
-        if(change & GUI::Change::settings){
-            curPlane->update({{vApp.config().settings.milCol.val}, 1, 1});
-        }
-        if(change & GUI::Change::cell){
-            curPlane->update(vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr));
+    });
+
+    connect(&vApp, &Application::stepChanged, this, [&](const Step &step){
+        if (curPlane && (&step == &vApp.curStep())) {
+            curPlane->update(step.getCellVec() * step.getCellDim(AtomFmt::Bohr));
             curPlane->update(mkFaces(curPlane->hkl));
         }
-    }
+    });
+
+    connect(&vApp, &Application::configChanged, this, [&](const ConfigState &cs){
+        if (curPlane) {
+            curPlane->update({{cs.settings.milCol.val}, 1, 1});
+        }
+    });
+
+    connect(ui->pushButton, &QPushButton::clicked, this, [&](bool checked){
+        if(checked){
+            // create new Plane
+            auto hkl = std::array<int8_t,3>{
+                static_cast<int8_t>(ui->hSel->value()),
+                static_cast<int8_t>(ui->kSel->value()),
+                static_cast<int8_t>(ui->lSel->value())};
+            auto off = Vec{ui->xOff->value(),
+                           ui->yOff->value(),
+                           ui->zOff->value()};
+            planes.insert_or_assign(&vApp.curStep(),
+                std::make_shared<MillerPlane>(
+                    mkFaces(hkl), off,
+                    vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr),
+                    MillerPlane::Texture{{vApp.config().settings.milCol.val}, 1, 1},
+                    hkl
+                ));
+            curPlane = planes.at(&vApp.curStep());
+            // TODO: find better access method. this widget is reparented into a dock widget -> implicit two layers of indirection
+            static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curPlane, false);
+        }else{
+            // delete Plane
+            static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curPlane, false);
+        }
+    });
+
+    connect(ui->hSel, &QSpinBox::valueChanged, this, &MillerWidget::updateIndex);
+    connect(ui->kSel, &QSpinBox::valueChanged, this, &MillerWidget::updateIndex);
+    connect(ui->lSel, &QSpinBox::valueChanged, this, &MillerWidget::updateIndex);
+    connect(ui->xOff, &QDoubleSpinBox::valueChanged, this, &MillerWidget::updateOffset);
+    connect(ui->yOff, &QDoubleSpinBox::valueChanged, this, &MillerWidget::updateOffset);
+    connect(ui->zOff, &QDoubleSpinBox::valueChanged, this, &MillerWidget::updateOffset);
 }
+
+MillerWidget::~MillerWidget()
+{
+    delete ui;
+}
+
+MillerWidget::MillerPlane::MillerPlane(std::vector<Face>&& faces,
+        Vipster::Vec off, Vipster::Mat cell, Texture texture,
+        const std::array<int8_t, 3> &hkl) :
+    GUI::MeshData{std::move(faces), off, cell, texture},
+    hkl{hkl}
+{}
 
 void MillerWidget::updateIndex(int idx)
 {
@@ -184,7 +221,6 @@ void MillerWidget::updateIndex(int idx)
             throw Error("Unknown sender for HKL-plane index");
         }
         curPlane->update(mkFaces(curPlane->hkl));
-        triggerUpdate(GUI::Change::extra);
     }
 }
 
@@ -202,33 +238,5 @@ void MillerWidget::updateOffset(double off)
             throw Error("Unknown sender for HKL-plane offset");
         }
         curPlane->update(mkFaces(curPlane->hkl));
-        triggerUpdate(GUI::Change::extra);
     }
-}
-
-void MillerWidget::on_pushButton_toggled(bool checked)
-{
-    if(checked){
-        // create new Plane
-        auto hkl = std::array<int8_t,3>{
-            static_cast<int8_t>(ui->hSel->value()),
-            static_cast<int8_t>(ui->kSel->value()),
-            static_cast<int8_t>(ui->lSel->value())};
-        auto off = Vec{ui->xOff->value(),
-                       ui->yOff->value(),
-                       ui->zOff->value()};
-        planes.insert_or_assign(&vApp.curStep(),
-            std::make_shared<MillerPlane>(
-                mkFaces(hkl), off,
-                vApp.curStep().getCellVec() * vApp.curStep().getCellDim(AtomFmt::Bohr),
-                MillerPlane::Texture{{vApp.config().settings.milCol.val}, 1, 1},
-                hkl
-            ));
-        curPlane = planes.at(&vApp.curStep());
-        master->curVP->addExtraData(curPlane, false);
-    }else{
-        // delete Plane
-        master->curVP->delExtraData(curPlane, false);
-    }
-    triggerUpdate(GUI::Change::extra);
 }

@@ -2,27 +2,25 @@
 #define MILLERWIDGET_H
 
 #include <QWidget>
-#include "../basewidget.h"
 #include "meshdata.h"
+#include "mainwindow.h"
 #include "vipster/molecule.h"
 
 namespace Ui {
 class MillerWidget;
 }
 
-class MillerWidget : public BaseWidget
+class MillerWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit MillerWidget(QWidget *parent = nullptr);
+    explicit MillerWidget(QWidget *parent);
     ~MillerWidget() override;
-    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
     void updateIndex(int idx);
     void updateOffset(double off);
-    void on_pushButton_toggled(bool checked);
 
 private:
     Ui::MillerWidget *ui;

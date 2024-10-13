@@ -31,7 +31,7 @@
    <item row="0" column="1" rowspan="3">
     <spacer name="horizontalSpacer">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
@@ -126,114 +126,18 @@
    <item row="4" column="0" colspan="5">
     <spacer name="verticalSpacer">
      <property name="orientation">
-      <enum>Qt::Vertical</enum>
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
      </property>
     </spacer>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>hSel</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>updateIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>202</x>
-     <y>40</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>100</x>
-     <y>11</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>kSel</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>updateIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>276</x>
-     <y>45</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>127</x>
-     <y>7</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>lSel</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>updateIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>340</x>
-     <y>45</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>145</x>
-     <y>20</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xOff</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>updateOffset(double)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>230</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>75</x>
-     <y>51</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yOff</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>updateOffset(double)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>262</x>
-     <y>68</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>237</x>
-     <y>51</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zOff</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MillerWidget</receiver>
-   <slot>updateOffset(double)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>391</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>325</x>
-     <y>61</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
- <slots>
-  <slot>updateIndex(int)</slot>
-  <slot>updateOffset(double)</slot>
-  <slot>toggleView()</slot>
- </slots>
+ <connections/>
 </ui>

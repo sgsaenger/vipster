@@ -20,6 +20,6 @@ BaseWidget::BaseWidget(QWidget* parent)
 void BaseWidget::triggerUpdate(GUI::change_t change)
 {
     updateTriggered = true;
-    master->updateWidgets(change);
+    // master->updateWidgets(change);
     updateTriggered = false;
 }

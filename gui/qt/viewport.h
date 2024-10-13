@@ -29,23 +29,27 @@ public:
     explicit ViewPort(const ViewPort &vp);
     ~ViewPort() override;
 
-    void updateWidget(Vipster::GUI::change_t change);
-
     void addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     void delExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     bool hasExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
+    void cleanExtraData();
+
+    // Extra visualizations attached to this viewport
     struct {
         std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};
     } vpdata{};
 
+    // Visualization state of this molecule in this viewport
     struct MolState{
-        size_t curStep{0};
-        Vipster::GUI::PBCVec mult{1,1,1};
+        size_t curStep{0};                  // current step
+        Vipster::GUI::PBCVec mult{1,1,1};   // crystal multiplier
     };
     std::map<const Vipster::Molecule*, MolState> moldata{};
+
+    // State of this step in this viewport
     struct StepState{
-        std::unique_ptr<Vipster::Step::selection> sel{nullptr};
-        std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};
+        std::unique_ptr<Vipster::Step::selection> sel{nullptr};     // selection
+        std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};    // per step extra visualizations
     };
     std::map<const Vipster::Step*, StepState> stepdata{};
 

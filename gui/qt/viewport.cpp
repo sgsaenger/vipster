@@ -86,6 +86,8 @@ bool ViewPort::isActive() {
 }
 
 void ViewPort::updateState() {
+    cleanExtraData();
+
     // set widget's bond mode accordingly
     setBondMode(vApp.getState(*curStep).automatic_bonds);
     // if no cell exists, disable mult-selectors
@@ -99,6 +101,7 @@ void ViewPort::updateState() {
     openGLWidget->stepExtras = &stepdata[curStep].extras;
     openGLWidget->setMainSel(curSel);
     openGLWidget->update();
+
 }
 
 void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
@@ -118,21 +121,19 @@ void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
     }
 }
 
-void ViewPort::updateWidget(GUI::change_t change)
+void ViewPort::cleanExtraData()
 {
-    if(change & GUI::Change::extra){
-        // remove extra-data that has been erased
-        vpdata.extras.erase(
-            std::remove_if(vpdata.extras.begin(), vpdata.extras.end(),
+    // remove extra-data that has been erased
+    vpdata.extras.erase(
+        std::remove_if(vpdata.extras.begin(), vpdata.extras.end(),
+                       [](const auto &wp){return wp.expired();}),
+        vpdata.extras.end());
+    for(auto &sd: stepdata){
+        sd.second.extras.erase(
+            std::remove_if(sd.second.extras.begin(),
+                           sd.second.extras.end(),
                            [](const auto &wp){return wp.expired();}),
-            vpdata.extras.end());
-        for(auto &sd: stepdata){
-            sd.second.extras.erase(
-                std::remove_if(sd.second.extras.begin(),
-                               sd.second.extras.end(),
-                               [](const auto &wp){return wp.expired();}),
-                sd.second.extras.end());
-        }
+            sd.second.extras.end());
     }
 }
 
@@ -150,6 +151,7 @@ void ViewPort::addExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
     if(pos == extras.end()){
         extras.push_back(dat);
     }
+    updateState();
 }
 
 void ViewPort::delExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
@@ -159,6 +161,7 @@ void ViewPort::delExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
     if(pos != extras.end()){
         extras.erase(pos);
     }
+    updateState();
 }
 
 bool ViewPort::hasExtraData(const std::shared_ptr<GUI::Data> &dat, bool global)
