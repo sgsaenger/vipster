@@ -6,11 +6,10 @@
 
 using namespace Vipster;
 
-ViewPort::ViewPort(MainWindow *parent, bool active) :
+ViewPort::ViewPort(MainWindow *parent) :
     QFrame(parent),
     ui(new Ui::ViewPort),
-    master{parent},
-    active{active}
+    master{parent}
 {
     ui->setupUi(this);
     setFocusPolicy(Qt::StrongFocus);
@@ -50,12 +49,17 @@ ViewPort::ViewPort(MainWindow *parent, bool active) :
             [&](const Vipster::ConfigState &){
                 updateState();
             });
+
+    // Viewport management buttons
+    connect(ui->closeButton, &QPushButton::clicked, this, [&](){master->closeViewport(this);});
+    connect(ui->vSplitButton, &QPushButton::clicked, this, [&](){master->splitViewportVert(this);});
+    connect(ui->hSplitButton, &QPushButton::clicked, this, [&](){master->splitViewportHoriz(this);});
 }
 
 ViewPort::ViewPort(const ViewPort &vp) :
-    ViewPort{vp.master, false}
+    ViewPort{vp.master}
 {
-    //TODO: make this optional?
+    // synchronize mol/step state
     moldata = vp.moldata;
     for(const auto& p: vp.stepdata){
         if(p.second.sel){
@@ -66,13 +70,19 @@ ViewPort::ViewPort(const ViewPort &vp) :
             }
         }
     }
+
+    // synchronize/initialize GUI state
+    updateMoleculeList(vApp.molecules);
     ui->molList->setCurrentIndex(vp.ui->molList->currentIndex());
-    ui->stepEdit->setValue(vp.ui->stepEdit->value());
 }
 
 ViewPort::~ViewPort()
 {
     delete ui;
+}
+
+bool ViewPort::isActive() {
+    return this == master->curVP;
 }
 
 void ViewPort::updateState() {
@@ -103,7 +113,7 @@ void ViewPort::updateMoleculeList(const std::list<Molecule> &molecules){
         ui->molList->addItem(mol.name.c_str());
     }
 
-    if (active || shrunk) {
+    if (!curMol || shrunk || isActive()) {
         setMol(molecules.size()-1);
     }
 }
@@ -197,7 +207,7 @@ void ViewPort::setMol(int index)
     setStep(moldata[curMol].curStep, true);
 
     // update app state if required
-    if (active) {
+    if (isActive()) {
         vApp.setActiveMol(*curMol);
     }
 }
@@ -243,7 +253,7 @@ void ViewPort::setStep(int i, bool setMol)
     updateState();
 
     // Update application state
-    if(active){
+    if(isActive()){
         vApp.setActiveStep(*curStep, *curSel);
     }
 }
@@ -254,8 +264,8 @@ void ViewPort::setMult(int i)
     if(sender() == ui->xMultBox){ mult[0] = static_cast<uint8_t>(i); }
     else if(sender() == ui->yMultBox){ mult[1] = static_cast<uint8_t>(i); }
     else if(sender() == ui->zMultBox){ mult[2] = static_cast<uint8_t>(i); }
-    // save mult if needed
-    if (active) moldata[curMol].mult = mult;
+    moldata[curMol].mult = mult;
+
     // trigger redraw
     openGLWidget->setMult(mult);
 }
@@ -326,25 +336,4 @@ void ViewPort::stepBut(QAbstractButton *but)
 void ViewPort::on_mouseMode_currentIndexChanged(int i)
 {
     openGLWidget->setMouseMode(static_cast<GLWidget::MouseMode>(i));
-}
-
-void ViewPort::on_closeButton_clicked()
-{
-    master->changeViewports(this, MainWindow::VP_CLOSE);
-}
-
-void ViewPort::on_vSplitButton_clicked()
-{
-    master->changeViewports(this, MainWindow::VP_VSPLIT);
-}
-
-void ViewPort::on_hSplitButton_clicked()
-{
-    master->changeViewports(this, MainWindow::VP_HSPLIT);
-}
-
-void ViewPort::makeActive(bool a)
-{
-    active = a;
-    setFrameShadow(active ? QFrame::Sunken : QFrame::Raised);
 }

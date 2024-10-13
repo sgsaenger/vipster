@@ -25,17 +25,19 @@ class ViewPort : public QFrame
     friend class MainWindow;
     friend class GLWidget;
 public:
-    explicit ViewPort(MainWindow *parent, bool active=false);
+    explicit ViewPort(MainWindow *parent);
     explicit ViewPort(const ViewPort &vp);
     ~ViewPort() override;
+
     void updateWidget(Vipster::GUI::change_t change);
-    void makeActive(bool active);
+
     void addExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     void delExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     bool hasExtraData(const std::shared_ptr<Vipster::GUI::Data> &dat, bool global);
     struct {
         std::vector<std::weak_ptr<Vipster::GUI::Data>> extras{};
     } vpdata{};
+
     struct MolState{
         size_t curStep{0};
         Vipster::GUI::PBCVec mult{1,1,1};
@@ -59,13 +61,11 @@ public slots:
 
 private slots:
     void on_mouseMode_currentIndexChanged(int index);
-    void on_closeButton_clicked();
-    void on_vSplitButton_clicked();
-    void on_hSplitButton_clicked();
     void updateMoleculeList(const std::list<Vipster::Molecule> &molecules);
 
 public:
     void updateState();
+    bool isActive();
 
     Ui::ViewPort *ui;
     MainWindow *master;
@@ -73,7 +73,6 @@ public:
     Vipster::Molecule* curMol{nullptr};
     Vipster::Step* curStep{nullptr};
     Vipster::Step::selection* curSel{nullptr};
-    bool active{true};
     QTimer playTimer{};
 };
 

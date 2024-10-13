@@ -424,7 +424,7 @@ void GLWidget::focusInEvent(QFocusEvent *)
 {
     // make sure our viewport is the active one
     auto vp = static_cast<ViewPort*>(parentWidget());
-    if(!vp->active){
-        vp->master->changeViewports(vp, MainWindow::VP_ACTIVE);
+    if(!vp->isActive()){
+        vp->master->setActiveViewport(vp);
     }
 }

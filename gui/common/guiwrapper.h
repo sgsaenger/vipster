@@ -36,8 +36,6 @@ public:
                 const Vec& pos, unsigned long width, unsigned long height);
     void setMainStep(Step* step);
     void setMainSel(Step::selection* sel);
-    void updateMainStep();
-    void updateMainSelection();
     void resizeViewMat(long w, long h);
     void zoomViewMat(float i);
     void rotateViewMat(float x, float y, float z);

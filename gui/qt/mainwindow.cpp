@@ -44,7 +44,7 @@ MainWindow::MainWindow(QString path):
 void MainWindow::setupViewports()
 {
     // create first level of splitters and main viewport
-    viewports.push_back(new ViewPort{this, true});
+    viewports.push_back(new ViewPort{this});
     vsplit = new QSplitter{this};
     vsplit->setOrientation(Qt::Vertical);
     vsplit->setChildrenCollapsible(false);
@@ -53,7 +53,7 @@ void MainWindow::setupViewports()
     hsplits.back()->addWidget(viewports.front());
     setCentralWidget(vsplit);
     curVP = viewports.front();
-    curVP->makeActive(true);
+    curVP->setFrameShadow(QFrame::Shadow::Sunken);
     curVP->ui->closeButton->setDisabled(true);
 }
 
@@ -351,13 +351,14 @@ void MainWindow::setupHelpMenu()
 
 void MainWindow::updateWidgets(GUI::change_t change)
 {
+    throw Error{"this should not be called anymore"};
     // pull in mol/step selection from active viewport
-    if((change & GUI::molChanged) == GUI::molChanged){
-        vApp.setActiveMol(*curVP->curMol);
-    }
-    if((change & GUI::stepChanged) == GUI::stepChanged){
-        vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
-    }
+    // if((change & GUI::molChanged) == GUI::molChanged){
+        // vApp.setActiveMol(*curVP->curMol);
+    // }
+    // if((change & GUI::stepChanged) == GUI::stepChanged){
+        // vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
+    // }
     // notify widgets
     for(auto& w: viewports){
         w->updateWidget(change);
@@ -367,72 +368,65 @@ void MainWindow::updateWidgets(GUI::change_t change)
     // }
 }
 
-void MainWindow::changeViewports(ViewPort *sender, VPChange change)
-{
-    try{
-        switch(change){
-        case VP_CLOSE:
-            {
-                bool wasActive = sender->active;
-                auto pos = std::find(viewports.begin(), viewports.end(), sender);
-                if(pos == viewports.end()){
-                    throw Error{"Invalid viewport"};
-                }else{
-                    viewports.erase(pos);
-                    delete sender;
-                    // clean-up hsplits if sender was last child
-                    for(auto it = hsplits.begin(); it != hsplits.end(); ++it){
-                        if(!(*it)->count()){
-                            delete *it;
-                            hsplits.erase(it);
-                            break;
-                        }
-                    }
-                }
-                // make sure we don't close last viewport
-                if(viewports.size() == 1)
-                    viewports.front()->ui->closeButton->setDisabled(true);
-                if(wasActive)
-                    viewports.front()->openGLWidget->setFocus();
-            }
-            break;
-        case VP_VSPLIT:
-            if(viewports.size() == 1) viewports.front()->ui->closeButton->setEnabled(true);
-            viewports.push_back(new ViewPort{*sender});
-            viewports.back()->updateWidget(GUI::molChanged);
-            hsplits.push_back(new QSplitter{vsplit});
-            hsplits.back()->setChildrenCollapsible(false);
-            hsplits.back()->addWidget(viewports.back());
-            vsplit->addWidget(hsplits.back());
-            break;
-        case VP_HSPLIT:
-            if(viewports.size() == 1) viewports.front()->ui->closeButton->setEnabled(true);
-            viewports.push_back(new ViewPort{*sender});
-            viewports.back()->updateWidget(GUI::molChanged);
-            for(auto& h: hsplits){
-                for(auto& c: h->children()){
-                    if (c == sender){
-                        h->addWidget(viewports.back());
-                        return;
-                    }
-                }
-            }
-            throw Error{"Could not determine horizontal splitter for viewport"};
-        case VP_ACTIVE:
-            // deactivate other viewports
-            for(auto& vp: viewports){
-                vp->makeActive(vp == sender);
-            }
-            // make sender current viewport
-            curVP = sender;
-            updateWidgets(GUI::molChanged);
-            break;
-        default:
-            throw Error{"Invalid viewport change"};
-        }
-    }catch(const Error& e){
-        QMessageBox::information(this, "ViewPort Error", e.what());
+void MainWindow::setActiveViewport(ViewPort* sender) {
+    // deactivate other viewports
+    for(auto& vp: viewports){
+        vp->setFrameShadow(QFrame::Shadow::Raised);
     }
+    sender->setFrameShadow(QFrame::Shadow::Sunken);
+    // make sender current viewport
+    curVP = sender;
+    vApp.setActiveMol(*curVP->curMol);
+    vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
+}
+
+void MainWindow::splitViewportHoriz(ViewPort* sender) {
+    viewports.front()->ui->closeButton->setEnabled(true);
+    viewports.push_back(new ViewPort{*sender});
+    viewports.back()->updateWidget(GUI::molChanged);
+    for(auto& h: hsplits){
+        for(auto& c: h->children()){
+            if (c == sender){
+                h->addWidget(viewports.back());
+                return;
+            }
+        }
+    }
+    throw Error{"Could not determine horizontal splitter for viewport"};
+}
+
+void MainWindow::splitViewportVert(ViewPort* sender) {
+    viewports.front()->ui->closeButton->setEnabled(true);
+    viewports.push_back(new ViewPort{*sender});
+    viewports.back()->updateWidget(GUI::molChanged);
+    hsplits.push_back(new QSplitter{vsplit});
+    hsplits.back()->setChildrenCollapsible(false);
+    hsplits.back()->addWidget(viewports.back());
+    vsplit->addWidget(hsplits.back());
+}
+
+void MainWindow::closeViewport(ViewPort* sender) {
+    bool wasActive = sender == curVP;
+    auto pos = std::find(viewports.begin(), viewports.end(), sender);
+    if(pos == viewports.end()){
+        throw Error{"Invalid viewport"};
+    }else{
+        viewports.erase(pos);
+        delete sender;
+        // clean-up hsplits if sender was last child
+        for(auto it = hsplits.begin(); it != hsplits.end(); ++it){
+            if(!(*it)->count()){
+                delete *it;
+                hsplits.erase(it);
+                break;
+            }
+        }
+    }
+    // make sure we don't close last viewport
+    if(viewports.size() == 1)
+        viewports.front()->ui->closeButton->setDisabled(true);
+    if(wasActive)
+        viewports.front()->openGLWidget->setFocus();
 }
 
 void MainWindow::newData(IOTuple &&d)

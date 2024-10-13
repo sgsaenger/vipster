@@ -22,8 +22,10 @@ public:
 
     // Viewports
     std::vector<ViewPort*> viewports;
-    enum VPChange{VP_CLOSE, VP_VSPLIT, VP_HSPLIT, VP_ACTIVE};
-    void changeViewports(ViewPort* sender, VPChange change);
+    void setActiveViewport(ViewPort* sender);
+    void splitViewportHoriz(ViewPort* sender);
+    void splitViewportVert(ViewPort* sender);
+    void closeViewport(ViewPort* sender);
     ViewPort* curVP{nullptr};
     void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IOTuple&& d);
