@@ -216,7 +216,8 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
                         cmdBlock = document()->lastBlock().blockNumber();
                         sys.attr("stdout") = old;
                         // trigger update so GUI knows about changes
-                        master->updateWidgets(GUI::stepChanged);
+                        emit vApp.activeStepChanged(vApp.curStep(), vApp.curSel());
+                        // master->updateWidgets(GUI::stepChanged);
                     }
                 } catch (py::error_already_set& e) {
                     cursor.insertText(e.what());

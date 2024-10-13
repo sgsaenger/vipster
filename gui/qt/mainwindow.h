@@ -27,7 +27,6 @@ public:
     void splitViewportVert(ViewPort* sender);
     void closeViewport(ViewPort* sender);
     ViewPort* curVP{nullptr};
-    void updateWidgets(Vipster::GUI::change_t change);
     void newData(Vipster::IOTuple&& d);
 
     // Parameter data

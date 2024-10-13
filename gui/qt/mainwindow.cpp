@@ -349,25 +349,6 @@ void MainWindow::setupHelpMenu()
     helpMenu.addAction("About Qt", &QApplication::aboutQt);
 }
 
-void MainWindow::updateWidgets(GUI::change_t change)
-{
-    throw Error{"this should not be called anymore"};
-    // pull in mol/step selection from active viewport
-    // if((change & GUI::molChanged) == GUI::molChanged){
-        // vApp.setActiveMol(*curVP->curMol);
-    // }
-    // if((change & GUI::stepChanged) == GUI::stepChanged){
-        // vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
-    // }
-    // notify widgets
-    for(auto& w: viewports){
-        w->updateWidget(change);
-    }
-    // for(auto& w: toolWidgets){
-        // w->updateWidget(change);
-    // }
-}
-
 void MainWindow::setActiveViewport(ViewPort* sender) {
     // deactivate other viewports
     for(auto& vp: viewports){
@@ -383,7 +364,6 @@ void MainWindow::setActiveViewport(ViewPort* sender) {
 void MainWindow::splitViewportHoriz(ViewPort* sender) {
     viewports.front()->ui->closeButton->setEnabled(true);
     viewports.push_back(new ViewPort{*sender});
-    viewports.back()->updateWidget(GUI::molChanged);
     for(auto& h: hsplits){
         for(auto& c: h->children()){
             if (c == sender){
@@ -398,7 +378,6 @@ void MainWindow::splitViewportHoriz(ViewPort* sender) {
 void MainWindow::splitViewportVert(ViewPort* sender) {
     viewports.front()->ui->closeButton->setEnabled(true);
     viewports.push_back(new ViewPort{*sender});
-    viewports.back()->updateWidget(GUI::molChanged);
     hsplits.push_back(new QSplitter{vsplit});
     hsplits.back()->setChildrenCollapsible(false);
     hsplits.back()->addWidget(viewports.back());
@@ -438,7 +417,6 @@ void MainWindow::newData(IOTuple &&d)
     }
     for(auto& dat: std::get<2>(d)){
         vApp.data.push_back(std::move(dat));
-        updateWidgets(GUI::Change::data);
     }
 }
 
