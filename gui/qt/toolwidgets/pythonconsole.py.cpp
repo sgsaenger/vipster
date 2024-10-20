@@ -27,15 +27,15 @@ PythonConsole::PythonConsole(QWidget *parent) :
                             "\n>>> ");
     auto vip = py::module::import("vipster");
     // GUI-specific functions
-    vip.def("makeScreenshot", [this](const char *fn){master->saveScreenshot(fn);});
+    vip.def("makeScreenshot", [this](const char *fn){vApp.saveScreenshot(fn);});
     vip.def("viewRotate", [this](float x, float y, float z){
-        master->curVP->openGLWidget->rotateViewMat(x, y, z);
+        vApp.curVP->openGLWidget->rotateViewMat(x, y, z);
     });
     vip.def("viewTranslate", [this](float x, float y, float z){
-        master->curVP->openGLWidget->translateViewMat(x, y, z);
+        vApp.curVP->openGLWidget->translateViewMat(x, y, z);
     });
     vip.def("viewZoom", [this](float f){
-        master->curVP->openGLWidget->zoomViewMat(f);
+        vApp.curVP->openGLWidget->zoomViewMat(f);
     });
     // Step-access
     vip.def("curStep", [](){return vApp.curStep();}, py::return_value_policy::reference);
@@ -47,7 +47,7 @@ PythonConsole::PythonConsole(QWidget *parent) :
     vip.def("setStep", [this](size_t i){
         if(i >= vApp.curMol().getNstep())
             throw std::range_error("Step-id out of range");
-        master->curVP->setStep(i+1);
+        vApp.curVP->setStep(i+1);
     });
     vip.def("numStep", [](){return vApp.curMol().getNstep();});
     vip.def("curSel", [](){return vApp.curSel();}, py::return_value_policy::reference);
@@ -61,7 +61,7 @@ PythonConsole::PythonConsole(QWidget *parent) :
     vip.def("setMol", [this](size_t i){
         if(i>=vApp.molecules.size())
             throw std::range_error("Molecule-id out of range");
-        master->curVP->setMol(i);
+        vApp.curVP->setMol(i);
     });
     vip.def("numMol", [](){return vApp.molecules.size();});
     // Data-access
@@ -83,15 +83,6 @@ PythonConsole::PythonConsole(QWidget *parent) :
              "    return pydoc.help(*args, **kwds)");
     locals = py::globals();
     cmdBlock = document()->lastBlock().blockNumber();
-}
-
-void PythonConsole::setMaster(MainWindow *m)
-{
-    master = m;
-}
-
-PythonConsole::~PythonConsole()
-{
 }
 
 void PythonConsole::mousePressEvent(QMouseEvent *e)
@@ -216,7 +207,6 @@ void PythonConsole::keyPressEvent(QKeyEvent *e)
                         sys.attr("stdout") = old;
                         // trigger update so GUI knows about changes
                         emit vApp.activeStepChanged(vApp.curStep(), vApp.curSel());
-                        // master->updateWidgets(GUI::stepChanged);
                     }
                 } catch (py::error_already_set& e) {
                     cursor.insertText(e.what());

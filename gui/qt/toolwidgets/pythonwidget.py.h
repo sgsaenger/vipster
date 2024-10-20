@@ -1,13 +1,13 @@
 #ifndef PYTHONWIDGET_PY_H
 #define PYTHONWIDGET_PY_H
 
-#include "../basewidget.h"
+#include <QWidget>
 
 namespace Ui {
 class PythonWidget;
 }
 
-class PythonWidget : public BaseWidget
+class PythonWidget : public QWidget
 {
     Q_OBJECT
 

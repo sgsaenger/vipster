@@ -15,8 +15,6 @@ class PythonConsole : public QPlainTextEdit
 
 public:
     explicit PythonConsole(QWidget *parent = nullptr);
-    ~PythonConsole() override;
-    void setMaster(MainWindow *master);
 protected:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
@@ -28,7 +26,6 @@ private:
     std::vector<std::string> cmdHistory{};
     pybind11::dict locals{};
     int cmdBlock{-1};
-    MainWindow* master{nullptr};
 };
 
 #endif // PYTHONCONSOLE_H

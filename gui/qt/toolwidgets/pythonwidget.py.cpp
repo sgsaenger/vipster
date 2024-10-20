@@ -1,14 +1,11 @@
 #include "pythonwidget.py.h"
 #include "ui_pythonwidget.py.h"
 
-using namespace Vipster;
-
 PythonWidget::PythonWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::PythonWidget)
 {
     ui->setupUi(this);
-    ui->console->setMaster(master);
 }
 
 PythonWidget::~PythonWidget()
