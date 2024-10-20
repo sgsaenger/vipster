@@ -3,7 +3,6 @@
 #include "glwidget.h"
 #include "global.py.h"
 #include "vipster/molecule.h"
-#include "vipsterapplication.h"
 #include <QTextBlock>
 #include <QScrollBar>
 #pragma push_macro("slots")

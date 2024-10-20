@@ -1,6 +1,6 @@
 #include <QMessageBox>
 #include "cellwidget.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 #include "doubledelegate.h"
 #include "ui_cellwidget.h"
 
@@ -29,13 +29,13 @@ CellWidget::CellWidget(QWidget *parent) :
     connect(ui->cellTrajecButton, &QPushButton::clicked, this, &CellWidget::applyToTrajectory);
 
     // Connect to app state changes
-    connect(&vApp, &Application::activeStepChanged, this, [&](const Step &step){
+    connect(&vApp, &MainWindow::activeStepChanged, this, [&](const Step &step){
         if (step.hasCell()) {
             ui->displayButton->setChecked(true);
         }
         CellWidget::updateStep(step);
     });
-    connect(&vApp, &Application::stepChanged, this, &CellWidget::updateStep);
+    connect(&vApp, &MainWindow::stepChanged, this, &CellWidget::updateStep);
 
     // hide ui until requested
     ui->frame->hide();

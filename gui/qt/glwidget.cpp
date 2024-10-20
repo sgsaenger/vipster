@@ -1,7 +1,6 @@
 #include "glwidget.h"
 #include "mainwindow.h"
 #include "viewport.h"
-#include "vipsterapplication.h"
 #include <QKeyEvent>
 #include <QOpenGLFramebufferObject>
 #include <QApplication>
@@ -191,7 +190,7 @@ void GLWidget::rotAtoms(QPoint delta)
     Vec axis = delta.y() * axes[0] + -delta.x() * axes[1];
     if(curSel->getNat()){
         // TODO: this assumes viewport is active -> use viewport over vApp?
-        vApp.invokeOnSel([](Step::selection &s, double angle, const Vec &axis, const Vec &shift){
+        vApp.invokeOnSelection([](Step::selection &s, double angle, const Vec &axis, const Vec &shift){
             s.asFmt(AtomFmt::Bohr).modRotate(angle, axis, shift);
         }, angle, axis, shift);
     }else{
@@ -208,7 +207,7 @@ void GLWidget::shiftAtomsXY(QPoint delta)
     Vec axis = delta.x() * axes[0] + delta.y() * axes[1];
     if(curSel->getNat()){
         // TODO: this assumes viewport is active -> use viewport over vApp?
-        vApp.invokeOnSel([](Step::selection &s, const Vec &axis){
+        vApp.invokeOnSelection([](Step::selection &s, const Vec &axis){
             s.asFmt(AtomFmt::Bohr).modShift(axis, 0.01);
         }, axis);
     }else{
@@ -225,7 +224,7 @@ void GLWidget::shiftAtomsZ(QPoint delta)
     double fac = 0.01 * (delta.x() + delta.y());
     if(curSel->getNat()){
         // TODO: this assumes viewport is active -> use viewport over vApp?
-        vApp.invokeOnSel([](Step::selection &s, const Vec &axis, double fac){
+        vApp.invokeOnSelection([](Step::selection &s, const Vec &axis, double fac){
             s.asFmt(AtomFmt::Bohr).modShift(axis, fac);
         }, axes[2], fac);
     }else{

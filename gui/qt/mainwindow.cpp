@@ -5,7 +5,6 @@
 #include "mainwidgets.h"
 #include "toolwidgets.h"
 #include "glwidget.h"
-#include "vipsterapplication.h"
 
 #include <QDockWidget>
 #include <QMessageBox>
@@ -22,40 +21,200 @@
 using namespace Vipster;
 namespace fs = std::filesystem;
 
-MainWindow::MainWindow(QString path):
+MainWindow * MainWindow::_instance = nullptr;
+
+MainWindow::MainWindow(Vipster::ConfigState state, QDir path):
     QMainWindow{},
+    _config{std::move(state)},
     path{path}
 {
+    if (_instance) {
+        throw Error{"Only one instance of MainWindow must exist"};
+    } else {
+        _instance = this;
+    }
+
+    // set up GUI
     setWindowIcon(QIcon{":/images/vipster.png"});
-
     setupFileMenu();
-
     setupEditMenu();
-
     setupHelpMenu();
-
     setupMainWidgets();
-
     setupToolWidgets();
-
     setupViewports();
+
+    // global event handlers
+
+    // Ensure bonds and overlap information is up to date
+    auto updateBonds = [&](const Step &step){
+        if (getState(step).automatic_bonds ||
+            _config.settings.overlap.val) {
+            const_cast<Step&>(step).generateBonds(!getState(step).automatic_bonds);
+        }
+    };
+    connect(this, &MainWindow::stepChanged, this, updateBonds);
 }
 
-void MainWindow::setupViewports()
+/********************************
+ * Operations on molecule files *
+ ********************************/
+void MainWindow::readFile()
 {
-    // create first level of splitters and main viewport
-    viewports.push_back(new ViewPort{this});
-    vsplit = new QSplitter{this};
-    vsplit->setOrientation(Qt::Vertical);
-    vsplit->setChildrenCollapsible(false);
-    hsplits.push_back(new QSplitter{vsplit});
-    hsplits.back()->setChildrenCollapsible(false);
-    hsplits.back()->addWidget(viewports.front());
-    setCentralWidget(vsplit);
-    curVP = viewports.front();
-    curVP->setFrameShadow(QFrame::Shadow::Sunken);
-    curVP->ui->closeButton->setDisabled(true);
+    // File dialog
+    QFileDialog fileDiag{this};
+    fileDiag.setDirectory(path);
+    // TODO: limited to one file for now
+    fileDiag.setFileMode(QFileDialog::ExistingFile);
+    // Format dialog
+    QStringList formats{};
+    for(const auto plug: _config.plugins){
+        if(plug->parser)
+            formats << QString::fromStdString(plug->name);
+    }
+    if(fileDiag.exec() != 0){
+        auto files = fileDiag.selectedFiles();
+        path = fileDiag.directory();
+        // if cancelled by user, just return
+        if(files.empty()) return;
+        // else try to read file
+        const auto& file = files[0].toStdString();
+        // guess format or request from user
+        auto plugin = guessFmt(file, _config.plugins);
+        if (!plugin){
+            bool got_fmt{false};
+            auto fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
+                                               formats, 0, false, &got_fmt);
+            // if the user selected the format, read the file
+            if(got_fmt){
+                auto fmt = std::find_if(_config.plugins.begin(), _config.plugins.end(),
+                    [&](const auto& plug){return plug->name.c_str() == fmt_s;});
+                if(fmt == _config.plugins.end())
+                    throw Error{"Invalid format in loadMol occured"};
+                plugin = *fmt;
+            }
+        }
+        try {
+            if(plugin){
+                // try to open file
+                newIOData(Vipster::readFile(file, plugin));
+            }
+        }catch (const IOError &e){
+            QMessageBox msg{this};
+            msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
+            msg.exec();
+        }catch (const Error &e){
+            QMessageBox msg{this};
+            msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
+            msg.exec();
+        }
+    }
 }
+
+void MainWindow::saveFile()
+{
+    QFileDialog fileDiag{this};
+    fileDiag.setDirectory(path);
+    fileDiag.setAcceptMode(QFileDialog::AcceptSave);
+    if(fileDiag.exec() == QDialog::Accepted){
+        auto target = fileDiag.selectedFiles()[0].toStdString();
+        path = fileDiag.directory();
+        SaveFmtDialog sfd{_config.plugins, this};
+        if(sfd.exec() == QDialog::Accepted){
+            try{
+                writeFile(target, sfd.plugin, curMol(),
+                          curVP->moldata[&curMol()].curStep-1,
+                          sfd.getParam(), sfd.getPreset());
+            }catch(const IOError& e){
+                QMessageBox msg{this};
+                msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
+                msg.exec();
+            }
+        }
+    }
+}
+
+void MainWindow::newIOData(IOTuple &&t)
+{
+    newMol(std::move(std::get<Molecule>(t)));
+
+    const auto& name = molecules.back().name;
+    if (auto &param = std::get<std::optional<Parameter>>(t)) {
+        paramWidget->registerParam(name, std::move(*param));
+        emit parameterListChanged();
+    }
+
+    for (auto &extra: std::get<DataList>(t)) {
+        data.emplace_back(std::move(extra));
+        emit dataListChanged();
+    }
+}
+
+
+/****************************
+ * Molecule & Step handling *
+ ****************************/
+void MainWindow::newMol(Molecule &&mol){
+    molecules.emplace_back(std::move(mol));
+    molecules.back().getPTE().root = &_config.periodicTable;
+
+    emit molListChanged(molecules);
+}
+
+Molecule& MainWindow::curMol()
+{
+    return *pCurMol;
+}
+
+void MainWindow::setActiveMol(Molecule &m)
+{
+    pCurMol = &m;
+    emit activeMolChanged(m);
+}
+
+const Step& MainWindow::curStep()
+{
+    return *pCurStep;
+}
+
+const Step::selection& MainWindow::curSel()
+{
+    return *pCurSel;
+}
+
+void MainWindow::setActiveStep(Step &step, Step::selection &sel)
+{
+    pCurStep = &step;
+    pCurSel = &sel;
+
+    getState(step);
+    emit activeStepChanged(step, sel);
+}
+
+void MainWindow::updateSelection(SelectionFilter filter)
+{
+    *pCurSel = pCurStep->select(filter);
+    emit selChanged(*pCurSel);
+}
+
+MainWindow::StepState& MainWindow::getState(const Step &step)
+{
+    // initialize state if required
+    if (stepdata.find(&step) == stepdata.end()) {
+        stepdata.emplace(&step, StepState{
+            // when bonds are present (e.g. in file), use manual mode
+            step.getBonds().empty(),
+            // default formatter is passthrough
+            const_cast<Step&>(step).asFmt(step.getFmt())
+        });
+    }
+    return stepdata.at(&step);
+}
+
+void MainWindow::selectionToCopy(){
+    copyBuf = *pCurSel;
+    emit copyBufChanged(copyBuf);
+}
+
 
 /* Main widgets
  * Core functionality (Molecule-Properties, Auxiliary data)
@@ -100,7 +259,6 @@ void MainWindow::setupToolWidgets()
     auto &toolBar = *addToolBar("toolBar");
     for(const auto& pair: makeToolWidgets(this)){
         auto *tmp = new QDockWidget(this);
-        toolWidgets.push_back(pair.first);
         tmp->setWidget(pair.first);
         tmp->setAllowedAreas(Qt::BottomDockWidgetArea|
                              Qt::RightDockWidgetArea|
@@ -123,39 +281,39 @@ void MainWindow::setupFileMenu()
 
     // Create an empty, new molecule
     fileMenu.addAction("&New molecule",
-                       [](){vApp.newMol({});},
+                       [this](){newMol({});},
                        QKeySequence::New);
 
     // create a copy of existing data
     auto &copyMenu = *fileMenu.addMenu("&From existing molecule");
     copyMenu.addAction("Copy single &step",
                        [this](){
-                           auto tmpMol = Molecule{vApp.curStep()};
+                           auto tmpMol = Molecule{curStep()};
                            tmpMol.name += " (copy of step " +
-                                          std::to_string(curVP->moldata[&vApp.curMol()].curStep) + ")";
-                           vApp.newMol(std::move(tmpMol));
+                                          std::to_string(curVP->moldata[&curMol()].curStep) + ")";
+                           newMol(std::move(tmpMol));
                        });
     copyMenu.addAction("Copy &current selection",
                        [this](){
-                           auto tmpMol = Molecule{vApp.curSel()};
+                           auto tmpMol = Molecule{curSel()};
                            tmpMol.name += " (copy of selection of step " +
-                                          std::to_string(curVP->moldata[&vApp.curMol()].curStep) + ")";
-                           vApp.newMol(std::move(tmpMol));
+                                          std::to_string(curVP->moldata[&curMol()].curStep) + ")";
+                           newMol(std::move(tmpMol));
                        });
     copyMenu.addAction("Copy &trajectory",
-                       [](){
-                           Molecule tmpMol = vApp.curMol();
+                       [this](){
+                           Molecule tmpMol = curMol();
                            tmpMol.name += " (copy)";
-                           vApp.newMol(std::move(tmpMol));
+                           newMol(std::move(tmpMol));
                        });
 
     // load molecular data from file
     fileMenu.addAction("&Load molecule",
-                       [this](){loadMol();},
+                       &MainWindow::readFile,
                        QKeySequence::Open);
     // store molecular data to file
     fileMenu.addAction("&Save molecule",
-                       [this](){saveMol();},
+                       &MainWindow::saveFile,
                        QKeySequence::Save);
 
     // Separator
@@ -163,12 +321,12 @@ void MainWindow::setupFileMenu()
     // Create a nested menu that exposes all parameter presets per filetype plugin
     auto &paramMenu = *fileMenu.addMenu("Load parameter set");
     auto &presetMenu = *fileMenu.addMenu("Load IO preset");
-    for(const auto& plug: vApp.config().plugins){
+    for(const auto& plug: config().plugins){
         if(plug->makeParam){
             // create a sub-menu for each param-enabled plugin
             auto* plug_menu = paramMenu.addMenu(QString::fromStdString(plug->name));
             // register each parameter preset as a separate action
-            const auto& param_map = vApp.config().parameters.at(plug);
+            const auto& param_map = _config.parameters.at(plug);
             for(const auto& p: param_map){
                 plug_menu->addAction(QString::fromStdString(p.first),
                                      this, &MainWindow::loadParam);
@@ -178,7 +336,7 @@ void MainWindow::setupFileMenu()
             // create a sub-menu for each IO-preset enabled plugin
             auto* plug_menu = presetMenu.addMenu(QString::fromStdString(plug->name));
             // register each IO preset as a separate action
-            const auto& conf_map = vApp.config().presets.at(plug);
+            const auto& conf_map = _config.presets.at(plug);
             for(const auto& p: conf_map){
                 plug_menu->addAction(QString::fromStdString(p.first),
                                      this, &MainWindow::loadPreset);
@@ -210,8 +368,8 @@ void MainWindow::setupEditMenu()
 
     // Create a new Atom
     auto *newAction = editMenu.addAction("&New atom",
-        [](){
-            vApp.invokeOnStep(static_cast<void(Step::*)(const std::string &, const Vec&, const AtomProperties&)>(&Step::newAtom),
+        [this](){
+            invokeOnStep(static_cast<void(Step::*)(const std::string &, const Vec&, const AtomProperties&)>(&Step::newAtom),
                           "C", Vec{}, AtomProperties{});
         },
         Qt::Key_N);
@@ -232,46 +390,49 @@ void MainWindow::setupEditMenu()
     };
     auto *delAction = editMenu.addAction("&Delete atom(s)",
         [&](){
-            vApp.invokeOnStep(delAtoms, vApp.curSel());
-            vApp.updateSelection({});
+            invokeOnStep(delAtoms, curSel());
+            updateSelection({});
         },
         Qt::Key_Delete);
+    delAction->setEnabled(false);
+    connect(this, &MainWindow::selChanged,
+            delAction, [&](const Step::selection &sel){delAction->setEnabled(sel.getNat() > 0);});
 
     // Cut atoms
     auto *cutAction = editMenu.addAction("C&ut atom(s)",
         [&](){
-            vApp.selectionToCopy();
-            vApp.invokeOnStep(delAtoms, vApp.curSel());
-            vApp.updateSelection({});
+            selectionToCopy();
+            invokeOnStep(delAtoms, curSel());
+            updateSelection({});
         },
         QKeySequence::Cut);
     cutAction->setEnabled(false);
-    connect(&vApp, &Application::selChanged,
-            cutAction, [=](const Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
+    connect(this, &MainWindow::selChanged,
+            cutAction, [&](const Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
 
     // Copy atoms
     auto *copyAction = editMenu.addAction("&Copy atom(s)",
-        [](){
-            vApp.selectionToCopy();
+        [&](){
+            selectionToCopy();
         },
         QKeySequence::Copy);
     copyAction->setEnabled(false);
-    connect(&vApp, &Application::selChanged,
-            copyAction, [=](const Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
+    connect(this, &MainWindow::selChanged,
+            copyAction, [&](const Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
 
     // Paste atoms
     auto *pasteAction = editMenu.addAction("&Paste atom(s)",
-        [](){
-            vApp.invokeOnStep([](Step &s){
-                if (vApp.copyBuf.getNat() > 0) {
-                    s.newAtoms(vApp.copyBuf);
+        [&](){
+            invokeOnStep([&](Step &s){
+                if (copyBuf.getNat() > 0) {
+                    s.newAtoms(copyBuf);
                 }
             });
         },
         QKeySequence::Paste);
     pasteAction->setEnabled(false);
-    connect(&vApp, &Application::copyBufChanged,
-            pasteAction, [=](const std::optional<Step> &buf){pasteAction->setEnabled(buf->getNat() > 0);});
+    connect(this, &MainWindow::copyBufChanged,
+            pasteAction, [&](const std::optional<Step> &buf){pasteAction->setEnabled(buf->getNat() > 0);});
 
     // Separator
     editMenu.addSeparator();
@@ -282,41 +443,38 @@ void MainWindow::setupEditMenu()
             auto newName = QInputDialog::getText(this, "Rename atoms",
                                              "Enter new Atom-type for selected atoms:")
                        .toStdString();
-            auto f = [](Step::selection &sel, const std::string &name){
+            invokeOnSelection([](Step::selection &sel, const std::string &name){
                 for(auto& at: sel){
                     at.name = name;
                 }
-            };
-            vApp.invokeOnSel(f, newName);
+            }, newName);
         });
-    connect(&vApp, &Application::selChanged,
+    connect(this, &MainWindow::selChanged,
             renameAction, [=](const Step::selection &sel){renameAction->setEnabled(sel.getNat() > 0);});
 
     // Hide
     auto *hideAction = editMenu.addAction("&Hide atom(s)",
-          [](){
-              auto f = [](Step::selection &sel){
+          [&](){
+              invokeOnSelection([](Step::selection &sel){
                   for(auto& at: sel){
                       at.properties->flags[AtomProperties::Hidden] = true;
                   }
-              };
-              vApp.invokeOnSel(f);
+              });
           });
-      connect(&vApp, &Application::selChanged,
-              hideAction, [=](const Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
+      connect(this, &MainWindow::selChanged,
+              hideAction, [&](const Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
 
     // Show
     auto *showAction = editMenu.addAction("&Show atom(s)",
-        [](){
-            auto f = [](Step::selection &sel){
+        [&](){
+            invokeOnSelection([](Step::selection &sel){
                 for(auto& at: sel){
                     at.properties->flags[AtomProperties::Hidden] = false;
                 }
-            };
-            vApp.invokeOnSel(f);
+            });
         });
-    connect(&vApp, &Application::selChanged,
-            showAction, [=](const Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
+    connect(this, &MainWindow::selChanged,
+            showAction, [&](const Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
 }
 
 void MainWindow::setupHelpMenu()
@@ -349,6 +507,22 @@ void MainWindow::setupHelpMenu()
     helpMenu.addAction("About Qt", &QApplication::aboutQt);
 }
 
+void MainWindow::setupViewports()
+{
+    // create first level of splitters and main viewport
+    viewports.push_back(new ViewPort{this});
+    vsplit = new QSplitter{this};
+    vsplit->setOrientation(Qt::Vertical);
+    vsplit->setChildrenCollapsible(false);
+    hsplits.push_back(new QSplitter{vsplit});
+    hsplits.back()->setChildrenCollapsible(false);
+    hsplits.back()->addWidget(viewports.front());
+    setCentralWidget(vsplit);
+    curVP = viewports.front();
+    curVP->setFrameShadow(QFrame::Shadow::Sunken);
+    curVP->ui->closeButton->setDisabled(true);
+}
+
 void MainWindow::setActiveViewport(ViewPort* sender) {
     // deactivate other viewports
     for(auto& vp: viewports){
@@ -357,8 +531,8 @@ void MainWindow::setActiveViewport(ViewPort* sender) {
     sender->setFrameShadow(QFrame::Shadow::Sunken);
     // make sender current viewport
     curVP = sender;
-    vApp.setActiveMol(*curVP->curMol);
-    vApp.setActiveStep(*curVP->curStep, *curVP->curSel);
+    setActiveMol(*curVP->curMol);
+    setActiveStep(*curVP->curStep, *curVP->curSel);
 }
 
 void MainWindow::splitViewportHoriz(ViewPort* sender) {
@@ -408,93 +582,6 @@ void MainWindow::closeViewport(ViewPort* sender) {
         viewports.front()->openGLWidget->setFocus();
 }
 
-void MainWindow::newData(IOTuple &&d)
-{
-    vApp.newMol(std::move(std::get<0>(d)));
-    const auto& name = vApp.molecules.back().name;
-    if(auto &param = std::get<1>(d)){
-        paramWidget->registerParam(name, std::move(*param));
-    }
-    for(auto& dat: std::get<2>(d)){
-        vApp.data.push_back(std::move(dat));
-    }
-}
-
-void MainWindow::loadMol()
-{
-    // File dialog
-    QFileDialog fileDiag{this};
-    fileDiag.setDirectory(path);
-    // TODO: limited to one file for now
-    fileDiag.setFileMode(QFileDialog::ExistingFile);
-    // Format dialog
-    QStringList formats{};
-    for(const auto plug: vApp.config().plugins){
-        if(plug->parser)
-            formats << QString::fromStdString(plug->name);
-    }
-    if(fileDiag.exec() != 0){
-        auto files = fileDiag.selectedFiles();
-        path = fileDiag.directory();
-        // if cancelled by user, just return
-        if(files.empty()) return;
-        // else try to read file
-        const auto& file = files[0].toStdString();
-        // guess format or request from user
-        auto plugin = guessFmt(file, vApp.config().plugins);
-        if (!plugin){
-            bool got_fmt{false};
-            auto fmt_s = QInputDialog::getItem(this, "Select format", "Format:",
-                                               formats, 0, false, &got_fmt);
-            // if the user selected the format, read the file
-            if(got_fmt){
-                auto fmt = std::find_if(vApp.config().plugins.begin(), vApp.config().plugins.end(),
-                    [&](const auto& plug){return plug->name.c_str() == fmt_s;});
-                if(fmt == vApp.config().plugins.end())
-                    throw Error{"Invalid format in loadMol occured"};
-                plugin = *fmt;
-            }
-        }
-        try {
-            if(plugin){
-                // try to open file
-                newData(readFile(file, plugin));
-            }
-        }catch (const IOError &e){
-            QMessageBox msg{this};
-            msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
-            msg.exec();
-        }catch (const Error &e){
-            QMessageBox msg{this};
-            msg.setText(QString{"Could not open file \""}+file.c_str()+"\":\n"+e.what());
-            msg.exec();
-        }
-    }
-}
-
-void MainWindow::saveMol()
-{
-    QFileDialog fileDiag{this};
-    fileDiag.setDirectory(path);
-    fileDiag.setAcceptMode(QFileDialog::AcceptSave);
-    if(fileDiag.exec() == QDialog::Accepted){
-        auto target = fileDiag.selectedFiles()[0].toStdString();
-        path = fileDiag.directory();
-        SaveFmtDialog sfd{vApp.config().plugins, this};
-        if(sfd.exec() == QDialog::Accepted){
-            try{
-                writeFile(target, sfd.plugin, vApp.curMol(),
-                          curVP->moldata[&vApp.curMol()].curStep-1,
-                          sfd.getParam(), sfd.getPreset());
-            }catch(const IOError& e){
-                QMessageBox msg{this};
-                msg.setText(QString{"Could not write file \""}+target.c_str()+"\":\n"+e.what());
-                msg.exec();
-            }
-        }
-    }
-}
-
 const decltype (ParamWidget::params)& MainWindow::getParams() const noexcept
 {
     return paramWidget->params;
@@ -509,14 +596,14 @@ void MainWindow::loadParam()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    auto fmt = std::find_if(vApp.config().plugins.begin(), vApp.config().plugins.end(),
+    auto fmt = std::find_if(_config.plugins.begin(), _config.plugins.end(),
                  [&](const auto& plug){return plug->name.c_str() == p->title();});
-    if(fmt == vApp.config().plugins.end()){
+    if(fmt == _config.plugins.end()){
         throw Error{"Invalid parameter set"};
     }
     auto name = s->text().toStdString();
-    auto pos = vApp.config().parameters.at(*fmt).find(name);
-    if(pos != vApp.config().parameters.at(*fmt).end()){
+    auto pos = _config.parameters.at(*fmt).find(name);
+    if(pos != _config.parameters.at(*fmt).end()){
         paramWidget->registerParam(name, pos->second);
     }else{
         throw Error("Invalid parameter set");
@@ -527,14 +614,14 @@ void MainWindow::loadPreset()
 {
     auto* s = static_cast<QAction*>(sender());
     auto* p = static_cast<QMenu*>(s->parent());
-    auto fmt = std::find_if(vApp.config().plugins.begin(), vApp.config().plugins.end(),
+    auto fmt = std::find_if(_config.plugins.begin(), _config.plugins.end(),
                  [&](const auto& plug){return plug->name.c_str() == p->title();});
-    if(fmt == vApp.config().plugins.end()){
+    if(fmt == _config.plugins.end()){
         throw Error{"Invalid IO-preset"};
     }
     auto name = s->text().toStdString();
-    auto pos = vApp.config().presets.at(*fmt).find(name);
-    if(pos != vApp.config().presets.at(*fmt).end()){
+    auto pos = _config.presets.at(*fmt).find(name);
+    if(pos != _config.presets.at(*fmt).end()){
         presetWidget->registerPreset(name, pos->second);
     }else{
         throw Error("Invalid IO preset");
@@ -551,7 +638,7 @@ void MainWindow::saveParam()
     auto name = QInputDialog::getText(this, "Save parameter set", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        vApp.invokeOnConfig([this](ConfigState &c, const Plugin *plugin, const std::string &name, const Parameter &newParam){
+        invokeOnConfig([this](ConfigState &c, const Plugin *plugin, const std::string &name, const Parameter &newParam){
             auto& map = c.parameters.at(plugin);
             if(map.find(name) == map.end()){
                 // register new name in menu
@@ -574,7 +661,7 @@ void MainWindow::savePreset()
     auto name = QInputDialog::getText(this, "Save IO preset", "Name of preset",
                                       QLineEdit::Normal, QString(), &ok).toStdString();
     if(ok){
-        vApp.invokeOnConfig([this](ConfigState &c, const Plugin *plugin, const std::string &name, const Preset &newPreset){
+        invokeOnConfig([this](ConfigState &c, const Plugin *plugin, const std::string &name, const Preset &newPreset){
             auto& map = c.presets.at(plugin);
             if(map.find(name) == map.end()){
                 // register new name in menu
@@ -611,9 +698,9 @@ void MainWindow::saveScreenshots()
     diag.setOption(QFileDialog::ShowDirsOnly, false);
     if(diag.exec() == QDialog::Accepted){
         path = diag.directory();
-        size_t curStep = curVP->moldata[&vApp.curMol()].curStep;
-        int width = std::log10(static_cast<double>(vApp.curMol().getNstep()))+1;
-        for(size_t i=1; i <= vApp.curMol().getNstep(); ++i){
+        size_t curStep = curVP->moldata[&curMol()].curStep;
+        int width = std::log10(static_cast<double>(curMol().getNstep()))+1;
+        for(size_t i=1; i <= curMol().getNstep(); ++i){
             curVP->setStep(i);
             saveScreenshot(fmt::format("{}/Step-{:0{}}.png", path.path().toStdString(), i, width).c_str());
         }
@@ -627,10 +714,15 @@ void MainWindow::saveScreenshot(QString fn)
         fn += ".png";
     }
     // TODO: de-antialias for screenshot?
-//    auto aa = vApp.config().settings.antialias.val;
-//    vApp.config.settings.antialias.val = false;
+//    auto aa = _config.settings.antialias.val;
+//    _config.settings.antialias.val = false;
     auto img = curVP->openGLWidget->grabFramebuffer();
     img.save(fn);
-//    vApp.config.settings.antialias.val = aa;
+//    _config.settings.antialias.val = aa;
 //    updateWidgets(0);
+}
+
+const ConfigState &MainWindow::config()
+{
+    return _config;
 }

@@ -1,5 +1,4 @@
 #include "version.h"
-#include "vipsterapplication.h"
 #include "mainwindow.h"
 #include "vipster/fileio.h"
 #include "vipster/configfile.h"
@@ -50,17 +49,15 @@ using namespace Vipster;
     QObject::connect(&qapp, &QApplication::aboutToQuit, [](){saveConfig(vApp.config());});
 
     // Configure Vipster application and open Window
-    // TODO: currently operations need to happen in this order so GUI is configure correctly
-    vApp.invokeOnConfig([](ConfigState &lhs, ConfigState &&rhs){lhs = std::move(rhs);}, std::move(state));
-    MainWindow w{QDir::currentPath()};
+    MainWindow mw{std::move(state), QDir::currentPath()};
     if (data.empty()) {
-        vApp.newMol(Molecule{});
+        mw.newMol(Molecule{});
     } else {
         for(auto &d: data){
-            vApp.newIOData(std::move(d));
+            mw.newIOData(std::move(d));
         }
     }
-    w.show();
+    mw.show();
     throw CLI::RuntimeError(QApplication::exec());
 }
 

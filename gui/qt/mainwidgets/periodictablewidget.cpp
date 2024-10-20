@@ -10,7 +10,7 @@
 
 #include "periodictable_aux/newelement.h"
 
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 
@@ -174,7 +174,7 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlob) :
 
     //initialize table
     if(isGlobal){
-        connect(&vApp, &Application::configChanged, this, [this](const ConfigState &cfg){
+        connect(&vApp, &MainWindow::configChanged, this, [this](const ConfigState &cfg){
             setTable(&cfg.periodicTable);
         });
 
@@ -185,18 +185,18 @@ PeriodicTableWidget::PeriodicTableWidget(QWidget *parent, bool isGlob) :
             }
         });
     } else {
-        connect(&vApp, &Application::activeMolChanged, this, [this](const Molecule &m){
+        connect(&vApp, &MainWindow::activeMolChanged, this, [this](const Molecule &m){
             setTable(&m.getPTE());
         });
-        connect(&vApp, &Application::activeStepChanged, this, [this](const Step &s){
+        connect(&vApp, &MainWindow::activeStepChanged, this, [this](const Step &s){
             setTable(&s.getPTE());
         });
-        connect(&vApp, &Application::molChanged, this, [this](const Molecule &m){
+        connect(&vApp, &MainWindow::molChanged, this, [this](const Molecule &m){
             if (&m == &vApp.curMol()) {
                 setTable(&m.getPTE());
             }
         });
-        connect(&vApp, &Application::stepChanged, this, [this](const Step &s){
+        connect(&vApp, &MainWindow::stepChanged, this, [this](const Step &s){
             if (&s == &vApp.curStep()) {
                 setTable(&s.getPTE());
             }

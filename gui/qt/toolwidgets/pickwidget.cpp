@@ -1,7 +1,6 @@
 #include "../mainwindow.h"
 #include "pickwidget.h"
 #include "ui_pickwidget.h"
-#include "../vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -11,8 +10,8 @@ PickWidget::PickWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(&vApp, &Application::selChanged, this, &PickWidget::updateSelection);
-    connect(&vApp, &Application::activeStepChanged,
+    connect(&vApp, &MainWindow::selChanged, this, &PickWidget::updateSelection);
+    connect(&vApp, &MainWindow::activeStepChanged,
             this, [&](const Step &, const Step::selection &sel) { updateSelection(sel); });
 }
 

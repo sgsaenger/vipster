@@ -2,7 +2,7 @@
 #include "atomlist.h"
 #include "ui_atomlist.h"
 #include "doubledelegate.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 
@@ -57,9 +57,9 @@ AtomList::AtomList(QWidget *parent) :
     });
 
     // Connect to app state changes
-    connect(&vApp, &Application::activeStepChanged, this, &AtomList::setActiveStep);
-    connect(&vApp, &Application::stepChanged, this, &AtomList::updateStep);
-    connect(&vApp, &Application::selChanged, this, &AtomList::updateSelection);
+    connect(&vApp, &MainWindow::activeStepChanged, this, &AtomList::setActiveStep);
+    connect(&vApp, &MainWindow::stepChanged, this, &AtomList::updateStep);
+    connect(&vApp, &MainWindow::selChanged, this, &AtomList::updateSelection);
 }
 
 AtomList::~AtomList()

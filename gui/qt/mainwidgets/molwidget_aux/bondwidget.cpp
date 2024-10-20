@@ -1,7 +1,7 @@
 #include <QMessageBox>
 #include "bondwidget.h"
 #include "ui_bondwidget.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 #include "bonddelegate.h"
 
 using namespace Vipster;
@@ -26,8 +26,8 @@ BondWidget::BondWidget(QWidget *parent) :
     connect(ui->ovlpTable, &QTableWidget::itemSelectionChanged, this, &BondWidget::ovlpTableSelectionHandler);
 
     // Connect to app state changes
-    connect(&vApp, &Application::activeStepChanged, this, &BondWidget::setActiveStep);
-    connect(&vApp, &Application::stepChanged, this, &BondWidget::updateStep);
+    connect(&vApp, &MainWindow::activeStepChanged, this, &BondWidget::setActiveStep);
+    connect(&vApp, &MainWindow::stepChanged, this, &BondWidget::updateStep);
 
     // Hide UI elements until requested
     ui->frame->hide();
@@ -90,7 +90,7 @@ void BondWidget::ovlpTableSelectionHandler()
         const auto& sel = *selection[0];
         const auto& ovlp = vApp.curStep().getOverlaps()[sel.row()];
         const auto idx = sel.column() == 0 ? ovlp.at1 : ovlp.at2;
-        vApp.invokeOnSel([](Step::selection &sel, size_t idx){
+        vApp.invokeOnSelection([](Step::selection &sel, size_t idx){
             SelectionFilter filter{};
             filter.mode = SelectionFilter::Mode::Index;
             filter.indices.emplace_back(idx, SizeVec{});

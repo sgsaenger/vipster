@@ -1,6 +1,6 @@
 #include <QBrush>
 #include "bondmodel.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 

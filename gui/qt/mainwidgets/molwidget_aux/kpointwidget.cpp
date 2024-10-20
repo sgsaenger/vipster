@@ -1,6 +1,6 @@
 #include "kpointwidget.h"
 #include "ui_kpointwidget.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 
@@ -13,8 +13,8 @@ KPointWidget::KPointWidget(QWidget *parent) :
     ui->setupUi(this);
 
     // Connect to app state changes
-    connect(&vApp, &Application::activeMolChanged, this, &KPointWidget::setActiveMol);
-    connect(&vApp, &Application::molChanged, this, &KPointWidget::updateMol);
+    connect(&vApp, &MainWindow::activeMolChanged, this, &KPointWidget::setActiveMol);
+    connect(&vApp, &MainWindow::molChanged, this, &KPointWidget::updateMol);
 
     // Connect ui elements
     connect(ui->displayButton, &QPushButton::toggled, ui->frame, &QWidget::setVisible);

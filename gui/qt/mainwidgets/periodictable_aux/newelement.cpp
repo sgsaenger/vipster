@@ -2,7 +2,7 @@
 #include "ui_newelement.h"
 #include <QMessageBox>
 
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 #include "vipster/molecule.h"
 

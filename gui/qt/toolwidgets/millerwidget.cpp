@@ -1,7 +1,6 @@
 #include "../mainwindow.h"
 #include "millerwidget.h"
 #include "ui_millerwidget.h"
-#include "../vipsterapplication.h"
 #include <QWindow>
 
 using namespace Vipster;
@@ -119,7 +118,7 @@ MillerWidget::MillerWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(&vApp, &Application::activeStepChanged, this, [&](const Step &step){
+    connect(&vApp, &MainWindow::activeStepChanged, this, [&](const Step &step){
         // set new pointers
         if(auto pos=planes.find(&vApp.curStep()); pos !=planes.end()){
             curPlane = pos->second;
@@ -148,14 +147,14 @@ MillerWidget::MillerWidget(QWidget *parent) :
         }
     });
 
-    connect(&vApp, &Application::stepChanged, this, [&](const Step &step){
+    connect(&vApp, &MainWindow::stepChanged, this, [&](const Step &step){
         if (curPlane && (&step == &vApp.curStep())) {
             curPlane->update(step.getCellVec() * step.getCellDim(AtomFmt::Bohr));
             curPlane->update(mkFaces(curPlane->hkl));
         }
     });
 
-    connect(&vApp, &Application::configChanged, this, [&](const ConfigState &cs){
+    connect(&vApp, &MainWindow::configChanged, this, [&](const ConfigState &cs){
         if (curPlane) {
             curPlane->update({{cs.settings.milCol.val}, 1, 1});
         }
@@ -179,11 +178,10 @@ MillerWidget::MillerWidget(QWidget *parent) :
                     hkl
                 ));
             curPlane = planes.at(&vApp.curStep());
-            // TODO: find better access method. this widget is reparented into a dock widget -> implicit two layers of indirection
-            static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curPlane, false);
+            vApp.curVP->addExtraData(curPlane, false);
         }else{
             // delete Plane
-            static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curPlane, false);
+            vApp.curVP->delExtraData(curPlane, false);
         }
     });
 
@@ -222,7 +220,7 @@ void MillerWidget::updateIndex(int idx)
         }
         curPlane->update(mkFaces(curPlane->hkl));
     }
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
+    vApp.curVP->updateState();
 }
 
 void MillerWidget::updateOffset(double off)
@@ -240,5 +238,5 @@ void MillerWidget::updateOffset(double off)
         }
         curPlane->update(mkFaces(curPlane->hkl));
     }
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
+    vApp.curVP->updateState();
 }

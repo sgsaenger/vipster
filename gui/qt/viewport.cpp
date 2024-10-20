@@ -2,7 +2,6 @@
 #include "glwidget.h"
 #include "mainwindow.h"
 #include "ui_viewport.h"
-#include "vipsterapplication.h"
 
 using namespace Vipster;
 
@@ -30,22 +29,22 @@ ViewPort::ViewPort(MainWindow *parent) :
     connect(&playTimer, &QTimer::timeout, ui->stepEdit, &QSpinBox::stepUp);
 
     // molecule drop-down list
-    connect(&vApp, &Vipster::Application::molListChanged, this, &ViewPort::updateMoleculeList);
+    connect(&vApp, &MainWindow::molListChanged, this, &ViewPort::updateMoleculeList);
 
     // update rendering if active step has changed
-    connect(&vApp, &Vipster::Application::stepChanged, this,
+    connect(&vApp, &MainWindow::stepChanged, this,
             [&](const Step &s){
                 if (&s == curStep) {
                     updateState();
                 }
             });
-    connect(&vApp, &Vipster::Application::selChanged, this,
+    connect(&vApp, &MainWindow::selChanged, this,
             [&](const Step::selection &sel){
                 if (&sel == curSel) {
                     updateState();
                 }
             });
-    connect(&vApp, &Vipster::Application::configChanged, this,
+    connect(&vApp, &MainWindow::configChanged, this,
             [&](const Vipster::ConfigState &){
                 updateState();
             });

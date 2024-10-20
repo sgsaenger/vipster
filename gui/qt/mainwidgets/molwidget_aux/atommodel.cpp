@@ -1,5 +1,5 @@
 #include "atommodel.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 

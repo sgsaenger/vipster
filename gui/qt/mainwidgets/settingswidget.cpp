@@ -7,7 +7,7 @@
 #include <QSpacerItem>
 #include "settingswidget.h"
 #include "ui_settingswidget.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 

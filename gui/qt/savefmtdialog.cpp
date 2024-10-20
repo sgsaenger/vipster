@@ -1,7 +1,7 @@
 #include "savefmtdialog.h"
 #include "ui_savefmtdialog.h"
 #include "mainwindow.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 using namespace Vipster;
 
@@ -36,11 +36,10 @@ void SaveFmtDialog::enableParamWidget(bool on)
     widget->clearParams();
     if(on){
         widget->setEnabled(true);
-        const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(const auto& p: vApp.config().parameters.at(plugin)){
             widget->registerParam(p.first, p.second);
         }
-        for(auto& p: mw.getParams()){
+        for(auto& p: vApp.getParams()){
             if(p.second.getFmt() == plugin){
                 widget->registerParam(p.first, p.second);
             }
@@ -56,11 +55,10 @@ void SaveFmtDialog::enablePresetWidget(bool on)
     widget->clearPresets();
     if(on){
         widget->setEnabled(true);
-        const auto& mw = *static_cast<MainWindow*>(parentWidget());
         for(const auto& p: vApp.config().presets.at(plugin)){
             widget->registerPreset(p.first, p.second);
         }
-        for(auto& p: mw.getPresets()){
+        for(auto& p: vApp.getPresets()){
             if(p.second.getFmt() == plugin){
                 widget->registerPreset(p.first, p.second);
             }

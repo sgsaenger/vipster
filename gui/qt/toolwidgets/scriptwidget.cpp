@@ -2,7 +2,6 @@
 #include "ui_scriptwidget.h"
 #include "ui_scripthelp.h"
 #include "../mainwindow.h"
-#include "../vipsterapplication.h"
 #include <QPlainTextEdit>
 #include <QMessageBox>
 

@@ -1,7 +1,6 @@
 #include "../mainwindow.h"
 #include "cellmodwidget.h"
 #include "ui_cellmodwidget.h"
-#include "../vipsterapplication.h"
 #include <QMessageBox>
 
 using namespace Vipster;

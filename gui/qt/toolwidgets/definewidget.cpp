@@ -25,7 +25,7 @@ DefineWidget::DefineWidget(QWidget *parent) :
     ui->defTable->addActions(contextActions);
 
     // load definition map for current step
-    connect(&vApp, &Application::activeStepChanged,
+    connect(&vApp, &MainWindow::activeStepChanged,
             this, [&](const Step &step) {
         defMap = &vApp.getState(step).definitions;
         curIt = defMap->end();
@@ -33,7 +33,7 @@ DefineWidget::DefineWidget(QWidget *parent) :
     });
 
     // update definitions if required
-    connect(&vApp, &Application::stepChanged,
+    connect(&vApp, &MainWindow::stepChanged,
             this, [&](const Step &step) {
         if (&step != &vApp.curStep()) return;
         const auto &settings = vApp.config().settings;
@@ -48,7 +48,7 @@ DefineWidget::DefineWidget(QWidget *parent) :
     // update visualization settings
     // TODO: this only updates the current step's define's visualization.
     // TODO: maybe the renderData should not be persistent but created on the fly? less state!
-    connect(&vApp, &Application::configChanged,
+    connect(&vApp, &MainWindow::configChanged,
             this, [&](const ConfigState &c){
         const auto &settings = c.settings;
         for (auto &[name, def]: *defMap) {
@@ -108,8 +108,7 @@ void DefineWidget::fillTable()
         table.setItem(i, 0, new QTableWidgetItem{});
         table.item(i, 0)->setFlags(Qt::ItemIsSelectable|
                                    Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-        table.item(i, 0)->setCheckState(Qt::CheckState(
-            static_cast<MainWindow*>(this->parent()->parent())->curVP->hasExtraData(selData, false)*2));
+        table.item(i, 0)->setCheckState(Qt::CheckState(vApp.curVP->hasExtraData(selData, false)*2));
         // name
         table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(name)));
         // filter-str
@@ -151,8 +150,7 @@ void DefineWidget::createDefinition()
             vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
         curSelData()->color = defaultColors[defMap->size()%5];
 
-        // TODO: find better access method. this widget is reparented into a dock widget -> implicit two layers of indirection
-        static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curSelData(), false);
+        vApp.curVP->addExtraData(curSelData(), false);
         fillTable();
     }catch(const Error &e){
         QMessageBox msg{this};
@@ -170,7 +168,7 @@ void DefineWidget::deleteDefinition()
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"delete group\" triggered with invalid selection"};
     }
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curSelData(), false);
+    vApp.curVP->delExtraData(curSelData(), false);
     defMap->erase(curIt);
     fillTable();
 }
@@ -204,7 +202,7 @@ void DefineWidget::copySelToDefinition()
         vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
     curSelData()->color = defaultColors[defMap->size()%5];
 
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curSelData(), false);
+    vApp.curVP->addExtraData(curSelData(), false);
     fillTable();
 }
 
@@ -216,7 +214,7 @@ void DefineWidget::copyDefToSelection()
     // copy selection to definition
     vApp.updateSelection(curFilter());
     // hide definition
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curSelData(), false);
+    vApp.curVP->delExtraData(curSelData(), false);
 }
 
 void DefineWidget::updateDefinition()
@@ -227,7 +225,7 @@ void DefineWidget::updateDefinition()
     curSel() = vApp.curStep().select(curFilter());
     curSelData()->update(&curSel(),
         vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
+    vApp.curVP->updateState();
 }
 
 void DefineWidget::tableCellChanged(int row, int column)
@@ -244,9 +242,9 @@ void DefineWidget::tableCellChanged(int row, int column)
     case 0:
         // toggle visibility
         if(cell->checkState()){
-            static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curSelData(), false);
+            vApp.curVP->addExtraData(curSelData(), false);
         }else{
-            static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curSelData(), false);
+            vApp.curVP->delExtraData(curSelData(), false);
         }
         break;
     case 1:
@@ -272,7 +270,7 @@ void DefineWidget::tableCellChanged(int row, int column)
             curSel() = vApp.curStep().select(filter);
             curSelData()->update(&curSel(),
                 vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
-            static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
+            vApp.curVP->updateState();
         }catch(const Error &e){
             QMessageBox msg{this};
             msg.setText(QString{e.what()});
@@ -318,5 +316,5 @@ void DefineWidget::changeColor()
            static_cast<uint8_t>(newCol.alpha())};
     static_cast<QPushButton*>(sender())->setStyleSheet(
         QString("background-color: %1").arg(newCol.name()));
-    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
+    vApp.curVP->updateState();
 }

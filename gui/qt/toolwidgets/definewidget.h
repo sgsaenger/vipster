@@ -6,7 +6,7 @@
 #include <type_traits>
 
 #include "vipster/molecule.h"
-#include "../vipsterapplication.h"
+#include "../mainwindow.h"
 #include "seldata.h"
 
 namespace Ui {
@@ -38,7 +38,7 @@ private:
     void fillTable();
 
     Ui::DefineWidget *ui;
-    decltype(Vipster::Application::StepState::definitions) *defMap{nullptr};
+    decltype(MainWindow::StepState::definitions) *defMap{nullptr};
     std::remove_pointer_t<decltype(defMap)>::iterator curIt;
     Vipster::Step::const_selection &curSel();
     Vipster::SelectionFilter &curFilter();

@@ -1,7 +1,6 @@
 #include "data3dwidget.h"
 #include "ui_data3dwidget.h"
 #include "../mainwindow.h"
-#include "vipsterapplication.h"
 
 using namespace Vipster;
 

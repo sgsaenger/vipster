@@ -1,5 +1,5 @@
 #include "molmodel.h"
-#include "vipsterapplication.h"
+#include "mainwindow.h"
 
 MolModel::MolModel(QObject *parent)
     : QAbstractTableModel(parent)
