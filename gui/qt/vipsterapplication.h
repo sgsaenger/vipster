@@ -191,7 +191,7 @@ public:
         Step::formatter formatter;
         std::map<QWidget *, std::tuple<Step::selection, std::shared_ptr<GUI::SelData>>> selections;
         std::map<std::string,
-                 std::tuple<Step::selection,
+                 std::tuple<Step::const_selection,
                             SelectionFilter,
                             std::shared_ptr<GUI::SelData>>> definitions;
     };

@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "meshdata.h"
-#include "mainwindow.h"
 #include "vipster/molecule.h"
 
 namespace Ui {

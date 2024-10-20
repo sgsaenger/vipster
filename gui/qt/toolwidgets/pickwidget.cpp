@@ -12,6 +12,8 @@ PickWidget::PickWidget(QWidget *parent) :
     ui->setupUi(this);
 
     connect(&vApp, &Application::selChanged, this, &PickWidget::updateSelection);
+    connect(&vApp, &Application::activeStepChanged,
+            this, [&](const Step &, const Step::selection &sel) { updateSelection(sel); });
 }
 
 PickWidget::~PickWidget()

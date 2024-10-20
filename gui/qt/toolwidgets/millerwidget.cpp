@@ -222,6 +222,7 @@ void MillerWidget::updateIndex(int idx)
         }
         curPlane->update(mkFaces(curPlane->hkl));
     }
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
 }
 
 void MillerWidget::updateOffset(double off)
@@ -239,4 +240,5 @@ void MillerWidget::updateOffset(double off)
         }
         curPlane->update(mkFaces(curPlane->hkl));
     }
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
 }

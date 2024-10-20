@@ -9,20 +9,65 @@
 using namespace Vipster;
 
 DefineWidget::DefineWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::DefineWidget)
 {
     ui->setupUi(this);
     contextActions.push_back(new QAction{"Update group", ui->defTable});
     contextActions.back()->setDisabled(true);
-    connect(contextActions.back(), &QAction::triggered, this, &DefineWidget::updateAction);
+    connect(contextActions.back(), &QAction::triggered, this, &DefineWidget::updateDefinition);
     contextActions.push_back(new QAction{"Delete group", ui->defTable});
     contextActions.back()->setDisabled(true);
-    connect(contextActions.back(), &QAction::triggered, this, &DefineWidget::deleteAction);
+    connect(contextActions.back(), &QAction::triggered, this, &DefineWidget::deleteDefinition);
     contextActions.push_back(new QAction{"Set as selection", ui->defTable});
     contextActions.back()->setDisabled(true);
-    connect(contextActions.back(), &QAction::triggered, this, &DefineWidget::toSelAction);
+    connect(contextActions.back(), &QAction::triggered, this, &DefineWidget::copyDefToSelection);
     ui->defTable->addActions(contextActions);
+
+    // load definition map for current step
+    connect(&vApp, &Application::activeStepChanged,
+            this, [&](const Step &step) {
+        defMap = &vApp.getState(step).definitions;
+        curIt = defMap->end();
+        fillTable();
+    });
+
+    // update definitions if required
+    connect(&vApp, &Application::stepChanged,
+            this, [&](const Step &step) {
+        if (&step != &vApp.curStep()) return;
+        const auto &settings = vApp.config().settings;
+        for (auto &[name, def]: *defMap) {
+            auto &[selection, filter, selData] = def;
+            selData->update(&selection,
+                            settings.atRadVdW.val,
+                            settings.atRadFac.val);
+        }
+    });
+
+    // update visualization settings
+    // TODO: this only updates the current step's define's visualization.
+    // TODO: maybe the renderData should not be persistent but created on the fly? less state!
+    connect(&vApp, &Application::configChanged,
+            this, [&](const ConfigState &c){
+        const auto &settings = c.settings;
+        for (auto &[name, def]: *defMap) {
+            auto &[selection, filter, selData] = def;
+            selData->update(&selection,
+                            settings.atRadVdW.val,
+                            settings.atRadFac.val);
+        }
+    });
+
+    // TODO: scriptwidget may also create definitions, how to interact?
+
+    connect(ui->newButton, &QPushButton::clicked, this, &DefineWidget::createDefinition);
+    connect(ui->fromSelButton, &QPushButton::clicked, this, &DefineWidget::copySelToDefinition);
+    connect(ui->helpButton, &QPushButton::clicked,
+            this, [&](){ QMessageBox::information(this, QString{"About filters"}, FilterAbout); });
+
+    connect(ui->defTable, &QTableWidget::cellChanged, this, &DefineWidget::tableCellChanged);
+    connect(ui->defTable, &QTableWidget::itemSelectionChanged, this, &DefineWidget::tableSelectionChanged);
 }
 
 DefineWidget::~DefineWidget()
@@ -33,24 +78,7 @@ DefineWidget::~DefineWidget()
     }
 }
 
-void DefineWidget::updateWidget(Vipster::GUI::change_t change)
-{
-    if((change & GUI::stepChanged) == GUI::stepChanged){
-        defMap = &vApp.getState(vApp.curStep()).definitions;
-        curIt = defMap->end();
-        fillTable();
-    }else if(change & (GUI::Change::definitions)){
-        fillTable();
-    }else if(change & (GUI::Change::atoms | GUI::Change::settings)){
-        for(auto& def: *defMap){
-            std::get<2>(def.second)->update(&std::get<0>(def.second),
-                                            vApp.config().settings.atRadVdW.val,
-                                            vApp.config().settings.atRadFac.val);
-        }
-    }
-}
-
-Vipster::Step::selection& DefineWidget::curSel()
+Vipster::Step::const_selection& DefineWidget::curSel()
 {
     return std::get<0>(curIt->second);
 }
@@ -74,55 +102,58 @@ void DefineWidget::fillTable()
     int i{0};
     table.clearContents();
     ui->defTable->setRowCount(defMap->size());
-    for(auto& [name, def]: *defMap){
+    for(const auto &[name, def]: *defMap){
+        const auto &[sel, filter, selData] = def;
         // if contained in extras, this group is displayed
         table.setItem(i, 0, new QTableWidgetItem{});
         table.item(i, 0)->setFlags(Qt::ItemIsSelectable|
                                    Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
         table.item(i, 0)->setCheckState(Qt::CheckState(
-                        master->curVP->hasExtraData(std::get<2>(def), false)*2));
+            static_cast<MainWindow*>(this->parent()->parent())->curVP->hasExtraData(selData, false)*2));
         // name
         table.setItem(i, 1, new QTableWidgetItem(QString::fromStdString(name)));
         // filter-str
-        table.setItem(i, 2, new QTableWidgetItem(QString::fromStdString(
-            std::get<1>(def))));
+        table.setItem(i, 2, new QTableWidgetItem(QString::fromStdString(filter)));
         // color button
         auto* but = new QPushButton("Select");
-        const auto& color = std::get<2>(def)->color;
+        const auto& color = selData->color;
         but->setStyleSheet(QString("background-color: rgb(%1,%2,%3)")
                            .arg(color[0]).arg(color[1]).arg(color[2]));
-        connect(but, &QPushButton::clicked, this, &DefineWidget::colButton_clicked);
+        connect(but, &QPushButton::clicked, this, &DefineWidget::changeColor);
         table.setCellWidget(i, 3, but);
         i++;
     }
 }
 
-void DefineWidget::on_newButton_clicked()
+void DefineWidget::createDefinition()
 {
     bool ok{false};
-    auto filter = QInputDialog::getText(this, "Create new filtered group",
-                                        "Enter filter for new group:",
-                                        QLineEdit::Normal, QString(), &ok
-                                       ).toStdString();
+    const auto filter = QInputDialog::getText(this, "Create new filtered group",
+                                              "Enter filter for new group:",
+                                              QLineEdit::Normal, QString(), &ok
+                                             ).toStdString();
     if(!ok) return;
     try {
-        // TODO: sort out const-correctness
-        auto sel = const_cast<Step&>(vApp.curStep()).select(filter);
-        auto name = QInputDialog::getText(this, "Create new filtered group",
-                                          "Enter name for new group:",
-                                          QLineEdit::Normal, QString(), &ok
-                                         ).toStdString();
+        auto sel = vApp.curStep().select(filter);
+
+        const auto name = QInputDialog::getText(this, "Create new filtered group",
+                                                "Enter name for new group:",
+                                                QLineEdit::Normal, QString(), &ok
+                                               ).toStdString();
         if(!ok) return;
+
         auto [it, _] = defMap->insert_or_assign(name,
             std::tuple{std::move(sel),
-                filter,
-                std::make_shared<GUI::SelData>()});
+                       filter,
+                       std::make_shared<GUI::SelData>()});
         curIt = it;
         curSelData()->update(&curSel(),
             vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
         curSelData()->color = defaultColors[defMap->size()%5];
-        master->curVP->addExtraData(curSelData(), false);
-        triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
+
+        // TODO: find better access method. this widget is reparented into a dock widget -> implicit two layers of indirection
+        static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curSelData(), false);
+        fillTable();
     }catch(const Error &e){
         QMessageBox msg{this};
         msg.setText(QString{e.what()});
@@ -134,17 +165,17 @@ void DefineWidget::on_newButton_clicked()
     }
 }
 
-void DefineWidget::deleteAction()
+void DefineWidget::deleteDefinition()
 {
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"delete group\" triggered with invalid selection"};
     }
-    master->curVP->delExtraData(curSelData(), false);
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curSelData(), false);
     defMap->erase(curIt);
-    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
+    fillTable();
 }
 
-void DefineWidget::on_fromSelButton_clicked()
+void DefineWidget::copySelToDefinition()
 {
     bool ok{false};
     auto tmp = QInputDialog::getText(this, "Copy selection to filtered group",
@@ -152,55 +183,54 @@ void DefineWidget::on_fromSelButton_clicked()
                                      QLineEdit::Normal, QString(), &ok
                                     ).toStdString();
     if(!ok) return;
+
     // convert selection to index filter
     const auto& idx = vApp.curSel().getAtoms().indices;
-    std::string filter;
-    std::stringstream ss{filter};
-    ss << "[ ";
+    std::stringstream ss{};
+    ss << "index [ ";
     for(const auto& p: idx){
         ss << p.first << " ";
     }
     ss << ']';
+
     // create new group
+    Step::const_selection constSel = vApp.curSel();
     auto [it, _] = defMap->insert_or_assign(tmp,
-        std::tuple{vApp.curSel(),
-                   filter,
+        std::tuple{constSel,
+                   ss.str(),
                    std::make_shared<GUI::SelData>()});
     curIt = it;
     curSelData()->update(&curSel(),
         vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
     curSelData()->color = defaultColors[defMap->size()%5];
-    master->curVP->addExtraData(curSelData(), false);
-    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
+
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curSelData(), false);
+    fillTable();
 }
 
-void DefineWidget::toSelAction()
+void DefineWidget::copyDefToSelection()
 {
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"to selection\" triggered with invalid selection"};
     }
     // copy selection to definition
-    vApp.invokeOnSel([](Step::selection &sel, const Step::selection &curSel){
-        sel = curSel;
-    }, curSel());
+    vApp.updateSelection(curFilter());
     // hide definition
-    master->curVP->delExtraData(curSelData(), false);
-    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curSelData(), false);
 }
 
-void DefineWidget::updateAction()
+void DefineWidget::updateDefinition()
 {
     if(curIt == defMap->end()){
         throw Error{"DefineWidget: \"update group\" triggered with invalid selection"};
     }
-    // TODO: sort out const-correctness
-    curSel() = const_cast<Step&>(vApp.curStep()).select(curFilter());
+    curSel() = vApp.curStep().select(curFilter());
     curSelData()->update(&curSel(),
         vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
-    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
 }
 
-void DefineWidget::on_defTable_cellChanged(int row, int column)
+void DefineWidget::tableCellChanged(int row, int column)
 {
     if(column == 0){
         // checkbox consumes mouse event, need to select row manually
@@ -214,11 +244,10 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
     case 0:
         // toggle visibility
         if(cell->checkState()){
-            master->curVP->addExtraData(curSelData(), false);
+            static_cast<MainWindow*>(this->parent()->parent())->curVP->addExtraData(curSelData(), false);
         }else{
-            master->curVP->delExtraData(curSelData(), false);
+            static_cast<MainWindow*>(this->parent()->parent())->curVP->delExtraData(curSelData(), false);
         }
-        triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
         break;
     case 1:
         // change name
@@ -239,11 +268,11 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
         // change filter
         try{
             auto filter = cell->text().toStdString();
-            // TODO: sourt out const-correctness
-            curSel() = const_cast<Step&>(vApp.curStep()).select(filter);
+            curFilter() = filter;
+            curSel() = vApp.curStep().select(filter);
             curSelData()->update(&curSel(),
                 vApp.config().settings.atRadVdW.val, vApp.config().settings.atRadFac.val);
-            triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
+            static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
         }catch(const Error &e){
             QMessageBox msg{this};
             msg.setText(QString{e.what()});
@@ -257,7 +286,7 @@ void DefineWidget::on_defTable_cellChanged(int row, int column)
     }
 }
 
-void DefineWidget::on_defTable_itemSelectionChanged()
+void DefineWidget::tableSelectionChanged()
 {
     auto sel = ui->defTable->selectedItems();
     if(sel.empty()){
@@ -274,7 +303,7 @@ void DefineWidget::on_defTable_itemSelectionChanged()
     }
 }
 
-void DefineWidget::colButton_clicked()
+void DefineWidget::changeColor()
 {
     auto& col = curSelData()->color;
     auto oldCol = QColor::fromRgb(col[0], col[1], col[2], col[3]);
@@ -289,10 +318,5 @@ void DefineWidget::colButton_clicked()
            static_cast<uint8_t>(newCol.alpha())};
     static_cast<QPushButton*>(sender())->setStyleSheet(
         QString("background-color: %1").arg(newCol.name()));
-    triggerUpdate(GUI::Change::definitions | GUI::Change::extra);
-}
-
-void DefineWidget::on_helpButton_clicked()
-{
-    QMessageBox::information(this, QString{"About filters"}, FilterAbout);
+    static_cast<MainWindow*>(this->parent()->parent())->curVP->updateState();
 }
