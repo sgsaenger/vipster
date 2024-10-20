@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "scripthelp.h"
-#include "../basewidget.h"
 #include "../viewport.h"
 #include "guiglobals.h"
 #include "vipster/molecule.h"
@@ -12,7 +11,7 @@ namespace Ui {
 class ScriptWidget;
 }
 
-class ScriptWidget : public BaseWidget
+class ScriptWidget : public QWidget
 {
     Q_OBJECT
 
@@ -45,9 +44,6 @@ public:
         OpVec v1{}, v2{}, v3{};
     };
     std::vector<ScriptOp> parse();
-    std::pair<bool, Vipster::GUI::change_t> execute(
-            const std::vector<ScriptOp>&, Vipster::Step&,
-            ViewPort::StepState&);
     Ui::ScriptWidget *ui;
     ScriptHelp *help;
 };

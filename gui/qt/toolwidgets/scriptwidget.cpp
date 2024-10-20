@@ -11,17 +11,22 @@ using OpVec = ScriptWidget::OpVec;
 
 // TODO: allow all operations to target a given format
 
-std::pair<bool, GUI::change_t> ScriptWidget::execute(
-        const std::vector<ScriptOp>& operations,
+static void execute(
         Step& step,
-        ViewPort::StepState& data)
+        const std::vector<ScriptOp>& operations)
 {
     auto change = GUI::change_t{};
+    auto &sel = vApp.curVP->stepdata[&step].sel;
+    auto &defMap = vApp.getState(step).definitions;
+
+    // Generate absolute vector from different script input formats
     auto mkVec = [&](const OpVec& in)->Vec{
         switch(in.mode){
         case OpVec::Mode::Direct:
+            // absolute vector
             return in.v;
         case OpVec::Mode::Position:
+            // (inverted) position
             if(in.m1){
                 return -step.at(in.id1).coord;
             }else{
@@ -29,6 +34,7 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             }
         case OpVec::Mode::Combination:
         {
+            // distance between two atoms
             Vec tmp = step.at(in.id1).coord;
             if(in.m1) tmp *= -1;
             if(in.m2){
@@ -40,6 +46,8 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
         }
         }
     };
+
+    // execute a single operation
     auto execOp = [&](auto& s, const ScriptOp& op){
         switch (op.mode) {
         case ScriptOp::Mode::Rotate:
@@ -61,58 +69,65 @@ std::pair<bool, GUI::change_t> ScriptWidget::execute(
             change |= GUI::Change::atoms;
             break;
         case ScriptOp::Mode::Select:
-            *data.sel = s.select(op.s1);
+            if (sel) {
+                *sel = s.select(op.s1);
+            } else {
+                sel = std::make_unique<Step::selection>(s.select(op.s1));
+            }
             change |= GUI::Change::selection;
             break;
         case ScriptOp::Mode::Define:
         {
-            auto &defMap = vApp.getState(step).definitions;
-            auto [it, _] = defMap.insert_or_assign(op.s1,
-                std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>()});
-            auto& seldata = *std::get<2>(it->second);
-            seldata.update(&std::get<0>(it->second),
-                            vApp.config().settings.atRadVdW.val,
-                            vApp.config().settings.atRadFac.val);
-            seldata.color = defaultColors[defMap.size()%5];
-            change |= GUI::Change::definitions;
+           auto [it, _] = defMap.insert_or_assign(op.s1,
+               std::tuple{s.select(op.s2), op.s2, std::make_shared<GUI::SelData>()});
+           auto& seldata = *std::get<2>(it->second);
+           seldata.update(&std::get<0>(it->second),
+                           vApp.config().settings.atRadVdW.val,
+                           vApp.config().settings.atRadFac.val);
+           seldata.color = defaultColors[defMap.size()%5];
+           change |= GUI::Change::definitions;
         }
-            break;
+           break;
         default:
             throw Error("Invalid operation");
         }
     };
+
     for(const auto& op: operations){
         try{
             if(op.target == "all"){
                 execOp(step, op);
             }else if(op.target == "sel"){
-                execOp(*data.sel, op);
-            }else{
-                auto &defMap = vApp.getState(step).definitions;
-                auto def = defMap.find(op.target);
-                if(def == defMap.end()){
-                    throw Error("Unknown target: "+op.target);
+                if (sel) {
+                    // TODO: in trajectory mode, some Steps could not have a selection.
+                    // This is interpreted as an empty selection here -> NOOP, skip execution
+                    // Most probably, `sel` is meaningless in trajec mode anyways...
+                    execOp(*sel, op);
                 }
-                // make sure that formats match
-                execOp(std::get<0>(def->second), op);
+            }else{
+                const auto it = defMap.find(op.target);
+                if (it == defMap.end()){
+                    throw Error("Unknown target: " + op.target);
+                }
+                // Obtain a temporary, mutable selection
+                auto def = step.select(std::get<SelectionFilter>(it->second));
+                execOp(def, op);
             }
         } catch (const Error &e) {
             QMessageBox msg{};
             msg.setText(QString{"Error executing script:\n\n"}+op.line.c_str()+"\n"+e.what());
             msg.exec();
-            return {false, change};
         } catch (...) {
             QMessageBox msg{};
             msg.setText(QString{"Unexpected error when executing line:\n\n"}+op.line.c_str());
             msg.exec();
-            return {false, change};
         }
     }
-    return {true, change};
+    return;
 }
 
 ScriptWidget::ScriptWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::ScriptWidget),
     help(new ScriptHelp)
 {
@@ -177,8 +192,7 @@ std::istream& operator>>(std::istream& is, std::tuple<ScriptWidget::OpVec&, bool
 }
 
 std::istream& operator>>(std::istream& is, std::tuple<double&, bool> dat){
-    auto& val = std::get<0>(dat);
-    const bool& opt = std::get<1>(dat);
+    auto &[val, opt] = dat;
     is >> val;
     if(is.fail() && !opt){
         throw Error("Could not parse mandatory number");
@@ -187,8 +201,7 @@ std::istream& operator>>(std::istream& is, std::tuple<double&, bool> dat){
 }
 
 std::istream& operator>>(std::istream& is, std::tuple<std::string&, bool> dat){
-    auto& val = std::get<0>(dat);
-    const bool& opt = std::get<1>(dat);
+    auto &[val, opt] = dat;
     is >> val;
     if(is.fail() && !opt){
         throw Error("Could not parse mandatory string");
@@ -201,7 +214,7 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
     std::vector<ScriptWidget::ScriptOp> operations{};
     auto script_str = static_cast<QPlainTextEdit*>(ui->inputEdit)->toPlainText().toStdString();
     auto script = std::stringstream{script_str};
-    std::string line, op_pre, op(3, ' ');
+    std::string line;
     const bool _false{false}, _true{true};
     try {
         while(std::getline(script, line)){
@@ -210,7 +223,11 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
             operations.push_back({line});
             auto& action = operations.back();
             // parse op
+            std::string op_pre, op(3, ' ');
             line_stream >> op_pre;
+            if (op_pre.size() < 3) {
+                throw Error("Unknown operator: " + op_pre);
+            }
             std::transform(op_pre.begin(), op_pre.begin()+4, op.begin(), ::tolower);
             // parse arguments
             // TODO: check when and how stream extraction fails
@@ -243,7 +260,7 @@ std::vector<ScriptWidget::ScriptOp> ScriptWidget::parse()
                 line_stream >> std::tie(action.s1, _false);
                 std::getline(line_stream, action.s2);
             }else{
-                throw Error("Unknown operator: "+op);
+                throw Error("Unknown operator: " + op_pre);
             }
         }
     } catch (const Error &e) {
@@ -264,22 +281,21 @@ void ScriptWidget::evalScript()
 {
     auto operations = parse();
     if(ui->trajecCheck->isChecked()){
-        for(auto& s: vApp.curMol().getSteps()){
-            auto& dat = master->curVP->stepdata[&s];
-            if(!dat.sel){
-                // if step hasn't been loaded before, need to create selection
-                dat.sel = std::make_unique<Step::selection>(s.select(SelectionFilter{}));
-            }
-            auto [success, curChange] = execute(operations, s, dat);
-            // on failure, exit early
-            if(!success){
-                break;
-            }
-        }
+        vApp.invokeOnTrajec(&execute, operations);
+        //for(auto& s: vApp.curMol().getSteps()){
+        //    auto& dat = master->curVP->stepdata[&s];
+        //    if(!dat.sel){
+        //        // if step hasn't been loaded before, need to create selection
+        //        dat.sel = std::make_unique<Step::selection>(s.select(SelectionFilter{}));
+        //    }
+        //    auto [success, curChange] = execute(operations, s, dat);
+        //    // on failure, exit early
+        //    if(!success){
+        //        break;
+        //    }
+        //}
     }else{
-        // TODO: sort out const-correctness
-        auto [_, curChange] = execute(operations, const_cast<Step&>(vApp.curStep()),
-                master->curVP->stepdata[&vApp.curStep()]);
+        vApp.invokeOnStep(&execute, operations);
     }
 }
 
