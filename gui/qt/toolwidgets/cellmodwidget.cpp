@@ -6,10 +6,13 @@
 using namespace Vipster;
 
 CellModWidget::CellModWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::CellModWidget)
 {
     ui->setupUi(this);
+
+    connect(&vApp, &MainWindow::activeStepChanged, this, &CellModWidget::updateStep);
+    connect(&vApp, &MainWindow::stepChanged, this, &CellModWidget::updateStep);
 }
 
 CellModWidget::~CellModWidget()
@@ -17,11 +20,10 @@ CellModWidget::~CellModWidget()
     delete ui;
 }
 
-void CellModWidget::updateWidget(Vipster::GUI::change_t change)
+void CellModWidget::updateStep(const Step &s)
 {
-    if(change & GUI::Change::cell){
-        setEnabled(vApp.curStep().hasCell());
-    }
+    if (&s != &vApp.curStep()) return;
+    setEnabled(s.hasCell());
 }
 
 void CellModWidget::on_wrapButton_clicked()

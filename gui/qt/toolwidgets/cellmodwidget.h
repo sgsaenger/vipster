@@ -2,22 +2,22 @@
 #define CELLMODWIDGET_H
 
 #include <QWidget>
-#include "../basewidget.h"
+#include "vipster/molecule.h"
 
 namespace Ui {
 class CellModWidget;
 }
 
-class CellModWidget : public BaseWidget
+class CellModWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit CellModWidget(QWidget *parent = nullptr);
     ~CellModWidget() override;
-    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
+    void updateStep(const Vipster::Step &s);
     void on_wrapButton_clicked();
     void on_cropButton_clicked();
     void on_multButton_clicked();
