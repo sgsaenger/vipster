@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>372</width>
-    <height>270</height>
+    <height>319</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -251,104 +251,7 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>yMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>PinWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>279</x>
-     <y>137</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>367</x>
-     <y>164</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>PinWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>330</x>
-     <y>140</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>367</x>
-     <y>133</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xMultBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>PinWidget</receiver>
-   <slot>setMult(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>223</x>
-     <y>141</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>366</x>
-     <y>199</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xOffset</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>PinWidget</receiver>
-   <slot>setOffset(double)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>205</x>
-     <y>188</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>368</x>
-     <y>232</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yOffset</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>PinWidget</receiver>
-   <slot>setOffset(double)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>282</x>
-     <y>196</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>350</x>
-     <y>263</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zOffset</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>PinWidget</receiver>
-   <slot>setOffset(double)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>332</x>
-     <y>200</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>276</x>
-     <y>266</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>setMult(int)</slot>
   <slot>setOffset(double)</slot>

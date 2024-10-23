@@ -2,7 +2,6 @@
 #define PINWIDGET_H
 
 #include <QWidget>
-#include "../basewidget.h"
 #include "stepdata.h"
 #include "vipster/molecule.h"
 
@@ -10,27 +9,24 @@ namespace Ui {
 class PinWidget;
 }
 
-class PinWidget : public BaseWidget
+class PinWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit PinWidget(QWidget *parent = nullptr);
     ~PinWidget() override;
-    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
-    void on_showCell_toggled(bool checked);
-    void on_repeatStep_toggled(bool checked);
-    void on_delStep_clicked();
-    void on_addStep_clicked();
-    void on_stepList_currentRowChanged(int currentRow);
-    void on_insertStep_clicked();
+    void addPin();
+    void delPin();
+    void toggleVisible(bool checked);
+    void toggleCell(bool checked);
     void setMult(int);
     void setOffset(double);
-    void on_showStep_toggled(bool checked);
-
-    void on_helpButton_clicked();
+    void toggleRepeat(bool checked);
+    void selectPin(int currentRow);
+    void insertStep();
 
 private:
     Ui::PinWidget *ui;

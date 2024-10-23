@@ -6,40 +6,70 @@
 using namespace Vipster;
 
 PinWidget::PinWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::PinWidget)
 {
     ui->setupUi(this);
+
+    connect(ui->addStep, &QPushButton::clicked, this, &PinWidget::addPin);
+    connect(ui->delStep, &QPushButton::clicked, this, &PinWidget::delPin);
+    connect(ui->stepList, &QListWidget::currentRowChanged, this, &PinWidget::selectPin);
+
+    connect(ui->showCell, &QCheckBox::toggled, this, &PinWidget::toggleCell);
+    connect(ui->showStep, &QCheckBox::toggled, this, &PinWidget::toggleVisible);
+    connect(ui->repeatStep, &QCheckBox::toggled, this, &PinWidget::toggleRepeat);
+
+    connect(ui->xOffset, &QDoubleSpinBox::valueChanged, this, &PinWidget::setOffset);
+    connect(ui->yOffset, &QDoubleSpinBox::valueChanged, this, &PinWidget::setOffset);
+    connect(ui->zOffset, &QDoubleSpinBox::valueChanged, this, &PinWidget::setOffset);
+    connect(ui->xMultBox, &QSpinBox::valueChanged, this, &PinWidget::setMult);
+    connect(ui->yMultBox, &QSpinBox::valueChanged, this, &PinWidget::setMult);
+    connect(ui->zMultBox, &QSpinBox::valueChanged, this, &PinWidget::setMult);
+
+
+    connect(ui->insertStep, &QPushButton::clicked, this, &PinWidget::insertStep);
+
+    connect(ui->helpButton, &QPushButton::clicked, this, [&](){
+        QMessageBox::information(this, QString("About pinning"),
+            "Pinned Steps are drawn along the currently active Step.\n\n"
+            "\"Repeating\" a Step means it is drawn in periodic repetitions "
+            "of the active Step, i.e. with the periodicity of the active Step.\n"
+            "Contrarily, specifying the multipliers for the pinned Step "
+            "itself draws it with its own periodicity.\n"
+            "Specifying the offset allows the pinned Step to be shifted against the active Step "
+            "without having to modify its structure.\n\n"
+            "Inserting a Step takes both offset and multipliers into account, "
+            "and additionally performs cell vector fitting if requested.\n\n"
+            "Cell vector fitting can be used e.g. to create commensurable super cells. "
+            "If fitting is enabled for a direction, "
+            "the lattice will be shrunken or stretched to "
+            "match this dimension in the active Step."
+        );
+    });
+
+    connect(&vApp, &MainWindow::activeStepChanged, [&](const Step& s){
+        // only allow adding current step if it is not already pinned
+        auto pos = std::find_if(pinnedSteps.begin(), pinnedSteps.end(), [&](const auto &v){
+            return v->curStep == &s;
+        });
+        ui->addStep->setEnabled(pos == pinnedSteps.end());
+        // update other gui state
+        selectPin(ui->stepList->currentRow());
+    });
+    connect(&vApp, &MainWindow::configChanged, [&](const ConfigState &c){
+        // update radii
+        for (auto &dat: pinnedSteps) {
+            dat->update(dat->curStep, c.settings.atRadVdW.val, c.settings.atRadFac.val, c.settings.bondRad.val);
+        }
+        if (!pinnedSteps.empty()) {
+            vApp.curVP->updateState();
+        }
+    });
 }
 
 PinWidget::~PinWidget()
 {
     delete ui;
-}
-
-void PinWidget::updateWidget(GUI::change_t change)
-{
-    if(change & (GUI::Change::atoms | GUI::Change::trajec |
-                 GUI::Change::cell | GUI::Change::settings)){
-        // set gui-state
-        on_stepList_currentRowChanged(ui->stepList->currentRow());
-        // update GPU data
-        for(auto &dat: pinnedSteps){
-            const auto& settings = vApp.config().settings;
-            dat->update(dat->curStep, settings.atRadVdW.val,
-                        settings.atRadFac.val, settings.bondRad.val);
-        }
-    }
-    if((change & GUI::stepChanged) == GUI::stepChanged){
-        // disable add-button when already pinned
-        for(auto &dat: pinnedSteps){
-            if(dat->curStep == &vApp.curStep()){
-                ui->addStep->setDisabled(true);
-                return;
-            }
-        }
-        ui->addStep->setEnabled(true);
-    }
 }
 
 PinWidget::PinnedStep::PinnedStep(const Step *step, const std::string& name,
@@ -81,7 +111,7 @@ void PinWidget::setMult(int i)
     }else if(sender() == ui->zMultBox){
         mult[2] = static_cast<uint8_t>(i);
     }
-    triggerUpdate(GUI::Change::extra);
+    vApp.curVP->updateState();
 }
 
 void PinWidget::setOffset(double d)
@@ -95,24 +125,24 @@ void PinWidget::setOffset(double d)
     }else if(sender() == ui->zOffset){
         off[2] = d;
     }
-    triggerUpdate(GUI::Change::extra);
+    vApp.curVP->updateState();
 }
 
-void PinWidget::on_showCell_toggled(bool checked)
+void PinWidget::toggleCell(bool checked)
 {
     if (!curPin) return;
     curPin->cell = checked;
-    triggerUpdate(GUI::Change::extra);
+    vApp.curVP->updateState();
 }
 
-void PinWidget::on_repeatStep_toggled(bool checked)
+void PinWidget::toggleRepeat(bool checked)
 {
     if (!curPin) return;
     curPin->repeat = checked;
-    triggerUpdate(GUI::Change::extra);
+    vApp.curVP->updateState();
 }
 
-void PinWidget::on_delStep_clicked()
+void PinWidget::delPin()
 {
     // remove local infos
     ui->insertStep->setDisabled(true);
@@ -120,18 +150,18 @@ void PinWidget::on_delStep_clicked()
         ui->addStep->setEnabled(true);
     }
     auto pos2 = std::find(pinnedSteps.begin(), pinnedSteps.end(), curPin);
+    vApp.curVP->delExtraData(*pos2, true);
     pinnedSteps.erase(pos2);
     delete ui->stepList->takeItem(ui->stepList->currentRow());
-    triggerUpdate(GUI::Change::extra);
 }
 
-void PinWidget::on_addStep_clicked()
+void PinWidget::addPin()
 {
     ui->addStep->setDisabled(true);
     // add to list of steps
     pinnedSteps.push_back(std::make_shared<PinnedStep>(&vApp.curStep(),
         vApp.curMol().name + " (Step "
-            + std::to_string(master->curVP->moldata[&vApp.curMol()].curStep) + ')',
+            + std::to_string(vApp.curVP->moldata[&vApp.curMol()].curStep) + ')',
         GUI::PBCVec{1,1,1}));
     const auto settings = vApp.config().settings;
     pinnedSteps.back()->update(pinnedSteps.back()->curStep,
@@ -139,11 +169,10 @@ void PinWidget::on_addStep_clicked()
                                settings.bondRad.val);
     ui->stepList->addItem(QString::fromStdString(pinnedSteps.back()->name));
     // enable in current viewport
-    master->curVP->addExtraData(pinnedSteps.back(), true);
-    triggerUpdate(GUI::Change::extra);
+    vApp.curVP->addExtraData(pinnedSteps.back(), true);
 }
 
-void PinWidget::on_stepList_currentRowChanged(int currentRow)
+void PinWidget::selectPin(int currentRow)
 {
     curPin = currentRow < 0 ? nullptr : pinnedSteps[currentRow];
     auto hasPin = static_cast<bool>(curPin);
@@ -164,7 +193,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
     ui->zFit->setEnabled(hasCell);
     if(hasPin){
         QSignalBlocker block{ui->showStep};
-        ui->showStep->setChecked(master->curVP->hasExtraData(curPin, true));
+        ui->showStep->setChecked(vApp.curVP->hasExtraData(curPin, true));
         QSignalBlocker block1{ui->showCell};
         ui->showCell->setChecked(curPin->cell);
         QSignalBlocker block2{ui->repeatStep};
@@ -184,7 +213,7 @@ void PinWidget::on_stepList_currentRowChanged(int currentRow)
     }
 }
 
-void PinWidget::on_insertStep_clicked()
+void PinWidget::insertStep()
 {
     if (!curPin || (curPin->curStep == &vApp.curStep())) return;
     Step s = *curPin->curStep;
@@ -207,39 +236,18 @@ void PinWidget::on_insertStep_clicked()
         s.setCellVec(cell, true);
     }
     // immediately hide pinned step
-    master->curVP->delExtraData(curPin, true);
+    vApp.curVP->delExtraData(curPin, true);
     vApp.invokeOnStep(&Step::newAtoms<Step::atom_source>, s);
-    triggerUpdate(GUI::Change::atoms);
 }
 
-void PinWidget::on_showStep_toggled(bool checked)
+void PinWidget::toggleVisible(bool checked)
 {
     if (!curPin) return;
     if (checked) {
         // insert into viewports extras
-        master->curVP->addExtraData(curPin, true);
+        vApp.curVP->addExtraData(curPin, true);
     }else{
         // remove from viewports extras
-        master->curVP->delExtraData(curPin, true);
+        vApp.curVP->delExtraData(curPin, true);
     }
-    triggerUpdate(GUI::Change::extra);
-}
-
-void PinWidget::on_helpButton_clicked()
-{
-    QMessageBox::information(this, QString("About pinning"),
-        "Pinned Steps are drawn along the currently active Step.\n\n"
-        "\"Repeating\" a Step means it is drawn in periodic repetitions "
-        "of the active Step, i.e. with the periodicity of the active Step.\n"
-        "Contrarily, specifying the multipliers for the pinned Step "
-        "itself draws it with its own periodicity.\n"
-        "Specifying the offset allows the pinned Step to be shifted against the active Step "
-        "without having to modify its structure.\n\n"
-        "Inserting a Step takes both offset and multipliers into account, "
-        "and additionally performs cell vector fitting if requested.\n\n"
-        "Cell vector fitting can be used e.g. to create commensurable super cells. "
-        "If fitting is enabled for a direction, "
-        "the lattice will be shrunken or stretched to "
-        "match this dimension in the active Step."
-    );
 }
