@@ -281,8 +281,8 @@ void MainWindow::setupFileMenu()
 
     // Create an empty, new molecule
     fileMenu.addAction("&New molecule",
-                       [this](){newMol({});},
-                       QKeySequence::New);
+                       QKeySequence::New,
+                       [this](){newMol({});});
 
     // create a copy of existing data
     auto &copyMenu = *fileMenu.addMenu("&From existing molecule");
@@ -309,12 +309,14 @@ void MainWindow::setupFileMenu()
 
     // load molecular data from file
     fileMenu.addAction("&Load molecule",
-                       &MainWindow::readFile,
-                       QKeySequence::Open);
+                       QKeySequence::Open,
+                       this,
+                       &MainWindow::readFile);
     // store molecular data to file
     fileMenu.addAction("&Save molecule",
-                       &MainWindow::saveFile,
-                       QKeySequence::Save);
+                       QKeySequence::Save,
+                       this,
+                       &MainWindow::saveFile);
 
     // Separator
     fileMenu.addSeparator();
@@ -347,16 +349,16 @@ void MainWindow::setupFileMenu()
     // Separator
     fileMenu.addSeparator();
     fileMenu.addAction("Screenshot (current Step)",
-                       [this](){saveScreenshot();},
-                       QKeySequence::Print);
+                       QKeySequence::Print,
+                       [this](){saveScreenshot();});
     fileMenu.addAction("Screenshot (trajectory)",
                        [this](){saveScreenshots();});
 
     // Separator
     fileMenu.addSeparator();
     fileMenu.addAction("Exit Vipster",
-                       [this](){close();},
-                       Qt::ControlModifier|Qt::Key_Q);
+                       Qt::ControlModifier|Qt::Key_Q,
+                       [this](){close();});
 }
 
 /* Edit menu
@@ -368,11 +370,11 @@ void MainWindow::setupEditMenu()
 
     // Create a new Atom
     auto *newAction = editMenu.addAction("&New atom",
+        Qt::Key_N,
         [this](){
             invokeOnStep(static_cast<void(Step::*)(const std::string &, const Vec&, const AtomProperties&)>(&Step::newAtom),
                           "C", Vec{}, AtomProperties{});
-        },
-        Qt::Key_N);
+        });
 
     // Delete selected Atom(s)
     auto delAtoms = [](Step &s, const Step::const_selection &sel)
@@ -389,47 +391,46 @@ void MainWindow::setupEditMenu()
         }
     };
     auto *delAction = editMenu.addAction("&Delete atom(s)",
+        Qt::Key_Delete,
         [&](){
             invokeOnStep(delAtoms, curSel());
             updateSelection({});
-        },
-        Qt::Key_Delete);
+        });
     delAction->setEnabled(false);
     connect(this, &MainWindow::selChanged,
             delAction, [&](const Step::selection &sel){delAction->setEnabled(sel.getNat() > 0);});
 
     // Cut atoms
     auto *cutAction = editMenu.addAction("C&ut atom(s)",
+        QKeySequence::Cut,
         [&](){
             selectionToCopy();
             invokeOnStep(delAtoms, curSel());
             updateSelection({});
-        },
-        QKeySequence::Cut);
+        });
     cutAction->setEnabled(false);
     connect(this, &MainWindow::selChanged,
             cutAction, [&](const Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
 
     // Copy atoms
     auto *copyAction = editMenu.addAction("&Copy atom(s)",
-        [&](){
-            selectionToCopy();
-        },
-        QKeySequence::Copy);
+                                          QKeySequence::Copy,
+                                          this,
+                                          &MainWindow::selectionToCopy);
     copyAction->setEnabled(false);
     connect(this, &MainWindow::selChanged,
             copyAction, [&](const Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
 
     // Paste atoms
     auto *pasteAction = editMenu.addAction("&Paste atom(s)",
+        QKeySequence::Paste,
         [&](){
             invokeOnStep([&](Step &s){
                 if (copyBuf.getNat() > 0) {
                     s.newAtoms(copyBuf);
                 }
             });
-        },
-        QKeySequence::Paste);
+        });
     pasteAction->setEnabled(false);
     connect(this, &MainWindow::copyBufChanged,
             pasteAction, [&](const std::optional<Step> &buf){pasteAction->setEnabled(buf->getNat() > 0);});
