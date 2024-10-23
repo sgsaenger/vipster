@@ -1,22 +1,22 @@
 #ifndef LAMMPSWIDGET_LMP_H
 #define LAMMPSWIDGET_LMP_H
 
-#include "../basewidget.h"
+#include <filesystem>
+#include <QWidget>
 #include "lammpswidget_aux/forcefield.lmp.h"
 
-#include <filesystem>
 
 namespace Ui {
 class LammpsWidget;
 }
 
-class LammpsWidget : public BaseWidget
+class LammpsWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit LammpsWidget(QWidget *parent = nullptr);
-    ~LammpsWidget();
+    ~LammpsWidget() override;
 
 private slots:
     void on_runButton_clicked();

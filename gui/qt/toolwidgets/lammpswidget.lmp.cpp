@@ -14,7 +14,6 @@
 #include "lammps.h"
 #include "info.h"
 #include "exceptions.h"
-#include "vipsterapplication.h"
 
 using namespace Vipster;
 using namespace Vipster::Lammps;
@@ -22,7 +21,7 @@ using namespace LAMMPS_NS;
 namespace fs = std::filesystem;
 
 LammpsWidget::LammpsWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::LammpsWidget)
 {
     ui->setupUi(this);
@@ -276,7 +275,7 @@ void LammpsWidget::mkGeom(const Step &curStep, const ForceField &FF, const fs::p
     auto param = FF.prepareParameters(curStep);
     // create input file
     writeFile((tempdir/"geom.lmp").string(), &Plugins::LmpInput, vApp.curMol(),
-              master->curVP->moldata[&vApp.curMol()].curStep-1,
+              vApp.curVP->moldata[&vApp.curMol()].curStep-1,
               param, preset);
 }
 
