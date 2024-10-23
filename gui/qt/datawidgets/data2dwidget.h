@@ -18,7 +18,6 @@ public:
     explicit Data2DWidget(QWidget *parent = nullptr);
     ~Data2DWidget() override;
     void setData(const Vipster::BaseData *d) override;
-    void updateWidget(Vipster::GUI::change_t) override;
 
 private slots:
     void on_sliceBut_toggled(bool checked);

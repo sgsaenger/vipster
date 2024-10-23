@@ -9,20 +9,16 @@ Data2DWidget::Data2DWidget(QWidget *parent) :
     ui(new Ui::Data2DWidget)
 {
     ui->setupUi(this);
+
+    connect(&vApp, &MainWindow::activeStepChanged, this, [&](){
+       QSignalBlocker block{ui->sliceBut};
+       ui->sliceBut->setChecked(vApp.curVP->hasExtraData(curPlane, false));
+    });
 }
 
 Data2DWidget::~Data2DWidget()
 {
     delete ui;
-}
-
-void Data2DWidget::updateWidget(GUI::change_t change)
-{
-    if(curPlane &&
-       ((change & GUI::stepChanged) == GUI::stepChanged)){
-        QSignalBlocker block{ui->sliceBut};
-        ui->sliceBut->setChecked(master->curVP->hasExtraData(curPlane, false));
-    }
 }
 
 void Data2DWidget::setData(const BaseData* data)
@@ -35,7 +31,7 @@ void Data2DWidget::setData(const BaseData* data)
     auto pos = planes.find(curData);
     if(pos != planes.end()){
         curPlane = pos->second;
-        ui->sliceBut->setChecked(master->curVP->hasExtraData(curPlane, false));
+        ui->sliceBut->setChecked(vApp.curVP->hasExtraData(curPlane, false));
     }else{
         curPlane = nullptr;
         ui->sliceBut->setChecked(false);
@@ -46,11 +42,10 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
 {
     if(curPlane){
         if(checked){
-            master->curVP->addExtraData(curPlane, false);
+            vApp.curVP->addExtraData(curPlane, false);
         }else{
-            master->curVP->delExtraData(curPlane, false);
+            vApp.curVP->delExtraData(curPlane, false);
         }
-        triggerUpdate(GUI::Change::extra);
     }else if(curData && checked){
         GUI::MeshData::Texture texture;
         texture.width = static_cast<int>(curData->extent[0]);
@@ -75,7 +70,6 @@ void Data2DWidget::on_sliceBut_toggled(bool checked)
                         {{0,0,0},{},{0,0}},{{1,0,0},{},{1,0}},{{1,1,0},{},{1,1}}
                     }, curData->origin, curData->cell, texture);
         planes.emplace(curData, curPlane);
-        master->curVP->addExtraData(curPlane, false);
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->addExtraData(curPlane, false);
     }
 }

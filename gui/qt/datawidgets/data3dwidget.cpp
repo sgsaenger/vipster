@@ -10,6 +10,24 @@ Data3DWidget::Data3DWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->surfVal->setValidator(&validator);
+
+    connect(&vApp, &MainWindow::activeStepChanged, this, [&](){
+        if(curSlice){
+            QSignalBlocker block{ui->sliceBut};
+            ui->sliceBut->setChecked(vApp.curVP->hasExtraData(curSlice, false));
+        }
+        if(curSurf){
+            QSignalBlocker block{ui->surfBut};
+            ui->surfBut->setChecked(vApp.curVP->hasExtraData(curSurf, false));
+        }
+    });
+
+    connect(&vApp, &MainWindow::configChanged, this, [&](const ConfigState &c){
+       for(auto& p: surfaces){
+           p.second->update({{c.settings.posCol.val,
+                              c.settings.negCol.val}, 2, 1});
+       }
+    });
 }
 
 Data3DWidget::~Data3DWidget()
@@ -30,28 +48,6 @@ Data3DWidget::DatSlice::DatSlice(std::vector<Face>&& faces,
       dir{dir}, pos{pos}
 {}
 
-void Data3DWidget::updateWidget(GUI::change_t change)
-{
-    // update display state
-    if((change & GUI::stepChanged) == GUI::stepChanged){
-        if(curSlice){
-            QSignalBlocker block{ui->sliceBut};
-            ui->sliceBut->setChecked(master->curVP->hasExtraData(curSlice, false));
-        }
-        if(curSurf){
-            QSignalBlocker block{ui->surfBut};
-            ui->surfBut->setChecked(master->curVP->hasExtraData(curSurf, false));
-        }
-    }
-    // change isosurface colors
-    if(change & GUI::Change::settings){
-        for(auto& p: surfaces){
-            p.second->update({{vApp.config().settings.posCol.val,
-                               vApp.config().settings.negCol.val}, 2, 1});
-        }
-    }
-}
-
 void Data3DWidget::setData(const BaseData* data)
 {
     curData = dynamic_cast<const DataGrid3D_f*>(data);
@@ -63,7 +59,7 @@ void Data3DWidget::setData(const BaseData* data)
     if(slicePos != slices.end()){
         curSlice = slicePos->second;
         QSignalBlocker blockBut{ui->sliceBut};
-        ui->sliceBut->setChecked(master->curVP->hasExtraData(curSlice, false));
+        ui->sliceBut->setChecked(vApp.curVP->hasExtraData(curSlice, false));
         QSignalBlocker blockDir{ui->sliceDir};
         ui->sliceDir->setCurrentIndex(static_cast<int>(curSlice->dir));
         QSignalBlocker blockVal{ui->sliceVal};
@@ -93,7 +89,7 @@ void Data3DWidget::setData(const BaseData* data)
     if(surfPos != surfaces.end()){
         curSurf = surfPos->second;
         QSignalBlocker blockBut{ui->surfBut};
-        ui->surfBut->setChecked(master->curVP->hasExtraData(curSurf, false));
+        ui->surfBut->setChecked(vApp.curVP->hasExtraData(curSurf, false));
         QSignalBlocker blockToggle{ui->surfToggle};
         ui->surfToggle->setCheckState(Qt::CheckState(curSurf->plusmin*2));
         auto isoval = static_cast<double>(curSurf->isoval);
@@ -204,7 +200,7 @@ void Data3DWidget::on_sliceVal_valueChanged(int pos)
         auto _dir = static_cast<size_t>(ui->sliceDir->currentIndex());
         curSlice->update(mkSlice(_dir, off));
         curSlice->update(mkSliceTex(*curData, _dir, static_cast<size_t>(pos)));
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->updateState();
     }
 }
 
@@ -212,11 +208,10 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
 {
     if(curSlice){
         if(checked){
-            master->curVP->addExtraData(curSlice, false);
+            vApp.curVP->addExtraData(curSlice, false);
         }else{
-            master->curVP->delExtraData(curSlice, false);
+            vApp.curVP->delExtraData(curSlice, false);
         }
-        triggerUpdate(GUI::Change::extra);
     }else if(checked){
         auto dir = static_cast<size_t>(ui->sliceDir->currentIndex());
         auto pos = static_cast<size_t>(ui->sliceVal->value());
@@ -229,8 +224,7 @@ void Data3DWidget::on_sliceBut_toggled(bool checked)
             dir, pos
             );
         slices.emplace(curData, curSlice);
-        master->curVP->addExtraData(curSlice, false);
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->addExtraData(curSlice, false);
     }
 }
 
@@ -686,13 +680,13 @@ std::vector<GUI::MeshData::Face> marchingCubes(const DataGrid3D_f& dat, double i
 std::vector<GUI::MeshData::Face> Data3DWidget::mkSurf(double isoval, bool pm)
 {
     std::vector<GUI::MeshData::Face> retval;
-    if(isoval > validator.top() ||
-       isoval < validator.bottom()){
+    if (isoval > validator.top() ||
+        isoval < validator.bottom()) {
         retval = {};
-    }else{
+    } else {
         retval = marchingCubes(*curData, isoval);
     }
-    if(pm){
+    if (pm) {
         auto tmp = mkSurf(-isoval, false);
         retval.insert(retval.end(), tmp.begin(), tmp.end());
     }
@@ -701,10 +695,10 @@ std::vector<GUI::MeshData::Face> Data3DWidget::mkSurf(double isoval, bool pm)
 
 void Data3DWidget::on_surfToggle_stateChanged(int state)
 {
-    if(curSurf){
+    if (curSurf) {
         curSurf->plusmin = state;
         curSurf->update(mkSurf(curSurf->isoval, curSurf->plusmin));
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->updateState();
     }
 }
 
@@ -714,10 +708,10 @@ void Data3DWidget::on_surfSlider_valueChanged(int val)
     auto _val = (val * (validator.top()-validator.bottom()) /
                  ui->surfSlider->maximum()) + validator.bottom();
     ui->surfVal->setText(QString::number(_val));
-    if(curSurf){
+    if (curSurf) {
         curSurf->isoval = _val;
         curSurf->update(mkSurf(curSurf->isoval, curSurf->plusmin));
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->updateState();
     }
 }
 
@@ -729,23 +723,22 @@ void Data3DWidget::on_surfVal_editingFinished()
                 ui->surfSlider->maximum() /
                 (validator.top()-validator.bottom());
     ui->surfSlider->setValue(static_cast<int>(_val));
-    if(curSurf){
+    if (curSurf) {
         curSurf->isoval = val;
         curSurf->update(mkSurf(val, curSurf->plusmin));
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->updateState();
     }
 }
 
 void Data3DWidget::on_surfBut_toggled(bool checked)
 {
-    if(curSurf){
-        if(checked){
-            master->curVP->addExtraData(curSurf, false);
-        }else{
-            master->curVP->delExtraData(curSurf, false);
+    if (curSurf) {
+        if (checked) {
+            vApp.curVP->addExtraData(curSurf, false);
+        } else {
+            vApp.curVP->delExtraData(curSurf, false);
         }
-        triggerUpdate(GUI::Change::extra);
-    }else if(checked){
+    } else if (checked) {
         auto isoval = ui->surfVal->text().toDouble();
         auto pm = static_cast<bool>(ui->surfToggle->checkState());
         curSurf = std::make_shared<IsoSurf>(
@@ -757,7 +750,6 @@ void Data3DWidget::on_surfBut_toggled(bool checked)
                     pm, isoval
                     );
         surfaces.emplace(curData, curSurf);
-        master->curVP->addExtraData(curSurf, false);
-        triggerUpdate(GUI::Change::extra);
+        vApp.curVP->addExtraData(curSurf, false);
     }
 }

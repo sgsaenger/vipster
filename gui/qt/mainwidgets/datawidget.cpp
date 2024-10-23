@@ -5,14 +5,24 @@
 using namespace Vipster;
 
 DataBase::DataBase(QWidget *parent)
-    :BaseWidget{parent}
+    :QWidget{parent}
 {}
 
 DataWidget::DataWidget(QWidget *parent) :
-    BaseWidget(parent),
+    QWidget(parent),
     ui(new Ui::DataWidget)
 {
     ui->setupUi(this);
+
+    connect(&vApp, &MainWindow::dataListChanged, [&](){
+        if (vApp.data.size() > ui->DataSel->count()) {
+           const BaseData& dat = *vApp.data.back();
+           ui->DataSel->addItem(dat.name.c_str());
+           ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
+        }
+    });
+
+    connect(ui->DataSel, &QComboBox::currentIndexChanged, this, &DataWidget::selectData);
 }
 
 DataWidget::~DataWidget()
@@ -20,21 +30,7 @@ DataWidget::~DataWidget()
     delete ui;
 }
 
-void DataWidget::updateWidget(GUI::change_t change)
-{
-    if(change & GUI::Change::data){
-        if(static_cast<int>(vApp.data.size()) > ui->DataSel->count()){
-            const BaseData& dat = *vApp.data.back();
-            ui->DataSel->addItem(dat.name.c_str());
-            ui->DataSel->setCurrentIndex(ui->DataSel->count()-1);
-        }
-    }
-    ui->ThreeDWidget->updateWidget(change);
-    ui->VecWidget->updateWidget(change);
-    ui->TwoDWidget->updateWidget(change);
-}
-
-void DataWidget::on_DataSel_currentIndexChanged(int index)
+void DataWidget::selectData(int index)
 {
     curData = std::next(vApp.data.begin(), index)->get();
     if(dynamic_cast<const DataGrid3D_f*>(curData) != nullptr){
