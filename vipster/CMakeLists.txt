@@ -2,12 +2,12 @@
 # main library providing containers and file format support
 
 # Dependencies
-FetchContent_MakeAvailable(nlohmann_json tinyexpr)
+find_or_download_package(nlohmann_json)
 # if vendored fmt-lib is used, enforce static lib
 # required to maintain LAMMPS compatibility
 set(IS_SHARED BUILD_SHARED_LIBS)
 set(BUILD_SHARED_LIBS OFF)
-FetchContent_MakeAvailable(fmt)
+find_or_download_package(fmt)
 set(BUILD_SHARED_LIBS IS_SHARED)
 
 file(GLOB_RECURSE LIB_HEADERS "*.h")

@@ -10,7 +10,8 @@ add_library(bindings OBJECT ${PY_SOURCES})
 set_target_properties(bindings PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 # dependencies
-FetchContent_MakeAvailable(pybind11 fmt)
+find_or_download_package(pybind11)
+find_or_download_package(fmt)
 target_link_libraries(bindings PUBLIC libvipster pybind11::pybind11 PRIVATE fmt::fmt)
 
 target_include_directories(bindings PUBLIC ".")

@@ -53,7 +53,8 @@ if(MINGW)
 endif()
 
 # dependencies
-FetchContent_MakeAvailable(CLI11 fmt)
+find_or_download_package(CLI11)
+find_or_download_package(fmt)
 target_link_libraries(vipster PRIVATE
     Qt::Gui Qt::Widgets
     CLI11::CLI11
@@ -76,7 +77,7 @@ target_include_directories(vipster PRIVATE "../common" ".")
 
 # python-widget:
 if(VIPSTER_PYWIDGET)
-    FetchContent_MakeAvailable(pybind11)
+    find_or_download_package(pybind11)
     add_definitions(-DUSE_PYTHON)
     target_sources(vipster PRIVATE ${QTPY_SOURCES})
     target_link_libraries(vipster PRIVATE bindings pybind11::embed Python::Python)

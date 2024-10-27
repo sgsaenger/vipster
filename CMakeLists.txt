@@ -20,6 +20,12 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif()
 
+# VIPSTER_DOWNLOAD_DEPENDENCIES - default to ON
+# Disable this to enforce using already-installed dependencies.
+# Intended for package maintainers only
+option(VIPSTER_DOWNLOAD_DEPENDENCIES "Automatically download dependencies" ON)
+mark_as_advanced(VIPSTER_DOWNLOAD_DEPENDENCIES)
+
 # BUILD_TESTING - default to ON
 option(BUILD_TESTING "Build tests" ON)
 
