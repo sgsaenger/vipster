@@ -38,6 +38,6 @@ if(VIPSTER_PYLIB)
         OUTPUT_VARIABLE PYTHON_SITE
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     install(TARGETS pyvipster LIBRARY DESTINATION ${PYTHON_SITE})
-    install(CODE  "execute_process(COMMAND \"${Python3_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
+    install(CODE  "execute_process(COMMAND \"${Python_EXECUTABLE}\" \"${PROJECT_SOURCE_DIR}/setup.py\" \"egg_info\")")
     install(DIRECTORY "${PROJECT_BINARY_DIR}/vipster.egg-info" DESTINATION ${PYTHON_SITE})
 endif()

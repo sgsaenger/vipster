@@ -7,7 +7,7 @@ DESTDIR=AppDir cmake --install .
 
 # extract build configuration from CMakeCache.txt
 SOURCE_DIR=$(grep Vipster_SOURCE_DIR CMakeCache.txt | cut -d "=" -f 2)
-PY_BIN=$(grep "Python3_EXECUTABLE" CMakeCache.txt | cut -d "=" -f 2)
+PY_BIN=$(grep "Python_EXECUTABLE" CMakeCache.txt | cut -d "=" -f 2)
 PY_PREFIX=$(${PY_BIN} -c "import sys; print(sys.prefix)")
 
 # install hook for dynamic selection of python runtime
