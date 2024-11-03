@@ -398,7 +398,7 @@ void MainWindow::setupEditMenu()
         });
     delAction->setEnabled(false);
     connect(this, &MainWindow::selChanged,
-            delAction, [&](const Step::selection &sel){delAction->setEnabled(sel.getNat() > 0);});
+            delAction, [=](const Step::selection &sel){delAction->setEnabled(sel.getNat() > 0);});
 
     // Cut atoms
     auto *cutAction = editMenu.addAction("C&ut atom(s)",
@@ -410,7 +410,7 @@ void MainWindow::setupEditMenu()
         });
     cutAction->setEnabled(false);
     connect(this, &MainWindow::selChanged,
-            cutAction, [&](const Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
+            cutAction, [=](const Step::selection &sel){cutAction->setEnabled(sel.getNat() > 0);});
 
     // Copy atoms
     auto *copyAction = editMenu.addAction("&Copy atom(s)",
@@ -419,7 +419,7 @@ void MainWindow::setupEditMenu()
                                           &MainWindow::selectionToCopy);
     copyAction->setEnabled(false);
     connect(this, &MainWindow::selChanged,
-            copyAction, [&](const Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
+            copyAction, [=](const Step::selection &sel){copyAction->setEnabled(sel.getNat() > 0);});
 
     // Paste atoms
     auto *pasteAction = editMenu.addAction("&Paste atom(s)",
@@ -433,7 +433,7 @@ void MainWindow::setupEditMenu()
         });
     pasteAction->setEnabled(false);
     connect(this, &MainWindow::copyBufChanged,
-            pasteAction, [&](const std::optional<Step> &buf){pasteAction->setEnabled(buf->getNat() > 0);});
+            pasteAction, [=](const std::optional<Step> &buf){pasteAction->setEnabled(buf->getNat() > 0);});
 
     // Separator
     editMenu.addSeparator();
@@ -463,7 +463,7 @@ void MainWindow::setupEditMenu()
               });
           });
       connect(this, &MainWindow::selChanged,
-              hideAction, [&](const Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
+              hideAction, [=](const Step::selection &sel){hideAction->setEnabled(sel.getNat() > 0);});
 
     // Show
     auto *showAction = editMenu.addAction("&Show atom(s)",
@@ -475,7 +475,39 @@ void MainWindow::setupEditMenu()
             });
         });
     connect(this, &MainWindow::selChanged,
-            showAction, [&](const Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
+            showAction, [=](const Step::selection &sel){showAction->setEnabled(sel.getNat() > 0);});
+
+    // Separator
+    editMenu.addSeparator();
+
+    // Undo
+    auto *undoAction = editMenu.addAction("Undo", QKeySequence::Undo);
+    undoAction->setDisabled(true);
+    connect(undoAction, &QAction::triggered,
+        this,
+        [=](){
+            auto &action = undoStack.back();
+            action.backward(action.data);
+
+            // TODO: modify stack pointer instead of popping to enable redo
+            undoStack.pop_back();
+
+            if(undoStack.empty()){
+                undoAction->setDisabled(true);
+                undoAction->setText(QString{"Undo"});
+            } else {
+                undoAction->setText(QString{"Undo "} + undoStack.back().name.c_str());
+            }
+        });
+    connect(this, &MainWindow::undoAdded,
+        undoAction, [=](const UndoAction &u){
+            undoAction->setEnabled(true);
+            undoAction->setText(QString{"Undo "} + u.name.c_str());
+        });
+
+    // Redo
+    auto *redoAction = editMenu.addAction("Redo", QKeySequence::Redo);
+    redoAction->setDisabled(true);
 }
 
 void MainWindow::setupHelpMenu()

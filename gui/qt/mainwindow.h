@@ -52,12 +52,22 @@ public:
     template<typename F, typename... Args>
     auto invokeOnConfig(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(_config, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(_config, std::forward<F>(f), std::forward<Args>(args)...);
+        undoStack.push_back({
+            std::string{"modify settings"},
+            [this](UndoAction::Data &d){
+                _config = std::get<Vipster::ConfigState>(d);
+                emit configChanged(_config);
+            },
+            _config
+        });
+        emit undoAdded(undoStack.back());
+
+        if constexpr (!std::is_void_v<decltype(std::invoke(std::forward<F>(f), _config, std::forward<Args>(args)...))>) {
+            auto tmp = std::invoke(std::forward<F>(f), _config, std::forward<Args>(args)...);
             emit configChanged(_config);
             return tmp;
         } else {
-            invokeImpl(_config, std::forward<F>(f), std::forward<Args>(args)...);
+            std::invoke(std::forward<F>(f), _config, std::forward<Args>(args)...);
             emit configChanged(_config);
         }
     }
@@ -100,12 +110,22 @@ public:
     template<typename F, typename... Args>
     auto invokeOnMol(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...);
+        undoStack.push_back({
+            std::string{"modify Molecule"},
+            [this](UndoAction::Data &d){
+                *pCurMol = std::get<Vipster::Molecule>(d);
+                emit molChanged(*pCurMol);
+            },
+            *pCurMol
+        });
+        emit undoAdded(undoStack.back());
+
+        if constexpr (!std::is_void_v<decltype(std::invoke(std::forward<F>(f), *pCurMol, std::forward<Args>(args)...))>) {
+            auto tmp = std::invoke(std::forward<F>(f), *pCurMol, std::forward<Args>(args)...);
             emit molChanged(*pCurMol);
             return tmp;
         } else {
-            invokeImpl(*pCurMol, std::forward<F>(f), std::forward<Args>(args)...);
+            std::invoke(std::forward<F>(f), *pCurMol, std::forward<Args>(args)...);
             emit molChanged(*pCurMol);
         }
     }
@@ -113,12 +133,22 @@ public:
     template<typename F, typename... Args>
     auto invokeOnStep(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...);
+        undoStack.push_back({
+            std::string{"modify Step"},
+            [this](UndoAction::Data &d){
+                *pCurStep = std::get<Vipster::Step>(d);
+                emit stepChanged(*pCurStep);
+            },
+            *pCurStep
+        });
+        emit undoAdded(undoStack.back());
+
+        if constexpr (!std::is_void_v<decltype(std::invoke(std::forward<F>(f), *pCurStep, std::forward<Args>(args)...))>) {
+            auto tmp = std::invoke(std::forward<F>(f), *pCurStep, std::forward<Args>(args)...);
             emit stepChanged(*pCurStep);
             return tmp;
         } else {
-            invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...);
+            std::invoke(std::forward<F>(f), *pCurStep, std::forward<Args>(args)...);
             emit stepChanged(*pCurStep);
         }
     }
@@ -126,12 +156,22 @@ public:
     template<typename F, typename... Args>
     auto invokeOnSelection(F &&f, Args &&...args)
     {
-        if constexpr (!std::is_void_v<decltype(invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...))>) {
-            auto tmp = invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...);
+        undoStack.push_back({
+            std::string{"modify Selection"},
+            [this](UndoAction::Data &d){
+                *pCurStep = std::get<Vipster::Step>(d);
+                emit stepChanged(*pCurStep);
+            },
+            *pCurStep
+        });
+        emit undoAdded(undoStack.back());
+
+        if constexpr (!std::is_void_v<decltype(std::invoke(std::forward<F>(f), *pCurSel, std::forward<Args>(args)...))>) {
+            auto tmp = std::invoke(std::forward<F>(f), *pCurSel, std::forward<Args>(args)...);
             emit stepChanged(*pCurStep);
             return tmp;
         } else {
-            invokeImpl(*pCurSel, std::forward<F>(f), std::forward<Args>(args)...);
+            std::invoke(std::forward<F>(f), *pCurSel, std::forward<Args>(args)...);
             emit stepChanged(*pCurStep);
         }
     }
@@ -139,9 +179,9 @@ public:
     template<typename F, typename... Args>
     void invokeOnTrajec(F &&f, Args &&...args)
     {
-        static_assert(std::is_void_v<decltype(invokeImpl(*pCurStep, std::forward<F>(f), std::forward<Args>(args)...))>);
+        static_assert(std::is_void_v<decltype(std::invoke(std::forward<F>(f), *pCurStep, std::forward<Args>(args)...))>);
         for (auto &step: pCurMol->getSteps()) {
-            invokeImpl(step, std::forward<F>(f), std::forward<Args>(args)...);
+            std::invoke(std::forward<F>(f), step, std::forward<Args>(args)...);
             emit stepChanged(step);
         }
     }
@@ -232,22 +272,29 @@ private:
     void setupHelpMenu();
     void setupViewports();
 
-    /* State manipulation
+    /* Undo stack
      *
-     * Any operations modifying the global state shall be invoked via any of the functions implemented here.
-     * This shall ensure triggering the required signals.
-     * TODO: provide undo-mechanism via these functions
+     * Any operations modifying any of the loaded data
+     * shall register an undo operation here.
      */
 private:
-    template<typename S, typename F, typename... Args>
-    std::invoke_result_t<F&&, S&, Args&&...> invokeImpl(S &s, F &&f, Args &&...args)
-    {
-        // TODO: if not required unless other functionality is introduced
-        if constexpr (!std::is_void_v<std::invoke_result_t<F&&, S&, Args&&...>>) {
-            return std::invoke(std::forward<F>(f), s, std::forward<Args>(args)...);
-        } else {
-            std::invoke(std::forward<F>(f), s, std::forward<Args>(args)...);
-        }
-    }
+    struct UndoAction{
+        using Data = std::variant<std::monostate,
+                                  Vipster::Molecule,
+                                  Vipster::Step,
+                                  Vipster::ConfigState
+                                 >;
+
+        std::string                 name;       // name of the operation
+        std::function<void(Data&)>  backward;   // actual undo operation
+        // std::function<void(Data&)>  forward;    // copy of the original operation for redo
+        Data                        data;       // any data required to perform forward/backward operation
+    };
+    std::vector<UndoAction> undoStack;
+    UndoAction *curUndoPos;
+
+signals:
+    void undoAdded(const UndoAction &u);
+    void undoApplied(const UndoAction &u);
 };
 #endif // MAINWINDOW_H
