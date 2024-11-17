@@ -20,7 +20,7 @@ static ostream& operator<<(ostream& os, const Step::atom& at)
 
 }
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_all.hpp"
 
 TEST_CASE( "Vipster::Step", "[step]" ) {
     SECTION( "Construction" ) {
@@ -49,8 +49,8 @@ TEST_CASE( "Vipster::Step", "[step]" ) {
         s.setComment("test");
         REQUIRE( s.getComment() == "test" );
         // basic cell-functionality
-        REQUIRE( s.getCellDim(AtomFmt::Bohr) == Approx(invbohr) );
-        REQUIRE( s.getCellDim(AtomFmt::Angstrom) == Approx(1) );
+        REQUIRE( s.getCellDim(AtomFmt::Bohr) == Catch::Approx{invbohr} );
+        REQUIRE( s.getCellDim(AtomFmt::Angstrom) == Catch::Approx{1} );
         REQUIRE( s.getCellVec() == Mat{{{{1,0,0}},{{0,1,0}},{{0,0,1}}}});
         // no atom-based properties yet
         REQUIRE( s.getNat() == 0);

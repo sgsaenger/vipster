@@ -18,7 +18,7 @@ static ostream& operator<<(ostream& out, const Mat& m)
 }
 }
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_all.hpp"
 
 TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
     Vec v1{{1, 1, 1}};
@@ -32,18 +32,18 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
         REQUIRE( v1+0.5 == v2 );
         REQUIRE( v2-0.5 == v1 );
         v1 += 0.5;
-        INFO( "In-place vec-float addition" )
+        INFO( "In-place vec-float addition" );
         REQUIRE( v1 == v2 );
         v1 -= 0.5;
-        INFO( "In-place vec-float subtraction" )
+        INFO( "In-place vec-float subtraction" );
         REQUIRE( v1+0.5 == v2 );
         REQUIRE( v1+v2 == v3 );
         REQUIRE( v3-v2 == v1 );
         v1 += v2;
-        INFO( "In-place vec-vec addition" )
+        INFO( "In-place vec-vec addition" );
         REQUIRE( v1 == v3 );
         v1 -= v2;
-        INFO( "In-place vec-vec subtraction" )
+        INFO( "In-place vec-vec subtraction" );
         REQUIRE( v1+v2 == v3 );
     }
 
@@ -52,10 +52,10 @@ TEST_CASE( "Vipster::Vec operators", "[vec]" ) {
         REQUIRE( 1.5*v1 == v2 );
         REQUIRE( v2/1.5 == v1 );
         v1 *= 1.5;
-        INFO( "In-place multiplication" )
+        INFO( "In-place multiplication" );
         REQUIRE( v1 == v2 );
         v1 /= 1.5;
-        INFO( "In-place division" )
+        INFO( "In-place division" );
         REQUIRE( v1*1.5 == v2 );
     }
 

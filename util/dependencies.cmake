@@ -1,5 +1,12 @@
 include(FetchContent)
 
+# Dependency handling
+# if VIPSTER_DOWNLOAD_DEPENDENCIES is ON (default),
+# CMake will obtain any dependencies via FetchContent,
+# if they are not readily available in the system.
+# <dep>_VERSION marks the smallest supported version (for searching system-installed deps)
+# <dep>_TAG marks the most up to date version (which is obtained if no system-install is found)
+
 # library: tinyexpr
 # purpose: general math expressions
 # users:   library + GUI
@@ -19,7 +26,7 @@ set(nlohmann_json_REPOSITORY https://github.com/nlohmann/json)
 # purpose: string formatting
 # users:   library + GUI
 # license: MIT
-set(fmt_VERSION 10.1.1)
+set(fmt_VERSION 8.0.0)
 set(fmt_TAG 10.1.1)
 set(fmt_REPOSITORY https://github.com/fmtlib/fmt)
 
@@ -28,7 +35,7 @@ set(fmt_REPOSITORY https://github.com/fmtlib/fmt)
 # users:   pylib + GUI (optional)
 # license: BSD
 set(pybind11_VERSION 2.10.0)
-set(pybind11_TAG v2.10.0)
+set(pybind11_TAG v2.13.6)
 set(pybind11_REPOSITORY https://github.com/pybind/pybind11)
 
 # library: CLI11
@@ -36,15 +43,15 @@ set(pybind11_REPOSITORY https://github.com/pybind/pybind11)
 # users:   GUI
 # license: BSD
 set(CLI11_VERSION 2.2.0)
-set(CLI11_TAG v2.2.0)
+set(CLI11_TAG v2.4.2)
 set(CLI11_REPOSITORY https://github.com/CLIUtils/CLI11)
 
 # library: Catch2
 # purpose: unit-testing
 # users:   tests
 # license: Boost
-set(Catch2_VERSION 2.13.9)
-set(Catch2_TAG v2.13.9)
+set(Catch2_VERSION 3.0.0)
+set(Catch2_TAG v3.7.1)
 set(Catch2_REPOSITORY https://github.com/catchorg/Catch2)
 
 # library: LAMMPS
@@ -57,7 +64,6 @@ set(lammps_REPOSITORY https://github.com/lammps/lammps)
 set(FETCHCONTENT_QUIET OFF)
 
 foreach (dep IN ITEMS nlohmann_json fmt pybind11 CLI11 Catch2 lammps)
-    message(STATUS "Registering ${dep} from ${${dep}_REPOSITORY} with Tag ${${dep}_TAG}")
     FetchContent_Declare(
         ${dep}
         GIT_REPOSITORY ${${dep}_REPOSITORY}

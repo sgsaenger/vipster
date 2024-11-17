@@ -39,7 +39,7 @@ static ostream& operator<<(ostream& os, const Step::formatter::atom& at)
 
 }
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_all.hpp"
 
 TEST_CASE( "Vipster::detail::Formatter", "[format]"){
     Mat cv = {{{{1,2,3}},{{0,1,0}},{{0,0,1.5}}}};

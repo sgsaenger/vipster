@@ -32,7 +32,7 @@ static ostream& operator<<(ostream& os, const Step::selection::atom& at)
 
 }
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_all.hpp"
 
 TEST_CASE("Vipster::detail::Selection", "[select]") {
     Step s{};
