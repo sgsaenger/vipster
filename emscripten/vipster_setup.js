@@ -392,7 +392,7 @@ Module().then(function (Module) {
 
         if (arg & (change.atoms | change.cell | change.fmt)) {
             // ensure that step-data is in a valid state
-            Module.curStep.setBonds();
+            Module.curStep.generateBonds();
             // ensure that GL is in a valid state
             Module.gui.setStep(Module.curStep);
             // update atom-table
