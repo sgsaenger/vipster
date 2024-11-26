@@ -108,7 +108,7 @@ all_pages = [Page("About", "about.html"),
              Page("Download", "download.html"),
              ]
 
-for page in all_pages + [Page("Index", "index.html")]:
+for page in all_pages + [Page("Index", "index.html"), Page("Privacy", "privacy.html")]:
     template = env.get_template(page.url)
     with open(str(targetdir.absolute()) + "/" + page.url, 'w') as f:
         f.write(template.render(current=page,
