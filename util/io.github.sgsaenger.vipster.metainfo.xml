@@ -8,7 +8,11 @@
     <description>
         <p>Vipster is a powerful and versatile tool for pre- and post-processing of periodic chemical structures. It's designed from the ground up with periodic simulations in mind.</p>
     </description>
-    <launchable type="desktop-id">com.github.sgsaenger.vipster.desktop</launchable>
+    <developer id="io.github.sgsaenger">
+        <name>Sebastian Gsänger</name>
+    </developer>
+    <content_rating type="oars-1.1" />
+    <launchable type="desktop-id">io.github.sgsaenger.vipster.desktop</launchable>
     <url type="homepage">https://sgsaenger.github.io/vipster</url>
     <screenshots>
         <screenshot type="default">
@@ -20,4 +24,16 @@
         <library>libvipster.so</library>
         <binary>vipster</binary>
     </provides>
+    <releases>
+        <release version="1.20.0" date="2024-12-01">
+            <description>
+                <p>First "public" beta with basic features in place</p>
+                <ul>
+                    <li>Optional Python integration</li>
+                    <li>Draft undo functionality</li>
+                    <li>Draft LAMMPS integration</li>
+                </ul>
+            </description>
+        </release>
+    </releases>
 </component>

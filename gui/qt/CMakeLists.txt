@@ -38,7 +38,7 @@ endif()
 # install files to appropriate locations
 if(UNIX AND NOT APPLE)
     install(TARGETS vipster RUNTIME DESTINATION "bin")
-    install(FILES "${PROJECT_SOURCE_DIR}/util/vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
+    install(FILES "${PROJECT_SOURCE_DIR}/util/io.github.sgsaenger.vipster.png" DESTINATION "share/icons/hicolor/128x128/apps")
     install(FILES "${PROJECT_SOURCE_DIR}/util/io.github.sgsaenger.vipster.desktop" DESTINATION "share/applications")
     install(FILES "${PROJECT_SOURCE_DIR}/util/io.github.sgsaenger.vipster.metainfo.xml" DESTINATION "share/metainfo")
 endif()
