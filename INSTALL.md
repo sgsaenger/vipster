@@ -10,6 +10,7 @@ Vipster has four main components:
 ## Official releases
 
 The recommended way to obtain Vipster is to get it from one of the supported app stores and repositories:
+
 [![Packaging status](https://repology.org/badge/vertical-allrepos/vipster.svg)](https://repology.org/project/vipster/versions)
 <a href='https://flathub.org/apps/io.github.sgsaenger.vipster'>
   <img width='200' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
