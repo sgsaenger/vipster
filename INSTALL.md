@@ -2,49 +2,43 @@
 
 Vipster has four main components:
 
-- *QtVipster*, a desktop-application
-- *PyVipster*, python bindings to accomodate scripting
-- *WebVipster*, a web-application
+- *Vipster*, a desktop-application
+- *PyVipster*, Python bindings to accomodate scripting
+- *WebVipster*, Javascript bindings for web-applications
 - *libvipster*, the library everything else is based on
 
-## Precompiled releases
+## Official releases
 
-Binary releases of *QtVipster* are provided for Windows, Linux and (infrequently) macOS on [github](https://github.com/sgsaenger/vipster/releases).
+The recommended way to obtain Vipster is to get it from one of the supported app stores and repositories:
+[![Packaging status](https://repology.org/badge/vertical-allrepos/vipster.svg)](https://repology.org/project/vipster/versions)
+<a href='https://flathub.org/apps/io.github.sgsaenger.vipster'>
+  <img width='200' alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+</a>
+<a href="https://apps.microsoft.com/detail/9PFLL2FD43ZN?mode=direct">
+	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="240"/>
+</a>
+
+Further pacakges of *Vipster* are provided for Windows, Linux and (infrequently) macOS on [github](https://github.com/sgsaenger/vipster/releases).
+
+### Language bindings
+
+Python bindings are available from [PyPi](https://pypi.org/project/vipster/) and can be installed via pip: `pip install vipster`
+
+A Javascript port is available on [NPM](https://www.npmjs.com/package/vipster).
+An exemplary implementation can be found [here](https://sgsaenger.github.io/vipster/emscripten).
+
+### Preliminary builds
+
 Preliminary builds are provided as artifacts in the [CI pipelines](https://github.com/sgsaenger/vipster/actions) (github login required).
-
-An exemplary implementation of *WebVipster* can be found [here](https://sgsaenger.github.io/vipster/emscripten).
-
-An easy way to install *PyVipster* is via pip and PyPi: `pip install vipster`
-
-### QtVipster on Windows
-
-Windows releases are distributed as .7z archives, so please make sure to unpack it with [7-Zip](https://7-zip.org).
-
-### QtVipster on Linux
-
-For Arch Linux, PKBUILDs are available in the AUR as *vipster* (latest release) and *vipster-git* (following the latest developments).
-This also contains the python bindings.
-
-Other distributions may follow.
-
-If your distribution does not offer a package, there is a portable .AppImage file you can download from the releases page. This can be made executable and used directly:
-
-```sh
-chmod +x Vipster-Linux-x86_64.AppImage
-./Vipster-Linux-x86_64.AppImage
-```
 
 ## Build from source
 
-In order to compile Vipster, you need a working [CMake (>= 3.14)](https://cmake.org) installation.
-
-Your C++ compiler should support C++17.
-Vipster is tested against GCC (>=8) and Clang (>=4).
-So far, MSVC is not supported, please use MinGW (>=9) if you are on Windows (see e.g. [MSYS2](https://www.msys2.org)).
+In order to compile Vipster, you need a working [CMake (>= 3.24)](https://cmake.org) installation.
+A C++ compiler with good C++17 support is required. At minimum, this could be GCC >= 8, Clang >= 4, MinGW >= 9 or MSVC >= 2017.
 
 ### Dependencies
 
-*QtVipster* requires Qt in version >=5.10.
+*Vipster* requires Qt in version >=5.10.
 For building from source, the Qt header files are required.
 On Windows, they are included with the default installation.
 On Linux, you may be required to install an additional package, e.g. `qtbase5-dev` or `qt6-base-dev` on Ubuntu.
@@ -94,12 +88,12 @@ List of common/vipster options, see [CMake documentation](https://cmake.org/cmak
 
 - CMAKE_BUILD_TYPE: General compilation preset, set to "Release" for a regular optimized build or "Debug" for debug flags
 - CMAKE_INSTALL_PREFIX: Set install path, defaults to `/usr/local`. Common setting for a per-user install: `$HOME/.local`
-- VIPSTER_DESKTOP: Set to "ON" to build QtVipster, "OFF" otherwise (default if Qt is found)
-- VIPSTER_LAMMPS: Set to "ON" to enable embedded LAMMPS widget (depends on QtVipster).
+- VIPSTER_DESKTOP: Set to "ON" to build the Vipster desktop GUI, "OFF" otherwise (default if Qt is found)
+- VIPSTER_LAMMPS: Set to "ON" to enable embedded LAMMPS widget (depends on desktop Vipster).
                   Will use a suitable installation if found, else will build it in-tree.
                   See the [LAMMPS-Manual](https://lammps.sandia.gov/doc/Manual.html) for more information and configuration options.
-- VIPSTER_PYWIDGET: Set to "ON" to enable embedded Python widget (depends on QtVipster, defaults to "ON" if Python is found)
-- VIPSTER_DOWNLOAD_DEPENDENCIES: Set to "OFF" to disable automatic git submodule initialization
+- VIPSTER_PYWIDGET: Set to "ON" to enable embedded Python widget (depends on desktop Vipster, defaults to "ON" if Python is found)
+- VIPSTER_DOWNLOAD_DEPENDENCIES: Set to "OFF" to disable etching of vendored dependencies. (For building OS packages)
 - BUILD_TESTING: Set to "OFF" to disable testing ("ON" by default)
 - CMAKE_PREFIX_PATH: Set to path for your Qt installation if not found automatically
 
@@ -118,7 +112,11 @@ python setup.py install --user # will install into your home directory
 python setup.py bdist_wheel # will create a .wheel file for distribution
 ```
 
-#### For package maintainers
+### For package maintainers
+
+For ease of use, Vipster defaults to obtaining vendored dependencies.
+If this is not wanted, please set `VIPSTER_DOWNLOAD_DEPENDENCIES` to `OFF`.
+Note that this requires manually providing the `tinyexpr` dependency.
 
 Installation via `setup.py` or `pip` will provide a statically linked library.
 To get bindings that dynamically link to a system-wide installation,
