@@ -398,9 +398,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
         if((at1.first == at2.first) && (off_l == DiffVec{0,0,0}))
             break;
         const auto& bonds = curStep->getBonds();
-        // if bond is already present, delete it and return
+        // update Step
         // TODO: this assumes viewport is active -> use viewport over vApp?
         vApp.invokeOnStep([&](Step &s){
+            // if bond is already present, delete it and return
             for(size_t i=0; i<bonds.size(); ++i){
                 const auto& b = bonds[i];
                 if(((b.at1 == at1.first) && (b.at2 == at2.first) && (b.diff == off_r)) ||
@@ -409,10 +410,6 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
                     return;
                 }
             }
-        });
-        // create new bond
-        // TODO: this assumes viewport is active -> use viewport over vApp?
-        vApp.invokeOnStep([&](Step &s){
             s.addBond(at1.first, at2.first, off_r);
         });
         break;

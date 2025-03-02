@@ -34,6 +34,18 @@ MainWindow::MainWindow(Vipster::ConfigState state, QDir path):
         _instance = this;
     }
 
+    // global event handlers
+
+    // Ensure bonds and overlap information is up to date
+    // NOTE: should be FIRST slot connected to this signal to ensure bond state is up2date everywhere else!
+    auto updateBonds = [&](const Step &step){
+        if (getState(step).automatic_bonds ||
+            _config.settings.overlap.val) {
+            const_cast<Step&>(step).generateBonds(!getState(step).automatic_bonds);
+        }
+    };
+    connect(this, &MainWindow::stepChanged, this, updateBonds);
+
     // set up GUI
     setWindowIcon(QIcon{":/images/vipster.png"});
     setupFileMenu();
@@ -42,17 +54,6 @@ MainWindow::MainWindow(Vipster::ConfigState state, QDir path):
     setupMainWidgets();
     setupToolWidgets();
     setupViewports();
-
-    // global event handlers
-
-    // Ensure bonds and overlap information is up to date
-    auto updateBonds = [&](const Step &step){
-        if (getState(step).automatic_bonds ||
-            _config.settings.overlap.val) {
-            const_cast<Step&>(step).generateBonds(!getState(step).automatic_bonds);
-        }
-    };
-    connect(this, &MainWindow::stepChanged, this, updateBonds);
 }
 
 /********************************
@@ -200,9 +201,14 @@ MainWindow::StepState& MainWindow::getState(const Step &step)
 {
     // initialize state if required
     if (stepdata.find(&step) == stepdata.end()) {
+        // when bonds are present (e.g. in file), use manual mode
+        auto automatic_bonds = step.getBonds().empty();
+        // else, ensure automatic bonds are available from the start
+        if (automatic_bonds) {
+            const_cast<Step&>(step).generateBonds();
+        }
         stepdata.emplace(&step, StepState{
-            // when bonds are present (e.g. in file), use manual mode
-            step.getBonds().empty(),
+            automatic_bonds,
             // default formatter is passthrough
             const_cast<Step&>(step).asFmt(step.getFmt())
         });
