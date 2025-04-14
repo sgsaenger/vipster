@@ -19,7 +19,7 @@ set(tinyexpr_REPOSITORY https://github.com/codeplea/tinyexpr)
 # users:   library
 # license: MIT
 set(nlohmann_json_VERSION 3.11.2)
-set(nlohmann_json_TAG v3.11.2)
+set(nlohmann_json_TAG v3.12.0)
 set(nlohmann_json_REPOSITORY https://github.com/nlohmann/json)
 
 # library: {fmt}
@@ -43,7 +43,7 @@ set(pybind11_REPOSITORY https://github.com/pybind/pybind11)
 # users:   GUI
 # license: BSD
 set(CLI11_VERSION 2.2.0)
-set(CLI11_TAG v2.4.2)
+set(CLI11_TAG v2.5.0)
 set(CLI11_REPOSITORY https://github.com/CLIUtils/CLI11)
 
 # library: Catch2
@@ -51,7 +51,7 @@ set(CLI11_REPOSITORY https://github.com/CLIUtils/CLI11)
 # users:   tests
 # license: Boost
 set(Catch2_VERSION 3.0.0)
-set(Catch2_TAG v3.7.1)
+set(Catch2_TAG v3.8.1)
 set(Catch2_REPOSITORY https://github.com/catchorg/Catch2)
 
 # library: LAMMPS
