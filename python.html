@@ -36,7 +36,9 @@
 <li><a href="#Dihedral">Class: Dihedral</a></li>
 <li><a href="#Element">Class: Element</a></li>
 <li><a href="#Fmt">Class: Fmt</a></li>
+<li><a href="#ItemsView">Class: ItemsView</a></li>
 <li><a href="#KPoints">Class: KPoints</a></li>
+<li><a href="#KeysView">Class: KeysView</a></li>
 <li><a href="#Mat">Class: Mat</a></li>
 <li><a href="#Molecule">Class: Molecule</a></li>
 <li><a href="#Overlap">Class: Overlap</a></li>
@@ -46,6 +48,7 @@
 <li><a href="#Presets">Variable: Presets</a></li>
 <li><a href="#Properties">Class: Properties</a></li>
 <li><a href="#Step">Class: Step</a></li>
+<li><a href="#ValuesView">Class: ValuesView</a></li>
 <li><a href="#Vec">Class: Vec</a></li>
 <li><a href="#readFile">Function: readFile</a></li>
 <li><a href="#writeFile">Function: writeFile</a></li>
@@ -752,7 +755,7 @@
         
             
             
-            <code>name(self: handle) -&gt; str</code>
+            <code>name(self: object, /) -&gt; str</code>
             
             <br>
             
@@ -760,7 +763,21 @@
         
     </div>
 
+    <div class="content-text highlight highlight-nested">
+        <a class="anchor" id="value"></a>
+        <h3>Property: value</h3>
+        
+        
+    </div>
 
+
+        
+    </div>
+
+    <div class="content-text highlight">
+        <a class="anchor" id="ItemsView"></a>
+        <h2>Class: ItemsView</h2>
+        
         
     </div>
 
@@ -903,7 +920,7 @@
             <br>
             
             
-            2. extend(self: vipster.KPoints.Discrete.Points, L: Iterable) -&gt; None
+            2. extend(self: vipster.KPoints.Discrete.Points, L: collections.abc.Iterable) -&gt; None
             
             <br>
             
@@ -927,7 +944,7 @@
         
             
             
-            <code>insert(self: vipster.KPoints.Discrete.Points, i: int, x: vipster.KPoints.Discrete.Point) -&gt; None</code>
+            <code>insert(self: vipster.KPoints.Discrete.Points, i: typing.SupportsInt, x: vipster.KPoints.Discrete.Point) -&gt; None</code>
             
             <br>
             
@@ -986,7 +1003,7 @@
             <br>
             
             
-            2. pop(self: vipster.KPoints.Discrete.Points, i: int) -&gt; vipster.KPoints.Discrete.Point
+            2. pop(self: vipster.KPoints.Discrete.Points, i: typing.SupportsInt) -&gt; vipster.KPoints.Discrete.Point
             
             <br>
             
@@ -1231,7 +1248,7 @@
         
             
             
-            <code>name(self: handle) -&gt; str</code>
+            <code>name(self: object, /) -&gt; str</code>
             
             <br>
             
@@ -1289,6 +1306,13 @@
             
             <br>
             
+        
+        
+    </div>
+
+    <div class="content-text highlight highlight-nested">
+        <a class="anchor" id="value"></a>
+        <h5>Property: value</h5>
         
         
     </div>
@@ -1498,10 +1522,17 @@
         
             
             
-            <code>name(self: handle) -&gt; str</code>
+            <code>name(self: object, /) -&gt; str</code>
             
             <br>
             
+        
+        
+    </div>
+
+    <div class="content-text highlight">
+        <a class="anchor" id="value"></a>
+        <h4>Property: value</h4>
         
         
     </div>
@@ -1586,6 +1617,13 @@
     </div>
 
 
+        
+    </div>
+
+    <div class="content-text highlight">
+        <a class="anchor" id="KeysView"></a>
+        <h2>Class: KeysView</h2>
+        
         
     </div>
 
@@ -2150,10 +2188,17 @@
         
             
             
-            <code>name(self: handle) -&gt; str</code>
+            <code>name(self: object, /) -&gt; str</code>
             
             <br>
             
+        
+        
+    </div>
+
+    <div class="content-text highlight">
+        <a class="anchor" id="value"></a>
+        <h4>Property: value</h4>
         
         
     </div>
@@ -2255,7 +2300,7 @@
         
             
             
-            <code>delAtom(self: vipster.Step, i: int) -&gt; None</code>
+            <code>delAtom(self: vipster.Step, i: typing.SupportsInt) -&gt; None</code>
             
             <br>
             
@@ -2280,6 +2325,20 @@
     <div class="content-text highlight highlight-nested">
         <a class="anchor" id="fmt"></a>
         <h3>Property: fmt</h3>
+        
+        
+    </div>
+
+    <div class="content-text highlight highlight-nested">
+        <a class="anchor" id="generateBonds"></a>
+        <h3>Function: generateBonds</h3>
+        
+            
+            
+            <code>generateBonds(self: vipster.Step, overlap_only: bool = False) -&gt; None</code>
+            
+            <br>
+            
         
         
     </div>
@@ -2413,7 +2472,7 @@
         
             
             
-            <code>getTopology(self: vipster.Step, angles: bool = True, dihedrals: bool = True, impropers: bool = True) -&gt; Tuple[vipster.__AngleVector__, vipster.__DihedralVector__, vipster.__DihedralVector__]</code>
+            <code>getTopology(self: vipster.Step, angles: bool = True, dihedrals: bool = True, impropers: bool = True) -&gt; tuple[vipster.__AngleVector__, vipster.__DihedralVector__, vipster.__DihedralVector__]</code>
             
             <br>
             
@@ -2448,7 +2507,7 @@
         
             
             
-            <code>modAlign(self: vipster.Step, step_dir: int, target_dir: int) -&gt; None</code>
+            <code>modAlign(self: vipster.Step, step_dir: typing.SupportsInt, target_dir: typing.SupportsInt) -&gt; None</code>
             
             <br>
             
@@ -2490,7 +2549,7 @@
         
             
             
-            <code>modMultiply(self: vipster.Step, x: int, y: int, z: int) -&gt; None</code>
+            <code>modMultiply(self: vipster.Step, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt) -&gt; None</code>
             
             <br>
             
@@ -2504,7 +2563,7 @@
         
             
             
-            <code>modReshape(self: vipster.Step, newMat: vipster.Mat, newCdm: float, cdmFmt: vipster.Fmt) -&gt; None</code>
+            <code>modReshape(self: vipster.Step, newMat: vipster.Mat, newCdm: typing.SupportsFloat, cdmFmt: vipster.Fmt) -&gt; None</code>
             
             <br>
             
@@ -2518,7 +2577,7 @@
         
             
             
-            <code>modRotate(self: vipster.Step, angle: float, axis: vipster.Vec, shift: vipster.Vec = Vec[0.0, 0.0, 0.0]) -&gt; None</code>
+            <code>modRotate(self: vipster.Step, angle: typing.SupportsFloat, axis: vipster.Vec, shift: vipster.Vec = Vec[0.0, 0.0, 0.0]) -&gt; None</code>
             
             <br>
             
@@ -2532,7 +2591,7 @@
         
             
             
-            <code>modShift(self: vipster.Step, shift: vipster.Vec, factor: float = 1.0) -&gt; None</code>
+            <code>modShift(self: vipster.Step, shift: vipster.Vec, factor: typing.SupportsFloat = 1.0) -&gt; None</code>
             
             <br>
             
@@ -2582,7 +2641,7 @@
             <br>
             
             
-            1. newAtom(self: vipster.Step, name: str = &#39;&#39;, coord: vipster.Vec = Vec[0.0, 0.0, 0.0], properties: vipster.Properties = &lt;vipster.Properties object at 0x7fb4b1ba34b0&gt;) -&gt; None
+            1. newAtom(self: vipster.Step, name: str = &#39;&#39;, coord: vipster.Vec = Vec[0.0, 0.0, 0.0], properties: vipster.Properties = &lt;vipster.Properties object at 0x7f1a583ea2b0&gt;) -&gt; None
             
             <br>
             
@@ -2651,7 +2710,7 @@
             <br>
             
             
-            1. newAtoms(self: vipster.Step, i: int) -&gt; None
+            1. newAtoms(self: vipster.Step, i: typing.SupportsInt) -&gt; None
             
             <br>
             
@@ -2721,26 +2780,12 @@
     </div>
 
     <div class="content-text highlight highlight-nested">
-        <a class="anchor" id="setBonds"></a>
-        <h3>Function: setBonds</h3>
-        
-            
-            
-            <code>setBonds(self: vipster.Step, overlap_only: bool = False) -&gt; None</code>
-            
-            <br>
-            
-        
-        
-    </div>
-
-    <div class="content-text highlight highlight-nested">
         <a class="anchor" id="setCellDim"></a>
         <h3>Function: setCellDim</h3>
         
             
             
-            <code>setCellDim(self: vipster.Step, cdm: float, fmt: vipster.Fmt, scale: bool = False) -&gt; None</code>
+            <code>setCellDim(self: vipster.Step, cdm: typing.SupportsFloat, fmt: vipster.Fmt, scale: bool = False) -&gt; None</code>
             
             <br>
             
@@ -2777,6 +2822,13 @@
     </div>
 
 
+        
+    </div>
+
+    <div class="content-text highlight">
+        <a class="anchor" id="ValuesView"></a>
+        <h2>Class: ValuesView</h2>
+        
         
     </div>
 
@@ -2855,7 +2907,7 @@
             <br>
             
             
-            1. readFile(filename: str) -&gt; Tuple[vipster.Molecule, Optional[Vipster::Parameter], List[vipster.__BaseData]]
+            1. readFile(filename: str) -&gt; Vipster::IOTuple
             
             <br>
             
@@ -2865,7 +2917,7 @@
             <br>
             
             
-            2. readFile(filename: str, format: Vipster::Plugin) -&gt; Tuple[vipster.Molecule, Optional[Vipster::Parameter], List[vipster.__BaseData]]
+            2. readFile(filename: str, format: Vipster::Plugin) -&gt; Vipster::IOTuple
             
             <br>
             
@@ -2879,7 +2931,7 @@
         
             
             
-            <code>writeFile(filename: str, format: Vipster::Plugin, molecule: vipster.Molecule, index: Optional[int] = None, param: Optional[Vipster::Parameter] = None, config: Optional[Vipster::Preset] = None) -&gt; bool</code>
+            <code>writeFile(filename: str, format: Vipster::Plugin, molecule: vipster.Molecule, index: typing.SupportsInt | None = None, param: Vipster::Parameter | None = None, config: Vipster::Preset | None = None) -&gt; bool</code>
             
             <br>
             
@@ -2893,7 +2945,7 @@
         
             
             
-            <code>writeString(format: Vipster::Plugin, molecule: vipster.Molecule, index: Optional[int] = None, param: Optional[Vipster::Parameter] = None, config: Optional[Vipster::Preset] = None) -&gt; str</code>
+            <code>writeString(format: Vipster::Plugin, molecule: vipster.Molecule, index: typing.SupportsInt | None = None, param: Vipster::Parameter | None = None, config: Vipster::Preset | None = None) -&gt; str</code>
             
             <br>
             
