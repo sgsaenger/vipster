@@ -326,7 +326,7 @@ Module().then(function (Module) {
         const reader = new FileReader();
 
         reader.onload = (e) => {
-            Module.FS.createDataFile('/tmp', Module.file.name, e.target.result, true);
+            Module.FS_createDataFile('/tmp', Module.file.name, e.target.result, true);
             try{
                 Module.molecules.push(new Module.Molecule('/tmp/'+Module.file.name, parseInt(dom.fileType.value)));
             }catch(err){
@@ -336,7 +336,7 @@ Module().then(function (Module) {
                 }
                 return false;
             }
-            Module.FS.unlink('/tmp/'+Module.file.name);
+            Module.FS_unlink('/tmp/'+Module.file.name);
 
             // noinspection JSCheckFunctionSignatures
             const idx = Module.molecules.length - 1;
@@ -369,8 +369,8 @@ Module().then(function (Module) {
             }
             return false;
         }
-        var data = Module.FS.readFile('/tmp/output.file');
-        Module.FS.unlink('/tmp/output.file');
+        var data = Module.FS_readFile('/tmp/output.file');
+        Module.FS_unlink('/tmp/output.file');
         var blob = new Blob([data.buffer], {type: "text/plain"});
         var url = window.URL.createObjectURL(blob);
         this.href = url;
