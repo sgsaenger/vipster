@@ -25,6 +25,11 @@
         <binary>vipster</binary>
     </provides>
     <releases>
+        <release version="1.20.1" date="2026-05-29">
+            <description>
+                <p>Fix bond generation, update runtime</p>
+            </description>
+        </release>
         <release version="1.20.0" date="2024-12-01">
             <description>
                 <p>First "public" beta with basic features in place</p>
